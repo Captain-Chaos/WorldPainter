@@ -33,7 +33,7 @@ public abstract class PostProcessor {
      * threw an {@code OperationCancelled} exception.
      */
     public void postProcess(MinecraftWorld minecraftWorld, Rectangle area, ExportSettings exportSettings, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-        postProcess(minecraftWorld, new Box(area.x, area.x + area.width, area.y, area.y + area.height, 0, minecraftWorld.getMaxHeight()), exportSettings, progressReceiver);
+        postProcess(minecraftWorld, new Box(area.x, area.x + area.width, area.y, area.y + area.height, minecraftWorld.getMinHeight(), minecraftWorld.getMaxHeight()), exportSettings, progressReceiver);
     }
 
     /**
@@ -53,8 +53,9 @@ public abstract class PostProcessor {
     public abstract void postProcess(MinecraftWorld minecraftWorld, Box volume, ExportSettings exportSettings, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled;
 
     protected void dropBlock(MinecraftWorld world, int x, int y, int z) {
+        final int minZ = world.getMinHeight();
         int solidFloor = z - 1;
-        for (; solidFloor > 0; solidFloor--) {
+        for (; solidFloor > minZ; solidFloor--) {
             Material material = world.getMaterialAt(x, y, solidFloor);
             if (material.insubstantial) {
                 // Remove insubstantial blocks (as the falling block would have
@@ -64,7 +65,7 @@ public abstract class PostProcessor {
                 break;
             }
         }
-        if (solidFloor < 0) {
+        if (solidFloor < minZ) {
             // The block would have fallen into the void, so just remove it
             world.setMaterialAt(x, y, z, AIR);
         } else if (solidFloor < z - 1) {
@@ -75,9 +76,10 @@ public abstract class PostProcessor {
     }
 
     protected void dropFluid(MinecraftWorld world, int x, int y, int z) {
-        boolean lava = world.getMaterialAt(x, y, z).isNamed(MC_LAVA);
+        final int minZ = world.getMinHeight();
+        final boolean lava = world.getMaterialAt(x, y, z).isNamed(MC_LAVA);
         int solidFloor = z - 1;
-        for (; solidFloor > 0; solidFloor--) {
+        for (; solidFloor > minZ; solidFloor--) {
             Material material = world.getMaterialAt(x, y, solidFloor);
             if (material == AIR || (material.insubstantial && material.isNotNamed(lava ? MC_LAVA : MC_WATER))) {
                 world.setMaterialAt(x, y, solidFloor, lava ? STATIONARY_LAVA : STATIONARY_WATER);
@@ -85,7 +87,7 @@ public abstract class PostProcessor {
                 break;
             }
         }
-        if ((solidFloor >= 0) && (solidFloor < (z - 1))) {
+        if ((solidFloor >= minZ) && (solidFloor < (z - 1))) {
             if (world.getMaterialAt(x, y, solidFloor).isNamedOneOf(MC_GRASS_BLOCK, MC_MYCELIUM, MC_FARMLAND)) {
                 world.setMaterialAt(x, y, solidFloor, DIRT);
             }

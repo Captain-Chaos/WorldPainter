@@ -37,6 +37,11 @@ public class MemoryChunk implements Chunk, MinecraftWorld, Serializable {
     }
 
     @Override
+    public int getMinHeight() {
+        throw new UnsupportedOperationException("TODO"); // TODOMC118
+    }
+
+    @Override
     public int getMaxHeight() {
         return maxHeight;
     }
@@ -177,6 +182,8 @@ public class MemoryChunk implements Chunk, MinecraftWorld, Serializable {
         return biomes3d != null;
     }
 
+    // TODOMC118: named biomes
+
     @Override
     public int getBiome(int x, int z) {
         return biomes[x + z * 16] & 0xFF;
@@ -298,7 +305,7 @@ public class MemoryChunk implements Chunk, MinecraftWorld, Serializable {
                 }
             }
         }
-        return -1;
+        return Integer.MIN_VALUE;
     }
 
     @Override
@@ -313,7 +320,7 @@ public class MemoryChunk implements Chunk, MinecraftWorld, Serializable {
                 }
             }
         }
-        return -1;
+        return Integer.MIN_VALUE;
     }
 
     // MinecraftWorld

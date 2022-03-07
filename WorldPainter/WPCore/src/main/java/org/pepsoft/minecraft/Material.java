@@ -1745,6 +1745,20 @@ public final class Material implements Serializable {
      * Sweet Berry Bush with age 0. For older Sweet Berry Bush, set the "age" property up to 3.
      */
     public static final Material SWEET_BERRY_BUSH = get(MC_SWEET_BERRY_BUSH, MC_AGE, 0);
+    public static final Material OAK_SIGN = get(MC_OAK_SIGN);
+    public static final Material DEEPSLATE_Y = get(MC_DEEPSLATE, MC_AXIS, "y");
+    public static final Material DEEPSLATE_COAL_ORE = get(MC_DEEPSLATE_COAL_ORE);
+    public static final Material DEEPSLATE_COPPER_ORE = get(MC_DEEPSLATE_COPPER_ORE);
+    public static final Material DEEPSLATE_LAPIS_ORE = get(MC_DEEPSLATE_LAPIS_ORE);
+    public static final Material DEEPSLATE_IRON_ORE = get(MC_DEEPSLATE_IRON_ORE);
+    public static final Material DEEPSLATE_GOLD_ORE = get(MC_DEEPSLATE_GOLD_ORE);
+    public static final Material DEEPSLATE_REDSTONE_ORE = get(MC_DEEPSLATE_REDSTONE_ORE);
+    public static final Material DEEPSLATE_DIAMOND_ORE = get(MC_DEEPSLATE_DIAMOND_ORE);
+    public static final Material DEEPSLATE_EMERALD_ORE = get(MC_DEEPSLATE_EMERALD_ORE);
+    public static final Material TUFF = get(MC_TUFF);
+    public static final Material COPPER_ORE = get(MC_COPPER_ORE);
+    public static final Material NETHER_GOLD_ORE = get(MC_NETHER_GOLD_ORE);
+    public static final Material ANCIENT_DEBRIS = get(MC_ANCIENT_DEBRIS);
 
     // Namespaces
 

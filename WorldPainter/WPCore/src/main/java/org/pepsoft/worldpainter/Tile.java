@@ -32,15 +32,16 @@ import static org.pepsoft.worldpainter.layers.Layer.DataSize.NIBBLE;
  * @author pepijn
  */
 public class Tile extends InstanceKeeper implements Serializable, UndoListener, Cloneable {
-    public Tile(int x, int y, int maxHeight) {
-        this(x, y, maxHeight, true);
+    public Tile(int x, int y, int minHeight, int maxHeight) {
+        this(x, y, minHeight, maxHeight, true);
     }
 
-    protected Tile(int x, int y, int maxHeight, boolean init) {
+    protected Tile(int x, int y, int minHeight, int maxHeight, boolean init) {
         this.x = x;
         this.y = y;
+        this.minHeight = minHeight;
         this.maxHeight = maxHeight;
-        if (maxHeight > 256) {
+        if ((maxHeight - minHeight) > 256) {
             tall = true;
         }
         if (init) {
@@ -66,6 +67,12 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         return y;
     }
 
+    public int getMinHeight() {
+        return minHeight;
+    }
+
+    // TODOMC118: allow changing minHeight?
+
     public synchronized int getMaxHeight() {
         return maxHeight;
     }
@@ -74,7 +81,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         if (maxHeight != this.maxHeight) {
             this.maxHeight = maxHeight;
             maxY = maxHeight - 1;
-            boolean newTall = maxHeight > 256;
+            boolean newTall = (maxHeight - minHeight) > 256;
             if (newTall == tall) {
                 // Tallness is not changing
                 if (! heightTransform.isIdentity()) {
@@ -107,8 +114,8 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                 tall = false;
                 for (int x = 0; x < TILE_SIZE; x++) {
                     for (int y = 0; y < TILE_SIZE; y++) {
-                        setHeight(x, y, clamp(heightTransform.transformHeight(tallHeightMap[x | (y << TILE_SIZE_BITS)] / 256f)));
-                        setWaterLevel(x, y, clamp(heightTransform.transformHeight(tallWaterLevel[x | (y << TILE_SIZE_BITS)])));
+                        setHeight(x, y, clamp(heightTransform.transformHeight(tallHeightMap[x | (y << TILE_SIZE_BITS)] / 256f + minHeight)));
+                        setWaterLevel(x, y, clamp(heightTransform.transformHeight(tallWaterLevel[x | (y << TILE_SIZE_BITS)] + minHeight)));
                     }
                 }
                 if (undoManager != null) {
@@ -136,8 +143,8 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                 tall = true;
                 for (int x = 0; x < TILE_SIZE; x++) {
                     for (int y = 0; y < TILE_SIZE; y++) {
-                        setHeight(x, y, clamp(heightTransform.transformHeight((heightMap[x | (y << TILE_SIZE_BITS)] & 0xFFFF) / 256f)));
-                        setWaterLevel(x, y, clamp(heightTransform.transformHeight(waterLevel[x | (y << TILE_SIZE_BITS)] & 0xFF)));
+                        setHeight(x, y, clamp(heightTransform.transformHeight((heightMap[x | (y << TILE_SIZE_BITS)] & 0xFFFF) / 256f + minHeight)));
+                        setWaterLevel(x, y, clamp(heightTransform.transformHeight((waterLevel[x | (y << TILE_SIZE_BITS)] & 0xFF) + minHeight)));
                     }
                 }
                 if (undoManager != null) {
@@ -172,34 +179,42 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
     public synchronized float getHeight(int x, int y) {
         if (tall) {
             ensureReadable(TALL_HEIGHTMAP);
-            return tallHeightMap[x | (y << TILE_SIZE_BITS)] / 256f;
+            return tallHeightMap[x | (y << TILE_SIZE_BITS)] / 256f + minHeight;
         } else {
             ensureReadable(HEIGHTMAP);
-            return (heightMap[x | (y << TILE_SIZE_BITS)] & 0xFFFF) / 256f;
+            return (heightMap[x | (y << TILE_SIZE_BITS)] & 0xFFFF) / 256f + minHeight;
         }
     }
 
     public synchronized void setHeight(int x, int y, float height) {
         if (tall) {
             ensureWriteable(TALL_HEIGHTMAP);
-            tallHeightMap[x | (y << TILE_SIZE_BITS)] = (int) (height * 256);
+            tallHeightMap[x | (y << TILE_SIZE_BITS)] = (int) ((height - minHeight) * 256);
         } else {
             ensureWriteable(HEIGHTMAP);
-            heightMap[x | (y << TILE_SIZE_BITS)] = (short) (height * 256);
+            heightMap[x | (y << TILE_SIZE_BITS)] = (short) ((height - minHeight) * 256);
         }
         heightMapChanged();
     }
 
+    /**
+     * Get the raw height value. This is the height times 256 (for added precision) and zero-based rather than adjusted
+     * for {@code minHeight}.
+     */
     public synchronized int getRawHeight(int x, int y) {
         if (tall) {
             ensureReadable(TALL_HEIGHTMAP);
             return tallHeightMap[x | (y << TILE_SIZE_BITS)];
         } else {
             ensureReadable(HEIGHTMAP);
-            return heightMap[x | (y << TILE_SIZE_BITS)] & 0xFFFF;
+            return (heightMap[x | (y << TILE_SIZE_BITS)] & 0xFFFF);
         }
     }
 
+    /**
+     * Set the raw height value. This is the height times 256 (for added precision) and zero-based rather than adjusted
+     * for {@code minHeight}.
+     */
     public synchronized void setRawHeight(int x, int y, int rawHeight) {
         if (tall) {
             ensureWriteable(TALL_HEIGHTMAP);
@@ -247,20 +262,20 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
     public synchronized int getWaterLevel(int x, int y) {
         if (tall) {
             ensureReadable(TALL_WATERLEVEL);
-            return tallWaterLevel[x | (y << TILE_SIZE_BITS)];
+            return tallWaterLevel[x | (y << TILE_SIZE_BITS)] + minHeight;
         } else {
             ensureReadable(WATERLEVEL);
-            return waterLevel[x | (y << TILE_SIZE_BITS)] & 0xFF;
+            return (waterLevel[x | (y << TILE_SIZE_BITS)] & 0xFF) + minHeight;
         }
     }
 
     public synchronized void setWaterLevel(int x, int y, int waterLevel) {
         if (tall) {
             ensureWriteable(TALL_WATERLEVEL);
-            this.tallWaterLevel[x | (y << TILE_SIZE_BITS)] = (short) waterLevel;
+            this.tallWaterLevel[x | (y << TILE_SIZE_BITS)] = (short) (waterLevel - minHeight);
         } else {
             ensureWriteable(WATERLEVEL);
-            this.waterLevel[x | (y << TILE_SIZE_BITS)] = (byte) waterLevel;
+            this.waterLevel[x | (y << TILE_SIZE_BITS)] = (byte) (waterLevel - minHeight);
         }
         waterLevelChanged();
     }
@@ -941,7 +956,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         Tile transformedTile;
         boolean transformContents = ((transformedCoords.x & TILE_SIZE_MASK) != 0) || ((transformedCoords.y & TILE_SIZE_MASK) != 0);
         if (transformContents) {
-            transformedTile = new Tile(transformedCoords.x >> TILE_SIZE_BITS, transformedCoords.y >> TILE_SIZE_BITS, maxHeight);
+            transformedTile = new Tile(transformedCoords.x >> TILE_SIZE_BITS, transformedCoords.y >> TILE_SIZE_BITS, minHeight, maxHeight);
             for (int x = 0; x < TILE_SIZE; x++) {
                 for (int y = 0; y < TILE_SIZE; y++) {
                     transformedCoords.x = x;
@@ -986,7 +1001,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
             }
         } else {
             // The transformation does not affect intra-tile coordinates, so just copy the buffers without transforming them
-            transformedTile = new Tile(transformedCoords.x >> TILE_SIZE_BITS, transformedCoords.y >> TILE_SIZE_BITS, maxHeight, false);
+            transformedTile = new Tile(transformedCoords.x >> TILE_SIZE_BITS, transformedCoords.y >> TILE_SIZE_BITS, minHeight, maxHeight, false);
             transformedTile.heightMap = copyObject(heightMap);
             transformedTile.tallHeightMap = copyObject(tallHeightMap);
             transformedTile.terrain = terrain.clone();
@@ -1006,8 +1021,9 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         return transformedTile;
     }
     
-    public boolean repair(int maxHeight, PrintStream out) {
+    public boolean repair(int minHeight, int maxHeight, PrintStream out) {
         // Repair as much as possible if the tile was not read in completely
+        this.minHeight = minHeight;
         this.maxHeight = maxHeight;
         maxY = maxHeight - 1;
         if (maxHeight > 256) {
@@ -1413,8 +1429,8 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
     }
     
     private float clamp(float level) {
-        if (level < 0.0f) {
-            return 0.0f;
+        if (level < minHeight) {
+            return minHeight;
         } else if (level > maxY) {
             return maxY;
         } else {
@@ -1423,8 +1439,8 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
     }
     
     private int clamp(int level) {
-        if (level < 0) {
-            return 0;
+        if (level < minHeight) {
+            return minHeight;
         } else if (level > maxY) {
             return maxY;
         } else {
@@ -1507,7 +1523,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
     }
 
     private final int x, y;
-    private int maxHeight;
+    private int minHeight, maxHeight;
     private boolean tall;
     protected short[] heightMap;
     protected int[] tallHeightMap;
@@ -1562,8 +1578,8 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         @Override
         public boolean equals(Object obj) {
             return (obj instanceof TileUndoBufferKey)
-                && (tile == ((TileUndoBufferKey) obj).tile)
-                && (buffer == ((TileUndoBufferKey) obj).buffer);
+                && (tile == ((TileUndoBufferKey<?>) obj).tile)
+                && (buffer == ((TileUndoBufferKey<?>) obj).buffer);
         }
 
         @Override

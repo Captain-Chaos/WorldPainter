@@ -63,6 +63,8 @@ public interface MinecraftWorld extends ChunkProvider {
         }
     }
 
+    int getMinHeight();
+
     int getMaxHeight();
 
     void addEntity(int x, int y, int height, Entity entity);
@@ -110,14 +112,13 @@ public interface MinecraftWorld extends ChunkProvider {
     void addChunk(Chunk chunk);
 
     /**
-     * Get the Z coordinate of the highest non-air block in a specific column.
-     * This is allowed to be an approximation, as long as it is the same or
-     * higher than the actual highest non-air block.
+     * Get the Z coordinate of the highest non-air block in a specific column. This is allowed to be an approximation,
+     * as long as it is the same or higher than the actual highest non-air block.
      *
      * @param x The X coordinate of the column.
      * @param y The Y coordinate of the column.
-     * @return The Z coordinate of the highest non-air block in the specified
-     * column or {@code -1} if the column is empty or no data is present
+     * @return The Z coordinate of the highest non-air block in the specified column or {@link Integer#MIN_VALUE} if the
+     * column is empty or no data is present
      * for the specified coordinates.
      */
     int getHighestNonAirBlock(int x, int y);

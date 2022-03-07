@@ -33,8 +33,7 @@ import org.pepsoft.worldpainter.themes.Theme;
 
 import java.util.Random;
 
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 
 /**
  *
@@ -104,7 +103,7 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
         }
         importer.setHeightMap(adjustedHeightMap);
         importer.setImageFile(heightMap.getImageFile());
-        HeightMapTileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, waterLevel, false, true, 20, 1.0);
+        HeightMapTileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, JAVA_ANVIL_1_15.minZ, JAVA_ANVIL_1_15.standardMaxHeight, 58, waterLevel, false, true, 20, 1.0);
         Theme defaults = Configuration.getInstance().getHeightMapDefaultTheme();
         if (defaults != null) {
             tileFactory.setTheme(defaults);
@@ -117,7 +116,7 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
         }
         importer.setName(name);
         // TODO autoselect this and make it configurable:
-        importer.setPlatform(JAVA_ANVIL);
+        importer.setPlatform(JAVA_ANVIL_1_15);
         try {
             return importer.importToNewWorld(null);
         } catch (ProgressReceiver.OperationCancelled e) {

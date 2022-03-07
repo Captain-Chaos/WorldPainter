@@ -32,6 +32,10 @@ public class InvertedWorld implements MinecraftWorld {
         this.world = world;
         this.delta = delta;
         this.platform = platform;
+        minHeight = platform.minZ;
+
+        // TODOMC118: figure out
+
         maxHeight = world.getMaxHeight();
         maxZ = maxHeight - delta - 1;
     }
@@ -82,6 +86,11 @@ public class InvertedWorld implements MinecraftWorld {
         if (height <= maxZ) {
             world.setMaterialAt(x, y, maxZ - height, material.invert(platform));
         }
+    }
+
+    @Override
+    public int getMinHeight() {
+        return minHeight;
     }
 
     @Override
@@ -159,7 +168,7 @@ public class InvertedWorld implements MinecraftWorld {
     }
 
     @Override
-    public int getHighestNonAirBlock(int x, int y) {
+    public int getHighestNonAirBlock(int x, int y) { // TODOMC118 does this work for minHeight < 0?
         int worldHighestNonAirBlock = world.getHighestNonAirBlock(x, y);
         if (worldHighestNonAirBlock >= 0) {
             for (int z = 0; z < worldHighestNonAirBlock; z++) {
@@ -169,7 +178,7 @@ public class InvertedWorld implements MinecraftWorld {
             }
             return maxZ - worldHighestNonAirBlock;
         } else {
-            return -1;
+            return Integer.MIN_VALUE;
         }
     }
 
@@ -195,6 +204,6 @@ public class InvertedWorld implements MinecraftWorld {
     }
 
     private final MinecraftWorld world;
-    private final int maxHeight, maxZ, delta;
+    private final int minHeight, maxHeight, maxZ, delta;
     private final Platform platform;
 }

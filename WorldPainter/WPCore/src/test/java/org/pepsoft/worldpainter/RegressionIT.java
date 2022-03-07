@@ -3,7 +3,7 @@ package org.pepsoft.worldpainter;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.pepsoft.minecraft.ChunkStore;
-import org.pepsoft.minecraft.Level;
+import org.pepsoft.minecraft.JavaLevel;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
@@ -97,7 +97,7 @@ public class RegressionIT {
     }
 
     protected void verifyJavaWorld(File worldDir, int expectedVersion) throws IOException {
-        Level level = Level.load(new File(worldDir, "level.dat"));
+        JavaLevel level = JavaLevel.load(new File(worldDir, "level.dat"));
         assertEquals(expectedVersion, level.getVersion());
     }
 

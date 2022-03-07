@@ -5,7 +5,7 @@
 package org.pepsoft.worldpainter.importing;
 
 import org.pepsoft.minecraft.ChunkStore;
-import org.pepsoft.minecraft.Level;
+import org.pepsoft.minecraft.JavaLevel;
 import org.pepsoft.minecraft.MinecraftCoords;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.FileUtils;
@@ -25,6 +25,8 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileView;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -78,6 +80,13 @@ public class MapImportDialog extends WorldPainterDialog {
         getRootPane().setDefaultButton(buttonOK);
 
         setLocationRelativeTo(app);
+
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                selectDir();
+            }
+        });
     }
 
     public World2 getImportedWorld() {
@@ -122,13 +131,13 @@ public class MapImportDialog extends WorldPainterDialog {
             return;
         }
 
-        Level levelDat = null;
+        JavaLevel levelDat = null;
         if (PlatformManager.DEFAULT_PLATFORMS.contains(platform)) {
             // Extra sanity checks for default platforms
             // Check if it's a valid level.dat file before we commit
             File levelDatFile = new File(worldDir, "level.dat");
             try {
-                levelDat = Level.load(levelDatFile);
+                levelDat = JavaLevel.load(levelDatFile);
             } catch (IOException e) {
                 logger.error("IOException while analysing map " + levelDatFile, e);
                 JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), ERROR_MESSAGE);
@@ -374,7 +383,7 @@ public class MapImportDialog extends WorldPainterDialog {
             }
 
             private final Map<File, MapInfo> mapInfoCache = new Hashtable<>();
-            private final MapInfo NOT_A_MAP = new MapInfo(null, null, null, null);
+            private final MapInfo NOT_A_MAP = new MapInfo(null, null, null, null, -1);
         });
         if (selectedFile != null) {
             fieldFilename.setText(selectedFile.getAbsolutePath());
@@ -404,7 +413,8 @@ public class MapImportDialog extends WorldPainterDialog {
             @Override
             public World2 execute(ProgressReceiver progressReceiver) throws OperationCancelled {
                 try {
-                    int maxHeight, waterLevel;
+                    final int maxHeight, waterLevel;
+                    final Platform platform = mapStatistics.platform;
                     if (mapStatistics.levelDat != null) {
                         maxHeight = mapStatistics.levelDat.getMaxHeight();
                         if (mapStatistics.levelDat.getVersion() == VERSION_MCREGION) {
@@ -413,12 +423,12 @@ public class MapImportDialog extends WorldPainterDialog {
                             waterLevel = 62;
                         }
                     } else {
-                        maxHeight = mapStatistics.platform.maxMaxHeight;
+                        maxHeight = platform.maxMaxHeight;
                         waterLevel = 62;
                     }
-                    int terrainLevel = waterLevel - 4;
-                    TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0, Terrain.GRASS, maxHeight, terrainLevel, waterLevel, false, true, 20, 1.0);
-                    Set<Integer> dimensionsToImport = new HashSet<>(3);
+                    final int terrainLevel = waterLevel - 4;
+                    final TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0, Terrain.GRASS, platform.minZ, maxHeight, terrainLevel, waterLevel, false, true, 20, 1.0);
+                    final Set<Integer> dimensionsToImport = new HashSet<>(3);
                     dimensionsToImport.add(DIM_NORMAL);
                     if (checkBoxImportNether.isSelected()) {
                         dimensionsToImport.add(Constants.DIM_NETHER);
@@ -426,14 +436,14 @@ public class MapImportDialog extends WorldPainterDialog {
                     if (checkBoxImportEnd.isSelected()) {
                         dimensionsToImport.add(Constants.DIM_END);
                     }
-                    final MapImporter importer = ((MapImporterProvider) PlatformManager.getInstance().getPlatformProvider(mapStatistics.platform)).getImporter(mapStatistics.dir, tileFactory, chunksToSkip, readOnlyOption, dimensionsToImport);
-                    World2 world = importer.doImport(progressReceiver);
+                    final MapImporter importer = ((MapImporterProvider) PlatformManager.getInstance().getPlatformProvider(platform)).getImporter(mapStatistics.dir, tileFactory, chunksToSkip, readOnlyOption, dimensionsToImport);
+                    final World2 world = importer.doImport(progressReceiver);
                     if (importer.getWarnings() != null) {
                         try {
                             SwingUtilities.invokeAndWait(() -> {
-                                Icon warningIcon = UIManager.getIcon("OptionPane.warningIcon");
+                                final Icon warningIcon = UIManager.getIcon("OptionPane.warningIcon");
                                 DesktopUtils.beep();
-                                int selectedOption = JOptionPane.showOptionDialog(MapImportDialog.this, strings.getString("the.import.process.generated.warnings"), strings.getString("import.warnings"), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, warningIcon, new Object[] {strings.getString("review.warnings"), strings.getString("ok")}, null);
+                                final int selectedOption = JOptionPane.showOptionDialog(MapImportDialog.this, strings.getString("the.import.process.generated.warnings"), strings.getString("import.warnings"), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, warningIcon, new Object[] {strings.getString("review.warnings"), strings.getString("ok")}, null);
                                 if (selectedOption == 0) {
                                     ImportWarningsDialog warningsDialog = new ImportWarningsDialog(MapImportDialog.this, strings.getString("import.warnings"));
                                     warningsDialog.setWarnings(importer.getWarnings());
@@ -779,7 +789,7 @@ public class MapImportDialog extends WorldPainterDialog {
     static class MapStatistics {
         File dir;
         Platform platform;
-        Level levelDat;
+        JavaLevel levelDat;
         int lowestChunkX = Integer.MAX_VALUE, lowestChunkZ = Integer.MAX_VALUE, highestChunkX = Integer.MIN_VALUE, highestChunkZ = Integer.MIN_VALUE;
         int lowestChunkXNoOutliers = Integer.MAX_VALUE, lowestChunkZNoOutliers = Integer.MAX_VALUE, highestChunkXNoOutliers = Integer.MIN_VALUE, highestChunkZNoOutliers = Integer.MIN_VALUE;
         int chunkCount;

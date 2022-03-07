@@ -1,11 +1,8 @@
 package org.pepsoft.worldpainter.tools;
 
-import org.pepsoft.minecraft.Level;
-import org.pepsoft.minecraft.MC12AnvilChunk;
-import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.*;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.worldpainter.Configuration;
-import org.pepsoft.worldpainter.Generator;
 import org.pepsoft.worldpainter.exporting.JavaMinecraftWorld;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
@@ -61,7 +58,7 @@ public class BlockNameHarvester {
             if (worldDir.isDirectory()) {
                 FileUtils.deleteDir(worldDir);
             }
-            Level level = new Level(DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL);
+            Java117Level level = new Java117Level(DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL);
             level.setSeed(0L);
             level.setName("BlockNames");
             level.setGameType(GAME_TYPE_CREATIVE);
@@ -69,7 +66,7 @@ public class BlockNameHarvester {
             level.setDifficulty(DIFFICULTY_PEACEFUL);
             level.setAllowCommands(true);
             level.setMapFeatures(false);
-            level.setGenerator(Generator.FLAT);
+            level.setGenerator(DIM_NORMAL, new SuperflatGenerator(SuperflatPreset.defaultPreset(JAVA_ANVIL)));
             level.setSpawnX(0);
             level.setSpawnY(5);
             level.setSpawnZ(0);

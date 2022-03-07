@@ -506,6 +506,26 @@ public final class Constants {
     public static final String MC_FLOWING_WATER = "minecraft:flowing_water";
     public static final String MC_FLOWING_LAVA = "minecraft:flowing_lava";
 
+    // MC 1.18 block names
+
+    public static final String MC_OAK_SIGN = "minecraft:oak_sign";
+    public static final String MC_DEEPSLATE = "minecraft:deepslate";
+    public static final String MC_COPPER_ORE = "minecraft:copper_ore";
+    public static final String MC_DEEPSLATE_COAL_ORE = "minecraft:deepslate_coal_ore";
+    public static final String MC_DEEPSLATE_COPPER_ORE = "minecraft:deepslate_copper_ore";
+    public static final String MC_DEEPSLATE_LAPIS_ORE = "minecraft:deepslate_lapis_ore";
+    public static final String MC_DEEPSLATE_IRON_ORE = "minecraft:deepslate_iron_ore";
+    public static final String MC_DEEPSLATE_GOLD_ORE = "minecraft:deepslate_gold_ore";
+    public static final String MC_DEEPSLATE_REDSTONE_ORE = "minecraft:deepslate_redstone_ore";
+    public static final String MC_DEEPSLATE_DIAMOND_ORE = "minecraft:deepslate_diamond_ore";
+    public static final String MC_DEEPSLATE_EMERALD_ORE = "minecraft:deepslate_emerald_ore";
+    public static final String MC_TUFF = "minecraft:tuff";
+    public static final String MC_BASALT = "minecraft:basalt";
+    public static final String MC_BLACKSTONE = "minecraft:blackstone";
+    public static final String MC_SOUL_SOIL = "minecraft:soul_soil";
+    public static final String MC_NETHER_GOLD_ORE = "minecraft:nether_gold_ore";
+    public static final String MC_ANCIENT_DEBRIS = "minecraft:ancient_debris";
+
     // MC 1.15 property names
 
     public static final String MC_SNOWY       = "snowy";
@@ -534,23 +554,22 @@ public final class Constants {
     // initial
 
     public static final String TAG_LEVEL                   = "Level";
-    /** Upper case variant. */
     public static final String TAG_BLOCKS                  = "Blocks";
-    /** Lower case variant. */
     public static final String TAG_BLOCKS_                 = "blocks";
     public static final String TAG_BLOCK_STATES            = "BlockStates";
+    public static final String TAG_BLOCK_STATES_           = "block_states";
     public static final String TAG_DATA                    = "Data";
+    public static final String TAG_DATA_                   = "data";
     public static final String TAG_SKY_LIGHT               = "SkyLight";
     public static final String TAG_BLOCK_LIGHT             = "BlockLight";
     public static final String TAG_HEIGHT_MAP              = "HeightMap";
     public static final String TAG_HEIGHT_MAPS             = "Heightmaps";
-    /** Upper case variant. */
     public static final String TAG_ENTITIES                = "Entities";
-    /** Lower case variant. */
     public static final String TAG_ENTITIES_               = "entities";
     public static final String TAG_TILE_ENTITIES           = "TileEntities";
     public static final String TAG_LAST_UPDATE             = "LastUpdate";
     public static final String TAG_X_POS_                  = "xPos";
+    public static final String TAG_Y_POS_                  = "yPos";
     public static final String TAG_Z_POS_                  = "zPos";
     public static final String TAG_TERRAIN_POPULATED       = "TerrainPopulated";
     public static final String TAG_TIME                    = "Time";
@@ -564,18 +583,12 @@ public final class Constants {
     public static final String TAG_SPAWN_Z                 = "SpawnZ";
     public static final String TAG_SIZE_ON_DISK            = "SizeOnDisk";
     public static final String TAG_RANDOM_SEED             = "RandomSeed";
-    /** Lower case variant. */
     public static final String TAG_VERSION_                = "version";
-    /** Upper case variant. */
     public static final String TAG_VERSION                 = "Version";
     public static final String TAG_LEVEL_NAME              = "LevelName";
-    /** Lower case variant. */
     public static final String TAG_ID_                     = "id";
-    /** Upper case variant. */
     public static final String TAG_ID                      = "Id";
-    /** Upper case variant. */
     public static final String TAG_POS                     = "Pos";
-    /** Lower case variant. */
     public static final String TAG_POS_                    = "pos";
     public static final String TAG_MOTION                  = "Motion";
     public static final String TAG_ROTATION                = "Rotation";
@@ -599,8 +612,10 @@ public final class Constants {
     public static final String TAG_GENERATOR_NAME_         = "generatorName";
     public static final String TAG_Y                       = "Y";
     public static final String TAG_SECTIONS                = "Sections";
+    public static final String TAG_SECTIONS_               = "sections";
     public static final String TAG_ADD                     = "Add";
     public static final String TAG_BIOMES                  = "Biomes";
+    public static final String TAG_BIOMES_                 = "biomes";
     public static final String TAG_GENERATOR_VERSION_      = "generatorVersion";
     public static final String TAG_PROFESSION              = "Profession";
     public static final String TAG_TEXT1                   = "Text1";
@@ -633,9 +648,7 @@ public final class Constants {
     public static final String TAG_UUID_LEAST              = "UUIDLeast";
     public static final String TAG_DATA_VERSION            = "DataVersion";
     public static final String TAG_STATUS                  = "Status";
-    /** Upper case variant. */
     public static final String TAG_PALETTE                 = "Palette";
-    /** Lower case variant. */
     public static final String TAG_PALETTE_                = "palette";
     public static final String TAG_NAME                    = "Name";
     public static final String TAG_PROPERTIES              = "Properties";
@@ -646,6 +659,23 @@ public final class Constants {
     public static final String TAG_P_                      = "p"; // Used in liquid ticks. Unknown purpose. Always seems to be 0
     public static final String TAG_T_                      = "t"; // Used in liquid ticks. Number of ticks before update, or between updates? Seems to always be 2 for water and 13 for lava
     public static final String TAG_I_                      = "i"; // Used in liquid ticks. Some kind of identifier of the liquid. Seems to always be "minecraft:flowing_water" for water and "minecraft:flowing_lava" for lava
+    public static final String TAG_WORLD_GEN_SETTINGS      = "WorldGenSettings";
+    public static final String TAG_DIMENSIONS_             = "dimensions";
+    public static final String TAG_GENERATOR_              = "generator";
+    public static final String TAG_SEED_                   = "seed";
+    public static final String TAG_TYPE_                   = "type";
+    public static final String TAG_GENERATE_FEATURES_      = "generate_features";
+    public static final String TAG_SETTINGS_               = "settings";
+    public static final String TAG_BIOME_SOURCE_           = "biome_source";
+    public static final String TAG_PRESET_                 = "preset";
+    public static final String TAG_BIOME_                  = "biome";
+    public static final String TAG_FEATURES_               = "features";
+    public static final String TAG_LAKES_                  = "lakes";
+    public static final String TAG_LAYERS_                 = "layers";
+    public static final String TAG_BLOCK_                  = "block";
+    public static final String TAG_HEIGHT_                 = "height";
+    public static final String TAG_STRUCTURES_             = "structures";
+    public static final String TAG_STRONGHOLD_             = "stronghold";
 
     /**
      * Possibly unofficial, SpoutCraft-specific
@@ -661,6 +691,7 @@ public final class Constants {
     public static final int DATA_VERSION_MC_1_15   = 2230;
     public static final int DATA_VERSION_MC_1_16_5 = 2586;
     public static final int DATA_VERSION_MC_1_17_1 = 2730;
+    public static final int DATA_VERSION_MC_1_18_0 = 2860;
 
     // Legacy (pre-MC 1.13) block IDs
 
@@ -1027,6 +1058,7 @@ public final class Constants {
     // Tile entity IDs
 
     public static final String ID_CHEST = "minecraft:chest";
+    public static final String ID_SIGN = "minecraft:sign";
 
     // Legacy (pre-MC 1.13) tile entity IDs
 
@@ -1107,7 +1139,8 @@ public final class Constants {
 
     public static final int DEFAULT_MAX_HEIGHT_MCREGION = 128;
     public static final int DEFAULT_MAX_HEIGHT_ANVIL = 256;
-    
+    public static final int DEFAULT_MAX_HEIGHT_1_18 = 320;
+
     public static final int DIFFICULTY_PEACEFUL = 0;
     public static final int DIFFICULTY_EASY     = 1;
     public static final int DIFFICULTY_NORMAL   = 2;
@@ -1116,4 +1149,28 @@ public final class Constants {
     public static final String STATUS_FULL = "full";
     public static final String STATUS_LIQUID_CARVERS = "liquid_carvers";
     public static final String STATUS_STRUCTURE_STARTS = "structure_starts";
+
+    // Minecraft 1.18 dimension names
+
+    public static final String MC_OVERWORLD  = "minecraft:overworld";
+    public static final String MC_THE_END    = "minecraft:the_end";
+    public static final String MC_THE_NETHER = "minecraft:the_nether";
+
+    // Minecraft 1.18 generator types
+
+    public static final String MC_NOISE = "minecraft:noise";
+    public static final String MC_FLAT = "minecraft:flat";
+
+    // Minecraft 1.18 generator setting names
+
+    public static final String MC_LARGE_BIOMES = "minecraft:large_biomes";
+
+    // Minecraft 1.18 biome source types
+
+    public static final String MC_MULTI_NOISE = "minecraft:multi_noise";
+
+    // Datapack names
+
+    public static final String DATAPACK_VANILLA      = "vanilla";
+    public static final String DATAPACK_WORLDPAINTER = "file/worldpainter.zip";
 }

@@ -13,7 +13,7 @@ import org.pepsoft.worldpainter.plugins.PlatformManager;
 import static org.pepsoft.minecraft.Material.BEDROCK;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.BIOME_PLAINS;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.BIOME_PLAINS;
 
 /**
  *

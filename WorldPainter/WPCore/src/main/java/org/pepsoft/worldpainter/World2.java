@@ -7,9 +7,7 @@ package org.pepsoft.worldpainter;
 
 import org.jnbt.CompoundTag;
 import org.jnbt.XMLTransformer;
-import org.pepsoft.minecraft.Direction;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.minecraft.SuperflatPreset;
+import org.pepsoft.minecraft.*;
 import org.pepsoft.util.AttributeKey;
 import org.pepsoft.util.MemoryUtils;
 import org.pepsoft.util.ProgressReceiver;
@@ -29,6 +27,7 @@ import java.util.*;
 import static org.pepsoft.minecraft.Material.WOOL_MAGENTA;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.World2.Warning.MISSING_CUSTOM_TERRAINS;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 
@@ -55,7 +54,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
         this.platform = platform;
         this.maxheight = maxHeight;
-        Dimension dim = new Dimension(this, minecraftSeed, tileFactory, 0, maxHeight);
+        Dimension dim = new Dimension(this, minecraftSeed, tileFactory, 0, platform.minZ, maxHeight);
         addDimension(dim);
     }
     
@@ -241,19 +240,6 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
-    public Generator getGenerator() {
-        return generator;
-    }
-
-    public void setGenerator(Generator generator) {
-        if (generator != this.generator) {
-            Generator oldGenerator = this.generator;
-            this.generator = generator;
-            changeNo++;
-            propertyChangeSupport.firePropertyChange("generator", oldGenerator, generator);
-        }
-    }
-
     public Platform getPlatform() {
         return platform;
     }
@@ -337,19 +323,6 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
-    public String getGeneratorOptions() {
-        return generatorOptions;
-    }
-
-    public void setGeneratorOptions(String generatorOptions) {
-        if ((generatorOptions != null) ? (! generatorOptions.equals(this.generatorOptions)) : (this.generatorOptions != null)) {
-            String oldGeneratorOptions = this.generatorOptions;
-            this.generatorOptions = generatorOptions;
-            changeNo++;
-            propertyChangeSupport.firePropertyChange("generatorOptions", oldGeneratorOptions, generatorOptions);
-        }
-    }
-
     public boolean isExtendedBlockIds() {
         return extendedBlockIds;
     }
@@ -372,19 +345,6 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             this.difficulty = difficulty;
             changeNo++;
             propertyChangeSupport.firePropertyChange("difficulty", oldDifficulty, difficulty);
-        }
-    }
-
-    public SuperflatPreset getSuperflatPreset() {
-        return superflatPreset;
-    }
-
-    public void setSuperflatPreset(SuperflatPreset superflatPreset) {
-        if (! Objects.equals(superflatPreset, this.superflatPreset)) {
-            SuperflatPreset oldSuperflatPreset = this.superflatPreset;
-            this.superflatPreset = superflatPreset;
-            changeNo++;
-            propertyChangeSupport.firePropertyChange("superflatPreset", oldSuperflatPreset, superflatPreset);
         }
     }
 
@@ -717,6 +677,19 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
                 }
             });
         }
+        if (wpVersion < 9) {
+            dimensions.values().forEach(dimension -> {
+                if (dimension.getDim() == DIM_NORMAL) {
+                    MapGenerator generator = MapGenerator.fromLegacySettings(this.generator, dimensions.get(DIM_NORMAL).getMinecraftSeed(), generatorName, generatorOptions, platform);
+                    dimension.setGenerator(generator);
+                } else {
+                    dimension.setGenerator(new SeededGenerator(DEFAULT, dimension.getMinecraftSeed()));
+                }
+            });
+            this.generator = null;
+            generatorName = null;
+            generatorOptions = null;
+        }
         wpVersion = CURRENT_WP_VERSION;
         
         // Bug fix: fix the maxHeight of the dimensions, which somehow is not
@@ -748,16 +721,14 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private Material[] customMaterials;
     @Deprecated
     private int biomeAlgorithm = -1;
-    private int maxheight = DEFAULT_MAX_HEIGHT; // Typo, but there are already worlds in the wild with this, so leave it
+    private int maxheight; // Typo, but there are already worlds in the wild with this, so leave it
     private transient PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
     @Deprecated
     private String generatorName;
     @Deprecated
     private int version;
-    /**
-     * The type of terrain generator to choose.
-     */
-    private Generator generator = Generator.DEFAULT;
+    @Deprecated
+    private Generator generator;
     private boolean dontAskToConvertToAnvil = true;
     private boolean customBiomes;
     @Deprecated
@@ -766,6 +737,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private boolean askToRotate, allowMerging = true;
     private Direction upIs = Direction.NORTH;
     private boolean allowCheats;
+    @Deprecated
     private String generatorOptions;
     private MixedMaterial[] mixedMaterials = new MixedMaterial[Terrain.CUSTOM_TERRAIN_COUNT];
     private boolean extendedBlockIds;
@@ -778,6 +750,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private Platform platform;
     private GameType gameTypeObj = GameType.SURVIVAL;
     private Map<String, Object> attributes;
+    @Deprecated
     private SuperflatPreset superflatPreset;
     private transient Set<Warning> warnings;
     private transient Map<String, Object> metadata;
@@ -821,7 +794,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
      */
     public static final String METADATA_KEY_PLUGINS = "org.pepsoft.worldpainter.plugins";
 
-    private static final int CURRENT_WP_VERSION = 8;
+    private static final int CURRENT_WP_VERSION = 9;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(World2.class);
     private static final long serialVersionUID = 2011062401L;

@@ -77,10 +77,10 @@ public abstract class JavaPlatformProvider extends AbstractPlatformProvider impl
     @Override
     public ChunkStore getChunkStore(Platform platform, File worldDir, int dimension) {
         ensurePlatformSupported(platform);
-        Level level;
+        JavaLevel level;
         File levelDatFile = new File(worldDir, "level.dat");
         try {
-            level = Level.load(levelDatFile);
+            level = JavaLevel.load(levelDatFile);
         } catch (IOException e) {
             throw new RuntimeException("I/O error while trying to read level.dat", e);
         }
@@ -113,23 +113,25 @@ public abstract class JavaPlatformProvider extends AbstractPlatformProvider impl
                 && (! new File(dir, "levelname.txt").isFile())) {
             try {
                 Platform platform = null;
-                Level level = Level.load(file);
+                JavaLevel level = JavaLevel.load(file);
                 int version = level.getVersion();
                 if (version == VERSION_MCREGION) {
                     platform = JAVA_MCREGION;
                 } else if (version == VERSION_ANVIL) {
                     if (level.getDataVersion() <= DATA_VERSION_MC_1_12_2) {
                         platform = JAVA_ANVIL;
-                    } else if ((level.getDataVersion() <= DATA_VERSION_MC_1_16_5) || (level.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL)) { /* TODO change || to && */
-                        platform = JAVA_ANVIL_1_15;
-                    } else /*if (level.getDataVersion() <= DATA_VERSION_MC_1_17_1)*/ {
-                        platform = JAVA_ANVIL_1_17;
-                    } /*else {
+                    } else if (level.getDataVersion() <= DATA_VERSION_MC_1_17_1) {
+                        if (level.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL) {
+                            platform = JAVA_ANVIL_1_15;
+                        } else {
+                            platform = JAVA_ANVIL_1_17;
+                        }
+                    } else {
                         platform = JAVA_ANVIL_1_18;
-                    }*/ // TODO restore when starting back on 1.18 support
+                    }
                 }
                 if (platform != null) {
-                    return new MapInfo(dir, platform, level.getName(), ICON);
+                    return new MapInfo(dir, platform, level.getName(), ICON, level.getMaxHeight());
                 }
             } catch (IOException e) {
                 logger.info("I/O error reading level.dat; assuming it is not a (supported) Java Minecraft level.dat file", e);

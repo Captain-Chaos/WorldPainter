@@ -61,10 +61,7 @@ public class MapExplorer {
 
         // Load or initialise configuration
         File configDir = Configuration.getConfigDir();
-        if (! configDir.isDirectory()) {
-            configDir.mkdirs();
-        }
-        Configuration config = Configuration.load(); // This will migrate the configuration directory if necessary
+        Configuration config = Configuration.load();
         if (config == null) {
             if (! logger.isDebugEnabled()) {
                 // If debug logging is on, the Configuration constructor will
@@ -93,18 +90,6 @@ public class MapExplorer {
         }
         WPPluginManager.initialise(config.getUuid());
 
-//        File defaultDir;
-//        if (args.length > 0) {
-//            defaultDir = new File(args[0]);
-//        } else {
-//            File minecraftDir = MinecraftUtil.findMinecraftDir();
-//            if (minecraftDir != null) {
-//                defaultDir = new File(minecraftDir, "saves");
-//            } else {
-//                defaultDir = new File(System.getProperty("user.home"));
-//            }
-//        }
-
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Minecraft Map Explorer");
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -112,7 +97,9 @@ public class MapExplorer {
             splitPane.setLeftComponent(createTreePanel(/*defaultDir*/));
             splitPane.setRightComponent(createDetailsPanel());
             frame.getContentPane().add(splitPane, CENTER);
-            frame.setSize(1024, 768);
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            frame.setSize(screenSize.width * 8 / 10, screenSize.height * 8 / 10);
+            splitPane.setDividerLocation(screenSize.width / 5);
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         });
@@ -139,6 +126,8 @@ public class MapExplorer {
         detailsArea = new JLabel();
         detailsArea.setVerticalAlignment(TOP);
         detailsPanel.add(new JScrollPane(detailsArea), CENTER);
+        // Make sure the split pane will allow resizing:
+        detailsPanel.setMinimumSize(new Dimension(0, 0));
         return detailsPanel;
     }
 
@@ -182,6 +171,8 @@ public class MapExplorer {
                 updateDetails((Node) path.getLastPathComponent());
             }
         });
+        // Make sure the split pane will allow resizing:
+        scrollPane.setMinimumSize(new Dimension(0, 0));
         return scrollPane;
     }
 
@@ -267,15 +258,17 @@ public class MapExplorer {
         }
         int wordSize = (int) wordSizeSpinner.getValue();
         int lineLength = (int) lineLengthSpinner.getValue();
+        int wordsPerLong = 64 / wordSize;
+        boolean straddleLongs = false;
         StringBuilder text = new StringBuilder("<html><pre>");
         BitSet bitSet;
         int lengthInWords;
         if (data instanceof byte[]) {
             bitSet = BitSet.valueOf((byte[]) data);
-            lengthInWords = ((byte[]) data).length * 8 / wordSize;
+            lengthInWords = straddleLongs ? ((byte[]) data).length * 8 / wordSize : ((byte[]) data).length / 8 * wordsPerLong;
         } else if (data instanceof long[]) {
             bitSet = BitSet.valueOf((long[]) data);
-            lengthInWords = ((long[]) data).length * 64 / wordSize;
+            lengthInWords = straddleLongs ? ((long[]) data).length * 64 / wordSize : ((long[]) data).length * wordsPerLong;
         } else if (data instanceof int[]) {
             int[] dataAsInts = (int[]) data;
             if (dataAsInts.length % 2 == 0) {
@@ -284,7 +277,7 @@ public class MapExplorer {
                     dataAsLongs[i] = (dataAsInts[i * 2] & 0x00000000ffffffffL) | ((long) dataAsInts[i * 2 + 1] << 32);
                 }
                 bitSet = BitSet.valueOf(dataAsLongs);
-                lengthInWords = dataAsLongs.length * 64 / wordSize;
+                lengthInWords = straddleLongs ? dataAsLongs.length * 64 / wordSize : dataAsLongs.length * wordsPerLong;
             } else {
                 throw new IllegalArgumentException("Don't know how to process data of type int[] and odd length");
             }
@@ -310,7 +303,7 @@ public class MapExplorer {
             }
             text.append(' ');
             wordsOnLine++;
-            int wordOffset = w * wordSize;
+            int wordOffset = straddleLongs ? w * wordSize : (w / wordsPerLong) * 64 + (w % wordsPerLong) * wordSize;
             int word = 0;
             for (int b = 0; b < wordSize; b++) {
                 word |= bitSet.get(wordOffset + b) ? 1 << b : 0;

@@ -5,12 +5,14 @@
 package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.Constants;
-import org.pepsoft.minecraft.Level;
+import org.pepsoft.minecraft.Java117Level;
+import org.pepsoft.minecraft.SeededGenerator;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.biomeschemes.*;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
@@ -26,6 +28,8 @@ import java.util.List;
 
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Generator.DEFAULT;
+import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 
 /**
  *
@@ -223,9 +227,12 @@ public class BiomesViewerFrame extends JFrame {
             throw new RuntimeException("Could not create " + worldDir);
         }
         BiomeScheme biomeScheme1 = BiomesViewerFrame.this.biomeScheme;
-        Level level = new Level(Constants.DEFAULT_MAX_HEIGHT_MCREGION, (biomeScheme1 instanceof Minecraft1_1BiomeScheme) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL);
+        final Platform platform = (biomeScheme1 instanceof Minecraft1_1BiomeScheme) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL;
+        Java117Level level = new Java117Level(platform.standardMaxHeight, platform);
+        final long seed = ((Number) seedSpinner.getValue()).longValue();
         if (! (biomeScheme1 instanceof Minecraft1_1BiomeScheme)) {
-            level.setGenerator(((biomeScheme1 instanceof Minecraft1_3LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_7LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_8LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_12LargeBiomeScheme)) ? Generator.LARGE_BIOMES : Generator.DEFAULT);
+            final Generator generatorType = ((biomeScheme1 instanceof Minecraft1_3LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_7LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_8LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_12LargeBiomeScheme)) ? Generator.LARGE_BIOMES : Generator.DEFAULT;
+            level.setGenerator(DIM_NORMAL, new SeededGenerator(generatorType, seed));
         }
         if (creativeMode) {
             level.setGameType(Constants.GAME_TYPE_CREATIVE);
@@ -234,7 +241,7 @@ public class BiomesViewerFrame extends JFrame {
         }
         level.setMapFeatures(true);
         level.setName(name);
-        level.setSeed(((Number) seedSpinner.getValue()).longValue());
+        level.setSeed(seed);
         Point worldCoords = imageViewer.getViewLocation();
         level.setSpawnX(worldCoords.x);
         level.setSpawnZ(worldCoords.y);
@@ -282,15 +289,16 @@ public class BiomesViewerFrame extends JFrame {
                 }
             });
             if (newWorld != null) {
+                final Dimension dimension = newWorld.getDimension(DIM_NORMAL);
                 switch ((Integer) schemeChooser.getSelectedItem()) {
                     case BIOME_ALGORITHM_1_1:
                     case BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT:
                     case BIOME_ALGORITHM_1_7_DEFAULT:
-                        newWorld.setGenerator(Generator.DEFAULT);
+                        dimension.setGenerator(new SeededGenerator(DEFAULT, dimension.getMinecraftSeed()));
                         break;
                     case BIOME_ALGORITHM_1_3_LARGE:
                     case BIOME_ALGORITHM_1_7_LARGE:
-                        newWorld.setGenerator(Generator.LARGE_BIOMES);
+                        dimension.setGenerator(new SeededGenerator(LARGE_BIOMES, dimension.getMinecraftSeed()));
                         break;
                 }
                 app.setWorld(newWorld, true);

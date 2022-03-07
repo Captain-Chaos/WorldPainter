@@ -24,7 +24,7 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
 
 /**
  *
@@ -36,7 +36,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         this.exporters = exporters;
         this.platform  = platform;
         platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
-        this.maxHeight = maxHeight;
+        this.maxHeight = Math.min(maxHeight, dimension.getMaxHeight());
         minimumLayers = dimension.getMinimumLayers();
     }
 
@@ -87,9 +87,10 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         final ChunkCreationResult result = new ChunkCreationResult();
         final Chunk chunk = platformProvider.createChunk(platform, chunkX, chunkZ, maxHeight);
         result.chunk = chunk;
-        final int maxY = maxHeight - 1;
+        final int minY = dimension.getMinHeight(), maxY = maxHeight - 1;
         final boolean biomesSupported2D = platform.capabilities.contains(BIOMES);
         final boolean biomesSupported3D = platform.capabilities.contains(BIOMES_3D);
+        // TODOMC118 add named biomes support
         final boolean copyBiomes = (biomesSupported2D || biomesSupported3D) && (dimension.getDim() >= 0);
         final int defaultBiome;
         switch (dimension.getDim()) {
@@ -121,7 +122,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                     // Set the whole column to this biome since we don't have 3D biome support yet
                     // TODO add 3D biome support
                     final int xx = x >> 2, zz = z >> 2;
-                    for (int y = 0; y < maxHeight; y += 4) {
+                    for (int y = minY; y < maxHeight; y += 4) {
                         chunk.set3DBiome(xx, y >> 2, zz, biome);
                     }
                 }
@@ -172,7 +173,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                         result.stats.landArea++;
                     }
                     if (bedrock) {
-                        chunk.setMaterial(x, 0, z, BEDROCK);
+                        chunk.setMaterial(x, minY, z, BEDROCK);
                     }
                     int subsurfaceMaxHeight = intHeight - topLayerDepth;
                     if (coverSteepTerrain) {
@@ -183,7 +184,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                             dimension.getIntHeightAt(worldX, worldY + 1, Integer.MAX_VALUE))));
                     }
                     int columnRenderHeight = Math.min(Math.max(intHeight + Math.max(terrain.getToppingHeight(), 3), waterLevel), maxY);
-                    for (int y = bedrock ? 1 : 0; y <= columnRenderHeight; y++) {
+                    for (int y = minY + (bedrock ? 1 : 0); y <= columnRenderHeight; y++) {
                         if (y <= subsurfaceMaxHeight) {
                             // Sub surface
                             chunk.setMaterial(x, y, z, subsurfaceMaterial.getMaterial(platform, seed, worldX, worldY, y + subSurfaceLayerOffset, intHeight + subSurfaceLayerOffset));
@@ -216,7 +217,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                             }
                         } else if (! underWater) {
                             // Above the surface on dry land
-                            if ((y > 0) && ((y - intHeight) <= 3) && ((terrain == Terrain.GRASS) || (terrain == Terrain.DESERT) || (terrain == Terrain.RED_DESERT) || (terrain == Terrain.BEACHES))
+                            if ((y > minY) && ((y - intHeight) <= 3) && ((terrain == Terrain.GRASS) || (terrain == Terrain.DESERT) || (terrain == Terrain.RED_DESERT) || (terrain == Terrain.BEACHES))
                                     && ((sugarCaneNoise.getPerlinNoise(worldX / TINY_BLOBS, worldY / TINY_BLOBS, z / TINY_BLOBS) * sugarCaneNoise.getPerlinNoise(worldX / SMALL_BLOBS, worldY / SMALL_BLOBS, z / SMALL_BLOBS)) > SUGAR_CANE_CHANCE)
                                     && (isAdjacentWater(tile, intHeight, xInTile - 1, yInTile)
                                         || isAdjacentWater(tile, intHeight, xInTile + 1, yInTile)
@@ -238,7 +239,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                     chunk.setMaterial(x, maxY, z, BEDROCK);
                     chunk.setHeight(x, z, maxY);
                 } else if (_void) {
-                    chunk.setHeight(x, z, 0);
+                    chunk.setHeight(x, z, minY);
                 } else if (waterLevel > intHeight) {
                     chunk.setHeight(x, z, (waterLevel < maxY) ? (waterLevel + 1): maxY);
                 } else {

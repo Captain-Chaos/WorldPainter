@@ -5,6 +5,7 @@
 
 package org.pepsoft.worldpainter;
 
+import org.jetbrains.annotations.Contract;
 import org.pepsoft.util.ColourUtils;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
@@ -61,11 +62,11 @@ public final class TileRenderer {
         renderBuffer = ((DataBufferInt) bufferedImage.getRaster().getDataBuffer()).getData();
     }
 
-    public final TileProvider getTileProvider() {
+    public TileProvider getTileProvider() {
         return tileProvider;
     }
 
-    public final void setTileProvider(TileProvider tileProvider) {
+    public void setTileProvider(TileProvider tileProvider) {
         this.tileProvider = tileProvider;
     }
 
@@ -77,11 +78,11 @@ public final class TileRenderer {
         this.oppositeTileProvider = oppositeTileProvider;
     }
 
-    public final ColourScheme getColourScheme() {
+    public ColourScheme getColourScheme() {
         return colourScheme;
     }
 
-    public final void setColourScheme(ColourScheme colourScheme) {
+    public void setColourScheme(ColourScheme colourScheme) {
         this.colourScheme = colourScheme;
         waterColour = colourScheme.getColour(BLK_WATER);
         lavaColour = colourScheme.getColour(BLK_LAVA);
@@ -100,9 +101,7 @@ public final class TileRenderer {
         this.hiddenLayers.clear();
         // The FloodWithLava layer should *always* remain hidden
         hiddenLayers.add(FloodWithLava.INSTANCE);
-        if (! hiddenLayers.isEmpty()) {
-            this.hiddenLayers.addAll(hiddenLayers);
-        }
+        this.hiddenLayers.addAll(hiddenLayers);
     }
 
     public void removeHiddenLayer(Layer hiddenLayer) {
@@ -332,7 +331,7 @@ public final class TileRenderer {
 
     private int getPixelColour(Tile tile, int x, int y, Layer[] layers, LayerRenderer[] renderers, boolean contourLines, boolean hideTerrain, boolean hideFluids, boolean bottomless, boolean topLayersRelativeToTerrain, long seed) {
         final int offset = x + y * TILE_SIZE;
-        final int intHeight = intHeightCache[offset];
+        final int intHeight = intHeightCache[offset], minHeight = tile.getMinHeight();
         heights[1][0] = getNeighbourHeight(tile, x, y,  0, -1);
         deltas [1][0] = heights[1][0] - intHeight;
         heights[0][1] = getNeighbourHeight(tile, x, y, -1,  0);
@@ -367,7 +366,7 @@ public final class TileRenderer {
             }
         } else if (! hideTerrain) {
             final float height = floatHeightCache[offset];
-            if ((! bottomless) && (intHeight == 0)) {
+            if ((! bottomless) && (intHeight == minHeight)) {
                 colour = bedrockColour;
             } else {
                 Terrain terrain = tile.getTerrain(x, y);
@@ -397,15 +396,7 @@ public final class TileRenderer {
                     boolean bitLayerValue = tile.getBitLayerValue(layer, x, y);
                     if (bitLayerValue) {
                         final BitLayerRenderer renderer = (BitLayerRenderer) renderers[i];
-                        if (renderer == null) {
-                            logger.error("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
-                            if (! missingRendererReportedFor.contains(layer)) {
-                                missingRendererReportedFor.add(layer);
-                                throw new IllegalStateException("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
-                            } else {
-                                continue;
-                            }
-                        }
+                        if (reportMissingRenderer(layer, renderer == null)) continue;
                         colour = renderer.getPixelColour(worldX, worldY, colour, true);
                     }
                     break;
@@ -413,36 +404,34 @@ public final class TileRenderer {
                     int layerValue = tile.getLayerValue(layer, x, y);
                     if (layerValue > 0) {
                         final NibbleLayerRenderer renderer = (NibbleLayerRenderer) renderers[i];
-                        if (renderer == null) {
-                            logger.error("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
-                            if (! missingRendererReportedFor.contains(layer)) {
-                                missingRendererReportedFor.add(layer);
-                                throw new IllegalStateException("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
-                            } else {
-                                continue;
-                            }
-                        }
+                        if (reportMissingRenderer(layer, renderer == null)) continue;
                         colour = renderer.getPixelColour(worldX, worldY, colour, layerValue);
                     }
                     break;
                 case BYTE:
-                    final ByteLayerRenderer renderer = (ByteLayerRenderer) renderers[i];
-                    if (renderer == null) {
-                        logger.error("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
-                        if (! missingRendererReportedFor.contains(layer)) {
-                            missingRendererReportedFor.add(layer);
-                            throw new IllegalStateException("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
-                        } else {
-                            continue;
-                        }
-                    }
-                    colour = renderer.getPixelColour(worldX, worldY, colour, tile.getLayerValue(layer, x, y));
+                    final ByteLayerRenderer byteLayerRenderer = (ByteLayerRenderer) renderers[i];
+                    if (reportMissingRenderer(layer, byteLayerRenderer == null)) continue;
+                    colour = byteLayerRenderer.getPixelColour(worldX, worldY, colour, tile.getLayerValue(layer, x, y));
                     break;
                 default:
                     throw new UnsupportedOperationException("Don't know how to render " + layer.getClass().getSimpleName());
             }
         }
         return colour;
+    }
+
+    @Contract("_, true -> true")
+    private boolean reportMissingRenderer(Layer layer, boolean rendererMissing) {
+        if (rendererMissing) {
+            logger.error("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
+            if (! missingRendererReportedFor.contains(layer)) {
+                missingRendererReportedFor.add(layer);
+                throw new IllegalStateException("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
+            } else {
+                return true;
+            }
+        }
+        return false;
     }
 
     private int getNeighbourHeight(Tile tile, int x, int y, int dx, int dy) {

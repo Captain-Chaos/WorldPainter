@@ -19,7 +19,7 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
 
 /**
  *
@@ -1097,7 +1097,7 @@ public enum Terrain {
     GRANITE("Granite", Material.GRANITE, Material.GRANITE, "granite", BIOME_PLAINS),
     DIORITE("Diorite", Material.DIORITE, Material.DIORITE, "diorite", BIOME_PLAINS),
     ANDESITE("Andesite", Material.ANDESITE, Material.ANDESITE, "andesite", BIOME_PLAINS),
-    STONE_MIX("Stone Mix", "stone with patches of granite, diorite and andesite", BIOME_PLAINS) {
+    STONE_MIX("Stone Mix", "stone or deepslate with patches of granite, diorite and andesite", BIOME_PLAINS) {
         @Override
         public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
             final int dz = z - height;
@@ -1108,6 +1108,8 @@ public enum Terrain {
                     graniteNoise.setSeed(seed + GRANITE_SEED_OFFSET);
                     dioriteNoise.setSeed(seed + DIORITE_SEED_OFFSET);
                     andesiteNoise.setSeed(seed + ANDESITE_SEED_OFFSET);
+                    // TODOMC118 do we need more in 1.18?
+                    //  Answer: yes: Tuff (below 0)
                 }
                 if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
                     return Material.GRANITE;
@@ -1115,8 +1117,12 @@ public enum Terrain {
                     return Material.DIORITE;
                 } else if(andesiteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > ANDESITE_CHANCE) {
                     return Material.ANDESITE;
-                } else {
+                } else if (z >= 0) {
                     return Material.STONE;
+                } else {
+                    // TODOMC118 make this gradual
+                    // TODOMC118 also use X and Z orientations
+                    return Material.DEEPSLATE_Y;
                 }
             }
         }
@@ -2811,7 +2817,7 @@ public enum Terrain {
         this.toppingHeight = toppingHeight;
         this.description = description;
         this.defaultBiome = defaultBiome;
-        icon = IconUtils.scaleIcon(IconUtils.loadUnscaledImage("org/pepsoft/worldpainter/icons/" + name().toLowerCase() + ".png"), 16);
+        icon = IconUtils.loadUnscaledImage("org/pepsoft/worldpainter/icons/" + name().toLowerCase() + ".png");
     }
 
     public String getName() {
@@ -2909,8 +2915,18 @@ public enum Terrain {
         return description;
     }
 
+    /**
+     * Get the unscaled icon. This icon has an unspecified size.
+     */
     public BufferedImage getIcon(ColourScheme colourScheme) {
         return icon;
+    }
+
+    /**
+     * Get the icon, scaled to the specified size, adjusted for the current GUI scale.
+     */
+    public final BufferedImage getScaledIcon(int size, ColourScheme colourScheme) {
+        return IconUtils.scaleIcon(getIcon(colourScheme), size);
     }
 
     public int getColour(final long seed, final int x, final int y, final float z, final int height, final ColourScheme colourScheme) {

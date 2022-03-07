@@ -179,9 +179,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
      * @throws IOException If the level.dat file could not be read due to an I/O
      * error.
      */
-    public Level performSanityChecks(boolean biomesOnly) throws IOException {
+    public JavaLevel performSanityChecks(boolean biomesOnly) throws IOException {
         // Read existing level.dat file
-        Level level = Level.load(levelDatFile);
+        JavaLevel level = JavaLevel.load(levelDatFile);
 
         // Sanity checks
         if (biomesOnly) {
@@ -217,7 +217,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         logger.info("Merging world " + world.getName() + " with map at " + levelDatFile.getParentFile());
         
         // Read existing level.dat file and perform sanity checks
-        Level level = performSanityChecks(false);
+        JavaLevel level = performSanityChecks(false);
         
         // Record start of export
         long start = System.currentTimeMillis();
@@ -317,10 +317,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             event.setAttribute(ATTRIBUTE_KEY_MAP_FEATURES, world.isMapFeatures());
             event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
-            event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-            if ((platform == DefaultPlugin.JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
-                event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
-            }
+            event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getDimension(DIM_NORMAL).getGenerator().getType().name());
             if ((selectedDimensions == null) || selectedDimensions.contains(DIM_NORMAL)) {
                 Dimension surfaceDimension = world.getDimension(0);
                 event.setAttribute(ATTRIBUTE_KEY_TILES, surfaceDimension.getTiles().size());
@@ -795,7 +792,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         }
 
         // Read existing level.dat file and perform sanity checks
-        Level level = performSanityChecks(true);
+        JavaLevel level = performSanityChecks(true);
 
         // Backup existing level
         File worldDir = levelDatFile.getParentFile();
@@ -866,15 +863,19 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                             chunk.setBiome(xx, zz, dimension.getLayerValueAt(Biome.INSTANCE, (chunkX << 4) | xx, (chunkZ << 4) | zz));
                                         }
                                     }
-                                } else {
+                                } else if (platform.capabilities.contains(BIOMES_3D)) {
                                     for (int xx = 0; xx < 4; xx++) {
                                         for (int zz = 0; zz < 4; zz++) {
                                             final int biome = dimension.getMostPrevalentBiome((chunkX << 2) | xx, (chunkZ << 2) | zz, BIOME_PLAINS);
                                             for (int y = 0; y < chunk.getMaxHeight(); y += 4) {
+                                                // TODOMC118 this obliterates the existing 3D biomes; how to handle that?
                                                 chunk.set3DBiome(xx, y >> 2, zz, biome);
                                             }
                                         }
                                     }
+                                } else {
+                                    // TODOMC118: implement
+                                    throw new UnsupportedOperationException();
                                 }
                                 try (NBTOutputStream out = new NBTOutputStream(newRegion.getChunkDataOutputStream(x, z))) {
                                     out.writeTag(chunk.toNBT());

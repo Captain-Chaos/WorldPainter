@@ -6,7 +6,6 @@
 
 package org.pepsoft.worldpainter.tools;
 
-import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.worldpainter.MouseAdapter;
 import org.pepsoft.worldpainter.*;
@@ -99,7 +98,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
     }
 
     private void createHeightMap() throws IOException {
-        rootHeightMap = TileFactoryFactory.createFancyTileFactory(new Random().nextLong(), GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 62, 58, false, 20f, 1.0).getHeightMap();
+        rootHeightMap = TileFactoryFactory.createFancyTileFactory(new Random().nextLong(), GRASS, 0, DEFAULT_MAX_HEIGHT_ANVIL, 62, 58, false, 20f, 1.0).getHeightMap();
 //        File bitmapFile = new File("/home/pepijn/Pictures/WorldPainter/test-image-8-bit-grayscale.png");
 //        BufferedImage bitmap = ImageIO.read(bitmapFile);
 //        BitmapHeightMap bitmapHeightMap = BitmapHeightMap.build().withImage(bitmap).withSmoothScaling(false).withRepeat(true).now();
@@ -357,7 +356,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                 tiledImageViewer1.setGridColour(Color.GRAY);
                 break;
             case TERRAIN:
-                TileFactory tileFactory = new HeightMapTileFactory(seed, focusHeightMap, Constants.DEFAULT_MAX_HEIGHT_ANVIL, false, theme);
+                TileFactory tileFactory = new HeightMapTileFactory(seed, focusHeightMap, 0, DEFAULT_MAX_HEIGHT_ANVIL, false, theme);
                 synchronized (tileCache) {
                     tileCache.clear();
                 }
@@ -624,11 +623,11 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
     private final Map<Point, Tile> tileCache = Collections.synchronizedMap(new HashMap<>());
     private HeightMapTreeModel treeModel;
     private ViewMode viewMode = ViewMode.HEIGHT_MAP;
-    private SimpleTheme theme = SimpleTheme.createDefault(Terrain.GRASS, Constants.DEFAULT_MAX_HEIGHT_ANVIL, 62);
+    private SimpleTheme theme = SimpleTheme.createDefault(Terrain.GRASS, 0, DEFAULT_MAX_HEIGHT_ANVIL, 62);
     private long seed = new Random().nextLong();
     private HeightMapTreeCellRenderer cellRenderer;
 
-    private static final Tile RENDERING = new Tile(0, 0, 0, false) {};
+    private static final Tile RENDERING = new Tile(0, 0, 0, 0, false) {};
     private static final Logger logger = LoggerFactory.getLogger(HeightMapEditor.class);
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

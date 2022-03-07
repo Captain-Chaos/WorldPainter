@@ -12,7 +12,7 @@ import org.pepsoft.worldpainter.LayerListCellRenderer;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes;
+import org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes;
 import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
 import org.pepsoft.worldpainter.layers.CombinedLayer;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -137,8 +137,8 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
         
         List<Integer> allBiomes = new ArrayList<>();
         allBiomes.add(-1);
-        for (int i = 0; i < Minecraft1_15Biomes.BIOME_NAMES.length; i++) {
-            if (Minecraft1_15Biomes.BIOME_NAMES[i] != null) {
+        for (int i = 0; i < Minecraft1_17Biomes.BIOME_NAMES.length; i++) {
+            if (Minecraft1_17Biomes.BIOME_NAMES[i] != null) {
                 allBiomes.add(i);
             }
         }
@@ -211,7 +211,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
 
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        comboBoxTerrain = new javax.swing.JComboBox();
+        comboBoxTerrain = new javax.swing.JComboBox<>();
         jLabel3 = new javax.swing.JLabel();
         comboBoxBiome = new javax.swing.JComboBox();
         jLabel4 = new javax.swing.JLabel();
@@ -228,18 +228,30 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
         jLabel2.setText("Terrain:");
 
         comboBoxTerrain.setModel(new DefaultComboBoxModel(Terrain.getConfiguredValues()));
-        comboBoxTerrain.addActionListener(this::comboBoxTerrainActionPerformed);
+        comboBoxTerrain.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxTerrainActionPerformed(evt);
+            }
+        });
 
         jLabel3.setText("Biome:");
 
-        comboBoxBiome.addActionListener(this::comboBoxBiomeActionPerformed);
+        comboBoxBiome.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxBiomeActionPerformed(evt);
+            }
+        });
 
         jLabel4.setText("Layers:");
 
         jScrollPane1.setViewportView(tableLayers);
 
         buttonAddLayer.setText("Add");
-        buttonAddLayer.addActionListener(this::buttonAddLayerActionPerformed);
+        buttonAddLayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonAddLayerActionPerformed(evt);
+            }
+        });
 
         jLabel5.setText("Name:");
 
@@ -289,7 +301,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
                 .addGap(18, 18, 18)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 26, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 26, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(buttonAddLayer)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -320,7 +332,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
     private javax.swing.JButton buttonAddLayer;
     private org.pepsoft.worldpainter.ColourEditor colourEditor1;
     private javax.swing.JComboBox comboBoxBiome;
-    private javax.swing.JComboBox comboBoxTerrain;
+    private javax.swing.JComboBox<Terrain> comboBoxTerrain;
     private javax.swing.JTextField fieldName;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

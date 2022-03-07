@@ -48,7 +48,7 @@ public class GUIUtils {
     }
 
     /**
-     * Scale an image according to {@link #UI_SCALE}.
+     * Scale an image according to {@link #UI_SCALE_FLOAT} or {@link #UI_SCALE}.
      *
      * @param image The image to scale.
      * @param smooth Whether to do smooth scaling. When this is {@code true},

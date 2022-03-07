@@ -29,7 +29,7 @@ public class DumpChunk {
         int blockZ = Integer.parseInt(args[2]);
         int chunkX = blockX >> 4;
         int chunkZ = blockZ >> 4;
-        Level level = Level.load(levelDatFile);
+        JavaLevel level = JavaLevel.load(levelDatFile);
         CompoundTag chunkTag;
         try (InputStream chunkIn = RegionFileCache.getChunkDataInputStream(levelDatFile.getParentFile(), chunkX, chunkZ, level.getVersion())) {
             if (chunkIn != null) {

@@ -131,6 +131,11 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
     }
 
     @Override
+    public int getMinHeight() {
+        return 0;
+    }
+
+    @Override
     public int getMaxHeight() {
         return maxHeight;
     }
@@ -433,7 +438,7 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
                 }
             }
         }
-        return -1;
+        return Integer.MIN_VALUE;
     }
 
     @Override
@@ -448,7 +453,7 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
                 }
             }
         }
-        return -1;
+        return Integer.MIN_VALUE;
     }
 
     // MinecraftWorld

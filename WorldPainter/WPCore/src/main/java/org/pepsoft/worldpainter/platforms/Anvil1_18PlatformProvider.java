@@ -1,7 +1,7 @@
 package org.pepsoft.worldpainter.platforms;
 
 import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.minecraft.MC115AnvilChunk;
+import org.pepsoft.minecraft.MC118AnvilChunk;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Version;
 import org.pepsoft.worldpainter.exporting.PostProcessor;
@@ -22,8 +22,6 @@ public final class Anvil1_18PlatformProvider extends AnvilPlatformProvider {
     @Override
     public Chunk createChunk(Platform platform, int x, int z, int maxHeight) {
         ensurePlatformSupported(platform);
-        return new MC115AnvilChunk(x, z, maxHeight);
+        return new MC118AnvilChunk(x, z, maxHeight);
     }
-
-    /* TODO */
 }

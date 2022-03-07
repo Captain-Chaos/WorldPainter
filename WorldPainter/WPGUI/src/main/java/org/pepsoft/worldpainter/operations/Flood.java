@@ -39,26 +39,26 @@ public class Flood extends MouseOrTabletOperation {
         alreadyFlooding = true;
         try {
             Dimension dimension = getDimension();
-            int terrainHeight = dimension.getIntHeightAt(centreX, centreY);
+            final int terrainHeight = dimension.getIntHeightAt(centreX, centreY);
             if (terrainHeight == -1) {
                 // Not on a tile
                 return;
             }
-            int waterLevel = dimension.getWaterLevelAt(centreX, centreY);
-            boolean fluidPresent = waterLevel > terrainHeight;
+            final int waterLevel = dimension.getWaterLevelAt(centreX, centreY);
+            final boolean fluidPresent = waterLevel > terrainHeight;
             if (inverse && (!fluidPresent)) {
                 // No point lowering the water level if there is no water...
                 return;
             }
-            int height = Math.max(terrainHeight, waterLevel);
-            int floodToHeight;
+            final int height = Math.max(terrainHeight, waterLevel);
+            final int floodToHeight;
             if (fluidPresent && (floodWithLava != dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, centreX, centreY))) {
                 // There is fluid present of a different type; don't change the
                 // height, just change the type
                 floodToHeight = height;
                 inverse = false;
             } else {
-                if (inverse ? (height <= 0) : (height >= (dimension.getMaxHeight() - 1))) {
+                if (inverse ? (height <= dimension.getMinHeight()) : (height >= (dimension.getMaxHeight() - 1))) {
                     // Already at the lowest or highest possible point
                     return;
                 }
@@ -71,7 +71,7 @@ public class Flood extends MouseOrTabletOperation {
                 synchronized (dimension) {
                     dimension.rememberChanges();
                 }
-                QueueLinearFloodFiller flooder = new QueueLinearFloodFiller(dimension, floodToHeight, floodWithLava, inverse);
+                final QueueLinearFloodFiller flooder = new QueueLinearFloodFiller(dimension, floodToHeight, floodWithLava, inverse);
                 if (!flooder.floodFill(centreX, centreY, SwingUtilities.getWindowAncestor(getView()))) {
                     // Cancelled by user
                     synchronized (dimension) {

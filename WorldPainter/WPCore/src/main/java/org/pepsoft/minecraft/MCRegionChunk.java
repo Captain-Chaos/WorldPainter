@@ -166,21 +166,6 @@ public final class MCRegionChunk extends NBTChunk {
     }
 
     @Override
-    public boolean isBiomesAvailable() {
-        throw new UnsupportedOperationException("Not supported");
-    }
-    
-    @Override
-    public int getBiome(int x, int z) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
-    public void setBiome(int x, int z, int biome) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
     public int getHeight(int x, int z) {
         return heightMap[x + z * 16] & 0xFF;
     }
@@ -263,7 +248,7 @@ public final class MCRegionChunk extends NBTChunk {
                 return i - base;
             }
         }
-        return -1;
+        return Integer.MIN_VALUE;
     }
 
     @Override
@@ -275,7 +260,7 @@ public final class MCRegionChunk extends NBTChunk {
                 }
             }
         }
-        return -1;
+        return Integer.MIN_VALUE;
     }
 
     @Override

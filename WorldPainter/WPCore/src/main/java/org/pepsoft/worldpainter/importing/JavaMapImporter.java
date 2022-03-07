@@ -4,9 +4,6 @@
  */
 package org.pepsoft.worldpainter.importing;
 
-import org.jnbt.CompoundTag;
-import org.jnbt.StringTag;
-import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.minecraft.ChunkStore.ChunkVisitor;
 import org.pepsoft.util.LongAttributeKey;
@@ -14,6 +11,7 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter.FrostSettings;
@@ -26,6 +24,7 @@ import org.pepsoft.worldpainter.vo.EventVO;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,12 +32,9 @@ import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.BIOME_NAMES;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.HIGHEST_BIOME_ID;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
 
 /**
  * An importer of Minecraft-like maps (with Minecraft-compatible
@@ -72,10 +68,11 @@ public class JavaMapImporter extends MapImporter {
         logger.info("Importing map from " + levelDatFile.getAbsolutePath());
         File worldDir = levelDatFile.getParentFile();
         int dimCount = dimensionsToImport.size();
-        World2 world = importWorld(levelDatFile);
+        JavaLevel level = JavaLevel.load(levelDatFile);
+        World2 world = importWorld(level);
         long minecraftSeed = world.getAttribute(SEED).orElse(new Random().nextLong());
         tileFactory.setSeed(minecraftSeed);
-        Dimension dimension = new Dimension(world, minecraftSeed, tileFactory, DIM_NORMAL, world.getMaxHeight());
+        Dimension dimension = new Dimension(world, minecraftSeed, tileFactory, DIM_NORMAL, platform.minZ, world.getMaxHeight());
         dimension.setEventsInhibited(true);
         try {
             dimension.setCoverSteepTerrain(false);
@@ -89,14 +86,12 @@ public class JavaMapImporter extends MapImporter {
             
             ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
             resourcesSettings.setMinimumLevel(0);
-            if (platform == JAVA_MCREGION) {
-                resourcesSettings.setChance(EMERALD_ORE, 0);
-            }
             Configuration config = Configuration.getInstance();
             dimension.setGridEnabled(config.isDefaultGridEnabled());
             dimension.setGridSize(config.getDefaultGridSize());
             dimension.setContoursEnabled(config.isDefaultContoursEnabled());
             dimension.setContourSeparation(config.getDefaultContourSeparation());
+            dimension.setGenerator(level.getGenerator(DIM_NORMAL));
             String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 1.0f / dimCount) : null);
             if (dimWarnings != null) {
                 if (warnings == null) {
@@ -111,23 +106,21 @@ public class JavaMapImporter extends MapImporter {
         world.addDimension(dimension);
         int dimNo = 1;
         if (dimensionsToImport.contains(DIM_NETHER)) {
-            HeightMapTileFactory netherTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 1, Terrain.NETHERRACK, world.getMaxHeight(), 188, 192, true, false, 20f, 1.0);
+            HeightMapTileFactory netherTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 1, Terrain.NETHERRACK, platform.minZ, world.getMaxHeight(), 188, 192, true, false, 20f, 1.0);
             SimpleTheme theme = (SimpleTheme) netherTileFactory.getTheme();
             SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
             terrainRanges.clear();
             terrainRanges.put(-1, Terrain.NETHERRACK);
             theme.setTerrainRanges(terrainRanges);
             theme.setLayerMap(null);
-            dimension = new Dimension(world, minecraftSeed + 1, netherTileFactory, DIM_NETHER, world.getMaxHeight());
+            dimension = new Dimension(world, minecraftSeed + 1, netherTileFactory, DIM_NETHER, platform.minZ, world.getMaxHeight());
             dimension.setEventsInhibited(true);
             try {
                 dimension.setCoverSteepTerrain(false);
                 dimension.setSubsurfaceMaterial(Terrain.NETHERRACK);
                 ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
                 resourcesSettings.setMinimumLevel(0);
-                if (platform == JAVA_MCREGION) {
-                    resourcesSettings.setChance(QUARTZ_ORE, 0);
-                }
+                dimension.setGenerator(level.getGenerator(DIM_NETHER)); // TODOMC118
                 String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo++ / dimCount, 1.0f / dimCount) : null);
                 if (dimWarnings != null) {
                     if (warnings == null) {
@@ -142,18 +135,19 @@ public class JavaMapImporter extends MapImporter {
             world.addDimension(dimension);
         }
         if (dimensionsToImport.contains(DIM_END)) {
-            HeightMapTileFactory endTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 2, Terrain.END_STONE, world.getMaxHeight(), 32, 0, false, false, 20f, 1.0);
+            HeightMapTileFactory endTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 2, Terrain.END_STONE, platform.minZ, world.getMaxHeight(), 32, 0, false, false, 20f, 1.0);
             SimpleTheme theme = (SimpleTheme) endTileFactory.getTheme();
             SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
             terrainRanges.clear();
             terrainRanges.put(-1, Terrain.END_STONE);
             theme.setTerrainRanges(terrainRanges);
             theme.setLayerMap(Collections.emptyMap());
-            dimension = new Dimension(world, minecraftSeed + 2, endTileFactory, DIM_END, world.getMaxHeight());
+            dimension = new Dimension(world, minecraftSeed + 2, endTileFactory, DIM_END, platform.minZ, world.getMaxHeight());
             dimension.setEventsInhibited(true);
             try {
                 dimension.setCoverSteepTerrain(false);
                 dimension.setSubsurfaceMaterial(Terrain.END_STONE);
+                dimension.setGenerator(level.getGenerator(DIM_END)); // TODOMC118
                 String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo / dimCount, 1.0f / dimCount) : null);
                 if (dimWarnings != null) {
                     if (warnings == null) {
@@ -178,10 +172,7 @@ public class JavaMapImporter extends MapImporter {
             event.setAttribute(ATTRIBUTE_KEY_MAP_FEATURES, world.isMapFeatures());
             event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
-            event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-            if ((world.getPlatform() == JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
-                event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
-            }
+            event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getDimension(DIM_NORMAL).getGenerator().getType().name());
             event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTiles().size());
             config.logEvent(event);
         }
@@ -189,8 +180,7 @@ public class JavaMapImporter extends MapImporter {
         return world;
     }
 
-    protected World2 importWorld(File levelDatFile) throws IOException {
-        Level level = Level.load(levelDatFile);
+    protected World2 importWorld(JavaLevel level) {
         String name = level.getName().trim();
         int maxHeight = level.getMaxHeight();
         World2 world = new World2(platform, maxHeight);
@@ -204,25 +194,6 @@ public class JavaMapImporter extends MapImporter {
             world.setGameType(GameType.HARDCORE);
         } else {
             world.setGameType(GameType.values()[level.getGameType()]);
-        }
-        world.setGenerator(level.getGenerator());
-        if (level.getGenerator() == Generator.CUSTOM) {
-            world.setGeneratorOptions(level.getGeneratorName());
-        } else if (level.getGenerator() != null) {
-            Tag generatorOptions = level.getGeneratorOptions();
-            if (generatorOptions instanceof StringTag) {
-                String generatorOptionsStr = ((StringTag) generatorOptions).getValue();
-                try {
-                    world.setSuperflatPreset(SuperflatPreset.fromMinecraft1_12_2(generatorOptionsStr));
-                } catch (IllegalArgumentException e) {
-                    logger.warn("Could not parse generatorOptions \"" + generatorOptionsStr + "\" as Minecraft 1.12.2 Superflat preset");
-                    world.setGeneratorOptions(generatorOptionsStr);
-                }
-            } else if (generatorOptions instanceof CompoundTag) {
-                world.setSuperflatPreset(SuperflatPreset.fromMinecraft1_15_2((CompoundTag) generatorOptions));
-            } else if (generatorOptions != null) {
-                throw new IllegalArgumentException("Unexpected type of generatorOptions encountered: " + generatorOptions);
-            }
         }
         world.setDifficulty(level.getDifficulty());
         if ((platform != JAVA_MCREGION) && (level.getBorderSize() > 0.0)) {
@@ -254,9 +225,12 @@ public class JavaMapImporter extends MapImporter {
         final Set<Point> newChunks = new HashSet<>();
         final Set<String> manMadeBlockTypes = new HashSet<>();
         final Set<Integer> unknownBiomes = new HashSet<>();
-        final boolean importBiomes = platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D);
+        final boolean importBiomes = platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
 //        final boolean import3DBiomes = platform.capabilities.contains(BIOMES_3D);
         final int defaultBiome = (dimension.getDim() == DIM_NETHER) ? BIOME_HELL : (dimension.getDim() == DIM_END ? BIOME_SKY : BIOME_PLAINS);
+        final Map<String, Integer> customNamedBiomes = new HashMap<>();
+        final AtomicInteger nextCustomBiomeId = new AtomicInteger(FIRST_UNALLOCATED_ID);
+        final Set<String> allBiomes = new HashSet<>();
         try (ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension.getDim())) {
             final int total = chunkStore.getChunkCount();
             final AtomicInteger count = new AtomicInteger();
@@ -277,10 +251,10 @@ public class JavaMapImporter extends MapImporter {
                         final int chunkZ = chunkCoords.z;
 
                         // Sanity checks
-                        if (chunk instanceof MC115AnvilChunk) {
-                            MC115AnvilChunk mc115Chunk = (MC115AnvilChunk) chunk;
+                        if (chunk instanceof SectionedChunk) {
+                            SectionedChunk sectionedChunk = (SectionedChunk) chunk;
                             boolean sectionFound = false;
-                            for (MC115AnvilChunk.Section section: mc115Chunk.getSections()) {
+                            for (SectionedChunk.Section section: sectionedChunk.getSections()) {
                                 if (section != null) {
                                     sectionFound = true;
                                     break;
@@ -390,10 +364,32 @@ public class JavaMapImporter extends MapImporter {
                                             // TODO add way of editing 3D biomes
                                             // TODO apparently for DIM_NORMAL this should use the bottom layer, although using the actual height also appears to work
                                             biome = chunk.get3DBiome(xx >> 2, dimension.getIntHeightAt(blockX, blockY) >> 2, zz >> 2);
+                                        } else if (chunk.isNamedBiomesAvailable()) {
+                                            // We accept a reduction in resolution here, and we lose 3D biome
+                                            // information
+                                            // TODOMC118 make this clear to the user
+                                            // TODOMC118 add way of editing 3D biomes
+                                            // TODOMC118 apparently for DIM_NORMAL this should use the bottom layer, although using the actual height also appears to work
+                                            String biomeStr = chunk.getNamedBiome(xx >> 2, dimension.getIntHeightAt(blockX, blockY) >> 2, zz >> 2);
+                                            allBiomes.add(biomeStr);
+                                            if (BIOMES_BY_MODERN_ID.containsKey(biomeStr)) {
+                                                biome = BIOMES_BY_MODERN_ID.get(biomeStr);
+                                            } else if (customNamedBiomes.containsKey(biomeStr)) {
+                                                biome = customNamedBiomes.get(biomeStr);
+                                            } else {
+                                                int customId;
+                                                do {
+                                                    customId = nextCustomBiomeId.getAndIncrement();
+                                                } while ((MODERN_IDS[customId] != null) && (customId < 255));
+                                                if (customId >= 255) {
+                                                    throw new RuntimeException("More unknown biomes in dimension than available custom biome ids");
+                                                }
+                                                biome = customId;
+                                            }
                                         } else {
                                             biome = defaultBiome;
                                         }
-                                        if (collectDebugInfo && ((biome > HIGHEST_BIOME_ID) || (BIOME_NAMES[biome] == null)) && (biome != 255)) {
+                                        if (collectDebugInfo && ((biome > 255) || (BIOME_NAMES[biome] == null)) && (biome != 255)) {
                                             unknownBiomes.add(biome);
                                         }
                                         // If the biome is set (around the edges of the map Minecraft sets it to
@@ -438,6 +434,14 @@ public class JavaMapImporter extends MapImporter {
                 throw new ProgressReceiver.OperationCancelled("Operation cancelled");
             }
 
+            if (! customNamedBiomes.isEmpty()) {
+                List<CustomBiome> customBiomes = new ArrayList<>(customNamedBiomes.size());
+                for (Map.Entry<String, Integer> entry: customNamedBiomes.entrySet()) {
+                    customBiomes.add(new CustomBiome(entry.getKey(), entry.getValue(), 0xff00ff));
+                }
+                dimension.setCustomBiomes(customBiomes);
+            }
+
             // Process chunks that were only added to fill out a tile
             for (Point newChunkCoords: newChunks) {
                 dimension.setBitLayerValueAt(NotPresent.INSTANCE, newChunkCoords.x, newChunkCoords.y, true);
@@ -451,8 +455,15 @@ public class JavaMapImporter extends MapImporter {
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("Man-made block types encountered: {}", String.join(", ", manMadeBlockTypes));
-                logger.debug("Unknown biome IDs encountered: {}", unknownBiomes.stream().map(Object::toString).collect(joining(", ")));
+                if (! manMadeBlockTypes.isEmpty()) {
+                    logger.debug("Man-made block types encountered: {}", String.join(", ", manMadeBlockTypes));
+                }
+                if (! unknownBiomes.isEmpty()) {
+                    logger.debug("Unknown biome IDs encountered: {}", unknownBiomes.stream().map(Object::toString).collect(joining(", ")));
+                }
+                if (! allBiomes.isEmpty()) {
+                    logger.debug("All named biomes encountered: {}", allBiomes);
+                }
             }
 
             return reportBuilder.length() != 0 ? reportBuilder.toString() : null;

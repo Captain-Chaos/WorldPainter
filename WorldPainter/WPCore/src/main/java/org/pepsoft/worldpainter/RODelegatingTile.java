@@ -4,14 +4,15 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.io.PrintStream;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.pepsoft.util.undo.BufferKey;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.gardenofeden.Seed;
 import org.pepsoft.worldpainter.layers.Layer;
+
+import java.io.PrintStream;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A read-only implementation of {@link Tile} which wraps another {@code Tile}
@@ -25,7 +26,7 @@ import org.pepsoft.worldpainter.layers.Layer;
  */
 public class RODelegatingTile extends Tile {
     public RODelegatingTile(Tile tile) {
-        super(tile.getX(), tile.getY(), tile.getMaxHeight(), false);
+        super(tile.getX(), tile.getY(), tile.getMinHeight(), tile.getMaxHeight(), false);
         this.tile = tile;
     }
 
@@ -165,7 +166,7 @@ public class RODelegatingTile extends Tile {
     }
 
     @Override
-    public boolean repair(int maxHeight, PrintStream out) {
+    public boolean repair(int minHeight, int maxHeight, PrintStream out) {
         throw new UnsupportedOperationException();
     }
 

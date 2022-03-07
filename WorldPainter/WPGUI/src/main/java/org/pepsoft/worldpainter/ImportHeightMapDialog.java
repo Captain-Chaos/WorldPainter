@@ -45,7 +45,7 @@ import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.SpinnerUtils.setMaximum;
 import static org.pepsoft.worldpainter.Constants.MAX_HEIGHT;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.util.LayoutUtils.setDefaultSizeAndLocation;
 import static org.pepsoft.worldpainter.util.MinecraftUtil.blocksToWalkingTime;
@@ -93,9 +93,9 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             buttonLoadDefaults.setEnabled(true);
             buttonSaveAsDefaults.setEnabled(true);
         } else {
-            themeEditor.setTheme((SimpleTheme) TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, 62, false, true, 20, 1.0).getTheme());
+            themeEditor.setTheme((SimpleTheme) TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, JAVA_ANVIL_1_15.minZ, JAVA_ANVIL_1_15.standardMaxHeight, 58, 62, false, true, 20, 1.0).getTheme());
             themeEditor.setChangeListener(this);
-            comboBoxPlatform.setSelectedItem(JAVA_ANVIL);
+            comboBoxPlatform.setSelectedItem(JAVA_ANVIL_1_15);
             labelNoUndo.setText(" ");
             checkBoxCreateTiles.setEnabled(false);
             checkBoxOnlyRaise.setEnabled(false);
@@ -161,9 +161,9 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
     private HeightMapImporter createImporter() {
         HeightMap heightMap = new BitmapHeightMap(selectedFile.getName(), image, 0, selectedFile, false, false);
-        int scale = (Integer) spinnerScale.getValue();
-        int offsetX = (Integer) spinnerOffsetX.getValue();
-        int offsetY = (Integer) spinnerOffsetY.getValue();
+        final int scale = (Integer) spinnerScale.getValue();
+        final int offsetX = (Integer) spinnerOffsetX.getValue();
+        final int offsetY = (Integer) spinnerOffsetY.getValue();
         if ((scale != 100) || (offsetX != 0) || (offsetY != 0)) {
             if (scale != 100) {
                 ((BitmapHeightMap) heightMap).setSmoothScaling(true);
@@ -179,16 +179,17 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         }
 
         String name = selectedFile.getName();
-        int p = name.lastIndexOf('.');
+        final int p = name.lastIndexOf('.');
         if (p != -1) {
             name = name.substring(0, p);
         }
 
-        int waterLevel = (int) spinnerWorldMiddle.getValue();
-        int maxHeight = (int) comboBoxHeight.getSelectedItem();
+        final int waterLevel = (int) spinnerWorldMiddle.getValue();
+        final int maxHeight = (int) comboBoxHeight.getSelectedItem();
 
-        HeightMapImporter importer = new HeightMapImporter();
-        importer.setPlatform((Platform) comboBoxPlatform.getSelectedItem());
+        final HeightMapImporter importer = new HeightMapImporter();
+        final Platform platform = (Platform) comboBoxPlatform.getSelectedItem();
+        importer.setPlatform(platform);
         importer.setHeightMap(heightMap);
         importer.setImageFile(selectedFile);
         importer.setName(name);
@@ -196,9 +197,9 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             importer.setTileFactory(currentDimension.getTileFactory());
         } else {
             themeEditor.save();
-            SimpleTheme theme = themeEditor.getTheme();
+            final SimpleTheme theme = themeEditor.getTheme();
             theme.setMaxHeight(maxHeight);
-            importer.setTileFactory(new HeightMapTileFactory(seed, new SumHeightMap(new ConstantHeightMap(waterLevel - 4), new NoiseHeightMap((float) 20, 1.0, 1, 0)), maxHeight, false, theme));
+            importer.setTileFactory(new HeightMapTileFactory(seed, new SumHeightMap(new ConstantHeightMap(waterLevel - 4), new NoiseHeightMap((float) 20, 1.0, 1, 0)), platform.minZ, maxHeight, false, theme));
         }
         importer.setMaxHeight(maxHeight);
         importer.setImageLowLevel((Integer) spinnerImageLow.getValue());
@@ -343,7 +344,7 @@ outer:          for (int x = 0; x < width; x++) {
     private void loadDefaults() {
         Theme defaultTheme = Configuration.getInstance().getHeightMapDefaultTheme();
         if (defaultTheme == null) {
-            HeightMapTileFactory tmpTileFactory = TileFactoryFactory.createNoiseTileFactory(seed, Terrain.GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, 62, false, true, 20, 1.0);
+            HeightMapTileFactory tmpTileFactory = TileFactoryFactory.createNoiseTileFactory(seed, Terrain.GRASS, 0, DEFAULT_MAX_HEIGHT_ANVIL, 58, 62, false, true, 20, 1.0);
             defaultTheme = tmpTileFactory.getTheme();
             if (currentDimension == null) {
                 buttonResetDefaults.setEnabled(false);

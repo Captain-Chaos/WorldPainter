@@ -75,17 +75,19 @@ public interface PlatformProvider extends Provider<Platform> {
     }
 
     class MapInfo {
-        public MapInfo(File dir, Platform platform, String name, Icon icon) {
+        public MapInfo(File dir, Platform platform, String name, Icon icon, int maxHeight) {
             this.dir = dir;
             this.platform = platform;
             this.name = name;
             this.icon = icon;
+            this.maxHeight = maxHeight;
         }
 
         public File dir;
         public Platform platform;
         public String name;
         public Icon icon;
+        public int maxHeight;
     }
     
     /**

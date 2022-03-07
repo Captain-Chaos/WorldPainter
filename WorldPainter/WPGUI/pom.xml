@@ -28,9 +28,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.intellij</groupId>
+            <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>12.0</version>
+            <version>23.0.0</version>
             <scope>provided</scope> <!-- Not really, but these annotations aren't needed at runtime. -->
         </dependency>
 

@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.SeededGenerator;
 import org.pepsoft.util.*;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
@@ -111,6 +112,7 @@ import static org.pepsoft.util.GUIUtils.getUIScaleInt;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.ProgressDialog.NO_FOCUS_STEALING;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.Terrain.*;
 import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
@@ -625,6 +627,8 @@ public final class App extends JFrame implements RadiusControl,
             for (Tile tile: dimension.getTiles()) {
                 tile.addListener(this);
             }
+
+            biomesPanel.loadBiomes(world.getPlatform(), selectedColourScheme);
         } else {
             view.setDimension(null);
             setTitle("WorldPainter"); // NOI18N
@@ -805,11 +809,11 @@ public final class App extends JFrame implements RadiusControl,
         return view.getZoom();
     }
 
-    public final int getMaxRadius() {
+    public int getMaxRadius() {
         return maxRadius;
     }
 
-    public final void setMaxRadius(int maxRadius) {
+    public void setMaxRadius(int maxRadius) {
         this.maxRadius = maxRadius;
         if (radius > maxRadius) {
             radius = maxRadius;
@@ -1343,10 +1347,11 @@ public final class App extends JFrame implements RadiusControl,
     @Override
     public void setSeed(long seed, Generator generator) {
         if (world != null) {
-            world.setGenerator(generator);
-            Dimension dim0 = world.getDimension(DIM_NORMAL);
-            if (dim0 != null) {
-                dim0.setMinecraftSeed(seed);
+            for (Dimension dimension: world.getDimensions()) {
+                dimension.setMinecraftSeed(seed);
+                if (dimension.getGenerator() instanceof SeededGenerator) {
+                    ((SeededGenerator) dimension.getGenerator()).setSeed(seed);
+                }
             }
         }
     }
@@ -2569,8 +2574,8 @@ public final class App extends JFrame implements RadiusControl,
 
         dockingManager.addFrame(new DockableFrameBuilder(createTerrainPanel(), "Terrain", DOCK_SIDE_WEST, 3).build());
 
-        biomesPanel = new DockableFrameBuilder(createBiomesPanel(), "Biomes", DOCK_SIDE_WEST, 3).build();
-        dockingManager.addFrame(biomesPanel);
+        biomesPanelFrame = new DockableFrameBuilder(createBiomesPanelContainer(), "Biomes", DOCK_SIDE_WEST, 3).build();
+        dockingManager.addFrame(biomesPanelFrame);
 
         dockingManager.addFrame(new DockableFrameBuilder(createAnnotationsPanel(), "Annotations", DOCK_SIDE_WEST, 3).build());
 
@@ -2989,9 +2994,9 @@ public final class App extends JFrame implements RadiusControl,
         return layerPanel;
     }
 
-    private JPanel createBiomesPanel() {
-        final JPanel biomesPanel = new JPanel();
-        biomesPanel.setLayout(new GridBagLayout());
+    private JPanel createBiomesPanelContainer() {
+        final JPanel biomesPanelContainer = new JPanel();
+        biomesPanelContainer.setLayout(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.insets = new Insets(1, 1, 1, 1);
 
@@ -3012,7 +3017,7 @@ public final class App extends JFrame implements RadiusControl,
         if (! config.isEasyMode()) {
             constraints.gridwidth = 1;
             constraints.weightx = 0.0;
-            biomesPanel.add(checkBox, constraints);
+            biomesPanelContainer.add(checkBox, constraints);
         }
 
         JCheckBox soloCheckBox = new JCheckBox("Solo:");
@@ -3022,20 +3027,21 @@ public final class App extends JFrame implements RadiusControl,
         layerSoloCheckBoxes.put(Biome.INSTANCE, soloCheckBox);
         if (! config.isEasyMode()) {
             constraints.gridwidth = GridBagConstraints.REMAINDER;
-            biomesPanel.add(soloCheckBox, constraints);
+            biomesPanelContainer.add(soloCheckBox, constraints);
         }
 
-        biomesPanel.add(new BiomesPanel(defaultColourScheme, customBiomeManager, biomeId -> {
+        biomesPanel = new BiomesPanel(defaultColourScheme, customBiomeManager, biomeId -> {
             paintUpdater = () -> {
                 paint = PaintFactory.createDiscreteLayerPaint(Biome.INSTANCE, biomeId);
                 paintChanged();
             };
             paintUpdater.updatePaint();
-        }, paintButtonGroup), constraints);
+        }, paintButtonGroup);
+        biomesPanelContainer.add(biomesPanel, constraints);
 
         layerControls.put(Biome.INSTANCE, new LayerControls(Biome.INSTANCE, checkBox, soloCheckBox, null));
 
-        return biomesPanel;
+        return biomesPanelContainer;
     }
 
     private JPanel createAnnotationsPanel() {
@@ -4362,7 +4368,7 @@ public final class App extends JFrame implements RadiusControl,
             } else {
                 int preferredAlgorithm = -1;
                 if ((dimension != null) && (dimension.getDim() == DIM_NORMAL) && (dimension.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL)) {
-                    if (world.getGenerator() == Generator.LARGE_BIOMES) {
+                    if (dimension.getGenerator().getType() == LARGE_BIOMES) {
                         preferredAlgorithm = BIOME_ALGORITHM_1_7_LARGE;
                     } else {
                         preferredAlgorithm = BIOME_ALGORITHM_1_7_DEFAULT;
@@ -5034,7 +5040,7 @@ public final class App extends JFrame implements RadiusControl,
     private JToggleButton createTerrainButton(final Terrain terrain) {
         final JToggleButton button = new JToggleButton();
         button.setMargin(App.BUTTON_INSETS);
-        button.setIcon(new ImageIcon(terrain.getIcon(defaultColourScheme)));
+        button.setIcon(new ImageIcon(terrain.getScaledIcon(16, defaultColourScheme)));
         button.setToolTipText(terrain.getName() + ": " + terrain.getDescription());
         button.addItemListener(event -> {
             if (event.getStateChange() == ItemEvent.SELECTED) {
@@ -5239,7 +5245,7 @@ public final class App extends JFrame implements RadiusControl,
                 case DIM_NORMAL_CEILING:
                     setSpawnPointToggleButton.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
                     ACTION_MOVE_TO_SPAWN.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
-                    biomesPanel.setEnabled(biomesSupported);
+                    biomesPanelFrame.setEnabled(biomesSupported);
                     layerControls.get(Biome.INSTANCE).setEnabled(biomesSupported);
                     break;
                 default:
@@ -5248,7 +5254,7 @@ public final class App extends JFrame implements RadiusControl,
                     }
                     setSpawnPointToggleButton.setEnabled(false);
                     ACTION_MOVE_TO_SPAWN.setEnabled(false);
-                    biomesPanel.setEnabled(biomesSupported);
+                    biomesPanelFrame.setEnabled(biomesSupported);
                     layerControls.get(Biome.INSTANCE).setEnabled(biomesSupported);
                     break;
             }
@@ -5609,11 +5615,12 @@ public final class App extends JFrame implements RadiusControl,
                             // by *far* the most time goes into actually writing
                             // the file, and we can't report progress for that
                             try {
-                                BufferedImage image = new BufferedImage(dimension.getWidth() * TILE_SIZE, dimension.getHeight() * TILE_SIZE, ((dimension.getMaxHeight() <= 256) && (! highRes)) ? BufferedImage.TYPE_BYTE_GRAY : BufferedImage.TYPE_USHORT_GRAY);
-                                WritableRaster raster = image.getRaster();
+                                final int minHeight = dimension.getMinHeight(), totalHeight = dimension.getMaxHeight() - dimension.getMinHeight();
+                                final BufferedImage image = new BufferedImage(dimension.getWidth() * TILE_SIZE, dimension.getHeight() * TILE_SIZE, ((totalHeight <= 256) && (! highRes)) ? BufferedImage.TYPE_BYTE_GRAY : BufferedImage.TYPE_USHORT_GRAY);
+                                final WritableRaster raster = image.getRaster();
                                 for (Tile tile: dimension.getTiles()) {
-                                    int tileOffsetX = (tile.getX() - dimension.getLowestX()) * TILE_SIZE;
-                                    int tileOffsetY = (tile.getY() - dimension.getLowestY()) * TILE_SIZE;
+                                    final int tileOffsetX = (tile.getX() - dimension.getLowestX()) * TILE_SIZE;
+                                    final int tileOffsetY = (tile.getY() - dimension.getLowestY()) * TILE_SIZE;
                                     if (highRes) {
                                         for (int dx = 0; dx < TILE_SIZE; dx++) {
                                             for (int dy = 0; dy < TILE_SIZE; dy++) {
@@ -5623,7 +5630,7 @@ public final class App extends JFrame implements RadiusControl,
                                     } else {
                                         for (int dx = 0; dx < TILE_SIZE; dx++) {
                                             for (int dy = 0; dy < TILE_SIZE; dy++) {
-                                                raster.setSample(tileOffsetX + dx, tileOffsetY + dy, 0, tile.getIntHeight(dx, dy));
+                                                raster.setSample(tileOffsetX + dx, tileOffsetY + dy, 0, tile.getIntHeight(dx, dy) - minHeight);
                                             }
                                         }
                                     }
@@ -6917,7 +6924,8 @@ public final class App extends JFrame implements RadiusControl,
     private ThreeDeeFrame threeDeeFrame;
     private BiomesViewerFrame biomesViewerFrame;
     private MapDragControl mapDragControl;
-    private DockableFrame biomesPanel;
+    private BiomesPanel biomesPanel;
+    private DockableFrame biomesPanelFrame;
     private final boolean alwaysEnableReadOnly = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.alwaysEnableReadOnly")); // NOI18N
 //    private JScrollPane scrollPane = new JScrollPane();
     private Filter filter, toolFilter;

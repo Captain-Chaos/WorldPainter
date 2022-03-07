@@ -525,7 +525,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 Box bounds = getBounds(object, x, y, z);
                 // Include the layer below and above the object for post
                 // processing, as those blocks may also haev been affected
-                bounds.setZ1(Math.max(bounds.getZ1() - 1, 0));
+                bounds.setZ1(Math.max(bounds.getZ1() - 1, world.getMinHeight()));
                 bounds.setZ2(Math.min(bounds.getZ2() + 1, world.getMaxHeight() - 1));
                 try {
                     PlatformManager.getInstance().getPostProcessor(platform).postProcess(world, bounds, exportSettings, null);

@@ -27,7 +27,7 @@ import static org.pepsoft.minecraft.Material.WATERLOGGED;
  * 
  * @author pepijn
  */
-public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
+public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, MinecraftWorld {
     public MC115AnvilChunk(int xPos, int zPos, int maxHeight) {
         super(new CompoundTag(TAG_LEVEL, new HashMap<>()));
         this.xPos = xPos;
@@ -228,6 +228,11 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
         tag.setTag(TAG_LEVEL, super.toNBT());
         tag.setTag(TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, DATA_VERSION_MC_1_15));
         return tag;
+    }
+
+    @Override
+    public int getMinHeight() {
+        return 0;
     }
 
     @Override
@@ -504,7 +509,7 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
                 }
             }
         }
-        return -1;
+        return Integer.MIN_VALUE;
     }
 
     @Override
@@ -519,7 +524,7 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
                 }
             }
         }
-        return -1;
+        return Integer.MIN_VALUE;
     }
 
     // MinecraftWorld
@@ -730,7 +735,7 @@ public final class MC115AnvilChunk extends NBTChunk implements MinecraftWorld {
     private static final Random RANDOM = new Random();
     private static final Logger logger = LoggerFactory.getLogger(MC115AnvilChunk.class);
 
-    public static class Section extends AbstractNBTItem {
+    public static class Section extends AbstractNBTItem implements SectionedChunk.Section {
         Section(CompoundTag tag) {
             super(tag);
             try {

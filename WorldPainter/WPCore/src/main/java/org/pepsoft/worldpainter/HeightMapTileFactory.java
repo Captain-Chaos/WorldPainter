@@ -5,28 +5,36 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.Rectangle;
+import org.pepsoft.worldpainter.layers.FloodWithLava;
+import org.pepsoft.worldpainter.themes.SimpleTheme;
+import org.pepsoft.worldpainter.themes.Theme;
+
+import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.SortedMap;
-import org.pepsoft.worldpainter.layers.FloodWithLava;
-import static org.pepsoft.worldpainter.Constants.*;
-import org.pepsoft.worldpainter.themes.SimpleTheme;
-import org.pepsoft.worldpainter.themes.Theme;
+
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 
 /**
  *
  * @author pepijn
  */
 public class HeightMapTileFactory extends AbstractTileFactory {
-    public HeightMapTileFactory(long seed, HeightMap heightMap, int maxHeight, boolean floodWithLava, Theme theme) {
+    public HeightMapTileFactory(long seed, HeightMap heightMap, int minHeight, int maxHeight, boolean floodWithLava, Theme theme) {
         this.seed = seed;
+        this.minHeight = minHeight;
         this.heightMap = heightMap;
         this.maxHeight = maxHeight;
         this.floodWithLava = floodWithLava;
         heightMap.setSeed(seed);
         theme.setSeed(seed);
         this.theme = theme;
+    }
+
+    public int getMinHeight() {
+        return minHeight;
     }
 
     @Override
@@ -103,7 +111,7 @@ public class HeightMapTileFactory extends AbstractTileFactory {
     @Override
     public Tile createTile(int tileX, int tileY) {
         final int maxY = getMaxHeight() - 1, myWaterHeight = getWaterHeight();
-        final Tile tile = new Tile(tileX, tileY, maxHeight);
+        final Tile tile = new Tile(tileX, tileY, minHeight, maxHeight);
         tile.inhibitEvents();
         final int worldTileX = tileX * TILE_SIZE, worldTileY = tileY * TILE_SIZE;
         try {
@@ -169,8 +177,8 @@ public class HeightMapTileFactory extends AbstractTileFactory {
         }
         if (version < 1) {
             theme = (terrainRanges != null)
-                ? new SimpleTheme(seed, waterHeight, terrainRanges, null, maxHeight, randomise, beaches)
-                : new SimpleTheme(seed, waterHeight, terrainRangesTable, maxHeight, randomise, beaches);
+                ? new SimpleTheme(seed, waterHeight, terrainRanges, null, minHeight, maxHeight, randomise, beaches)
+                : new SimpleTheme(seed, waterHeight, terrainRangesTable, minHeight, maxHeight, randomise, beaches);
             waterHeight = -1;
             terrainRanges = null;
             terrainRangesTable = null;
@@ -186,7 +194,7 @@ public class HeightMapTileFactory extends AbstractTileFactory {
     @Deprecated
     private Terrain[] terrainRangesTable;
     private final boolean floodWithLava;
-    private int maxHeight;
+    private int minHeight, maxHeight;
     @Deprecated
     private SortedMap<Integer, Terrain> terrainRanges;
     @Deprecated

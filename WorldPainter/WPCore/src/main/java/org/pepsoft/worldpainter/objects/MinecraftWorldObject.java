@@ -177,6 +177,11 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     }
 
     @Override
+    public int getMinHeight() {
+        throw new UnsupportedOperationException("TODO"); // TODOMC118
+    }
+
+    @Override
     public int getMaxHeight() {
         return maxHeight;
     }
@@ -248,9 +253,9 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
                     return z + dz;
                 }
             }
-            return -1;
+            return Integer.MIN_VALUE;
         } else {
-            return -1;
+            return Integer.MIN_VALUE;
         }
     }
 

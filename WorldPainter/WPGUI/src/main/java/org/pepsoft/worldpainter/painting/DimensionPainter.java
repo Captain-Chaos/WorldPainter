@@ -253,7 +253,7 @@ public final class DimensionPainter {
 
                                 @Override
                                 boolean isFilled(int x, int y) {
-                                    return dimension.getLayerValueAt(layer, x, y) == ((DiscreteLayerPaint) paint).getValue();
+                                    return dimension.getLayerValueAt(layer, x, y) == (int) ((DiscreteLayerPaint) paint).getValue();
                                 }
                             };
                         }

@@ -16,7 +16,7 @@ import static org.pepsoft.minecraft.Constants.*;
  *
  * @author pepijn
  */
-public abstract class AbstractMinecraft1_15BiomeScheme extends AbstractBiomeScheme implements Minecraft1_15Biomes {
+public abstract class AbstractMinecraft1_18BiomeScheme extends AbstractBiomeScheme implements Minecraft1_18Biomes {
     @Override
     public final int getBiomeCount() {
         return BIOME_NAMES.length;
@@ -42,6 +42,9 @@ public abstract class AbstractMinecraft1_15BiomeScheme extends AbstractBiomeSche
             case BIOME_EXTREME_HILLS_PLUS:
             case BIOME_EXTREME_HILLS_PLUS_M:
             case BIOME_SUNFLOWER_PLAINS:
+            case BIOME_DRIPSTONE_CAVES:
+            case BIOME_LUSH_CAVES:
+            case BIOME_MEADOW:
                 return colourScheme.getColour(BLK_GRASS);
             case BIOME_DESERT:
             case BIOME_BEACH:
@@ -71,11 +74,19 @@ public abstract class AbstractMinecraft1_15BiomeScheme extends AbstractBiomeSche
             case BIOME_COLD_TAIGA_M:
             case BIOME_ICE_PLAINS_SPIKES:
             case BIOME_COLD_BEACH:
+            case BIOME_FROZEN_PEAKS:
+            case BIOME_GROVE:
+            case BIOME_JAGGED_PEAKS:
+            case BIOME_SNOWY_SLOPES:
                 return colourScheme.getColour(BLK_SNOW);
             case BIOME_HELL:
+            case BIOME_SOUL_SAND_VALLEY:
+            case BIOME_CRIMSON_FOREST:
+            case BIOME_WARPED_FOREST:
+            case BIOME_BASALT_DELTAS:
                 return colourScheme.getColour(BLK_NETHERRACK);
             case BIOME_SKY:
-            case BIOME_END_SMALL_ISLANDS:
+            case BIOME_SMALL_END_ISLANDS:
             case BIOME_END_MIDLANDS:
             case BIOME_END_HIGHLANDS:
             case BIOME_END_BARRENS:
@@ -88,6 +99,7 @@ public abstract class AbstractMinecraft1_15BiomeScheme extends AbstractBiomeSche
             case BIOME_MUSHROOM_ISLAND_SHORE:
                 return colourScheme.getColour(BLK_MYCELIUM);
             case BIOME_STONE_BEACH:
+            case BIOME_STONY_PEAKS:
                 return colourScheme.getColour(BLK_STONE);
             case BIOME_BIRCH_FOREST:
             case BIOME_BIRCH_FOREST_HILLS:
@@ -114,7 +126,7 @@ public abstract class AbstractMinecraft1_15BiomeScheme extends AbstractBiomeSche
             case BIOME_MESA_PLATEAU_F_M:
             case BIOME_MESA_PLATEAU_M:
                 return colourScheme.getColour(BLK_HARDENED_CLAY);
-            case BIOME_VOID:
+            case BIOME_THE_VOID:
                 return VoidRenderer.getColour();
             default:
                 throw new IllegalArgumentException(Integer.toString(biome));

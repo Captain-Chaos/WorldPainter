@@ -47,7 +47,7 @@ public class Java1_15PostProcessor extends PostProcessor {
         if (progressReceiver != null) {
             progressReceiver.setMessage("Post processing exported blocks (first pass)");
         }
-        final int worldMaxZ = minecraftWorld.getMaxHeight() - 1;
+        final int worldMinZ = minecraftWorld.getMinHeight(), worldMaxZ = minecraftWorld.getMaxHeight() - 1;
         final int x1, y1, x2, y2, minZ, maxZ;
         // TODO: make these configurable:
         final JavaExportSettings settings = (exportSettings instanceof JavaExportSettings) ? (JavaExportSettings) exportSettings : new JavaExportSettings();
@@ -88,7 +88,7 @@ public class Java1_15PostProcessor extends PostProcessor {
         for (int x = x1; x <= x2; x ++) {
             for (int y = y1; y <= y2; y++) {
                 // Iterate over one column from bottom to top
-                Material materialBelow = (minZ <= 0) ? AIR : minecraftWorld.getMaterialAt(x, y, minZ - 1);
+                Material materialBelow = (minZ <= worldMinZ) ? AIR : minecraftWorld.getMaterialAt(x, y, minZ - 1);
                 Material materialAbove = minecraftWorld.getMaterialAt(x, y, minZ);
                 // TODO: only do this for non-bottomless worlds:
 //                if ((minZ == 0) && (blockTypeAbove != BLK_BEDROCK) && (blockTypeAbove != BLK_AIR) && (blockTypeAbove != BLK_STATIONARY_WATER) && (blockTypeAbove != BLK_STATIONARY_LAVA)) {
@@ -367,7 +367,7 @@ public class Java1_15PostProcessor extends PostProcessor {
             for (int x = x1; x <= x2; x++) {
                 for (int y = y1; y <= y2; y++) {
                     // Iterate over one column from bottom to top
-                    Material materialBelow = (minZ <= 0) ? AIR : minecraftWorld.getMaterialAt(x, y, minZ - 1);
+                    Material materialBelow = (minZ <= worldMinZ) ? AIR : minecraftWorld.getMaterialAt(x, y, minZ - 1);
                     Material materialAbove = minecraftWorld.getMaterialAt(x, y, minZ);
                     final int columnMaxZ = Math.min(minecraftWorld.getHighestNonAirBlock(x, y), maxZ);
                     for (int z = minZ; z <= columnMaxZ; z++) {

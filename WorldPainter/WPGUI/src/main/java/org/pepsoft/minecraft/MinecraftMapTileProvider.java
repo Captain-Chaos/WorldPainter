@@ -29,7 +29,7 @@ public class MinecraftMapTileProvider implements TileProvider {
     public MinecraftMapTileProvider(File mapDir) throws IOException {
 
         // Read the metadata
-        Level level = Level.load(new File(mapDir, "level.dat"));
+        JavaLevel level = JavaLevel.load(new File(mapDir, "level.dat"));
         maxHeight = level.getMaxHeight();
         PlatformManager platformManager = PlatformManager.getInstance();
         Platform platform = platformManager.identifyPlatform(mapDir);

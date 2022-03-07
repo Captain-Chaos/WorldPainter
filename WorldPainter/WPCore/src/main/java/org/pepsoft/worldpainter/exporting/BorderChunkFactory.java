@@ -25,7 +25,7 @@ import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
 import static org.pepsoft.worldpainter.Terrain.BEACHES;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
 
 /**
  *
@@ -59,7 +59,7 @@ public class BorderChunkFactory {
         final int biome;
         switch(border) {
             case VOID:
-                biome = ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) ? BIOME_VOID : BIOME_PLAINS;
+                biome = ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) ? BIOME_THE_VOID : BIOME_PLAINS;
                 break;
             case LAVA:
                 biome = BIOME_PLAINS;
@@ -127,7 +127,7 @@ public class BorderChunkFactory {
             // Apply layers set to be applied everywhere, if any
             final Set<Layer> minimumLayers = dimension.getMinimumLayers();
             if (!minimumLayers.isEmpty()) {
-                Tile virtualTile = new Tile(chunkX >> 3, chunkZ >> 3, dimension.getMaxHeight()) {
+                Tile virtualTile = new Tile(chunkX >> 3, chunkZ >> 3, dimension.getMinHeight(), dimension.getMaxHeight()) {
                     @Override
                     public synchronized float getHeight(int x, int y) {
                         return floor + (noiseGenerator.getPerlinNoise(((getX() << TILE_SIZE_BITS) | x) / MEDIUM_BLOBS, ((getY() << TILE_SIZE_BITS) | y) / MEDIUM_BLOBS) + 0.5f) * variation;

@@ -206,6 +206,11 @@ public class InvertedChunk implements Chunk {
     }
 
     @Override
+    public boolean isNamedBiomesAvailable() {
+        return chunk.isNamedBiomesAvailable();
+    }
+
+    @Override
     public int getBiome(int x, int z) {
         return chunk.getBiome(x, z);
     }
@@ -223,6 +228,21 @@ public class InvertedChunk implements Chunk {
     @Override
     public void set3DBiome(int x, int y, int z, int biome) {
         chunk.set3DBiome(x, (maxHeight >> 2) - y, z, biome);
+    }
+
+    @Override
+    public String getNamedBiome(int x, int y, int z) {
+        return chunk.getNamedBiome(x, (maxHeight >> 2) - y, z);
+    }
+
+    @Override
+    public void setNamedBiome(int x, int y, int z, String biome) {
+        chunk.setNamedBiome(x, (maxHeight >> 2) - y, z, biome);
+    }
+
+    @Override
+    public void markForUpdateChunk(int x, int y, int z) {
+        chunk.markForUpdateChunk(x, maxY - y, z);
     }
 
     @Override
@@ -251,17 +271,17 @@ public class InvertedChunk implements Chunk {
     }
 
     @Override
-    public int getHighestNonAirBlock(int x, int z) {
+    public int getHighestNonAirBlock(int x, int z) { // TODOMC118 Does this work for minHeight < 0?
         for (int y = 0; y <= maxY; y++) {
             if (chunk.getBlockType(x, y, z) != Constants.BLK_AIR) {
                 return maxY - y;
             }
         }
-        return -1;
+        return Integer.MIN_VALUE;
     }
 
     @Override
-    public int getHighestNonAirBlock() {
+    public int getHighestNonAirBlock() { // TODOMC118 Does this work for minHeight < 0?
         for (int y = 0; y <= maxY; y++) {
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
@@ -271,7 +291,7 @@ public class InvertedChunk implements Chunk {
                 }
             }
         }
-        return -1;
+        return Integer.MIN_VALUE;
     }
 
     private final Chunk chunk;

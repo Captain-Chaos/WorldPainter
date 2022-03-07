@@ -123,7 +123,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
                         ColourScheme colourScheme = app.getColourScheme();
                         onlyOn = terrain;
                         buttonReplace.setText(terrain.getName());
-                        buttonReplace.setIcon(new ImageIcon(terrain.getIcon(colourScheme)));
+                        buttonReplace.setIcon(new ImageIcon(terrain.getScaledIcon(16, colourScheme)));
                         break;
                     case WATER:
                         onlyOn = DefaultFilter.WATER;
@@ -169,7 +169,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
                         ColourScheme colourScheme = app.getColourScheme();
                         exceptOn = terrain;
                         buttonExceptOn.setText(terrain.getName());
-                        buttonExceptOn.setIcon(new ImageIcon(terrain.getIcon(colourScheme)));
+                        buttonExceptOn.setIcon(new ImageIcon(terrain.getScaledIcon(16, colourScheme)));
                         break;
                     case WATER:
                         exceptOn = DefaultFilter.WATER;
@@ -280,7 +280,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
         for (Terrain terrain: Terrain.getConfiguredValues()) {
             final Terrain selectedTerrain = terrain;
             final String name = terrain.getName();
-            final Icon icon = new ImageIcon(terrain.getIcon(colourScheme));
+            final Icon icon = new ImageIcon(terrain.getScaledIcon(16, colourScheme));
             JMenuItem menuItem = new JMenuItem(name, icon);
             menuItem.addActionListener(e -> listener.objectSelected(selectedTerrain, name, icon));
             if (terrain.isCustom()) {

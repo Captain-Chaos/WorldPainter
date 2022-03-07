@@ -12,7 +12,6 @@ import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.WorldPainter;
 import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.selection.SelectionBlock;
 import org.pepsoft.worldpainter.selection.SelectionChunk;
@@ -32,6 +31,7 @@ import java.util.List;
 import java.util.*;
 
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 
 /**
  *
@@ -102,7 +102,7 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
         Terrain terrain = tile.getTerrain(x, y);
         if (terrain != currentTerrain) {
             labelTerrain.setText(terrain.getName());
-            labelTerrain.setIcon(new ImageIcon(terrain.getIcon(view.getColourScheme())));
+            labelTerrain.setIcon(new ImageIcon(terrain.getScaledIcon(16, view.getColourScheme())));
             currentTerrain = terrain;
         }
         int biome = tile.getLayerValue(Biome.INSTANCE, x, y);
@@ -112,7 +112,7 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
             biome = dim.getAutoBiome(tile, x, y);
         }
         if (biome < 0) {
-            biome = Minecraft1_15Biomes.BIOME_PLAINS;
+            biome = BIOME_PLAINS;
         }
         if ((automaticBiome != currentAutomaticBiome) || (biome != currentBiome)) {
             labelBiome.setText(biomeHelper.getBiomeName(biome) + " (" + biome + ")");

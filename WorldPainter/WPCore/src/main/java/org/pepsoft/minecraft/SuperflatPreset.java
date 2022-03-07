@@ -2,7 +2,8 @@ package org.pepsoft.minecraft;
 
 import com.google.common.collect.ImmutableMap;
 import org.jnbt.*;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes;
+import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -10,10 +11,15 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.Map.Entry;
 
+import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyMap;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.*;
+import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.MODERN_IDS;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 
 public class SuperflatPreset implements Serializable {
     public SuperflatPreset(int biome, List<Layer> layers, Map<Structure, Map<String, String>> structures) {
@@ -60,7 +66,7 @@ public class SuperflatPreset implements Serializable {
 
     public CompoundTag toMinecraft1_15_2() {
         return new CompoundTag("generatorOptions", ImmutableMap.of(
-                "biome", new StringTag("biome", "minecraft:" + Minecraft1_15Biomes.BIOME_NAMES[biome].toLowerCase().replace(' ', '_')),
+                "biome", new StringTag("biome", "minecraft:" + Minecraft1_17Biomes.BIOME_NAMES[biome].toLowerCase().replace(' ', '_')), // TODOMC118 custom biome support
                 "layers", new ListTag<>("layers", CompoundTag.class, layers.stream().map(layer -> new CompoundTag("", ImmutableMap.of(
                         "block", new StringTag("block", layer.materialName),
                         "height", new ShortTag("height", (short) layer.thickness)))).collect(toList())),
@@ -68,6 +74,21 @@ public class SuperflatPreset implements Serializable {
                         structure -> structure.getKey().name().toLowerCase(),
                         structure -> new CompoundTag(structure.getKey().name().toLowerCase(),
                                 structure.getValue().entrySet().stream().collect(toMap(Entry::getKey, entry -> new StringTag(entry.getKey(), entry.getValue())))))))
+        ));
+    }
+
+    public CompoundTag toMinecraft1_18_0() {
+        return new CompoundTag(TAG_SETTINGS_, ImmutableMap.of(
+                TAG_BIOME_, new StringTag(TAG_BIOME_, MODERN_IDS[biome]), // TODOMC118 custom biome support
+                TAG_FEATURES_, new ByteTag(TAG_FEATURES_, (byte) 0), // TODOMC118 support
+                TAG_LAKES_, new ByteTag(TAG_LAKES_, (byte) 0), // TODOMC118 support
+                TAG_LAYERS_, new ListTag<>(TAG_LAYERS_, CompoundTag.class, layers.stream().map(layer -> new CompoundTag("", ImmutableMap.of(
+                        TAG_BLOCK_, new StringTag(TAG_BLOCK_, layer.materialName),
+                        TAG_HEIGHT_, new IntTag(TAG_HEIGHT_, layer.thickness)))).collect(toList())),
+                TAG_STRUCTURES_, new CompoundTag(TAG_STRUCTURES_, ImmutableMap.of( // TODOMC118 support
+                        TAG_STRONGHOLD_, new CompoundTag(TAG_STRONGHOLD_, emptyMap()),
+                        TAG_STRUCTURES_, new CompoundTag(TAG_STRUCTURES_, emptyMap())
+                ))
         ));
     }
 
@@ -152,14 +173,18 @@ public class SuperflatPreset implements Serializable {
         );
     }
 
+    public static SuperflatPreset defaultPreset(Platform platform) {
+        return new SuperflatPreset(BIOME_PLAINS, asList(new Layer(MC_BEDROCK, 1), new Layer(MC_DIRT, 2), new Layer(((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODOMC118 make dynamic */) ? MC_GRASS_BLOCK : "minecraft:grass", 1)), emptyMap());
+    }
+
     public static Builder builder(int biome, Structure... structures) {
         return new Builder(biome, structures);
     }
 
     private static int getBiomeByMinecraftName(String name) {
         name = name.substring(name.indexOf(':') + 1).replace('_', ' ');
-        for (int i = 0; i < Minecraft1_15Biomes.BIOME_NAMES.length; i++) {
-            if (name.equalsIgnoreCase(Minecraft1_15Biomes.BIOME_NAMES[i])) {
+        for (int i = 0; i < Minecraft1_17Biomes.BIOME_NAMES.length; i++) {
+            if (name.equalsIgnoreCase(Minecraft1_17Biomes.BIOME_NAMES[i])) {
                 return i;
             }
         }

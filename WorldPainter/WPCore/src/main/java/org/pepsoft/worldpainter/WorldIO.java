@@ -1,6 +1,9 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.Direction;
+import org.pepsoft.minecraft.SeededGenerator;
+import org.pepsoft.minecraft.SuperflatGenerator;
+import org.pepsoft.minecraft.SuperflatPreset;
 import org.pepsoft.util.WPCustomObjectInputStream;
 import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.history.HistoryEntry;
@@ -20,6 +23,7 @@ import java.util.zip.ZipException;
 
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Generator.DEFAULT;
 
 /**
  * A utility class for saving and loading WorldPainter {@link World2 worlds} in
@@ -126,15 +130,6 @@ public class WorldIO {
             newWorld.setName(oldWorld.getName());
             newWorld.setSpawnPoint(oldWorld.getSpawnPoint());
             Dimension dim0 = newWorld.getDimension(0);
-            Generator generator = Generator.DEFAULT;
-            TileFactory tileFactory = dim0.getTileFactory();
-            if ((tileFactory instanceof HeightMapTileFactory)
-                    && (((HeightMapTileFactory) tileFactory).getWaterHeight() < 32)
-                    && (((HeightMapTileFactory) tileFactory).getBaseHeight() < 32)) {
-                // Low level
-                generator = Generator.FLAT;
-            }
-            newWorld.setGenerator(generator);
             newWorld.setAskToConvertToAnvil(true);
             newWorld.setUpIs(Direction.WEST);
             newWorld.setAskToRotate(true);
@@ -157,6 +152,16 @@ public class WorldIO {
                 } else {
                     dim0.setSubsurfaceMaterial(subsurfaceMaterial);
                     resourcesSettings.setMinimumLevel(0);
+                }
+
+                TileFactory tileFactory = dim0.getTileFactory();
+                if ((tileFactory instanceof HeightMapTileFactory)
+                        && (((HeightMapTileFactory) tileFactory).getWaterHeight() < 32)
+                        && (((HeightMapTileFactory) tileFactory).getBaseHeight() < 32)) {
+                    // Low level
+                    dim0.setGenerator(new SuperflatGenerator(SuperflatPreset.defaultPreset(JAVA_MCREGION)));
+                } else {
+                    dim0.setGenerator(new SeededGenerator(DEFAULT, oldWorld.getMinecraftSeed()));
                 }
 
                 // Load legacy settings

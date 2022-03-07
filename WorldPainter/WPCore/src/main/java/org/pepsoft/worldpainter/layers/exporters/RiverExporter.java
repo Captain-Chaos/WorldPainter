@@ -26,7 +26,7 @@ import static org.pepsoft.minecraft.Constants.MC_ICE;
 import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.TINY_BLOBS;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.BIOME_RIVER;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.BIOME_RIVER;
 
 /**
  *

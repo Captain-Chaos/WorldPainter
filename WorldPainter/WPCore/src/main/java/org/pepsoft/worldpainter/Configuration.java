@@ -5,7 +5,9 @@
 
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.minecraft.MapGenerator;
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.SeededGenerator;
 import org.pepsoft.util.AttributeKey;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.SystemUtils;
@@ -17,7 +19,6 @@ import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Resources;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter.FrostSettings;
-import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
 import org.pepsoft.worldpainter.themes.Filter;
 import org.pepsoft.worldpainter.themes.HeightFilter;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
@@ -32,8 +33,11 @@ import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Material.DIRT;
+import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
+import static org.pepsoft.worldpainter.Generator.DEFAULT;
+import static org.pepsoft.worldpainter.World2.DEFAULT_OCEAN_SEED;
 
 /**
  *
@@ -366,6 +370,9 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     }
 
     public synchronized void setDefaultTerrainAndLayerSettings(Dimension defaultTerrainAndLayerSettings) {
+        if (defaultTerrainAndLayerSettings.getLayerSettings(Resources.INSTANCE) != null) {
+            defaultTerrainAndLayerSettings.setLayerSettings(Resources.INSTANCE, null);
+        }
         this.defaultTerrainAndLayerSettings = defaultTerrainAndLayerSettings;
     }
 
@@ -510,12 +517,12 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.defaultAllowCheats = defaultAllowCheats;
     }
 
-    public synchronized Generator getDefaultGenerator() {
-        return defaultGenerator;
+    public synchronized MapGenerator getDefaultGenerator() {
+        return defaultGeneratorObj;
     }
 
-    public synchronized void setDefaultGenerator(Generator defaultGenerator) {
-        this.defaultGenerator = defaultGenerator;
+    public synchronized void setDefaultGenerator(MapGenerator defaultGenerator) {
+        this.defaultGeneratorObj = defaultGenerator;
     }
 
     public synchronized GameType getDefaultGameType() {
@@ -524,14 +531,6 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
 
     public synchronized void setDefaultGameType(GameType defaultGameType) {
         defaultGameTypeObj = defaultGameType;
-    }
-
-    public synchronized String getDefaultGeneratorOptions() {
-        return defaultGeneratorOptions;
-    }
-
-    public synchronized void setDefaultGeneratorOptions(String defaultGeneratorOptions) {
-        this.defaultGeneratorOptions = defaultGeneratorOptions;
     }
 
     public synchronized byte[] getDefaultJideLayoutData() {
@@ -836,7 +835,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             defaultMaxHeight = DEFAULT_MAX_HEIGHT_ANVIL;
         }
         if (defaultTerrainAndLayerSettings == null) {
-            defaultTerrainAndLayerSettings = new World2(JAVA_ANVIL, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), surface, defaultMaxHeight, level, waterLevel, lava, beaches, 20, 1.0), defaultMaxHeight).getDimension(Constants.DIM_NORMAL);
+            defaultTerrainAndLayerSettings = new World2(JAVA_ANVIL_1_15, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), surface, JAVA_ANVIL_1_15.minZ, defaultMaxHeight, level, waterLevel, lava, beaches, 20, 1.0), defaultMaxHeight).getDimension(DIM_NORMAL);
         }
         
         // New legacy mechanism with version number
@@ -866,11 +865,6 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
             if (frostSettings != null) {
                 frostSettings.setMode(FrostSettings.MODE_SMOOTH);
             }
-        }
-        if (version < 5) {
-            // Reset the Resource setting preferences once, which might have
-            // been unintentionally altered due to a bug
-            defaultTerrainAndLayerSettings.setLayerSettings(Resources.INSTANCE, new ResourcesExporterSettings(defaultMaxHeight));
         }
         if (version < 6) {
             if (! Boolean.FALSE.equals(pingAllowed)) {
@@ -997,6 +991,14 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         if (minimumFreeSpaceForMaps == 0) {
             minimumFreeSpaceForMaps = 5;
             autoDeleteBackups = true;
+        }
+        if (defaultGeneratorObj == null) {
+            defaultGeneratorObj = MapGenerator.fromLegacySettings(defaultGenerator, DEFAULT_OCEAN_SEED, null, defaultGeneratorOptions, Platform.getById(defaultPlatformId));
+            defaultGenerator = null;
+            defaultGeneratorOptions = null;
+        }
+        if (defaultTerrainAndLayerSettings.getLayerSettings(Resources.INSTANCE) != null) {
+            defaultTerrainAndLayerSettings.setLayerSettings(Resources.INSTANCE, null);
         }
         version = CURRENT_VERSION;
         
@@ -1140,7 +1142,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     // Default view and world settings
     private boolean checkForUpdates = true, undoEnabled = true, defaultGridEnabled, defaultContoursEnabled = true, defaultViewDistanceEnabled, defaultWalkingDistanceEnabled;
     private int undoLevels = 100, defaultGridSize = 128, defaultContourSeparation = 10, defaultWidth = 5, defaultHeight = 5, defaultMaxHeight = World2.DEFAULT_MAX_HEIGHT;
-    private Dimension defaultTerrainAndLayerSettings = new World2(DefaultPlugin.JAVA_ANVIL_1_15, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), surface, defaultMaxHeight, level, waterLevel, lava, beaches, 20, 1.0), defaultMaxHeight).getDimension(Constants.DIM_NORMAL);
+    private Dimension defaultTerrainAndLayerSettings = new World2(DefaultPlugin.JAVA_ANVIL_1_15, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), surface, JAVA_ANVIL_1_15.minZ, defaultMaxHeight, level, waterLevel, lava, beaches, 20, 1.0), defaultMaxHeight).getDimension(DIM_NORMAL);
     private boolean toolbarsLocked;
     private int version = CURRENT_VERSION, worldFileBackups = 3;
     private float defaultRange = 20, uiScale;
@@ -1155,9 +1157,11 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private File layerDirectory, terrainDirectory, heightMapsDirectory, masksDirectory, backgroundImage;
     private Theme heightMapDefaultTheme;
     private boolean defaultCreateGoodiesChest = true, defaultMapFeatures = true, defaultAllowCheats;
-    private Generator defaultGenerator = Generator.DEFAULT;
+    @Deprecated
+    private Generator defaultGenerator;
     @Deprecated
     private int defaultGameType;
+    @Deprecated
     private String defaultGeneratorOptions;
     private byte[] defaultJideLayoutData;
     private Map<String, byte[]> jideLayoutData;
@@ -1182,6 +1186,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private boolean beta118WarningDisplayed;
     private int minimumFreeSpaceForMaps = 1;
     private boolean autoDeleteBackups = true;
+    private MapGenerator defaultGeneratorObj = new SeededGenerator(DEFAULT, DEFAULT_OCEAN_SEED);
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk

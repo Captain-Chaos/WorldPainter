@@ -4,7 +4,6 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.swing.TiledImageViewer;
 import org.pepsoft.worldpainter.*;
@@ -19,6 +18,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
+import static org.pepsoft.worldpainter.Terrain.GRASS;
 
 //import org.pepsoft.worldpainter.ExperimentalTileFactory;
 
@@ -58,7 +60,7 @@ public class TileFactoryPreviewer {
 //            new NoiseHeightMap(256f, 5f, 4));
 //        HeightMap heightMap = new MaximisingHeightMap(continent, mountains);
 //        final HeightMapTileFactory tileFactory = new HeightMapTileFactory(seed, heightMap, 256, false, new FancyTheme(256, 62, heightMap));
-        final HeightMapTileFactory tileFactory = TileFactoryFactory.createFancyTileFactory(seed, Terrain.GRASS, Constants.DEFAULT_MAX_HEIGHT_ANVIL, 62, 58, false, 20f, 1.0);
+        final HeightMapTileFactory tileFactory = TileFactoryFactory.createFancyTileFactory(seed, GRASS, 0, DEFAULT_MAX_HEIGHT_ANVIL, 62, 58, false, 20f, 1.0);
 //        SortedMap<Integer, Terrain> terrainRanges = tileFactory.getTerrainRanges();
 //        terrainRanges.clear();
 //        terrainRanges.put( -1, Terrain.DIRT);

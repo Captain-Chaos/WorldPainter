@@ -4,15 +4,15 @@
  */
 package org.pepsoft.util;
 
+import org.jetbrains.annotations.NonNls;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
-import javax.imageio.ImageIO;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import org.jetbrains.annotations.NonNls;
-import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 
 import static org.pepsoft.util.GUIUtils.getUIScaleInt;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
@@ -163,11 +163,15 @@ public final class IconUtils {
      * @return The scaled icon.
      */
     public static BufferedImage scaleIcon(Image iconImage, int size) {
-        BufferedImage newImage = new BufferedImage(size * getUIScaleInt(), size * getUIScaleInt(), BufferedImage.TYPE_INT_ARGB);
+        final int scaledSize = size * getUIScaleInt();
+        if ((iconImage instanceof BufferedImage) && (((BufferedImage) iconImage).getWidth() == scaledSize)) {
+            return (BufferedImage) iconImage;
+        }
+        BufferedImage newImage = new BufferedImage(scaledSize, scaledSize, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = newImage.createGraphics();
         try {
             g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-            g2.drawImage(iconImage, 0, 0, size * getUIScaleInt(), size * getUIScaleInt(), null);
+            g2.drawImage(iconImage, 0, 0, scaledSize, scaledSize, null);
         } finally {
             g2.dispose();
         }

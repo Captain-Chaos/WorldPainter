@@ -5,9 +5,9 @@
 
 package org.pepsoft.worldpainter.exporting;
 
-import org.jnbt.StringTag;
 import org.pepsoft.minecraft.ChunkFactory;
-import org.pepsoft.minecraft.Level;
+import org.pepsoft.minecraft.JavaLevel;
+import org.pepsoft.minecraft.SuperflatGenerator;
 import org.pepsoft.minecraft.SuperflatPreset;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
@@ -28,9 +28,7 @@ import static org.pepsoft.minecraft.SuperflatPreset.Structure.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Dimension.Border.ENDLESS_WATER;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.BIOME_VOID;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_OCEAN;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
 
 /**
  *
@@ -58,9 +56,6 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
         if ((selectedTiles == null) && (selectedDimensions != null)) {
             throw new IllegalArgumentException("Exporting a subset of dimensions not supported");
         }
-        if ((world.getGenerator() == Generator.CUSTOM) && ((world.getGeneratorOptions() == null) || world.getGeneratorOptions().trim().isEmpty())) {
-            throw new IllegalArgumentException("Custom world generator name not set");
-        }
 
         // Backup existing level
         File worldDir = new File(baseDir, FileUtils.sanitiseName(name));
@@ -81,7 +76,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
         
         // Export dimensions
         Dimension dim0 = world.getDimension(0);
-        Level level = new Level(world.getMaxHeight(), platform);
+        JavaLevel level = JavaLevel.create(platform, world.getMaxHeight());
         level.setSeed(dim0.getMinecraftSeed());
         level.setName(name);
         Point spawnPoint = world.getSpawnPoint();
@@ -127,36 +122,18 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                     }
                     break;
                 case ENDLESS_VOID:
-                    superflatPresetBuilder = SuperflatPreset.builder(((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) ? BIOME_VOID : BIOME_PLAINS);
+                    superflatPresetBuilder = SuperflatPreset.builder(((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) ? BIOME_THE_VOID : BIOME_PLAINS);
                     superflatPresetBuilder.addLayer(MC_AIR, 1);
                     break;
                 default:
                     throw new InternalError();
             }
-            if ((platform != JAVA_ANVIL_1_15) && (platform != JAVA_ANVIL_1_17) && (platform != JAVA_ANVIL_1_18) /* TODO make dynamic */) {
-                level.setGeneratorOptions(new StringTag(TAG_GENERATOR_OPTIONS_, superflatPresetBuilder.build().toMinecraft1_12_2()));
-            } else {
-                level.setGeneratorOptions(superflatPresetBuilder.build().toMinecraft1_15_2());
-            }
-            level.setGenerator(Generator.FLAT);
+            level.setGenerator(DIM_NORMAL, new SuperflatGenerator(superflatPresetBuilder.build()));
         } else {
-            if (world.getGenerator() == Generator.CUSTOM) {
-                level.setGeneratorName(world.getGeneratorOptions());
-            } else {
-                level.setGenerator(world.getGenerator());
-            }
+            level.setGenerator(DIM_NORMAL, dim0.getGenerator());
         }
         level.setMapFeatures(world.isMapFeatures());
         if ((platform != JAVA_MCREGION)) {
-            if ((! endlessBorder) && (world.getGenerator() == Generator.FLAT) && ((world.getGeneratorOptions() != null) || (world.getSuperflatPreset() != null))) {
-                if (world.getSuperflatPreset() != null) {
-                    level.setGeneratorOptions((platform == JAVA_ANVIL)
-                            ? new StringTag(TAG_GENERATOR_OPTIONS_, world.getSuperflatPreset().toMinecraft1_12_2())
-                            : world.getSuperflatPreset().toMinecraft1_15_2());
-                } else {
-                    level.setGeneratorOptions(new StringTag(TAG_GENERATOR_OPTIONS_, world.getGeneratorOptions()));
-                }
-            }
             World2.BorderSettings borderSettings = world.getBorderSettings();
             level.setBorderCenterX(borderSettings.getCentreX());
             level.setBorderCenterZ(borderSettings.getCentreY());
@@ -176,7 +153,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
         File levelDatFile = new File(worldDir, "level.dat");
         // We need to load the level.dat file later when creating chunk stores, so keep that working even though the
         // file is exclusively locked:
-        Level.setCachedLevel(levelDatFile, level);
+        JavaLevel.setCachedLevel(levelDatFile, level);
         try (RandomAccessFile lockedFile = new RandomAccessFile(levelDatFile, "rw")) {
             lockedFile.getChannel().lock();
 
@@ -227,10 +204,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                 event.setAttribute(ATTRIBUTE_KEY_MAP_FEATURES, world.isMapFeatures());
                 event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
                 event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
-                event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getGenerator().name());
-                if ((platform == JAVA_ANVIL) && (world.getGenerator() == Generator.FLAT) && (world.getGeneratorOptions() != null)) {
-                    event.setAttribute(ATTRIBUTE_KEY_GENERATOR_OPTIONS, world.getGeneratorOptions());
-                }
+                event.setAttribute(ATTRIBUTE_KEY_GENERATOR, dim0.getGenerator().getType().name());
                 Dimension dimension = world.getDimension(0);
                 event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTiles().size());
                 logLayers(dimension, event, "");
@@ -256,11 +230,11 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
 
             return stats;
         } finally {
-            Level.setCachedLevel(null, null);
+            JavaLevel.setCachedLevel(null, null);
         }
     }
 
-    protected ChunkFactory.Stats exportDimension(File worldDir, Dimension dimension, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
+    protected ChunkFactory.Stats exportDimension(File worldDir, Dimension dimension, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         File dimensionDir;
         Dimension ceiling;
         switch (dimension.getDim()) {

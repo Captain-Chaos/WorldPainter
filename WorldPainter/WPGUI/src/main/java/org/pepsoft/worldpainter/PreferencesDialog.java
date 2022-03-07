@@ -10,6 +10,7 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.minecraft.*;
 import org.pepsoft.util.GUIUtils;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
@@ -23,9 +24,11 @@ import java.util.List;
 import java.util.Random;
 import java.util.SortedMap;
 
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
+import static org.pepsoft.worldpainter.Generator.*;
 import static org.pepsoft.worldpainter.Terrain.GRASS;
+import static org.pepsoft.worldpainter.World2.DEFAULT_OCEAN_SEED;
 
 /**
  *
@@ -47,7 +50,7 @@ public class PreferencesDialog extends WorldPainterDialog {
         comboBoxSurfaceMaterial.setRenderer(new TerrainListCellRenderer(colourScheme));
         comboBoxMode.setModel(new DefaultComboBoxModel<>(GameType.values()));
         comboBoxMode.setRenderer(new EnumListCellRenderer());
-        comboBoxWorldType.setModel(new DefaultComboBoxModel<>(Generator.values()));
+        comboBoxWorldType.setModel(new DefaultComboBoxModel<>(new Generator[] { DEFAULT, LARGE_BIOMES, FLAT, CUSTOM }));
         comboBoxWorldType.setRenderer(new EnumListCellRenderer());
 
         List<AccelerationType> accelTypes = AccelerationType.getForThisOS();
@@ -132,8 +135,8 @@ public class PreferencesDialog extends WorldPainterDialog {
         
         // Export settings
         checkBoxChestOfGoodies.setSelected(config.isDefaultCreateGoodiesChest());
-        comboBoxWorldType.setSelectedIndex(config.getDefaultGenerator().ordinal());
-        generatorOptions = config.getDefaultGeneratorOptions();
+        comboBoxWorldType.setSelectedIndex(config.getDefaultGenerator().getType().ordinal());
+        generatorOptions = (config.getDefaultGenerator() instanceof CustomGenerator) ? ((CustomGenerator) config.getDefaultGenerator()).getName() : null;
         checkBoxStructures.setSelected(config.isDefaultMapFeatures());
         comboBoxMode.setSelectedItem(config.getDefaultGameType());
         checkBoxCheats.setSelected(config.isDefaultAllowCheats());
@@ -233,8 +236,23 @@ public class PreferencesDialog extends WorldPainterDialog {
         
         // Export settings
         config.setDefaultCreateGoodiesChest(checkBoxChestOfGoodies.isSelected());
-        config.setDefaultGenerator(Generator.values()[comboBoxWorldType.getSelectedIndex()]);
-        config.setDefaultGeneratorOptions(generatorOptions);
+        final MapGenerator defaultGenerator;
+        final Generator generatorType = (Generator) comboBoxWorldType.getSelectedItem();
+        switch (generatorType) {
+            case DEFAULT:
+            case LARGE_BIOMES:
+                defaultGenerator = new SeededGenerator(generatorType, DEFAULT_OCEAN_SEED);
+                break;
+            case FLAT:
+                defaultGenerator = new SuperflatGenerator(SuperflatPreset.defaultPreset(JAVA_ANVIL_1_15));
+                break;
+            case CUSTOM:
+                defaultGenerator = new CustomGenerator(generatorOptions);
+                break;
+            default:
+                throw new InternalError("Generator type " + generatorType + " not supported");
+        }
+        config.setDefaultGenerator(defaultGenerator);
         config.setDefaultMapFeatures(checkBoxStructures.isSelected());
         config.setDefaultGameType((GameType) comboBoxMode.getSelectedItem());
         config.setDefaultAllowCheats(checkBoxCheats.isSelected());
@@ -1463,7 +1481,7 @@ public class PreferencesDialog extends WorldPainterDialog {
             checkBoxLava.setSelected(false);
             checkBoxBeaches.setSelected(true);
             comboBoxSurfaceMaterial.setSelectedItem(GRASS);
-            Configuration.getInstance().setDefaultTerrainAndLayerSettings(new World2(DefaultPlugin.JAVA_ANVIL, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, 62, false, true, 20, 1.0), DEFAULT_MAX_HEIGHT_ANVIL).getDimension(DIM_NORMAL));
+            Configuration.getInstance().setDefaultTerrainAndLayerSettings(new World2(JAVA_ANVIL_1_15, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), GRASS, JAVA_ANVIL_1_15.minZ, JAVA_ANVIL_1_15.standardMaxHeight, 58, 62, false, true, 20, 1.0), JAVA_ANVIL_1_15.standardMaxHeight).getDimension(DIM_NORMAL));
         }
     }//GEN-LAST:event_buttonResetActionPerformed
 
@@ -1677,7 +1695,7 @@ public class PreferencesDialog extends WorldPainterDialog {
     private final ColourScheme colourScheme;
     private boolean pingNotSet;
     private int previousExp;
-    private String generatorOptions;
+    private String generatorOptions; // TODOMC118 this needs to become a SuperflatPreset
     
     private static final long serialVersionUID = 1L;
 }

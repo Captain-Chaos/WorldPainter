@@ -46,7 +46,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
             for (int y = area.y; y < area.y + area.height; y++) {
                 if (frostEverywhere || dimension.getBitLayerValueAt(Frost.INSTANCE, x, y)) {
                     int highestNonAirBlock = minecraftWorld.getHighestNonAirBlock(x, y);
-                    Material previousMaterial = minecraftWorld.getMaterialAt(x, y, Math.min(minecraftWorld.getHighestNonAirBlock(x, y) + 1, maxHeight - 2));
+                    Material previousMaterial = (highestNonAirBlock == (maxHeight - 1)) ? minecraftWorld.getMaterialAt(x, y, maxHeight - 1) : AIR;
                     int leafBlocksEncountered = 0;
                     for (int height = Math.min(highestNonAirBlock, maxHeight - 2); height >= 0; height--) {
                         Material material = minecraftWorld.getMaterialAt(x, y, height);

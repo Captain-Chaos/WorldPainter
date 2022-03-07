@@ -6,6 +6,8 @@
 
 package org.pepsoft.worldpainter.importing;
 
+import org.pepsoft.minecraft.MapGenerator;
+import org.pepsoft.minecraft.SeededGenerator;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.util.ProgressReceiver;
@@ -27,6 +29,8 @@ import java.util.Map;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Generator.DEFAULT;
+import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 
 /**
  *
@@ -60,18 +64,7 @@ public class HeightMapImporter {
 
         // Export settings
         final Configuration config = Configuration.getInstance();
-        final boolean minecraft11Only = dimension.getMaxHeight() != DEFAULT_MAX_HEIGHT_ANVIL;
         world.setCreateGoodiesChest(config.isDefaultCreateGoodiesChest());
-        Generator generator = config.getDefaultGenerator();
-        if (minecraft11Only && (generator == Generator.LARGE_BIOMES)) {
-            generator = Generator.DEFAULT;
-        } else if ((! minecraft11Only) && (generator == Generator.DEFAULT)) {
-            generator = Generator.LARGE_BIOMES;
-        }
-        world.setGenerator(generator);
-        if (generator == Generator.FLAT) {
-            world.setGeneratorOptions(config.getDefaultGeneratorOptions());
-        }
         world.setMapFeatures(config.isDefaultMapFeatures());
         world.setGameType(config.getDefaultGameType());
         world.setAllowCheats(config.isDefaultAllowCheats());
@@ -85,6 +78,14 @@ public class HeightMapImporter {
 
         importToDimension(dimension, true, progressReceiver);
 
+        final boolean minecraft11Only = dimension.getMaxHeight() != DEFAULT_MAX_HEIGHT_ANVIL;
+        MapGenerator generator = config.getDefaultGenerator();
+        if (minecraft11Only && (generator.getType() == Generator.LARGE_BIOMES)) {
+            generator = new SeededGenerator(DEFAULT, minecraftSeed);
+        } else if ((! minecraft11Only) && (generator.getType() == DEFAULT)) {
+            generator = new SeededGenerator(LARGE_BIOMES, minecraftSeed);
+        }
+        dimension.setGenerator(generator);
         Dimension defaults = config.getDefaultTerrainAndLayerSettings();
         dimension.setBorder(defaults.getBorder());
         dimension.setBorderSize(defaults.getBorderSize());
@@ -221,7 +222,7 @@ public class HeightMapImporter {
             HeightMapTileFactory heightMapTileFactory = (HeightMapTileFactory) this.tileFactory;
             Theme theme = heightMapTileFactory.getTheme().clone();
             theme.setWaterHeight(worldWaterLevel);
-            HeightMapTileFactory tileFactory = new HeightMapTileFactory(1L, previewHeightMap, maxHeight, heightMapTileFactory.isFloodWithLava(), theme);
+            HeightMapTileFactory tileFactory = new HeightMapTileFactory(1L, previewHeightMap, platform.minZ, maxHeight, heightMapTileFactory.isFloodWithLava(), theme);
             return new WPTileProvider(tileFactory, colourScheme, null, null, contourLines, contourSeparation, lightOrigin, false, null);
         } else {
             return null;
