@@ -89,10 +89,10 @@ public interface Chunk {
     }
 
     /**
-     * Indicates whether names biomes are available. See {@link #getNamedBiome(int, int, int)} and
+     * Indicates whether named biomes are available. See {@link #getNamedBiome(int, int, int)} and
      * {@link #setNamedBiome(int, int, int, String)}.
      *
-     * <p>The default implemenation returns {@code false}.
+     * <p>The default implementation returns {@code false}.
      */
     default boolean isNamedBiomesAvailable() {
         return false;
