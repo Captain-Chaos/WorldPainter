@@ -376,7 +376,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     private static final String KEY_BIOME_OPTION = BiomesPanel.class.getName() + ".biomeOption";
     private static final String KEY_ADD_BUTTON = BiomesPanel.class.getName() + ".addButton";
 
-    private static final BiomeDescriptor[] MC_117_DESCRIPTORS = {
+    private static final List<BiomeDescriptor> MC_117_DESCRIPTORS = Arrays.asList(
         new BiomeDescriptor(BIOME_OCEAN, 0),
         new BiomeDescriptor(BIOME_PLAINS, 1),
         new BiomeDescriptor(BIOME_DESERT, 2),
@@ -470,14 +470,40 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
 
         new BiomeDescriptor(BIOME_DRIPSTONE_CAVES, 174),
         new BiomeDescriptor(BIOME_LUSH_CAVES, 175)
-    };
+    );
+
+    // 1.18 Start
+    private static List<BiomeDescriptor> MC_118_DESCRIPTORS = new ArrayList<BiomeDescriptor>() {{
+        addAll(MC_117_DESCRIPTORS); // Use List instead of BiomeDescriptor[] to avoid duplicating descriptors fo each platform
+        add(new BiomeDescriptor(BIOME_MEADOW, BIOME_MEADOW));
+
+        add(new BiomeDescriptor(BIOME_JAGGED_PEAKS, BIOME_JAGGED_PEAKS));
+        add(new BiomeDescriptor(BIOME_FROZEN_PEAKS, BIOME_JAGGED_PEAKS, FROZEN));
+        add(new BiomeDescriptor(BIOME_STONY_PEAKS, BIOME_JAGGED_PEAKS, STONY));
+
+        add(new BiomeDescriptor(BIOME_GROVE, BIOME_GROVE));
+        add(new BiomeDescriptor(BIOME_SNOWY_SLOPES, BIOME_SNOWY_SLOPES));
+    }};
+
+    private static final int[] MC_118_BIOME_ORDER = {
+        BIOME_PLAINS, BIOME_FOREST, BIOME_SWAMP, BIOME_JUNGLE,
+        BIOME_BAMBOO_JUNGLE, BIOME_BIRCH_FOREST, BIOME_DARK_FOREST, BIOME_MOUNTAINS,
+        BIOME_MUSHROOM_FIELDS, BIOME_TAIGA, BIOME_GIANT_TREE_TAIGA, BIOME_GIANT_SPRUCE_TAIGA,
+        BIOME_SNOWY_TUNDRA, BIOME_DESERT, BIOME_SAVANNA, BIOME_BADLANDS,
+        BIOME_ICE_SPIKES, BIOME_OCEAN, BIOME_RIVER, BIOME_BEACH,
+        BIOME_STONE_SHORE, BIOME_DRIPSTONE_CAVES, BIOME_LUSH_CAVES, -1,
+        BIOME_THE_END, BIOME_THE_VOID, -1, -1,
+        BIOME_NETHER_WASTES, BIOME_SOUL_SAND_VALLEY, BIOME_CRIMSON_FOREST, BIOME_WARPED_FOREST,
+        BIOME_BASALT_DELTAS, -1, -1, -1,
+        BIOME_MEADOW, BIOME_JAGGED_PEAKS, BIOME_GROVE, BIOME_SNOWY_SLOPES
+    };// 1.18 End
 
     private static final BiomesSet MINECRAFT_1_17_BIOMES = new BiomesSet(MC_117_BIOME_ORDER, MC_117_DESCRIPTORS, Minecraft1_17Biomes.BIOME_NAMES);
-    private static final BiomesSet MINECRAFT_1_18_BIOMES = new BiomesSet(MC_117_BIOME_ORDER /* TODOMC118 */, MC_117_DESCRIPTORS /* TODOMC118 */, Minecraft1_18Biomes.BIOME_NAMES);
+    private static final BiomesSet MINECRAFT_1_18_BIOMES = new BiomesSet(MC_118_BIOME_ORDER , MC_118_DESCRIPTORS, Minecraft1_18Biomes.BIOME_NAMES);
 
     public enum BiomeOption {HILLS, SHORE, EDGE, PLATEAU, MOUNTAINOUS, VARIANT, FROZEN, SNOWY, DEEP, WOODED, WARM,
         LUKEWARM, COLD, TALL, FLOWERS, LAKES, GRAVELLY, SHATTERED, SMALL_ISLANDS, MIDLANDS, HIGHLANDS, BARRENS,
-        MODIFIED, ERODED}
+        MODIFIED, ERODED, STONY}
 
     public static class BiomeDescriptor {
         public BiomeDescriptor(int id, int baseId, BiomeOption... options) {
@@ -507,9 +533,9 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     }
 
     static class BiomesSet {
-        BiomesSet(int[] biomeOrder, BiomeDescriptor[] descriptors, String[] displayNames) {
+        BiomesSet(int[] biomeOrder, List<BiomeDescriptor> descriptorList, String[] displayNames) {
             this.biomeOrder = biomeOrder;
-            this.descriptors = descriptors;
+            this.descriptors = descriptorList.toArray(new BiomeDescriptor[0]);
             this.displayNames = displayNames;
         }
 
