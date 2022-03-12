@@ -26,4 +26,7 @@ public class Dimension extends Descriptor {
     @Builder.Default boolean hasSkylight = true;
     boolean hasCeiling;
     boolean ultrawarm;
+    public int getHeight() {
+        return height;
+    }
 }

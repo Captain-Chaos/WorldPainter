@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.Integer.MIN_VALUE;
 import static java.util.Collections.singletonList;
@@ -846,7 +847,40 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
                 setMap(TAG_BLOCK_STATES_, ImmutableMap.of(TAG_PALETTE_, new ListTag<>(TAG_PALETTE_, CompoundTag.class, palette), TAG_DATA_, new LongArrayTag(TAG_DATA_, packedMaterials.data)));
             }
 
-            // TODOMC118: biomes
+            if (singleBiome != null) {
+                long[] emptyData = {};
+                setMap(TAG_BIOMES_,
+                    ImmutableMap.of(
+                        TAG_PALETTE_,
+                        new ListTag<StringTag>(
+                            TAG_PALETTE_,
+                            StringTag.class,
+                            Arrays.asList(new StringTag("", singleBiome))
+                        ),
+                        TAG_DATA_,
+                        new LongArrayTag(
+                            TAG_DATA_,
+                            emptyData
+                        )
+                    )
+                );
+            }else if (biomes != null) {
+                setMap(TAG_BIOMES_,
+                    ImmutableMap.of(
+                        TAG_PALETTE_,
+                        new ListTag<StringTag>(
+                            TAG_PALETTE_,
+                            StringTag.class,
+                            Arrays.asList(biomes.pack().palette).stream().map(str -> new StringTag("", str)).collect(Collectors.toList())
+                        ),
+                        TAG_DATA_,
+                        new LongArrayTag(
+                            TAG_DATA_,
+                            biomes.pack().data
+                        )
+                    )
+                );
+            }
 
             setByteArray(TAG_SKY_LIGHT, skyLight);
             setByteArray(TAG_BLOCK_LIGHT, blockLight);

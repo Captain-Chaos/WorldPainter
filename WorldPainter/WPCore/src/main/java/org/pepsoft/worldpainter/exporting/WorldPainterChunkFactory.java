@@ -25,6 +25,7 @@ import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
 
 /**
  *
@@ -88,11 +89,14 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         final Chunk chunk = platformProvider.createChunk(platform, chunkX, chunkZ, maxHeight);
         result.chunk = chunk;
         final int minY = dimension.getMinHeight(), maxY = maxHeight - 1;
+
         final boolean biomesSupported2D = platform.capabilities.contains(BIOMES);
         final boolean biomesSupported3D = platform.capabilities.contains(BIOMES_3D);
-        // TODOMC118 add named biomes support
-        final boolean copyBiomes = (biomesSupported2D || biomesSupported3D) && (dimension.getDim() >= 0);
+        final boolean supportNamedBiomes = platform.capabilities.contains(NAMED_BIOMES);
+
+        final boolean copyBiomes = (biomesSupported2D || biomesSupported3D || supportNamedBiomes) && (dimension.getDim() >= 0);
         final int defaultBiome;
+
         switch (dimension.getDim()) {
             case DIM_NORMAL:
                 defaultBiome = BIOME_PLAINS;
@@ -124,6 +128,22 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                     final int xx = x >> 2, zz = z >> 2;
                     for (int y = minY; y < maxHeight; y += 4) {
                         chunk.set3DBiome(xx, y >> 2, zz, biome);
+                    }
+                }
+            }
+        }
+
+        if (copyBiomes && supportNamedBiomes) {
+            final int chunkXInWorld = (tileX << TILE_SIZE_BITS) | xOffsetInTile;
+            final int chunkZInWorld = (tileY << TILE_SIZE_BITS) | yOffsetInTile;
+            for (int x = 0; x < 16; x += 4) {
+                for (int z = 0; z < 16; z += 4) {
+                    final String biome = MODERN_IDS[dimension.getMostPrevalentBiome((chunkXInWorld | x) >> 2, (chunkZInWorld | z) >> 2, defaultBiome)];
+                    // Set the whole column to this biome since we don't have 3D biome support yet
+                    // TODO add 3D biome support
+                    final int xx = x >> 2, zz = z >> 2;
+                    for (int y = minY; y < maxHeight; y += 4) {
+                        chunk.setNamedBiome(xx, y >> 2, zz, biome);
                     }
                 }
             }
