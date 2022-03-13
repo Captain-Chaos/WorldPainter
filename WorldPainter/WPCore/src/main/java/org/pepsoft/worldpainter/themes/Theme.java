@@ -5,9 +5,10 @@
  */
 package org.pepsoft.worldpainter.themes;
 
-import java.io.Serializable;
 import org.pepsoft.worldpainter.HeightTransform;
 import org.pepsoft.worldpainter.Tile;
+
+import java.io.Serializable;
 
 /**
  *
@@ -23,8 +24,9 @@ public interface Theme extends Serializable {
      * @param y 
      */
     void apply(Tile tile, int x, int y);
+    int getMinHeight();
     int getMaxHeight();
-    void setMaxHeight(int maxHeight, HeightTransform transform);
+    void setMinMaxHeight(int minHeight, int maxHeight, HeightTransform transform);
     long getSeed();
     void setSeed(long seed);
     int getWaterHeight();

@@ -893,7 +893,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
                     for (Map.Entry<Integer, Terrain> entry : terrainRanges.entrySet()) {
                         if (entry.getValue() == Terrain.SNOW) {
                             if (!frostAdded) {
-                                layerMap.put(new HeightFilter(defaultMaxHeight, entry.getKey(), defaultMaxHeight - 1, theme.isRandomise()), Frost.INSTANCE);
+                                layerMap.put(new HeightFilter(0, defaultMaxHeight, entry.getKey(), defaultMaxHeight - 1, theme.isRandomise()), Frost.INSTANCE);
                                 frostAdded = true;
                             }
                             entry.setValue(Terrain.ROCK);

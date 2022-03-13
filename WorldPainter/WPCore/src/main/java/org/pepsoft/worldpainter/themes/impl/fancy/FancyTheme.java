@@ -22,8 +22,9 @@ import static org.pepsoft.minecraft.Material.SNOW_BLOCK;
  * @author SchmitzP
  */
 public class FancyTheme implements Theme, Cloneable {
-    public FancyTheme(int maxHeight, int waterHeight, HeightMap heightMap, Terrain baseTerrain) {
-        setMaxHeight(maxHeight);
+    public FancyTheme(int minHeight, int maxHeight, int waterHeight, HeightMap heightMap, Terrain baseTerrain) {
+        this.minHeight = minHeight;
+        this.maxHeight = maxHeight;
         setWaterHeight(waterHeight);
         setHeightMap(heightMap);
         setDesertMaxHeight(waterHeight + 20);
@@ -113,17 +114,20 @@ public class FancyTheme implements Theme, Cloneable {
     }
 
     @Override
+    public int getMinHeight() {
+        return minHeight;
+    }
+
+    @Override
     public final int getMaxHeight() {
         return maxHeight;
     }
 
-    public final void setMaxHeight(int maxHeight) {
-        setMaxHeight(maxHeight, HeightTransform.IDENTITY);
-    }
-
     @Override
-    public final void setMaxHeight(int maxHeight, HeightTransform transform) {
+    public final void setMinMaxHeight(int minHeight, int maxHeight, HeightTransform transform) {
+        this.minHeight = minHeight;
         this.maxHeight = maxHeight;
+        // TODO apply transform
     }
 
     @Override
@@ -230,7 +234,7 @@ public class FancyTheme implements Theme, Cloneable {
     protected Terrain terrainDirtAndGravel = Terrain.CUSTOM_1;
     protected Terrain terrainStoneAndGravel = Terrain.CUSTOM_2;
 
-    private int maxHeight, waterHeight, desertMaxHeight;
+    private int minHeight, maxHeight, waterHeight, desertMaxHeight;
     /**
      * Humidity in %.
      */

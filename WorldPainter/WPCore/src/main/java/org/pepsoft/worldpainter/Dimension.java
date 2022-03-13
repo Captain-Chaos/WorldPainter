@@ -478,6 +478,34 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return getIntHeightAt(coords.x, coords.y, -1);
     }
 
+    public int getLowestIntHeight() {
+        int lowestHeight = Integer.MAX_VALUE;
+        for (Tile tile: tiles.values()) {
+            int tileLowestHeight = tile.getLowestIntHeight();
+            if (tileLowestHeight < lowestHeight) {
+                lowestHeight = tileLowestHeight;
+            }
+            if (lowestHeight <= minHeight) {
+                return minHeight;
+            }
+        }
+        return lowestHeight;
+    }
+
+    public int getHightestIntHeight() {
+        int highestHeight = Integer.MIN_VALUE;
+        for (Tile tile: tiles.values()) {
+            int tileHighestHeight = tile.getHighestIntHeight();
+            if (tileHighestHeight > highestHeight) {
+                highestHeight = tileHighestHeight;
+            }
+            if (highestHeight >= (maxHeight - 1)) {
+                return maxHeight;
+            }
+        }
+        return highestHeight;
+    }
+
     public float getHeightAt(int x, int y) {
         Tile tile = getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         if (tile != null) {

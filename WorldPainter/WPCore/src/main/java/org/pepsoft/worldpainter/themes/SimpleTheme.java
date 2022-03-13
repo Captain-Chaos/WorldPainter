@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.*;
 
+import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.Constants.SMALL_BLOBS;
 import static org.pepsoft.worldpainter.Constants.TINY_BLOBS;
 
@@ -32,7 +33,7 @@ public class SimpleTheme implements Theme, Cloneable {
         this.maxHeight = terrainRangesTable.length;
         this.terrainRangesTable = terrainRangesTable;
         fixTerrainRangesTable();
-        setMaxHeight(maxHeight, HeightTransform.IDENTITY);
+        setMinMaxHeight(minHeight, maxHeight, HeightTransform.IDENTITY);
         setRandomise(randomise);
         setBeaches(beaches);
     }
@@ -96,10 +97,16 @@ public class SimpleTheme implements Theme, Cloneable {
     }
 
     public final void setTerrainRanges(SortedMap<Integer, Terrain> terrainRanges) {
+        // Make sure the ranges actually start from the lowest level
+        final int lowestLevel = terrainRanges.firstKey();
+        if (lowestLevel >= minHeight) {
+            Terrain lowestTerrain = terrainRanges.get(lowestLevel);
+            terrainRanges.remove(lowestLevel);
+            terrainRanges.put(minHeight - 1, lowestTerrain);
+        }
         this.terrainRanges = terrainRanges;
         for (int i = minHeight; i < maxHeight; i++) {
-            final SortedMap<Integer, Terrain> headMap = terrainRanges.headMap(i);
-            terrainRangesTable[i - minHeight] = terrainRanges.get(headMap.isEmpty() ? terrainRanges.firstKey() : headMap.lastKey());
+            terrainRangesTable[i - minHeight] = terrainRanges.get(terrainRanges.headMap(i).lastKey());
         }
     }
 
@@ -130,17 +137,20 @@ public class SimpleTheme implements Theme, Cloneable {
     }
 
     @Override
+    public int getMinHeight() {
+        return minHeight;
+    }
+
+    @Override
     public final int getMaxHeight() {
         return maxHeight;
     }
 
-    public final void setMaxHeight(int maxHeight) {
-        setMaxHeight(maxHeight, HeightTransform.IDENTITY);
-    }
-
     @Override
-    public final void setMaxHeight(int maxHeight, HeightTransform transform) {
-        if (maxHeight != this.maxHeight) {
+    public final void setMinMaxHeight(int minHeight, int maxHeight, HeightTransform transform) {
+        if ((minHeight != this.minHeight) || (maxHeight != this.maxHeight) || (! transform.isIdentity())) {
+            final int oldMinHeight = this.minHeight, oldMaxHeight = this.maxHeight;
+            this.minHeight = minHeight;
             this.maxHeight = maxHeight;
             waterHeight = clamp(minHeight, transform.transformHeight(waterHeight), maxHeight - 1);
             Terrain[] oldTerrainRangesTable = terrainRangesTable;
@@ -149,22 +159,44 @@ public class SimpleTheme implements Theme, Cloneable {
                 SortedMap<Integer, Terrain> oldTerrainRanges = this.terrainRanges;
                 terrainRanges = new TreeMap<>();
                 for (Map.Entry<Integer, Terrain> oldEntry: oldTerrainRanges.entrySet()) {
-                    terrainRanges.put(oldEntry.getKey() < 0
-                        ? oldEntry.getKey()
-                        : clamp(minHeight, transform.transformHeight(oldEntry.getKey()), maxHeight - 1), oldEntry.getValue());
+                    terrainRanges.put(extendOrClamp(oldMinHeight, minHeight, oldEntry.getKey(), transform, maxHeight - 1, oldMaxHeight - 1), oldEntry.getValue());
                 }
-                for (int i = 0; i < maxHeight; i++) {
-                    terrainRangesTable[i] = terrainRanges.get(terrainRanges.headMap(i).lastKey());
+                // Make sure the ranges actually start from the lowest level
+                final int lowestLevel = terrainRanges.firstKey();
+                if (lowestLevel >= minHeight) {
+                    Terrain lowestTerrain = terrainRanges.get(lowestLevel);
+                    terrainRanges.remove(lowestLevel);
+                    terrainRanges.put(minHeight - 1, lowestTerrain);
+                }
+                for (int i = minHeight; i < maxHeight; i++) {
+                    terrainRangesTable[i - minHeight] = terrainRanges.get(terrainRanges.headMap(i).lastKey());
                 }
             } else {
                 // No terrain ranges map set; this is probably because it is
                 // an old map. All we can do is extend the last entry
+                // TODO: this won't work correctly if minHeight changed; do we still need to worry about that?
                 System.arraycopy(oldTerrainRangesTable, 0, terrainRangesTable, 0, Math.min(oldTerrainRangesTable.length, terrainRangesTable.length));
                 if (terrainRangesTable.length > oldTerrainRangesTable.length) {
                     for (int i = oldTerrainRangesTable.length; i < terrainRangesTable.length; i++) {
                         terrainRangesTable[i] = oldTerrainRangesTable[oldTerrainRangesTable.length - 1];
                     }
                 }
+                fixTerrainRangesTable();
+            }
+            if (layerMap != null) {
+                final Map<Filter, Layer> newLayerMap = new HashMap<>();
+                for (Map.Entry<Filter, Layer> entry: layerMap.entrySet()) {
+                    Filter filter = entry.getKey();
+                    if (filter instanceof HeightFilter) {
+                        final HeightFilter heightFilter = (HeightFilter) filter;
+                        filter = new HeightFilter(minHeight, maxHeight,
+                                extendOrClamp(oldMinHeight, minHeight, heightFilter.getStartHeight(), transform, maxHeight, oldMaxHeight),
+                                extendOrClamp(oldMinHeight, minHeight, heightFilter.getStopHeight(), transform, maxHeight, oldMaxHeight),
+                                heightFilter.isFeather());
+                    }
+                    newLayerMap.put(filter, entry.getValue());
+                }
+                layerMap = newLayerMap;
             }
             initCaches();
         }
@@ -224,13 +256,19 @@ public class SimpleTheme implements Theme, Cloneable {
             }
         }
     }
-    
-    protected final int clamp(int min, int value, int max) {
-        return (value < min)
-            ? min
-            : ((value > max)
-                ? max
-                : value);
+
+    protected int extendOrClamp(int oldMin, int min, int value, HeightTransform transform, int max, int oldMax) {
+        if (value < oldMin) {
+            return min - 1;
+        } else if (value == oldMin) {
+            return min;
+        } else if (value == oldMax) {
+            return max;
+        } else if (value > oldMax) {
+            return max + 1;
+        } else {
+            return clamp(min, transform.transformHeight(value), max);
+        }
     }
 
     private void initCaches() {
@@ -311,7 +349,7 @@ public class SimpleTheme implements Theme, Cloneable {
         terrainRanges.put((int) (48 * factor) + waterHeight, Terrain.ROCK);
         terrainRanges.put((int) (80 * factor) + waterHeight, Terrain.DEEP_SNOW);
         Map<Filter, Layer> layerMap = new HashMap<>();
-        layerMap.put(new HeightFilter(maxHeight, (int) (64 * factor) + waterHeight, maxHeight, true), Frost.INSTANCE);
+        layerMap.put(new HeightFilter(minHeight, maxHeight, (int) (64 * factor) + waterHeight, maxHeight, true), Frost.INSTANCE);
         return new SimpleTheme(0, waterHeight, terrainRanges, layerMap, minHeight, maxHeight, randomise, beaches);
     }
 

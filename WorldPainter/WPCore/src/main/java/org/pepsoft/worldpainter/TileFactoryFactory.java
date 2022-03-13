@@ -56,6 +56,6 @@ public final class TileFactoryFactory {
         HeightMap mountainsDistanceMap = new NoiseHeightMap(25f, 2.5, 1, random.nextLong());
         HeightMap mountains = new DisplacementHeightMap("Mountains", mountainsHeight, mountainsAngleMap, mountainsDistanceMap);
         HeightMap heightMap = new MaximisingHeightMap(continent, mountains);
-        return new HeightMapTileFactory(seed, heightMap, minHeight, maxHeight, false, new FancyTheme(maxHeight, 62, heightMap, terrain));
+        return new HeightMapTileFactory(seed, heightMap, minHeight, maxHeight, false, new FancyTheme(minHeight, maxHeight, 62, heightMap, terrain));
     }
 }
