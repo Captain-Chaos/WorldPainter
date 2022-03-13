@@ -191,9 +191,15 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         for (Component component: optionsPanel.getComponents()) {
             JCheckBox checkBox = (JCheckBox) component;
             BiomeOption biomeOption = (BiomeOption) checkBox.getClientProperty(KEY_BIOME_OPTION);
-            if (selectedOptions.contains(biomeOption)) {
+
+            if (selectedOptions.contains(biomeOption) && selectedBiome != -1)
                 checkBox.setEnabled(true);
-            } else {
+            else if (selectedOptions.contains(biomeOption)) {
+                checkBox.setEnabled(false);
+                checkBox.setSelected(false);
+            } else if (!selectedOptions.contains(biomeOption) && selectedBiome == -1) {
+                checkBox.setEnabled(true);
+            } else{
                 EnumSet<BiomeOption> optionsCopy = EnumSet.copyOf(selectedOptions);
                 optionsCopy.add(biomeOption);
                 checkBox.setEnabled(findBiome(selectedBaseBiome, optionsCopy) != -1);
@@ -204,7 +210,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
 
     private Set<BiomeOption> getSelectedOptions() {
         Set<BiomeOption> selectedOptions = EnumSet.noneOf(BiomeOption.class);
-        for (Component component: optionsPanel.getComponents()) {
+        for (Component component : optionsPanel.getComponents()) {
             JCheckBox checkBox = (JCheckBox) component;
             if (checkBox.isSelected()) {
                 selectedOptions.add((BiomeOption) checkBox.getClientProperty(KEY_BIOME_OPTION));
@@ -233,6 +239,12 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     }
 
     private void updateLabels() {
+        if (selectedBiome == -1) {
+            label1.setText("Selected biome: none");
+            label1.setIcon(null);
+            label2.setText("No biome selected");
+            return;
+        }
         label1.setText("Selected biome: " + selectedBiome);
         label1.setIcon(biomeHelper.getBiomeIcon(selectedBiome));
         label2.setText(biomeHelper.getBiomeName(selectedBiome));
