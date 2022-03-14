@@ -188,7 +188,9 @@ public class Java1_15PostProcessor extends PostProcessor {
                                         material = AIR;
                                         break;
                                     case SUPPORT:
-                                        throw new UnsupportedOperationException("Don't know how to support cement yet");
+                                        minecraftWorld.setMaterialAt(x, y, z, STONE);
+                                        material = STONE;
+                                        break;
                                     default:
                                         // Do nothing
                                         break;
