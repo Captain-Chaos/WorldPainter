@@ -265,7 +265,8 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                 case DIM_NETHER:
                     settings.put(QUARTZ_ORE,     new ResourceSettings(QUARTZ_ORE,     platform.minZ, maxHeight - 1, (platform != JAVA_MCREGION) ?
                                                                                                                     7 : 0, random.nextLong()));
-                    settings.put(GOLD_ORE,       new ResourceSettings(GOLD_ORE,       platform.minZ, maxHeight - 1, 3,     random.nextLong()));
+                    settings.put(GOLD_ORE,       new ResourceSettings(GOLD_ORE,       platform.minZ, maxHeight - 1, ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) ?
+                                                                                                                    3 : 0, random.nextLong()));
                     settings.put(ANCIENT_DEBRIS, new ResourceSettings(ANCIENT_DEBRIS, platform.minZ, maxHeight - 1, ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) ?
                                                                                                                     1 : 0, random.nextLong()));
 

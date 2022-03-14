@@ -1016,7 +1016,7 @@ public final class App extends JFrame implements RadiusControl,
                 }
             }
         }
-        
+
         if (newWorld.isAskToConvertToAnvil() && (newWorld.getMaxHeight() == DEFAULT_MAX_HEIGHT_MCREGION) && (newWorld.getImportedFrom() == null)) {
             if (showConfirmDialog(this, strings.getString("this.world.is.128.blocks.high"), strings.getString("convert.world.height"), YES_NO_OPTION) == YES_OPTION) {
                 ChangeHeightDialog.resizeWorld(newWorld, HeightTransform.IDENTITY, 0, DEFAULT_MAX_HEIGHT_ANVIL, true, this);
@@ -1113,11 +1113,16 @@ public final class App extends JFrame implements RadiusControl,
         pauseAutosave = Math.max(pauseAutosave - 1, 0);
     }
 
-    void changeWorldHeight(Window parent) {
+    boolean changeWorldHeight(Window parent) {
         ChangeHeightDialog dialog = new ChangeHeightDialog(parent, world);
         dialog.setVisible(true);
-        if (threeDeeFrame != null) {
-            threeDeeFrame.refresh();
+        if (! dialog.isCancelled()) {
+            if (threeDeeFrame != null) {
+                threeDeeFrame.refresh();
+            }
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -3921,6 +3926,10 @@ public final class App extends JFrame implements RadiusControl,
         menu.add(menuItem);
 
         menu.addSeparator();
+
+        menuItem = new JMenuItem("Change Map Format...");
+        menuItem.addActionListener(e -> changeWorldHeight(this));
+        menu.add(menuItem);
 
         extendedBlockIdsMenuItem = new JCheckBoxMenuItem("Extended block IDs");
         extendedBlockIdsMenuItem.setToolTipText("Allow block IDs from 0 to 4095 (inclusive) as used by some mods");

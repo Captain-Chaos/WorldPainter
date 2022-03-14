@@ -98,6 +98,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
 
     private void setControlStates() {
         final Platform oldPlatform = world.getPlatform(), newPlatform = (Platform) comboBoxPlatform.getSelectedItem();
+        final int newMinHeight = (Integer) comboBoxNewMinHeight.getSelectedItem();
         final int oldMaxHeight = world.getMaxHeight(), newMaxHeight = (Integer) comboBoxNewMaxHeight.getSelectedItem();
         final boolean translate = checkBoxTranslate.isSelected(), scale = checkBoxScale.isSelected();
         buttonOK.setEnabled((oldPlatform != newPlatform) || (oldMaxHeight != newMaxHeight) || (translate && ((Integer) spinnerTranslateAmount.getValue() != 0)) || (scale && ((Integer) spinnerScaleAmount.getValue() != 100)));
@@ -112,9 +113,11 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         } else {
             labelWarning.setVisible(false);
         }
+        checkBoxAdjustLayers.setEnabled((newMinHeight != oldPlatform.minZ) || (newMaxHeight != oldMaxHeight) || translate || scale);
     }
     
     private void doResize() {
+        // TODO warn about platform incompatibility?
         final Platform oldPlatform = world.getPlatform(), newPlatform = (Platform) comboBoxPlatform.getSelectedItem();
         final int oldMaxHeight = world.getMaxHeight(), oldMinHeight = world.getPlatform().minZ;
         final int newMaxHeight = (Integer) comboBoxNewMaxHeight.getSelectedItem(), newMinHeight = (Integer) comboBoxNewMinHeight.getSelectedItem();

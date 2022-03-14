@@ -133,6 +133,15 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     }
 
     public void setDimension(Dimension dimension) {
+        if (this.dimension != null) {
+            // Remove the post-processing tab, if any
+            for (Component tab: jTabbedPane1.getComponents()) {
+                if (tab instanceof ExportSettingsEditor) {
+                    jTabbedPane1.remove(tab);
+                    break;
+                }
+            }
+        }
         this.dimension = dimension;
         if (dimension != null) {
             setPlatform(dimension.getWorld().getPlatform());
