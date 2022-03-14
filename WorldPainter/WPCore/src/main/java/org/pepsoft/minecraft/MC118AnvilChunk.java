@@ -188,7 +188,7 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
         if (sections != null) {
             List<CompoundTag> sectionTags = new ArrayList<>(maxHeight >> 4);
             for (Section section: sections) {
-                if ((section != null) && (!section.isEmpty())) {
+                if ((section != null) && (! section.isEmpty())) {
                     // TODOMC118 remove temp debug code:
                     if ((xPos == 15) && (zPos == -9)) {
                         System.out.println("We're in the column with the error");
