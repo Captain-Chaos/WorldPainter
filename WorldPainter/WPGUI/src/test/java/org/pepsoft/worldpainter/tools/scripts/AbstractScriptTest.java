@@ -17,11 +17,12 @@
 
 package org.pepsoft.worldpainter.tools.scripts;
 
+import org.junit.Ignore;
+import org.pepsoft.worldpainter.tools.ScriptingTool;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import org.junit.Ignore;
-import org.pepsoft.worldpainter.tools.ScriptingTool;
 
 /**
  *
@@ -29,7 +30,7 @@ import org.pepsoft.worldpainter.tools.ScriptingTool;
  */
 @Ignore
 abstract class AbstractScriptTest {
-    void testScript(String name, Object... args) throws IOException, ClassNotFoundException, javax.script.ScriptException {
+    void testScript(String name, Object... args) throws IOException, ClassNotFoundException {
         URL scriptURL = ClassLoader.getSystemResource(name);
         File scriptFile = new File(scriptURL.getPath());
         File scriptDir = scriptFile.getParentFile();
@@ -44,5 +45,10 @@ abstract class AbstractScriptTest {
             }
         }
         ScriptingTool.main(mainArgs);
+    }
+
+    static {
+        System.setProperty("polyglot.js.nashorn-compat", "true");
+        System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
     }
 }
