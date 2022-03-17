@@ -127,7 +127,7 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
         setBoolean(TAG_LIGHT_POPULATED, lightPopulated);
         setLong(TAG_INHABITED_TIME, inhabitedTime);
 
-        return new CompoundTag("", Collections.singletonMap("", super.toNBT()));
+        return new CompoundTag("", Collections.singletonMap("", super.toNBT())); // TODO this really should be setting the DataVersion, but Minecraft does not seem to mind if it's missing
     }
 
     @Override
