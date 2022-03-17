@@ -84,7 +84,7 @@ public abstract class JavaPlatformProvider extends AbstractPlatformProvider impl
         } catch (IOException e) {
             throw new RuntimeException("I/O error while trying to read level.dat", e);
         }
-        return new JavaChunkStore(this, getRegionDir(worldDir, dimension), false, null, level.getMaxHeight());
+        return new JavaChunkStore(this, getRegionDir(worldDir, dimension), level.getMaxHeight());
     }
 
     @Override
