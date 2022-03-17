@@ -28,7 +28,6 @@ import org.pepsoft.worldpainter.brushes.BitmapBrush;
 import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.brushes.RotatedBrush;
 import org.pepsoft.worldpainter.brushes.SymmetricBrush;
-import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 import org.pepsoft.worldpainter.gardenofeden.GardenOfEdenOperation;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.history.WorldHistoryDialog;
@@ -135,20 +134,8 @@ public final class App extends JFrame implements RadiusControl,
 
         setIconImage(ICON);
 
-        colourSchemes = new ColourScheme[] {
-            new DynMapColourScheme("default", true),
-            new DynMapColourScheme("flames", true),
-            new DynMapColourScheme("ovocean", true),
-            new DynMapColourScheme("sk89q", true),
-            new DynMapColourScheme("dokudark", true),
-            new DynMapColourScheme("dokuhigh", true),
-            new DynMapColourScheme("dokulight", true),
-            new DynMapColourScheme("misa", true),
-            new DynMapColourScheme("sphax", true)
-        };
-        defaultColourScheme = colourSchemes[0];
         Configuration config = Configuration.getInstance();
-        selectedColourScheme = colourSchemes[config.getColourschemeIndex()];
+        selectedColourScheme = ColourScheme.DEFAULT;
         operations = OperationManager.getInstance().getOperations();
         setMaxRadius(config.getMaximumBrushSize());
 
@@ -1807,10 +1794,6 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    ColourScheme getColourScheme(int index) {
-        return colourSchemes[index];
-    }
-
     /**
      * {@link JLabel#setText(String)} does not check whether the new value is
      * different. On the other hand {@link JLabel#getText()} is a very simple
@@ -3035,7 +3018,7 @@ public final class App extends JFrame implements RadiusControl,
             biomesPanelContainer.add(soloCheckBox, constraints);
         }
 
-        biomesPanel = new BiomesPanel(defaultColourScheme, customBiomeManager, biomeId -> {
+        biomesPanel = new BiomesPanel(selectedColourScheme, customBiomeManager, biomeId -> {
             paintUpdater = () -> {
                 paint = PaintFactory.createDiscreteLayerPaint(Biome.INSTANCE, biomeId);
                 paintChanged();
@@ -3089,7 +3072,7 @@ public final class App extends JFrame implements RadiusControl,
         JPanel colourGrid = new JPanel(new GridLayout(0, 4));
         for (int i = 1; i < 16; i++) {
             final int selectedColour = i, dataValue = i - ((i < 8) ? 1 : 0);
-            JToggleButton button = new JToggleButton(IconUtils.createScaledColourIcon(defaultColourScheme.getColour(BLK_WOOL, dataValue)));
+            JToggleButton button = new JToggleButton(IconUtils.createScaledColourIcon(selectedColourScheme.getColour(BLK_WOOL, dataValue)));
             button.setToolTipText(COLOUR_NAMES[dataValue]);
             button.setMargin(App.BUTTON_INSETS);
             if (i == 1) {
@@ -3274,6 +3257,7 @@ public final class App extends JFrame implements RadiusControl,
         }
 
         JPanel buttonPanel = new JPanel(new GridLayout(0, 4));
+        // Surface
         buttonPanel.add(createTerrainButton(GRASS));
         buttonPanel.add(createTerrainButton(PERMADIRT));
         buttonPanel.add(createTerrainButton(SAND));
@@ -3295,16 +3279,11 @@ public final class App extends JFrame implements RadiusControl,
         buttonPanel.add(createTerrainButton(GRAVEL));
         
         buttonPanel.add(createTerrainButton(OBSIDIAN));
-        buttonPanel.add(createTerrainButton(WATER));
-        buttonPanel.add(createTerrainButton(LAVA));
+        buttonPanel.add(createTerrainButton(DEEPSLATE));
+        buttonPanel.add(createTerrainButton(TUFF));
         buttonPanel.add(createTerrainButton(MAGMA));
-        
-        buttonPanel.add(createTerrainButton(NETHERRACK));
-        buttonPanel.add(createTerrainButton(SOUL_SAND));
-        buttonPanel.add(createTerrainButton(NETHERLIKE));
-        buttonPanel.add(createTerrainButton(MYCELIUM));
 
-        buttonPanel.add(createTerrainButton(END_STONE));
+        buttonPanel.add(createTerrainButton(MYCELIUM));
         buttonPanel.add(createTerrainButton(BEDROCK));
         buttonPanel.add(createTerrainButton(CLAY));
         buttonPanel.add(createTerrainButton(DESERT));
@@ -3337,6 +3316,26 @@ public final class App extends JFrame implements RadiusControl,
         buttonPanel.add(createTerrainButton(HARDENED_CLAY));
         buttonPanel.add(createTerrainButton(BEACHES));
         buttonPanel.add(createTerrainButton(DEEP_SNOW));
+        buttonPanel.add(Box.createGlue());
+
+        // Nether
+        buttonPanel.add(createTerrainButton(NETHERRACK));
+        buttonPanel.add(createTerrainButton(BASALT));
+        buttonPanel.add(createTerrainButton(BLACKSTONE));
+        buttonPanel.add(createTerrainButton(NETHERLIKE));
+
+        buttonPanel.add(createTerrainButton(SOUL_SAND));
+        buttonPanel.add(createTerrainButton(SOUL_SOIL));
+        buttonPanel.add(createTerrainButton(WARPED_NYLIUM));
+        buttonPanel.add(createTerrainButton(CRIMSON_NYLIUM));
+
+        // End
+        buttonPanel.add(createTerrainButton(END_STONE));
+        buttonPanel.add(Box.createGlue());
+        buttonPanel.add(Box.createGlue());
+        buttonPanel.add(Box.createGlue());
+
+        // Custom terrains
         JButton addCustomTerrainButton = new JButton(ACTION_SHOW_CUSTOM_TERRAIN_POPUP);
         addCustomTerrainButton.setMargin(App.BUTTON_INSETS);
         buttonPanel.add(addCustomTerrainButton);
@@ -4191,41 +4190,6 @@ public final class App extends JFrame implements RadiusControl,
 
         menu.addSeparator();
         
-        JMenu colourSchemeMenu = new JMenu(strings.getString("change.colour.scheme"));
-        String[] colourSchemeNames = {strings.getString("default"), "Flames", "Ovocean", "Sk89q", "DokuDark", "DokuHigh", "DokuLight", "Misa", "Sphax"};
-        Set<String> deprecatedColourSchemes = new HashSet<>(Arrays.asList("Flames", "Ovocean", "Sk89q"));
-        final int schemeCount = colourSchemeNames.length;
-        final JCheckBoxMenuItem[] schemeMenuItems = new JCheckBoxMenuItem[schemeCount];
-        Configuration config = Configuration.getInstance();
-        for (int i = 0; i < colourSchemeNames.length; i++) {
-            final int index = i;
-            schemeMenuItems[index] = new JCheckBoxMenuItem(colourSchemeNames[index]);
-            if (config.getColourschemeIndex() == index) {
-                schemeMenuItems[index].setSelected(true);
-            }
-            schemeMenuItems[index].addActionListener(e -> {
-                for (int i1 = 0; i1 < schemeCount; i1++) {
-                    if ((i1 != index) && schemeMenuItems[i1].isSelected()) {
-                        schemeMenuItems[i1].setSelected(false);
-                    }
-                }
-                selectedColourScheme = colourSchemes[index];
-                view.setColourScheme(selectedColourScheme);
-                config.setColourschemeIndex(index);
-            });
-            if (! deprecatedColourSchemes.contains(colourSchemeNames[i])) {
-                colourSchemeMenu.add(schemeMenuItems[index]);
-            }
-        }
-        colourSchemeMenu.addSeparator();
-        colourSchemeMenu.add(new JLabel("Deprecated:"));
-        for (int i = 0; i < colourSchemeNames.length; i++) {
-            if (deprecatedColourSchemes.contains(colourSchemeNames[i])) {
-                colourSchemeMenu.add(schemeMenuItems[i]);
-            }
-        }
-        menu.add(colourSchemeMenu);
-
         menuItem = new JMenuItem(strings.getString("configure.view") + "...");
         menuItem.addActionListener(e -> {
             ConfigureViewDialog dialog = new ConfigureViewDialog(App.this, dimension, view);
@@ -4250,6 +4214,7 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.setMnemonic('a');
         workspaceLayoutMenu.add(menuItem);
 
+        Configuration config = Configuration.getInstance();
         ACTION_LOAD_LAYOUT.setEnabled(config.getDefaultJideLayoutData() != null);
         menuItem = new JMenuItem(ACTION_LOAD_LAYOUT);
         menuItem.setMnemonic('l');
@@ -4384,7 +4349,7 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 }
                 logger.info("Opening biomes viewer");
-                biomesViewerFrame = new BiomesViewerFrame(dimension.getMinecraftSeed(), world.getSpawnPoint(), preferredAlgorithm, colourSchemes[0], App.this);
+                biomesViewerFrame = new BiomesViewerFrame(dimension.getMinecraftSeed(), world.getSpawnPoint(), preferredAlgorithm, selectedColourScheme, App.this);
                 biomesViewerFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
                 biomesViewerFrame.addWindowListener(new WindowAdapter() {
                     @Override
@@ -5049,7 +5014,7 @@ public final class App extends JFrame implements RadiusControl,
     private JToggleButton createTerrainButton(final Terrain terrain) {
         final JToggleButton button = new JToggleButton();
         button.setMargin(App.BUTTON_INSETS);
-        button.setIcon(new ImageIcon(terrain.getScaledIcon(16, defaultColourScheme)));
+        button.setIcon(new ImageIcon(terrain.getScaledIcon(16, selectedColourScheme)));
         button.setToolTipText(terrain.getName() + ": " + terrain.getDescription());
         button.addItemListener(event -> {
             if (event.getStateChange() == ItemEvent.SELECTED) {
@@ -5248,7 +5213,7 @@ public final class App extends JFrame implements RadiusControl,
         addEndCeilingMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_END) && end && (! endCeiling));
         removeEndCeilingMenuItem.setEnabled(endCeiling);
         if (dimension != null) {
-            final boolean biomesSupported = platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D);
+            final boolean biomesSupported = platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
             switch (dimension.getDim()) {
                 case DIM_NORMAL:
                 case DIM_NORMAL_CEILING:
@@ -6923,9 +6888,7 @@ public final class App extends JFrame implements RadiusControl,
     private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addSurfaceCeilingMenuItem, removeSurfaceCeilingMenuItem, addNetherCeilingMenuItem, removeNetherCeilingMenuItem, addEndCeilingMenuItem, removeEndCeilingMenuItem, exportHighResHeightMapMenuItem;
     private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem, viewSurfaceCeilingMenuItem, viewNetherCeilingMenuItem, viewEndCeilingMenuItem;
     private final JToggleButton[] customMaterialButtons = new JToggleButton[CUSTOM_TERRAIN_COUNT];
-    private final ColourScheme[] colourSchemes;
-    private final ColourScheme defaultColourScheme;
-    private ColourScheme selectedColourScheme;
+    private final ColourScheme selectedColourScheme;
     private final String[] biomeNames = new String[256];
     private SortedMap<String, List<Brush>> customBrushes;
     private final List<Layer> layers = LayerManager.getInstance().getLayers();

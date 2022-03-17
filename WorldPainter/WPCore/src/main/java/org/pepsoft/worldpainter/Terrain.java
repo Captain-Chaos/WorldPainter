@@ -1027,7 +1027,7 @@ public enum Terrain {
             if (dz <= 0) {
                 return LAYERS[(int) (z + (perlinNoise.getPerlinNoise(x / GIGANTIC_BLOBS, y / GIGANTIC_BLOBS) * 4 + perlinNoise.getPerlinNoise(x / HUGE_BLOBS, y / HUGE_BLOBS) + perlinNoise.getPerlinNoise(x / LARGE_BLOBS, y / LARGE_BLOBS) + perlinNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS) / 4 + 3.125f) * 8) % LAYER_COUNT];
             } else if (dz == 1) {
-                final int rnd = new Random(seed + (x * 65537) + (y * 4099)).nextInt(SHRUB_CHANCE);
+                final int rnd = new Random(seed + (x * 65537L) + (y * 4099L)).nextInt(SHRUB_CHANCE);
                 if (rnd < 3) {
                     return DEAD_SHRUBS;
                 } else {
@@ -1068,7 +1068,7 @@ public enum Terrain {
             if (dz <= 0) {
                 return Material.RED_SAND;
             } else {
-                final int rnd = new Random(seed + (x * 65537) + (y * 4099)).nextInt(CACTUS_CHANCE);
+                final int rnd = new Random(seed + (x * 65537L) + (y * 4099L)).nextInt(CACTUS_CHANCE);
                 final int cactusHeight;
                 boolean shrub = false;
                 if (rnd < 3) {
@@ -1097,7 +1097,7 @@ public enum Terrain {
     GRANITE("Granite", Material.GRANITE, Material.GRANITE, "granite", BIOME_PLAINS),
     DIORITE("Diorite", Material.DIORITE, Material.DIORITE, "diorite", BIOME_PLAINS),
     ANDESITE("Andesite", Material.ANDESITE, Material.ANDESITE, "andesite", BIOME_PLAINS),
-    STONE_MIX("Stone Mix", "stone or deepslate with patches of granite, diorite and andesite", BIOME_PLAINS) {
+    STONE_MIX("Stone Mix", "stone or deepslate with patches of granite, diorite, andesite and tuff", BIOME_PLAINS) {
         @Override
         public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
             final int dz = z - height;
@@ -1108,11 +1108,9 @@ public enum Terrain {
                     graniteNoise.setSeed(seed + GRANITE_SEED_OFFSET);
                     dioriteNoise.setSeed(seed + DIORITE_SEED_OFFSET);
                     andesiteNoise.setSeed(seed + ANDESITE_SEED_OFFSET);
-                    // TODOMC118 do we need more in 1.18?
-                    //  Answer: yes: Tuff (below 0)
                 }
                 if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
-                    return Material.GRANITE;
+                    return (z >= 0) ? Material.GRANITE : Material.TUFF; // TODOMC118: make this more gradual
                 } else if(dioriteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > DIORITE_CHANCE) {
                     return Material.DIORITE;
                 } else if(andesiteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > ANDESITE_CHANCE) {
@@ -1687,7 +1685,23 @@ public enum Terrain {
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(47);
     },
-    GRASS_PATH("Grass Path", BLK_GRASS_PATH, BLK_GRASS, "grass path", BIOME_PLAINS),
+    GRASS_PATH("Dirt Path", "dirt path", BIOME_PLAINS) {
+        @Override
+        public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
+            final int dz = z - height;
+            if (dz > 0) {
+                return AIR;
+            } else if (dz == 0) {
+                if ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_15)) {
+                    return Material.GRASS_PATH;
+                } else {
+                    return DIRT_PATH;
+                }
+            } else {
+                return GRASS_BLOCK;
+            }
+        }
+    },
     MAGMA("Magma", BLK_MAGMA, BLK_MAGMA, "magma", BIOME_PLAINS), // TODO: or should this be mapped to stone and magma added to the Resources layer?
     CUSTOM_49("Custom 49", "custom material forty-nine", BIOME_PLAINS) {
         @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
@@ -2792,7 +2806,14 @@ public enum Terrain {
         @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(95);
-    };
+    },
+    DEEPSLATE("Deepslate", DEEPSLATE_Y, DEEPSLATE_Y, "deepslate", BIOME_PLAINS),
+    TUFF("Tuff", Material.TUFF, Material.TUFF, "tuff", BIOME_PLAINS),
+    BASALT("Basalt", Material.BASALT, Material.BASALT, "basalt", BIOME_HELL),
+    BLACKSTONE("Blackstone", Material.BLACKSTONE, Material.BLACKSTONE, "blackstone", BIOME_HELL),
+    SOUL_SOIL("Soul Soil", Material.SOUL_SOIL, Material.SOUL_SOIL, "soul soil", BIOME_HELL),
+    WARPED_NYLIUM("Warped Nylium", Material.WARPED_NYLIUM, Material.NETHERRACK, "warped nylium", BIOME_HELL),
+    CRIMSON_NYLIUM("Crimson Nylium", Material.CRIMSON_NYLIUM, Material.NETHERRACK, "crimson nylium", BIOME_HELL);
 
     Terrain(String name, String description, int defaultBiome) {
         this(name, Material.STONE, Material.STONE, description, defaultBiome, 0);
@@ -3057,170 +3078,178 @@ public enum Terrain {
      * at the end!
      */
     public static final Terrain[] VALUES = {
-        Terrain.GRASS,
-        Terrain.BARE_GRASS,
-        Terrain.DIRT,
-        Terrain.PERMADIRT,
-        Terrain.PODZOL,
-        Terrain.SAND,
-        Terrain.RED_SAND,
-        Terrain.DESERT,
-        Terrain.RED_DESERT,
-        Terrain.MESA,
+        GRASS,
+        BARE_GRASS,
+        DIRT,
+        PERMADIRT,
+        PODZOL,
+        SAND,
+        RED_SAND,
+        DESERT,
+        RED_DESERT,
+        MESA,
 
-        Terrain.HARDENED_CLAY,
-        Terrain.WHITE_STAINED_CLAY,
-        Terrain.ORANGE_STAINED_CLAY,
-        Terrain.MAGENTA_STAINED_CLAY,
-        Terrain.LIGHT_BLUE_STAINED_CLAY,
-        Terrain.YELLOW_STAINED_CLAY,
-        Terrain.LIME_STAINED_CLAY,
-        Terrain.PINK_STAINED_CLAY,
-        Terrain.GREY_STAINED_CLAY,
-        Terrain.LIGHT_GREY_STAINED_CLAY,
+        HARDENED_CLAY,
+        WHITE_STAINED_CLAY,
+        ORANGE_STAINED_CLAY,
+        MAGENTA_STAINED_CLAY,
+        LIGHT_BLUE_STAINED_CLAY,
+        YELLOW_STAINED_CLAY,
+        LIME_STAINED_CLAY,
+        PINK_STAINED_CLAY,
+        GREY_STAINED_CLAY,
+        LIGHT_GREY_STAINED_CLAY,
 
-        Terrain.CYAN_STAINED_CLAY,
-        Terrain.PURPLE_STAINED_CLAY,
-        Terrain.BLUE_STAINED_CLAY,
-        Terrain.BROWN_STAINED_CLAY,
-        Terrain.GREEN_STAINED_CLAY,
-        Terrain.RED_STAINED_CLAY,
-        Terrain.BLACK_STAINED_CLAY,
-        Terrain.SANDSTONE,
-        Terrain.STONE,
-        Terrain.ROCK,
+        CYAN_STAINED_CLAY,
+        PURPLE_STAINED_CLAY,
+        BLUE_STAINED_CLAY,
+        BROWN_STAINED_CLAY,
+        GREEN_STAINED_CLAY,
+        RED_STAINED_CLAY,
+        BLACK_STAINED_CLAY,
+        SANDSTONE,
+        STONE,
+        ROCK,
 
-        Terrain.COBBLESTONE,
-        Terrain.MOSSY_COBBLESTONE,
-        Terrain.OBSIDIAN,
-        Terrain.BEDROCK,
-        Terrain.GRAVEL,
-        Terrain.CLAY,
-        Terrain.BEACHES,
-        Terrain.WATER,
-        Terrain.LAVA,
-        Terrain.SNOW,
+        COBBLESTONE,
+        MOSSY_COBBLESTONE,
+        OBSIDIAN,
+        BEDROCK,
+        GRAVEL,
+        CLAY,
+        BEACHES,
+        WATER,
+        LAVA,
+        SNOW,
 
-        Terrain.DEEP_SNOW,
-        Terrain.NETHERRACK,
-        Terrain.SOUL_SAND,
-        Terrain.NETHERLIKE,
-        Terrain.MYCELIUM,
-        Terrain.END_STONE,
-        Terrain.RESOURCES,
-        Terrain.CUSTOM_1,
-        Terrain.CUSTOM_2,
-        Terrain.CUSTOM_3,
+        DEEP_SNOW,
+        NETHERRACK,
+        SOUL_SAND,
+        NETHERLIKE,
+        MYCELIUM,
+        END_STONE,
+        RESOURCES,
+        CUSTOM_1,
+        CUSTOM_2,
+        CUSTOM_3,
 
-        Terrain.CUSTOM_4,
-        Terrain.CUSTOM_5,
-        Terrain.CUSTOM_6,
-        Terrain.CUSTOM_7,
-        Terrain.CUSTOM_8,
-        Terrain.CUSTOM_9,
-        Terrain.CUSTOM_10,
-        Terrain.CUSTOM_11,
-        Terrain.CUSTOM_12,
-        Terrain.CUSTOM_13,
+        CUSTOM_4,
+        CUSTOM_5,
+        CUSTOM_6,
+        CUSTOM_7,
+        CUSTOM_8,
+        CUSTOM_9,
+        CUSTOM_10,
+        CUSTOM_11,
+        CUSTOM_12,
+        CUSTOM_13,
 
-        Terrain.CUSTOM_14,
-        Terrain.CUSTOM_15,
-        Terrain.CUSTOM_16,
-        Terrain.CUSTOM_17,
-        Terrain.CUSTOM_18,
-        Terrain.CUSTOM_19,
-        Terrain.CUSTOM_20,
-        Terrain.CUSTOM_21,
-        Terrain.CUSTOM_22,
-        Terrain.CUSTOM_23,
+        CUSTOM_14,
+        CUSTOM_15,
+        CUSTOM_16,
+        CUSTOM_17,
+        CUSTOM_18,
+        CUSTOM_19,
+        CUSTOM_20,
+        CUSTOM_21,
+        CUSTOM_22,
+        CUSTOM_23,
 
-        Terrain.CUSTOM_24,
-        Terrain.RED_SANDSTONE,
-        Terrain.GRANITE,
-        Terrain.DIORITE,
-        Terrain.ANDESITE,
-        Terrain.STONE_MIX,
-        Terrain.CUSTOM_25,
-        Terrain.CUSTOM_26,
-        Terrain.CUSTOM_27,
-        Terrain.CUSTOM_28,
+        CUSTOM_24,
+        RED_SANDSTONE,
+        GRANITE,
+        DIORITE,
+        ANDESITE,
+        STONE_MIX,
+        CUSTOM_25,
+        CUSTOM_26,
+        CUSTOM_27,
+        CUSTOM_28,
 
-        Terrain.CUSTOM_29,
-        Terrain.CUSTOM_30,
-        Terrain.CUSTOM_31,
-        Terrain.CUSTOM_32,
-        Terrain.CUSTOM_33,
-        Terrain.CUSTOM_34,
-        Terrain.CUSTOM_35,
-        Terrain.CUSTOM_36,
-        Terrain.CUSTOM_37,
-        Terrain.CUSTOM_38,
+        CUSTOM_29,
+        CUSTOM_30,
+        CUSTOM_31,
+        CUSTOM_32,
+        CUSTOM_33,
+        CUSTOM_34,
+        CUSTOM_35,
+        CUSTOM_36,
+        CUSTOM_37,
+        CUSTOM_38,
 
-        Terrain.CUSTOM_39,
-        Terrain.CUSTOM_40,
-        Terrain.CUSTOM_41,
-        Terrain.CUSTOM_42,
-        Terrain.CUSTOM_43,
-        Terrain.CUSTOM_44,
-        Terrain.CUSTOM_45,
-        Terrain.CUSTOM_46,
-        Terrain.CUSTOM_47,
-        Terrain.CUSTOM_48,
+        CUSTOM_39,
+        CUSTOM_40,
+        CUSTOM_41,
+        CUSTOM_42,
+        CUSTOM_43,
+        CUSTOM_44,
+        CUSTOM_45,
+        CUSTOM_46,
+        CUSTOM_47,
+        CUSTOM_48,
 
-        Terrain.GRASS_PATH,
-        Terrain.MAGMA,
-        Terrain.CUSTOM_49,
-        Terrain.CUSTOM_50,
-        Terrain.CUSTOM_51,
-        Terrain.CUSTOM_52,
-        Terrain.CUSTOM_53,
-        Terrain.CUSTOM_54,
-        Terrain.CUSTOM_55,
-        Terrain.CUSTOM_56,
+        GRASS_PATH,
+        MAGMA,
+        CUSTOM_49,
+        CUSTOM_50,
+        CUSTOM_51,
+        CUSTOM_52,
+        CUSTOM_53,
+        CUSTOM_54,
+        CUSTOM_55,
+        CUSTOM_56,
 
-        Terrain.CUSTOM_57,
-        Terrain.CUSTOM_58,
-        Terrain.CUSTOM_59,
-        Terrain.CUSTOM_60,
-        Terrain.CUSTOM_61,
-        Terrain.CUSTOM_62,
-        Terrain.CUSTOM_63,
-        Terrain.CUSTOM_64,
-        Terrain.CUSTOM_65,
-        Terrain.CUSTOM_66,
+        CUSTOM_57,
+        CUSTOM_58,
+        CUSTOM_59,
+        CUSTOM_60,
+        CUSTOM_61,
+        CUSTOM_62,
+        CUSTOM_63,
+        CUSTOM_64,
+        CUSTOM_65,
+        CUSTOM_66,
 
-        Terrain.CUSTOM_67,
-        Terrain.CUSTOM_68,
-        Terrain.CUSTOM_69,
-        Terrain.CUSTOM_70,
-        Terrain.CUSTOM_71,
-        Terrain.CUSTOM_72,
-        Terrain.CUSTOM_73,
-        Terrain.CUSTOM_74,
-        Terrain.CUSTOM_75,
-        Terrain.CUSTOM_76,
+        CUSTOM_67,
+        CUSTOM_68,
+        CUSTOM_69,
+        CUSTOM_70,
+        CUSTOM_71,
+        CUSTOM_72,
+        CUSTOM_73,
+        CUSTOM_74,
+        CUSTOM_75,
+        CUSTOM_76,
 
-        Terrain.CUSTOM_77,
-        Terrain.CUSTOM_78,
-        Terrain.CUSTOM_79,
-        Terrain.CUSTOM_80,
-        Terrain.CUSTOM_81,
-        Terrain.CUSTOM_82,
-        Terrain.CUSTOM_83,
-        Terrain.CUSTOM_84,
-        Terrain.CUSTOM_85,
-        Terrain.CUSTOM_86,
+        CUSTOM_77,
+        CUSTOM_78,
+        CUSTOM_79,
+        CUSTOM_80,
+        CUSTOM_81,
+        CUSTOM_82,
+        CUSTOM_83,
+        CUSTOM_84,
+        CUSTOM_85,
+        CUSTOM_86,
 
-        Terrain.CUSTOM_87,
-        Terrain.CUSTOM_88,
-        Terrain.CUSTOM_89,
-        Terrain.CUSTOM_90,
-        Terrain.CUSTOM_91,
-        Terrain.CUSTOM_92,
-        Terrain.CUSTOM_93,
-        Terrain.CUSTOM_94,
-        Terrain.CUSTOM_95,
-        Terrain.CUSTOM_96
+        CUSTOM_87,
+        CUSTOM_88,
+        CUSTOM_89,
+        CUSTOM_90,
+        CUSTOM_91,
+        CUSTOM_92,
+        CUSTOM_93,
+        CUSTOM_94,
+        CUSTOM_95,
+        CUSTOM_96,
+            
+        DEEPSLATE,
+        TUFF,
+        BASALT,
+        BLACKSTONE,
+        SOUL_SOIL,
+        WARPED_NYLIUM,
+        CRIMSON_NYLIUM
     };
 
     /**
@@ -3229,63 +3258,70 @@ public enum Terrain {
      * changed in any way.
      */
     public static final Terrain[] PICK_LIST = {
-        Terrain.GRASS,
-        Terrain.BARE_GRASS,
-        Terrain.GRASS_PATH,
-        Terrain.DIRT,
-        Terrain.PERMADIRT,
-        Terrain.PODZOL,
-        Terrain.SAND,
-        Terrain.RED_SAND,
-        Terrain.DESERT,
-        Terrain.RED_DESERT,
+        GRASS,
+        BARE_GRASS,
+        GRASS_PATH,
+        DIRT,
+        PERMADIRT,
+        PODZOL,
+        SAND,
+        RED_SAND,
+        DESERT,
+        RED_DESERT,
 
-        Terrain.MESA,
-        Terrain.HARDENED_CLAY,
-        Terrain.SANDSTONE,
-        Terrain.RED_SANDSTONE,
-        Terrain.STONE_MIX,
-        Terrain.STONE,
-        Terrain.GRANITE,
-        Terrain.DIORITE,
-        Terrain.ANDESITE,
-        Terrain.ROCK,
+        MESA,
+        HARDENED_CLAY,
+        SANDSTONE,
+        RED_SANDSTONE,
+        STONE_MIX,
+        STONE,
+        GRANITE,
+        DIORITE,
+        ANDESITE,
+        ROCK,
 
-        Terrain.COBBLESTONE,
-        Terrain.MOSSY_COBBLESTONE,
-        Terrain.OBSIDIAN,
-        Terrain.BEDROCK,
-        Terrain.GRAVEL,
-        Terrain.CLAY,
-        Terrain.BEACHES,
-        Terrain.WATER,
-        Terrain.LAVA,
-        Terrain.MAGMA,
+        COBBLESTONE,
+        MOSSY_COBBLESTONE,
+        OBSIDIAN,
+        DEEPSLATE,
+        TUFF,
+        BEDROCK,
+        GRAVEL,
+        CLAY,
+        BEACHES,
+        WATER,
 
-        Terrain.DEEP_SNOW,
-        Terrain.NETHERRACK,
-        Terrain.SOUL_SAND,
-        Terrain.NETHERLIKE,
-        Terrain.MYCELIUM,
-        Terrain.END_STONE,
-        Terrain.WHITE_STAINED_CLAY,
-        Terrain.ORANGE_STAINED_CLAY,
-        Terrain.MAGENTA_STAINED_CLAY,
-        Terrain.LIGHT_BLUE_STAINED_CLAY,
+        LAVA,
+        MAGMA,
+        DEEP_SNOW,
+        NETHERRACK,
+        BASALT,
+        BLACKSTONE,
+        SOUL_SAND,
+        SOUL_SOIL,
+        NETHERLIKE,
+        WARPED_NYLIUM,
 
-        Terrain.YELLOW_STAINED_CLAY,
-        Terrain.LIME_STAINED_CLAY,
-        Terrain.PINK_STAINED_CLAY,
-        Terrain.GREY_STAINED_CLAY,
-        Terrain.LIGHT_GREY_STAINED_CLAY,
-        Terrain.CYAN_STAINED_CLAY,
-        Terrain.PURPLE_STAINED_CLAY,
-        Terrain.BLUE_STAINED_CLAY,
-        Terrain.BROWN_STAINED_CLAY,
-        Terrain.GREEN_STAINED_CLAY,
+        CRIMSON_NYLIUM,
+        MYCELIUM,
+        END_STONE,
+        WHITE_STAINED_CLAY,
+        ORANGE_STAINED_CLAY,
+        MAGENTA_STAINED_CLAY,
+        LIGHT_BLUE_STAINED_CLAY,
+        YELLOW_STAINED_CLAY,
+        LIME_STAINED_CLAY,
+        PINK_STAINED_CLAY,
 
-        Terrain.RED_STAINED_CLAY,
-        Terrain.BLACK_STAINED_CLAY
+        GREY_STAINED_CLAY,
+        LIGHT_GREY_STAINED_CLAY,
+        CYAN_STAINED_CLAY,
+        PURPLE_STAINED_CLAY,
+        BLUE_STAINED_CLAY,
+        BROWN_STAINED_CLAY,
+        GREEN_STAINED_CLAY,
+        RED_STAINED_CLAY,
+        BLACK_STAINED_CLAY
     };
 
     /*

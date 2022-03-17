@@ -37,7 +37,10 @@ public final class Constants {
     public static final float MEDIUM_BLOBS   =   32.771f;
     public static final float SMALL_BLOBS    =   16.411f;
     public static final float TINY_BLOBS     =    4.099f;
-    
+
+    /**
+     * The colour to use for unknown materials: magenta.
+     */
     public static final int UNKNOWN_MATERIAL_COLOUR = 0xFF00FF;
 
     public static final int DIM_END_CEILING    = -3;

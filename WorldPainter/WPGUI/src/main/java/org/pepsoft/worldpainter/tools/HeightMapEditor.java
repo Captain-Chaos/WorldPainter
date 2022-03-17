@@ -9,7 +9,6 @@ package org.pepsoft.worldpainter.tools;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.worldpainter.MouseAdapter;
 import org.pepsoft.worldpainter.*;
-import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 import org.pepsoft.worldpainter.heightMaps.*;
 import org.pepsoft.worldpainter.heightMaps.gui.HeightMapPropertiesPanel;
 import org.pepsoft.worldpainter.heightMaps.gui.HeightMapTileProvider;
@@ -402,9 +401,9 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                     }
                 };
                 if (tiledImageViewer1.getTileProviderCount() == 0) {
-                    tiledImageViewer1.setTileProvider(0, new WPTileProvider(tileProvider, new DynMapColourScheme("default", true), null, Collections.singleton(Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST, false, null));
+                    tiledImageViewer1.setTileProvider(0, new WPTileProvider(tileProvider, ColourScheme.DEFAULT, null, Collections.singleton(Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST, false, null));
                 } else {
-                    tiledImageViewer1.replaceTileProvider(0, new WPTileProvider(tileProvider, new DynMapColourScheme("default", true), null, Collections.singleton(Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST, false, null));
+                    tiledImageViewer1.replaceTileProvider(0, new WPTileProvider(tileProvider, ColourScheme.DEFAULT, null, Collections.singleton(Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST, false, null));
                 }
                 tiledImageViewer1.setGridColour(Color.BLACK);
                 break;

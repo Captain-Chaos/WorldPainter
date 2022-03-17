@@ -201,8 +201,9 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                     if (layerYSlope != 0.0) {
                         z += layerYSlope * y;
                     }
-                    return materials[Math.floorMod(Math.round(z), materials.length)];
+                    return materials[Math.floorMod(Math.round(z), materials.length)]; // TODOMC118 does this work for z<0?
                 } else {
+                    // TODOMC118 does this work for z<0?
                     final int iZ = Math.round(z);
                     if (iZ < 0) {
                         return materials[0];
@@ -253,8 +254,9 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                     if (layerYSlope != 0.0) {
                         fZ += layerYSlope * y;
                     }
-                    return materials[Math.floorMod(Math.round(fZ), materials.length)];
+                    return materials[Math.floorMod(Math.round(fZ), materials.length)]; // TODOMC118 does this work for z<0?
                 } else {
+                    // TODOMC118 does this work for z<0?
                     final int iZ = Math.round(fZ);
                     if (iZ < 0) {
                         return materials[0];

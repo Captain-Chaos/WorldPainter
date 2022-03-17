@@ -13,7 +13,6 @@ import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Version;
-import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.exporting.WorldRegion;
 
@@ -102,7 +101,7 @@ public class Mapper {
             error("Invalid dimension specified: " + dim);
         }
         System.out.println("WorldPainter Mapper tool - version " + Version.VERSION + " - © 2012 - 2014 pepsoft.org");
-        ColourScheme colourScheme = new DynMapColourScheme(colourSchemeName, true);
+        ColourScheme colourScheme = ColourScheme.DEFAULT;
         if (output == null) {
             output = new File(worldDir.getName().toLowerCase() + ".png");
         }

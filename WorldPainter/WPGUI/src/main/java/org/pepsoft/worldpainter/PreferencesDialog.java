@@ -246,9 +246,6 @@ public class PreferencesDialog extends WorldPainterDialog {
             case FLAT:
                 defaultGenerator = new SuperflatGenerator(SuperflatPreset.defaultPreset(JAVA_ANVIL_1_15));
                 break;
-            case CUSTOM:
-                defaultGenerator = new CustomGenerator(generatorOptions);
-                break;
             default:
                 throw new InternalError("Generator type " + generatorType + " not supported");
         }

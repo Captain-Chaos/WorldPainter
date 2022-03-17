@@ -10,7 +10,9 @@
  */
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.minecraft.SeededGenerator;
+import org.jnbt.Tag;
+import org.pepsoft.minecraft.*;
+import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.Dimension.LayerAnchor;
 import org.pepsoft.worldpainter.exporting.ExportSettings;
 import org.pepsoft.worldpainter.exporting.ExportSettingsEditor;
@@ -24,6 +26,7 @@ import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExpo
 import org.pepsoft.worldpainter.layers.exporters.TreesExporter.TreeLayerSettings;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.plugins.PlatformProvider;
+import org.pepsoft.worldpainter.superflat.EditSuperflatPresetDialog;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 import org.slf4j.Logger;
@@ -36,9 +39,11 @@ import java.awt.*;
 import java.util.List;
 import java.util.*;
 
+import static java.util.Objects.requireNonNull;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.worldpainter.DimensionPropertiesEditor.Mode.DEFAULT_SETTINGS;
+import static org.pepsoft.worldpainter.Generator.CUSTOM;
 import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
 
 /**
@@ -155,16 +160,25 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     }
 
     public void setPlatform(Platform platform) {
+        requireNonNull(platform);
         if (platform != this.platform) {
             this.platform = platform;
             platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
-            if ((platform == null) || platform.capabilities.contains(POPULATE)) {
+            if (platform.capabilities.contains(POPULATE)) {
                 checkBoxPopulate.setSelected(dimension.isPopulate());
                 checkBoxPopulate.setToolTipText(null);
             } else {
                 checkBoxPopulate.setSelected(false);
                 checkBoxPopulate.setToolTipText("Automatic population not support by format " + platform);
             }
+            Generator generator = (Generator) comboBoxGenerator.getSelectedItem();
+            comboBoxGenerator.setModel(new DefaultComboBoxModel<>(platform.supportedGenerators.toArray(new Generator[platform.supportedGenerators.size()])));
+            if (platform.supportedGenerators.contains(generator)) {
+                comboBoxGenerator.setSelectedItem(generator);
+            } else {
+                comboBoxGenerator.setSelectedItem(platform.supportedGenerators.get(0));
+            }
+            comboBoxGenerator.setEnabled(platform.supportedGenerators.size() > 1);
             setControlStates();
         }
     }
@@ -239,13 +253,21 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     
     public boolean saveSettings() {
         int maxHeight = dimension.getMaxHeight() - 1;
-        
+
+        // sanity checks
+        if ((comboBoxGenerator.getSelectedItem() == CUSTOM) && ((generatorName == null) || generatorName.trim().isEmpty())) {
+            buttonGeneratorOptions.requestFocusInWindow();
+            DesktopUtils.beep();
+            JOptionPane.showMessageDialog(this, "The custom world generator name has not been set.\nUse the [...] button to set it.", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
         // terrain ranges
         if ((mode != Mode.EXPORT) && (! themeEditor.save())) {
             jTabbedPane1.setSelectedIndex(1);
             return false;
         }
-        
+
         // general
         int topLayerMinDepth = (Integer) spinnerMinSurfaceDepth.getValue();
         dimension.setTopLayerMinDepth(topLayerMinDepth);
@@ -499,20 +521,44 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 dimension.setExportSettings(editor.getExportSettings());
             }
         }
-        
+
+        // world generation settings
+        if (! endlessBorder) {
+            final Generator generatorType = (Generator) comboBoxGenerator.getSelectedItem();
+            switch (generatorType) {
+                case FLAT:
+                    dimension.setGenerator(new SuperflatGenerator(superflatPreset));
+                    break;
+                case DEFAULT:
+                case LARGE_BIOMES:
+                case BUFFET:
+                case CUSTOMIZED:
+                case NETHER:
+                case END:
+                    dimension.setGenerator(new SeededGenerator(generatorType, dimension.getMinecraftSeed()));
+                    break;
+                case CUSTOM:
+                    dimension.setGenerator(new CustomGenerator(generatorName.trim(), customGeneratorSettings));
+                    break;
+                case UNKNOWN:
+                    // Do nothing
+                    break;
+            }
+        }
+
         return true;
-    }
-
-    public void addBorderListener(BorderListener borderListener) {
-        borderListeners.add(borderListener);
-    }
-
-    public void removeBorderListener(BorderListener borderListener) {
-        borderListeners.remove(borderListener);
     }
 
     public boolean isPopulateSelected() {
         return checkBoxPopulate.isSelected();
+    }
+
+    Generator getSelectedGeneratorType() {
+        return (Generator) comboBoxGenerator.getSelectedItem();
+    }
+
+    void setSelectedGeneratorType(Generator generatorType) {
+        comboBoxGenerator.setSelectedItem(generatorType);
     }
 
     private void initialisePostProcessingTab() {
@@ -921,7 +967,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 //                jTabbedPane1.setEnabledAt(5, false);
 //            }
         }
-        
+
+        // world generation settings
+        final MapGenerator generator = dimension.getGenerator();
+        generatorName = (generator instanceof CustomGenerator) ? ((CustomGenerator) generator).getName() : null;
+        customGeneratorSettings = (generator instanceof CustomGenerator) ? ((CustomGenerator) generator).getSettings() : null;
+        superflatPreset = (generator instanceof SuperflatGenerator) ? ((SuperflatGenerator) generator).getSettings() : null;
+
         setControlStates();
     }
     
@@ -976,6 +1028,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 comboBoxUndergroundLayerAnchor.setEnabled(false);
             }
         }
+        buttonGeneratorOptions.setEnabled((! endlessBorder) && ((comboBoxGenerator.getSelectedItem() == Generator.FLAT) || (comboBoxGenerator.getSelectedItem() == CUSTOM)));
     }
 
     private void configureSpinners(final JSpinner chanceSpinner, final JSpinner minSpinner, final JSpinner maxSpinner) {
@@ -1006,10 +1059,32 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         });
     }
 
-    private void notifyBorderListeners() {
-        Dimension.Border newBorder = getSelectedBorder();
-        for (BorderListener borderListener: borderListeners) {
-            borderListener.borderChanged(newBorder);
+    private void borderChanged() {
+        Dimension.Border border = getSelectedBorder();
+        endlessBorder = (border != null) && border.isEndless();
+        if (endlessBorder && comboBoxGenerator.isEnabled()) {
+            savedGenerator = comboBoxGenerator.getSelectedIndex();
+            comboBoxGenerator.setSelectedIndex(1);
+            comboBoxGenerator.setEnabled(false);
+//            setControlStates();
+        } else if ((! endlessBorder) && (! comboBoxGenerator.isEnabled())) {
+            comboBoxGenerator.setSelectedIndex(savedGenerator);
+            comboBoxGenerator.setEnabled(true);
+//            setControlStates();
+        }
+    }
+
+    private void updateGeneratorButtonTooltip() {
+        switch ((Generator) comboBoxGenerator.getSelectedItem()) {
+            case FLAT:
+                buttonGeneratorOptions.setToolTipText("Edit the Superflat mode preset");
+                break;
+            case CUSTOM:
+                buttonGeneratorOptions.setToolTipText("Set the custom world generator name");
+                break;
+            default:
+                buttonGeneratorOptions.setToolTipText(null);
+                break;
         }
     }
 
@@ -1019,7 +1094,6 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
      * WARNING: Do NOT modify this code. The content of this method is
      * always regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
@@ -1070,6 +1144,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jLabel83 = new javax.swing.JLabel();
         jLabel84 = new javax.swing.JLabel();
         comboBoxUndergroundLayerAnchor = new javax.swing.JComboBox<>();
+        comboBoxGenerator = new javax.swing.JComboBox<>();
+        jLabel94 = new javax.swing.JLabel();
+        jLabel95 = new javax.swing.JLabel();
+        buttonGeneratorOptions = new javax.swing.JButton();
         jPanel5 = new javax.swing.JPanel();
         themeEditor = new org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor();
         jLabel45 = new javax.swing.JLabel();
@@ -1303,7 +1381,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             }
         });
 
-        jLabel7.setText("Minecraft seed:");
+        jLabel7.setText("Minecraft settings:");
 
         spinnerMinecraftSeed.setModel(new javax.swing.SpinnerNumberModel(-9223372036854775808L, null, null, 1L));
         spinnerMinecraftSeed.setEditor(new javax.swing.JSpinner.NumberEditor(spinnerMinecraftSeed, "0"));
@@ -1451,6 +1529,23 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             }
         });
 
+        comboBoxGenerator.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxGeneratorActionPerformed(evt);
+            }
+        });
+
+        jLabel94.setText("world type:");
+
+        jLabel95.setText("seed:");
+
+        buttonGeneratorOptions.setText("...");
+        buttonGeneratorOptions.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonGeneratorOptionsActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -1492,6 +1587,14 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(jLabel7)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel94)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(comboBoxGenerator, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(buttonGeneratorOptions)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel95)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(spinnerMinecraftSeed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jLabel4)
@@ -1578,8 +1681,12 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
-                    .addComponent(spinnerMinecraftSeed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(spinnerMinecraftSeed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(comboBoxGenerator, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel94)
+                    .addComponent(jLabel95)
+                    .addComponent(buttonGeneratorOptions))
+                .addContainerGap(21, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("General", jPanel1);
@@ -3259,12 +3366,12 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         if ((Integer) spinnerBorderLevel.getValue() == (dimension.getMaxHeight() - 1)) {
             spinnerBorderLevel.setValue(dimension.getBorderLevel());
         }
-        notifyBorderListeners();
+        borderChanged();
     }//GEN-LAST:event_radioButtonWaterBorderActionPerformed
 
     private void radioButtonNoBorderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonNoBorderActionPerformed
         setControlStates();
-        notifyBorderListeners();
+        borderChanged();
     }//GEN-LAST:event_radioButtonNoBorderActionPerformed
 
     private void checkBoxPopulateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxPopulateActionPerformed
@@ -3277,7 +3384,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
     private void radioButtonVoidBorderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonVoidBorderActionPerformed
         setControlStates();
-        notifyBorderListeners();
+        borderChanged();
     }//GEN-LAST:event_radioButtonVoidBorderActionPerformed
 
     private void radioButtonLavaBorderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonLavaBorderActionPerformed
@@ -3285,7 +3392,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         if ((Integer) spinnerBorderLevel.getValue() == (dimension.getMaxHeight() - 1)) {
             spinnerBorderLevel.setValue(dimension.getBorderLevel());
         }
-        notifyBorderListeners();
+        borderChanged();
     }//GEN-LAST:event_radioButtonLavaBorderActionPerformed
 
     private void comboBoxSubsurfaceMaterialActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxSubsurfaceMaterialActionPerformed
@@ -3370,12 +3477,12 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
     private void radioButtonFixedBorderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonFixedBorderActionPerformed
         setControlStates();
-        notifyBorderListeners();
+        borderChanged();
     }//GEN-LAST:event_radioButtonFixedBorderActionPerformed
 
     private void radioButtonEndlessBorderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonEndlessBorderActionPerformed
         setControlStates();
-        notifyBorderListeners();
+        borderChanged();
     }//GEN-LAST:event_radioButtonEndlessBorderActionPerformed
 
     private void comboBoxUndergroundLayerAnchorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxUndergroundLayerAnchorActionPerformed
@@ -3413,9 +3520,40 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setControlStates();
     }//GEN-LAST:event_checkBoxCavesBreakSurfaceActionPerformed
 
+    private void buttonGeneratorOptionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonGeneratorOptionsActionPerformed
+        if (comboBoxGenerator.getSelectedItem() == CUSTOM) {
+            String editedGeneratorOptions = JOptionPane.showInputDialog(this, "Edit the custom world generator name:", generatorName);
+            if (editedGeneratorOptions != null) {
+                generatorName = editedGeneratorOptions;
+            }
+        } else {
+            if (generatorName != null) {
+                String editedGeneratorOptions = JOptionPane.showInputDialog(this, "Edit the Superflat mode preset:", generatorName);
+                if (editedGeneratorOptions != null) {
+                    generatorName = editedGeneratorOptions;
+                }
+            } else {
+                SuperflatPreset mySuperflatPreset = (superflatPreset != null)
+                        ? superflatPreset
+                        : SuperflatPreset.defaultPreset(platform);
+                EditSuperflatPresetDialog dialog = new EditSuperflatPresetDialog(SwingUtilities.windowForComponent(this), platform, mySuperflatPreset);
+                dialog.setVisible(true);
+                if (! dialog.isCancelled()) {
+                    superflatPreset = mySuperflatPreset;
+                }
+            }
+        }
+    }//GEN-LAST:event_buttonGeneratorOptionsActionPerformed
+
+    private void comboBoxGeneratorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxGeneratorActionPerformed
+        updateGeneratorButtonTooltip();
+        setControlStates();
+    }//GEN-LAST:event_comboBoxGeneratorActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCustomLayerDown;
     private javax.swing.JButton buttonCustomLayerUp;
+    private javax.swing.JButton buttonGeneratorOptions;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.ButtonGroup buttonGroup3;
@@ -3440,6 +3578,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JCheckBox checkBoxSmoothSnow;
     private javax.swing.JCheckBox checkBoxSnowUnderTrees;
     private javax.swing.JCheckBox checkBoxSwamplandEverywhere;
+    private javax.swing.JComboBox<Generator> comboBoxGenerator;
     private javax.swing.JComboBox comboBoxSubsurfaceMaterial;
     private javax.swing.JComboBox<String> comboBoxSurfaceLayerAnchor;
     private javax.swing.JComboBox<String> comboBoxUndergroundLayerAnchor;
@@ -3539,6 +3678,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel91;
     private javax.swing.JLabel jLabel92;
     private javax.swing.JLabel jLabel93;
+    private javax.swing.JLabel jLabel94;
+    private javax.swing.JLabel jLabel95;
     private javax.swing.JLabel jLabel98;
     private javax.swing.JLabel jLabel99;
     private javax.swing.JPanel jPanel1;
@@ -3650,15 +3791,15 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private PlatformProvider platformProvider;
     private CustomLayersTableModel customLayersTableModel;
     private Mode mode;
-    private List<BorderListener> borderListeners = new ArrayList<>();
     private Dimension.LayerAnchor subsurfaceLayerAnchor;
+    private String generatorName;
+    private SuperflatPreset superflatPreset;
+    private boolean endlessBorder;
+    private int savedGenerator;
+    private Tag customGeneratorSettings;
 
     private static final Logger logger = LoggerFactory.getLogger(DimensionPropertiesEditor.class);
     private static final long serialVersionUID = 1L;
 
     public enum Mode {EXPORT, DEFAULT_SETTINGS, EDITOR}
-
-    public interface BorderListener {
-        void borderChanged(Dimension.Border newBorder);
-    }
 }

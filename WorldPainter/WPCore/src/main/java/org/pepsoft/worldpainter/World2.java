@@ -25,9 +25,9 @@ import java.util.List;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Material.WOOL_MAGENTA;
-import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
-import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
-import static org.pepsoft.worldpainter.Generator.DEFAULT;
+import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Generator.END;
+import static org.pepsoft.worldpainter.Generator.NETHER;
 import static org.pepsoft.worldpainter.World2.Warning.MISSING_CUSTOM_TERRAINS;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 
@@ -679,11 +679,17 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
         if (wpVersion < 9) {
             dimensions.values().forEach(dimension -> {
-                if (dimension.getDim() == DIM_NORMAL) {
-                    MapGenerator generator = MapGenerator.fromLegacySettings(this.generator, dimensions.get(DIM_NORMAL).getMinecraftSeed(), generatorName, generatorOptions, platform);
-                    dimension.setGenerator(generator);
-                } else {
-                    dimension.setGenerator(new SeededGenerator(DEFAULT, dimension.getMinecraftSeed()));
+                switch (dimension.getDim()) {
+                    case DIM_NORMAL:
+                        MapGenerator generator = MapGenerator.fromLegacySettings(this.generator, dimension.getMinecraftSeed(), generatorName, generatorOptions, platform);
+                        dimension.setGenerator(generator);
+                        break;
+                    case DIM_NETHER:
+                        dimension.setGenerator(new SeededGenerator(NETHER, dimension.getSeed()));
+                        break;
+                    case DIM_END:
+                        dimension.setGenerator(new SeededGenerator(END, dimension.getSeed()));
+                        break;
                 }
             });
             this.generator = null;

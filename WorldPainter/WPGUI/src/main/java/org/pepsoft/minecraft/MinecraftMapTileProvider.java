@@ -4,7 +4,6 @@ import org.pepsoft.util.swing.TileListener;
 import org.pepsoft.util.swing.TileProvider;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Platform;
-import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import java.awt.*;
@@ -59,7 +58,7 @@ public class MinecraftMapTileProvider implements TileProvider {
         }
         extent = new Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1);
 
-        colourScheme = new DynMapColourScheme("default", true);
+        colourScheme = ColourScheme.DEFAULT;
     }
 
     @Override
