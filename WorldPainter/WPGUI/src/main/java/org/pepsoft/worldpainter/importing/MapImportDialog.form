@@ -290,6 +290,7 @@
     </Component>
     <Component class="javax.swing.JCheckBox" name="checkBoxImportOutliers">
       <Properties>
+        <Property name="selected" type="boolean" value="true"/>
         <Property name="text" type="java.lang.String" value="include outlying chunks in import"/>
       </Properties>
     </Component>
