@@ -104,5 +104,5 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
             Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM, NETHER, END),
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
-            EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, NAMED_BIOMES));
+            EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, NAMED_BIOMES, POPULATE));
 }

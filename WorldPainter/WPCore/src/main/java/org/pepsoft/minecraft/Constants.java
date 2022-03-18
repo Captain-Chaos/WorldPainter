@@ -529,6 +529,10 @@ public final class Constants {
     public static final String MC_POTTED_FERN = "minecraft:potted_fern";
     public static final String MC_INFESTED_DEEPSLATE = "minecraft:infested_deepslate";
 
+    // MC 1.18 biome names
+
+    public static final String MC_PLAINS = "minecraft:plains";
+
     // MC 1.15 property names
 
     public static final String MC_SNOWY       = "snowy";
@@ -1152,6 +1156,7 @@ public final class Constants {
     public static final String STATUS_FULL = "full";
     public static final String STATUS_LIQUID_CARVERS = "liquid_carvers";
     public static final String STATUS_STRUCTURE_STARTS = "structure_starts";
+    public static final String STATUS_BIOMES = "biomes";
 
     // Minecraft 1.18 dimension names
 

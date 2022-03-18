@@ -189,10 +189,6 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
             List<CompoundTag> sectionTags = new ArrayList<>(maxHeight >> 4);
             for (Section section: sections) {
                 if ((section != null) && (! section.isEmpty())) {
-                    // TODOMC118 remove temp debug code:
-                    if ((xPos == 15) && (zPos == -9)) {
-                        System.out.println("We're in the column with the error");
-                    }
                     sectionTags.add(section.toNBT());
                 }
             }
@@ -407,11 +403,10 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
         if (readOnly) {
             return;
         }
-        // TODOMC118: this is a guess, is this useful?
         if (terrainPopulated) {
             status = STATUS_FULL;
         } else {
-            throw new UnsupportedOperationException("Terrain population not supported for Minecraft 1.15+");
+            status = STATUS_LIQUID_CARVERS;
         }
     }
 
@@ -846,7 +841,16 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
                 setMap(TAG_BLOCK_STATES_, ImmutableMap.of(TAG_PALETTE_, new ListTag<>(TAG_PALETTE_, CompoundTag.class, palette), TAG_DATA_, new LongArrayTag(TAG_DATA_, packedMaterials.data)));
             }
 
-            // TODOMC118: biomes
+            if (singleBiome != null) {
+                setMap(TAG_BIOMES_, ImmutableMap.of(TAG_PALETTE_, new ListTag<>(TAG_PALETTE_, StringTag.class, singletonList(new StringTag("", singleBiome)))));
+            } else if (biomes != null) {
+                PackedArrayCube<String>.PackedData packedBiomes = biomes.pack();
+                List<StringTag> palette = new ArrayList<>(packedBiomes.palette.length);
+                for (String biome: packedBiomes.palette) {
+                    palette.add(new StringTag("", biome));
+                }
+                setMap(TAG_BIOMES_, ImmutableMap.of(TAG_PALETTE_, new ListTag<>(TAG_PALETTE_, StringTag.class, palette), TAG_DATA_, new LongArrayTag(TAG_DATA_, packedBiomes.data)));
+            }
 
             setByteArray(TAG_SKY_LIGHT, skyLight);
             setByteArray(TAG_BLOCK_LIGHT, blockLight);
@@ -859,12 +863,20 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
          * 
          * @return {@code true} if the section is empty
          */
-        boolean isEmpty() {
+        @SuppressWarnings("StringEquality") // Interned strings
+        @Override
+        public boolean isEmpty() {
             if ((singleMaterial != null) && (singleMaterial != AIR)) {
                 return false;
             } else if ((materials != null) && (! materials.isEmpty())) {
                 return false;
             }
+            if ((singleBiome != null) && (singleBiome != MC_PLAINS)) {
+                return false;
+            } else if ((biomes != null) && (! biomes.isEmpty())) {
+                return false;
+            }
+            // TODOMC118 what to do when singleBiome is set and the section is otherwise empty?
             for (int i = 0; i < LIGHT_ARRAY_SIZE; i++) {
                 if (skyLight[i] != (byte) -1) {
                     return false;

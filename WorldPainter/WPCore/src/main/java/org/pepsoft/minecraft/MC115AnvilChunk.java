@@ -422,7 +422,6 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
         if (readOnly) {
             return;
         }
-        // TODO: this is a guess, is this useful?
         if (terrainPopulated) {
             status = STATUS_FULL;
         } else {
@@ -927,7 +926,8 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
          * 
          * @return {@code true} if the section is empty
          */
-        boolean isEmpty() {
+        @Override
+        public boolean isEmpty() {
             for (Material material: materials) {
                 if (material != null) {
                     return false;

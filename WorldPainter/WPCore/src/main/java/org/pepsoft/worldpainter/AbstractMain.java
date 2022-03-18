@@ -21,8 +21,7 @@ import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
  */
 public class AbstractMain {
     protected static void initialisePlatform() {
-        // Force language to English for now. TODO: remove this once the first
-        // translations are implemented
+        // Force language to English for now. TODO: remove this once the first translations are implemented
         Locale.setDefault(Locale.US);
 
         // Use a file lock to make sure only one instance is running with autosave enabled
@@ -51,7 +50,7 @@ public class AbstractMain {
             configError(e);
         }
         if (config == null) {
-            if (!logger.isDebugEnabled()) {
+            if (! logger.isDebugEnabled()) {
                 // If debug logging is on, the Configuration constructor will
                 // already log this
                 logger.info("Creating new configuration");

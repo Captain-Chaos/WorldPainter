@@ -6212,6 +6212,7 @@ public final class App extends JFrame implements RadiusControl,
                         return;
                     }
                 }
+                saveCustomBiomes();
                 ExportWorldDialog dialog = new ExportWorldDialog(App.this, world, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin(), view);
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
