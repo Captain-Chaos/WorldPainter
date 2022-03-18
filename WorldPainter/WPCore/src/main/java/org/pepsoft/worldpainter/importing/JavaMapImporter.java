@@ -6,6 +6,7 @@ package org.pepsoft.worldpainter.importing;
 
 import org.pepsoft.minecraft.*;
 import org.pepsoft.minecraft.ChunkStore.ChunkVisitor;
+import org.pepsoft.minecraft.SectionedChunk.Section;
 import org.pepsoft.util.LongAttributeKey;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
@@ -235,7 +236,7 @@ public class JavaMapImporter extends MapImporter {
             final int total = chunkStore.getChunkCount();
             final AtomicInteger count = new AtomicInteger();
             final StringBuilder reportBuilder = new StringBuilder();
-            if (!chunkStore.visitChunks(new ChunkVisitor() {
+            if (! chunkStore.visitChunks(new ChunkVisitor() {
                 @Override
                 public boolean visitChunk(Chunk chunk) {
                     try {
@@ -251,18 +252,27 @@ public class JavaMapImporter extends MapImporter {
                         final int chunkZ = chunkCoords.z;
 
                         // Sanity checks
+                        if ((chunk instanceof MC115AnvilChunk) || (chunk instanceof MC118AnvilChunk)) {
+                            final String status = (chunk instanceof MC115AnvilChunk) ? ((MC115AnvilChunk) chunk).getStatus() : ((MC118AnvilChunk) chunk).getStatus();
+                            if (status.equals(STATUS_STRUCTURE_STARTS) || status.equals(STATUS_BIOMES)) {
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("Skipping chunk {},{} because the status is {}", chunkX, chunkZ, status);
+                                }
+                                // Minecraft 1.18 seems to put lots of these empty chunks around the already generated parts; skip them
+                                return true;
+                            }
+                        }
                         if (chunk instanceof SectionedChunk) {
-                            SectionedChunk sectionedChunk = (SectionedChunk) chunk;
                             boolean sectionFound = false;
-                            for (SectionedChunk.Section section: sectionedChunk.getSections()) {
+                            for (Section section: ((SectionedChunk) chunk).getSections()) {
                                 if (section != null) {
                                     sectionFound = true;
                                     break;
                                 }
                             }
-                            if (!sectionFound) {
+                            if (! sectionFound) {
                                 if (logger.isDebugEnabled()) {
-                                    logger.debug("Skipping chunk " + chunkX + "," + chunkZ + " because it has no sections, or no sections with y >= 0");
+                                    logger.debug("Skipping chunk {},{} because it has no sections, or no sections with y >= minHeight", chunkX, chunkZ);
                                 }
                                 return true;
                             }
@@ -379,8 +389,14 @@ public class JavaMapImporter extends MapImporter {
                                             if (BIOMES_BY_MODERN_ID.containsKey(biomeStr)) {
                                                 biome = BIOMES_BY_MODERN_ID.get(biomeStr);
                                             } else if (customNamedBiomes.containsKey(biomeStr)) {
+                                                // This is a new biome that WorldPainter does not know about yet, or one
+                                                // from a mod, but we have encountered it before and assigned it a
+                                                // custom ID; reuse that
                                                 biome = customNamedBiomes.get(biomeStr);
                                             } else {
+                                                // This is a new biome that WorldPainter does not know about yet, or one
+                                                // from a mod, that we have not yet encountered before. Choose a custom
+                                                // ID for it and record it
                                                 int customId;
                                                 do {
                                                     customId = nextCustomBiomeId.getAndIncrement();
@@ -389,6 +405,7 @@ public class JavaMapImporter extends MapImporter {
                                                     throw new RuntimeException("More unknown biomes in dimension than available custom biome ids");
                                                 }
                                                 biome = customId;
+                                                customNamedBiomes.put(biomeStr, biome);
                                             }
                                         } else {
                                             biome = defaultBiome;
