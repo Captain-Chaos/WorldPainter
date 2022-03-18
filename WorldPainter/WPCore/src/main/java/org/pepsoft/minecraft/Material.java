@@ -25,6 +25,7 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.HorizontalOrientationScheme.CARDINAL_DIRECTIONS;
 import static org.pepsoft.minecraft.HorizontalOrientationScheme.STAIR_CORNER;
 import static org.pepsoft.util.ObjectMapperHolder.OBJECT_MAPPER;
+import static org.pepsoft.worldpainter.Constants.UNKNOWN_MATERIAL_COLOUR;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 
 /**
@@ -106,10 +107,11 @@ public final class Material implements Serializable {
             lightSource = (blockLight > 0);
             natural = (boolean) spec.get("natural");
             watery = (boolean) spec.get("watery");
+            colour = spec.containsKey("colour") ? ((int) spec.get("colour")) : UNKNOWN_MATERIAL_COLOUR;
             category = determineCategory();
         } else {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Legacy material " + blockType + ":" + data + " not found in materials database");
+            if (logger.isTraceEnabled()) {
+                logger.trace("Legacy material " + blockType + ":" + data + " not found in materials database");
             }
             // Use reasonable defaults for unknown blocks
             opacity = 0;
@@ -124,6 +126,7 @@ public final class Material implements Serializable {
             lightSource = false;
             natural = false;
             watery = false;
+            colour = UNKNOWN_MATERIAL_COLOUR;
             category = CATEGORY_UNKNOWN;
         }
 
@@ -197,8 +200,8 @@ public final class Material implements Serializable {
         } else {
             blockType = -1;
             data = -1;
-            if (logger.isDebugEnabled()) {
-                logger.debug("Did not match " + identity + " to legacy block");
+            if (logger.isTraceEnabled()) {
+                logger.trace("Did not match " + identity + " to legacy block");
             }
         }
 
@@ -231,10 +234,15 @@ public final class Material implements Serializable {
             lightSource = (blockLight > 0);
             natural = (boolean) spec.get("natural");
             watery = (boolean) spec.get("watery");
+            colour = spec.containsKey("colour") ? ((int) spec.get("colour")) : UNKNOWN_MATERIAL_COLOUR;
             category = determineCategory();
         } else {
             if (logger.isDebugEnabled()) {
-                logger.debug("Modern material " + identity + " not found in materials database");
+                if ((namespace != null) && namespace.equals(MINECRAFT)) {
+                    logger.warn("Modern material {} not found in materials database", identity);
+                } else {
+                    logger.debug("Modern material {} not found in materials database", identity);
+                }
             }
             // Use reasonable defaults for unknown blocks
             opacity = 0;
@@ -249,6 +257,7 @@ public final class Material implements Serializable {
             lightSource = false;
             natural = false;
             watery = false;
+            colour = UNKNOWN_MATERIAL_COLOUR;
             category = CATEGORY_UNKNOWN;
         }
 
@@ -940,7 +949,8 @@ public final class Material implements Serializable {
     }
 
     private boolean determineCanSupportSnow() {
-        return (solid
+        return hasPropertySnowy
+                || (solid
                     && opaque
                     && (! ("bottom".equals(getProperty(MC_TYPE)) && (name.endsWith("_slab") || name.endsWith("_stairs"))))
                     && (! NO_SNOW_ON.contains(name)))
@@ -1053,6 +1063,9 @@ public final class Material implements Serializable {
             if (material == null) {
                 material = new Material(identity);
                 ALL_MATERIALS.put(identity, material);
+                if (! DEFAULT_MATERIALS_BY_NAME.containsKey(identity.name)) {
+                    DEFAULT_MATERIALS_BY_NAME.put(identity.name, material);
+                }
             }
             return material;
         }
@@ -1185,6 +1198,120 @@ public final class Material implements Serializable {
         }
     }
 
+//    public static void main(String[] args) throws IOException, ClassNotFoundException {
+//        Configuration config = Configuration.load();
+//        if (config == null) {
+//            config = new Configuration();
+//        }
+//        Configuration.setInstance(config);
+//        try (JarFile jarFile = new JarFile(BiomeSchemeManager.getLatestMinecraftJar(), true, OPEN_READ); Reader in = new InputStreamReader(Material.class.getResourceAsStream("mc-materials.csv"), UTF_8); Writer out = new OutputStreamWriter(System.out, UTF_8)) {
+//            System.out.printf("Using jar: %s%n%n", jarFile.getName());
+//            CSVDataSource csvIn = new CSVDataSource();
+//            csvIn.openForReading(in);
+//            CSVDataSource csvOut = new CSVDataSource();
+//            csvOut.openForWriting(out, "name", "properties", "opacity", "terrain", "insubstantial", "veryInsubstantial", "resource", "tileEntity", "treeRelated", "vegetation", "blockLight", "natural", "watery", "colour", "colourOrigin");
+//            do {
+//                String name = csvIn.getString("name");
+//                csvOut.setString("name", name);
+//                String str = csvIn.getString("properties");
+//                if (! isNullOrEmpty(str)) {
+//                    csvOut.setString("properties", str);
+//                }
+//                csvOut.setInt("opacity", csvIn.getInt("opacity"));
+//                csvOut.setBoolean("terrain", csvIn.getBoolean("terrain"));
+//                csvOut.setBoolean("insubstantial", csvIn.getBoolean("insubstantial"));
+//                csvOut.setBoolean("veryInsubstantial", csvIn.getBoolean("veryInsubstantial"));
+//                csvOut.setBoolean("resource", csvIn.getBoolean("resource"));
+//                csvOut.setBoolean("tileEntity", csvIn.getBoolean("tileEntity"));
+//                csvOut.setBoolean("treeRelated", csvIn.getBoolean("treeRelated"));
+//                csvOut.setBoolean("vegetation", csvIn.getBoolean("vegetation"));
+//                csvOut.setInt("blockLight", csvIn.getInt("blockLight"));
+//                csvOut.setBoolean("natural", csvIn.getBoolean("natural"));
+//                csvOut.setBoolean("watery", csvIn.getBoolean("watery"));
+//                Material material = Material.getDefault(name);
+//                if (material == null) {
+//                    material = Material.get(name);
+//                }
+//                final ColourAndOrigin colourAndOrigin = determineColour(material, jarFile);
+//                if (colourAndOrigin != null) {
+//                    csvOut.setString("colour", String.format("%8x", colourAndOrigin.colour));
+//                    csvOut.setString("colourOrigin", colourAndOrigin.origin);
+//                }
+//                csvIn.next();
+//                csvOut.next();
+//            } while (! csvIn.isEndOfFile());
+//        }
+//    }
+
+//    @SuppressWarnings("StringEquality") // Interned string
+//    public static void dumpUnknownMaterials() throws IOException {
+//        final ColourScheme colourScheme = ColourScheme.DEFAULT;
+//        final Set<String> processedMaterials = new HashSet<>();
+//        try (Writer out = new OutputStreamWriter(System.out, UTF_8)) {
+//            final CSVDataSource csv = new CSVDataSource();
+//            csv.openForWriting(out, "name", "properties", "opacity", "terrain", "insubstantial", "veryInsubstantial", "resource", "tileEntity", "treeRelated", "vegetation", "blockLight", "natural", "watery");
+//            ALL_MATERIALS.values().stream()
+//                    .filter(material -> (material.category == CATEGORY_UNKNOWN) && (material.namespace != LEGACY))
+//                    .sorted(comparing(material -> material.name))
+//                    .forEach(material -> {
+//                        if (processedMaterials.contains(material.name)) {
+//                            return;
+//                        }
+//                        try {
+//                            csv.setString("name", material.name);
+//                            if ((material.getProperties() != null) && (!material.getProperties().isEmpty())) {
+//                                csv.setString("properties", String.join(",", material.getProperties().keySet()));
+//                            }
+//                            csv.setInt("opacity", guessOpacity(material));
+//                            csv.setBoolean("terrain", false);
+//                            csv.setBoolean("insubstantial", guessInsubstantial(material));
+//                            csv.setBoolean("veryInsubstantial", guessInsubstantial(material));
+//                            csv.setBoolean("resource", material.resource);
+//                            csv.setBoolean("tileEntity", material.tileEntity);
+//                            csv.setBoolean("treeRelated", guessTreeRelated(material));
+//                            csv.setBoolean("vegetation", guessVegetation(material));
+//                            csv.setInt("blockLight", material.blockLight);
+//                            csv.setBoolean("natural", guessNatural(material));
+//                            csv.setBoolean("watery", material.watery);
+//                            csv.next();
+//                            processedMaterials.add(material.name);
+//                        } catch (IOException e) {
+//                            throw new RuntimeException(e);
+//                        }
+//                    });
+//        }
+//    }
+//
+//    private static int guessOpacity(Material material) {
+//        return (material.name.endsWith("_block") || material.name.endsWith("_slab") || material.name.endsWith("_stairs")) ? 15 : 0;
+//    }
+//
+//    private static boolean guessInsubstantial(Material material) {
+//        return guessVegetation(material);
+//    }
+//
+//    private static boolean guessVegetation(Material material) {
+//        return (! material.name.endsWith("_block"))
+//                && (material.name.contains("leaf")
+//                || material.name.contains("vine")
+//                || material.name.contains("fungus")
+//                || material.name.contains("roots")
+//                || material.name.contains("azalea")
+//                || material.name.contains("flowering")
+//                || material.name.contains("lichen")
+//                || material.name.contains("moss")
+//                || material.name.contains("stem")
+//                || material.name.contains("blossom"));
+//    }
+//
+//    private static boolean guessNatural(Material material) {
+//        return guessVegetation(material) || guessTreeRelated(material);
+//    }
+//
+//    private static boolean guessTreeRelated(Material material) {
+//        return material.name.endsWith("_log") || material.name.endsWith("_leaves");
+//    }
+
     /**
      * How much light the block blocks from 0 (fully transparent) to 15 (fully
      * opaque).
@@ -1192,10 +1319,8 @@ public final class Material implements Serializable {
     public final transient int opacity;
 
     /**
-     * The name of the block, including the namespace (if present; separated by
-     * a colon). This value is guaranteed to be interned, so that it is valid to
-     * compare it with {@code String} literals or constants using the
-     * {@code ==} operator.
+     * The name of the block, including the namespace (if present; separated by a colon). This string is interned, so
+     * that the {@code ==} operator may be used to make comparisons against it.
      */
     public final transient String name;
 
@@ -1322,13 +1447,14 @@ public final class Material implements Serializable {
     public final transient int index;
 
     /**
-     * The simple name (excluding the namespace, i.e. the part after the colon)
-     * of this material.
+     * The simple name (excluding the namespace, i.e. the part after the colon) of this material. This string is
+     * interned, so that the {@code ==} operator may be used to make comparisons against it.
      */
     public final transient String simpleName;
 
     /**
-     * The namespace (i.e. the part before the colon) of this material.
+     * The namespace (i.e. the part before the colon) of this material. This string is interned, so that the {@code ==}
+     * operator may be used to make comparisons against it.
      */
     public final transient String namespace;
 
@@ -1336,6 +1462,11 @@ public final class Material implements Serializable {
      * Whether snow may be placed on this block.
      */
     public final transient boolean canSupportSnow;
+
+    /**
+     * The colour of this material as an {@code int} in ARGB format.
+     */
+    public final transient int colour;
 
     // Optimised versions of hasProperty(...):
 
@@ -1405,6 +1536,10 @@ public final class Material implements Serializable {
                 materialSpecs.put("blockLight", csvDataSource.getInt("blockLight"));
                 materialSpecs.put("natural", csvDataSource.getBoolean("natural"));
                 materialSpecs.put("watery", csvDataSource.getBoolean("watery"));
+                str = csvDataSource.getString("colour");
+                if (! isNullOrEmpty(str)) {
+                    materialSpecs.put("colour", Integer.parseUnsignedInt(str, 16));
+                }
                 MATERIAL_SPECS.computeIfAbsent(name, s -> new HashSet<>()).add(materialSpecs);
                 csvDataSource.next();
             } while (! csvDataSource.isEndOfFile());
@@ -1759,6 +1894,15 @@ public final class Material implements Serializable {
     public static final Material COPPER_ORE = get(MC_COPPER_ORE);
     public static final Material NETHER_GOLD_ORE = get(MC_NETHER_GOLD_ORE);
     public static final Material ANCIENT_DEBRIS = get(MC_ANCIENT_DEBRIS);
+    public static final Material BASALT = get(MC_BASALT);
+    public static final Material BLACKSTONE = get(MC_BLACKSTONE);
+    public static final Material SOUL_SOIL = get(MC_SOUL_SOIL);
+    public static final Material GRASS_PATH = get(MC_GRASS_PATH);
+    public static final Material DIRT_PATH = get(MC_DIRT_PATH);
+    public static final Material WARPED_NYLIUM = get(MC_WARPED_NYLIUM);
+    public static final Material CRIMSON_NYLIUM = get(MC_CRIMSON_NYLIUM);
+    public static final Material ROOTED_DIRT = get(MC_ROOTED_DIRT);
+    public static final Material INFESTED_DEEPSLATE = get(MC_INFESTED_DEEPSLATE);
 
     // Namespaces
 

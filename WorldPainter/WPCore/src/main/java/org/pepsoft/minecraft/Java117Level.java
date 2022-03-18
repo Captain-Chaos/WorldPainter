@@ -64,7 +64,7 @@ public class Java117Level extends JavaLevel {
                 } else if ("CUSTOMIZED".equalsIgnoreCase(generatorName)) {
                     return new SeededGenerator(CUSTOMIZED, getSeed());
                 } else {
-                    return new CustomGenerator(getGeneratorName());
+                    return new CustomGenerator(getGeneratorName(), null);
                 }
             case DIM_NETHER:
             case DIM_END:
@@ -86,6 +86,8 @@ public class Java117Level extends JavaLevel {
                         // Do nothing
                         break;
                     case DEFAULT:
+                    case NETHER:
+                    case END:
                         if (getVersion() == VERSION_MCREGION) {
                             setString(TAG_GENERATOR_NAME_, "DEFAULT");
                         } else {
@@ -108,12 +110,32 @@ public class Java117Level extends JavaLevel {
                             setInt(TAG_GENERATOR_VERSION_, 0);
                         }
                         break;
+                    case CUSTOM:
+                        final CustomGenerator customGenerator = (CustomGenerator) generator;
+                        setString(TAG_GENERATOR_NAME_, customGenerator.getName());
+                        if (customGenerator.getSettings() != null) {
+                            setGeneratorOptions(customGenerator.getSettings());
+                        }
+                        break;
                     case BUFFET:
                     case CUSTOMIZED:
                         throw new IllegalArgumentException(generator.getType().getDisplayName() + " not supported for Exporting");
                     default:
                         throw new IllegalArgumentException("Use setGeneratorName(String) for generator " + generator);
                 }
+                break;
+            case DIM_NETHER:
+                if (generator.getType() != NETHER) {
+                    throw new IllegalArgumentException("Generator type " + generator.getType().getDisplayName() + " not supported for Nether dimension");
+                }
+                // Do nothing
+                break;
+            case DIM_END:
+                if (generator.getType() != END) {
+                    throw new IllegalArgumentException("Generator type " + generator.getType().getDisplayName() + " not supported for End dimension");
+                }
+                // Do nothing
+                break;
             default:
                 if (generator.getType() != DEFAULT) {
                     throw new IllegalArgumentException("Generator type " + generator.getType().getDisplayName() + " not supported for dimension " + dim);
@@ -137,9 +159,5 @@ public class Java117Level extends JavaLevel {
 
     public int getGeneratorVersion() {
         return getInt(TAG_GENERATOR_VERSION_);
-    }
-
-    public void setGeneratorName(String generatorName) {
-        setString(TAG_GENERATOR_NAME_, generatorName);
     }
 }

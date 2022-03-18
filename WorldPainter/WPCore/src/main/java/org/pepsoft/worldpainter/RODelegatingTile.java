@@ -56,7 +56,7 @@ public class RODelegatingTile extends Tile {
     }
 
     @Override
-    public void setMaxHeight(int maxHeight, HeightTransform heightTransform) {
+    public void setMinMaxHeight(int minHeight, int maxHeight, HeightTransform heightTransform) {
         throw new UnsupportedOperationException();
     }
 

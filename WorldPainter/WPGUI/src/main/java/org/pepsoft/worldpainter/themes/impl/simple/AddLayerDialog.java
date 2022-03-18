@@ -5,15 +5,15 @@
  */
 package org.pepsoft.worldpainter.themes.impl.simple;
 
-import java.awt.Window;
-import java.util.List;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.SpinnerNumberModel;
 import org.pepsoft.worldpainter.LayerListCellRenderer;
 import org.pepsoft.worldpainter.WorldPainterDialog;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.themes.Filter;
 import org.pepsoft.worldpainter.themes.HeightFilter;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
 
 /**
  *
@@ -23,8 +23,9 @@ public class AddLayerDialog extends WorldPainterDialog {
     /**
      * Creates new form AddLayerDialog
      */
-    public AddLayerDialog(Window parent, List<Layer> layers, int maxHeight) {
+    public AddLayerDialog(Window parent, List<Layer> layers, int minHeight, int maxHeight) {
         super(parent);
+        this.minHeight = minHeight;
         this.maxHeight = maxHeight;
         initComponents();
         
@@ -48,7 +49,7 @@ public class AddLayerDialog extends WorldPainterDialog {
     }
     
     public Filter getSelectedFilter() {
-        return new HeightFilter(maxHeight, (Integer) spinnerFrom.getValue(), (Integer) spinnerTo.getValue(), checkBoxFeather.isSelected());
+        return new HeightFilter(minHeight, maxHeight, (Integer) spinnerFrom.getValue(), (Integer) spinnerTo.getValue(), checkBoxFeather.isSelected());
     }
     
     private void setControlStates() {
@@ -201,5 +202,5 @@ public class AddLayerDialog extends WorldPainterDialog {
     private javax.swing.JSpinner spinnerTo;
     // End of variables declaration//GEN-END:variables
 
-    private final int maxHeight;
+    private final int minHeight, maxHeight;
 }

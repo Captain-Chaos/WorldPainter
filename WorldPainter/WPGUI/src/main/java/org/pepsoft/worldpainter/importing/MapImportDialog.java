@@ -330,7 +330,7 @@ public class MapImportDialog extends WorldPainterDialog {
         labelLengthWithOutliers.setVisible(false);
         labelOutliers4.setVisible(false);
         labelAreaOutliers.setVisible(false);
-        checkBoxImportOutliers.setSelected(false);
+        checkBoxImportOutliers.setSelected(true);
         checkBoxImportOutliers.setVisible(false);
     }
     
@@ -569,6 +569,7 @@ public class MapImportDialog extends WorldPainterDialog {
             }
         });
 
+        checkBoxImportOutliers.setSelected(true);
         checkBoxImportOutliers.setText("include outlying chunks in import");
 
         jLabel5.setText("Options:");

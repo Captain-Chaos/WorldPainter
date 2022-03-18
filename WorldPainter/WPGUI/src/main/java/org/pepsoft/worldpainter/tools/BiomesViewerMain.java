@@ -4,15 +4,13 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import java.io.IOException;
-import java.util.Random;
-import javax.swing.JFrame;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.Constants;
-import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
-import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
+
+import javax.swing.*;
+import java.io.IOException;
+import java.util.Random;
 
 /**
  *
@@ -51,7 +49,7 @@ public class BiomesViewerMain {
         }
         Configuration.setInstance(config);
         
-        BiomesViewerFrame frame = new BiomesViewerFrame(new Random().nextLong(), Constants.BIOME_ALGORITHM_1_7_DEFAULT, new DynMapColourScheme("default", true), null);
+        BiomesViewerFrame frame = new BiomesViewerFrame(new Random().nextLong(), Constants.BIOME_ALGORITHM_1_7_DEFAULT, ColourScheme.DEFAULT, null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);

@@ -211,14 +211,6 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         }
     }
 
-    public synchronized int getColourschemeIndex() {
-        return colourschemeIndex;
-    }
-
-    public synchronized void setColourschemeIndex(int colourschemeIndex) {
-        this.colourschemeIndex = colourschemeIndex;
-    }
-    
     public synchronized Map<Integer, File> getMinecraftJars() {
         return minecraftJars;
     }
@@ -893,7 +885,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
                     for (Map.Entry<Integer, Terrain> entry : terrainRanges.entrySet()) {
                         if (entry.getValue() == Terrain.SNOW) {
                             if (!frostAdded) {
-                                layerMap.put(new HeightFilter(defaultMaxHeight, entry.getKey(), defaultMaxHeight - 1, theme.isRandomise()), Frost.INSTANCE);
+                                layerMap.put(new HeightFilter(0, defaultMaxHeight, entry.getKey(), defaultMaxHeight - 1, theme.isRandomise()), Frost.INSTANCE);
                                 frostAdded = true;
                             }
                             entry.setValue(Terrain.ROCK);
@@ -1135,7 +1127,9 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private Boolean pingAllowed;
     @Deprecated
     private Material[] customMaterials = {DIRT, DIRT, DIRT, DIRT, DIRT};
-    private int colourschemeIndex, launchCount;
+    @Deprecated
+    private int colourschemeIndex;
+    private int launchCount;
     private Map<Integer, File> minecraftJars = new HashMap<>();
     private DonationStatus donationStatus;
     private UUID uuid = UUID.randomUUID();

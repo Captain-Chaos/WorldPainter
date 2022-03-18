@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Collections.unmodifiableMap;
+import static org.pepsoft.minecraft.Constants.MC_PLAINS;
 
 /**
  * A combination of Minecraft 1.17 and earlier biomes with Minecraft 1.18+ biomes, providing continuity between them.
@@ -623,7 +624,7 @@ public interface Minecraft1_18Biomes extends Minecraft1_17Biomes {
      */
     String[] MODERN_IDS = {
             "minecraft:ocean",
-            "minecraft:plains",
+            MC_PLAINS,
             "minecraft:desert",
             "minecraft:windswept_hills",
             "minecraft:forest",

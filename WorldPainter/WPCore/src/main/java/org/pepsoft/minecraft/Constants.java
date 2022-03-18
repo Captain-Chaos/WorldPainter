@@ -15,7 +15,7 @@ public final class Constants {
         // Prevent instantiation
     }
 
-    // MC 1.15 block names
+    // MC 1.15+ block names
 
     public static final String MC_ACACIA_BARK = "minecraft:acacia_bark";
     public static final String MC_ACACIA_DOOR = "minecraft:acacia_door";
@@ -505,9 +505,6 @@ public final class Constants {
     public static final String MC_SWEET_BERRY_BUSH = "minecraft:sweet_berry_bush";
     public static final String MC_FLOWING_WATER = "minecraft:flowing_water";
     public static final String MC_FLOWING_LAVA = "minecraft:flowing_lava";
-
-    // MC 1.18 block names
-
     public static final String MC_OAK_SIGN = "minecraft:oak_sign";
     public static final String MC_DEEPSLATE = "minecraft:deepslate";
     public static final String MC_COPPER_ORE = "minecraft:copper_ore";
@@ -525,6 +522,16 @@ public final class Constants {
     public static final String MC_SOUL_SOIL = "minecraft:soul_soil";
     public static final String MC_NETHER_GOLD_ORE = "minecraft:nether_gold_ore";
     public static final String MC_ANCIENT_DEBRIS = "minecraft:ancient_debris";
+    public static final String MC_DIRT_PATH = "minecraft:dirt_path";
+    public static final String MC_ROOTED_DIRT = "minecraft:rooted_dirt";
+    public static final String MC_WARPED_NYLIUM = "minecraft:warped_nylium";
+    public static final String MC_CRIMSON_NYLIUM = "minecraft:crimson_nylium";
+    public static final String MC_POTTED_FERN = "minecraft:potted_fern";
+    public static final String MC_INFESTED_DEEPSLATE = "minecraft:infested_deepslate";
+
+    // MC 1.18 biome names
+
+    public static final String MC_PLAINS = "minecraft:plains";
 
     // MC 1.15 property names
 
@@ -1149,6 +1156,7 @@ public final class Constants {
     public static final String STATUS_FULL = "full";
     public static final String STATUS_LIQUID_CARVERS = "liquid_carvers";
     public static final String STATUS_STRUCTURE_STARTS = "structure_starts";
+    public static final String STATUS_BIOMES = "biomes";
 
     // Minecraft 1.18 dimension names
 
@@ -1164,6 +1172,8 @@ public final class Constants {
     // Minecraft 1.18 generator setting names
 
     public static final String MC_LARGE_BIOMES = "minecraft:large_biomes";
+    public static final String MC_NETHER = "minecraft:nether";
+    public static final String MC_END = "minecraft:end";
 
     // Minecraft 1.18 biome source types
 

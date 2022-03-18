@@ -62,7 +62,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
             32, DEFAULT_MAX_HEIGHT_MCREGION, 2048,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
             Arrays.asList(SURVIVAL, CREATIVE),
-            Arrays.asList(DEFAULT, FLAT),
+            Arrays.asList(DEFAULT, FLAT, NETHER, END),
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
             EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, SEED, POPULATE));
 
@@ -72,7 +72,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
             DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
-            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM),
+            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM, NETHER, END),
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
             EnumSet.of(BIOMES, PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, SEED, POPULATE));
 
@@ -82,7 +82,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
             DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
-            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM),
+            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM, NETHER, END),
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
             EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, BIOMES_3D));
 
@@ -92,7 +92,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
             new int[] { 256, 320, 512, 1024, 1536, 2032 }, 320,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, 0,
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
-            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM),
+            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM, NETHER, END),
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
             EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, BIOMES_3D));
 
@@ -102,7 +102,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
             new int[] { 256, 320 }, 320,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, -64,
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
-            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM),
+            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM, NETHER, END),
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
-            EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, NAMED_BIOMES));
+            EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, NAMED_BIOMES, POPULATE));
 }

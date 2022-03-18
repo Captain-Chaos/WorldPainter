@@ -1,546 +1,646 @@
-name,properties,opacity,terrain,insubstantial,veryInsubstantial,resource,tileEntity,treeRelated,vegetation,blockLight,natural,watery
-legacy:block_175,data=8,0,false,true,true,false,false,false,true,0,true,false
-minecraft:acacia_door,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false
-minecraft:acacia_fence,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:acacia_fence_gate,"facing,open,powered",0,false,false,false,false,false,false,false,0,false,false
-minecraft:acacia_leaves,persistent,1,false,false,true,false,false,true,false,0,true,false
-minecraft:acacia_log,axis,15,false,false,false,false,false,true,false,0,true,false
-minecraft:acacia_planks,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:acacia_sapling,stage,0,false,true,true,false,false,true,false,0,false,false
-minecraft:acacia_slab,type,15,false,false,false,false,false,false,false,0,false,false
-minecraft:acacia_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false
-minecraft:acacia_wood,,15,false,false,false,false,false,true,false,0,true,false
-minecraft:activator_rail,"powered,shape",0,false,false,false,false,false,false,false,0,false,false
-minecraft:air,,0,false,false,true,false,false,false,false,0,true,false
-minecraft:allium,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:andesite,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:anvil,facing,0,false,false,false,false,false,false,false,0,false,false
-minecraft:azure_bluet,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:barrier,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:beacon,,15,false,false,false,false,true,false,false,15,false,false
-minecraft:bedrock,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:beetroots,age,0,false,true,true,false,false,false,true,0,false,false
-minecraft:birch_door,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false
-minecraft:birch_fence,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:birch_fence_gate,"facing,open,powered",0,false,false,false,false,false,false,false,0,false,false
-minecraft:birch_leaves,persistent,1,false,false,true,false,false,true,false,0,true,false
-minecraft:birch_log,axis,15,false,false,false,false,false,true,false,0,true,false
-minecraft:birch_planks,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:birch_sapling,stage,0,false,true,true,false,false,true,false,0,false,false
-minecraft:birch_slab,type,15,false,false,false,false,false,false,false,0,false,false
-minecraft:birch_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false
-minecraft:birch_wood,,15,false,false,false,false,false,true,false,0,true,false
-minecraft:black_carpet,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:black_concrete,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:black_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:black_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:black_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:black_stained_glass,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:black_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:black_terracotta,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:black_wool,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:blue_carpet,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:blue_concrete,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:blue_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:blue_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:blue_orchid,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:blue_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:blue_stained_glass,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:blue_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:blue_terracotta,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:blue_wool,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:bone_block,axis,15,false,false,false,false,false,false,false,0,true,false
-minecraft:bookshelf,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:brewing_stand,"has_bottle_0,has_bottle_1,has_bottle_2",0,false,false,false,false,true,false,false,1,false,false
-minecraft:brick_slab,type,15,false,false,false,false,false,false,false,0,false,false
-minecraft:brick_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false
-minecraft:bricks,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:brown_carpet,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:brown_concrete,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:brown_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:brown_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:brown_mushroom,,0,false,true,true,false,false,false,true,1,true,false
-minecraft:brown_mushroom_block,"down,east,north,south,up,west",15,false,false,false,false,false,true,false,0,true,false
-minecraft:brown_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:brown_stained_glass,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:brown_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:brown_terracotta,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:brown_wool,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:cactus,age,0,false,true,true,false,false,false,true,0,true,false
-minecraft:cake,bites,0,false,false,false,false,false,false,false,0,false,false
-minecraft:carrots,age,0,false,true,true,false,false,false,true,0,false,false
-minecraft:carved_pumpkin,facing,0,false,true,true,false,false,false,true,0,true,false
-minecraft:cauldron,level,0,false,false,false,false,false,false,false,0,false,false
-minecraft:chain_command_block,"conditional,facing",15,false,false,false,false,true,false,false,0,false,false
-minecraft:chest,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:chipped_anvil,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:chiseled_quartz_block,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:chiseled_red_sandstone,,15,false,false,false,false,false,false,false,0,true,false
-minecraft:chiseled_sandstone,,15,false,false,false,false,false,false,false,0,true,false
-minecraft:chiseled_stone_bricks,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:chorus_flower,age,0,false,true,true,false,false,false,true,0,true,false
-minecraft:chorus_plant,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:clay,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:coal_block,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:coal_ore,,15,true,false,false,true,false,false,false,0,true,false
-minecraft:coarse_dirt,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:cobblestone,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:cobblestone_slab,type,15,false,false,false,false,false,false,false,0,false,false
-minecraft:cobblestone_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false
-minecraft:cobblestone_wall,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:cobweb,,0,false,true,true,false,false,false,false,0,false,false
-minecraft:cocoa,"age,facing",0,false,true,true,false,false,true,false,0,true,false
-minecraft:command_block,"conditional,facing",15,false,false,false,false,true,false,false,0,false,false
-minecraft:comparator,"facing,mode,powered",0,false,false,false,false,true,false,false,0,false,false
-minecraft:cracked_stone_bricks,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:crafting_table,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:cut_red_sandstone,,15,false,false,false,false,false,false,false,0,true,false
-minecraft:cut_sandstone,,15,false,false,false,false,false,false,false,0,true,false
-minecraft:cyan_carpet,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:cyan_concrete,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:cyan_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:cyan_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:cyan_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:cyan_stained_glass,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:cyan_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:cyan_terracotta,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:cyan_wool,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:damaged_anvil,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:dandelion,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:dark_oak_door,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false
-minecraft:dark_oak_fence,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:dark_oak_fence_gate,"facing,open,powered",0,false,false,false,false,false,false,false,0,false,false
-minecraft:dark_oak_leaves,persistent,1,false,false,true,false,false,true,false,0,true,false
-minecraft:dark_oak_log,axis,15,false,false,false,false,false,true,false,0,true,false
-minecraft:dark_oak_planks,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:dark_oak_sapling,stage,0,false,true,true,false,false,true,false,0,false,false
-minecraft:dark_oak_slab,type,15,false,false,false,false,false,false,false,0,false,false
-minecraft:dark_oak_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false
-minecraft:dark_oak_wood,,15,false,false,false,false,false,true,false,0,true,false
-minecraft:dark_prismarine,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:daylight_detector,"inverted,power",0,false,false,false,false,true,false,false,0,false,false
-minecraft:dead_bush,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:detector_rail,"powered,shape",0,false,false,false,false,false,false,false,0,false,false
-minecraft:diamond_block,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:diamond_ore,,15,true,false,false,true,false,false,false,0,true,false
-minecraft:diorite,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:dirt,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:dispenser,"facing,triggered",15,false,false,false,false,true,false,false,0,false,false
-minecraft:dragon_egg,,0,false,false,false,false,false,false,false,1,false,false
-minecraft:dropper,"facing,triggered",0,false,false,false,false,true,false,false,0,false,false
-minecraft:emerald_block,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:emerald_ore,,15,false,false,false,true,false,false,false,0,true,false
-minecraft:enchanting_table,,0,false,false,false,false,true,false,false,0,false,false
-minecraft:end_gateway,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:end_portal,,0,false,false,false,false,true,false,false,15,false,false
-minecraft:end_portal_frame,"eye,facing",15,false,false,false,false,false,false,false,1,false,false
-minecraft:end_rod,facing,0,false,false,false,false,false,false,false,14,false,false
-minecraft:end_stone,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:end_stone_bricks,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:ender_chest,facing,0,false,false,false,false,true,false,false,7,false,false
-minecraft:farmland,moisture,15,true,false,false,false,false,false,false,0,false,false
-minecraft:fern,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:fire,age,0,false,true,true,false,false,false,false,15,true,false
-minecraft:flower_pot,,0,false,false,false,false,true,false,false,0,false,false
-minecraft:frosted_ice,age,3,false,false,false,false,false,false,false,0,false,false
-minecraft:furnace,"facing,lit",15,false,false,false,false,true,false,false,0,false,false
-minecraft:glass,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:glass_pane,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:glowstone,,15,false,false,false,false,false,false,false,15,true,false
-minecraft:gold_block,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:gold_ore,,15,true,false,false,true,false,false,false,0,true,false
-minecraft:granite,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:grass,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:grass_block,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:grass_path,,15,true,false,false,false,false,false,false,0,false,false
-minecraft:gravel,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:gray_carpet,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:gray_concrete,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:gray_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:gray_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:gray_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:gray_stained_glass,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:gray_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:gray_terracotta,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:gray_wool,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:green_carpet,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:green_concrete,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:green_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:green_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:green_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:green_stained_glass,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:green_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:green_terracotta,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:green_wool,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:hay_block,axis,15,false,false,false,false,false,false,false,0,false,false
-minecraft:heavy_weighted_pressure_plate,power,0,false,false,false,false,false,false,false,0,false,false
-minecraft:hopper,"enabled,facing",0,false,false,false,false,true,false,false,0,false,false
-minecraft:ice,,3,false,false,false,false,false,false,false,0,true,false
-minecraft:infested_chiseled_stone_bricks,,15,false,false,false,false,false,false,false,0,true,false
-minecraft:infested_cobblestone,,15,false,false,false,false,false,false,false,0,true,false
-minecraft:infested_cracked_stone_bricks,,15,false,false,false,false,false,false,false,0,true,false
-minecraft:infested_mossy_stone_bricks,,15,false,false,false,false,false,false,false,0,true,false
-minecraft:infested_stone,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:infested_stone_bricks,,15,false,false,false,false,false,false,false,0,true,false
-minecraft:iron_bars,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:iron_block,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:iron_door,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false
-minecraft:iron_ore,,15,true,false,false,true,false,false,false,0,true,false
-minecraft:iron_trapdoor,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false
-minecraft:jack_o_lantern,facing,15,false,false,false,false,false,false,false,15,false,false
-minecraft:jukebox,has_record,15,false,false,false,false,true,false,false,0,false,false
-minecraft:jungle_door,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false
-minecraft:jungle_fence,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:jungle_fence_gate,"facing,open,powered",0,false,false,false,false,false,false,false,0,false,false
-minecraft:jungle_leaves,persistent,1,false,false,true,false,false,true,false,0,true,false
-minecraft:jungle_log,axis,15,false,false,false,false,false,true,false,0,true,false
-minecraft:jungle_planks,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:jungle_sapling,stage,0,false,true,true,false,false,true,false,0,false,false
-minecraft:jungle_slab,type,15,false,false,false,false,false,false,false,0,false,false
-minecraft:jungle_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false
-minecraft:jungle_wood,,15,false,false,false,false,false,true,false,0,true,false
-minecraft:ladder,facing,0,false,false,false,false,false,false,false,0,false,false
-minecraft:lapis_block,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:lapis_ore,,15,true,false,false,true,false,false,false,0,true,false
-minecraft:large_fern,half,0,false,true,true,false,false,false,true,0,true,false
-minecraft:lava,level,0,false,false,true,false,false,false,false,15,true,false
-minecraft:lever,"face,facing,powered",0,false,false,false,false,false,false,false,0,false,false
-minecraft:light_blue_carpet,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:light_blue_concrete,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:light_blue_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:light_blue_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:light_blue_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:light_blue_stained_glass,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:light_blue_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:light_blue_terracotta,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:light_blue_wool,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:light_gray_carpet,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:light_gray_concrete,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:light_gray_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:light_gray_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:light_gray_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:light_gray_stained_glass,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:light_gray_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:light_gray_terracotta,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:light_gray_wool,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:light_weighted_pressure_plate,power,0,false,false,false,false,false,false,false,0,false,false
-minecraft:lilac,half,0,false,true,true,false,false,false,true,0,true,false
-minecraft:lily_pad,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:lime_carpet,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:lime_concrete,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:lime_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:lime_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:lime_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:lime_stained_glass,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:lime_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:lime_terracotta,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:lime_wool,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:magenta_carpet,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:magenta_concrete,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:magenta_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:magenta_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:magenta_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:magenta_stained_glass,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:magenta_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:magenta_terracotta,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:magenta_wool,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:magma_block,,15,true,false,false,false,false,false,false,3,true,false
-minecraft:melon,,15,false,true,true,false,false,false,true,0,false,false
-minecraft:melon_stem,age,0,false,true,true,false,false,false,true,0,false,false
-minecraft:mossy_cobblestone,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:mossy_cobblestone_wall,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:mossy_stone_bricks,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:mushroom_stem,"down,up",15,false,false,false,false,false,true,false,0,true,false
-minecraft:mycelium,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:nether_brick_fence,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:nether_brick_slab,type,15,false,false,false,false,false,false,false,0,false,false
-minecraft:nether_brick_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false
-minecraft:nether_bricks,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:nether_portal,axis,0,false,false,false,false,false,false,false,11,false,false
-minecraft:nether_quartz_ore,,15,true,false,false,true,false,false,false,0,true,false
-minecraft:nether_wart,age,0,false,true,true,false,false,false,true,0,true,false
-minecraft:nether_wart_block,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:netherrack,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:note_block,,15,false,false,false,false,true,false,false,0,false,false
-minecraft:oak_button,"face,facing,powered",0,false,false,false,false,false,false,false,0,false,false
-minecraft:oak_door,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false
-minecraft:oak_fence,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:oak_fence_gate,"facing,open,powered",0,false,false,false,false,false,false,false,0,false,false
-minecraft:oak_leaves,persistent,1,false,false,true,false,false,true,false,0,true,false
-minecraft:oak_log,axis,15,false,false,false,false,false,true,false,0,true,false
-minecraft:oak_planks,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:oak_pressure_plate,powered,0,false,false,false,false,false,false,false,0,false,false
-minecraft:oak_sapling,stage,0,false,true,true,false,false,true,false,0,false,false
-minecraft:oak_slab,type,15,false,false,false,false,false,false,false,0,false,false
-minecraft:oak_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false
-minecraft:oak_trapdoor,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false
-minecraft:oak_wood,,15,false,false,false,false,false,true,false,0,true,false
-minecraft:observer,"facing,powered",0,false,false,false,false,false,false,false,0,false,false
-minecraft:obsidian,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:orange_carpet,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:orange_concrete,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:orange_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:orange_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:orange_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:orange_stained_glass,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:orange_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:orange_terracotta,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:orange_tulip,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:orange_wool,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:oxeye_daisy,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:packed_ice,,15,false,false,false,false,false,false,false,0,true,false
-minecraft:peony,half,0,false,true,true,false,false,false,true,0,true,false
-minecraft:petrified_oak_slab,type,15,false,false,false,false,false,false,false,0,false,false
-minecraft:pink_carpet,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:pink_concrete,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:pink_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:pink_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:pink_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:pink_stained_glass,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:pink_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:pink_terracotta,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:pink_tulip,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:pink_wool,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:piston,"extended,facing",0,false,false,false,false,false,false,false,0,false,false
-minecraft:piston_head,"facing,type",0,false,false,false,false,true,false,false,0,false,false
-minecraft:podzol,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:polished_andesite,,15,false,false,false,false,false,false,false,0,true,false
-minecraft:polished_diorite,,15,false,false,false,false,false,false,false,0,true,false
-minecraft:polished_granite,,15,false,false,false,false,false,false,false,0,true,false
-minecraft:poppy,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:potatoes,age,0,false,true,true,false,false,false,true,0,false,false
-minecraft:potted_acacia_sapling,,0,false,false,false,false,true,false,false,0,false,false
-minecraft:potted_birch_sapling,,0,false,false,false,false,true,false,false,0,false,false
-minecraft:potted_brown_mushroom,,0,false,false,false,false,true,false,false,0,false,false
-minecraft:potted_cactus,,0,false,false,false,false,true,false,false,0,false,false
-minecraft:potted_dandelion,,0,false,false,false,false,true,false,false,0,false,false
-minecraft:potted_dark_oak_sapling,,0,false,false,false,false,true,false,false,0,false,false
-minecraft:potted_dead_bush,,0,false,false,false,false,true,false,false,0,false,false
-minecraft:potted_fern,,0,false,false,false,false,true,false,false,0,false,false
-minecraft:potted_jungle_sapling,,0,false,false,false,false,true,false,false,0,false,false
-minecraft:potted_oak_sapling,,0,false,false,false,false,true,false,false,0,false,false
-minecraft:potted_poppy,,0,false,false,false,false,true,false,false,0,false,false
-minecraft:potted_red_mushroom,,0,false,false,false,false,true,false,false,0,false,false
-minecraft:potted_spruce_sapling,,0,false,false,false,false,true,false,false,0,false,false
-minecraft:powered_rail,"powered,shape",0,false,false,false,false,false,false,false,0,false,false
-minecraft:prismarine,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:prismarine_bricks,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:pumpkin_stem,age,0,false,true,true,false,false,false,true,0,false,false
-minecraft:purple_carpet,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:purple_concrete,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:purple_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:purple_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:purple_stained_glass,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:purple_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:purple_terracotta,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:purple_wool,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:purpur_block,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:purpur_pillar,axis,15,false,false,false,false,false,false,false,0,false,false
-minecraft:purpur_slab,type,15,false,false,false,false,false,false,false,0,false,false
-minecraft:purpur_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false
-minecraft:quartz_block,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:quartz_pillar,axis,15,false,false,false,false,false,false,false,0,false,false
-minecraft:quartz_slab,type,15,false,false,false,false,false,false,false,0,false,false
-minecraft:quartz_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false
-minecraft:rail,shape,0,false,false,false,false,false,false,false,0,false,false
-minecraft:red_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false
-minecraft:white_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false
-minecraft:orange_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false
-minecraft:magenta_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false
-minecraft:light_blue_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false
-minecraft:yellow_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false
-minecraft:lime_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false
-minecraft:pink_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false
-minecraft:gray_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false
-minecraft:light_gray_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false
-minecraft:cyan_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false
-minecraft:purple_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false
-minecraft:blue_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false
-minecraft:brown_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false
-minecraft:green_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false
-minecraft:black_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false
-minecraft:red_carpet,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:red_concrete,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:red_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:red_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:red_mushroom,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:red_mushroom_block,"down,east,north,south,up,west",15,false,false,false,false,false,true,false,0,true,false
-minecraft:red_nether_bricks,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:red_sand,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:red_sandstone,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:red_sandstone_slab,type,15,false,false,false,false,false,false,false,0,false,false
-minecraft:red_sandstone_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false
-minecraft:red_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:red_stained_glass,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:red_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:red_terracotta,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:red_tulip,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:red_wool,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:redstone_block,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:redstone_lamp,lit,15,false,false,false,false,false,false,false,0,false,false
-minecraft:redstone_ore,lit,15,true,false,false,true,false,false,false,0,true,false
-minecraft:redstone_torch,lit,0,false,false,false,false,false,false,false,0,false,false
-minecraft:redstone_wall_torch,"facing,lit",0,false,false,false,false,false,false,false,0,false,false
-minecraft:redstone_wire,power,0,false,false,false,false,false,false,false,0,false,false
-minecraft:repeater,"delay,facing,powered",0,false,false,false,false,false,false,false,0,false,false
-minecraft:repeating_command_block,"conditional,facing",15,false,false,false,false,true,false,false,0,false,false
-minecraft:rose_bush,half,0,false,true,true,false,false,false,true,0,true,false
-minecraft:sand,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:sandstone,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:sandstone_slab,type,15,false,false,false,false,false,false,false,0,false,false
-minecraft:sandstone_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false
-minecraft:sea_lantern,,15,false,false,false,false,false,false,false,15,false,false
-minecraft:shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:sign,rotation,0,false,false,false,false,true,false,false,0,false,false
-minecraft:slime_block,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:smooth_quartz,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:smooth_red_sandstone,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:smooth_sandstone,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:smooth_stone,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:snow,layers,0,false,true,true,false,false,false,false,0,true,false
-minecraft:snow_block,,15,true,true,true,false,false,false,false,0,true,false
-minecraft:soul_sand,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:spawner,,15,false,false,false,false,true,false,false,0,false,false
-minecraft:sponge,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:spruce_door,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false
-minecraft:spruce_fence,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:spruce_fence_gate,"facing,open,powered",0,false,false,false,false,false,false,false,0,false,false
-minecraft:spruce_leaves,persistent,1,false,false,true,false,false,true,false,0,true,false
-minecraft:spruce_log,axis,15,false,false,false,false,false,true,false,0,true,false
-minecraft:spruce_planks,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:spruce_sapling,stage,0,false,true,true,false,false,true,false,0,false,false
-minecraft:spruce_slab,type,15,false,false,false,false,false,false,false,0,false,false
-minecraft:spruce_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false
-minecraft:spruce_wood,,15,false,false,false,false,false,true,false,0,true,false
-minecraft:sticky_piston,"extended,facing",15,false,false,false,false,false,false,false,0,false,false
-minecraft:stone,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:stone_brick_slab,type,15,false,false,false,false,false,false,false,0,false,false
-minecraft:stone_brick_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false
-minecraft:stone_bricks,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:stone_button,"face,facing,powered",0,false,false,false,false,false,false,false,0,false,false
-minecraft:stone_pressure_plate,powered,0,false,false,false,false,false,false,false,0,false,false
-minecraft:stone_slab,type,15,false,false,false,false,false,false,false,0,false,false
-minecraft:structure_block,mode,15,false,false,false,false,true,false,false,0,false,false
-minecraft:structure_void,,0,false,true,true,false,false,false,false,0,false,false
-minecraft:sugar_cane,age,0,false,true,true,false,false,false,true,0,true,false
-minecraft:sunflower,half,0,false,true,true,false,false,false,true,0,true,false
-minecraft:tall_grass,half,0,false,true,true,false,false,false,true,0,true,false
-minecraft:terracotta,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:tnt,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:torch,,0,false,false,false,false,false,false,false,14,false,false
-minecraft:trapped_chest,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:tripwire,"attached,disarmed,powered",0,false,false,false,false,false,false,false,0,false,false
-minecraft:tripwire_hook,"attached,facing,powered",0,false,false,false,false,false,false,false,0,false,false
-minecraft:vine,"east,north,south,west",0,false,true,true,false,false,true,false,0,true,false
-minecraft:wall_sign,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:wall_torch,facing,0,false,false,false,false,false,false,false,14,false,false
-minecraft:water,level,3,false,false,true,false,false,false,false,0,true,false
-minecraft:wet_sponge,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:wheat,age,0,false,true,true,false,false,false,true,0,false,false
-minecraft:red_banner,rotation,0,false,false,false,false,true,false,false,0,false,false
-minecraft:white_banner,rotation,0,false,false,false,false,true,false,false,0,false,false
-minecraft:orange_banner,rotation,0,false,false,false,false,true,false,false,0,false,false
-minecraft:magenta_banner,rotation,0,false,false,false,false,true,false,false,0,false,false
-minecraft:light_blue_banner,rotation,0,false,false,false,false,true,false,false,0,false,false
-minecraft:yellow_banner,rotation,0,false,false,false,false,true,false,false,0,false,false
-minecraft:lime_banner,rotation,0,false,false,false,false,true,false,false,0,false,false
-minecraft:pink_banner,rotation,0,false,false,false,false,true,false,false,0,false,false
-minecraft:gray_banner,rotation,0,false,false,false,false,true,false,false,0,false,false
-minecraft:light_gray_banner,rotation,0,false,false,false,false,true,false,false,0,false,false
-minecraft:cyan_banner,rotation,0,false,false,false,false,true,false,false,0,false,false
-minecraft:purple_banner,rotation,0,false,false,false,false,true,false,false,0,false,false
-minecraft:blue_banner,rotation,0,false,false,false,false,true,false,false,0,false,false
-minecraft:brown_banner,rotation,0,false,false,false,false,true,false,false,0,false,false
-minecraft:green_banner,rotation,0,false,false,false,false,true,false,false,0,false,false
-minecraft:black_banner,rotation,0,false,false,false,false,true,false,false,0,false,false
-minecraft:white_carpet,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:white_concrete,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:white_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:white_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:white_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:white_stained_glass,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:white_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:white_terracotta,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:white_tulip,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:white_wall_banner,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:white_wool,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:yellow_carpet,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:yellow_concrete,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:yellow_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:yellow_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false
-minecraft:yellow_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false
-minecraft:yellow_stained_glass,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:yellow_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false
-minecraft:yellow_terracotta,,15,true,false,false,false,false,false,false,0,true,false
-minecraft:yellow_wool,,15,false,false,false,false,false,false,false,0,false,false
-minecraft:tall_seagrass,half,0,false,true,true,false,false,false,true,0,true,true
-minecraft:seagrass,,0,false,true,true,false,false,false,true,0,true,true
-minecraft:cave_air,,0,false,true,true,false,false,false,false,0,true,false
-minecraft:kelp_plant,,0,false,true,true,false,false,false,true,0,true,true
-minecraft:kelp,age,0,false,true,true,false,false,false,true,0,true,true
-minecraft:bubble_column,drag,0,false,true,true,false,false,false,false,0,true,true
-minecraft:pumpkin,,15,false,true,true,false,false,false,true,0,true,false
-minecraft:blue_ice,,15,false,false,false,false,false,false,false,0,true,false
-minecraft:tube_coral,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:brain_coral,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:bubble_coral,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:fire_coral,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:horn_coral,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:dead_tube_coral,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:dead_brain_coral,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:dead_bubble_coral,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:dead_fire_coral,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:dead_horn_coral,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:tube_coral_block,,15,false,false,false,false,false,false,true,0,true,false
-minecraft:brain_coral_block,,15,false,false,false,false,false,false,true,0,true,false
-minecraft:bubble_coral_block,,15,false,false,false,false,false,false,true,0,true,false
-minecraft:fire_coral_block,,15,false,false,false,false,false,false,true,0,true,false
-minecraft:horn_coral_block,,15,false,false,false,false,false,false,true,0,true,false
-minecraft:dead_tube_coral_block,,15,false,false,false,false,false,false,true,0,true,false
-minecraft:dead_brain_coral_block,,15,false,false,false,false,false,false,true,0,true,false
-minecraft:dead_bubble_coral_block,,15,false,false,false,false,false,false,true,0,true,false
-minecraft:dead_fire_coral_block,,15,false,false,false,false,false,false,true,0,true,false
-minecraft:dead_horn_coral_block,,15,false,false,false,false,false,false,true,0,true,false
-minecraft:tube_coral_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:brain_coral_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:bubble_coral_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:fire_coral_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:horn_coral_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:dead_tube_coral_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:dead_brain_coral_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:dead_bubble_coral_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:dead_fire_coral_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:dead_horn_coral_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:tube_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:brain_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:bubble_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:fire_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:horn_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:dead_tube_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:dead_brain_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:dead_bubble_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:dead_fire_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:dead_horn_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:sea_pickle,"waterlogged=false,pickles",0,false,true,true,false,false,false,true,0,true,false
-minecraft:sea_pickle,"waterlogged=true,pickles=1",0,false,true,true,false,false,false,true,6,true,false
-minecraft:sea_pickle,"waterlogged=true,pickles=2",0,false,true,true,false,false,false,true,9,true,false
-minecraft:sea_pickle,"waterlogged=true,pickles=3",0,false,true,true,false,false,false,true,12,true,false
-minecraft:sea_pickle,"waterlogged=true,pickles=4",0,false,true,true,false,false,false,true,15,true,false
-minecraft:skeleton_skull,"rotation",0,false,false,false,false,true,false,false,0,false,false
-minecraft:wither_skeleton_skull,"rotation",0,false,false,false,false,true,false,false,0,false,false
-minecraft:zombie_head,"rotation",0,false,false,false,false,true,false,false,0,false,false
-minecraft:player_head,"rotation",0,false,false,false,false,true,false,false,0,false,false
-minecraft:creeper_head,"rotation",0,false,false,false,false,true,false,false,0,false,false
-minecraft:dragon_head,"rotation",0,false,false,false,false,true,false,false,0,false,false
-minecraft:skeleton_wall_skull,"facing",0,false,false,false,false,true,false,false,0,false,false
-minecraft:wither_skeleton_wall_skull,"facing",0,false,false,false,false,true,false,false,0,false,false
-minecraft:zombie_wall_head,"facing",0,false,false,false,false,true,false,false,0,false,false
-minecraft:player_wall_head,"facing",0,false,false,false,false,true,false,false,0,false,false
-minecraft:creeper_wall_head,"facing",0,false,false,false,false,true,false,false,0,false,false
-minecraft:dragon_wall_head,"facing",0,false,false,false,false,true,false,false,0,false,false
-minecraft:cornflower,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:lily_of_the_valley,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:wither_rose,,0,false,true,true,false,false,false,true,0,false,false
-minecraft:sweet_berry_bush,,0,false,true,true,false,false,false,true,0,true,false
-minecraft:lantern,,0,false,false,false,false,false,false,false,15,false,false
-minecraft:bee_nest,,15,false,true,true,false,false,true,false,0,true,false
+name,properties,opacity,terrain,insubstantial,veryInsubstantial,resource,tileEntity,treeRelated,vegetation,blockLight,natural,watery,colour,colourOrigin
+legacy:block_175,data=8,0,false,true,true,false,false,false,true,0,true,false,ff454003,old default
+minecraft:acacia_door,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false,ffa15d3a,old default
+minecraft:acacia_fence,,0,false,false,false,false,false,false,false,0,false,false,ffa95b33,old default
+minecraft:acacia_fence_gate,"facing,open,powered",0,false,false,false,false,false,false,false,0,false,false,ffa95b33,old default
+minecraft:acacia_leaves,persistent,1,false,false,true,false,false,true,false,0,true,false,ff2f5c19,old default
+minecraft:acacia_log,axis,15,false,false,false,false,false,true,false,0,true,false,ff9a5b40,old default
+minecraft:acacia_planks,,15,false,false,false,false,false,false,false,0,false,false,ffa95b33,old default
+minecraft:acacia_pressure_plate,powered,0,false,false,false,false,false,false,false,0,false,false,ffa85a32,acacia_planks.png
+minecraft:acacia_sapling,stage,0,false,true,true,false,false,true,false,0,false,false,ff727314,old default
+minecraft:acacia_slab,type,15,false,false,false,false,false,false,false,0,false,false,ffa95b33,old default
+minecraft:acacia_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false,ffa95b33,old default
+minecraft:acacia_wood,,15,false,false,false,false,false,true,false,0,true,false,ff696359,old default
+minecraft:activator_rail,"powered,shape",0,false,false,false,false,false,false,false,0,false,false,ff685347,old default
+minecraft:air,,0,false,false,true,false,false,false,false,0,true,false,,
+minecraft:allium,,0,false,true,true,false,false,false,true,0,true,false,ffb18dd3,old default
+minecraft:amethyst_block,,15,false,false,false,false,false,false,false,0,true,false,ff8561bf,amethyst_block.png
+minecraft:amethyst_cluster,"waterlogged,facing",0,false,false,false,false,false,false,false,0,true,false,ffa37ecf,amethyst_cluster.png
+minecraft:ancient_debris,,15,true,false,false,true,false,false,false,0,true,false,ff5e423a,ancient_debris_top.png
+minecraft:andesite,,15,true,false,false,false,false,false,false,0,true,false,ff828383,old default
+minecraft:anvil,facing,0,false,false,false,false,false,false,false,0,false,false,ff404040,old default
+minecraft:azalea,,0,false,true,true,false,false,false,true,0,true,false,ff657c2f,azalea_top.png
+minecraft:azalea_leaves,"distance,persistent",0,false,true,true,false,false,true,true,0,true,false,ff5a722c,azalea_leaves.png
+minecraft:azure_bluet,,0,false,true,true,false,false,false,true,0,true,false,ffa2bf8a,old default
+minecraft:bamboo,"stage,leaves,age",0,false,true,false,false,false,false,true,0,true,false,,
+minecraft:barrier,,0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:basalt,,15,true,false,false,false,false,false,false,0,true,false,ff505156,basalt_top.png
+minecraft:beacon,,15,false,false,false,false,true,false,false,15,false,false,ffdaf0f4,old default
+minecraft:bedrock,,15,true,false,false,false,false,false,false,0,true,false,ff535353,old default
+minecraft:bee_nest,,15,false,true,true,false,false,true,false,0,true,false,ffcaa04a,bee_nest_top.png
+minecraft:beetroots,age,0,false,true,true,false,false,false,true,0,false,false,ff5d5b1e,beetroots_stage3.png
+minecraft:bell,"powered,attachment,facing",0,false,false,false,false,false,false,false,0,false,false,fffdeb6e,bell_top.png
+minecraft:big_dripleaf,"waterlogged,facing,tilt",0,false,true,true,false,false,false,true,0,true,false,ff6f8d33,big_dripleaf_top.png
+minecraft:big_dripleaf_stem,"waterlogged,facing",0,false,true,true,false,false,false,true,0,true,false,ff5b732d,big_dripleaf_stem.png
+minecraft:birch_door,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false,ffd9d2b3,old default
+minecraft:birch_fence,,0,false,false,false,false,false,false,false,0,false,false,ffc3b37b,old default
+minecraft:birch_fence_gate,"facing,open,powered",0,false,false,false,false,false,false,false,0,false,false,ffc3b37b,old default
+minecraft:birch_leaves,persistent,1,false,false,true,false,false,true,false,0,true,false,ff43582d,old default
+minecraft:birch_log,axis,15,false,false,false,false,false,true,false,0,true,false,ffb8a679,old default
+minecraft:birch_planks,,15,false,false,false,false,false,false,false,0,false,false,ffc3b37b,old default
+minecraft:birch_sapling,stage,0,false,true,true,false,false,true,false,0,false,false,ff769654,old default
+minecraft:birch_slab,type,15,false,false,false,false,false,false,false,0,false,false,ffc3b37b,old default
+minecraft:birch_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false,ffc3b37b,old default
+minecraft:birch_wood,,15,false,false,false,false,false,true,false,0,true,false,ffcecec9,old default
+minecraft:black_banner,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:black_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:black_carpet,,0,false,false,false,false,false,false,false,0,false,false,ff191616,old default
+minecraft:black_concrete,,15,false,false,false,false,false,false,false,0,false,false,ff191616,old default
+minecraft:black_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false,ff191616,old default
+minecraft:black_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false,ff191616,old default
+minecraft:black_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false,ff191616,old default
+minecraft:black_stained_glass,,15,false,false,false,false,false,false,false,0,false,false,ff191919,old default
+minecraft:black_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false,ff191919,old default
+minecraft:black_terracotta,,15,true,false,false,false,false,false,false,0,true,false,ff251610,old default
+minecraft:black_wool,,15,false,false,false,false,false,false,false,0,false,false,ff191616,old default
+minecraft:blackstone,,15,true,false,false,false,false,false,false,0,true,false,ff2a2328,blackstone.png
+minecraft:blackstone_slab,"waterlogged,type",15,false,false,false,false,false,false,false,0,false,false,ff2a2328,blackstone.png
+minecraft:blackstone_stairs,"waterlogged,half,shape,facing",15,false,false,false,false,false,false,false,0,false,false,ff2a2328,blackstone.png
+minecraft:blackstone_wall,"east,waterlogged,south,north,west,up",0,false,false,false,false,false,false,false,0,false,false,ff2a2328,blackstone.png
+minecraft:blast_furnace,"lit,facing",15,false,false,false,false,false,false,false,0,false,false,ff505051,blast_furnace_top.png
+minecraft:blue_banner,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:blue_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:blue_carpet,,0,false,false,false,false,false,false,false,0,false,false,ff2e388d,old default
+minecraft:blue_concrete,,15,false,false,false,false,false,false,false,0,false,false,ff2e388d,old default
+minecraft:blue_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false,ff2e388d,old default
+minecraft:blue_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false,ff2e388d,old default
+minecraft:blue_ice,,15,false,false,false,false,false,false,false,0,true,false,ff74a7fd,blue_ice.png
+minecraft:blue_orchid,,0,false,true,true,false,false,false,true,0,true,false,ff25988a,old default
+minecraft:blue_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false,ff2e388d,old default
+minecraft:blue_stained_glass,,15,false,false,false,false,false,false,false,0,false,false,ff334cb2,old default
+minecraft:blue_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false,ff334cb2,old default
+minecraft:blue_terracotta,,15,true,false,false,false,false,false,false,0,true,false,ff4a3b5b,old default
+minecraft:blue_wool,,15,false,false,false,false,false,false,false,0,false,false,ff2e388d,old default
+minecraft:bone_block,axis,15,false,false,false,false,false,false,false,0,true,false,ffd1ceb3,bone_block_top.png
+minecraft:bookshelf,,15,false,false,false,false,false,false,false,0,false,false,ff9c7f4e,old default
+minecraft:brain_coral,,0,false,true,true,false,false,false,true,0,true,false,ffc55498,brain_coral.png
+minecraft:brain_coral_block,,15,false,false,false,false,false,false,true,0,true,false,ffcf5b9f,brain_coral_block.png
+minecraft:brain_coral_fan,,0,false,true,true,false,false,false,true,0,true,false,ffca5499,brain_coral_fan.png
+minecraft:brain_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false,ffc55498,brain_coral.png
+minecraft:brewing_stand,"has_bottle_0,has_bottle_1,has_bottle_2",0,false,false,false,false,true,false,false,1,false,false,ff7c6751,old default
+minecraft:brick_slab,type,15,false,false,false,false,false,false,false,0,false,false,ff926356,old default
+minecraft:brick_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false,ff926356,old default
+minecraft:bricks,,15,false,false,false,false,false,false,false,0,false,false,ff926356,old default
+minecraft:brown_banner,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:brown_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:brown_carpet,,0,false,false,false,false,false,false,false,0,false,false,ff4f321f,old default
+minecraft:brown_concrete,,15,false,false,false,false,false,false,false,0,false,false,ff4f321f,old default
+minecraft:brown_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false,ff4f321f,old default
+minecraft:brown_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false,ff4f321f,old default
+minecraft:brown_mushroom,,0,false,true,true,false,false,false,true,1,true,false,ff8a6953,old default
+minecraft:brown_mushroom_block,"down,east,north,south,up,west",15,false,false,false,false,false,true,false,0,true,false,ffcaab78,old default
+minecraft:brown_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false,ff4f321f,old default
+minecraft:brown_stained_glass,,15,false,false,false,false,false,false,false,0,false,false,ff664c33,old default
+minecraft:brown_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false,ff664c33,old default
+minecraft:brown_terracotta,,15,true,false,false,false,false,false,false,0,true,false,ff4d3323,old default
+minecraft:brown_wall_banner,facing,0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:brown_wool,,15,false,false,false,false,false,false,false,0,false,false,ff4f321f,old default
+minecraft:bubble_column,drag,0,false,true,true,false,false,false,false,0,true,true,,
+minecraft:bubble_coral,,0,false,true,true,false,false,false,true,0,true,false,ffa1179f,bubble_coral.png
+minecraft:bubble_coral_block,,15,false,false,false,false,false,false,true,0,true,false,ffa51aa2,bubble_coral_block.png
+minecraft:bubble_coral_fan,,0,false,true,true,false,false,false,true,0,true,false,ffa0209f,bubble_coral_fan.png
+minecraft:bubble_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false,ffa1179f,bubble_coral.png
+minecraft:budding_amethyst,,15,false,false,false,false,false,false,false,0,true,false,ff8460ba,budding_amethyst.png
+minecraft:cactus,age,0,false,true,true,false,false,false,true,0,true,false,ff0d6318,old default
+minecraft:cake,bites,0,false,false,false,false,false,false,false,0,false,false,ffe4cdce,old default
+minecraft:calcite,,15,false,false,false,false,false,false,false,0,true,false,ffdfe0dc,calcite.png
+minecraft:carrots,age,0,false,true,true,false,false,false,true,0,false,false,ff01ab10,old default
+minecraft:cartography_table,,0,false,false,false,false,false,false,false,0,false,false,ff675743,cartography_table_top.png
+minecraft:carved_pumpkin,facing,0,false,true,true,false,false,false,true,0,true,false,ffc07615,old default
+minecraft:cauldron,level,0,false,false,false,false,false,false,false,0,false,false,ff474747,old default
+minecraft:cave_air,,0,false,true,true,false,false,false,false,0,true,false,,
+minecraft:cave_vines,"berries,age",0,false,true,true,false,false,false,true,0,true,false,ff5a6d28,cave_vines.png
+minecraft:cave_vines_plant,berries,0,false,true,true,false,false,false,true,0,true,false,ff586526,cave_vines_plant.png
+minecraft:chain,"waterlogged,axis",0,false,false,false,false,false,false,false,0,false,false,ff33394a,chain.png
+minecraft:chain_command_block,"conditional,facing",15,false,false,false,false,true,false,false,0,false,false,ff84a596,chain_command_block_front.png
+minecraft:chest,facing,0,false,false,false,false,true,false,false,0,false,false,ff7f5c26,old default
+minecraft:chipped_anvil,facing,15,false,false,false,false,false,false,false,0,false,false,ff404040,old default
+minecraft:chiseled_polished_blackstone,,0,false,false,false,false,false,false,false,0,false,false,ff353038,chiseled_polished_blackstone.png
+minecraft:chiseled_quartz_block,,15,false,false,false,false,false,false,false,0,false,false,ffe7e4db,old default
+minecraft:chiseled_red_sandstone,,15,false,false,false,false,false,false,false,0,true,false,ffa6551d,old default
+minecraft:chiseled_sandstone,,15,false,false,false,false,false,false,false,0,true,false,ffdad29e,old default
+minecraft:chiseled_stone_bricks,,15,false,false,false,false,false,false,false,0,false,false,ff767676,old default
+minecraft:chorus_flower,age,0,false,true,true,false,false,false,true,0,true,false,ff977897,chorus_flower.png
+minecraft:chorus_plant,,0,false,true,true,false,false,false,true,0,true,false,ff5d395d,chorus_plant.png
+minecraft:clay,,15,true,false,false,false,false,false,false,0,true,false,ff9ea4b0,old default
+minecraft:coal_block,,15,false,false,false,false,false,false,false,0,false,false,ff121212,old default
+minecraft:coal_ore,,15,true,false,false,true,false,false,false,0,true,false,ff737373,old default
+minecraft:coarse_dirt,,15,true,false,false,false,false,false,false,0,true,false,ff866043,old default
+minecraft:cobblestone,,15,false,false,false,false,false,false,false,0,false,false,ff7a7a7a,old default
+minecraft:cobblestone_slab,type,15,false,false,false,false,false,false,false,0,false,false,ff7a7a7a,old default
+minecraft:cobblestone_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false,ff7a7a7a,old default
+minecraft:cobblestone_wall,,0,false,false,false,false,false,false,false,0,false,false,ff7a7a7a,old default
+minecraft:cobweb,,0,false,true,true,false,false,false,false,0,false,false,ffdcdcdc,old default
+minecraft:cocoa,"age,facing",0,false,true,true,false,false,true,false,0,true,false,ff91501e,old default
+minecraft:command_block,"conditional,facing",15,false,false,false,false,true,false,false,0,false,false,ffb2896f,old default
+minecraft:comparator,"facing,mode,powered",0,false,false,false,false,true,false,false,0,false,false,ff9c9695,old default
+minecraft:composter,level,0,false,false,false,false,false,false,false,0,false,false,ff986233,composter_top.png
+minecraft:copper_ore,,15,true,false,false,true,false,false,false,0,true,false,ff7c7d78,copper_ore.png
+minecraft:cornflower,,0,false,true,true,false,false,false,true,0,true,false,ff4f7992,cornflower.png
+minecraft:cracked_polished_blackstone_bricks,,0,false,false,false,false,false,false,false,0,false,false,ff2c252b,cracked_polished_blackstone_bricks.png
+minecraft:cracked_stone_bricks,,15,false,false,false,false,false,false,false,0,false,false,ff767676,old default
+minecraft:crafting_table,,15,false,false,false,false,false,false,false,0,false,false,ff6b472a,old default
+minecraft:creeper_head,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:creeper_wall_head,facing,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:crimson_fungus,,0,false,true,true,false,false,false,true,0,true,false,ff8d2c1d,crimson_fungus.png
+minecraft:crimson_nylium,,15,true,false,false,false,false,false,false,0,true,false,ff821f1f,crimson_nylium.png
+minecraft:crimson_roots,,0,false,true,true,false,false,false,true,0,true,false,ff7e0829,crimson_roots.png
+minecraft:crimson_stem,axis,15,false,true,true,false,false,false,false,0,true,false,ff5c191d,crimson_stem.png
+minecraft:crying_obsidian,,15,false,false,false,false,false,false,false,0,false,false,ff200a3c,crying_obsidian.png
+minecraft:cut_red_sandstone,,15,false,false,false,false,false,false,false,0,true,false,ffa6551d,old default
+minecraft:cut_sandstone,,15,false,false,false,false,false,false,false,0,true,false,ffdad29e,old default
+minecraft:cyan_banner,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:cyan_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:cyan_carpet,,0,false,false,false,false,false,false,false,0,false,false,ff2e6e89,old default
+minecraft:cyan_concrete,,15,false,false,false,false,false,false,false,0,false,false,ff2e6e89,old default
+minecraft:cyan_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false,ff2e6e89,old default
+minecraft:cyan_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false,ff2e6e89,old default
+minecraft:cyan_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false,ff2e6e89,old default
+minecraft:cyan_stained_glass,,15,false,false,false,false,false,false,false,0,false,false,ff4c7f99,old default
+minecraft:cyan_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false,ff4c7f99,old default
+minecraft:cyan_terracotta,,15,true,false,false,false,false,false,false,0,true,false,ff565b5b,old default
+minecraft:cyan_wool,,15,false,false,false,false,false,false,false,0,false,false,ff2e6e89,old default
+minecraft:damaged_anvil,facing,15,false,false,false,false,false,false,false,0,false,false,ff404040,old default
+minecraft:dandelion,,0,false,true,true,false,false,false,true,0,true,false,ff6ca200,old default
+minecraft:dark_oak_door,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false,ff452f19,old default
+minecraft:dark_oak_fence,,0,false,false,false,false,false,false,false,0,false,false,ff3d2712,old default
+minecraft:dark_oak_fence_gate,"facing,open,powered",0,false,false,false,false,false,false,false,0,false,false,ff3d2712,old default
+minecraft:dark_oak_leaves,persistent,1,false,false,true,false,false,true,false,0,true,false,ff2f5c19,old default
+minecraft:dark_oak_log,axis,15,false,false,false,false,false,true,false,0,true,false,ff685130,old default
+minecraft:dark_oak_planks,,15,false,false,false,false,false,false,false,0,false,false,ff3d2712,old default
+minecraft:dark_oak_sapling,stage,0,false,true,true,false,false,true,false,0,false,false,ff38561c,old default
+minecraft:dark_oak_slab,type,15,false,false,false,false,false,false,false,0,false,false,ff3d2712,old default
+minecraft:dark_oak_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false,ff3d2712,old default
+minecraft:dark_oak_wood,,15,false,false,false,false,false,true,false,0,true,false,ff2d1c0c,old default
+minecraft:dark_prismarine,,15,false,false,false,false,false,false,false,0,false,false,ff3b574b,old default
+minecraft:daylight_detector,"inverted,power",0,false,false,false,false,true,false,false,0,false,false,ff82745e,old default
+minecraft:dead_brain_coral,,0,false,true,true,false,false,false,true,0,true,false,ff857d78,dead_brain_coral.png
+minecraft:dead_brain_coral_block,,15,false,false,false,false,false,false,true,0,true,false,ff7c7572,dead_brain_coral_block.png
+minecraft:dead_brain_coral_fan,,0,false,true,true,false,false,false,true,0,true,false,ff847d79,dead_brain_coral_fan.png
+minecraft:dead_brain_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false,ff857d78,dead_brain_coral.png
+minecraft:dead_bubble_coral,,0,false,true,true,false,false,false,true,0,true,false,ff847c78,dead_bubble_coral.png
+minecraft:dead_bubble_coral_block,,15,false,false,false,false,false,false,true,0,true,false,ff837b77,dead_bubble_coral_block.png
+minecraft:dead_bubble_coral_fan,,0,false,true,true,false,false,false,true,0,true,false,ff8c8682,dead_bubble_coral_fan.png
+minecraft:dead_bubble_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false,ff847c78,dead_bubble_coral.png
+minecraft:dead_bush,,0,false,true,true,false,false,false,true,0,true,false,ff7b4f19,old default
+minecraft:dead_fire_coral,,0,false,true,true,false,false,false,true,0,true,false,ff88807c,dead_fire_coral.png
+minecraft:dead_fire_coral_block,,15,false,false,false,false,false,false,true,0,true,false,ff837b77,dead_fire_coral_block.png
+minecraft:dead_fire_coral_fan,,0,false,true,true,false,false,false,true,0,true,false,ff7c7672,dead_fire_coral_fan.png
+minecraft:dead_fire_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false,ff88807c,dead_fire_coral.png
+minecraft:dead_horn_coral,,0,false,true,true,false,false,false,true,0,true,false,ff8e8781,dead_horn_coral.png
+minecraft:dead_horn_coral_block,,15,false,false,false,false,false,false,true,0,true,false,ff857e7a,dead_horn_coral_block.png
+minecraft:dead_horn_coral_fan,,0,false,true,true,false,false,false,true,0,true,false,ff867d79,dead_horn_coral_fan.png
+minecraft:dead_horn_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false,ff8e8781,dead_horn_coral.png
+minecraft:dead_tube_coral,,0,false,true,true,false,false,false,true,0,true,false,ff766f6b,dead_tube_coral.png
+minecraft:dead_tube_coral_block,,15,false,false,false,false,false,false,true,0,true,false,ff827b77,dead_tube_coral_block.png
+minecraft:dead_tube_coral_fan,,0,false,true,true,false,false,false,true,0,true,false,ff807a76,dead_tube_coral_fan.png
+minecraft:dead_tube_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false,ff766f6b,dead_tube_coral.png
+minecraft:deepslate,axis,15,true,false,false,false,false,false,false,0,true,false,ff505052,deepslate.png
+minecraft:deepslate_coal_ore,,15,true,false,false,true,false,false,false,0,true,false,ff4a4a4c,deepslate_coal_ore.png
+minecraft:deepslate_copper_ore,,15,true,false,false,true,false,false,false,0,true,false,ff5c5d59,deepslate_copper_ore.png
+minecraft:deepslate_diamond_ore,,15,true,false,false,true,false,false,false,0,true,false,ff536a6a,deepslate_diamond_ore.png
+minecraft:deepslate_emerald_ore,,15,true,false,false,true,false,false,false,0,true,false,ff4e6857,deepslate_emerald_ore.png
+minecraft:deepslate_gold_ore,,15,true,false,false,true,false,false,false,0,true,false,ff73664e,deepslate_gold_ore.png
+minecraft:deepslate_iron_ore,,15,true,false,false,true,false,false,false,0,true,false,ff6a635e,deepslate_iron_ore.png
+minecraft:deepslate_lapis_ore,,15,true,false,false,true,false,false,false,0,true,false,ff4f5a73,deepslate_lapis_ore.png
+minecraft:deepslate_redstone_ore,,15,true,false,false,true,false,false,false,0,true,false,ff68494a,deepslate_redstone_ore.png
+minecraft:detector_rail,"powered,shape",0,false,false,false,false,false,false,false,0,false,false,ff786559,old default
+minecraft:diamond_block,,15,false,false,false,false,false,false,false,0,false,false,ff61dbd5,old default
+minecraft:diamond_ore,,15,true,false,false,true,false,false,false,0,true,false,ff818c8f,old default
+minecraft:diorite,,15,true,false,false,false,false,false,false,0,true,false,ffb3b3b6,old default
+minecraft:dirt,,15,true,false,false,false,false,false,false,0,true,false,ff866043,old default
+minecraft:dirt_path,,15,true,false,false,false,false,false,false,0,false,false,ff91bd59,hardcoded
+minecraft:dispenser,"facing,triggered",15,false,false,false,false,true,false,false,0,false,false,ff606060,old default
+minecraft:dragon_egg,,0,false,false,false,false,false,false,false,1,false,false,ff0c090f,old default
+minecraft:dragon_head,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:dragon_wall_head,facing,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:dripstone_block,,15,false,false,false,false,false,false,false,0,true,false,ff866b5c,dripstone_block.png
+minecraft:dropper,"facing,triggered",0,false,false,false,false,true,false,false,0,false,false,ff606060,old default
+minecraft:emerald_block,,15,false,false,false,false,false,false,false,0,false,false,ff51d975,old default
+minecraft:emerald_ore,,15,false,false,false,true,false,false,false,0,true,false,ff6d8074,old default
+minecraft:enchanting_table,,0,false,false,false,false,true,false,false,0,false,false,ff67403b,old default
+minecraft:end_gateway,,15,false,false,false,false,false,false,false,0,false,false,,
+minecraft:end_portal,,0,false,false,false,false,true,false,false,15,false,false,ff14121d,old default
+minecraft:end_portal_frame,"eye,facing",15,false,false,false,false,false,false,false,1,false,false,ff597560,old default
+minecraft:end_rod,facing,0,false,false,false,false,false,false,false,14,false,false,ffcdc4b9,end_rod.png
+minecraft:end_stone,,15,true,false,false,false,false,false,false,0,true,false,ffdddfa5,old default
+minecraft:end_stone_bricks,,15,false,false,false,false,false,false,false,0,false,false,ffdae0a2,end_stone_bricks.png
+minecraft:ender_chest,facing,0,false,false,false,false,true,false,false,7,false,false,ff2b3c3d,old default
+minecraft:farmland,moisture,15,true,false,false,false,false,false,false,0,false,false,ff734b2d,old default
+minecraft:fern,,0,false,true,true,false,false,false,true,0,true,false,ff385a2a,old default
+minecraft:fire,age,0,false,true,true,false,false,false,false,15,true,false,ffd89736,old default
+minecraft:fire_coral,,0,false,true,true,false,false,false,true,0,true,false,ffa6252e,fire_coral.png
+minecraft:fire_coral_block,,15,false,false,false,false,false,false,true,0,true,false,ffa3232e,fire_coral_block.png
+minecraft:fire_coral_fan,,0,false,true,true,false,false,false,true,0,true,false,ff9e222d,fire_coral_fan.png
+minecraft:fire_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false,ffa6252e,fire_coral.png
+minecraft:flower_pot,,0,false,false,false,false,true,false,false,0,false,false,ff764133,old default
+minecraft:flowering_azalea,,0,false,true,true,false,false,false,true,0,true,false,ff707940,flowering_azalea_top.png
+minecraft:flowering_azalea_leaves,"distance,persistent",0,false,true,true,false,false,true,true,0,true,false,ff636f3c,flowering_azalea_leaves.png
+minecraft:frosted_ice,age,3,false,false,false,false,false,false,false,0,false,false,ff8cb5fc,frosted_ice_0.png
+minecraft:furnace,"facing,lit",15,false,false,false,false,true,false,false,0,false,false,ff606060,old default
+minecraft:gilded_blackstone,,15,false,false,false,false,false,false,false,0,false,false,ff372a26,gilded_blackstone.png
+minecraft:glass,,0,false,false,false,false,false,false,false,0,false,false,ffdaf0f4,old default
+minecraft:glass_pane,,0,false,false,false,false,false,false,false,0,false,false,ffdaf0f4,old default
+minecraft:glow_lichen,"east,waterlogged,south,north,west,up,down",0,false,true,true,false,false,false,true,0,true,false,ff708279,glow_lichen.png
+minecraft:glowstone,,15,false,false,false,false,false,false,false,15,true,false,ff8f7645,old default
+minecraft:gold_block,,15,false,false,false,false,false,false,false,0,false,false,fff9ec4e,old default
+minecraft:gold_ore,,15,true,false,false,true,false,false,false,0,true,false,ff8f8b7c,old default
+minecraft:granite,,15,true,false,false,false,false,false,false,0,true,false,ff997162,old default
+minecraft:grass,,0,false,true,true,false,false,false,true,0,true,false,ff40652f,old default
+minecraft:grass_block,,15,true,false,false,false,false,false,false,0,true,false,ff456e33,old default
+minecraft:grass_path,,15,true,false,false,false,false,false,false,0,false,false,ff91bd59,hardcoded
+minecraft:gravel,,15,true,false,false,false,false,false,false,0,true,false,ff7e7c7a,old default
+minecraft:gray_banner,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:gray_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:gray_carpet,,0,false,false,false,false,false,false,false,0,false,false,ff404040,old default
+minecraft:gray_concrete,,15,false,false,false,false,false,false,false,0,false,false,ff404040,old default
+minecraft:gray_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false,ff404040,old default
+minecraft:gray_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false,ff404040,old default
+minecraft:gray_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false,ff404040,old default
+minecraft:gray_stained_glass,,15,false,false,false,false,false,false,false,0,false,false,ff4c4c4c,old default
+minecraft:gray_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false,ff4c4c4c,old default
+minecraft:gray_terracotta,,15,true,false,false,false,false,false,false,0,true,false,ff392a23,old default
+minecraft:gray_wool,,15,false,false,false,false,false,false,false,0,false,false,ff404040,old default
+minecraft:green_banner,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:green_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:green_carpet,,0,false,false,false,false,false,false,false,0,false,false,ff35461b,old default
+minecraft:green_concrete,,15,false,false,false,false,false,false,false,0,false,false,ff35461b,old default
+minecraft:green_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false,ff35461b,old default
+minecraft:green_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false,ff35461b,old default
+minecraft:green_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false,ff35461b,old default
+minecraft:green_stained_glass,,15,false,false,false,false,false,false,false,0,false,false,ff667f33,old default
+minecraft:green_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false,ff667f33,old default
+minecraft:green_terracotta,,15,true,false,false,false,false,false,false,0,true,false,ff4c532a,old default
+minecraft:green_wool,,15,false,false,false,false,false,false,false,0,false,false,ff35461b,old default
+minecraft:grindstone,"face,facing",0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:hanging_roots,waterlogged,0,false,true,true,false,false,false,true,0,true,false,ffa1735b,hanging_roots.png
+minecraft:hay_block,axis,15,false,false,false,false,false,false,false,0,false,false,ffa88b10,old default
+minecraft:heavy_weighted_pressure_plate,power,0,false,false,false,false,false,false,false,0,false,false,ffdbdbdb,old default
+minecraft:hopper,"enabled,facing",0,false,false,false,false,true,false,false,0,false,false,ff373737,old default
+minecraft:horn_coral,,0,false,true,true,false,false,false,true,0,true,false,ffd1ba3e,horn_coral.png
+minecraft:horn_coral_block,,15,false,false,false,false,false,false,true,0,true,false,ffd8c742,horn_coral_block.png
+minecraft:horn_coral_fan,,0,false,true,true,false,false,false,true,0,true,false,ffcdb73d,horn_coral_fan.png
+minecraft:horn_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false,ffd1ba3e,horn_coral.png
+minecraft:ice,,3,false,false,false,false,false,false,false,0,true,false,ff7dadff,old default
+minecraft:infested_chiseled_stone_bricks,,15,false,false,false,false,false,false,false,0,true,false,ff7d7d7d,old default
+minecraft:infested_cobblestone,,15,false,false,false,false,false,false,false,0,true,false,ff7a7a7a,old default
+minecraft:infested_cracked_stone_bricks,,15,false,false,false,false,false,false,false,0,true,false,ff7d7d7d,old default
+minecraft:infested_deepslate,axis,15,true,false,false,false,false,false,false,0,true,false,ff505052,deepslate.png
+minecraft:infested_mossy_stone_bricks,,15,false,false,false,false,false,false,false,0,true,false,ff7d7d7d,old default
+minecraft:infested_stone,,15,true,false,false,false,false,false,false,0,true,false,ff7d7d7d,old default
+minecraft:infested_stone_bricks,,15,false,false,false,false,false,false,false,0,true,false,ff7a7a7a,old default
+minecraft:iron_bars,,0,false,false,false,false,false,false,false,0,false,false,ff6d6c6a,old default
+minecraft:iron_block,,15,false,false,false,false,false,false,false,0,false,false,ffdbdbdb,old default
+minecraft:iron_door,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false,ffbababa,old default
+minecraft:iron_ore,,15,true,false,false,true,false,false,false,0,true,false,ff87827e,old default
+minecraft:iron_trapdoor,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false,ffc7c7c7,old default
+minecraft:jack_o_lantern,facing,15,false,false,false,false,false,false,false,15,false,false,ffc07615,old default
+minecraft:jukebox,has_record,15,false,false,false,false,true,false,false,0,false,false,ff6b4937,old default
+minecraft:jungle_door,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false,ff977155,old default
+minecraft:jungle_fence,,0,false,false,false,false,false,false,false,0,false,false,ff9a6e4d,old default
+minecraft:jungle_fence_gate,"facing,open,powered",0,false,false,false,false,false,false,false,0,false,false,ff9a6e4d,old default
+minecraft:jungle_leaves,persistent,1,false,false,true,false,false,true,false,0,true,false,ff326019,old default
+minecraft:jungle_log,axis,15,false,false,false,false,false,true,false,0,true,false,ff997649,old default
+minecraft:jungle_planks,,15,false,false,false,false,false,false,false,0,false,false,ff9a6e4d,old default
+minecraft:jungle_sapling,stage,0,false,true,true,false,false,true,false,0,false,false,ff305612,old default
+minecraft:jungle_slab,type,15,false,false,false,false,false,false,false,0,false,false,ff9a6e4d,old default
+minecraft:jungle_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false,ff9a6e4d,old default
+minecraft:jungle_wood,,15,false,false,false,false,false,true,false,0,true,false,ff57431a,old default
+minecraft:kelp,age,0,false,true,true,false,false,false,true,0,true,true,ff578c2c,kelp.png
+minecraft:kelp_plant,,0,false,true,true,false,false,false,true,0,true,true,ff56822a,kelp_plant.png
+minecraft:ladder,facing,0,false,false,false,false,false,false,false,0,false,false,ff795f34,old default
+minecraft:lantern,,0,false,false,false,false,false,false,false,15,false,false,ff6a5b53,lantern.png
+minecraft:lapis_block,,15,false,false,false,false,false,false,false,0,false,false,ff264389,old default
+minecraft:lapis_ore,,15,true,false,false,true,false,false,false,0,true,false,ff667086,old default
+minecraft:large_amethyst_bud,"waterlogged,facing",0,false,false,false,false,false,false,false,0,true,false,ffa17eca,large_amethyst_bud.png
+minecraft:large_fern,half,0,false,true,true,false,false,false,true,0,true,false,ff454003,old default
+minecraft:lava,level,0,false,false,true,false,false,false,false,15,true,false,ffcf5b14,old default
+minecraft:lectern,"has_book,powered,facing",0,false,false,false,false,false,false,false,0,false,false,ffad8953,lectern_top.png
+minecraft:lever,"face,facing,powered",0,false,false,false,false,false,false,false,0,false,false,ff7a7a7a,old default
+minecraft:light_blue_banner,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:light_blue_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:light_blue_carpet,,0,false,false,false,false,false,false,false,0,false,false,ff6a8ac9,old default
+minecraft:light_blue_concrete,,15,false,false,false,false,false,false,false,0,false,false,ff6a8ac9,old default
+minecraft:light_blue_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false,ff6a8ac9,old default
+minecraft:light_blue_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false,ff6a8ac9,old default
+minecraft:light_blue_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false,ff6a8ac9,old default
+minecraft:light_blue_stained_glass,,15,false,false,false,false,false,false,false,0,false,false,ff6699d8,old default
+minecraft:light_blue_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false,ff6699d8,old default
+minecraft:light_blue_terracotta,,15,true,false,false,false,false,false,false,0,true,false,ff716c89,old default
+minecraft:light_blue_wool,,15,false,false,false,false,false,false,false,0,false,false,ff6a8ac9,old default
+minecraft:light_gray_banner,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:light_gray_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:light_gray_carpet,,0,false,false,false,false,false,false,false,0,false,false,ff9aa1a1,old default
+minecraft:light_gray_concrete,,15,false,false,false,false,false,false,false,0,false,false,ff9aa1a1,old default
+minecraft:light_gray_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false,ff9aa1a1,old default
+minecraft:light_gray_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false,ff9aa1a1,old default
+minecraft:light_gray_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false,ff9aa1a1,old default
+minecraft:light_gray_stained_glass,,15,false,false,false,false,false,false,false,0,false,false,ff999999,old default
+minecraft:light_gray_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false,ff999999,old default
+minecraft:light_gray_terracotta,,15,true,false,false,false,false,false,false,0,true,false,ff876a61,old default
+minecraft:light_gray_wool,,15,false,false,false,false,false,false,false,0,false,false,ff9aa1a1,old default
+minecraft:light_weighted_pressure_plate,power,0,false,false,false,false,false,false,false,0,false,false,fff9ec4e,old default
+minecraft:lilac,half,0,false,true,true,false,false,false,true,0,true,false,ff454003,old default
+minecraft:lily_of_the_valley,,0,false,true,true,false,false,false,true,0,true,false,ff7bae5f,lily_of_the_valley.png
+minecraft:lily_pad,,0,false,true,true,false,false,false,true,0,true,false,ff0e3b16,old default
+minecraft:lime_banner,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:lime_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:lime_carpet,,0,false,false,false,false,false,false,false,0,false,false,ff41ae38,old default
+minecraft:lime_concrete,,15,false,false,false,false,false,false,false,0,false,false,ff41ae38,old default
+minecraft:lime_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false,ff41ae38,old default
+minecraft:lime_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false,ff41ae38,old default
+minecraft:lime_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false,ff41ae38,old default
+minecraft:lime_stained_glass,,15,false,false,false,false,false,false,false,0,false,false,ff7fcc19,old default
+minecraft:lime_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false,ff7fcc19,old default
+minecraft:lime_terracotta,,15,true,false,false,false,false,false,false,0,true,false,ff677534,old default
+minecraft:lime_wool,,15,false,false,false,false,false,false,false,0,false,false,ff41ae38,old default
+minecraft:magenta_banner,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:magenta_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:magenta_carpet,,0,false,false,false,false,false,false,false,0,false,false,ffb350bc,old default
+minecraft:magenta_concrete,,15,false,false,false,false,false,false,false,0,false,false,ffb350bc,old default
+minecraft:magenta_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false,ffb350bc,old default
+minecraft:magenta_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false,ffb350bc,old default
+minecraft:magenta_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false,ffb350bc,old default
+minecraft:magenta_stained_glass,,15,false,false,false,false,false,false,false,0,false,false,ffb24cd8,old default
+minecraft:magenta_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false,ffb24cd8,old default
+minecraft:magenta_terracotta,,15,true,false,false,false,false,false,false,0,true,false,ff95586c,old default
+minecraft:magenta_wall_banner,facing,0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:magenta_wool,,15,false,false,false,false,false,false,false,0,false,false,ffb350bc,old default
+minecraft:magma_block,,15,true,false,false,false,false,false,false,3,true,false,ffcf5b14,old default
+minecraft:medium_amethyst_bud,"waterlogged,facing",0,false,false,false,false,false,false,false,0,true,false,ff9e78c9,medium_amethyst_bud.png
+minecraft:melon,,15,false,true,true,false,false,false,true,0,false,false,ff979924,old default
+minecraft:melon_stem,age,0,false,true,true,false,false,false,true,0,false,false,ff487336,old default
+minecraft:moss_block,,15,false,true,true,false,false,false,true,0,true,false,ff596d2d,moss_block.png
+minecraft:moss_carpet,,0,false,true,true,false,false,false,true,0,true,false,ff596d2d,moss_block.png
+minecraft:mossy_cobblestone,,15,false,false,false,false,false,false,false,0,true,false,ff677967,old default
+minecraft:mossy_cobblestone_wall,,0,false,false,false,false,false,false,false,0,false,false,ff677967,old default
+minecraft:mossy_stone_brick_slab,"waterlogged,type",15,false,true,true,false,false,false,true,0,true,false,ff737969,mossy_stone_bricks.png
+minecraft:mossy_stone_brick_stairs,"waterlogged,half,shape,facing",15,false,true,true,false,false,false,true,0,true,false,ff737969,mossy_stone_bricks.png
+minecraft:mossy_stone_bricks,,15,false,false,false,false,false,false,false,0,false,false,ff72776a,old default
+minecraft:mushroom_stem,"down,up",15,false,false,false,false,false,true,false,0,true,false,ffcaab78,old default
+minecraft:mycelium,,15,true,false,false,false,false,false,false,0,true,false,ff6f6369,old default
+minecraft:nether_brick_fence,,0,false,false,false,false,false,false,false,0,false,false,ff2c161a,old default
+minecraft:nether_brick_slab,type,15,false,false,false,false,false,false,false,0,false,false,ff2c161a,old default
+minecraft:nether_brick_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false,ff2c161a,old default
+minecraft:nether_bricks,,15,false,false,false,false,false,false,false,0,false,false,ff2c161a,old default
+minecraft:nether_gold_ore,,15,true,false,false,true,false,false,false,0,true,false,ff73362a,nether_gold_ore.png
+minecraft:nether_portal,axis,0,false,false,false,false,false,false,false,11,false,false,ff5b0dc1,old default
+minecraft:nether_quartz_ore,,15,true,false,false,true,false,false,false,0,true,false,ff7d544f,old default
+minecraft:nether_sprouts,,0,false,true,true,false,false,false,true,0,true,false,ff139785,nether_sprouts.png
+minecraft:nether_wart,age,0,false,true,true,false,false,false,true,0,true,false,ff6a0e1e,old default
+minecraft:nether_wart_block,,15,false,false,false,false,false,false,false,0,true,false,ff720202,nether_wart_block.png
+minecraft:netherrack,,15,true,false,false,false,false,false,false,0,true,false,ff6f3634,old default
+minecraft:note_block,,15,false,false,false,false,true,false,false,0,false,false,ff644332,old default
+minecraft:oak_button,"face,facing,powered",0,false,false,false,false,false,false,false,0,false,false,ff9c7f4e,old default
+minecraft:oak_door,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false,ff866733,old default
+minecraft:oak_fence,,0,false,false,false,false,false,false,false,0,false,false,ff9c7f4e,old default
+minecraft:oak_fence_gate,"facing,open,powered",0,false,false,false,false,false,false,false,0,false,false,ff9c7f4e,old default
+minecraft:oak_leaves,persistent,1,false,false,true,false,false,true,false,0,true,false,ff2f5c19,old default
+minecraft:oak_log,axis,15,false,false,false,false,false,true,false,0,true,false,ff9a7d4d,old default
+minecraft:oak_planks,,15,false,false,false,false,false,false,false,0,false,false,ff9c7f4e,old default
+minecraft:oak_pressure_plate,powered,0,false,false,false,false,false,false,false,0,false,false,ff9c7f4e,old default
+minecraft:oak_sapling,stage,0,false,true,true,false,false,true,false,0,false,false,ff476625,old default
+minecraft:oak_sign,,0,false,false,false,false,true,false,false,0,false,false,ffa2824e,oak_planks.png
+minecraft:oak_slab,type,15,false,false,false,false,false,false,false,0,false,false,ff9c7f4e,old default
+minecraft:oak_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false,ff9c7f4e,old default
+minecraft:oak_trapdoor,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false,ff7e5d2d,old default
+minecraft:oak_wood,,15,false,false,false,false,false,true,false,0,true,false,ff665131,old default
+minecraft:observer,"facing,powered",0,false,false,false,false,false,false,false,0,false,false,ff626262,observer_top.png
+minecraft:obsidian,,15,true,false,false,false,false,false,false,0,true,false,ff14121d,old default
+minecraft:orange_banner,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:orange_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:orange_carpet,,0,false,false,false,false,false,false,false,0,false,false,ffdb7d3e,old default
+minecraft:orange_concrete,,15,false,false,false,false,false,false,false,0,false,false,ffdb7d3e,old default
+minecraft:orange_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false,ffdb7d3e,old default
+minecraft:orange_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false,ffdb7d3e,old default
+minecraft:orange_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false,ffdb7d3e,old default
+minecraft:orange_stained_glass,,15,false,false,false,false,false,false,false,0,false,false,ffd87f33,old default
+minecraft:orange_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false,ffd87f33,old default
+minecraft:orange_terracotta,,15,true,false,false,false,false,false,false,0,true,false,ffa15325,old default
+minecraft:orange_tulip,,0,false,true,true,false,false,false,true,0,true,false,ff5f8620,old default
+minecraft:orange_wool,,15,false,false,false,false,false,false,false,0,false,false,ffdb7d3e,old default
+minecraft:oxeye_daisy,,0,false,true,true,false,false,false,true,0,true,false,ffb0c58b,old default
+minecraft:packed_ice,,15,false,false,false,false,false,false,false,0,true,false,ffa5c2f5,old default
+minecraft:peony,half,0,false,true,true,false,false,false,true,0,true,false,ff454003,old default
+minecraft:petrified_oak_slab,type,15,false,false,false,false,false,false,false,0,false,false,ff9c7f4e,old default
+minecraft:pink_banner,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:pink_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:pink_carpet,,0,false,false,false,false,false,false,false,0,false,false,ffd08499,old default
+minecraft:pink_concrete,,15,false,false,false,false,false,false,false,0,false,false,ffd08499,old default
+minecraft:pink_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false,ffd08499,old default
+minecraft:pink_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false,ffd08499,old default
+minecraft:pink_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false,ffd08499,old default
+minecraft:pink_stained_glass,,15,false,false,false,false,false,false,false,0,false,false,fff27fa5,old default
+minecraft:pink_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false,fff27fa5,old default
+minecraft:pink_terracotta,,15,true,false,false,false,false,false,false,0,true,false,ffa14e4e,old default
+minecraft:pink_tulip,,0,false,true,true,false,false,false,true,0,true,false,ff659649,old default
+minecraft:pink_wool,,15,false,false,false,false,false,false,false,0,false,false,ffd08499,old default
+minecraft:piston,"extended,facing",0,false,false,false,false,false,false,false,0,false,false,ff606060,old default
+minecraft:piston_head,"facing,type",0,false,false,false,false,true,false,false,0,false,false,ff606060,old default
+minecraft:player_head,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:player_wall_head,facing,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:podzol,,15,true,false,false,false,false,false,false,0,true,false,ff5a3f1c,old default
+minecraft:pointed_dripstone,"waterlogged,vertical_direction,thickness",0,false,false,false,false,false,false,false,0,true,false,,
+minecraft:polished_andesite,,15,false,false,false,false,false,false,false,0,true,false,ff858586,old default
+minecraft:polished_basalt,axis,15,false,false,false,false,false,false,false,0,false,false,ff636264,polished_basalt_top.png
+minecraft:polished_blackstone,,15,false,false,false,false,false,false,false,0,false,false,ff353038,polished_blackstone.png
+minecraft:polished_blackstone_brick_slab,"waterlogged,type",15,false,false,false,false,false,false,false,0,false,false,ff302a31,polished_blackstone_bricks.png
+minecraft:polished_blackstone_brick_stairs,"waterlogged,half,shape,facing",15,false,false,false,false,false,false,false,0,false,false,ff302a31,polished_blackstone_bricks.png
+minecraft:polished_blackstone_brick_wall,"east,waterlogged,south,north,west,up",0,false,false,false,false,false,false,false,0,false,false,ff302a31,polished_blackstone_bricks.png
+minecraft:polished_blackstone_bricks,,15,false,false,false,false,false,false,false,0,false,false,ff302a31,polished_blackstone_bricks.png
+minecraft:polished_blackstone_slab,"waterlogged,type",15,false,false,false,false,false,false,false,0,false,false,ff353038,polished_blackstone.png
+minecraft:polished_diorite,,15,false,false,false,false,false,false,false,0,true,false,ffb7b7b9,old default
+minecraft:polished_granite,,15,false,false,false,false,false,false,false,0,true,false,ff9f7262,old default
+minecraft:poppy,,0,false,true,true,false,false,false,true,0,true,false,ff643904,old default
+minecraft:potatoes,age,0,false,true,true,false,false,false,true,0,false,false,ff01ab10,old default
+minecraft:potted_acacia_sapling,,0,false,false,false,false,true,false,false,0,false,false,ff764133,old default
+minecraft:potted_birch_sapling,,0,false,false,false,false,true,false,false,0,false,false,ff764133,old default
+minecraft:potted_brown_mushroom,,0,false,false,false,false,true,false,false,0,false,false,ff764133,old default
+minecraft:potted_cactus,,0,false,false,false,false,true,false,false,0,false,false,ff764133,old default
+minecraft:potted_dandelion,,0,false,false,false,false,true,false,false,0,false,false,ff764133,old default
+minecraft:potted_dark_oak_sapling,,0,false,false,false,false,true,false,false,0,false,false,ff764133,old default
+minecraft:potted_dead_bush,,0,false,false,false,false,true,false,false,0,false,false,ff764133,old default
+minecraft:potted_fern,,0,false,false,false,false,true,false,false,0,false,false,ff764133,old default
+minecraft:potted_jungle_sapling,,0,false,false,false,false,true,false,false,0,false,false,ff764133,old default
+minecraft:potted_oak_sapling,,0,false,false,false,false,true,false,false,0,false,false,ff764133,old default
+minecraft:potted_poppy,,0,false,false,false,false,true,false,false,0,false,false,ff764133,old default
+minecraft:potted_red_mushroom,,0,false,false,false,false,true,false,false,0,false,false,ff764133,old default
+minecraft:potted_spruce_sapling,,0,false,false,false,false,true,false,false,0,false,false,ff764133,old default
+minecraft:powered_rail,"powered,shape",0,false,false,false,false,false,false,false,0,false,false,ff846c48,old default
+minecraft:prismarine,,15,false,false,false,false,false,false,false,0,false,false,ff6aaa96,old default
+minecraft:prismarine_bricks,,15,false,false,false,false,false,false,false,0,false,false,ff63a08f,old default
+minecraft:pumpkin,,15,false,true,true,false,false,false,true,0,true,false,ffc67618,pumpkin_top.png
+minecraft:pumpkin_stem,age,0,false,true,true,false,false,false,true,0,false,false,ff487336,old default
+minecraft:purple_banner,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:purple_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:purple_carpet,,0,false,false,false,false,false,false,false,0,false,false,ff7e3db5,old default
+minecraft:purple_concrete,,15,false,false,false,false,false,false,false,0,false,false,ff7e3db5,old default
+minecraft:purple_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false,ff7e3db5,old default
+minecraft:purple_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false,ff7e3db5,old default
+minecraft:purple_stained_glass,,15,false,false,false,false,false,false,false,0,false,false,ff7f3fb2,old default
+minecraft:purple_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false,ff7f3fb2,old default
+minecraft:purple_terracotta,,15,true,false,false,false,false,false,false,0,true,false,ff764656,old default
+minecraft:purple_wool,,15,false,false,false,false,false,false,false,0,false,false,ff7e3db5,old default
+minecraft:purpur_block,,15,false,false,false,false,false,false,false,0,false,false,ffa97da9,purpur_block.png
+minecraft:purpur_pillar,axis,15,false,false,false,false,false,false,false,0,false,false,ffab81ab,purpur_pillar.png
+minecraft:purpur_slab,type,15,false,false,false,false,false,false,false,0,false,false,ffa97da9,purpur_block.png
+minecraft:purpur_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false,ffa97da9,purpur_block.png
+minecraft:quartz_block,,15,false,false,false,false,false,false,false,0,false,false,ffece9e2,old default
+minecraft:quartz_pillar,axis,15,false,false,false,false,false,false,false,0,false,false,ffe8e5dd,old default
+minecraft:quartz_slab,type,15,false,false,false,false,false,false,false,0,false,false,ffece9e2,old default
+minecraft:quartz_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false,ffece9e2,old default
+minecraft:rail,shape,0,false,false,false,false,false,false,false,0,false,false,ff796c58,old default
+minecraft:raw_copper_block,,15,false,false,false,true,false,false,false,0,true,false,ff9a694f,raw_copper_block.png
+minecraft:raw_iron_block,,15,false,false,false,true,false,false,false,0,true,false,ffa6876b,raw_iron_block.png
+minecraft:red_banner,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:red_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false,ff8e1616,old default
+minecraft:red_carpet,,0,false,false,false,false,false,false,false,0,false,false,ff963430,old default
+minecraft:red_concrete,,15,false,false,false,false,false,false,false,0,false,false,ff963430,old default
+minecraft:red_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false,ff963430,old default
+minecraft:red_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false,ff963430,old default
+minecraft:red_mushroom,,0,false,true,true,false,false,false,true,0,true,false,ffc33538,old default
+minecraft:red_mushroom_block,"down,east,north,south,up,west",15,false,false,false,false,false,true,false,0,true,false,ffcaab78,old default
+minecraft:red_nether_bricks,,15,false,false,false,false,false,false,false,0,false,false,ff450709,red_nether_bricks.png
+minecraft:red_sand,,15,true,false,false,false,false,false,false,0,true,false,ffa95821,old default
+minecraft:red_sandstone,,15,true,false,false,false,false,false,false,0,true,false,ffa6551d,old default
+minecraft:red_sandstone_slab,type,15,false,false,false,false,false,false,false,0,false,false,ffa6551d,old default
+minecraft:red_sandstone_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false,ffa5541d,old default
+minecraft:red_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false,ff963430,old default
+minecraft:red_stained_glass,,15,false,false,false,false,false,false,false,0,false,false,ff993333,old default
+minecraft:red_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false,ff993333,old default
+minecraft:red_terracotta,,15,true,false,false,false,false,false,false,0,true,false,ff8f3d2e,old default
+minecraft:red_tulip,,0,false,true,true,false,false,false,true,0,true,false,ff678726,old default
+minecraft:red_wool,,15,false,false,false,false,false,false,false,0,false,false,ff963430,old default
+minecraft:redstone_block,,15,false,false,false,false,false,false,false,0,false,false,ffab1b09,old default
+minecraft:redstone_lamp,lit,15,false,false,false,false,false,false,false,0,false,false,ff462b1a,old default
+minecraft:redstone_ore,lit,15,true,false,false,true,false,false,false,0,true,false,ff846b6b,old default
+minecraft:redstone_torch,lit,0,false,false,false,false,false,false,false,0,false,false,ff5d3e26,old default
+minecraft:redstone_wall_torch,"facing,lit",0,false,false,false,false,false,false,false,0,false,false,ff5d3e26,old default
+minecraft:redstone_wire,power,0,false,false,false,false,false,false,false,0,false,false,ffe9e9e9,old default
+minecraft:repeater,"delay,facing,powered",0,false,false,false,false,false,false,false,0,false,false,ff979393,old default
+minecraft:repeating_command_block,"conditional,facing",15,false,false,false,false,true,false,false,0,false,false,ff816fb0,repeating_command_block_front.png
+minecraft:rooted_dirt,,15,true,false,false,false,false,false,false,0,true,false,ff90674c,rooted_dirt.png
+minecraft:rose_bush,half,0,false,true,true,false,false,false,true,0,true,false,ff454003,old default
+minecraft:sand,,15,true,false,false,false,false,false,false,0,true,false,ffdbd3a0,old default
+minecraft:sandstone,,15,true,false,false,false,false,false,false,0,true,false,ffdad29e,old default
+minecraft:sandstone_slab,type,15,false,false,false,false,false,false,false,0,false,false,ffdad29e,old default
+minecraft:sandstone_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false,ffd8d19d,old default
+minecraft:sea_lantern,,15,false,false,false,false,false,false,false,15,false,false,ffacc8be,old default
+minecraft:sea_pickle,"waterlogged=false,pickles",0,false,true,true,false,false,false,true,0,true,false,ff5a6127,sea_pickle.png
+minecraft:sea_pickle,"waterlogged=true,pickles=1",0,false,true,true,false,false,false,true,6,true,false,ff5a6127,sea_pickle.png
+minecraft:sea_pickle,"waterlogged=true,pickles=2",0,false,true,true,false,false,false,true,9,true,false,ff5a6127,sea_pickle.png
+minecraft:sea_pickle,"waterlogged=true,pickles=3",0,false,true,true,false,false,false,true,12,true,false,ff5a6127,sea_pickle.png
+minecraft:sea_pickle,"waterlogged=true,pickles=4",0,false,true,true,false,false,false,true,15,true,false,ff5a6127,sea_pickle.png
+minecraft:seagrass,,0,false,true,true,false,false,false,true,0,true,true,ff327e08,seagrass.png
+minecraft:shroomlight,,15,false,false,false,false,false,false,false,15,true,false,fff09246,shroomlight.png
+minecraft:shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false,ff7e3db5,old default
+minecraft:sign,rotation,0,false,false,false,false,true,false,false,0,false,false,ffa08250,old default
+minecraft:skeleton_skull,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:skeleton_wall_skull,facing,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:slime_block,,0,false,false,false,false,false,false,false,0,false,false,ff78c865,old default
+minecraft:small_amethyst_bud,"waterlogged,facing",0,false,false,false,false,false,false,false,0,true,false,ff8363c0,small_amethyst_bud.png
+minecraft:small_dripleaf,"waterlogged,half,facing",0,false,true,true,false,false,false,true,0,true,false,ff5e772d,small_dripleaf_top.png
+minecraft:smithing_table,,0,false,false,false,false,false,false,false,0,false,false,ff393a46,smithing_table_top.png
+minecraft:smoker,"lit,facing",0,false,false,false,false,false,false,false,0,false,false,ff555351,smoker_top.png
+minecraft:smooth_basalt,,15,false,false,false,false,false,false,false,0,true,false,ff48484e,smooth_basalt.png
+minecraft:smooth_quartz,,15,false,false,false,false,false,false,false,0,false,false,ffece9e2,old default
+minecraft:smooth_quartz_slab,"waterlogged,type",15,false,false,false,false,false,false,false,0,false,false,ffebe5de,quartz_block_top.png
+minecraft:smooth_red_sandstone,,15,false,false,false,false,false,false,false,0,false,false,ffa6551d,old default
+minecraft:smooth_sandstone,,15,false,false,false,false,false,false,false,0,false,false,ffdad29e,old default
+minecraft:smooth_stone,,15,false,false,false,false,false,false,false,0,false,false,ff9f9f9f,old default
+minecraft:smooth_stone_slab,"waterlogged,type",15,false,false,false,false,false,false,false,0,false,false,ff9e9e9e,smooth_stone.png
+minecraft:snow,layers,0,false,true,true,false,false,false,false,0,true,false,ffeffbfb,old default
+minecraft:snow_block,,15,true,true,true,false,false,false,false,0,true,false,ffeffbfb,old default
+minecraft:soul_fire,,0,false,true,true,false,false,false,false,15,true,false,ff33c0c5,soul_fire_0.png
+minecraft:soul_sand,,15,true,false,false,false,false,false,false,0,true,false,ff544033,old default
+minecraft:soul_soil,,15,true,false,false,false,false,false,false,0,true,false,ff4b392e,soul_soil.png
+minecraft:spawner,,15,false,false,false,false,true,false,false,0,false,false,ff1a2731,old default
+minecraft:sponge,,15,false,false,false,false,false,false,false,0,false,false,ffc2c354,old default
+minecraft:spore_blossom,,0,false,true,true,false,false,false,true,0,true,false,ffce609e,spore_blossom.png
+minecraft:spruce_door,"facing,half,open",0,false,false,false,false,false,false,false,0,false,false,ff604a31,old default
+minecraft:spruce_fence,,0,false,false,false,false,false,false,false,0,false,false,ff674d2e,old default
+minecraft:spruce_fence_gate,"facing,open,powered",0,false,false,false,false,false,false,false,0,false,false,ff674d2e,old default
+minecraft:spruce_leaves,persistent,1,false,false,true,false,false,true,false,0,true,false,ff2c452c,old default
+minecraft:spruce_log,axis,15,false,false,false,false,false,true,false,0,true,false,ff685130,old default
+minecraft:spruce_planks,,15,false,false,false,false,false,false,false,0,false,false,ff674d2e,old default
+minecraft:spruce_sapling,stage,0,false,true,true,false,false,true,false,0,false,false,ff333a21,old default
+minecraft:spruce_slab,type,15,false,false,false,false,false,false,false,0,false,false,ff674d2e,old default
+minecraft:spruce_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false,ff674d2e,old default
+minecraft:spruce_trapdoor,"waterlogged,half,powered,facing,open",0,false,false,false,false,false,false,false,0,false,false,ff674f2f,spruce_trapdoor.png
+minecraft:spruce_wood,,15,false,false,false,false,false,true,false,0,true,false,ff2d1c0c,old default
+minecraft:sticky_piston,"extended,facing",15,false,false,false,false,false,false,false,0,false,false,ff606060,old default
+minecraft:stone,,15,true,false,false,false,false,false,false,0,true,false,ff7d7d7d,old default
+minecraft:stone_brick_slab,type,15,false,false,false,false,false,false,false,0,false,false,ff7a7a7a,old default
+minecraft:stone_brick_stairs,"facing,half",15,false,false,false,false,false,false,false,0,false,false,ff7a7a7a,old default
+minecraft:stone_bricks,,15,false,false,false,false,false,false,false,0,false,false,ff7a7a7a,old default
+minecraft:stone_button,"face,facing,powered",0,false,false,false,false,false,false,false,0,false,false,ff7d7d7d,old default
+minecraft:stone_pressure_plate,powered,0,false,false,false,false,false,false,false,0,false,false,ff7d7d7d,old default
+minecraft:stone_slab,type,15,false,false,false,false,false,false,false,0,false,false,ff9f9f9f,old default
+minecraft:stonecutter,facing,0,false,false,false,false,false,false,false,0,false,false,ff7b766f,stonecutter_top.png
+minecraft:stripped_oak_log,axis,15,false,false,false,false,false,false,false,0,false,false,ffb19056,stripped_oak_log.png
+minecraft:stripped_oak_wood,axis,15,false,false,false,false,false,false,false,0,false,false,,
+minecraft:structure_block,mode,15,false,false,false,false,true,false,false,0,false,false,ff584a5a,structure_block.png
+minecraft:structure_void,,0,false,true,true,false,false,false,false,0,false,false,ff584a5a,structure_block.png
+minecraft:sugar_cane,age,0,false,true,true,false,false,false,true,0,true,false,ff94c065,old default
+minecraft:sunflower,half,0,false,true,true,false,false,false,true,0,true,false,ff454003,old default
+minecraft:sweet_berry_bush,,0,false,true,true,false,false,false,true,0,true,false,ff444d32,sweet_berry_bush_stage3.png
+minecraft:tall_grass,half,0,false,true,true,false,false,false,true,0,true,false,ff454003,old default
+minecraft:tall_seagrass,half,0,false,true,true,false,false,false,true,0,true,true,ff3b8b0e,tall_seagrass_top.png
+minecraft:terracotta,,15,true,false,false,false,false,false,false,0,true,false,ff965c42,old default
+minecraft:tnt,,15,false,false,false,false,false,false,false,0,false,false,ff82412f,old default
+minecraft:torch,,0,false,false,false,false,false,false,false,14,false,false,ff826a3a,old default
+minecraft:trapped_chest,facing,0,false,false,false,false,true,false,false,0,false,false,ff7f5c26,old default
+minecraft:tripwire,"attached,disarmed,powered",0,false,false,false,false,false,false,false,0,false,false,ff818181,tripwire.png
+minecraft:tripwire_hook,"attached,facing,powered",0,false,false,false,false,false,false,false,0,false,false,ff7a7a7a,old default
+minecraft:tube_coral,,0,false,true,true,false,false,false,true,0,true,false,ff2f53c5,tube_coral.png
+minecraft:tube_coral_block,,15,false,false,false,false,false,false,true,0,true,false,ff3157ce,tube_coral_block.png
+minecraft:tube_coral_fan,,0,false,true,true,false,false,false,true,0,true,false,ff325bd0,tube_coral_fan.png
+minecraft:tube_coral_wall_fan,,0,false,true,true,false,false,false,true,0,true,false,ff2f53c5,tube_coral.png
+minecraft:tuff,,15,true,false,false,false,false,false,false,0,true,false,ff6c6d66,tuff.png
+minecraft:twisting_vines,age,0,false,true,true,false,false,false,true,0,true,false,ff148f7c,twisting_vines.png
+minecraft:twisting_vines_plant,,0,false,true,true,false,false,false,true,0,true,false,ff14877a,twisting_vines_plant.png
+minecraft:vine,"east,north,south,west",0,false,true,true,false,false,true,false,0,true,false,ff264b14,old default
+minecraft:wall_sign,facing,0,false,false,false,false,true,false,false,0,false,false,ffa08250,old default
+minecraft:wall_torch,facing,0,false,false,false,false,false,false,false,14,false,false,ff826a3a,old default
+minecraft:warped_fungus,,0,false,true,true,false,false,false,true,0,true,false,ff4a6d57,warped_fungus.png
+minecraft:warped_nylium,,15,true,false,false,false,false,false,false,0,true,false,ff2b7265,warped_nylium.png
+minecraft:warped_roots,,0,false,true,true,false,false,false,true,0,true,false,ff148a7c,warped_roots.png
+minecraft:warped_stem,axis,15,false,true,true,false,false,false,false,0,true,false,ff3a3a4d,warped_stem.png
+minecraft:warped_wart_block,,15,false,false,false,false,false,false,false,0,true,false,ff167779,warped_wart_block.png
+minecraft:water,level,3,false,false,true,false,false,false,false,0,true,false,ff3148f4,old default
+minecraft:water_cauldron,level,0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:weeping_vines,age,0,false,true,true,false,false,false,true,0,true,false,ff680100,weeping_vines.png
+minecraft:weeping_vines_plant,,0,false,true,true,false,false,false,true,0,true,false,ff84100c,weeping_vines_plant.png
+minecraft:wet_sponge,,15,false,false,false,false,false,false,false,0,false,false,ffa09e3f,old default
+minecraft:wheat,age,0,false,true,true,false,false,false,true,0,false,false,ff00b312,old default
+minecraft:white_banner,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:white_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:white_carpet,,0,false,false,false,false,false,false,false,0,false,false,ffdddddd,old default
+minecraft:white_concrete,,15,false,false,false,false,false,false,false,0,false,false,ffdddddd,old default
+minecraft:white_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false,ffdddddd,old default
+minecraft:white_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false,ffdddddd,old default
+minecraft:white_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false,ffdddddd,old default
+minecraft:white_stained_glass,,15,false,false,false,false,false,false,false,0,false,false,ffffffff,old default
+minecraft:white_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false,ffffffff,old default
+minecraft:white_terracotta,,15,true,false,false,false,false,false,false,0,true,false,ffd1b2a1,old default
+minecraft:white_tulip,,0,false,true,true,false,false,false,true,0,true,false,ff5e9941,old default
+minecraft:white_wall_banner,facing,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:white_wool,,15,false,false,false,false,false,false,false,0,false,false,ffdddddd,old default
+minecraft:wither_rose,,0,false,true,true,false,false,false,true,0,false,false,ff292c17,wither_rose.png
+minecraft:wither_skeleton_skull,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:wither_skeleton_wall_skull,facing,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:yellow_banner,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:yellow_bed,"facing,occupied,part",0,false,false,false,false,false,false,false,0,false,false,,
+minecraft:yellow_carpet,,0,false,false,false,false,false,false,false,0,false,false,ffb1a627,old default
+minecraft:yellow_concrete,,15,false,false,false,false,false,false,false,0,false,false,ffb1a627,old default
+minecraft:yellow_concrete_powder,,15,false,false,false,false,false,false,false,0,false,false,ffb1a627,old default
+minecraft:yellow_glazed_terracotta,facing,15,false,false,false,false,false,false,false,0,false,false,ffb1a627,old default
+minecraft:yellow_shulker_box,facing,0,false,false,false,false,true,false,false,0,false,false,ffb1a627,old default
+minecraft:yellow_stained_glass,,15,false,false,false,false,false,false,false,0,false,false,ffe5e533,old default
+minecraft:yellow_stained_glass_pane,,0,false,false,false,false,false,false,false,0,false,false,ffe5e533,old default
+minecraft:yellow_terracotta,,15,true,false,false,false,false,false,false,0,true,false,ffba8523,old default
+minecraft:yellow_wool,,15,false,false,false,false,false,false,false,0,false,false,ffb1a627,old default
+minecraft:zombie_head,rotation,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:zombie_wall_head,facing,0,false,false,false,false,true,false,false,0,false,false,,
+minecraft:attached_pumpkin_stem,,0,false,true,true,false,false,false,true,0,false,false,ff487336,old default
+minecraft:attached_melon_stem,,0,false,true,true,false,false,false,true,0,false,false,ff487336,old default

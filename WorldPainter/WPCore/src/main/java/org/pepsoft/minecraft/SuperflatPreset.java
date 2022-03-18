@@ -173,6 +173,11 @@ public class SuperflatPreset implements Serializable {
         );
     }
 
+    public static SuperflatPreset fromMinecraft1_18_0(CompoundTag tag) {
+        // TODOMC118
+        throw new UnsupportedOperationException("TODO");
+    }
+
     public static SuperflatPreset defaultPreset(Platform platform) {
         return new SuperflatPreset(BIOME_PLAINS, asList(new Layer(MC_BEDROCK, 1), new Layer(MC_DIRT, 2), new Layer(((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODOMC118 make dynamic */) ? MC_GRASS_BLOCK : "minecraft:grass", 1)), emptyMap());
     }

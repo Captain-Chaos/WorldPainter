@@ -10,17 +10,17 @@ package org.pepsoft.worldpainter.themes;
  * @author SchmitzP
  */
 public class HeightFilter implements Filter {
-    public HeightFilter(int maxHeight, int startHeight, int stopHeight, boolean feather) {
+    public HeightFilter(int minHeight, int maxHeight, int startHeight, int stopHeight, boolean feather) {
         this.startHeight = startHeight;
         this.stopHeight = stopHeight;
         this.feather = feather;
         if (feather) {
-            if (startHeight > 0) {
-                start = Math.max(startHeight - 2, 0);
+            if (startHeight > minHeight) {
+                start = Math.max(startHeight - 2, minHeight);
                 fullStart = startHeight + 2;
             } else {
-                start = 0;
-                fullStart = 0;
+                start = minHeight;
+                fullStart = minHeight;
             }
             if (stopHeight < (maxHeight - 1)) {
                 fullEnd = stopHeight - 2;

@@ -49,7 +49,7 @@ public final class ColourUtils {
         }
         int red   = (colour & 0xFF0000) >> 16;
         int green = (colour & 0x00FF00) >> 8;
-        int blue  = colour & 0x0000FF;
+        int blue  =  colour & 0x0000FF;
         red = red * amount;
         if (red > 65535) {
             red = 65535;
@@ -63,5 +63,12 @@ public final class ColourUtils {
             blue = 65535;
         }
         return ((red << 8) & 0xFF0000) | (green & 0x00FF00) | ((blue >> 8) & 0x0000FF);
+    }
+
+    public static boolean isGreyScale(int colour) {
+        final int red   = (colour & 0xFF0000) >> 16;
+        final int green = (colour & 0x00FF00) >> 8;
+        final int blue  =  colour & 0x0000FF;
+        return (red == green) && (red == blue);
     }
 }

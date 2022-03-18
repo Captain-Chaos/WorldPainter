@@ -48,7 +48,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
-import static org.pepsoft.worldpainter.Generator.DEFAULT;
+import static org.pepsoft.worldpainter.Generator.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
 
 /**
@@ -74,7 +74,17 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (init) {
             layerSettings.put(Resources.INSTANCE, ResourcesExporterSettings.defaultSettings(world.getPlatform(), dim, maxHeight));
             topLayerDepthNoise = new PerlinNoise(seed + TOP_LAYER_DEPTH_SEED_OFFSET);
-            generator = new SeededGenerator(DEFAULT, minecraftSeed); // TODOMC118 different for Nether and End?
+            switch (dim) {
+                case DIM_NORMAL:
+                    generator = new SeededGenerator(DEFAULT, minecraftSeed);
+                    break;
+                case DIM_NETHER:
+                    generator = new SeededGenerator(NETHER, minecraftSeed);
+                    break;
+                case DIM_END:
+                    generator = new SeededGenerator(END, minecraftSeed);
+                    break;
+            }
         }
     }
 
@@ -476,6 +486,34 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     public int getIntHeightAt(Point coords) {
         return getIntHeightAt(coords.x, coords.y, -1);
+    }
+
+    public int getLowestIntHeight() {
+        int lowestHeight = Integer.MAX_VALUE;
+        for (Tile tile: tiles.values()) {
+            int tileLowestHeight = tile.getLowestIntHeight();
+            if (tileLowestHeight < lowestHeight) {
+                lowestHeight = tileLowestHeight;
+            }
+            if (lowestHeight <= minHeight) {
+                return minHeight;
+            }
+        }
+        return lowestHeight;
+    }
+
+    public int getHightestIntHeight() {
+        int highestHeight = Integer.MIN_VALUE;
+        for (Tile tile: tiles.values()) {
+            int tileHighestHeight = tile.getHighestIntHeight();
+            if (tileHighestHeight > highestHeight) {
+                highestHeight = tileHighestHeight;
+            }
+            if (highestHeight >= (maxHeight - 1)) {
+                return maxHeight;
+            }
+        }
+        return highestHeight;
     }
 
     public float getHeightAt(int x, int y) {
@@ -1246,7 +1284,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     public void setGenerator(MapGenerator generator) {
         if (propertyChangeSupport != null) {
-            if ((this.generator == null) ? (generator != null) : (!generator.equals(this.generator))) {
+            if (! Objects.equals(this.generator, generator)) {
                 MapGenerator oldGenerator = this.generator;
                 this.generator = generator;
                 changeNo++;

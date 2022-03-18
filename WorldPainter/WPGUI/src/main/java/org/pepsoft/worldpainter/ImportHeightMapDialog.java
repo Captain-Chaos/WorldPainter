@@ -47,6 +47,7 @@ import static org.pepsoft.util.swing.SpinnerUtils.setMaximum;
 import static org.pepsoft.worldpainter.Constants.MAX_HEIGHT;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.HeightTransform.IDENTITY;
 import static org.pepsoft.worldpainter.util.LayoutUtils.setDefaultSizeAndLocation;
 import static org.pepsoft.worldpainter.util.MinecraftUtil.blocksToWalkingTime;
 
@@ -198,7 +199,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         } else {
             themeEditor.save();
             final SimpleTheme theme = themeEditor.getTheme();
-            theme.setMaxHeight(maxHeight);
+            theme.setMinMaxHeight(platform.minZ, maxHeight, IDENTITY); // TODO add support for adjusting minHeight
             importer.setTileFactory(new HeightMapTileFactory(seed, new SumHeightMap(new ConstantHeightMap(waterLevel - 4), new NoiseHeightMap((float) 20, 1.0, 1, 0)), platform.minZ, maxHeight, false, theme));
         }
         importer.setMaxHeight(maxHeight);

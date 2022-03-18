@@ -8,22 +8,28 @@ import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.DataUtils;
+import org.pepsoft.worldpainter.AbstractMain;
+import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
+import org.pepsoft.worldpainter.plugins.PlatformProvider;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
-import static org.pepsoft.minecraft.Constants.DATA_VERSION_MC_1_12_2;
-import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
 import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 
 /**
  *
  * @author pepijn
  */
-public class DumpChunk {
-    public static void main(String[] args) throws IOException {
+public class DumpChunk extends AbstractMain {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+        initialisePlatform();
+
         File levelDatFile = new File(args[0]);
         int blockX = Integer.parseInt(args[1]);
         int blockZ = Integer.parseInt(args[2]);
@@ -42,13 +48,11 @@ public class DumpChunk {
                 return;
             }
         }
-        Chunk chunk = (level.getVersion() == VERSION_MCREGION)
-                ? new MCRegionChunk(chunkTag, level.getMaxHeight())
-                : (((level.getDataVersion() <= DATA_VERSION_MC_1_12_2) || (level.getDataVersion() == 0))
-                    ? new MC12AnvilChunk(chunkTag, level.getMaxHeight())
-                    : new MC115AnvilChunk(chunkTag, level.getMaxHeight()));
+        Platform platform = PlatformManager.getInstance().identifyPlatform(levelDatFile.getParentFile());
+        PlatformProvider provider = PlatformManager.getInstance().getPlatformProvider(platform);
+        Chunk chunk = ((JavaPlatformProvider) provider).createChunk(platform, chunkTag, level.getMaxHeight(), true);
 
-        if (! (chunk instanceof MCRegionChunk)) {
+        if (platform.capabilities.contains(BIOMES)) {
             System.out.println("Biomes");
             System.out.println("X-->");
             for (int z = 0; z < 16; z++) {

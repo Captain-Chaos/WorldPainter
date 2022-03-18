@@ -6,6 +6,7 @@ package org.pepsoft.worldpainter.importing;
 
 import org.pepsoft.minecraft.*;
 import org.pepsoft.minecraft.ChunkStore.ChunkVisitor;
+import org.pepsoft.minecraft.SectionedChunk.Section;
 import org.pepsoft.util.LongAttributeKey;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
@@ -220,7 +221,7 @@ public class JavaMapImporter extends MapImporter {
         if (progressReceiver != null) {
             progressReceiver.setMessage(dimension.getName() + " dimension");
         }
-        final int maxHeight = dimension.getMaxHeight();
+        final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
         final int maxY = maxHeight - 1;
         final Set<Point> newChunks = new HashSet<>();
         final Set<String> manMadeBlockTypes = new HashSet<>();
@@ -235,7 +236,7 @@ public class JavaMapImporter extends MapImporter {
             final int total = chunkStore.getChunkCount();
             final AtomicInteger count = new AtomicInteger();
             final StringBuilder reportBuilder = new StringBuilder();
-            if (!chunkStore.visitChunks(new ChunkVisitor() {
+            if (! chunkStore.visitChunks(new ChunkVisitor() {
                 @Override
                 public boolean visitChunk(Chunk chunk) {
                     try {
@@ -251,18 +252,27 @@ public class JavaMapImporter extends MapImporter {
                         final int chunkZ = chunkCoords.z;
 
                         // Sanity checks
+                        if ((chunk instanceof MC115AnvilChunk) || (chunk instanceof MC118AnvilChunk)) {
+                            final String status = (chunk instanceof MC115AnvilChunk) ? ((MC115AnvilChunk) chunk).getStatus() : ((MC118AnvilChunk) chunk).getStatus();
+                            if (status.equals(STATUS_STRUCTURE_STARTS) || status.equals(STATUS_BIOMES)) {
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("Skipping chunk {},{} because the status is {}", chunkX, chunkZ, status);
+                                }
+                                // Minecraft 1.18 seems to put lots of these empty chunks around the already generated parts; skip them
+                                return true;
+                            }
+                        }
                         if (chunk instanceof SectionedChunk) {
-                            SectionedChunk sectionedChunk = (SectionedChunk) chunk;
                             boolean sectionFound = false;
-                            for (SectionedChunk.Section section: sectionedChunk.getSections()) {
+                            for (Section section: ((SectionedChunk) chunk).getSections()) {
                                 if (section != null) {
                                     sectionFound = true;
                                     break;
                                 }
                             }
-                            if (!sectionFound) {
+                            if (! sectionFound) {
                                 if (logger.isDebugEnabled()) {
-                                    logger.debug("Skipping chunk " + chunkX + "," + chunkZ + " because it has no sections, or no sections with y >= 0");
+                                    logger.debug("Skipping chunk {},{} because it has no sections, or no sections with y >= minHeight", chunkX, chunkZ);
                                 }
                                 return true;
                             }
@@ -287,14 +297,14 @@ public class JavaMapImporter extends MapImporter {
                         try {
                             for (int xx = 0; xx < 16; xx++) {
                                 for (int zz = 0; zz < 16; zz++) {
-                                    float height = -1.0f;
-                                    int waterLevel = 0;
+                                    float height = Float.MIN_VALUE;
+                                    int waterLevel = Integer.MIN_VALUE;
                                     boolean floodWithLava = false, frost = false;
                                     Terrain terrain = Terrain.BEDROCK;
-                                    for (int y = Math.min(maxY, chunk.getHighestNonAirBlock(xx, zz)); y >= 0; y--) {
+                                    for (int y = Math.min(maxY, chunk.getHighestNonAirBlock(xx, zz)); y >= minHeight; y--) {
                                         Material material = chunk.getMaterial(xx, y, zz);
-                                        if (!material.natural) {
-                                            if (height == -1.0f) {
+                                        if (! material.natural) {
+                                            if (height == Float.MIN_VALUE) {
                                                 manMadeStructuresAboveGround = true;
                                             } else {
                                                 manMadeStructuresBelowGround = true;
@@ -307,7 +317,7 @@ public class JavaMapImporter extends MapImporter {
                                         if ((name == MC_SNOW) || (name == MC_ICE) || (name == MC_FROSTED_ICE)) {
                                             frost = true;
                                         }
-                                        if ((waterLevel == 0)
+                                        if ((waterLevel == Integer.MIN_VALUE)
                                                 && ((name == MC_ICE)
                                                 || (name == MC_FROSTED_ICE)
                                                 || (material.watery)
@@ -317,7 +327,7 @@ public class JavaMapImporter extends MapImporter {
                                             if (name == MC_LAVA) {
                                                 floodWithLava = true;
                                             }
-                                        } else if (height == -1.0f) {
+                                        } else if (height == Float.MIN_VALUE) {
                                             if (TERRAIN_MAPPING.containsKey(name)) {
                                                 // Terrain found
                                                 height = y - 0.4375f; // Value that falls in the middle of the lowest one eighth which will still round to the same integer value and will receive a one layer thick smooth snow block (principle of least surprise)
@@ -327,22 +337,26 @@ public class JavaMapImporter extends MapImporter {
                                     }
                                     // Use smooth snow, if present, to better approximate world height, so smooth snow will survive merge
                                     final int intHeight = (int) (height + 0.5f);
-                                    if ((height != -1.0f) && (intHeight < maxY)) {
+                                    if ((height != Float.MIN_VALUE) && (intHeight < maxY)) {
                                         Material materialAbove = chunk.getMaterial(xx, intHeight + 1, zz);
                                         if (materialAbove.isNamed(MC_SNOW)) {
                                             int layers = materialAbove.getProperty(LAYERS);
                                             height += layers * 0.125;
                                         }
                                     }
-                                    if ((waterLevel == 0) && (height >= 61.5f)) {
-                                        waterLevel = 62;
+                                    if (waterLevel == Integer.MIN_VALUE) {
+                                        if (height >= 61.5f) {
+                                            waterLevel = 62;
+                                        } else {
+                                            waterLevel = minHeight;
+                                        }
                                     }
 
                                     final int blockX = (chunkX << 4) | xx;
                                     final int blockY = (chunkZ << 4) | zz;
                                     final Point coords = new Point(blockX, blockY);
                                     dimension.setTerrainAt(coords, terrain);
-                                    dimension.setHeightAt(coords, Math.max(height, 0.0f));
+                                    dimension.setHeightAt(coords, Math.max(height, minHeight));
                                     dimension.setWaterLevelAt(blockX, blockY, waterLevel);
                                     if (frost) {
                                         dimension.setBitLayerValueAt(Frost.INSTANCE, blockX, blockY, true);
@@ -350,7 +364,7 @@ public class JavaMapImporter extends MapImporter {
                                     if (floodWithLava) {
                                         dimension.setBitLayerValueAt(FloodWithLava.INSTANCE, blockX, blockY, true);
                                     }
-                                    if (height == -1.0f) {
+                                    if (height == Float.MIN_VALUE) {
                                         dimension.setBitLayerValueAt(org.pepsoft.worldpainter.layers.Void.INSTANCE, blockX, blockY, true);
                                     }
                                     if (importBiomes) {
@@ -375,8 +389,14 @@ public class JavaMapImporter extends MapImporter {
                                             if (BIOMES_BY_MODERN_ID.containsKey(biomeStr)) {
                                                 biome = BIOMES_BY_MODERN_ID.get(biomeStr);
                                             } else if (customNamedBiomes.containsKey(biomeStr)) {
+                                                // This is a new biome that WorldPainter does not know about yet, or one
+                                                // from a mod, but we have encountered it before and assigned it a
+                                                // custom ID; reuse that
                                                 biome = customNamedBiomes.get(biomeStr);
                                             } else {
+                                                // This is a new biome that WorldPainter does not know about yet, or one
+                                                // from a mod, that we have not yet encountered before. Choose a custom
+                                                // ID for it and record it
                                                 int customId;
                                                 do {
                                                     customId = nextCustomBiomeId.getAndIncrement();
@@ -385,6 +405,7 @@ public class JavaMapImporter extends MapImporter {
                                                     throw new RuntimeException("More unknown biomes in dimension than available custom biome ids");
                                                 }
                                                 biome = customId;
+                                                customNamedBiomes.put(biomeStr, biome);
                                             }
                                         } else {
                                             biome = defaultBiome;
@@ -495,6 +516,7 @@ public class JavaMapImporter extends MapImporter {
         TERRAIN_MAPPING.put(MC_COARSE_DIRT, Terrain.PERMADIRT);
         TERRAIN_MAPPING.put(MC_PODZOL, Terrain.PODZOL);
         TERRAIN_MAPPING.put(MC_FARMLAND, Terrain.DIRT);
+        TERRAIN_MAPPING.put(MC_ROOTED_DIRT, Terrain.DIRT);
         TERRAIN_MAPPING.put(MC_BEDROCK, Terrain.BEDROCK);
         TERRAIN_MAPPING.put(MC_SAND, Terrain.SAND);
         TERRAIN_MAPPING.put(MC_RED_SAND, Terrain.RED_SAND);
@@ -505,6 +527,7 @@ public class JavaMapImporter extends MapImporter {
         TERRAIN_MAPPING.put(MC_LAPIS_ORE, Terrain.STONE);
         TERRAIN_MAPPING.put(MC_DIAMOND_ORE, Terrain.STONE);
         TERRAIN_MAPPING.put(MC_REDSTONE_ORE, Terrain.STONE);
+        TERRAIN_MAPPING.put(MC_COPPER_ORE, Terrain.STONE);
         TERRAIN_MAPPING.put(MC_INFESTED_STONE, Terrain.STONE);
         TERRAIN_MAPPING.put(MC_SANDSTONE, Terrain.SANDSTONE);
         TERRAIN_MAPPING.put(MC_RED_SANDSTONE, Terrain.RED_SANDSTONE);
@@ -513,11 +536,14 @@ public class JavaMapImporter extends MapImporter {
         TERRAIN_MAPPING.put(MC_CLAY, Terrain.CLAY);
         TERRAIN_MAPPING.put(MC_NETHERRACK, Terrain.NETHERRACK);
         TERRAIN_MAPPING.put(MC_NETHER_QUARTZ_ORE, Terrain.NETHERRACK);
+        TERRAIN_MAPPING.put(MC_NETHER_GOLD_ORE, Terrain.NETHERRACK);
+        TERRAIN_MAPPING.put(MC_ANCIENT_DEBRIS, Terrain.NETHERRACK);
         TERRAIN_MAPPING.put(MC_SOUL_SAND, Terrain.SOUL_SAND);
         TERRAIN_MAPPING.put(MC_MYCELIUM, Terrain.MYCELIUM);
         TERRAIN_MAPPING.put(MC_END_STONE, Terrain.END_STONE);
         TERRAIN_MAPPING.put(MC_TERRACOTTA, Terrain.HARDENED_CLAY);
         TERRAIN_MAPPING.put(MC_GRASS_PATH, Terrain.GRASS_PATH);
+        TERRAIN_MAPPING.put(MC_DIRT_PATH, Terrain.GRASS_PATH);
         TERRAIN_MAPPING.put(MC_MAGMA_BLOCK, Terrain.MAGMA); // TODO: or should this be mapped to stone and magma added to the Resources layer?
         TERRAIN_MAPPING.put(MC_WHITE_TERRACOTTA, Terrain.WHITE_STAINED_CLAY);
         TERRAIN_MAPPING.put(MC_ORANGE_TERRACOTTA, Terrain.ORANGE_STAINED_CLAY);
@@ -535,6 +561,22 @@ public class JavaMapImporter extends MapImporter {
         TERRAIN_MAPPING.put(MC_GREEN_TERRACOTTA, Terrain.GREEN_STAINED_CLAY);
         TERRAIN_MAPPING.put(MC_RED_TERRACOTTA, Terrain.RED_STAINED_CLAY);
         TERRAIN_MAPPING.put(MC_BLACK_TERRACOTTA, Terrain.BLACK_STAINED_CLAY);
+        TERRAIN_MAPPING.put(MC_DEEPSLATE, Terrain.DEEPSLATE);
+        TERRAIN_MAPPING.put(MC_INFESTED_DEEPSLATE, Terrain.DEEPSLATE);
+        TERRAIN_MAPPING.put(MC_DEEPSLATE_COAL_ORE, Terrain.DEEPSLATE);
+        TERRAIN_MAPPING.put(MC_DEEPSLATE_COPPER_ORE, Terrain.DEEPSLATE);
+        TERRAIN_MAPPING.put(MC_DEEPSLATE_LAPIS_ORE, Terrain.DEEPSLATE);
+        TERRAIN_MAPPING.put(MC_DEEPSLATE_IRON_ORE, Terrain.DEEPSLATE);
+        TERRAIN_MAPPING.put(MC_DEEPSLATE_GOLD_ORE, Terrain.DEEPSLATE);
+        TERRAIN_MAPPING.put(MC_DEEPSLATE_REDSTONE_ORE, Terrain.DEEPSLATE);
+        TERRAIN_MAPPING.put(MC_DEEPSLATE_DIAMOND_ORE, Terrain.DEEPSLATE);
+        TERRAIN_MAPPING.put(MC_DEEPSLATE_EMERALD_ORE, Terrain.DEEPSLATE);
+        TERRAIN_MAPPING.put(MC_TUFF, Terrain.TUFF);
+        TERRAIN_MAPPING.put(MC_BASALT, Terrain.BASALT);
+        TERRAIN_MAPPING.put(MC_BLACKSTONE, Terrain.BLACKSTONE);
+        TERRAIN_MAPPING.put(MC_SOUL_SOIL, Terrain.SOUL_SOIL);
+        TERRAIN_MAPPING.put(MC_WARPED_NYLIUM, Terrain.WARPED_NYLIUM);
+        TERRAIN_MAPPING.put(MC_CRIMSON_NYLIUM, Terrain.CRIMSON_NYLIUM);
     }
 
     static {

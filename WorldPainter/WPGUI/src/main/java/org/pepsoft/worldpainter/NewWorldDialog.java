@@ -525,12 +525,15 @@ public class NewWorldDialog extends WorldPainterDialog {
                     dimension.setLayerSettings(entry.getKey(), entry.getValue().clone());
                 }
                 MapGenerator generator = config.getDefaultGenerator();
+                if (generator instanceof SeededGenerator) {
+                    ((SeededGenerator) generator).setSeed(dimension.getMinecraftSeed());
+                }
                 if (minecraft11Only && (generator.getType() == Generator.LARGE_BIOMES)) {
                     generator = new SeededGenerator(DEFAULT, dimension.getMinecraftSeed());
                 } else if ((! minecraft11Only) && ((dimension.getMinecraftSeed() == World2.DEFAULT_OCEAN_SEED) || (dimension.getMinecraftSeed() == World2.DEFAULT_LAND_SEED)) && (generator.getType() == Generator.DEFAULT)) {
                     generator = new SeededGenerator(LARGE_BIOMES, dimension.getMinecraftSeed());
                 }
-                dimension.setGenerator(generator); // TODOMC118 do we need to set the generator for Nether and End?
+                dimension.setGenerator(generator);
             }
             dimension.setBorderLevel(waterHeight);
             dimension.setCoverSteepTerrain(defaults.isCoverSteepTerrain());
@@ -604,7 +607,7 @@ public class NewWorldDialog extends WorldPainterDialog {
             private final Map<Point, Tile> cache = new HashMap<>();
         };
         Configuration config = Configuration.getInstance();
-        tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, app.getColourScheme(config.getColourschemeIndex()), app.getCustomBiomeManager(), Collections.singleton(Biome.INSTANCE), config.isDefaultContoursEnabled(), config.getDefaultContourSeparation(), config.getDefaultLightOrigin(), false, null));
+        tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, ColourScheme.DEFAULT, app.getCustomBiomeManager(), Collections.singleton(Biome.INSTANCE), config.isDefaultContoursEnabled(), config.getDefaultContourSeparation(), config.getDefaultLightOrigin(), false, null));
     }
     
     private TileFactory createTileFactory(long seed) {

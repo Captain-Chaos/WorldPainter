@@ -2,6 +2,7 @@ package org.pepsoft.minecraft;
 
 import org.jnbt.CompoundTag;
 import org.jnbt.StringTag;
+import org.jnbt.Tag;
 import org.pepsoft.worldpainter.Generator;
 import org.pepsoft.worldpainter.Platform;
 
@@ -46,7 +47,7 @@ public abstract class MapGenerator implements Serializable {
             case CUSTOMIZED:
                 return new SeededGenerator(type, seed);
             case CUSTOM:
-                return new CustomGenerator(name);
+                return new CustomGenerator(name, (options instanceof Tag) ? ((Tag) options) : null);
             case UNKNOWN:
                 return UNKNOWN;
             default:

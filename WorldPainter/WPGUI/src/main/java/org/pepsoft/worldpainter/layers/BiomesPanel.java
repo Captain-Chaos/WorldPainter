@@ -121,8 +121,9 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
 
     private void loadBiomes(BiomesSet biomesSet, ColourScheme colourScheme) {
         if (this.biomesSet != null) {
-            while (((JComponent) grid.getComponent(0)).getClientProperty(KEY_ADD_BUTTON) == null) {
-                // The first component is not the "add custom biome" button; keep removing components until it is
+            while ((((JComponent) grid.getComponent(0)).getClientProperty(KEY_ADD_BUTTON) == null)
+                    && (((JComponent) grid.getComponent(0)).getClientProperty(KEY_CUSTOM_BIOME) == null)) {
+                // The first component is not the "add custom biome" button or a custom biome; keep removing components until it is
                 grid.remove(0);
             }
         }
@@ -254,6 +255,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         final int biome = customBiome.getId();
         final JToggleButton button = new JToggleButton(IconUtils.createScaledColourIcon(customBiome.getColour()));
         button.putClientProperty(KEY_BIOME, biome);
+        button.putClientProperty(KEY_CUSTOM_BIOME, TRUE);
         button.setMargin(App.BUTTON_INSETS);
         button.setToolTipText(customBiome.getName() + " (" + biome + "); right-click for options");
         button.addMouseListener(new MouseAdapter() {
@@ -387,6 +389,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     private static final String KEY_BIOME = BiomesPanel.class.getName() + ".biome";
     private static final String KEY_BIOME_OPTION = BiomesPanel.class.getName() + ".biomeOption";
     private static final String KEY_ADD_BUTTON = BiomesPanel.class.getName() + ".addButton";
+    private static final String KEY_CUSTOM_BIOME = BiomesPanel.class.getName() + ".customBiome";
 
     private static final BiomeDescriptor[] MC_117_DESCRIPTORS = {
         new BiomeDescriptor(BIOME_OCEAN, 0),

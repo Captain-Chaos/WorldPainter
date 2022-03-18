@@ -4,6 +4,10 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
+import org.pepsoft.worldpainter.heightMaps.ProductHeightMap;
+import org.pepsoft.worldpainter.heightMaps.SumHeightMap;
+
 /**
  *
  * @author pepijn
@@ -25,7 +29,17 @@ public class HeightTransform {
     public int transformHeight(int height) {
         return (int) (height * scalingFactor + translateAmount + 0.5f);
     }
-    
+
+    public HeightMap transformHeightMap(HeightMap heightMap) {
+        if (scalingFactor != 1.0f) {
+            heightMap = new ProductHeightMap(heightMap.getName(), heightMap, new ConstantHeightMap("scale", scalingFactor));
+        }
+        if (translateAmount != 0) {
+            heightMap = new SumHeightMap(heightMap.getName(), heightMap, new ConstantHeightMap("translate", translateAmount));
+        }
+        return heightMap;
+    }
+
     public static HeightTransform get(int scaleAmount, int translateAmount) {
         if ((scaleAmount == 100) && (translateAmount == 0)) {
             return IDENTITY;
@@ -51,6 +65,11 @@ public class HeightTransform {
         @Override
         public int transformHeight(int height) {
             return height;
+        }
+
+        @Override
+        public HeightMap transformHeightMap(HeightMap heightMap) {
+            return heightMap;
         }
     };
 }

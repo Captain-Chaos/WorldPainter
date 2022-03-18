@@ -5,9 +5,7 @@ import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
 import org.jnbt.NBTOutputStream;
 import org.pepsoft.minecraft.*;
-import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
-import org.pepsoft.worldpainter.layers.ReadOnly;
 import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,11 +27,9 @@ import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
  * Created by Pepijn on 15-12-2016.
  */
 public class JavaChunkStore implements ChunkStore {
-    public JavaChunkStore(JavaPlatformProvider platformProvider, File regionDir, boolean honourReadOnlyChunks, Dimension dimension, int maxHeight) {
+    public JavaChunkStore(JavaPlatformProvider platformProvider, File regionDir, int maxHeight) {
         this.platformProvider = platformProvider;
         this.regionDir = regionDir;
-        this.honourReadOnlyChunks = honourReadOnlyChunks;
-        this.dimension = dimension;
         this.maxHeight = maxHeight;
         platform = platformProvider.getPlatform();
         if (! ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18))) {
@@ -179,22 +175,15 @@ public class JavaChunkStore implements ChunkStore {
     }
 
     /**
-     * Load a chunk. Returns {@code null} if the chunk is outside the
-     * WorldPainter world boundaries.
+     * Load a chunk. Returns {@code null} if the chunk does not exist in the map.
      *
-     * @param x The X coordinate in the Minecraft coordinate system of the chunk
-     *     to load.
-     * @param z The Z coordinate in the Minecraft coordinate system of the chunk
-     *     to load.
-     * @return The specified chunk, or {@code null} if the coordinates are
-     *     outside the WorldPainter world boundaries.
+     * @param x The X coordinate in the Minecraft coordinate system of the chunk to load.
+     * @param z The Z coordinate in the Minecraft coordinate system of the chunk to load.
+     * @return The specified chunk, or {@code null} if the chunk does not exist in the map.
      */
     @Override
     public Chunk getChunk(int x, int z) {
 //        updateStatistics();
-//        if ((x < lowestX) || (x > highestX) || (z < lowestZ) || (z > highestZ)) {
-//            return null;
-//        }
 //        long start = System.currentTimeMillis();
         try {
             RegionFile regionFile = getRegionFile(new Point(x >> 5, z >> 5));
@@ -207,8 +196,7 @@ public class JavaChunkStore implements ChunkStore {
                 try (NBTInputStream in = new NBTInputStream(chunkIn)) {
                     CompoundTag tag = (CompoundTag) in.readTag();
 //                    timeSpentLoading += System.currentTimeMillis() - start;
-                    boolean readOnly = honourReadOnlyChunks && dimension.getBitLayerValueAt(ReadOnly.INSTANCE, x << 4, z << 4);
-                    return platformProvider.createChunk(platform, tag, maxHeight, readOnly);
+                    return platformProvider.createChunk(platform, tag, maxHeight, false);
                 }
             } else {
 //                timeSpentLoading += System.currentTimeMillis() - start;
@@ -220,15 +208,11 @@ public class JavaChunkStore implements ChunkStore {
     }
 
     /**
-     * Load a chunk. Returns {@code null} if the chunk is outside the
-     * WorldPainter world boundaries.
+     * Load a chunk. Returns {@code null} if the chunk does not exist in the map.
      *
-     * @param x The X coordinate in the Minecraft coordinate system of the chunk
-     *     to load.
-     * @param z The Z coordinate in the Minecraft coordinate system of the chunk
-     *     to load.
-     * @return The specified chunk, or {@code null} if the coordinates are
-     *     outside the WorldPainter world boundaries.
+     * @param x The X coordinate in the Minecraft coordinate system of the chunk to load.
+     * @param z The Z coordinate in the Minecraft coordinate system of the chunk to load.
+     * @return The specified chunk, or {@code null} if the chunk does not exist in the map.
      */
     @Override
     public Chunk getChunkForEditing(int x, int z) {
@@ -350,8 +334,6 @@ public class JavaChunkStore implements ChunkStore {
     private final JavaPlatformProvider platformProvider;
     private final File regionDir;
     private final Map<Point, RegionFile> regionFiles = new HashMap<>();
-    private final boolean honourReadOnlyChunks;
-    private final Dimension dimension;
     private final int maxHeight;
 
     private static final Map<String, Set<Integer>> LEGACY_TILE_ENTITY_MAP = new HashMap<>();
