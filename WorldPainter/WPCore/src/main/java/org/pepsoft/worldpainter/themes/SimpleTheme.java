@@ -346,7 +346,7 @@ public class SimpleTheme implements Theme, Cloneable {
         float factor = maxHeight / 128f;
         terrainRanges.put(minHeight - 1                    , topTerrain);
         terrainRanges.put((int) (32 * factor) + waterHeight, Terrain.PERMADIRT);
-        terrainRanges.put((int) (48 * factor) + waterHeight, Terrain.ROCK);
+        terrainRanges.put((int) (48 * factor) + waterHeight, Terrain.STONE_MIX);
         terrainRanges.put((int) (80 * factor) + waterHeight, Terrain.DEEP_SNOW);
         Map<Filter, Layer> layerMap = new HashMap<>();
         layerMap.put(new HeightFilter(minHeight, maxHeight, (int) (64 * factor) + waterHeight, maxHeight, true), Frost.INSTANCE);

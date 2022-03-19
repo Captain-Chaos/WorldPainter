@@ -37,6 +37,8 @@ import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
+import static org.pepsoft.worldpainter.Terrain.ROCK;
+import static org.pepsoft.worldpainter.Terrain.STONE_MIX;
 import static org.pepsoft.worldpainter.World2.DEFAULT_OCEAN_SEED;
 
 /**
@@ -888,7 +890,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
                                 layerMap.put(new HeightFilter(0, defaultMaxHeight, entry.getKey(), defaultMaxHeight - 1, theme.isRandomise()), Frost.INSTANCE);
                                 frostAdded = true;
                             }
-                            entry.setValue(Terrain.ROCK);
+                            entry.setValue(Terrain.STONE_MIX);
                         }
                     }
                     if (! layerMap.isEmpty()) {
@@ -978,6 +980,23 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         if (version < 19) {
             if (defaultPlatformId.equals(JAVA_ANVIL.id)) {
                 defaultPlatformId = JAVA_ANVIL_1_15.id;
+            }
+        }
+        if (version < 20) {
+            // Check whether the default terrain map still has the "rock" terrain type, which is inconsistent and
+            // problematic, and if so replace it with "stone mix".
+            if ((defaultTerrainAndLayerSettings.getTileFactory() instanceof HeightMapTileFactory)
+                    && (((HeightMapTileFactory) defaultTerrainAndLayerSettings.getTileFactory()).getTheme() instanceof SimpleTheme)) {
+                SimpleTheme theme = (SimpleTheme) ((HeightMapTileFactory) defaultTerrainAndLayerSettings.getTileFactory()).getTheme();
+                // Very old maps don't have terrainRanges set. They are out of
+                // luck; it's not worth migrating them as well
+                if (theme.getTerrainRanges() != null) {
+                    theme.getTerrainRanges().entrySet().forEach(entry -> {
+                        if (entry.getValue() == ROCK) {
+                            entry.setValue(STONE_MIX);
+                        }
+                    });
+                }
             }
         }
         if (minimumFreeSpaceForMaps == 0) {
@@ -1196,7 +1215,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Configuration.class);
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
-    private static final int CURRENT_VERSION = 19;
+    private static final int CURRENT_VERSION = 20;
     public static final String ADVANCED_SETTING_PREFIX = "org.pepsoft.worldpainter";
 
     public enum DonationStatus {DONATED, NO_THANK_YOU}
