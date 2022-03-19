@@ -1903,6 +1903,9 @@ public final class Material implements Serializable {
     public static final Material CRIMSON_NYLIUM = get(MC_CRIMSON_NYLIUM);
     public static final Material ROOTED_DIRT = get(MC_ROOTED_DIRT);
     public static final Material INFESTED_DEEPSLATE = get(MC_INFESTED_DEEPSLATE);
+    public static final Material BAMBOO_NO_LEAVES = get(MC_BAMBOO, MC_STAGE, 0, MC_AGE, 0, MC_LEAVES, "none");
+    public static final Material BAMBOO_SMALL_LEAVES = get(MC_BAMBOO, MC_STAGE, 0, MC_AGE, 0, MC_LEAVES, "small");
+    public static final Material BAMBOO_LARGE_LEAVES = get(MC_BAMBOO, MC_STAGE, 0, MC_AGE, 0, MC_LEAVES, "large");
 
     // Namespaces
 

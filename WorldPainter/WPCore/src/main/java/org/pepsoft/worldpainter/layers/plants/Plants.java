@@ -101,12 +101,13 @@ public class Plants {
     };
     public static final Plant SEAGRASS = new SimplePlant("Seagrass", Material.SEAGRASS, WATER_PLANTS);
     public static final Plant TALL_SEAGRASS = new DoubleHighPlant("Tall Seagrass", Material.TALL_SEAGRASS, WATER_PLANTS);
-    public static final AgingPlant SEA_PICKLE = new AgingPlant("Sea Pickle", Material.SEA_PICKLE, WATER_PLANTS, "item/sea_pickle.png", 4) {
+    public static final Plant SEA_PICKLE = new AgingPlant("Sea Pickle", Material.SEA_PICKLE, WATER_PLANTS, "item/sea_pickle.png", 4) {
         @Override
         public AgingPlant realise(int growth, Platform platform) {
             return new AgingPlant(name, material.withProperty(PICKLES, growth), category, iconName, maxGrowth);
         }
     };
+    public static final Plant BAMBOO = new VariableHeightPlant("Bamboo", BAMBOO_NO_LEAVES, BAMBOO_LARGE_LEAVES, PLANTS_AND_FLOWERS, 16); // TODO better approximate Minecraft-generated bamboo
 
     // The code which uses this assumes there will never be more than 128
     // plants. If that ever happens it needs to be overhauled!
@@ -123,7 +124,7 @@ public class Plants {
             FIRE_CORAL, HORN_CORAL, TUBE_CORAL_FAN, BRAIN_CORAL_FAN,
             BUBBLE_CORAL_FAN, FIRE_CORAL_FAN, HORN_CORAL_FAN, KELP, SEAGRASS,
             TALL_SEAGRASS, SEA_PICKLE, CORNFLOWER, LILY_OF_THE_VALLEY,
-            WITHER_ROSE, SWEET_BERRY_BUSH};
+            WITHER_ROSE, SWEET_BERRY_BUSH, BAMBOO};
 
     private static final Random RANDOM = new Random();
 }

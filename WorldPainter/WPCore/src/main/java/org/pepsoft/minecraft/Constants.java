@@ -528,6 +528,7 @@ public final class Constants {
     public static final String MC_CRIMSON_NYLIUM = "minecraft:crimson_nylium";
     public static final String MC_POTTED_FERN = "minecraft:potted_fern";
     public static final String MC_INFESTED_DEEPSLATE = "minecraft:infested_deepslate";
+    public static final String MC_BAMBOO = "minecraft:bamboo";
 
     // MC 1.18 biome names
 
@@ -556,6 +557,7 @@ public final class Constants {
     public static final String MC_ROTATION    = "rotation";
     public static final String MC_SHAPE       = "shape";
     public static final String MC_HINGE       = "hinge";
+    public static final String MC_LEAVES      = "leaves";
 
     // Minecraft NBT tag names. An underscore at the end signifies a lower case
     // initial
