@@ -44,10 +44,8 @@ import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayerDialog;
 import org.pepsoft.worldpainter.operations.*;
-import org.pepsoft.worldpainter.painting.LayerPaint;
 import org.pepsoft.worldpainter.painting.Paint;
-import org.pepsoft.worldpainter.painting.PaintFactory;
-import org.pepsoft.worldpainter.painting.TerrainPaint;
+import org.pepsoft.worldpainter.painting.*;
 import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.panels.InfoPanel;
@@ -399,17 +397,6 @@ public final class App extends JFrame implements RadiusControl,
                 ACTION_EXPORT_WORLD.setEnabled(true);
                 ACTION_MERGE_WORLD.setEnabled(true);
             }
-
-            loadPlatformSettings();
-        }
-    }
-
-    private void loadPlatformSettings() {
-        Platform platform = world.getPlatform();
-        if (! platform.capabilities.contains(POPULATE)) {
-            layerControls.get(Populate.INSTANCE).disable("Automatic population not support by format " + platform);
-        } else {
-            layerControls.get(Populate.INSTANCE).setEnabled(true);
         }
     }
 
@@ -526,7 +513,7 @@ public final class App extends JFrame implements RadiusControl,
             view.setDimension(dimension);
             view.moveTo(dimension.getLastViewPosition());
             
-            setDimensionControlStates(world.getPlatform());
+            configureForPlatform();
             currentUndoManager = undoManagers.get(dimension.getDim());
             if (currentUndoManager == null) {
                 if ((! "true".equals(System.getProperty("org.pepsoft.worldpainter.disableUndo"))) && config.isUndoEnabled()) {
@@ -614,8 +601,6 @@ public final class App extends JFrame implements RadiusControl,
             for (Tile tile: dimension.getTiles()) {
                 tile.addListener(this);
             }
-
-            biomesPanel.loadBiomes(world.getPlatform(), selectedColourScheme);
         } else {
             view.setDimension(null);
             setTitle("WorldPainter"); // NOI18N
@@ -1175,10 +1160,6 @@ public final class App extends JFrame implements RadiusControl,
         recentMenu.setEnabled(recentMenu.getMenuComponentCount() > 0);
     }
 
-    private void configureForPlatform(Platform platform) {
-        setDimensionControlStates(platform);
-    }
-
     public static Mode getMode() {
         return mode;
     }
@@ -1200,7 +1181,7 @@ public final class App extends JFrame implements RadiusControl,
         } else if (evt.getSource() == world) {
             lastChangeTimestamp = System.currentTimeMillis();
             if (evt.getPropertyName().equals("platform")) {
-                doOnEventThread(() -> configureForPlatform((Platform) evt.getNewValue()));
+                doOnEventThread(this::configureForPlatform);
             }
         }
     }
@@ -4458,7 +4439,7 @@ public final class App extends JFrame implements RadiusControl,
             if ((dimension != null) && (dimension.getDim() == DIM_NORMAL_CEILING)) {
                 viewDimension(DIM_NORMAL);
             } else {
-                setDimensionControlStates(world.getPlatform());
+                configureForPlatform();
                 if (dimension.getDim() == DIM_NORMAL) {
                     view.refreshTiles();
                 }
@@ -4500,7 +4481,7 @@ public final class App extends JFrame implements RadiusControl,
             if ((dimension != null) && (dimension.getDim() == DIM_NETHER_CEILING)) {
                 viewDimension(DIM_NETHER);
             } else {
-                setDimensionControlStates(world.getPlatform());
+                configureForPlatform();
                 if (dimension.getDim() == DIM_NETHER) {
                     view.refreshTiles();
                 }
@@ -4542,7 +4523,7 @@ public final class App extends JFrame implements RadiusControl,
             if ((dimension != null) && (dimension.getDim() == DIM_END_CEILING)) {
                 viewDimension(DIM_END);
             } else {
-                setDimensionControlStates(world.getPlatform());
+                configureForPlatform();
                 if (dimension.getDim() == DIM_END) {
                     view.refreshTiles();
                 }
@@ -4723,7 +4704,7 @@ public final class App extends JFrame implements RadiusControl,
             if ((dimension != null) && ((dimension.getDim() == DIM_NETHER) || (dimension.getDim() == DIM_NETHER_CEILING))) {
                 viewDimension(DIM_NORMAL);
             } else {
-                setDimensionControlStates(world.getPlatform());
+                configureForPlatform();
             }
             showMessageDialog(this, "The Nether dimension was successfully deleted", "Success", INFORMATION_MESSAGE);
         }
@@ -4765,7 +4746,7 @@ public final class App extends JFrame implements RadiusControl,
             if ((dimension != null) && ((dimension.getDim() == DIM_END) || (dimension.getDim() == DIM_END_CEILING))) {
                 viewDimension(DIM_NORMAL);
             } else {
-                setDimensionControlStates(world.getPlatform());
+                configureForPlatform();
             }
             showMessageDialog(this, "The End dimension was successfully deleted", "Success", INFORMATION_MESSAGE);
         }
@@ -5189,7 +5170,8 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    private void setDimensionControlStates(Platform platform) {
+    private void configureForPlatform() {
+        final Platform platform = world.getPlatform();
         boolean imported = (world != null) && (world.getImportedFrom() != null);
         boolean nether = (world != null) && (world.getDimension(DIM_NETHER) != null);
         boolean end = (world != null) && (world.getDimension(DIM_END) != null);
@@ -5214,13 +5196,17 @@ public final class App extends JFrame implements RadiusControl,
         removeEndCeilingMenuItem.setEnabled(endCeiling);
         if (dimension != null) {
             final boolean biomesSupported = platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
+            if ((! biomesSupported) && (paint instanceof DiscreteLayerPaint) && (((DiscreteLayerPaint) paint).getLayer() == Biome.INSTANCE)) {
+                deselectPaint();
+            }
+            biomesPanelFrame.setEnabled(biomesSupported);
+            // TODO deselect biomes panel if it was selected
+            layerControls.get(Biome.INSTANCE).setEnabled(biomesSupported);
             switch (dimension.getDim()) {
                 case DIM_NORMAL:
                 case DIM_NORMAL_CEILING:
                     setSpawnPointToggleButton.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
                     ACTION_MOVE_TO_SPAWN.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
-                    biomesPanelFrame.setEnabled(biomesSupported);
-                    layerControls.get(Biome.INSTANCE).setEnabled(biomesSupported);
                     break;
                 default:
                     if (activeOperation instanceof SetSpawnPoint) {
@@ -5228,8 +5214,6 @@ public final class App extends JFrame implements RadiusControl,
                     }
                     setSpawnPointToggleButton.setEnabled(false);
                     ACTION_MOVE_TO_SPAWN.setEnabled(false);
-                    biomesPanelFrame.setEnabled(biomesSupported);
-                    layerControls.get(Biome.INSTANCE).setEnabled(biomesSupported);
                     break;
             }
             boolean enableHighResHeightMapMenuItem = dimension.getMaxHeight() <= 256;
@@ -5237,6 +5221,12 @@ public final class App extends JFrame implements RadiusControl,
         } else {
             exportHighResHeightMapMenuItem.setEnabled(false);
         }
+        if (! platform.capabilities.contains(POPULATE)) {
+            layerControls.get(Populate.INSTANCE).disable("Automatic population not support by format " + platform);
+        } else {
+            layerControls.get(Populate.INSTANCE).setEnabled(true);
+        }
+        biomesPanel.loadBiomes(platform, selectedColourScheme);
     }
 
     private void addMaterialSelectionTo(final JToggleButton button, final int customMaterialIndex) {
@@ -6220,7 +6210,6 @@ public final class App extends JFrame implements RadiusControl,
                     if (threeDeeFrame != null) {
                         threeDeeFrame.refresh();
                     }
-                    loadPlatformSettings();
                 }
             } finally {
                 resumeAutosave();

@@ -1382,6 +1382,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public final int getAutoBiome(Tile tile, int x, int y) {
+        // TODO add platform support and Minecraft 1.18 biomes
         switch (dim) {
             case DIM_NETHER:
             case DIM_NETHER_CEILING:
