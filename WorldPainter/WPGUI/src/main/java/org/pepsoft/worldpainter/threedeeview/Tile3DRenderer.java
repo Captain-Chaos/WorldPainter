@@ -18,8 +18,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
 
 /**
  *
@@ -29,12 +30,17 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 public class Tile3DRenderer {
     public Tile3DRenderer(Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int rotation) {
         this.dimension = dimension;
+        minHeight = dimension.getMinHeight();
         maxHeight = dimension.getMaxHeight();
         this.colourScheme = colourScheme;
         this.rotation = rotation;
         tileRenderer = new TileRenderer(dimension, colourScheme, customBiomeManager, 0);
         tileRenderer.addHiddenLayers(DEFAULT_HIDDEN_LAYERS);
         tileRenderer.setContourLines(false);
+        stoneColour = colourScheme.getColour(STONE);
+        waterColour = colourScheme.getColour(WATER);
+        lavaColour = colourScheme.getColour(LAVA);
+        iceColour = colourScheme.getColour(ICE);
     }
     
     public BufferedImage render(Tile tile) {
@@ -46,7 +52,7 @@ public class Tile3DRenderer {
         final int tileOffsetX = tile.getX() * TILE_SIZE, tileOffsetY = tile.getY() * TILE_SIZE;
         int currentColour = -1;
         final int imgWidth = TILE_SIZE * 2;
-        final int imgHeight = TILE_SIZE + maxHeight - 1;
+        final int imgHeight = TILE_SIZE + maxHeight - minHeight - 1;
         final int maxZ = maxHeight - 1;
         final BufferedImage img = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(imgWidth, imgHeight, Transparency.TRANSLUCENT);
         final Graphics2D g2 = img.createGraphics();
@@ -90,18 +96,21 @@ public class Tile3DRenderer {
                     } else {
                         floodWithLava = false;
                     }
-                    // Image coordinates
-                    final float imgX = TILE_SIZE + x - y - 0.5f, imgY = (x + y) / 2f + maxHeight - 0.5f;
+                    // Image coordinates of the bottom of the world in this column. Image origin is in the top left
+                    // corner
+                    final float imgX = TILE_SIZE + x - y - 0.5f, imgY = (x + y) / 2f + maxHeight - minHeight - 0.5f;
 //                    System.out.println(blockX + ", " + blockY + " -> " + blockXTranslated + ", " + blockYTranslated + " -> " + imgX + ", " + imgY);
-                    int subsurfaceHeight = Math.max(terrainHeight - dimension.getTopLayerDepth(blockX, blockY, terrainHeight), 0);
+
+                    // First draw the sub surface part of the world in a single solid colour
+                    int subsurfaceHeight = Math.max(terrainHeight - minHeight - dimension.getTopLayerDepth(blockX, blockY, terrainHeight), 0);
                     if (coverSteepTerrain) {
                         subsurfaceHeight = Math.min(subsurfaceHeight,
                             Math.min(Math.min(dimension.getIntHeightAt(blockX - 1, blockY, Integer.MAX_VALUE),
                             dimension.getIntHeightAt(blockX + 1, blockY, Integer.MAX_VALUE)),
                             Math.min(dimension.getIntHeightAt(blockX, blockY - 1, Integer.MAX_VALUE),
-                            dimension.getIntHeightAt(blockX, blockY + 1, Integer.MAX_VALUE))));
+                            dimension.getIntHeightAt(blockX, blockY + 1, Integer.MAX_VALUE))) - minHeight);
                     }
-                    int colour = colourScheme.getColour(BLK_STONE);
+                    int colour = stoneColour; // TODO use the actual (average? most representative?) colour
                     if (colour != currentColour) {
                         g2.setColor(new Color(colour));
                         currentColour = colour;
@@ -118,8 +127,9 @@ public class Tile3DRenderer {
 //                        }
 //                        g2.draw(new Line2D.Float(imgX, imgY - z, imgX + 1, imgY - z));
 //                    }
-                    // Do this per block because they might have different
-                    // colours
+
+                    // Draw the top layer of the terrain, not including the surface block. Do this per block because
+                    // they might have different colours
                     final Terrain terrain = tile.getTerrain(xInTile, yInTile);
                     final MixedMaterial mixedMaterial;
                     final int topLayerOffset;
@@ -142,10 +152,10 @@ public class Tile3DRenderer {
                             g2.setColor(new Color(colour));
                             currentColour = colour;
                         }
-                        g2.fill(new Rectangle2D.Float(imgX, imgY - terrainHeight + 1, 2, terrainHeight - subsurfaceHeight - 1));
+                        g2.fill(new Rectangle2D.Float(imgX, imgY - terrainHeight + minHeight + 1, 2, terrainHeight - minHeight - subsurfaceHeight - 1));
                     } else {
-                        Material nextMaterial = terrain.getMaterial(seed, blockX, blockY, subsurfaceHeight + 1, terrainHeight);
-                        for (int z = subsurfaceHeight + 1; z <= terrainHeight - 1; z++) {
+                        Material nextMaterial = terrain.getMaterial(seed, blockX, blockY, subsurfaceHeight + minHeight + 1, terrainHeight);
+                        for (int z = subsurfaceHeight + minHeight + 1; z <= terrainHeight - 1; z++) {
                             Material material = nextMaterial;
                             if (z < maxZ) {
                                 nextMaterial = terrain.getMaterial(seed, blockX, blockY, z + 1, terrainHeight);
@@ -168,28 +178,32 @@ public class Tile3DRenderer {
                                 g2.setColor(new Color(colour));
                                 currentColour = colour;
                             }
-                            g2.draw(new Line2D.Float(imgX, imgY - z, imgX + 1, imgY - z));
+                            g2.draw(new Line2D.Float(imgX, imgY - z + minHeight, imgX + 1, imgY - z + minHeight));
                         }
                     }
+
+                    // Draw the surface of the terrain. Use the TileRenderer for this so that it includes layers, etc.
                     colour = tileImgBuffer.getRGB(xInTile, yInTile);
                     if (colour != currentColour) {
                         g2.setColor(new Color(colour));
                         currentColour = colour;
                     }
-                    g2.draw(new Line2D.Float(imgX, imgY - terrainHeight, imgX + 1, imgY - terrainHeight));
+                    g2.draw(new Line2D.Float(imgX, imgY - terrainHeight + minHeight, imgX + 1, imgY - terrainHeight + minHeight));
+
+                    // Draw the water or lava, if any
                     if (fluidLevel > terrainHeight) {
-                        colour = colourScheme.getColour(floodWithLava ? BLK_LAVA : BLK_WATER);
+                        colour = floodWithLava ? lavaColour : waterColour;
     //                                    currentColour = 0x80000000 | ColourUtils.multiply(colour, brightenAmount);
-                        currentColour = 0x80000000 | colour;
+                        currentColour = (colour & 0x00ffffff) | 0x60000000;
                         g2.setColor(new Color(currentColour, true));
                         boolean ice = (! floodWithLava) && tile.getBitLayerValue(Frost.INSTANCE, xInTile, yInTile);
                         for (int z = terrainHeight + 1; z <= fluidLevel; z++) {
                             if ((z == fluidLevel) && ice) {
-                                colour = colourScheme.getColour(BLK_ICE);
+                                colour = iceColour;
                                 g2.setColor(new Color(colour));
                                 currentColour = colour;
                             }
-                            g2.draw(new Line2D.Float(imgX, imgY - z, imgX + 1, imgY - z));
+                            g2.draw(new Line2D.Float(imgX, imgY - z + minHeight, imgX + 1, imgY - z + minHeight));
                         }
                     }
                 }
@@ -203,9 +217,9 @@ public class Tile3DRenderer {
     private final Dimension dimension;
     private final ColourScheme colourScheme;
     private final TileRenderer tileRenderer;
-    private final int maxHeight, rotation;
+    private final int minHeight, maxHeight, rotation, stoneColour, waterColour, lavaColour, iceColour;
 
     private final BufferedImage tileImgBuffer = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_RGB);
 
-    static final Set<Layer> DEFAULT_HIDDEN_LAYERS = new HashSet<>(Arrays.asList(Biome.INSTANCE, Caverns.INSTANCE, ReadOnly.INSTANCE, Resources.INSTANCE));
+    static final Set<Layer> DEFAULT_HIDDEN_LAYERS = new HashSet<>(Arrays.asList(FLUIDS_AS_LAYER, Biome.INSTANCE, Caverns.INSTANCE, Caves.INSTANCE, Chasms.INSTANCE, ReadOnly.INSTANCE, Resources.INSTANCE));
 }

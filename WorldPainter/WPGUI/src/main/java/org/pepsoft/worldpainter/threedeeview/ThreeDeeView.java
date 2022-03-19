@@ -38,6 +38,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         this.zoom = zoom;
         scale = (int) Math.pow(2.0, Math.abs(zoom - 1));
 //        System.out.println("Zoom " + zoom + " -> scale " + scale);
+        minHeight = dimension.getMinHeight();
         maxHeight = dimension.getMaxHeight();
         if (dimension.getTileFactory() instanceof HeightMapTileFactory) {
             waterLevel = ((HeightMapTileFactory) dimension.getTileFactory()).getWaterHeight();
@@ -94,7 +95,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         }
 
         int width = dimension.getWidth() * TILE_SIZE + dimension.getHeight() * TILE_SIZE;
-        int height = width / 2 + maxHeight - 1;
+        int height = width / 2 + maxHeight - minHeight - 1;
 //        maxX = dimension.getHighestX();
 //        maxY = dimension.getHighestY();
         maxX = maxY = 0;
@@ -166,13 +167,13 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
 //        highlightTile = new Point(x >> 7, y >> 7);
         switch (rotation) {
             case 0:
-                return zoom(new Point(xOffset + TILE_SIZE + x - y, yOffset + maxHeight - 1 - TILE_SIZE / 2 + (y + x) / 2));
+                return zoom(new Point(xOffset + TILE_SIZE + x - y, yOffset + maxHeight - minHeight - 1 - TILE_SIZE / 2 + (y + x) / 2));
             case 1:
-                return zoom(new Point(xOffset + TILE_SIZE * 2 - x - y, yOffset + maxHeight - 1 - (y - x) / 2));
+                return zoom(new Point(xOffset + TILE_SIZE * 2 - x - y, yOffset + maxHeight - minHeight - 1 - (y - x) / 2));
             case 2:
-                return zoom(new Point(xOffset + TILE_SIZE - x + y, yOffset + maxHeight - 1 + TILE_SIZE / 2 - (y + x) / 2));
+                return zoom(new Point(xOffset + TILE_SIZE - x + y, yOffset + maxHeight - minHeight - 1 + TILE_SIZE / 2 - (y + x) / 2));
             case 3:
-                return zoom(new Point(xOffset + x + y, yOffset + maxHeight - 1 + (y - x) / 2));
+                return zoom(new Point(xOffset + x + y, yOffset + maxHeight - minHeight - 1 + (y - x) / 2));
             default:
                 throw new IllegalArgumentException();
         }
@@ -200,7 +201,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         scale = (int) Math.pow(2.0, Math.abs(zoom - 1));
 //        System.out.println("Zoom " + zoom + " -> scale " + scale);
         int width = dimension.getWidth() * TILE_SIZE + dimension.getHeight() * TILE_SIZE;
-        int height = width / 2 + maxHeight - 1;
+        int height = width / 2 + maxHeight - minHeight - 1;
         java.awt.Dimension preferredSize = zoom(new java.awt.Dimension(width, height));
         setPreferredSize(preferredSize);
         setMinimumSize(preferredSize);
@@ -521,22 +522,22 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
                 return new Rectangle(xOffset + (x - y) * TILE_SIZE,
                         yOffset + (x + y) * TILE_SIZE / 2,
                         2 * TILE_SIZE,
-                        TILE_SIZE + maxHeight - 1);
+                        TILE_SIZE + maxHeight - minHeight - 1);
             case 1:
                 return new Rectangle(xOffset + ((maxY - y) - x) * TILE_SIZE,
                         yOffset + ((maxY - y) + x) * TILE_SIZE / 2,
                         2 * TILE_SIZE,
-                        TILE_SIZE + maxHeight - 1);
+                        TILE_SIZE + maxHeight - minHeight - 1);
             case 2:
                 return new Rectangle(xOffset + ((maxX - x) - (maxY - y)) * TILE_SIZE,
                         yOffset + ((maxX - x) + (maxY - y)) * TILE_SIZE / 2,
                         2 * TILE_SIZE,
-                        TILE_SIZE + maxHeight - 1);
+                        TILE_SIZE + maxHeight - minHeight - 1);
             case 3:
                 return new Rectangle(xOffset + (y - (maxX - x)) * TILE_SIZE,
                         yOffset + (y + (maxX - x)) * TILE_SIZE / 2,
                         2 * TILE_SIZE,
-                        TILE_SIZE + maxHeight - 1);
+                        TILE_SIZE + maxHeight - minHeight - 1);
             default:
                 throw new IllegalArgumentException();
         }
@@ -620,7 +621,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
     private final ThreeDeeRenderManager threeDeeRenderManager;
     private final ColourScheme colourScheme;
     private final List<Tile> tilesWaitingToBeRendered = new LinkedList<>();
-    private final int maxHeight;
+    private final int minHeight, maxHeight;
     private final int xOffset, yOffset, maxX, maxY;
     private final int rotation;
     private final SortedSet<Tile> zSortedTiles;
