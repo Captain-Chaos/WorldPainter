@@ -54,7 +54,7 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
     }
 
     private void processEdgeColumn(final Dimension dimension, final int x, final int y, final MinecraftWorld minecraftWorld) {
-        final int maxHeight = minecraftWorld.getMaxHeight();
+        final int minHeight = minecraftWorld.getMinHeight(), maxHeight = minecraftWorld.getMaxHeight();
         // Taper the world edges slightly inward
         final int r = 3;
         for (int dx = -r; dx <= r; dx++) {
@@ -65,10 +65,10 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
                         continue;
                     }
                     final float distance = MathUtils.getDistance(dx, dy);
-                    final float height = dimension.getHeightAt(x2, y2);
+                    final float height = dimension.getHeightAt(x2, y2) - minHeight;
                     final int depth = (int) (height / Math.pow(2, distance + noise.getPerlinNoise(x2 / SMALL_BLOBS, y2 / SMALL_BLOBS)) + 0.5f);
                     for (int z = 0; z < depth; z++) {
-                        minecraftWorld.setMaterialAt(x2, y2, z, AIR);
+                        minecraftWorld.setMaterialAt(x2, y2, z + minHeight, AIR);
                     }
                 }
             }
@@ -77,7 +77,7 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
         // column to avoid long pauses in Minecraft when the chunks are loaded
         // (but not for ceiling dimensions)
         if (dimension.getDim() >= 0) {
-            for (int z = maxHeight - 1; z >= 0; z--) {
+            for (int z = maxHeight - 1; z >= minHeight; z--) {
                 if ((minecraftWorld.getMaterialAt(x, y, z).isNamed(MC_WATER))
                         || (minecraftWorld.getMaterialAt(x, y, z).isNamed(MC_LAVA))) {
                     // A previous iteration already placed fluid here
@@ -87,7 +87,7 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
                         || isWaterAndNotVoid(dimension, minecraftWorld, x + 1, y, z)
                         || isWaterAndNotVoid(dimension, minecraftWorld, x, y + 1, z)) {
                     minecraftWorld.setMaterialAt(x, y, z, WATER.withProperty(LEVEL, 1));
-                    for (z--; z >= 0; z--) {
+                    for (z--; z >= minHeight; z--) {
                         minecraftWorld.setMaterialAt( x, y, z, WATER.withProperty(LEVEL, 9));
                     }
                     break;
@@ -96,7 +96,7 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
                         || isLavaAndNotVoid(dimension, minecraftWorld, x + 1, y, z)
                         || isLavaAndNotVoid(dimension, minecraftWorld, x, y + 1, z)) {
                     minecraftWorld.setMaterialAt(x, y, z, LAVA.withProperty(LEVEL, 2));
-                    for (z--; z >= 0; z--) {
+                    for (z--; z >= minHeight; z--) {
                         minecraftWorld.setMaterialAt(x, y, z, LAVA.withProperty(LEVEL, 10));
                     }
                     break;
