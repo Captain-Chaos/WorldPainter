@@ -178,7 +178,7 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
 
     @Override
     public int getMinHeight() {
-        throw new UnsupportedOperationException("TODO"); // TODOMC118
+        return 0;
     }
 
     @Override
