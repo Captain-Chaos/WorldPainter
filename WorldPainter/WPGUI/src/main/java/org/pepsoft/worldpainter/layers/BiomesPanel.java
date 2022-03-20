@@ -16,6 +16,8 @@ import java.util.*;
 
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptySet;
+import static java.util.EnumSet.noneOf;
 import static java.util.stream.Collectors.joining;
 import static javax.swing.BoxLayout.PAGE_AXIS;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
@@ -205,6 +207,18 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     private void updateOptions() {
         Set<BiomeOption> selectedOptions = getSelectedOptions();
         selectedBiome = findBiome(selectedBaseBiome, selectedOptions);
+        if (selectedBiome == -1) {
+            // This means the new combination of selected options is no longer valid. This can happen when an option
+            // becomes available only after selecting another option and then the other option is deselected. Just
+            // deselect everything when this happens
+            for (Component component: optionsPanel.getComponents()) {
+                if (((JCheckBox) component).isSelected()) {
+                    ((JCheckBox) component).setSelected(false);
+                }
+            }
+            selectedOptions = noneOf(BiomeOption.class);
+            selectedBiome = selectedBaseBiome;
+        }
         notifyListener();
         for (Component component: optionsPanel.getComponents()) {
             JCheckBox checkBox = (JCheckBox) component;
@@ -221,7 +235,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     }
 
     private Set<BiomeOption> getSelectedOptions() {
-        Set<BiomeOption> selectedOptions = EnumSet.noneOf(BiomeOption.class);
+        Set<BiomeOption> selectedOptions = noneOf(BiomeOption.class);
         for (Component component: optionsPanel.getComponents()) {
             JCheckBox checkBox = (JCheckBox) component;
             if (checkBox.isSelected()) {
@@ -336,7 +350,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
      */
     private Set<BiomeOption> findAvailableOptions(int baseId) {
         if ((biomesSet != null) && (biomesSet.displayNames[baseId] != null)) {
-            Set<BiomeOption> availableOptions = EnumSet.noneOf(BiomeOption.class);
+            Set<BiomeOption> availableOptions = noneOf(BiomeOption.class);
             for (BiomeDescriptor descriptor: biomesSet.descriptors) {
                 if (descriptor.getBaseId() == baseId) {
                     availableOptions.addAll(descriptor.getOptions());
@@ -345,7 +359,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
 
             return availableOptions;
         } else {
-            return Collections.emptySet();
+            return emptySet();
         }
     }
 
@@ -373,7 +387,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
      * @return The options of all variants of the specified base biome (including the base biome itself).
      */
     private Set<BiomeOption> findVariantOptions(int baseId) {
-        Set<BiomeOption> options = EnumSet.noneOf(BiomeOption.class);
+        Set<BiomeOption> options = noneOf(BiomeOption.class);
         for (BiomeDescriptor descriptor: biomesSet.descriptors) {
             if (descriptor.getBaseId() == baseId) {
                 options.addAll(descriptor.getOptions());
@@ -588,7 +602,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         public BiomeDescriptor(int id, int baseId, BiomeOption... options) {
             this.id = id;
             this.baseId = baseId;
-            this.options = ((options != null) && (options.length > 0)) ? EnumSet.copyOf(Arrays.asList(options)) : Collections.emptySet();
+            this.options = ((options != null) && (options.length > 0)) ? EnumSet.copyOf(Arrays.asList(options)) : emptySet();
         }
 
         public int getId() {
