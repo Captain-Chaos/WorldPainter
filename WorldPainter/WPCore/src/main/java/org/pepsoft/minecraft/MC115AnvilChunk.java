@@ -43,7 +43,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
 
         setTerrainPopulated(true);
 
-        debugChunk = (xPos == (debugWorldX >> 4)) && (zPos == (debugWorldZ >> 4));
+//        debugChunk = (xPos == (debugWorldX >> 4)) && (zPos == (debugWorldZ >> 4));
     }
 
     public MC115AnvilChunk(CompoundTag tag, int maxHeight) {
@@ -126,7 +126,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
                 liquidTicks.addAll(getList(TAG_LIQUID_TICKS));
             }
 
-            debugChunk = (xPos == (debugWorldX >> 4)) && (zPos == (debugWorldZ >> 4));
+//            debugChunk = (xPos == (debugWorldX >> 4)) && (zPos == (debugWorldZ >> 4));
         } catch (Section.ExceptionParsingSectionException e) {
             // Already reported; just rethrow
             throw e;
@@ -184,12 +184,12 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
                 .put(TAG_T_, new IntTag(TAG_T_, RANDOM.nextInt(30) + 1)).build()));
     }
 
-    public static void setDebugColumn(int worldX, int worldZ) {
-        debugWorldX = worldX;
-        debugXInChunk = debugWorldX & 0xf;
-        debugWorldZ = worldZ;
-        debugZInChunk = debugWorldZ & 0xf;
-    }
+//    public static void setDebugColumn(int worldX, int worldZ) {
+//        debugWorldX = worldX;
+//        debugXInChunk = debugWorldX & 0xf;
+//        debugWorldZ = worldZ;
+//        debugZInChunk = debugWorldZ & 0xf;
+//    }
 
     // Chunk
 
@@ -452,9 +452,9 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
 
     @Override
     public void setMaterial(int x, int y, int z, Material material) {
-        if (debugChunk && logger.isDebugEnabled() && (x == debugXInChunk) && (z == debugZInChunk)) {
-            logger.debug("Setting material @ {},{},{} to {}", x, y, z, material, new Throwable("Stacktrace"));
-        }
+//        if (debugChunk && logger.isDebugEnabled() && (x == debugXInChunk) && (z == debugZInChunk)) {
+//            logger.debug("Setting material @ {},{},{} to {}", x, y, z, material, new Throwable("Stacktrace"));
+//        }
         if (readOnly) {
             return;
         }
@@ -727,9 +727,9 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
     String status;
     final Map<String, long[]> heightMaps;
     final List<CompoundTag> liquidTicks = new ArrayList<>();
-    final boolean debugChunk;
+//    final boolean debugChunk;
 
-    private static long debugWorldX, debugWorldZ, debugXInChunk, debugZInChunk;
+//    private static long debugWorldX, debugWorldZ, debugXInChunk, debugZInChunk;
 
     private static final Random RANDOM = new Random();
     private static final Logger logger = LoggerFactory.getLogger(MC115AnvilChunk.class);
