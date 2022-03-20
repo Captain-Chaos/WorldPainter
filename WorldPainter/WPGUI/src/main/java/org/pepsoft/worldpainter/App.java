@@ -38,6 +38,7 @@ import org.pepsoft.worldpainter.importing.MapImportDialog;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 import org.pepsoft.worldpainter.layers.plants.PlantLayer;
+import org.pepsoft.worldpainter.layers.plants.PlantLayerEditor;
 import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsDialog;
 import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsLayer;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
@@ -284,6 +285,8 @@ public final class App extends JFrame implements RadiusControl,
         }
 
         MainFrame.setMainFrame(this);
+
+        PlantLayerEditor.loadIconsInBackground();
     }
 
     public World2 getWorld() {

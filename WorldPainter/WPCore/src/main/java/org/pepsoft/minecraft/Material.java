@@ -1754,7 +1754,7 @@ public final class Material implements Serializable {
     public static final Property<String>    SHAPE       = new Property<>(MC_SHAPE,       String.class);
     public static final Property<String>    HINGE       = new Property<>(MC_HINGE,       String.class);
 
-    // Modern materials (based on MC 1.13 block names and properties)
+    // Modern materials (based on MC 1.13+ block names and properties)
 
     /**
      * A vine with no directions turned on, which is not a valid block in
@@ -1770,30 +1770,12 @@ public final class Material implements Serializable {
     public static final Material WHITE_TULIP = get(MC_WHITE_TULIP);
     public static final Material PINK_TULIP = get(MC_PINK_TULIP);
     public static final Material OXEYE_DAISY = get(MC_OXEYE_DAISY);
-    /**
-     * Lower half of a sunflower.
-     */
-    public static final Material SUNFLOWER = get(MC_SUNFLOWER, MC_HALF, "lower");
-    /**
-     * Lower half of a lilac.
-     */
-    public static final Material LILAC = get(MC_LILAC, MC_HALF, "lower");
-    /**
-     * Lower half of tall grass.
-     */
-    public static final Material TALL_GRASS = get(MC_TALL_GRASS, MC_HALF, "lower");
-    /**
-     * Lower half of a large fern.
-     */
-    public static final Material LARGE_FERN = get(MC_LARGE_FERN, MC_HALF, "lower");
-    /**
-     * Lower half of a rose bush.
-     */
-    public static final Material ROSE_BUSH = get(MC_ROSE_BUSH, MC_HALF, "lower");
-    /**
-     * Lower half of a peony.
-     */
-    public static final Material PEONY = get(MC_PEONY, MC_HALF, "lower");
+    public static final Material SUNFLOWER_LOWER = get(MC_SUNFLOWER, MC_HALF, "lower");
+    public static final Material LILAC_LOWER = get(MC_LILAC, MC_HALF, "lower");
+    public static final Material TALL_GRASS_LOWER = get(MC_TALL_GRASS, MC_HALF, "lower");
+    public static final Material LARGE_FERN_LOWER = get(MC_LARGE_FERN, MC_HALF, "lower");
+    public static final Material ROSE_BUSH_LOWER = get(MC_ROSE_BUSH, MC_HALF, "lower");
+    public static final Material PEONY_LOWER = get(MC_PEONY, MC_HALF, "lower");
     public static final Material OAK_SAPLING = get(MC_OAK_SAPLING, MC_STAGE, 0);
     public static final Material DARK_OAK_SAPLING = get(MC_DARK_OAK_SAPLING, MC_STAGE, 0);
     public static final Material PINE_SAPLING = get(MC_SPRUCE_SAPLING, MC_STAGE, 0);
@@ -1865,14 +1847,11 @@ public final class Material implements Serializable {
     public static final Material KELP = get(MC_KELP, MC_AGE, 0);
     public static final Material KELP_PLANT = get(MC_KELP_PLANT);
     public static final Material SEAGRASS = get(MC_SEAGRASS);
-    /**
-     * Lower half of tall sea grass.
-     */
-    public static final Material TALL_SEAGRASS = get(MC_TALL_SEAGRASS, MC_HALF, "lower");
+    public static final Material TALL_SEAGRASS_LOWER = get(MC_TALL_SEAGRASS, MC_HALF, "lower");
     /**
      * One sea pickle. Set the "pickles" property up to 4 for more pickles.
      */
-    public static final Material SEA_PICKLE = get(MC_SEA_PICKLE, MC_WATERLOGGED, true, MC_PICKLES, 1);
+    public static final Material SEA_PICKLE_1 = get(MC_SEA_PICKLE, MC_WATERLOGGED, true, MC_PICKLES, 1);
     public static final Material CORNFLOWER = get(MC_CORNFLOWER);
     public static final Material LILY_OF_THE_VALLEY = get(MC_LILY_OF_THE_VALLEY);
     public static final Material WITHER_ROSE = get(MC_WITHER_ROSE);
@@ -1905,7 +1884,14 @@ public final class Material implements Serializable {
     public static final Material INFESTED_DEEPSLATE = get(MC_INFESTED_DEEPSLATE);
     public static final Material BAMBOO_NO_LEAVES = get(MC_BAMBOO, MC_STAGE, 0, MC_AGE, 0, MC_LEAVES, "none");
     public static final Material BAMBOO_SMALL_LEAVES = get(MC_BAMBOO, MC_STAGE, 0, MC_AGE, 0, MC_LEAVES, "small");
-    public static final Material BAMBOO_LARGE_LEAVES = get(MC_BAMBOO, MC_STAGE, 0, MC_AGE, 0, MC_LEAVES, "large");
+    public static final Material BAMBOO_LARGE_LEAVES_STAGE_1 = get(MC_BAMBOO, MC_STAGE, 1, MC_AGE, 0, MC_LEAVES, "large");
+    public static final Material AZALEA = get(MC_AZALEA);
+    public static final Material FLOWERING_AZALEA = get(MC_FLOWERING_AZALEA);
+    public static final Material CRIMSON_FUNGUS = get(MC_CRIMSON_FUNGUS);
+    public static final Material WARPED_FUNGUS = get(MC_WARPED_FUNGUS);
+    public static final Material CRIMSON_ROOTS = get(MC_CRIMSON_ROOTS);
+    public static final Material WARPED_ROOTS = get(MC_WARPED_ROOTS);
+    public static final Material NETHER_SPROUTS = get(MC_NETHER_SPROUTS);
 
     // Namespaces
 

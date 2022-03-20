@@ -58,6 +58,8 @@ public abstract class Plant implements WPObject {
      * specified location; {@code false} otherwise.
      */
     public boolean isValidFoundation(MinecraftWorld world, int x, int y, int height) {
+        // TODO is water/not water actually being checked somewhere?
+        // TODO allow Nether plants on regular blocks too
         return category.isValidFoundation(world, x, y, height);
     }
 

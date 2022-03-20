@@ -529,6 +529,13 @@ public final class Constants {
     public static final String MC_POTTED_FERN = "minecraft:potted_fern";
     public static final String MC_INFESTED_DEEPSLATE = "minecraft:infested_deepslate";
     public static final String MC_BAMBOO = "minecraft:bamboo";
+    public static final String MC_CRIMSON_FUNGUS = "minecraft:crimson_fungus";
+    public static final String MC_AZALEA = "minecraft:azalea";
+    public static final String MC_FLOWERING_AZALEA = "minecraft:flowering_azalea";
+    public static final String MC_WARPED_FUNGUS = "minecraft:warped_fungus";
+    public static final String MC_CRIMSON_ROOTS = "minecraft:crimson_roots";
+    public static final String MC_WARPED_ROOTS = "minecraft:warped_roots";
+    public static final String MC_NETHER_SPROUTS = "minecraft:nether_sprouts";
 
     // MC 1.18 biome names
 

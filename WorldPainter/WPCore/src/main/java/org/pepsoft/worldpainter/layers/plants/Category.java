@@ -96,7 +96,7 @@ public enum Category {
     NETHER {
         @Override
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
-            return world.getMaterialAt(x, y, z).isNamed(MC_SOUL_SAND);
+            return world.getMaterialAt(x, y, z).isNamed(MC_SOUL_SAND); // TODO allow more materials
         }
     },
 

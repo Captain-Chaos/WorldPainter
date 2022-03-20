@@ -6,8 +6,10 @@
 
 package org.pepsoft.worldpainter.layers;
 
-import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.App;
+import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.objects.MinecraftWorldObject;
@@ -166,6 +168,7 @@ public class EditLayerDialog<L extends Layer> extends AbstractEditLayerDialog<L>
     }
     
     private void updatePreview() {
+        // TODO use Netherrack in addition to or instead of Grass, e.g. for Plants layer with Nether plants, etc.
         // Check again whether the current settings are valid, although the
         // chance is remote
         if (! editor.isCommitAvailable()) {

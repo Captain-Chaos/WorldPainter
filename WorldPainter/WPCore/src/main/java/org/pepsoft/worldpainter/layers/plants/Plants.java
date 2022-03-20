@@ -46,13 +46,13 @@ public class Plants {
     public static final Plant OXEYE_DAISY = new SimplePlant("Oxeye Daisy", Material.OXEYE_DAISY, PLANTS_AND_FLOWERS);
     public static final Plant CORNFLOWER = new SimplePlant("Cornflower", Material.CORNFLOWER, PLANTS_AND_FLOWERS);
     public static final Plant LILY_OF_THE_VALLEY = new SimplePlant("Lily of the Valley", Material.LILY_OF_THE_VALLEY, PLANTS_AND_FLOWERS);
-    public static final Plant WITHER_ROSE = new SimplePlant("Wither Rose", Material.WITHER_ROSE, PLANTS_AND_FLOWERS);
-    public static final Plant SUNFLOWER = new DoubleHighPlant("Sunflower", Material.SUNFLOWER, PLANTS_AND_FLOWERS, "block/sunflower_front.png");
-    public static final Plant LILAC = new DoubleHighPlant("Lilac", Material.LILAC, PLANTS_AND_FLOWERS);
-    public static final Plant TALL_GRASS = new DoubleHighPlant("Tall Grass", Material.TALL_GRASS, PLANTS_AND_FLOWERS);
-    public static final Plant LARGE_FERN = new DoubleHighPlant("Large Fern", Material.LARGE_FERN, PLANTS_AND_FLOWERS);
-    public static final Plant ROSE_BUSH = new DoubleHighPlant("Rose Bush", Material.ROSE_BUSH, PLANTS_AND_FLOWERS);
-    public static final Plant PEONY = new DoubleHighPlant("Peony", Material.PEONY, PLANTS_AND_FLOWERS);
+    public static final Plant WITHER_ROSE = new SimplePlant("Wither Rose", Material.WITHER_ROSE, NETHER);
+    public static final Plant SUNFLOWER = new DoubleHighPlant("Sunflower", Material.SUNFLOWER_LOWER, PLANTS_AND_FLOWERS, "block/sunflower_front.png");
+    public static final Plant LILAC = new DoubleHighPlant("Lilac", Material.LILAC_LOWER, PLANTS_AND_FLOWERS);
+    public static final Plant TALL_GRASS = new DoubleHighPlant("Tall Grass", Material.TALL_GRASS_LOWER, PLANTS_AND_FLOWERS);
+    public static final Plant LARGE_FERN = new DoubleHighPlant("Large Fern", Material.LARGE_FERN_LOWER, PLANTS_AND_FLOWERS);
+    public static final Plant ROSE_BUSH = new DoubleHighPlant("Rose Bush", Material.ROSE_BUSH_LOWER, PLANTS_AND_FLOWERS);
+    public static final Plant PEONY = new DoubleHighPlant("Peony", Material.PEONY_LOWER, PLANTS_AND_FLOWERS);
     public static final Plant SAPLING_OAK = new SimplePlant("Oak Sapling", Material.OAK_SAPLING, SAPLINGS);
     public static final Plant SAPLING_DARK_OAK = new SimplePlant("Dark Oak Sapling", Material.DARK_OAK_SAPLING, SAPLINGS);
     public static final Plant SAPLING_PINE = new SimplePlant("Pine Sapling", Material.PINE_SAPLING, SAPLINGS);
@@ -100,31 +100,34 @@ public class Plants {
         }
     };
     public static final Plant SEAGRASS = new SimplePlant("Seagrass", Material.SEAGRASS, WATER_PLANTS);
-    public static final Plant TALL_SEAGRASS = new DoubleHighPlant("Tall Seagrass", Material.TALL_SEAGRASS, WATER_PLANTS);
-    public static final Plant SEA_PICKLE = new AgingPlant("Sea Pickle", Material.SEA_PICKLE, WATER_PLANTS, "item/sea_pickle.png", 4) {
+    public static final Plant TALL_SEAGRASS = new DoubleHighPlant("Tall Seagrass", Material.TALL_SEAGRASS_LOWER, WATER_PLANTS);
+    public static final Plant SEA_PICKLE = new AgingPlant("Sea Pickle", Material.SEA_PICKLE_1, WATER_PLANTS, "item/sea_pickle.png", 4) {
         @Override
         public AgingPlant realise(int growth, Platform platform) {
             return new AgingPlant(name, material.withProperty(PICKLES, growth), category, iconName, maxGrowth);
         }
     };
-    public static final Plant BAMBOO = new VariableHeightPlant("Bamboo", BAMBOO_NO_LEAVES, BAMBOO_LARGE_LEAVES, PLANTS_AND_FLOWERS, 16); // TODO better approximate Minecraft-generated bamboo
+    public static final Plant BAMBOO = new VariableHeightPlant("Bamboo", BAMBOO_NO_LEAVES, BAMBOO_LARGE_LEAVES_STAGE_1, PLANTS_AND_FLOWERS, "item/bamboo.png", 16); // TODO better approximate Minecraft-generated bamboo
+    public static final Plant SAPLING_AZALEA = new SimplePlant("Azalea", Material.AZALEA, SAPLINGS, "block/azalea_plant.png");
+    public static final Plant SAPLING_FLOWERING_AZALEA = new SimplePlant("Flowering Azalea", Material.FLOWERING_AZALEA, SAPLINGS, "block/flowering_azalea_side.png");
+    public static final Plant CRIMSON_FUNGUS = new SimplePlant("Crimson Fungus", Material.CRIMSON_FUNGUS, NETHER);
+    public static final Plant WARPED_FUNGUS = new SimplePlant("Warped Fungus", Material.WARPED_FUNGUS, NETHER);
+    public static final Plant CRIMSON_ROOTS = new SimplePlant("Crimson Roots", Material.CRIMSON_ROOTS, NETHER);
+    public static final Plant WARPED_ROOTS = new SimplePlant("Warped Roots", Material.WARPED_ROOTS, NETHER);
+    public static final Plant NETHER_SPROUTS = new SimplePlant("Nether Sprouts", Material.NETHER_SPROUTS, NETHER);
 
-    // The code which uses this assumes there will never be more than 128
-    // plants. If that ever happens it needs to be overhauled!
-    // IMPORTANT: indices into this array are stored in layer settings! New
-    // entries MUST be added at the end, and the order MUST never be changed!
-    public static final Plant[] ALL_PLANTS = {GRASS, TALL_GRASS,
-            FERN, LARGE_FERN, DEAD_SHRUB, DANDELION, POPPY, BLUE_ORCHID, ALLIUM,
-            AZURE_BLUET, TULIP_RED, TULIP_ORANGE, TULIP_WHITE, TULIP_PINK,
-            OXEYE_DAISY, SUNFLOWER, LILAC, ROSE_BUSH, PEONY, SAPLING_OAK,
-            SAPLING_DARK_OAK, SAPLING_PINE, SAPLING_BIRCH, SAPLING_JUNGLE,
-            SAPLING_ACACIA, MUSHROOM_RED, MUSHROOM_BROWN, WHEAT, CARROTS, POTATOES,
-            PUMPKIN_STEMS, MELON_STEMS, CACTUS, SUGAR_CANE, LILY_PAD, BEETROOTS,
-            NETHER_WART, CHORUS_PLANT, TUBE_CORAL, BRAIN_CORAL, BUBBLE_CORAL,
-            FIRE_CORAL, HORN_CORAL, TUBE_CORAL_FAN, BRAIN_CORAL_FAN,
-            BUBBLE_CORAL_FAN, FIRE_CORAL_FAN, HORN_CORAL_FAN, KELP, SEAGRASS,
-            TALL_SEAGRASS, SEA_PICKLE, CORNFLOWER, LILY_OF_THE_VALLEY,
-            WITHER_ROSE, SWEET_BERRY_BUSH, BAMBOO};
+    // The code which uses this assumes there will never be more than 128 plants. If that ever happens it needs to be
+    // overhauled! IMPORTANT: indices into this array are stored in layer settings! New entries MUST be added at the
+    // end, and the order MUST never be changed!
+    public static final Plant[] ALL_PLANTS = {GRASS, TALL_GRASS, FERN, LARGE_FERN, DEAD_SHRUB, DANDELION, POPPY,
+            BLUE_ORCHID, ALLIUM, AZURE_BLUET, TULIP_RED, TULIP_ORANGE, TULIP_WHITE, TULIP_PINK, OXEYE_DAISY, SUNFLOWER,
+            LILAC, ROSE_BUSH, PEONY, SAPLING_OAK, SAPLING_DARK_OAK, SAPLING_PINE, SAPLING_BIRCH, SAPLING_JUNGLE,
+            SAPLING_ACACIA, MUSHROOM_RED, MUSHROOM_BROWN, WHEAT, CARROTS, POTATOES, PUMPKIN_STEMS, MELON_STEMS, CACTUS,
+            SUGAR_CANE, LILY_PAD, BEETROOTS, NETHER_WART, CHORUS_PLANT, TUBE_CORAL, BRAIN_CORAL, BUBBLE_CORAL,
+            FIRE_CORAL, HORN_CORAL, TUBE_CORAL_FAN, BRAIN_CORAL_FAN, BUBBLE_CORAL_FAN, FIRE_CORAL_FAN, HORN_CORAL_FAN,
+            KELP, SEAGRASS, TALL_SEAGRASS, SEA_PICKLE, CORNFLOWER, LILY_OF_THE_VALLEY, WITHER_ROSE, SWEET_BERRY_BUSH,
+            BAMBOO, SAPLING_AZALEA, SAPLING_FLOWERING_AZALEA, CRIMSON_FUNGUS, WARPED_FUNGUS, CRIMSON_ROOTS,
+            WARPED_ROOTS, NETHER_SPROUTS};
 
     private static final Random RANDOM = new Random();
 }
