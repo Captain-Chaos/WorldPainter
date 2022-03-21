@@ -67,7 +67,6 @@ public abstract class JavaLevel extends AbstractNBTItem {
             versionTag.put(TAG_SNAPSHOT, new ByteTag(TAG_SNAPSHOT, (byte) 0));
             setMap(TAG_VERSION, versionTag);
         }
-        addDimension(0);
     }
 
     protected JavaLevel(CompoundTag tag, int mapHeight) {
@@ -91,7 +90,6 @@ public abstract class JavaLevel extends AbstractNBTItem {
                     .filter(extraTag -> ! extraTag.getName().equals(TAG_DATA))
                     .forEach(extraTags::add);
         }
-        addDimension(0);
     }
     
     public void save(File worldDir) throws IOException {
@@ -157,22 +155,6 @@ public abstract class JavaLevel extends AbstractNBTItem {
         }
     }
 
-    public Dimension getDimension(int dim) {
-        return dimensions.get(dim);
-    }
-    
-    public void addDimension(int dim) {
-        if (dimensions.containsKey(dim)) {
-            throw new IllegalStateException("Dimension " + dim + " already exists");
-        } else {
-            dimensions.put(dim, new Dimension(dim, maxHeight));
-        }
-    }
-    
-    public Dimension removeDimension(int dim) {
-        return dimensions.remove(dim);
-    }
-    
     public String getName() {
         return getString(TAG_LEVEL_NAME);
     }
@@ -427,7 +409,9 @@ public abstract class JavaLevel extends AbstractNBTItem {
         final File worldDir = levelDatFile.getParentFile();
         final int version = ((IntTag) data.getTag(TAG_VERSION_)).getValue();
         final int dataVersion = data.containsTag (TAG_DATA_VERSION) ? ((IntTag) data.getTag(TAG_DATA_VERSION)).getValue() : -1;
-        if (data.containsTag(TAG_VERSION_)) {
+        if (data.containsTag("isCubicWorld")) { // TODO hardcoded support for CC plugin; make this dynamic
+            maxHeight = MAX_HEIGHT;
+        } else if (data.containsTag(TAG_VERSION_)) {
             maxHeight = (version == VERSION_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : ((dataVersion <= DATA_VERSION_MC_1_17_1) ? DEFAULT_MAX_HEIGHT_ANVIL : DEFAULT_MAX_HEIGHT_1_18);
             // TODO get rid of this hardcoded stuff and move it into the platform provider plugin API
             if (version == VERSION_MCREGION) {
@@ -486,8 +470,6 @@ public abstract class JavaLevel extends AbstractNBTItem {
                 maxHeight = ((IntTag) data.getTag(TAG_MAP_HEIGHT)).getValue();
                 logger.debug("Map height {} detected from {} tag while loading {}", maxHeight, TAG_MAP_HEIGHT, levelDatFile);
             }
-        } else if (new File(worldDir, "region3d").isDirectory()) { // TODO hardcoded support for CC plugin; make this dynamic
-            maxHeight = MAX_HEIGHT;
         } else {
             // TODO refactor map importing
             throw new UnsupportedOperationException("Don't know how to determine height of this map");
@@ -519,7 +501,6 @@ public abstract class JavaLevel extends AbstractNBTItem {
     }
 
     protected final int maxHeight;
-    protected final Map<Integer, Dimension> dimensions = new HashMap<>();
     protected final Set<Tag> extraTags;
 
     private static volatile File cachedFile;

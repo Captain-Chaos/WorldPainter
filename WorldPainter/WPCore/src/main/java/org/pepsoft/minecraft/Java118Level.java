@@ -130,11 +130,7 @@ public class Java118Level extends JavaLevel {
             worldGenSettings.put(TAG_DIMENSIONS_, dimensionsTag);
         }
 
-        dimensions.forEach((dim, dimension) -> {
-            if (! generators.containsKey(dim)) {
-                return;
-            }
-
+        generators.forEach((dim, generator) -> {
             String dimensionName;
             switch (dim) {
                 case DIM_NORMAL:
@@ -159,7 +155,6 @@ public class Java118Level extends JavaLevel {
 
             final String generatorType, biomeSourceType, biomeSourcePreset;
             final Tag settingsTag;
-            final MapGenerator generator = generators.get(dim);
             switch (generator.getType()) {
                 case DEFAULT:
                     generatorType = MC_NOISE;
