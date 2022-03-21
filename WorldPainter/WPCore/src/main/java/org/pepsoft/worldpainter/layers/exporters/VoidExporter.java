@@ -54,7 +54,7 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
     }
 
     private void processEdgeColumn(final Dimension dimension, final int x, final int y, final MinecraftWorld minecraftWorld) {
-        final int minHeight = minecraftWorld.getMinHeight(), maxHeight = minecraftWorld.getMaxHeight();
+        final int minHeight = minecraftWorld.getMinHeight();
         // Taper the world edges slightly inward
         final int r = 3;
         for (int dx = -r; dx <= r; dx++) {
@@ -77,7 +77,16 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
         // column to avoid long pauses in Minecraft when the chunks are loaded
         // (but not for ceiling dimensions)
         if (dimension.getDim() >= 0) {
-            for (int z = maxHeight - 1; z >= minHeight; z--) {
+            int highestNonAirBlock = Integer.MIN_VALUE;
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    final int highestNonAirBlockForColumn = minecraftWorld.getHighestNonAirBlock(x + dx, y + dy);
+                    if (highestNonAirBlockForColumn > highestNonAirBlock) {
+                        highestNonAirBlock = highestNonAirBlockForColumn;
+                    }
+                }
+            }
+            for (int z = highestNonAirBlock; z >= minHeight; z--) {
                 if ((minecraftWorld.getMaterialAt(x, y, z).isNamed(MC_WATER))
                         || (minecraftWorld.getMaterialAt(x, y, z).isNamed(MC_LAVA))) {
                     // A previous iteration already placed fluid here
