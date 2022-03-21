@@ -4,7 +4,6 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.minecraft.Material.WATERLOGGED;
 
 /**
  * A category of plants, determining mainly on what foundation they can be
@@ -19,7 +18,8 @@ public enum Category {
                     || material.isNamed(MC_DIRT)
                     || material.isNamed(MC_COARSE_DIRT)
                     || material.isNamed(MC_PODZOL)
-                    || material.isNamed(MC_FARMLAND);
+                    || material.isNamed(MC_FARMLAND)
+                    || material.isNamed(MC_ROOTED_DIRT);
         }
     },
 
@@ -31,7 +31,8 @@ public enum Category {
                     || material.isNamed(MC_DIRT)
                     || material.isNamed(MC_COARSE_DIRT)
                     || material.isNamed(MC_PODZOL)
-                    || material.isNamed(MC_FARMLAND);
+                    || material.isNamed(MC_FARMLAND)
+                    || material.isNamed(MC_ROOTED_DIRT);
         }
     },
 
@@ -39,11 +40,8 @@ public enum Category {
         @Override
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
             final Material material = world.getMaterialAt(x, y, z);
-            // If it's dark enough mushrooms can be placed on pretty much
-            // anything
-            return (! material.veryInsubstantial)
-                    && (! material.isNamed(MC_GLASS))
-                    && (! material.isNamed(MC_ICE));
+            // If it's dark enough mushrooms can be placed on pretty much anything
+            return material.solid && material.opaque;
         }
     },
 
@@ -96,7 +94,8 @@ public enum Category {
     NETHER {
         @Override
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
-            return world.getMaterialAt(x, y, z).isNamed(MC_SOUL_SAND); // TODO allow more materials
+            return PLANTS_AND_FLOWERS.isValidFoundation(world, x, y, z)
+                    || world.getMaterialAt(x, y, z).isNamed(MC_SOUL_SOIL);
         }
     },
 
@@ -113,7 +112,7 @@ public enum Category {
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
             // TODOMC13 it's not clear on what blocks water plants can be
             //  planted so for now allow all solid blocks
-            return world.getMaterialAt(x, y, z).solid && world.getMaterialAt(x, y, z + 1).isNamed(MC_WATER);
+            return world.getMaterialAt(x, y, z).solid && world.getMaterialAt(x, y, z + 1).containsWater();
         }
     };
 
@@ -125,7 +124,6 @@ public enum Category {
     }
 
     protected final boolean isWatery(MinecraftWorld world, int x, int y, int height) {
-        Material material = world.getMaterialAt(x, y, height);
-        return material.isNamed(MC_WATER) || material.watery || material.is(WATERLOGGED);
+        return world.getMaterialAt(x, y, height).containsWater();
     }
 }

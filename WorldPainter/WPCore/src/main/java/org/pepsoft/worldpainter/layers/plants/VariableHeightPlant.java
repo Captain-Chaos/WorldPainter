@@ -11,27 +11,27 @@ import java.util.Optional;
  * overridable methods so that subclasses can optionally manage them.
  */
 class VariableHeightPlant extends Plant {
-    VariableHeightPlant(String name, Material middleMaterial, Category category, int maxHeight) {
-        this(name, category, "block/" + middleMaterial.simpleName + ".png", null, middleMaterial, null, maxHeight, maxHeight, null);
+    VariableHeightPlant(String name, Material middleMaterial, Category category, int defaultHeight) {
+        this(name, category, "block/" + middleMaterial.simpleName + ".png", null, middleMaterial, null, defaultHeight, defaultHeight, null);
     }
 
-    VariableHeightPlant(String name, Material middleMaterial, Category category, String iconName, int maxHeight) {
-        this(name, category, iconName, null, middleMaterial, null, maxHeight, maxHeight, null);
+    VariableHeightPlant(String name, Material middleMaterial, Category category, String iconName, int defaultHeight) {
+        this(name, category, iconName, null, middleMaterial, null, defaultHeight, defaultHeight, null);
     }
 
-    VariableHeightPlant(String name, Material middleMaterial, Material topMaterial, Category category, int maxHeight) {
-        this(name, category, "block/" + topMaterial.simpleName + ".png", null, middleMaterial, topMaterial, maxHeight, maxHeight, null);
+    VariableHeightPlant(String name, Material middleMaterial, Material topMaterial, Category category, int defaultHeight) {
+        this(name, category, "block/" + topMaterial.simpleName + ".png", null, middleMaterial, topMaterial, defaultHeight, defaultHeight, null);
     }
 
-    VariableHeightPlant(String name, Material middleMaterial, Material topMaterial, Category category, String iconName, int maxHeight) {
-        this(name, category, iconName, null, middleMaterial, topMaterial, maxHeight, maxHeight, null);
+    VariableHeightPlant(String name, Material middleMaterial, Material topMaterial, Category category, String iconName, int defaultHeight) {
+        this(name, category, iconName, null, middleMaterial, topMaterial, defaultHeight, defaultHeight, null);
     }
 
-    private VariableHeightPlant(String name, Category category, String iconName, Material bottomMaterial, Material middleMaterial, Material topMaterial, int maxGrowth, int growth, Platform platform) {
+    private VariableHeightPlant(String name, Category category, String iconName, Material bottomMaterial, Material middleMaterial, Material topMaterial, int defaultGrowth, int growth, Platform platform) {
         super(name, middleMaterial, category, iconName);
         this.bottomMaterial = bottomMaterial;
         this.topMaterial = topMaterial;
-        this.maxGrowth = maxGrowth;
+        this.defaultGrowth = defaultGrowth;
         this.growth = growth;
         this.platform = platform;
         dimensions = new Point3i(1, 1, growth);
@@ -39,7 +39,12 @@ class VariableHeightPlant extends Plant {
 
     @Override
     public int getMaxGrowth() {
-        return maxGrowth;
+        return DEFAULT_MAX_GROWTH;
+    }
+
+    @Override
+    public int getDefaultGrowth() {
+        return defaultGrowth;
     }
 
     @Override
@@ -62,8 +67,8 @@ class VariableHeightPlant extends Plant {
     }
 
     @Override
-    public VariableHeightPlant realise(int growth, Platform platform) {
-        return new VariableHeightPlant(name, category, iconName, bottomMaterial, material, topMaterial, maxGrowth, growth, platform);
+    public Plant realise(int growth, Platform platform) {
+        return new VariableHeightPlant(name, category, iconName, bottomMaterial, material, topMaterial, defaultGrowth, growth, platform);
     }
 
     Optional<Material> getBottomMaterial() {
@@ -74,8 +79,10 @@ class VariableHeightPlant extends Plant {
         return Optional.ofNullable(topMaterial);
     }
 
+    public static final int DEFAULT_MAX_GROWTH = 99;
+
     protected final Material bottomMaterial, topMaterial;
-    protected final int maxGrowth, growth;
+    protected final int defaultGrowth, growth;
     protected final Point3i dimensions;
     protected final Platform platform;
 }

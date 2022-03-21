@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import static java.lang.Math.max;
 import static org.pepsoft.worldpainter.layers.plants.Category.*;
 import static org.pepsoft.worldpainter.layers.plants.Plants.ALL_PLANTS;
 import static org.pepsoft.worldpainter.util.I18nHelper.m;
@@ -99,8 +100,8 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
             } else {
                 spinners[i].setValue(0);
                 if (growthFromSpinners[i] != null) {
-                    growthFromSpinners[i].setValue(ALL_PLANTS[i].getMaxGrowth());
-                    growthToSpinners[i].setValue(ALL_PLANTS[i].getMaxGrowth());
+                    growthFromSpinners[i].setValue(max(ALL_PLANTS[i].getDefaultGrowth() / 2, 1));
+                    growthToSpinners[i].setValue(ALL_PLANTS[i].getDefaultGrowth());
                 }
             }
         }
@@ -211,7 +212,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         if (plant.getMaxGrowth() > 1) {
             panel.add(new JLabel("Growth:"), constraints);
             
-            spinnerModel = new SpinnerNumberModel(plant.getMaxGrowth(), 1, plant.getMaxGrowth(), 1);
+            spinnerModel = new SpinnerNumberModel(max(plant.getDefaultGrowth() / 2, 1), 1, plant.getMaxGrowth(), 1);
             growthFromSpinners[index] = new JSpinner(spinnerModel);
             growthFromSpinners[index].addChangeListener(e -> {
                 int newValue = (Integer) growthFromSpinners[index].getValue();
@@ -225,7 +226,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
             panel.add(new JLabel("-"));
 
             constraints.gridwidth = GridBagConstraints.REMAINDER;
-            spinnerModel = new SpinnerNumberModel(plant.getMaxGrowth(), 1, plant.getMaxGrowth(), 1);
+            spinnerModel = new SpinnerNumberModel(plant.getDefaultGrowth(), 1, plant.getMaxGrowth(), 1);
             growthToSpinners[index] = new JSpinner(spinnerModel);
             growthToSpinners[index].addChangeListener(e -> {
                 int newValue = (Integer) growthToSpinners[index].getValue();
@@ -390,8 +391,8 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         for (int i = 0; i < ALL_PLANTS.length; i++) {
             spinners[i].setValue(0);
             if (growthFromSpinners[i] != null) {
-                growthFromSpinners[i].setValue(ALL_PLANTS[i].getMaxGrowth());
-                growthToSpinners[i].setValue(ALL_PLANTS[i].getMaxGrowth());
+                growthFromSpinners[i].setValue(max(ALL_PLANTS[i].getDefaultGrowth() / 2, 1));
+                growthToSpinners[i].setValue(ALL_PLANTS[i].getDefaultGrowth());
             }
         }
         updatePercentages();

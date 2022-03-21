@@ -59,7 +59,7 @@ public class LayerPreviewCreator {
             logger.debug("Creating data structures took " + (now - timestamp) + " ms");
         }
 
-        // Phase two: apply layer to dimension
+        // Phase two: create tiles and apply layer to dimension
         timestamp = now;
         Tile tile = tileFactory.createTile(0, 0);
         switch (layer.getDataSize()) {

@@ -74,6 +74,16 @@ public abstract class Plant implements WPObject {
     }
 
     /**
+     * The default growth stage to present to the user. The intent is for this to be the maximum height of plants that
+     * vanilla Minecraft will generate, with {@code maxGrowth} optionally being higher.
+     *
+     * @return The default growth stage to present to the user.
+     */
+    public int getDefaultGrowth() {
+        return getMaxGrowth();
+    }
+
+    /**
      * Obtain a version of the plant suitable for actually placing in a map.
      * This will always be invoked by {@link PlantLayerExporter} before
      * exporting a plant. It is meant for plants with varying growth stages and/

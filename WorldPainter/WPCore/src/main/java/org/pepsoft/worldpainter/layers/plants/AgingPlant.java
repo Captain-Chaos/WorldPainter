@@ -20,8 +20,8 @@ class AgingPlant extends SimplePlant {
     }
 
     @Override
-    public AgingPlant realise(int growth, Platform platform) {
-        return new AgingPlant(name, material.withProperty(AGE, growth - 1), category, iconName, maxGrowth);
+    public Plant realise(int growth, Platform platform) {
+        return new SimplePlant(name, material.withProperty(AGE, growth - 1), category, iconName);
     }
 
     protected final int maxGrowth;

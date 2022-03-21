@@ -5,7 +5,6 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
-import java.util.Optional;
 import java.util.Random;
 
 import static org.pepsoft.minecraft.Constants.*;
@@ -66,14 +65,14 @@ public class Plants {
     public static final Plant POTATOES = new AgingPlant("Potatoes", Material.POTATOES, CROPS, "block/potatoes_stage3.png", 8);
     public static final Plant PUMPKIN_STEMS = new AgingPlant("Pumpkin Stems", Material.PUMPKIN_STEM, CROPS, "block/pumpkin_side.png", 8) {
         @Override
-        public Material getMaterial(int x, int y, int z) {
-            return super.getMaterial(x, y, z).withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]);
+        public Plant realise(int growth, Platform platform) {
+            return new SimplePlant("Pumpkin Stems", Material.PUMPKIN_STEM.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), CROPS);
         }
     };
     public static final Plant MELON_STEMS = new AgingPlant("Melon Stems", Material.MELON_STEM, CROPS, "block/melon_side.png", 8) {
         @Override
-        public Material getMaterial(int x, int y, int z) {
-            return super.getMaterial(x, y, z).withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]);
+        public Plant realise(int growth, Platform platform) {
+            return new SimplePlant("Melon Stems", Material.MELON_STEM.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), CROPS);
         }
     };
     public static final Plant BEETROOTS = new AgingPlant("Beetroots", Material.BEETROOTS, CROPS, "block/beetroots_stage3.png", 4);
@@ -81,7 +80,17 @@ public class Plants {
     public static final Plant CACTUS = new VariableHeightPlant("Cactus", Material.CACTUS, Category.CACTUS, "block/cactus_side.png", 3);
     public static final Plant SUGAR_CANE = new VariableHeightPlant("Sugar Cane", Material.SUGAR_CANE, Category.SUGAR_CANE, 3);
     public static final Plant LILY_PAD = new SimplePlant("Lily Pad", Material.LILY_PAD, Category.FLOATING_PLANTS);
-    public static final Plant NETHER_WART = new AgingPlant("Nether Wart", Material.NETHER_WART, Category.NETHER, "block/nether_wart_stage2.png", 4);
+    public static final Plant NETHER_WART = new AgingPlant("Nether Wart", Material.NETHER_WART, Category.NETHER, "block/nether_wart_stage2.png", 4) {
+        @Override
+        public Plant realise(int growth, Platform platform) {
+            return new SimplePlant("Nether Wart", Material.NETHER_WART.withProperty(AGE, growth - 1), NETHER) {
+                @Override
+                public boolean isValidFoundation(MinecraftWorld world, int x, int y, int height) {
+                    return world.getMaterialAt(x, y, height).isNamed(MC_SOUL_SAND);
+                }
+            };
+        }
+    };
     public static final Plant CHORUS_PLANT = new VariableHeightPlant("Chorus Plant", Material.CHORUS_PLANT, Material.CHORUS_FLOWER, Category.END, "block/chorus_flower.png", 5);
     public static final Plant TUBE_CORAL = new SimplePlant("Tube Coral", Material.TUBE_CORAL, WATER_PLANTS);
     public static final Plant BRAIN_CORAL = new SimplePlant("Brain Coral", Material.BRAIN_CORAL, WATER_PLANTS);
@@ -95,8 +104,8 @@ public class Plants {
     public static final Plant HORN_CORAL_FAN = new SimplePlant("Horn Coral Fan", Material.HORN_CORAL_FAN, WATER_PLANTS);
     public static final Plant KELP = new VariableHeightPlant("Kelp", Material.KELP_PLANT, Material.KELP, WATER_PLANTS, 26) {
         @Override
-        Optional<Material> getTopMaterial() {
-            return Optional.of(Material.KELP.withProperty(AGE, RANDOM.nextInt(26)));
+        public VariableHeightPlant realise(int growth, Platform platform) {
+            return new VariableHeightPlant("Kelp", Material.KELP_PLANT, Material.KELP.withProperty(AGE, RANDOM.nextInt(26)), WATER_PLANTS, growth);
         }
     };
     public static final Plant SEAGRASS = new SimplePlant("Seagrass", Material.SEAGRASS, WATER_PLANTS);
@@ -115,6 +124,16 @@ public class Plants {
     public static final Plant CRIMSON_ROOTS = new SimplePlant("Crimson Roots", Material.CRIMSON_ROOTS, NETHER);
     public static final Plant WARPED_ROOTS = new SimplePlant("Warped Roots", Material.WARPED_ROOTS, NETHER);
     public static final Plant NETHER_SPROUTS = new SimplePlant("Nether Sprouts", Material.NETHER_SPROUTS, NETHER);
+    public static final Plant TWISTING_VINES = new VariableHeightPlant("Twisting Vines", Material.TWISTING_VINES_PLANT, TWISTING_VINES_25, MUSHROOMS, 10); // TODO not really mushrooms, but for now those are presented as "Various"
+    public static final Plant GLOW_LICHEN = new SimplePlant("Glow Lichen", Material.GLOW_LICHEN_DOWN, MUSHROOMS); // TODO also underwater! TODO not really mushrooms, but for now those are presented as "Various"
+    public static final Plant MOSS_CARPET = new SimplePlant("Moss Carpet", Material.MOSS_CARPET, MUSHROOMS, "block/moss_block.png"); // TODO not really mushrooms, but for now those are presented as "Various"
+    public static final Plant BIG_DRIPLEAF = new VariableHeightPlant("Big Dripleaf", Material.BIG_DRIPLEAF_STEM_SOUTH, Material.BIG_DRIPLEAF_SOUTH, PLANTS_AND_FLOWERS, "block/big_dripleaf_top.png", 10) {
+        @Override
+        public VariableHeightPlant realise(int growth, Platform platform) {
+            final Direction facing = Direction.values()[(int) (Math.random() * 4)];
+            return new VariableHeightPlant("Big Dripleaf", Material.BIG_DRIPLEAF_STEM_SOUTH.withProperty(MC_FACING, facing.toString()), Material.BIG_DRIPLEAF_SOUTH.withProperty(MC_FACING, facing.toString()), PLANTS_AND_FLOWERS, growth);
+        }
+    };
 
     // The code which uses this assumes there will never be more than 128 plants. If that ever happens it needs to be
     // overhauled! IMPORTANT: indices into this array are stored in layer settings! New entries MUST be added at the
@@ -127,7 +146,7 @@ public class Plants {
             FIRE_CORAL, HORN_CORAL, TUBE_CORAL_FAN, BRAIN_CORAL_FAN, BUBBLE_CORAL_FAN, FIRE_CORAL_FAN, HORN_CORAL_FAN,
             KELP, SEAGRASS, TALL_SEAGRASS, SEA_PICKLE, CORNFLOWER, LILY_OF_THE_VALLEY, WITHER_ROSE, SWEET_BERRY_BUSH,
             BAMBOO, SAPLING_AZALEA, SAPLING_FLOWERING_AZALEA, CRIMSON_FUNGUS, WARPED_FUNGUS, CRIMSON_ROOTS,
-            WARPED_ROOTS, NETHER_SPROUTS};
+            WARPED_ROOTS, NETHER_SPROUTS, TWISTING_VINES, GLOW_LICHEN, MOSS_CARPET, BIG_DRIPLEAF};
 
     private static final Random RANDOM = new Random();
 }

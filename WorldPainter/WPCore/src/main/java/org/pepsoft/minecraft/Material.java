@@ -1892,6 +1892,12 @@ public final class Material implements Serializable {
     public static final Material CRIMSON_ROOTS = get(MC_CRIMSON_ROOTS);
     public static final Material WARPED_ROOTS = get(MC_WARPED_ROOTS);
     public static final Material NETHER_SPROUTS = get(MC_NETHER_SPROUTS);
+    public static final Material TWISTING_VINES_PLANT = get(MC_TWISTING_VINES_PLANT);
+    public static final Material TWISTING_VINES_25 = get(MC_TWISTING_VINES, MC_AGE, 25);
+    public static final Material GLOW_LICHEN_DOWN = get(MC_GLOW_LICHEN, MC_DOWN, true);
+    public static final Material MOSS_CARPET = get(MC_MOSS_CARPET);
+    public static final Material BIG_DRIPLEAF_STEM_SOUTH = get(MC_BIG_DRIPLEAF_STEM, MC_FACING, "south");
+    public static final Material BIG_DRIPLEAF_SOUTH = get(MC_BIG_DRIPLEAF, MC_FACING, "south");
 
     // Namespaces
 
