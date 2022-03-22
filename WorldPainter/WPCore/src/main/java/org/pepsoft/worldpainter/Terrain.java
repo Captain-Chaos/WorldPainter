@@ -46,7 +46,7 @@ public enum Terrain {
             if (dz > 2) {
                 return AIR;
             } else if (dz == 2) {
-                final Random rnd = new Random(seed + (x * 65537) + (y * 4099));
+                final Random rnd = new Random(seed + (x * 65537L) + (y * 4099L));
                 final int rndNr = rnd.nextInt(FLOWER_INCIDENCE);
                 if (rndNr == 0) {
                     if (dandelionNoise.getSeed() != (seed + DANDELION_SEED_OFFSET)) {
@@ -94,7 +94,7 @@ public enum Terrain {
                     }
                 }
             } else if (dz == 1) {
-                final Random rnd = new Random(seed + (x * 65537) + (y * 4099));
+                final Random rnd = new Random(seed + (x * 65537L) + (y * 4099L));
                 final int rndNr = rnd.nextInt(FLOWER_INCIDENCE);
                 if (rndNr == 0) {
                     if (dandelionNoise.getSeed() != (seed + DANDELION_SEED_OFFSET)) {
@@ -260,7 +260,7 @@ public enum Terrain {
             if (dz <= 0) {
                 return Material.SAND;
             } else {
-                final int rnd = new Random(seed + (x * 65537) + (y * 4099)).nextInt(CACTUS_CHANCE);
+                final int rnd = new Random(seed + (x * 65537L) + (y * 4099L)).nextInt(CACTUS_CHANCE);
                 final int cactusHeight;
                 boolean shrub = false;
                 if (rnd < 3) {
@@ -292,7 +292,7 @@ public enum Terrain {
             if (dz > 1) {
                 return AIR;
             } else if (dz == 1) {
-                final int rnd = new Random(seed + (x * 65537) + (y * 4099)).nextInt(FIRE_CHANCE);
+                final int rnd = new Random(seed + (x * 65537L) + (y * 4099L)).nextInt(FIRE_CHANCE);
                 if (rnd == 0) {
                     return FIRE;
                 } else {
