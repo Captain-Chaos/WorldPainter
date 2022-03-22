@@ -29,7 +29,8 @@ public final class CollectionUtils {
     }
 
     /**
-     * Creates an unmodifiable and efficient {@link List} which is the concatenation of several other {@link List}s.
+     * Creates an unmodifiable and efficient (for {@link RandomAccess} lists) {@link List} which is the concatenation of
+     * several other {@link List}s.
      */
     @SafeVarargs
     public static <T> List<T> listOf(final List<? extends T>... lists) {
