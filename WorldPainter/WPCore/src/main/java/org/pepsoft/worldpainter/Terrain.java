@@ -250,7 +250,7 @@ public enum Terrain {
     COBBLESTONE("Cobblestone", BLK_COBBLESTONE, BLK_COBBLESTONE, "cobblestone", BIOME_PLAINS),
     MOSSY_COBBLESTONE("Mossy Cobblestone", BLK_MOSSY_COBBLESTONE, BLK_MOSSY_COBBLESTONE, "mossy cobblestone", BIOME_PLAINS),
     NETHERRACK("Netherrack", BLK_NETHERRACK, BLK_NETHERRACK, "netherrack", BIOME_PLAINS),
-    SOUL_SAND("Soul Sand", BLK_SOUL_SAND, BLK_SOUL_SAND, "soul sand", BIOME_PLAINS),
+    SOUL_SAND("Soul Sand", BLK_SOUL_SAND, BLK_SOUL_SAND, "soul sand", BIOME_HELL),
     OBSIDIAN("Obsidian", BLK_OBSIDIAN, BLK_OBSIDIAN, "extremely tough volcanic glass", BIOME_PLAINS),
     BEDROCK("Bedrock", BLK_BEDROCK, BLK_BEDROCK, "unbreakable bedrock", BIOME_PLAINS),
     DESERT("Desert", "sand with here and there a cactus or dead shrub", BIOME_DESERT, 3) {
