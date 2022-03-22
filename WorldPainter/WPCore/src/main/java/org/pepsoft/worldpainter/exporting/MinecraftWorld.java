@@ -57,7 +57,7 @@ public interface MinecraftWorld extends ChunkProvider {
      * {@link Chunk#markForUpdateChunk(int, int, int)} on it.
      */
     default void markForUpdateWorld(int x, int y, int height) {
-        Chunk chunk = getChunk(x >> 4, y >> 4);
+        Chunk chunk = getChunkForEditing(x >> 4, y >> 4);
         if (chunk != null) {
             chunk.markForUpdateChunk(x & 0xf, height, y & 0xf);
         }
