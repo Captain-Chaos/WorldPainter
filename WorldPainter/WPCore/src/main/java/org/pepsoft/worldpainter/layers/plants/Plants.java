@@ -125,7 +125,12 @@ public class Plants {
     public static final Plant WARPED_ROOTS = new SimplePlant("Warped Roots", Material.WARPED_ROOTS, NETHER);
     public static final Plant NETHER_SPROUTS = new SimplePlant("Nether Sprouts", Material.NETHER_SPROUTS, NETHER);
     public static final Plant TWISTING_VINES = new VariableHeightPlant("Twisting Vines", Material.TWISTING_VINES_PLANT, TWISTING_VINES_25, MUSHROOMS, 10); // TODO not really mushrooms, but for now those are presented as "Various"
-    public static final Plant GLOW_LICHEN = new SimplePlant("Glow Lichen", Material.GLOW_LICHEN_DOWN, MUSHROOMS); // TODO also underwater! TODO not really mushrooms, but for now those are presented as "Various"
+    public static final Plant GLOW_LICHEN = new SimplePlant("Glow Lichen", Material.GLOW_LICHEN_DOWN, MUSHROOMS) { // TODO not really mushrooms, but for now those are presented as "Various"
+        @Override
+        public boolean isValidFoundation(MinecraftWorld world, int x, int y, int height) {
+            return MUSHROOMS.isValidFoundation(world, x, y, height) || WATER_PLANTS.isValidFoundation(world, x, y, height);
+        }
+    };
     public static final Plant MOSS_CARPET = new SimplePlant("Moss Carpet", Material.MOSS_CARPET, MUSHROOMS, "block/moss_block.png"); // TODO not really mushrooms, but for now those are presented as "Various"
     public static final Plant BIG_DRIPLEAF = new VariableHeightPlant("Big Dripleaf", Material.BIG_DRIPLEAF_STEM_SOUTH, Material.BIG_DRIPLEAF_SOUTH, PLANTS_AND_FLOWERS, "block/big_dripleaf_top.png", 10) {
         @Override

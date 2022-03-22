@@ -14,25 +14,20 @@ public enum Category {
         @Override
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
             final Material material = world.getMaterialAt(x, y, z);
-            return material.isNamed(MC_GRASS_BLOCK)
+            return (material.isNamed(MC_GRASS_BLOCK)
                     || material.isNamed(MC_DIRT)
                     || material.isNamed(MC_COARSE_DIRT)
                     || material.isNamed(MC_PODZOL)
                     || material.isNamed(MC_FARMLAND)
-                    || material.isNamed(MC_ROOTED_DIRT);
+                    || material.isNamed(MC_ROOTED_DIRT))
+                && (! isFlooded(world, x, y, z));
         }
     },
 
     SAPLINGS {
         @Override
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
-            final Material material = world.getMaterialAt(x, y, z);
-            return material.isNamed(MC_GRASS_BLOCK)
-                    || material.isNamed(MC_DIRT)
-                    || material.isNamed(MC_COARSE_DIRT)
-                    || material.isNamed(MC_PODZOL)
-                    || material.isNamed(MC_FARMLAND)
-                    || material.isNamed(MC_ROOTED_DIRT);
+            return PLANTS_AND_FLOWERS.isValidFoundation(world, x, y, z);
         }
     },
 
@@ -41,14 +36,14 @@ public enum Category {
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
             final Material material = world.getMaterialAt(x, y, z);
             // If it's dark enough mushrooms can be placed on pretty much anything
-            return material.solid && material.opaque;
+            return material.solid && material.opaque && (! isFlooded(world, x, y, z));
         }
     },
 
     CROPS {
         @Override
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
-            return world.getMaterialAt(x, y, z).isNamed(MC_FARMLAND);
+            return world.getMaterialAt(x, y, z).isNamed(MC_FARMLAND) && (! isFlooded(world, x, y, z));
         }
     },
 
@@ -63,7 +58,8 @@ public enum Category {
                     || material.isNamed(MC_SAND)
                     || material.isNamed(MC_RED_SAND)
                     || material.isNamed(MC_FARMLAND))
-                    && (isWatery(world, x - 1, y, z)
+                && (! isFlooded(world, x, y, z))
+                && (isWatery(world, x - 1, y, z)
                     || isWatery(world, x, y - 1, z)
                     || isWatery(world, x + 1, y, z)
                     || isWatery(world, x, y + 1, z));
@@ -78,7 +74,8 @@ public enum Category {
                     && (! isSolid(world, x - 1, y, z + 1))
                     && (! isSolid(world, x, y - 1, z + 1))
                     && (! isSolid(world, x + 1, y, z + 1))
-                    && (! isSolid(world, x, y + 1, z + 1));
+                    && (! isSolid(world, x, y + 1, z + 1))
+                    && (! isFlooded(world, x, y, z));
         }
     },
 
@@ -95,7 +92,7 @@ public enum Category {
         @Override
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
             return PLANTS_AND_FLOWERS.isValidFoundation(world, x, y, z)
-                    || world.getMaterialAt(x, y, z).isNamed(MC_SOUL_SOIL);
+                    || (world.getMaterialAt(x, y, z).isNamed(MC_SOUL_SOIL) && (! isFlooded(world, x, y, z)));
         }
     },
 
@@ -103,7 +100,7 @@ public enum Category {
         @Override
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
             final Material material = world.getMaterialAt(x, y, z);
-            return material.isNamed(MC_END_STONE) || material.isNamed(MC_CHORUS_PLANT);
+            return (material.isNamed(MC_END_STONE) || material.isNamed(MC_CHORUS_PLANT)) && (! isFlooded(world, x, y, z));
         }
     },
 
@@ -118,12 +115,17 @@ public enum Category {
 
     abstract boolean isValidFoundation(MinecraftWorld world, int x, int y, int z);
 
-    protected final boolean isSolid(MinecraftWorld world, int x, int y, int height) {
-        Material material = world.getMaterialAt(x, y, height);
+    protected final boolean isSolid(MinecraftWorld world, int x, int y, int z) {
+        Material material = world.getMaterialAt(x, y, z);
         return material.isNamed(MC_CACTUS) || (! material.veryInsubstantial);
     }
 
-    protected final boolean isWatery(MinecraftWorld world, int x, int y, int height) {
-        return world.getMaterialAt(x, y, height).containsWater();
+    protected final boolean isWatery(MinecraftWorld world, int x, int y, int z) {
+        return world.getMaterialAt(x, y, z).containsWater();
+    }
+
+    protected final boolean isFlooded(MinecraftWorld world, int x, int y, int z) {
+        final Material materialAbove = world.getMaterialAt(x, y, z + 1);
+        return materialAbove.containsWater() || materialAbove.isNamed(MC_LAVA);
     }
 }

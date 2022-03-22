@@ -89,23 +89,19 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                                         }
                                     }
                                 } else {
-                                    if (tile.getIntHeight(x, y) >= tile.getWaterLevel(x, y)) {
-                                        if (! blockRulesEnforced) {
+                                    if (! blockRulesEnforced) {
+                                        renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
+                                        if (generateTilledDirt && (category == CROPS)) {
+                                            if (minecraftWorld.getMaterialAt(worldX, worldY, height).isNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_ROOTED_DIRT)) {
+                                                minecraftWorld.setMaterialAt(worldX, worldY, height, TILLED_DIRT);
+                                            }
+                                        }
+                                    } else {
+                                        if (plant.isValidFoundation(minecraftWorld, worldX, worldY, height)) {
                                             renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
-                                            if (generateTilledDirt && (category == CROPS)) {
-                                                if (minecraftWorld.getMaterialAt(worldX, worldY, height).isNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL)) {
-                                                    minecraftWorld.setMaterialAt(worldX, worldY, height, TILLED_DIRT);
-                                                }
-                                            }
-                                        } else {
-                                            if (plant.isValidFoundation(minecraftWorld, worldX, worldY, height)) {
-                                                renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
-                                            } else if (generateTilledDirt && (category == CROPS)) {
-                                                if (minecraftWorld.getMaterialAt(worldX, worldY, height).isNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL)) {
-                                                    minecraftWorld.setMaterialAt(worldX, worldY, height, TILLED_DIRT);
-                                                    renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
-                                                }
-                                            }
+                                        } else if (generateTilledDirt && (category == CROPS) && (PLANTS_AND_FLOWERS.isValidFoundation(minecraftWorld, worldX, worldY, height))) {
+                                            minecraftWorld.setMaterialAt(worldX, worldY, height, TILLED_DIRT);
+                                            renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
                                         }
                                     }
                                 }
