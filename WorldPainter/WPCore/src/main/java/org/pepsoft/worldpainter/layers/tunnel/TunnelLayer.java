@@ -209,6 +209,14 @@ public class TunnelLayer extends CustomLayer {
         this.floorLayers = floorLayers;
     }
 
+    public Integer getTunnelBiome() {
+        return tunnelBiome;
+    }
+
+    public void setTunnelBiome(Integer biome) {
+        this.tunnelBiome = biome;
+    }
+
     // CustomLayer
     
     @Override
@@ -260,18 +268,34 @@ public class TunnelLayer extends CustomLayer {
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        
+
+        if (wpVersion < 1) {
+            if (roofMin == 0) {
+                roofMin = Integer.MIN_VALUE;
+            }
+            if (floorMin == 0) {
+                floorMin = Integer.MIN_VALUE;
+            }
+            if (floodLevel == 0) {
+                floodLevel = Integer.MIN_VALUE;
+            }
+        }
+        wpVersion = CURRENT_WP_VERSION;
+
         renderer = new TunnelLayerRenderer(this);
     }
-    
+
     private Mode roofMode = Mode.FIXED_HEIGHT, floorMode = Mode.FIXED_HEIGHT;
-    private int roofLevel = 88, floorLevel = 80, floorWallDepth = 4, roofWallDepth = 4, roofMin = 0, roofMax = Integer.MAX_VALUE, floorMin = 0, floorMax = Integer.MAX_VALUE, floodLevel;
+    private int roofLevel = 88, floorLevel = 80, floorWallDepth = 4, roofWallDepth = 4, roofMin = Integer.MIN_VALUE, roofMax = Integer.MAX_VALUE, floorMin = Integer.MIN_VALUE, floorMax = Integer.MAX_VALUE, floodLevel = Integer.MIN_VALUE;
     private boolean stalactites, stalagmites, floodWithLava, removeWater;
     private MixedMaterial floorMaterial, wallMaterial, roofMaterial;
     private NoiseSettings floorNoise, roofNoise, wallNoise;
     private Map<Layer, LayerSettings> floorLayers;
+    private Integer tunnelBiome;
+    private int wpVersion = CURRENT_WP_VERSION;
     private transient TunnelLayerRenderer renderer = new TunnelLayerRenderer(this);
-    
+
+    private static final int CURRENT_WP_VERSION = 1;
     private static final long serialVersionUID = 1L;
     
     public enum Mode {FIXED_HEIGHT, CONSTANT_DEPTH, INVERTED_DEPTH}

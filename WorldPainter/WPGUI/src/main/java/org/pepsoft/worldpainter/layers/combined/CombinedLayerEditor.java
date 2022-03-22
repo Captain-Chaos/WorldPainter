@@ -6,13 +6,8 @@
 
 package org.pepsoft.worldpainter.layers.combined;
 
-import org.pepsoft.worldpainter.BiomeListCellRenderer;
-import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.LayerListCellRenderer;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes;
 import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
 import org.pepsoft.worldpainter.layers.CombinedLayer;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -30,9 +25,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singletonList;
+import static org.pepsoft.util.CollectionUtils.listOf;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.worldpainter.layers.combined.CombinedLayerTableModel.COLUMN_FACTOR;
 import static org.pepsoft.worldpainter.layers.combined.CombinedLayerTableModel.COLUMN_LAYER;
+import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
 
 /**
  *
@@ -130,22 +128,13 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
     public void setContext(LayerEditorContext context) {
         super.setContext(context);
         
-        CustomBiomeManager customBiomeManager = context.getCustomBiomeManager();
-        ColourScheme colourScheme = context.getColourScheme();
+        final CustomBiomeManager customBiomeManager = context.getCustomBiomeManager();
+        final ColourScheme colourScheme = context.getColourScheme();
+        final Platform platform = context.getDimension().getWorld().getPlatform();
         comboBoxTerrain.setRenderer(new TerrainListCellRenderer(colourScheme, "none"));
-        comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager, "none"));
-        
-        List<Integer> allBiomes = new ArrayList<>();
-        allBiomes.add(-1);
-        for (int i = 0; i < Minecraft1_17Biomes.BIOME_NAMES.length; i++) {
-            if (Minecraft1_17Biomes.BIOME_NAMES[i] != null) {
-                allBiomes.add(i);
-            }
-        }
-        List<CustomBiome> customBiomes = customBiomeManager.getCustomBiomes();
-        if (customBiomes != null) {
-            allBiomes.addAll(customBiomes.stream().map(CustomBiome::getId).collect(Collectors.toList()));
-        }
+        comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager, "none", platform));
+
+        List<Integer> allBiomes = listOf(singletonList(-1), getAllBiomes(platform, customBiomeManager));
         comboBoxBiome.setModel(new DefaultComboBoxModel(allBiomes.toArray()));
         
         allLayers = context.getAllLayers();

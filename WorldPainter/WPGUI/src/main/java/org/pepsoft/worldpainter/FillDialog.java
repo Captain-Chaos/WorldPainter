@@ -51,7 +51,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
         brushOptions1.setSelectionState(selectionState);
         
         comboBoxBiome.setModel(new DefaultComboBoxModel(biomes));
-        comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager));
+        comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager, dimension.getWorld().getPlatform()));
         
         comboBoxSetLayer.setModel(new DefaultComboBoxModel(layers));
         comboBoxSetLayer.setRenderer(new LayerListCellRenderer());

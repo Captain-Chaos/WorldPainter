@@ -92,7 +92,6 @@ import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -116,6 +115,7 @@ import static org.pepsoft.worldpainter.Terrain.*;
 import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
 import static org.pepsoft.worldpainter.TileRenderer.TERRAIN_AS_LAYER;
 import static org.pepsoft.worldpainter.World2.*;
+import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
 
 /**
  *
@@ -3136,7 +3136,7 @@ public final class App extends JFrame implements RadiusControl,
                 baseHeight = 58;
                 waterLevel = 62;
             }
-            TunnelLayerDialog dialog = new TunnelLayerDialog(App.this, world.getPlatform(), layer, world.isExtendedBlockIds(), selectedColourScheme, dimension.getMaxHeight(), baseHeight, waterLevel);
+            TunnelLayerDialog dialog = new TunnelLayerDialog(App.this, world.getPlatform(), layer, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 if (paletteName != null) {
@@ -3676,7 +3676,7 @@ public final class App extends JFrame implements RadiusControl,
                         baseHeight = 58;
                         waterLevel = 62;
                     }
-                    dialog = (AbstractEditLayerDialog<L>) new TunnelLayerDialog(App.this, world.getPlatform(), (TunnelLayer) layer, world.isExtendedBlockIds(), selectedColourScheme, dimension.getMaxHeight(), baseHeight, waterLevel);
+                    dialog = (AbstractEditLayerDialog<L>) new TunnelLayerDialog(App.this, world.getPlatform(), (TunnelLayer) layer, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
                 } else {
                     throw new IllegalArgumentException("Don't know how to create dialog for layer " + layer.getName());
                 }
@@ -5418,16 +5418,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private void showGlobalOperations() {
         Set<Layer> allLayers = getAllLayers();
-        List<Integer> allBiomes = new ArrayList<>();
-        final int biomeCount = StaticBiomeInfo.INSTANCE.getBiomeCount();
-        for (int biome = 0; biome < biomeCount; biome++) {
-            if (StaticBiomeInfo.INSTANCE.isBiomePresent(biome)) {
-                allBiomes.add(biome);
-            }
-        }
-        if (customBiomeManager.getCustomBiomes() != null) {
-            allBiomes.addAll(customBiomeManager.getCustomBiomes().stream().map(CustomBiome::getId).collect(Collectors.toList()));
-        }
+        List<Integer> allBiomes = getAllBiomes(world.getPlatform(), customBiomeManager);
         FillDialog dialog = new FillDialog(App.this, dimension, allLayers.toArray(new Layer[allLayers.size()]), selectedColourScheme, allBiomes.toArray(new Integer[allBiomes.size()]), customBiomeManager, view, selectionState);
         dialog.setVisible(true);
     }

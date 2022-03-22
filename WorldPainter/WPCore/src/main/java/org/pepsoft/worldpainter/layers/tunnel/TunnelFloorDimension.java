@@ -1,13 +1,16 @@
 package org.pepsoft.worldpainter.layers.tunnel;
 
-import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 
 import java.awt.*;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A {@link Dimension} of which the terrain height follows the floor of a
@@ -30,7 +33,7 @@ public class TunnelFloorDimension extends RODelegatingDimension {
         floorMax = layer.getFloorMax();
         roofMin = layer.getRoofMin();
         roofMax = layer.getRoofMax();
-        minZ = dimension.isBottomless() ? 0 : 1;
+        minZ = dimension.getMinHeight() + (dimension.isBottomless() ? 0 : 1);
         maxZ = dimension.getMaxHeight() - 1;
         if (layer.getFloorNoise() != null) {
             floorNoise = new NoiseHeightMap(layer.getFloorNoise(), TunnelLayerExporter.FLOOR_NOISE_SEED_OFFSET);

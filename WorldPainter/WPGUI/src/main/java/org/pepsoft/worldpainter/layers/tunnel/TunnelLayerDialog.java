@@ -6,6 +6,7 @@
 package org.pepsoft.worldpainter.layers.tunnel;
 
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.exporting.IncidentalLayerExporter;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
@@ -24,17 +25,23 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singletonList;
+import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
+import static org.pepsoft.util.CollectionUtils.listOf;
+import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
+
 /**
  *
  * @author SchmitzP
  */
 public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> implements ChangeListener, ListSelectionListener {
-    public TunnelLayerDialog(Window parent, Platform platform, TunnelLayer layer, boolean extendedBlockIds, ColourScheme colourScheme, int maxHeight, int baseHeight, int waterLevel) {
+    public TunnelLayerDialog(Window parent, Platform platform, TunnelLayer layer, boolean extendedBlockIds, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int minHeight, int maxHeight, int baseHeight, int waterLevel) {
         super(parent);
         this.platform = platform;
         this.layer = layer;
         this.baseHeight = baseHeight;
         this.waterLevel = waterLevel;
+        this.minHeight = minHeight;
         this.maxHeight = maxHeight;
         
         initComponents();
@@ -48,21 +55,28 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         labelPreview.setPreferredSize(new Dimension(128, 0));
         programmaticChange = true;
         try {
+            ((SpinnerNumberModel) spinnerFloorLevel.getModel()).setMinimum(minHeight);
             ((SpinnerNumberModel) spinnerFloorLevel.getModel()).setMaximum(maxHeight - 1);
+            ((SpinnerNumberModel) spinnerRoofLevel.getModel()).setMinimum(minHeight);
             ((SpinnerNumberModel) spinnerRoofLevel.getModel()).setMaximum(maxHeight - 1);
+            ((SpinnerNumberModel) spinnerFloorMin.getModel()).setMinimum(minHeight);
             ((SpinnerNumberModel) spinnerFloorMin.getModel()).setMaximum(maxHeight - 1);
+            ((SpinnerNumberModel) spinnerFloorMax.getModel()).setMinimum(minHeight);
             ((SpinnerNumberModel) spinnerFloorMax.getModel()).setMaximum(maxHeight - 1);
+            ((SpinnerNumberModel) spinnerRoofMin.getModel()).setMinimum(minHeight);
             ((SpinnerNumberModel) spinnerRoofMin.getModel()).setMaximum(maxHeight - 1);
+            ((SpinnerNumberModel) spinnerRoofMax.getModel()).setMinimum(minHeight);
             ((SpinnerNumberModel) spinnerRoofMax.getModel()).setMaximum(maxHeight - 1);
+            ((SpinnerNumberModel) spinnerFloodLevel.getModel()).setMinimum(minHeight);
             ((SpinnerNumberModel) spinnerFloodLevel.getModel()).setMaximum(maxHeight - 1);
         } finally {
             programmaticChange = false;
         }
+        comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager, "None", platform));
+        comboBoxBiome.setModel(new DefaultComboBoxModel<>(listOf(singletonList(null), getAllBiomes(platform, customBiomeManager)).toArray(new Integer[0])));
         
         loadSettings();
-        
-        updatePreview();
-        
+
         getRootPane().setDefaultButton(buttonOK);
         
         noiseSettingsEditorFloor.addChangeListener(this);
@@ -70,6 +84,15 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
 
         scaleToUI();
         setLocationRelativeTo(parent);
+
+        // TODO this causes the preview only to become bigger, never smaller:
+//        addComponentListener(new ComponentAdapter() {
+//            @Override
+//            public void componentResized(ComponentEvent e) {
+//                updatePreview();
+//            }
+//        });
+        doLaterOnEventThread(this::updatePreview);
     }
 
     // AbstractEditLayerDialog
@@ -119,7 +142,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         int width = labelPreview.getWidth() - insets.left - insets.right;
         int height = labelPreview.getHeight() - insets.top - insets.bottom;
         if ((width > 0) && (height > 0)) {
-            BufferedImage preview = exporter.generatePreview(width, height, waterLevel, baseHeight, Math.min(maxHeight - baseHeight, height - baseHeight));
+            BufferedImage preview = exporter.generatePreview(width, height, waterLevel, minHeight, baseHeight, Math.min(maxHeight - baseHeight, height - baseHeight + minHeight));
             labelPreview.setIcon(new ImageIcon(preview));
         } else {
             labelPreview.setIcon(null);
@@ -130,7 +153,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         programmaticChange = true;
         try {
             spinnerFloorLevel.setValue(layer.getFloorLevel());
-            spinnerFloorMin.setValue(layer.getFloorMin());
+            spinnerFloorMin.setValue(Math.max(layer.getFloorMin(), minHeight));
             spinnerFloorMax.setValue(Math.min(layer.getFloorMax(), maxHeight - 1));
             mixedMaterialSelectorFloor.setMaterial(layer.getFloorMaterial());
             switch (layer.getFloorMode()) {
@@ -150,7 +173,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             }
             noiseSettingsEditorFloor.setNoiseSettings(floorNoise);
             spinnerRoofLevel.setValue(layer.getRoofLevel());
-            spinnerRoofMin.setValue(layer.getRoofMin());
+            spinnerRoofMin.setValue(Math.max(layer.getRoofMin(), minHeight));
             spinnerRoofMax.setValue(Math.min(layer.getRoofMax(), maxHeight - 1));
             mixedMaterialSelectorRoof.setMaterial(layer.getRoofMaterial());
             switch (layer.getRoofMode()) {
@@ -175,14 +198,15 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             textFieldName.setText(layer.getName());
             colourEditor1.setColour(layer.getColour());
             checkBoxRemoveWater.setSelected(layer.isRemoveWater());
-            checkBoxFlood.setSelected(layer.getFloodLevel() > 0);
-            spinnerFloodLevel.setValue((layer.getFloodLevel() > 0) ? layer.getFloodLevel() : waterLevel);
+            checkBoxFlood.setSelected(layer.getFloodLevel() != Integer.MIN_VALUE);
+            spinnerFloodLevel.setValue((layer.getFloodLevel() != Integer.MIN_VALUE) ? layer.getFloodLevel() : waterLevel);
             checkBoxFloodWithLava.setSelected(layer.isFloodWithLava());
 
             Map<Layer, TunnelLayer.LayerSettings> floorLayers = layer.getFloorLayers();
             floorLayersTableModel = new TunnelFloorLayersTableModel(floorLayers, maxHeight);
             tableFloorLayers.setModel(floorLayersTableModel);
             tableFloorLayers.getColumnModel().getColumn(TunnelFloorLayersTableModel.COLUMN_NAME).setCellRenderer(new LayerTableCellRenderer());
+            comboBoxBiome.setSelectedItem(layer.getTunnelBiome());
         } finally {
             programmaticChange = false;
         }
@@ -192,8 +216,8 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
 
     private void saveSettingsTo(TunnelLayer layer, boolean registerMaterials) {
         layer.setFloorLevel((Integer) spinnerFloorLevel.getValue());
-        layer.setFloorMin((Integer) spinnerFloorMin.getValue());
-        layer.setFloorMax((Integer) spinnerFloorMax.getValue());
+        layer.setFloorMin(((Integer) spinnerFloorMin.getValue() <= minHeight) ? Integer.MIN_VALUE : ((Integer) spinnerFloorMin.getValue()));
+        layer.setFloorMax(((Integer) spinnerFloorMax.getValue() >= (maxHeight - 1)) ? Integer.MAX_VALUE : ((Integer) spinnerFloorMax.getValue()));
         MixedMaterial floorMaterial = mixedMaterialSelectorFloor.getMaterial();
         if ((floorMaterial != null) && registerMaterials) {
             // Make sure the material is registered, in case it's new
@@ -214,8 +238,8 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             layer.setFloorNoise(floorNoiseSettings);
         }
         layer.setRoofLevel((Integer) spinnerRoofLevel.getValue());
-        layer.setRoofMin((Integer) spinnerRoofMin.getValue());
-        layer.setRoofMax((Integer) spinnerRoofMax.getValue());
+        layer.setRoofMin(((Integer) spinnerRoofMin.getValue() <= minHeight) ? Integer.MIN_VALUE : ((Integer) spinnerRoofMin.getValue()));
+        layer.setRoofMax(((Integer) spinnerRoofMax.getValue() >= (maxHeight - 1)) ? Integer.MAX_VALUE : ((Integer) spinnerRoofMax.getValue()));
         MixedMaterial roofMaterial = mixedMaterialSelectorRoof.getMaterial();
         if ((roofMaterial != null) && registerMaterials) {
             // Make sure the material is registered, in case it's new
@@ -246,8 +270,9 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         layer.setName(textFieldName.getText().trim());
         layer.setColour(colourEditor1.getColour());
         layer.setRemoveWater(checkBoxRemoveWater.isSelected());
-        layer.setFloodLevel(checkBoxFlood.isSelected() ? (Integer) spinnerFloodLevel.getValue() : 0);
+        layer.setFloodLevel(checkBoxFlood.isSelected() ? (Integer) spinnerFloodLevel.getValue() : Integer.MIN_VALUE);
         layer.setFloodWithLava(checkBoxFloodWithLava.isSelected());
+        layer.setTunnelBiome((Integer) comboBoxBiome.getSelectedItem());
         
         Map<Layer, TunnelLayer.LayerSettings> floorLayers = floorLayersTableModel.getLayers();
         layer.setFloorLayers(((floorLayers != null) && (! floorLayers.isEmpty())) ? floorLayers : null);
@@ -323,9 +348,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                         });
                     return paletteMenu;
                 }).filter((paletteMenu) -> (paletteMenu.getItemCount() > 0))
-                .forEach((paletteMenu) -> {
-                    popupMenu.add(paletteMenu);
-                });
+                .forEach(popupMenu::add);
         } else {
             customLayers.forEach(l -> {
                 JMenuItem menuItem = new JMenuItem(l.getName(), new ImageIcon(l.getIcon()));
@@ -340,7 +363,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         JPopupMenu popupMenu = new JPopupMenu();
         JMenuItem item = new JMenuItem("Custom Objects Layer");
         item.addActionListener(e -> {
-            EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog(TunnelLayerDialog.this, platform, Bo2Layer.class);
+            EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog<>(TunnelLayerDialog.this, platform, Bo2Layer.class);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 Bo2Layer newLayer = dialog.getLayer();
@@ -351,7 +374,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         popupMenu.add(item);
         item = new JMenuItem("Custom Ground Cover Layer");
         item.addActionListener(e -> {
-            EditLayerDialog<GroundCoverLayer> dialog = new EditLayerDialog(TunnelLayerDialog.this, platform, GroundCoverLayer.class);
+            EditLayerDialog<GroundCoverLayer> dialog = new EditLayerDialog<>(TunnelLayerDialog.this, platform, GroundCoverLayer.class);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 GroundCoverLayer newLayer = dialog.getLayer();
@@ -362,7 +385,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         popupMenu.add(item);
         item = new JMenuItem("Custom Plants Layer");
         item.addActionListener(e -> {
-            EditLayerDialog<PlantLayer> dialog = new EditLayerDialog(TunnelLayerDialog.this, platform, PlantLayer.class);
+            EditLayerDialog<PlantLayer> dialog = new EditLayerDialog<>(TunnelLayerDialog.this, platform, PlantLayer.class);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 PlantLayer newLayer = dialog.getLayer();
@@ -379,7 +402,6 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
      * WARNING: Do NOT modify this code. The content of this method is always
      * regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -437,6 +459,8 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         jLabel10 = new javax.swing.JLabel();
         labelPreview = new javax.swing.JLabel();
         jLabel21 = new javax.swing.JLabel();
+        jLabel23 = new javax.swing.JLabel();
+        comboBoxBiome = new javax.swing.JComboBox<>();
         jPanel2 = new javax.swing.JPanel();
         jLabel22 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -660,6 +684,8 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         jLabel21.setLabelFor(spinnerFloodLevel);
         jLabel21.setText("Level:");
 
+        jLabel23.setText("Biome:");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -746,7 +772,11 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                                 .addComponent(spinnerFloodLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
                                 .addComponent(checkBoxFloodWithLava))
-                            .addComponent(checkBoxRemoveWater))))
+                            .addComponent(checkBoxRemoveWater)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel23)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(comboBoxBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(labelPreview, javax.swing.GroupLayout.DEFAULT_SIZE, 232, Short.MAX_VALUE)
                 .addContainerGap())
@@ -818,6 +848,10 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                             .addComponent(mixedMaterialSelectorWall, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18)
                         .addComponent(jLabel20)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel23)
+                            .addComponent(comboBoxBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(checkBoxRemoveWater)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -897,7 +931,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                 .addComponent(jLabel22)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 398, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 470, Short.MAX_VALUE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(buttonNewFloorLayer)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1035,6 +1069,9 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     }//GEN-LAST:event_checkBoxFloodWithLavaActionPerformed
 
     private void radioButtonFloorFixedDepthActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonFloorFixedDepthActionPerformed
+        if (radioButtonFloorFixedDepth.isSelected() && ((Integer) spinnerFloorLevel.getValue() < 0)) {
+            spinnerFloorLevel.setValue(0);
+        }
         updatePreview();
         setControlStates();
     }//GEN-LAST:event_radioButtonFloorFixedDepthActionPerformed
@@ -1064,6 +1101,9 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     }//GEN-LAST:event_spinnerFloorMinStateChanged
 
     private void radioButtonRoofFixedDepthActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonRoofFixedDepthActionPerformed
+        if (radioButtonRoofFixedDepth.isSelected() && ((Integer) spinnerRoofLevel.getValue() < 0)) {
+            spinnerRoofLevel.setValue(0);
+        }
         updatePreview();
         setControlStates();
     }//GEN-LAST:event_radioButtonRoofFixedDepthActionPerformed
@@ -1124,6 +1164,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     private javax.swing.JCheckBox checkBoxFloodWithLava;
     private javax.swing.JCheckBox checkBoxRemoveWater;
     private org.pepsoft.worldpainter.ColourEditor colourEditor1;
+    private javax.swing.JComboBox<Integer> comboBoxBiome;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -1139,6 +1180,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;
+    private javax.swing.JLabel jLabel23;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -1177,7 +1219,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
 
     private final Platform platform;
     private final TunnelLayer layer;
-    private final int waterLevel, baseHeight, maxHeight;
+    private final int waterLevel, baseHeight, minHeight, maxHeight;
     private TunnelFloorLayersTableModel floorLayersTableModel;
     private boolean programmaticChange;
 
