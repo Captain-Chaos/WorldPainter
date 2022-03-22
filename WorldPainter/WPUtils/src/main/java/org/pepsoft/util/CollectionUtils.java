@@ -9,6 +9,7 @@ package org.pepsoft.util;
 import java.util.AbstractList;
 import java.util.BitSet;
 import java.util.List;
+import java.util.RandomAccess;
 
 /**
  *
@@ -39,7 +40,8 @@ public final class CollectionUtils {
             cumulativeSizes[i] = runningTotal;
         }
         final int totalSize = runningTotal;
-        return new AbstractList<T>() {
+        abstract class AbstractRandomAccessList<E> extends AbstractList<E> implements RandomAccess {}
+        return new AbstractRandomAccessList<T>() {
             @Override
             public int size() {
                 return totalSize;
