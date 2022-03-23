@@ -114,7 +114,7 @@ public class BiomeNameHarvester {
             Map<String, Set<Integer>> legacyIds = new HashMap<>();
             File savesDir = new File(MinecraftUtil.findMinecraftDir(), "saves");
             File worldDir = new File(savesDir, "BiomeNames");
-            JavaMinecraftWorld world = new JavaMinecraftWorld(worldDir, DIM_NORMAL, DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL_1_18, true, 320);
+            JavaMinecraftWorld world = new JavaMinecraftWorld(worldDir, DIM_NORMAL, DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL_1_18, true, DEFAULT_MAX_HEIGHT_1_18);
             for (int x = -8; x < 8; x++) {
                 for (int z = -8; z < 8; z++) {
                     final int biomeId = (x + 8) * 16 + z + 8;
