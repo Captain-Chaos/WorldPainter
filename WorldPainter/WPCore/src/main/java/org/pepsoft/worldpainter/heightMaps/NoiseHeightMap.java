@@ -21,18 +21,22 @@ import static org.pepsoft.worldpainter.Constants.LARGE_BLOBS;
  */
 public final class NoiseHeightMap extends AbstractHeightMap {
     public NoiseHeightMap(NoiseSettings noiseSettings) {
+        // TODO WHY do we double the range?!
         this(null, noiseSettings.getRange() * 2, noiseSettings.getScale() / 5, noiseSettings.getRoughness() + 1, new Random().nextLong());
     }
 
     public NoiseHeightMap(NoiseSettings noiseSettings, long seedOffset) {
+        // TODO WHY do we double the range?!
         this(null, noiseSettings.getRange() * 2, noiseSettings.getScale() / 5, noiseSettings.getRoughness() + 1, seedOffset);
     }
 
     public NoiseHeightMap(String name, NoiseSettings noiseSettings) {
+        // TODO WHY do we double the range?!
         this(name, noiseSettings.getRange() * 2, noiseSettings.getScale() / 5, noiseSettings.getRoughness() + 1, new Random().nextLong());
     }
 
     public NoiseHeightMap(String name, NoiseSettings noiseSettings, long seedOffset) {
+        // TODO WHY do we double the range?!
         this(name, noiseSettings.getRange() * 2, noiseSettings.getScale() / 5, noiseSettings.getRoughness() + 1, seedOffset);
     }
 
@@ -96,6 +100,7 @@ public final class NoiseHeightMap extends AbstractHeightMap {
     }
 
     public void setNoiseSettings(NoiseSettings noiseSettings) {
+        // TODO WHY do we double the range?!
         height = noiseSettings.getRange() * 2;
         scale = noiseSettings.getScale() / 5;
         octaves = noiseSettings.getRoughness() + 1;
@@ -113,7 +118,7 @@ public final class NoiseHeightMap extends AbstractHeightMap {
 
     @Override
     public float getHeight(int x, int y) {
-        return getValue((double) x, (double) y);
+        return getValue(x, y);
     }
 
     @Override
@@ -188,7 +193,7 @@ public final class NoiseHeightMap extends AbstractHeightMap {
         return new float[] {0.0f, height};
     }
 
-    private PerlinNoise perlinNoise;
+    private final PerlinNoise perlinNoise;
     private float height;
     private double scale;
     private int octaves;
