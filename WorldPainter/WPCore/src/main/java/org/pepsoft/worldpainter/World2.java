@@ -240,6 +240,16 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
+    /**
+     * Returns the generator type setting of the surface dimension.
+     *
+     * @deprecated Use {@link Dimension#getGenerator()}.
+     */
+    @Deprecated
+    public Generator getGenerator() {
+        return dimensions.get(DIM_NORMAL).getGenerator().getType();
+    }
+
     public Platform getPlatform() {
         return platform;
     }
