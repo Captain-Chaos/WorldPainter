@@ -41,7 +41,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
             floorNoise = null;
             floorNoiseOffset = 0;
         }
-        if (layer.getRoofNoise()!= null) {
+        if (layer.getRoofNoise() != null) {
             roofNoise = new NoiseHeightMap(layer.getRoofNoise(), ROOF_NOISE_SEED_OFFSET);
             roofNoiseOffset = layer.getRoofNoise().getRange();
         } else {
