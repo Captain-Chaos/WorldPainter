@@ -91,7 +91,7 @@ public class Java118Level extends JavaLevel {
                 } else if (noiseSettings.equals(MC_END)) {
                     generator = new SeededGenerator(END, generatorSeed);
                 } else {
-                    throw new IllegalArgumentException("Settings string \"" + noiseSettings + "\" for minecraft:noise generator type not recognised");
+                    throw new IllegalArgumentException("Settings string \"" + noiseSettings + "\" for minecraft:noise generator type not recognised"); // TODO: minecraft:amplified
                 }
             } else if (generatorType.equals(MC_FLAT)) {
                 generator = new SuperflatGenerator(SuperflatPreset.fromMinecraft1_18_0((CompoundTag) generatorSettings));
