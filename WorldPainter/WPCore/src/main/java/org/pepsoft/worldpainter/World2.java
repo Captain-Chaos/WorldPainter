@@ -333,6 +333,19 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
+    /**
+     * Returns the custom generator name setting of the surface dimension, or {@code null} if the surface dimension
+     * generator is not a custom generator.
+     *
+     * @deprecated Use {@link Dimension#getGenerator()}.
+     */
+    @Deprecated
+    public String getGeneratorOptions() {
+        return (dimensions.get(DIM_NORMAL).getGenerator() instanceof CustomGenerator)
+                ? ((CustomGenerator) dimensions.get(DIM_NORMAL).getGenerator()).getName()
+                : null;
+    }
+
     public boolean isExtendedBlockIds() {
         return extendedBlockIds;
     }
