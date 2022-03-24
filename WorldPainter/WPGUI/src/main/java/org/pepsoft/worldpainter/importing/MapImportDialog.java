@@ -279,6 +279,7 @@ public class MapImportDialog extends WorldPainterDialog {
             mapStatistics.dir = worldDir;
             mapStatistics.platform = platform;
             mapStatistics.levelDat = levelDat;
+            labelPlatform.setIcon(mapInfo.icon);
             labelPlatform.setText(platform.displayName);
             int width = mapStatistics.highestChunkXNoOutliers - mapStatistics.lowestChunkXNoOutliers + 1;
             int length = mapStatistics.highestChunkZNoOutliers - mapStatistics.lowestChunkZNoOutliers + 1;
