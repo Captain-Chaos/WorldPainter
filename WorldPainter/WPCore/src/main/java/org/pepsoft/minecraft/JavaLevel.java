@@ -409,7 +409,7 @@ public abstract class JavaLevel extends AbstractNBTItem {
         final File worldDir = levelDatFile.getParentFile();
         final int version = ((IntTag) data.getTag(TAG_VERSION_)).getValue();
         final int dataVersion = data.containsTag (TAG_DATA_VERSION) ? ((IntTag) data.getTag(TAG_DATA_VERSION)).getValue() : -1;
-        if (data.containsTag("isCubicWorld")) { // TODO hardcoded support for CC plugin; make this dynamic
+        if (data.containsTag("isCubicWorld") && (((ByteTag) data.getTag("isCubicWorld")).getValue() == (byte) 1)) { // TODO hardcoded support for CC plugin; make this dynamic
             maxHeight = MAX_HEIGHT;
         } else if (data.containsTag(TAG_VERSION_)) {
             maxHeight = (version == VERSION_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : ((dataVersion <= DATA_VERSION_MC_1_17_1) ? DEFAULT_MAX_HEIGHT_ANVIL : DEFAULT_MAX_HEIGHT_1_18);
@@ -460,7 +460,7 @@ public abstract class JavaLevel extends AbstractNBTItem {
                                 logger.error("{} while loading data pack {}; skipping data pack (message: \"{}\")", e.getClass().getSimpleName(), name, e.getMessage(), e);
                             }
                         } else {
-                            logger.debug("Skipping internal data pack {} while loading level {}", name, levelDatFile);
+                            logger.trace("Skipping internal data pack {} while loading level {}", name, levelDatFile);
                             // TODO add support for internal datapacks
                         }
                     }
