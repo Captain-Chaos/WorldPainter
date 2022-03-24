@@ -343,7 +343,7 @@ public class SimpleTheme implements Theme, Cloneable {
     
     public static SimpleTheme createDefault(Terrain topTerrain, int minHeight, int maxHeight, int waterHeight, boolean randomise, boolean beaches) {
         SortedMap<Integer, Terrain> terrainRanges = new TreeMap<>();
-        float factor = maxHeight / 128f;
+        float factor = Math.min(maxHeight, 320) / 128f; // Constrain to a reasonable height
         terrainRanges.put(minHeight - 1                    , topTerrain);
         terrainRanges.put((int) (32 * factor) + waterHeight, Terrain.PERMADIRT);
         terrainRanges.put((int) (48 * factor) + waterHeight, Terrain.STONE_MIX);
