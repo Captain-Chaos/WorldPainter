@@ -52,8 +52,8 @@ public class Tile3DRenderer {
         final int tileOffsetX = tile.getX() * TILE_SIZE, tileOffsetY = tile.getY() * TILE_SIZE;
         int currentColour = -1;
         final int imgWidth = TILE_SIZE * 2;
-        final int imgHeight = TILE_SIZE + maxHeight - minHeight - 1;
-        final int maxZ = maxHeight - 1;
+        final int maxZ = tile.getHighestIntHeight();
+        final int imgHeight = TILE_SIZE + maxZ - minHeight;
         final BufferedImage img = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(imgWidth, imgHeight, Transparency.TRANSLUCENT);
         final Graphics2D g2 = img.createGraphics();
         try {
@@ -98,7 +98,7 @@ public class Tile3DRenderer {
                     }
                     // Image coordinates of the bottom of the world in this column. Image origin is in the top left
                     // corner
-                    final float imgX = TILE_SIZE + x - y - 0.5f, imgY = (x + y) / 2f + maxHeight - minHeight - 0.5f;
+                    final float imgX = TILE_SIZE + x - y - 0.5f, imgY = (x + y) / 2f + maxZ - minHeight + 0.5f;
 //                    System.out.println(blockX + ", " + blockY + " -> " + blockXTranslated + ", " + blockYTranslated + " -> " + imgX + ", " + imgY);
 
                     // First draw the sub surface part of the world in a single solid colour
