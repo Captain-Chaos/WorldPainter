@@ -99,14 +99,14 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
                 }
             });
             if (pluginCandidates.size() == 1) {
-                return candidates.iterator().next();
+                return pluginCandidates.iterator().next();
             } else if (pluginCandidates.size() > 1) {
                 throw new RuntimeException("Multiple platform providers (" + pluginCandidates + ") claimed support for this map");
             } else {
                 // Multiple default platforms matched; pick the newest one
                 for (int i = DEFAULT_PLATFORMS.size() - 1; i >= 0; i--) {
                     Platform platform = DEFAULT_PLATFORMS.get(i);
-                    List<MapInfo> mapInfos = candidates.stream().filter(mapInfo -> mapInfo.platform == platform).collect(toList());
+                    List<MapInfo> mapInfos = defaultCandidates.stream().filter(mapInfo -> mapInfo.platform == platform).collect(toList());
                     if (! mapInfos.isEmpty()) {
                         return mapInfos.get(0);
                     }
