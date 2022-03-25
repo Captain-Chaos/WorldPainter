@@ -69,7 +69,7 @@ public class LightingCalculator {
         for (int chunkZ = z1InChunks; chunkZ <= z2InChunks; chunkZ++) {
             for (int chunkX = x1InChunks; chunkX <= x2InChunks; chunkX++) {
                 final Chunk chunk = world.getChunk(chunkX, chunkZ);
-                final int highestPossibleAffectedBlock = (chunk != null) ? Math.min(chunk.getHighestNonAirBlock(chunkX, chunkZ) + 15, maxHeight - 1) : Integer.MIN_VALUE;
+                final int highestPossibleAffectedBlock = (chunk != null) ? Math.min(chunk.getHighestNonAirBlock() + 15, maxHeight - 1) : Integer.MIN_VALUE;
                 // Make sure the surrounding chunks are also at least as high, since blocks from this chunk could affect
                 // the block lighting in them
                 for (int dz = -1; dz <= 1; dz++) {
