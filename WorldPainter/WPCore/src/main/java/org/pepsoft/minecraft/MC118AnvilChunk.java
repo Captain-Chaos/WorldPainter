@@ -772,24 +772,26 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
                 }
 
                 final CompoundTag biomesTag = (CompoundTag) getTag(TAG_BIOMES_);
-                List<StringTag> biomesPaletteList = ((ListTag<StringTag>) biomesTag.getTag(TAG_PALETTE_)).getValue();
-                if (biomesPaletteList != null) {
-                    final String[] palette = new String[biomesPaletteList.size()];
-                    for (int i = 0; i < palette.length; i++) {
-                        palette[i] = biomesPaletteList.get(i).getValue().intern();
-                    }
-                    final LongArrayTag biomeDataTag = (LongArrayTag) biomesTag.getTag(TAG_DATA_);
-                    if (biomeDataTag != null) {
-                        final long[] biomeData = biomeDataTag.getValue();
-                        biomes = new PackedArrayCube<>(4, biomeData, palette, 1, String.class);
-                    } else if (palette.length == 1) {
-                        // Entire section filled with one biome
-                        singleBiome = palette[0];
+                if (biomesTag != null) {
+                    List<StringTag> biomesPaletteList = ((ListTag<StringTag>) biomesTag.getTag(TAG_PALETTE_)).getValue();
+                    if (biomesPaletteList != null) {
+                        final String[] palette = new String[biomesPaletteList.size()];
+                        for (int i = 0; i < palette.length; i++) {
+                            palette[i] = biomesPaletteList.get(i).getValue().intern();
+                        }
+                        final LongArrayTag biomeDataTag = (LongArrayTag) biomesTag.getTag(TAG_DATA_);
+                        if (biomeDataTag != null) {
+                            final long[] biomeData = biomeDataTag.getValue();
+                            biomes = new PackedArrayCube<>(4, biomeData, palette, 1, String.class);
+                        } else if (palette.length == 1) {
+                            // Entire section filled with one biome
+                            singleBiome = palette[0];
+                        } else {
+                            throw new IncompleteSectionException("biomes.data tag missing");
+                        }
                     } else {
-                        throw new IncompleteSectionException("biomes.data tag missing");
+                        throw new IncompleteSectionException("biomes.palette tag missing");
                     }
-                } else {
-                    throw new IncompleteSectionException("biomes.palette tag missing");
                 }
 
                 // TODOMC118 optimise when data array not present
