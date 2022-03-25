@@ -41,10 +41,6 @@ public class PreferencesDialog extends WorldPainterDialog {
         this.colourScheme = colourScheme;
         
         initComponents();
-        if (GUIUtils.getUIScale() != 1.0f) {
-            comboBoxLookAndFeel.setEnabled(false);
-            jLabel32.setText("<html><em>Visual themes not available for high resolution displays</em></html>");
-        }
         
         comboBoxSurfaceMaterial.setModel(new DefaultComboBoxModel(Terrain.PICK_LIST));
         comboBoxSurfaceMaterial.setRenderer(new TerrainListCellRenderer(colourScheme));
@@ -143,9 +139,7 @@ public class PreferencesDialog extends WorldPainterDialog {
 
         previousExp = (int) Math.round(Math.log(config.getDefaultMaxHeight()) / Math.log(2.0));
 
-        if (GUIUtils.getUIScale() == 1.0f) {
-            comboBoxLookAndFeel.setSelectedIndex(config.getLookAndFeel() != null ? config.getLookAndFeel().ordinal() : 0);
-        }
+        comboBoxLookAndFeel.setSelectedIndex(config.getLookAndFeel() != null ? config.getLookAndFeel().ordinal() : 0);
         if (config.getUiScale() == 0.0f) {
             radioButtonUIScaleAuto.setSelected(true);
             sliderUIScale.setValue((int) (GUIUtils.SYSTEM_UI_SCALE_FLOAT * 100));
@@ -254,9 +248,7 @@ public class PreferencesDialog extends WorldPainterDialog {
         config.setDefaultGameType((GameType) comboBoxMode.getSelectedItem());
         config.setDefaultAllowCheats(checkBoxCheats.isSelected());
 
-        if (GUIUtils.getUIScale() == 1.0f) {
-            config.setLookAndFeel(Configuration.LookAndFeel.values()[comboBoxLookAndFeel.getSelectedIndex()]);
-        }
+        config.setLookAndFeel(Configuration.LookAndFeel.values()[comboBoxLookAndFeel.getSelectedIndex()]);
         if (radioButtonUIScaleAuto.isSelected()) {
             config.setUiScale(0.0f);
         } else {

@@ -415,36 +415,36 @@ public class Main {
                 GUIUtils.setUIScale(1.0f);
                 logger.info("[SAFE MODE] Not installing visual theme");
             } else {
+                if (myConfig.getUiScale() != 0.0f) {
+                    GUIUtils.setUIScale(myConfig.getUiScale());
+                }
+
                 // Install configured look and feel
                 try {
                     String laf;
-                    if (getUIScale() != 1.0f) {
-                        laf = UIManager.getSystemLookAndFeelClassName();
-                    } else {
-                        switch (lookAndFeel) {
-                            case SYSTEM:
-                                laf = UIManager.getSystemLookAndFeelClassName();
-                                break;
-                            case METAL:
-                                laf = "javax.swing.plaf.metal.MetalLookAndFeel";
-                                break;
-                            case NIMBUS:
-                                laf = "javax.swing.plaf.nimbus.NimbusLookAndFeel";
-                                break;
-                            case DARK_METAL:
-                                laf = "org.netbeans.swing.laf.dark.DarkMetalLookAndFeel";
-                                break;
-                            case DARK_NIMBUS:
-                                laf = "org.netbeans.swing.laf.dark.DarkNimbusLookAndFeel";
-                                break;
-                            default:
-                                throw new InternalError();
-                        }
+                    switch (lookAndFeel) {
+                        case SYSTEM:
+                            laf = UIManager.getSystemLookAndFeelClassName();
+                            break;
+                        case METAL:
+                            laf = "javax.swing.plaf.metal.MetalLookAndFeel";
+                            break;
+                        case NIMBUS:
+                            laf = "javax.swing.plaf.nimbus.NimbusLookAndFeel";
+                            break;
+                        case DARK_METAL:
+                            laf = "org.netbeans.swing.laf.dark.DarkMetalLookAndFeel";
+                            break;
+                        case DARK_NIMBUS:
+                            laf = "org.netbeans.swing.laf.dark.DarkNimbusLookAndFeel";
+                            break;
+                        default:
+                            throw new InternalError();
                     }
                     logger.debug("Installing look and feel: " + laf);
                     UIManager.setLookAndFeel(laf);
                     LookAndFeelFactory.installJideExtension();
-                    if ((getUIScale() == 1.0f) && ((lookAndFeel == Configuration.LookAndFeel.DARK_METAL)
+                    if (((lookAndFeel == Configuration.LookAndFeel.DARK_METAL)
                             || (lookAndFeel == Configuration.LookAndFeel.DARK_NIMBUS))) {
                         // Patch some things to make dark themes look better
                         VoidRenderer.setColour(UIManager.getColor("Panel.background").getRGB());
@@ -457,9 +457,6 @@ public class Main {
                     logger.warn("Could not install selected look and feel", e);
                 }
 
-                if (myConfig.getUiScale() != 0.0f) {
-                    GUIUtils.setUIScale(myConfig.getUiScale());
-                }
                 if (getUIScale() != 1.0f) {
                     // Scale the look and feel to the UI
                     GUIUtils.scaleLookAndFeel(getUIScale());
