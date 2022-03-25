@@ -101,6 +101,16 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 setControlStates();
             }
         });
+        comboBoxGenerator.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value != null) {
+                    setText(((Generator) value).getDisplayName());
+                }
+                return this;
+            }
+        });
 
         scaleToUI(this);
     }
@@ -974,6 +984,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         // world generation settings
         final MapGenerator generator = dimension.getGenerator();
+        comboBoxGenerator.setSelectedItem(generator.getType());
         generatorName = (generator instanceof CustomGenerator) ? ((CustomGenerator) generator).getName() : null;
         customGeneratorSettings = (generator instanceof CustomGenerator) ? ((CustomGenerator) generator).getSettings() : null;
         superflatPreset = (generator instanceof SuperflatGenerator) ? ((SuperflatGenerator) generator).getSettings() : null;
@@ -3315,7 +3326,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         jTabbedPane1.addTab("Other Layers", jPanel2);
 
-        jLabel82.setText("<html>On this page you can configure the export order of your custom layers,<br>as well as prevent certain layers from being exported.</html>");
+        jLabel82.setText("<html>On this page you can configure the export order of your custom layers, as well as prevent certain layers from being exported.<br>Higher layers in the list are exported <em>before</em> lower layers.</html>");
 
         tableCustomLayers.setSelectionMode(javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         jScrollPane1.setViewportView(tableCustomLayers);
@@ -3367,7 +3378,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel7Layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 673, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(buttonCustomLayerBottom, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
