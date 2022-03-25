@@ -47,6 +47,11 @@ public class UndergroundPocketsLayer extends CustomLayer {
         setDescription("underground pockets of " + name);
     }
 
+    @Override
+    public String getType() {
+        return "Underground Pockets";
+    }
+
     public int getFrequency() {
         return frequency;
     }

@@ -4,13 +4,14 @@
  */
 package org.pepsoft.worldpainter.layers;
 
+import org.pepsoft.worldpainter.layers.bo2.Bo2LayerExporter;
+import org.pepsoft.worldpainter.layers.bo2.Bo2ObjectProvider;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.Collections;
 import java.util.List;
-import org.pepsoft.worldpainter.layers.bo2.Bo2ObjectProvider;
-import org.pepsoft.worldpainter.layers.bo2.Bo2LayerExporter;
 
 /**
  *
@@ -50,6 +51,11 @@ public class Bo2Layer extends CustomLayer {
 
     public void setDensity(int density) {
         this.density = density;
+    }
+
+    @Override
+    public String getType() {
+        return "Custom Objects";
     }
 
     // Cloneable

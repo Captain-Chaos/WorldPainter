@@ -3974,11 +3974,13 @@
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" attributes="0">
-                              <Component id="jScrollPane1" max="32767" attributes="0"/>
+                              <Component id="jScrollPane1" pref="673" max="32767" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                                  <Component id="buttonCustomLayerDown" max="32767" attributes="0"/>
-                                  <Component id="buttonCustomLayerUp" max="32767" attributes="0"/>
+                                  <Component id="buttonCustomLayerBottom" max="32767" attributes="0"/>
+                                  <Component id="buttonCustomLayerDown" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="buttonCustomLayerUp" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="buttonCustomLayerTop" alignment="0" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                       </Group>
@@ -3995,9 +3997,13 @@
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="jScrollPane1" pref="316" max="32767" attributes="0"/>
                           <Group type="102" attributes="0">
+                              <Component id="buttonCustomLayerTop" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
                               <Component id="buttonCustomLayerUp" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="buttonCustomLayerDown" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="buttonCustomLayerBottom" min="-2" max="-2" attributes="0"/>
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                           </Group>
                       </Group>
@@ -4022,7 +4028,7 @@
                 <Component class="javax.swing.JTable" name="tableCustomLayers">
                   <Properties>
                     <Property name="selectionModel" type="javax.swing.ListSelectionModel" editor="org.netbeans.modules.form.editors2.JTableSelectionModelEditor">
-                      <JTableSelectionModel selectionMode="0"/>
+                      <JTableSelectionModel selectionMode="2"/>
                     </Property>
                   </Properties>
                 </Component>
@@ -4030,7 +4036,11 @@
             </Container>
             <Component class="javax.swing.JButton" name="buttonCustomLayerUp">
               <Properties>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                  <Image iconType="3" name="/org/pepsoft/worldpainter/icons/up.png"/>
+                </Property>
                 <Property name="text" type="java.lang.String" value="Up"/>
+                <Property name="horizontalAlignment" type="int" value="10"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonCustomLayerUpActionPerformed"/>
@@ -4038,10 +4048,38 @@
             </Component>
             <Component class="javax.swing.JButton" name="buttonCustomLayerDown">
               <Properties>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                  <Image iconType="3" name="/org/pepsoft/worldpainter/icons/down.png"/>
+                </Property>
                 <Property name="text" type="java.lang.String" value="Down"/>
+                <Property name="horizontalAlignment" type="int" value="10"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonCustomLayerDownActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JButton" name="buttonCustomLayerTop">
+              <Properties>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                  <Image iconType="3" name="/org/pepsoft/worldpainter/icons/top.png"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="To Top"/>
+                <Property name="horizontalAlignment" type="int" value="10"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonCustomLayerTopActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JButton" name="buttonCustomLayerBottom">
+              <Properties>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                  <Image iconType="3" name="/org/pepsoft/worldpainter/icons/bottom.png"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="To Bottom"/>
+                <Property name="horizontalAlignment" type="int" value="10"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonCustomLayerBottomActionPerformed"/>
               </Events>
             </Component>
           </SubComponents>

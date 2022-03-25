@@ -185,6 +185,11 @@ public class TunnelLayer extends CustomLayer {
         renderer = new TunnelLayerRenderer(this);
     }
 
+    @Override
+    public String getType() {
+        return "Cave/Tunnel";
+    }
+
     public int getFloodLevel() {
         return floodLevel;
     }

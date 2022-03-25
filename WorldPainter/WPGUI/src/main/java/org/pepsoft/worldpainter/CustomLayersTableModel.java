@@ -129,6 +129,10 @@ public class CustomLayersTableModel implements TableModel {
         switch (columnIndex) {
             case COLUMN_LAYER:
                 return layer;
+            case COLUMN_TYPE:
+                return isHeader(layer) ? null : layer.getType();
+            case COLUMN_PALETTE:
+                return isHeader(layer) ? null : layer.getPalette();
             case COLUMN_EXPORT:
                 return isHeader(layer) ? null : layer.isExport();
             default:
@@ -159,10 +163,12 @@ public class CustomLayersTableModel implements TableModel {
     private final List<TableModelListener> listeners = new ArrayList<>();
     private boolean orderPristine = true, exportsPristine = true;
  
-    private static final String[]   COLUMN_NAMES = {"Layer",           "Export"};
-    private static final Class<?>[] COLUMN_TYPES = {CustomLayer.class, Boolean.class};
-    private static final int COLUMN_LAYER  = 0;
-    private static final int COLUMN_EXPORT = 1;
+    private static final String[]   COLUMN_NAMES = {"Layer",           "Palette",    "Type",       "Export"};
+    private static final Class<?>[] COLUMN_TYPES = {CustomLayer.class, String.class, String.class, Boolean.class};
+    private static final int COLUMN_LAYER   = 0;
+    private static final int COLUMN_PALETTE = 1;
+    private static final int COLUMN_TYPE    = 2;
+    private static final int COLUMN_EXPORT  = 3;
 
     public static final CustomLayer FIRST_PASS_HEADER = new CustomLayer("First export pass", null, null, -1, -1) {};
     public static final CustomLayer SECOND_PASS_HEADER = new CustomLayer("Second export pass", null, null, -1, -1) {};

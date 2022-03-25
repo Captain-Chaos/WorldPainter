@@ -5,8 +5,8 @@
 package org.pepsoft.worldpainter.layers;
 
 import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
@@ -16,8 +16,8 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.layers.Layer.DataSize.*;
@@ -86,6 +86,11 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
     @Override
     public void setName(String name) {
         super.setName(name);
+    }
+
+    @Override
+    public String getType() {
+        return "Combined Layer";
     }
 
     public Terrain getTerrain() {

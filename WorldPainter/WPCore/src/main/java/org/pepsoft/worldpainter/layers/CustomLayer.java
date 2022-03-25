@@ -93,6 +93,13 @@ public abstract class CustomLayer extends Layer implements Cloneable {
         this.index = index;
     }
 
+    /**
+     * Get a short, human-readable description of the layer type.
+     */
+    public String getType() {
+        return getClass().getSimpleName();
+    }
+
     @Override
     public BufferedImage getIcon() {
         if (icon == null) {
