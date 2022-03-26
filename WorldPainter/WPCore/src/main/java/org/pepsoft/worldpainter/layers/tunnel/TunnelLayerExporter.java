@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
 import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.MODERN_IDS;
@@ -80,196 +81,191 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
         }
         if ((floorMaterial == null) && (wallMaterial == null) && (roofMaterial == null)) {
             // One pass: just remove blocks
-            int loadedChunkX = Integer.MIN_VALUE, loadedChunkZ = Integer.MIN_VALUE;
-            Chunk chunk = null;
-            for (int x = area.x; x < area.x + area.width; x++) {
-                for (int y = area.y; y < area.y + area.height; y++) {
-                    if (dimension.getBitLayerValueAt(layer, x, y)) {
-                        final int terrainHeight = dimension.getIntHeightAt(x, y);
-                        int actualFloorLevel = calculateLevel(floorMode, floorLevel, terrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0);
-                        int actualRoofLevel = calculateLevel(roofMode, roofLevel, terrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0);
-                        if (actualRoofLevel <= actualFloorLevel) {
-                            continue;
-                        }
-                        final float distanceToWall = dimension.getDistanceToEdge(layer, x, y, maxWallDepth) - 1;
-                        final int floorLedgeHeight = calculateLedgeHeight(floorWallDepth, distanceToWall);
-                        final int roofLedgeHeight = calculateLedgeHeight(roofWallDepth, distanceToWall);
-                        actualFloorLevel += floorLedgeHeight;
-                        actualRoofLevel -= roofLedgeHeight;
-                        if (actualRoofLevel <= actualFloorLevel) {
-                            continue;
-                        }
-                        final int chunkX = x >> 4, chunkZ = y >> 4;
-                        if ((chunkX != loadedChunkX) || (chunkZ != loadedChunkZ)) {
-                            chunk = world.getChunkForEditing(chunkX, chunkZ);
-                            loadedChunkX = chunkX;
-                            loadedChunkZ = chunkZ;
-                        }
-                        final int waterLevel = dimension.getWaterLevelAt(x, y);
-                        for (int z = Math.min(removeWater ? Math.max(terrainHeight, waterLevel) : terrainHeight, actualRoofLevel); z > actualFloorLevel; z--) {
-                            if (removeWater || (z <= terrainHeight) || (z > waterLevel)) {
-                                if (z <= floodLevel) {
-                                    chunk.setMaterial(x & 0xf, z, y & 0xf, floodWithLava ? Material.LAVA : Material.WATER);
-                                } else {
-                                    chunk.setMaterial(x & 0xf, z, y & 0xf, Material.AIR);
-                                }
-                                // Since the biomes are stored in 4x4x4 blocks this way of doing it results in doing it
-                                // 63 too many times, but it's simplest, and ensures that any of those blocks touched is
-                                // changed:
-                                if (set3DBiomes) {
-                                    chunk.set3DBiome((x & 0xf) >> 2, z >> 2, (y & 0xf) >> 2, biome);
-                                }
-                                if (setNamedBiomes) {
-                                    chunk.setNamedBiome((x & 0xf) >> 2, z >> 2, (y & 0xf) >> 2, MODERN_IDS[biome] != null ? MODERN_IDS[biome] : customBiomeNames[biome]);
+            visitChunksForLayerInArea(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) -> {
+                for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                    for (int zInChunk = 0; zInChunk < 16; zInChunk++) {
+                        final int x = (chunkX << 4) | xInChunk, y = (chunkZ << 4) | zInChunk;
+                        final int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
+                        if (tile.getBitLayerValue(layer, xInTile, yInTile)) {
+                            final int terrainHeight = tile.getIntHeight(xInTile, yInTile);
+                            int actualFloorLevel = calculateLevel(floorMode, floorLevel, terrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0);
+                            int actualRoofLevel = calculateLevel(roofMode, roofLevel, terrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0);
+                            if (actualRoofLevel <= actualFloorLevel) {
+                                continue;
+                            }
+                            final float distanceToWall = dimension.getDistanceToEdge(layer, x, y, maxWallDepth) - 1;
+                            final int floorLedgeHeight = calculateLedgeHeight(floorWallDepth, distanceToWall);
+                            final int roofLedgeHeight = calculateLedgeHeight(roofWallDepth, distanceToWall);
+                            actualFloorLevel += floorLedgeHeight;
+                            actualRoofLevel -= roofLedgeHeight;
+                            if (actualRoofLevel <= actualFloorLevel) {
+                                continue;
+                            }
+                            final Chunk chunk = chunkSupplier.get();
+                            final int waterLevel = tile.getWaterLevel(xInTile, yInTile);
+                            for (int z = Math.min(removeWater ? Math.max(terrainHeight, waterLevel) : terrainHeight, actualRoofLevel); z > actualFloorLevel; z--) {
+                                if (removeWater || (z <= terrainHeight) || (z > waterLevel)) {
+                                    if (z <= floodLevel) {
+                                        chunk.setMaterial(x & 0xf, z, y & 0xf, floodWithLava ? Material.LAVA : Material.WATER);
+                                    } else {
+                                        chunk.setMaterial(x & 0xf, z, y & 0xf, Material.AIR);
+                                    }
+                                    // Since the biomes are stored in 4x4x4 blocks this way of doing it results in doing it
+                                    // 63 too many times, but it's simplest, and ensures that any of those blocks touched is
+                                    // changed:
+                                    if (set3DBiomes) {
+                                        chunk.set3DBiome((x & 0xf) >> 2, z >> 2, (y & 0xf) >> 2, biome);
+                                    }
+                                    if (setNamedBiomes) {
+                                        chunk.setNamedBiome((x & 0xf) >> 2, z >> 2, (y & 0xf) >> 2, MODERN_IDS[biome] != null ? MODERN_IDS[biome] : customBiomeNames[biome]);
+                                    }
                                 }
                             }
-                        }
-                        if (actualFloorLevel == minHeight) {
-                            // Bottomless world, and cave extends all the way to
-                            // the bottom. Remove the floor block, as that is
-                            // probably what the user wants
-                            if (floodLevel > minHeight) {
-                                chunk.setMaterial(x & 0xf, minHeight, y & 0xf, floodWithLava ? Material.STATIONARY_LAVA: Material.STATIONARY_WATER);
-                            } else {
-                                chunk.setMaterial(x & 0xf, minHeight, y & 0xf, Material.AIR);
+                            if (actualFloorLevel == minHeight) {
+                                // Bottomless world, and cave extends all the way to
+                                // the bottom. Remove the floor block, as that is
+                                // probably what the user wants
+                                if (floodLevel > minHeight) {
+                                    chunk.setMaterial(x & 0xf, minHeight, y & 0xf, floodWithLava ? Material.STATIONARY_LAVA : Material.STATIONARY_WATER);
+                                } else {
+                                    chunk.setMaterial(x & 0xf, minHeight, y & 0xf, Material.AIR);
+                                }
                             }
                         }
                     }
                 }
-            }
+                return true;
+            });
         } else {
-            // Two passes: first place floor, wall and roof materials, then
-            // excavate the interior
-            int loadedChunkX = Integer.MIN_VALUE, loadedChunkZ = Integer.MIN_VALUE;
-            Chunk chunk = null;
-            for (int x = area.x; x < area.x + area.width; x++) {
-                for (int y = area.y; y < area.y + area.height; y++) {
-                    if (dimension.getBitLayerValueAt(layer, x, y)) {
-                        int terrainHeight = dimension.getIntHeightAt(x, y);
-                        int actualFloorLevel = calculateLevel(floorMode, floorLevel, terrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0);
-                        int actualRoofLevel = calculateLevel(roofMode, roofLevel, terrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0);
-                        if (actualRoofLevel <= actualFloorLevel) {
-                            continue;
-                        }
-                        final float distanceToWall = dimension.getDistanceToEdge(layer, x, y, maxWallDepth) - 1;
-                        final int floorLedgeHeight = calculateLedgeHeight(floorWallDepth, distanceToWall);
-                        final int roofLedgeHeight = calculateLedgeHeight(roofWallDepth, distanceToWall);
-                        actualFloorLevel += floorLedgeHeight;
-                        actualRoofLevel -= roofLedgeHeight;
-                        if (actualRoofLevel <= actualFloorLevel) {
-                            continue;
-                        }
-                        final int chunkX = x >> 4, chunkZ = y >> 4;
-                        if ((chunkX != loadedChunkX) || (chunkZ != loadedChunkZ)) {
-                            chunk = world.getChunkForEditing(chunkX, chunkZ);
-                            loadedChunkX = chunkX;
-                            loadedChunkZ = chunkZ;
-                        }
-                        int waterLevel = dimension.getWaterLevelAt(x, y);
-                        boolean flooded = waterLevel > terrainHeight;
-                        final int startZ = Math.min(removeWater ? Math.max(terrainHeight, waterLevel) : terrainHeight, actualRoofLevel);
-                        for (int z = startZ; z > actualFloorLevel; z--) {
-                            if ((floorLedgeHeight == 0) && (floorMaterial != null)) {
-                                setIfSolid(chunk, x, y, z - 1, minZ, maxZ, floorMaterial, flooded, terrainHeight, waterLevel, removeWater);
+            // Two passes: first place floor, wall and roof materials, then excavate the interior
+            visitChunksForLayerInArea(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) -> {
+                for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                    for (int zInChunk = 0; zInChunk < 16; zInChunk++) {
+                        final int x = (chunkX << 4) | xInChunk, y = (chunkZ << 4) | zInChunk;
+                        final int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
+                        if (tile.getBitLayerValue(layer, xInTile, yInTile)) {
+                            int terrainHeight = tile.getIntHeight(xInTile, yInTile);
+                            int actualFloorLevel = calculateLevel(floorMode, floorLevel, terrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0);
+                            int actualRoofLevel = calculateLevel(roofMode, roofLevel, terrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0);
+                            if (actualRoofLevel <= actualFloorLevel) {
+                                continue;
+                            }
+                            final float distanceToWall = dimension.getDistanceToEdge(layer, x, y, maxWallDepth) - 1;
+                            final int floorLedgeHeight = calculateLedgeHeight(floorWallDepth, distanceToWall);
+                            final int roofLedgeHeight = calculateLedgeHeight(roofWallDepth, distanceToWall);
+                            actualFloorLevel += floorLedgeHeight;
+                            actualRoofLevel -= roofLedgeHeight;
+                            if (actualRoofLevel <= actualFloorLevel) {
+                                continue;
+                            }
+                            final Chunk chunk = chunkSupplier.get();
+                            int waterLevel = tile.getWaterLevel(xInTile, yInTile);
+                            boolean flooded = waterLevel > terrainHeight;
+                            final int startZ = Math.min(removeWater ? Math.max(terrainHeight, waterLevel) : terrainHeight, actualRoofLevel);
+                            for (int z = startZ; z > actualFloorLevel; z--) {
+                                if ((floorLedgeHeight == 0) && (floorMaterial != null)) {
+                                    setIfSolid(chunk, x, y, z - 1, minZ, maxZ, floorMaterial, flooded, terrainHeight, waterLevel, removeWater);
+                                }
+                                if (wallMaterial != null) {
+                                    if (floorLedgeHeight > 0) {
+                                        setIfSolid(chunk, x, y, z - 1, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
+                                    }
+                                    if (roofLedgeHeight > 0) {
+                                        setIfSolid(chunk, x, y, z + 1, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
+                                    }
+                                }
+                                if ((roofLedgeHeight == 0) && (roofMaterial != null)) {
+                                    setIfSolid(chunk, x, y, z + 1, minZ, maxZ, roofMaterial, flooded, terrainHeight, waterLevel, removeWater);
+                                }
                             }
                             if (wallMaterial != null) {
-                                if (floorLedgeHeight > 0) {
-                                    setIfSolid(chunk, x, y, z - 1, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
+                                terrainHeight = dimension.getIntHeightAt(x - 1, y);
+                                waterLevel = dimension.getWaterLevelAt(x - 1, y);
+                                flooded = waterLevel > terrainHeight;
+                                for (int z = startZ; z > actualFloorLevel; z--) {
+                                    setIfSolid(chunk, x - 1, y, z, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
                                 }
-                                if (roofLedgeHeight > 0) {
-                                    setIfSolid(chunk, x, y, z + 1, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
+                                terrainHeight = dimension.getIntHeightAt(x, y - 1);
+                                waterLevel = dimension.getWaterLevelAt(x, y - 1);
+                                flooded = waterLevel > terrainHeight;
+                                for (int z = startZ; z > actualFloorLevel; z--) {
+                                    setIfSolid(chunk, x, y - 1, z, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
                                 }
-                            }
-                            if ((roofLedgeHeight == 0) && (roofMaterial != null)) {
-                                setIfSolid(chunk, x, y, z + 1, minZ, maxZ, roofMaterial, flooded, terrainHeight, waterLevel, removeWater);
-                            }
-                        }
-                        if (wallMaterial != null) {
-                            terrainHeight = dimension.getIntHeightAt(x - 1, y);
-                            waterLevel = dimension.getWaterLevelAt(x - 1, y);
-                            flooded = waterLevel > terrainHeight;
-                            for (int z = startZ; z > actualFloorLevel; z--) {
-                                setIfSolid(chunk, x - 1, y, z, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
-                            }
-                            terrainHeight = dimension.getIntHeightAt(x, y - 1);
-                            waterLevel = dimension.getWaterLevelAt(x, y - 1);
-                            flooded = waterLevel > terrainHeight;
-                            for (int z = startZ; z > actualFloorLevel; z--) {
-                                setIfSolid(chunk, x, y - 1, z, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
-                            }
-                            terrainHeight = dimension.getIntHeightAt(x + 1, y);
-                            waterLevel = dimension.getWaterLevelAt(x + 1, y);
-                            flooded = waterLevel > terrainHeight;
-                            for (int z = startZ; z > actualFloorLevel; z--) {
-                                setIfSolid(chunk, x + 1, y, z, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
-                            }
-                            terrainHeight = dimension.getIntHeightAt(x, y + 1);
-                            waterLevel = dimension.getWaterLevelAt(x, y + 1);
-                            flooded = waterLevel > terrainHeight;
-                            for (int z = startZ; z > actualFloorLevel; z--) {
-                                setIfSolid(chunk, x, y + 1, z, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
+                                terrainHeight = dimension.getIntHeightAt(x + 1, y);
+                                waterLevel = dimension.getWaterLevelAt(x + 1, y);
+                                flooded = waterLevel > terrainHeight;
+                                for (int z = startZ; z > actualFloorLevel; z--) {
+                                    setIfSolid(chunk, x + 1, y, z, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
+                                }
+                                terrainHeight = dimension.getIntHeightAt(x, y + 1);
+                                waterLevel = dimension.getWaterLevelAt(x, y + 1);
+                                flooded = waterLevel > terrainHeight;
+                                for (int z = startZ; z > actualFloorLevel; z--) {
+                                    setIfSolid(chunk, x, y + 1, z, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
+                                }
                             }
                         }
                     }
                 }
-            }
-            
+                return true;
+            });
+
             // Second pass: excavate interior
-            for (int x = area.x; x < area.x + area.width; x++) {
-                for (int y = area.y; y < area.y + area.height; y++) {
-                    if (dimension.getBitLayerValueAt(layer, x, y)) {
-                        final int terrainHeight = dimension.getIntHeightAt(x, y);
-                        int actualFloorLevel = calculateLevel(floorMode, floorLevel, terrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0);
-                        int actualRoofLevel = calculateLevel(roofMode, roofLevel, terrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0);
-                        if (actualRoofLevel <= actualFloorLevel) {
-                            continue;
-                        }
-                        final float distanceToWall = dimension.getDistanceToEdge(layer, x, y, maxWallDepth) - 1;
-                        final int floorLedgeHeight = calculateLedgeHeight(floorWallDepth, distanceToWall);
-                        final int roofLedgeHeight = calculateLedgeHeight(roofWallDepth, distanceToWall);
-                        actualFloorLevel += floorLedgeHeight;
-                        actualRoofLevel -= roofLedgeHeight;
-                        if (actualRoofLevel <= actualFloorLevel) {
-                            continue;
-                        }
-                        final int chunkX = x >> 4, chunkZ = y >> 4;
-                        if ((chunkX != loadedChunkX) || (chunkZ != loadedChunkZ)) {
-                            chunk = world.getChunkForEditing(chunkX, chunkZ);
-                            loadedChunkX = chunkX;
-                            loadedChunkZ = chunkZ;
-                        }
-                        final int waterLevel = dimension.getWaterLevelAt(x, y);
-                        for (int z = actualRoofLevel; z > actualFloorLevel; z--) {
-                            if (removeWater || (z <= terrainHeight) || (z > waterLevel)) {
-                                if (z <= floodLevel) {
-                                    chunk.setMaterial(x & 0xf, z, y & 0xf, floodWithLava ? Material.LAVA : Material.WATER);
-                                } else {
-                                    chunk.setMaterial(x & 0xf, z, y & 0xf, Material.AIR);
-                                }
-                                // Since the biomes are stored in 4x4x4 blocks this way of doing it results in doing it
-                                // 63 too many times, but it's simplest, and ensures that any of those blocks touched is
-                                // changed:
-                                if (set3DBiomes) {
-                                    chunk.set3DBiome((x & 0xf) >> 2, z >> 2, (y & 0xf) >> 2, biome);
-                                }
-                                if (setNamedBiomes) {
-                                    chunk.setNamedBiome((x & 0xf) >> 2, z >> 2, (y & 0xf) >> 2, MODERN_IDS[biome] != null ? MODERN_IDS[biome] : customBiomeNames[biome]);
+            visitChunksForLayerInArea(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) -> {
+                for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                    for (int zInChunk = 0; zInChunk < 16; zInChunk++) {
+                        final int x = (chunkX << 4) | xInChunk, y = (chunkZ << 4) | zInChunk;
+                        final int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
+                        if (tile.getBitLayerValue(layer, xInTile, yInTile)) {
+                            final int terrainHeight = tile.getIntHeight(xInTile, yInTile);
+                            int actualFloorLevel = calculateLevel(floorMode, floorLevel, terrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0);
+                            int actualRoofLevel = calculateLevel(roofMode, roofLevel, terrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0);
+                            if (actualRoofLevel <= actualFloorLevel) {
+                                continue;
+                            }
+                            final float distanceToWall = dimension.getDistanceToEdge(layer, x, y, maxWallDepth) - 1;
+                            final int floorLedgeHeight = calculateLedgeHeight(floorWallDepth, distanceToWall);
+                            final int roofLedgeHeight = calculateLedgeHeight(roofWallDepth, distanceToWall);
+                            actualFloorLevel += floorLedgeHeight;
+                            actualRoofLevel -= roofLedgeHeight;
+                            if (actualRoofLevel <= actualFloorLevel) {
+                                continue;
+                            }
+                            final Chunk chunk = chunkSupplier.get();
+                            final int waterLevel = tile.getWaterLevel(xInTile, yInTile);
+                            for (int z = actualRoofLevel; z > actualFloorLevel; z--) {
+                                if (removeWater || (z <= terrainHeight) || (z > waterLevel)) {
+                                    if (z <= floodLevel) {
+                                        chunk.setMaterial(x & 0xf, z, y & 0xf, floodWithLava ? Material.LAVA : Material.WATER);
+                                    } else {
+                                        chunk.setMaterial(x & 0xf, z, y & 0xf, Material.AIR);
+                                    }
+                                    // Since the biomes are stored in 4x4x4 blocks this way of doing it results in doing it
+                                    // 63 too many times, but it's simplest, and ensures that any of those blocks touched is
+                                    // changed:
+                                    if (set3DBiomes) {
+                                        chunk.set3DBiome((x & 0xf) >> 2, z >> 2, (y & 0xf) >> 2, biome);
+                                    }
+                                    if (setNamedBiomes) {
+                                        chunk.setNamedBiome((x & 0xf) >> 2, z >> 2, (y & 0xf) >> 2, MODERN_IDS[biome] != null ? MODERN_IDS[biome] : customBiomeNames[biome]);
+                                    }
                                 }
                             }
-                        }
-                        if (actualFloorLevel == minHeight) {
-                            // Bottomless world, and cave extends all the way to
-                            // the bottom. Remove the floor block, as that is
-                            // probably what the user wants
-                            if (floodLevel > minHeight) {
-                                chunk.setMaterial(x & 0xf, minHeight, y & 0xf, floodWithLava ? Material.LAVA : Material.WATER);
-                            } else {
-                                chunk.setMaterial(x & 0xf, minHeight, y & 0xf, Material.AIR);
+                            if (actualFloorLevel == minHeight) {
+                                // Bottomless world, and cave extends all the way to
+                                // the bottom. Remove the floor block, as that is
+                                // probably what the user wants
+                                if (floodLevel > minHeight) {
+                                    chunk.setMaterial(x & 0xf, minHeight, y & 0xf, floodWithLava ? Material.LAVA : Material.WATER);
+                                } else {
+                                    chunk.setMaterial(x & 0xf, minHeight, y & 0xf, Material.AIR);
+                                }
                             }
                         }
                     }
                 }
-            }
+                return true;
+            });
         }
 
         // Second/third pass: render floor layers
@@ -293,46 +289,51 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
                 index++;
             }
             final TunnelFloorDimension floorDimension = new TunnelFloorDimension(dimension, layer);
-            for (int x = area.x; x < area.x + area.width; x++) {
-                for (int y = area.y; y < area.y + area.height; y++) {
-                    if (dimension.getBitLayerValueAt(layer, x, y)) {
-                        final int terrainHeight = dimension.getIntHeightAt(x, y);
-                        int actualFloorLevel = calculateLevel(floorMode, floorLevel, terrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0);
-                        int actualRoofLevel = calculateLevel(roofMode, roofLevel, terrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0);
-                        if (actualRoofLevel <= actualFloorLevel) {
-                            continue;
-                        }
-                        final float distanceToWall = dimension.getDistanceToEdge(layer, x, y, maxWallDepth) - 1;
-                        final int floorLedgeHeight = calculateLedgeHeight(floorWallDepth, distanceToWall);
-                        final int roofLedgeHeight = calculateLedgeHeight(roofWallDepth, distanceToWall);
-                        actualFloorLevel += floorLedgeHeight;
-                        actualRoofLevel -= roofLedgeHeight;
-                        if ((actualRoofLevel <= actualFloorLevel) || (actualFloorLevel == 0)) {
-                            continue;
-                        }
-                        final int z = actualFloorLevel + 1;
-                        final Point3i location = new Point3i(x, y, z);
-                        for (int i = 0; i < floorExporters.length; i++) {
-                            if ((z >= floorLayerSettings[i].getMinLevel()) && (z <= floorLayerSettings[i].getMaxLevel())) {
-                                final int intensity = floorLayerNoise[i] != null
-                                        ? MathUtils.clamp(0, (int) (floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z) + 0.5f), 100)
-                                        : floorLayerSettings[i].getIntensity();
-                                if (intensity > 0) {
-                                    Fixup fixup = floorExporters[i].apply(floorDimension, location, intensity, exportedArea, world, platform);
-                                    if (fixup != null) {
-                                        fixups.add(fixup);
+            visitChunksForLayerInArea(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) -> {
+                for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                    for (int zInChunk = 0; zInChunk < 16; zInChunk++) {
+                        final int x = (chunkX << 4) | xInChunk, y = (chunkZ << 4) | zInChunk;
+                        final int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
+                        if (tile.getBitLayerValue(layer, xInTile, yInTile)) {
+                            final int terrainHeight = tile.getIntHeight(xInTile, yInTile);
+                            int actualFloorLevel = calculateLevel(floorMode, floorLevel, terrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0);
+                            int actualRoofLevel = calculateLevel(roofMode, roofLevel, terrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0);
+                            if (actualRoofLevel <= actualFloorLevel) {
+                                continue;
+                            }
+                            final float distanceToWall = dimension.getDistanceToEdge(layer, x, y, maxWallDepth) - 1;
+                            final int floorLedgeHeight = calculateLedgeHeight(floorWallDepth, distanceToWall);
+                            final int roofLedgeHeight = calculateLedgeHeight(roofWallDepth, distanceToWall);
+                            actualFloorLevel += floorLedgeHeight;
+                            actualRoofLevel -= roofLedgeHeight;
+                            if ((actualRoofLevel <= actualFloorLevel) || (actualFloorLevel == 0)) {
+                                continue;
+                            }
+                            final int z = actualFloorLevel + 1;
+                            final Point3i location = new Point3i(x, y, z);
+                            for (int i = 0; i < floorExporters.length; i++) {
+                                if ((z >= floorLayerSettings[i].getMinLevel()) && (z <= floorLayerSettings[i].getMaxLevel())) {
+                                    final int intensity = floorLayerNoise[i] != null
+                                            ? MathUtils.clamp(0, (int) (floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z) + 0.5f), 100)
+                                            : floorLayerSettings[i].getIntensity();
+                                    if (intensity > 0) {
+                                        Fixup fixup = floorExporters[i].apply(floorDimension, location, intensity, exportedArea, world, platform);
+                                        if (fixup != null) {
+                                            fixups.add(fixup);
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-            }
+                return true;
+            });
         }
 
         return fixups.isEmpty() ? null : fixups;
     }
-    
+
 //    private void excavateDisc(final MinecraftWorld world, final int x, final int y, final int z, int r, final Material materialAbove, final Material materialBesides, final Material materialBelow) {
 //        GeometryUtil.visitFilledCircle(r, new PlaneVisitor() {
 //            @Override
@@ -354,7 +355,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
 //            }
 //        });
 //    }
-    
+
     public BufferedImage generatePreview(int width, int height, int waterLevel, int minHeight, int baseHeight, int heightDifference) {
         final TunnelLayer.Mode floorMode = layer.getFloorMode(), roofMode = layer.getRoofMode();
         final int floorWallDepth = layer.getFloorWallDepth(), roofWallDepth = layer.getRoofWallDepth(),
@@ -370,7 +371,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
             for (int z = height - 1 + minHeight; z > terrainHeight; z--) {
                 preview.setRGB(x, height - 1 - z + minHeight, (z <= waterLevel) ? 0x0000ff : 0xffffff);
             }
-            
+
             if (x <= tunnelExtent) {
                 // Draw the tunnel
                 int actualFloorLevel = calculateLevel(floorMode, floorLevel, terrainHeight, floorMin, floorMax, minHeight + 1, height - 1, (floorNoise != null) ? ((int) floorNoise.getHeight(x, 0) - floorNoiseOffset) : 0);
@@ -416,7 +417,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
                 throw new InternalError();
         }
     }
-    
+
     static int calculateLedgeHeight(int wallDepth, float distanceToWall) {
         if (distanceToWall > wallDepth) {
             return 0;
@@ -425,7 +426,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
             return (int) (wallDepth - Math.sqrt(wallDepth * wallDepth - a * a) + 0.5);
         }
     }
-    
+
     private void setIfSolid(Chunk chunk, int x, int y, int z, int minZ, int maxZ, MixedMaterial material, boolean flooded, int terrainHeight, int waterLevel, boolean removeWater) {
         if ((z >= minZ) && (z <= maxZ)) {
             if (removeWater || (! flooded) || (z <= terrainHeight) || (z > waterLevel)) {
@@ -437,7 +438,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
             }
         }
     }
-    
+
     private final NoiseHeightMap floorNoise, roofNoise;
     private final int floorNoiseOffset, roofNoiseOffset;
 //    private final PerlinNoise wallNoise;
