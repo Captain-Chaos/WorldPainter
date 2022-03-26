@@ -314,6 +314,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
                 floorMin = layer.getFloorMin(), floorMax = layer.getFloorMax(), roofMin = layer.getRoofMin(),
                 roofMax = layer.getRoofMax();
         final int minHeight = dimension.getMinHeight(), minZ = minHeight + (dimension.isBottomless() ? 0 : 1), maxZ = dimension.getMaxHeight() - 1;
+        Chunk chunk = null;
         for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
             for (int zInChunk = 0; zInChunk < 16; zInChunk++) {
                 final int x = (chunkX << 4) | xInChunk, y = (chunkZ << 4) | zInChunk;
@@ -333,7 +334,9 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
                     if (actualRoofLevel <= actualFloorLevel) {
                         continue;
                     }
-                    final Chunk chunk = chunkSupplier.get();
+                    if (chunk == null) {
+                        chunk = chunkSupplier.get();
+                    }
                     if (! visitor.visitColumn(chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight)) {
                         return false;
                     }
