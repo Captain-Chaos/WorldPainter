@@ -17,6 +17,7 @@ import java.util.*;
 import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
+import static org.pepsoft.util.MathUtils.mod;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
@@ -1025,7 +1026,7 @@ public enum Terrain {
             }
             final int dz = (int) (z + 0.5f) - height;
             if (dz <= 0) {
-                return LAYERS[(int) (z + (perlinNoise.getPerlinNoise(x / GIGANTIC_BLOBS, y / GIGANTIC_BLOBS) * 4 + perlinNoise.getPerlinNoise(x / HUGE_BLOBS, y / HUGE_BLOBS) + perlinNoise.getPerlinNoise(x / LARGE_BLOBS, y / LARGE_BLOBS) + perlinNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS) / 4 + 3.125f) * 8) % LAYER_COUNT];
+                return LAYERS[mod((int) (z + (perlinNoise.getPerlinNoise(x / GIGANTIC_BLOBS, y / GIGANTIC_BLOBS) * 4 + perlinNoise.getPerlinNoise(x / HUGE_BLOBS, y / HUGE_BLOBS) + perlinNoise.getPerlinNoise(x / LARGE_BLOBS, y / LARGE_BLOBS) + perlinNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS) / 4 + 3.125f) * 8), LAYER_COUNT)];
             } else if (dz == 1) {
                 final int rnd = new Random(seed + (x * 65537L) + (y * 4099L)).nextInt(SHRUB_CHANCE);
                 if (rnd < 3) {
