@@ -4,19 +4,19 @@
  */
 package org.pepsoft.worldpainter.objects;
 
+import org.pepsoft.minecraft.Entity;
+import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.TileEntity;
+import org.pepsoft.util.AttributeKey;
+import org.pepsoft.worldpainter.Dimension;
+
+import javax.vecmath.Point3i;
 import java.io.File;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.vecmath.Point3i;
-import org.pepsoft.minecraft.Entity;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.minecraft.TileEntity;
-import org.pepsoft.util.AttributeKey;
-import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.Platform;
 
 /**
  * A three dimensional object, consisting of Minecraft blocks, which can be
@@ -294,6 +294,7 @@ public interface WPObject extends Serializable, Cloneable {
     /**
      * @deprecated Use {@link #ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL}
      */
+    @Deprecated
     AttributeKey<int[]> ATTRIBUTE_REPLACE_WITH_AIR = new AttributeKey<>("WPObject.replaceWithAir");
     /**
      * When set, describes a material which will be replaced with air blocks
@@ -310,8 +311,7 @@ public interface WPObject extends Serializable, Cloneable {
      * "foundation" which will be extended by WorldPainter to meet the ground.
      */
     AttributeKey<Boolean>  ATTRIBUTE_EXTEND_FOUNDATION = new AttributeKey<>("WPObject.extendFoundation", false);
-    AttributeKey<Platform> ATTRIBUTE_PLATFORM          = new AttributeKey<>("WPObject.platform");
-    
+
     @FunctionalInterface
     interface BlockVisitor {
         boolean visitBlock(WPObject object, int x, int y, int z, Material material);
