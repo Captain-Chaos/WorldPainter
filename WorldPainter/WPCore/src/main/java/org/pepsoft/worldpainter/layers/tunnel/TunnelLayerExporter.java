@@ -60,20 +60,24 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
 
     @Override
     public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld world, Platform platform) {
+        final int floodLevel = layer.getFloodLevel(), biome = (layer.getTunnelBiome() != null) ? layer.getTunnelBiome() : -1;
         final int minHeight = dimension.getMinHeight(), minZ = minHeight + (dimension.isBottomless() ? 0 : 1), maxZ = dimension.getMaxHeight() - 1;
-        final boolean removeWater = layer.isRemoveWater();
+        final boolean removeWater = layer.isRemoveWater(), floodWithLava = layer.isFloodWithLava();
+        final boolean set3DBiomes = platform.capabilities.contains(BIOMES_3D) && (layer.getTunnelBiome() != null);
+        final boolean setNamedBiomes = platform.capabilities.contains(NAMED_BIOMES) && (layer.getTunnelBiome() != null);
         final MixedMaterial floorMaterial = layer.getFloorMaterial(), wallMaterial = layer.getWallMaterial(), roofMaterial = layer.getRoofMaterial();
+        final String[] customBiomeNames = new String[256];
+        if (setNamedBiomes && (dimension.getCustomBiomes() != null)) {
+            dimension.getCustomBiomes().forEach(customBiome -> customBiomeNames[customBiome.getId()] = customBiome.getName());
+        }
         if (floorNoise != null) {
             floorNoise.setSeed(dimension.getSeed());
         }
         if (roofNoise != null) {
             roofNoise.setSeed(dimension.getSeed());
         }
-        if ((floorMaterial == null) && (wallMaterial == null) && (roofMaterial == null)) {
-            // One pass: just remove blocks
-            excavateTunnel(dimension, area, world, platform);
-        } else {
-            // Two passes: first place floor, wall and roof materials, then excavate the interior
+        if ((floorMaterial != null) || (wallMaterial != null) || (roofMaterial != null)) {
+            // First pass:  place floor, wall and roof materials
             visitChunksForLayerInArea(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) ->
                 whereTunnelIsRealisedDo(dimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
                     int waterLevel = tile.getWaterLevel(xInTile, yInTile);
@@ -123,10 +127,42 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
                     }
                     return true;
                 }));
-
-            // Second pass: excavate interior
-            excavateTunnel(dimension, area, world, platform);
         }
+
+        // First/second pass: excavate interior
+        visitChunksForLayerInArea(world, layer, area, dimension, (tile1, chunkX1, chunkZ1, chunkSupplier1) ->
+            whereTunnelIsRealisedDo(dimension, tile1, chunkX1, chunkZ1, chunkSupplier1, (chunk1, x1, y1, xInTile1, yInTile1, terrainHeight1, actualFloorLevel1, floorLedgeHeight1, actualRoofLevel1, roofLedgeHeight1) -> {
+                final int waterLevel = tile1.getWaterLevel(xInTile1, yInTile1);
+                for (int z1 = Math.min(removeWater ? Math.max(terrainHeight1, waterLevel) : terrainHeight1, actualRoofLevel1); z1 > actualFloorLevel1; z1--) {
+                    if (removeWater || (z1 <= terrainHeight1) || (z1 > waterLevel)) {
+                        if (z1 <= floodLevel) {
+                            chunk1.setMaterial(x1 & 0xf, z1, y1 & 0xf, floodWithLava ? Material.LAVA : Material.WATER);
+                        } else {
+                            chunk1.setMaterial(x1 & 0xf, z1, y1 & 0xf, Material.AIR);
+                        }
+                        // Since the biomes are stored in 4x4x4 blocks this way of doing it results in doing it
+                        // 63 too many times, but it's simplest, and ensures that any of those blocks touched is
+                        // changed:
+                        if (set3DBiomes) {
+                            chunk1.set3DBiome((x1 & 0xf) >> 2, z1 >> 2, (y1 & 0xf) >> 2, biome);
+                        }
+                        if (setNamedBiomes) {
+                            chunk1.setNamedBiome((x1 & 0xf) >> 2, z1 >> 2, (y1 & 0xf) >> 2, MODERN_IDS[biome] != null ? MODERN_IDS[biome] : customBiomeNames[biome]);
+                        }
+                    }
+                }
+                if (actualFloorLevel1 == minHeight) {
+                    // Bottomless world, and cave extends all the way to
+                    // the bottom. Remove the floor block, as that is
+                    // probably what the user wants
+                    if (floodLevel > minHeight) {
+                        chunk1.setMaterial(x1 & 0xf, minHeight, y1 & 0xf, floodWithLava ? Material.STATIONARY_LAVA : Material.STATIONARY_WATER);
+                    } else {
+                        chunk1.setMaterial(x1 & 0xf, minHeight, y1 & 0xf, Material.AIR);
+                    }
+                }
+                return true;
+            }));
 
         // Second/third pass: render floor layers
         // TODO make TunnelFloorDimension much more intelligent, so that "distance to edge" can work and the normal
@@ -305,51 +341,6 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
             }
         }
         return true;
-    }
-
-    private void excavateTunnel(Dimension dimension, Rectangle area, MinecraftWorld world, Platform platform) {
-        final int floodLevel = layer.getFloodLevel(), biome = (layer.getTunnelBiome() != null) ? layer.getTunnelBiome() : -1;
-        final int minHeight = dimension.getMinHeight();
-        final boolean removeWater = layer.isRemoveWater(), floodWithLava = layer.isFloodWithLava();
-        final boolean set3DBiomes = platform.capabilities.contains(BIOMES_3D) && (layer.getTunnelBiome() != null);
-        final boolean setNamedBiomes = platform.capabilities.contains(NAMED_BIOMES) && (layer.getTunnelBiome() != null);
-        final String[] customBiomeNames = new String[256];
-        if (setNamedBiomes && (dimension.getCustomBiomes() != null)) {
-            dimension.getCustomBiomes().forEach(customBiome -> customBiomeNames[customBiome.getId()] = customBiome.getName());
-        }
-        visitChunksForLayerInArea(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) ->
-            whereTunnelIsRealisedDo(dimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
-                final int waterLevel = tile.getWaterLevel(xInTile, yInTile);
-                for (int z = Math.min(removeWater ? Math.max(terrainHeight, waterLevel) : terrainHeight, actualRoofLevel); z > actualFloorLevel; z--) {
-                    if (removeWater || (z <= terrainHeight) || (z > waterLevel)) {
-                        if (z <= floodLevel) {
-                            chunk.setMaterial(x & 0xf, z, y & 0xf, floodWithLava ? Material.LAVA : Material.WATER);
-                        } else {
-                            chunk.setMaterial(x & 0xf, z, y & 0xf, Material.AIR);
-                        }
-                        // Since the biomes are stored in 4x4x4 blocks this way of doing it results in doing it
-                        // 63 too many times, but it's simplest, and ensures that any of those blocks touched is
-                        // changed:
-                        if (set3DBiomes) {
-                            chunk.set3DBiome((x & 0xf) >> 2, z >> 2, (y & 0xf) >> 2, biome);
-                        }
-                        if (setNamedBiomes) {
-                            chunk.setNamedBiome((x & 0xf) >> 2, z >> 2, (y & 0xf) >> 2, MODERN_IDS[biome] != null ? MODERN_IDS[biome] : customBiomeNames[biome]);
-                        }
-                    }
-                }
-                if (actualFloorLevel == minHeight) {
-                    // Bottomless world, and cave extends all the way to
-                    // the bottom. Remove the floor block, as that is
-                    // probably what the user wants
-                    if (floodLevel > minHeight) {
-                        chunk.setMaterial(x & 0xf, minHeight, y & 0xf, floodWithLava ? Material.STATIONARY_LAVA : Material.STATIONARY_WATER);
-                    } else {
-                        chunk.setMaterial(x & 0xf, minHeight, y & 0xf, Material.AIR);
-                    }
-                }
-                return true;
-            }));
     }
 
     private void setIfSolid(Chunk chunk, int x, int y, int z, int minZ, int maxZ, MixedMaterial material, boolean flooded, int terrainHeight, int waterLevel, boolean removeWater) {
