@@ -3974,7 +3974,7 @@
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" attributes="0">
-                              <Component id="jScrollPane1" pref="673" max="32767" attributes="0"/>
+                              <Component id="jScrollPane1" max="32767" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" max="-2" attributes="0">
                                   <Component id="buttonCustomLayerBottom" max="32767" attributes="0"/>
@@ -4015,7 +4015,7 @@
           <SubComponents>
             <Component class="javax.swing.JLabel" name="jLabel82">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&lt;html&gt;On this page you can configure the export order of your custom layers,&lt;br&gt;as well as prevent certain layers from being exported.&lt;/html&gt;"/>
+                <Property name="text" type="java.lang.String" value="&lt;html&gt;On this page you can configure the export order of your custom layers, as well as prevent certain layers from being exported.&lt;br&gt;Higher layers in the list are exported &lt;em&gt;before&lt;/em&gt; lower layers. Layers cannot be moved between first or second pass.&lt;/html&gt;"/>
               </Properties>
             </Component>
             <Container class="javax.swing.JScrollPane" name="jScrollPane1">

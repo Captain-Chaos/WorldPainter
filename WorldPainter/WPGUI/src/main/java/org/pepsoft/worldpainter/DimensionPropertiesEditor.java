@@ -3326,7 +3326,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         jTabbedPane1.addTab("Other Layers", jPanel2);
 
-        jLabel82.setText("<html>On this page you can configure the export order of your custom layers, as well as prevent certain layers from being exported.<br>Higher layers in the list are exported <em>before</em> lower layers.</html>");
+        jLabel82.setText("<html>On this page you can configure the export order of your custom layers, as well as prevent certain layers from being exported.<br>Higher layers in the list are exported <em>before</em> lower layers. Layers cannot be moved between first or second pass.</html>");
 
         tableCustomLayers.setSelectionMode(javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         jScrollPane1.setViewportView(tableCustomLayers);
