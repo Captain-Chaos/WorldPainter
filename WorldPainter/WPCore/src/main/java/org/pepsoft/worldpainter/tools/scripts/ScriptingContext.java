@@ -184,6 +184,14 @@ public class ScriptingContext {
         return new CreateFilterOp(this);
     }
 
+    /**
+     * Get a map format by id or name.
+     */
+    public GetPlatformOp getMapFormat(String name) {
+        checkGoCalled("getMapFormat");
+        return new GetPlatformOp(this);
+    }
+
     public void checkGoCalled(String commandName) {
         if (! goCalled) {
             throw new IllegalStateException("You forgot to invoke go() on the " + lastCommandName + "() operation");

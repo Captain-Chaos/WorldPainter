@@ -29,6 +29,8 @@ import java.util.Map;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 
@@ -60,7 +62,7 @@ public class HeightMapImporter {
             name = name.substring(0, p);
         }
         world.setName(name);
-        final Dimension dimension = world.getDimension(0);
+        final Dimension dimension = world.getDimension(DIM_NORMAL);
 
         // Export settings
         final Configuration config = Configuration.getInstance();
@@ -78,11 +80,10 @@ public class HeightMapImporter {
 
         importToDimension(dimension, true, progressReceiver);
 
-        final boolean minecraft11Only = dimension.getMaxHeight() != DEFAULT_MAX_HEIGHT_ANVIL;
         MapGenerator generator = config.getDefaultGenerator();
-        if (minecraft11Only && (generator.getType() == Generator.LARGE_BIOMES)) {
+        if ((platform == JAVA_MCREGION) && (generator.getType() == Generator.LARGE_BIOMES)) {
             generator = new SeededGenerator(DEFAULT, minecraftSeed);
-        } else if ((! minecraft11Only) && (generator.getType() == DEFAULT)) {
+        } else if ((platform != JAVA_MCREGION) && (generator.getType() == DEFAULT)) {
             generator = new SeededGenerator(LARGE_BIOMES, minecraftSeed);
         }
         dimension.setGenerator(generator);
@@ -120,7 +121,7 @@ public class HeightMapImporter {
             dimension.getWorld().addHistoryEntry(HistoryEntry.WORLD_HEIGHT_MAP_IMPORTED_TO_DIMENSION, dimension.getName(), imageFile);
         }
 
-        final boolean useVoidBelow = voidBelowLevel > 0;
+        final boolean useVoidBelow = voidBelowLevel > platform.minZ;
         final Rectangle extent = heightMap.getExtent();
         final int x1 = extent.x;
         final int x2 = extent.x + extent.width - 1;
@@ -132,7 +133,7 @@ public class HeightMapImporter {
         final int tileX2 = extentInTiles.x + extentInTiles.width - 1;
         final int tileY2 = extentInTiles.y + extentInTiles.height - 1;
         final int totalTileCount = extentInTiles.width * extentInTiles.height;
-        final int floor = Math.max(worldWaterLevel - 20, 0);
+        final int floor = Math.max(worldWaterLevel - 20, platform.minZ);
         final int variation = Math.min(15, (worldWaterLevel - floor) / 2);
         final PerlinNoise noiseGenerator = new PerlinNoise(0);
         noiseGenerator.setSeed(dimension.getSeed());
@@ -370,15 +371,15 @@ public class HeightMapImporter {
 
     private float calculateHeight(final float imageLevel) {
         if (highRes) {
-            return MathUtils.clamp(0.0f, (imageLevel - imageLowLevel) * levelScale + worldLowLevel, maxZ);
+            return MathUtils.clamp(platform.minZ, (imageLevel - imageLowLevel) * levelScale + worldLowLevel, maxZ);
         } else {
-            return MathUtils.clamp(0.0f, oneOnOne
+            return MathUtils.clamp(platform.minZ, oneOnOne
                 ? (mayBeScaled ? imageLevel : (imageLevel - 0.4375f))
                 : ((imageLevel - imageLowLevel) * levelScale + worldLowLevel), maxZ);
         }
     }
 
-    private Platform platform;
+    private Platform platform = JAVA_ANVIL_1_15; // TODOMC118 make dynamic/upgrade to 1.18 when finished
     private HeightMap heightMap;
     private int worldLowLevel, worldWaterLevel = 62, worldHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, imageLowLevel, imageHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, maxHeight = DEFAULT_MAX_HEIGHT_ANVIL, voidBelowLevel, maxZ;
     private TileFactory tileFactory;

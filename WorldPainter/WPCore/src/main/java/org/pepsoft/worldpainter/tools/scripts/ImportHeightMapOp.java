@@ -87,6 +87,11 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
         return this;
     }
 
+    public ImportHeightMapOp withMapFormat(Platform platform) {
+        this.platform = platform;
+        return this;
+    }
+
     @Override
     public World2 go() throws ScriptException {
         goCalled();
@@ -103,7 +108,22 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
         }
         importer.setHeightMap(adjustedHeightMap);
         importer.setImageFile(heightMap.getImageFile());
-        HeightMapTileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, JAVA_ANVIL_1_15.minZ, JAVA_ANVIL_1_15.standardMaxHeight, 58, waterLevel, false, true, 20, 1.0);
+
+        // Use the platform's default maxHeight if that suffices, or if not the next highest supported maxHeight which
+        // does suffice
+        int maxHeight = Integer.MIN_VALUE;
+        for (int platformMaxHeight: platform.maxHeights) {
+            if ((platformMaxHeight >= platform.standardMaxHeight)
+                    && (platformMaxHeight > Math.max(importer.getWorldHighLevel(), importer.getWorldWaterLevel()))) {
+                maxHeight = platformMaxHeight;
+                break;
+            }
+        }
+        if (maxHeight == Integer.MIN_VALUE) {
+            throw new ScriptException("Map format " + platform + " not high enough to accommodate maximum terrain height of " + importer.getWorldHighLevel() + " or water level of " + importer.getWorldWaterLevel());
+        }
+
+        HeightMapTileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, platform.minZ, maxHeight, 58, waterLevel, false, true, 20, 1.0);
         Theme defaults = Configuration.getInstance().getHeightMapDefaultTheme();
         if (defaults != null) {
             tileFactory.setTheme(defaults);
@@ -115,8 +135,7 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
             name = name.substring(0, p);
         }
         importer.setName(name);
-        // TODO autoselect this and make it configurable:
-        importer.setPlatform(JAVA_ANVIL_1_15);
+        importer.setPlatform(platform);
         try {
             return importer.importToNewWorld(null);
         } catch (ProgressReceiver.OperationCancelled e) {
@@ -129,4 +148,5 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
     private BitmapHeightMap heightMap;
     private boolean fromLevelsSpecified, toLevelsSpecified;
     private int scale = 100, waterLevel = 62, offsetX, offsetY;
+    private Platform platform = JAVA_ANVIL_1_15; // TODOMC118 make dynamic/upgrade when 1.18 support is finished
 }

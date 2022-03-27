@@ -42,7 +42,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Arrays.stream;
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Material.LAVA;
 import static org.pepsoft.minecraft.Material.WATER;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -50,6 +49,7 @@ import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_17;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.Platform.Capability.SEED;
 import static org.pepsoft.worldpainter.Terrain.*;
 import static org.pepsoft.worldpainter.util.MinecraftUtil.blocksToWalkingTime;
@@ -273,7 +273,6 @@ public class NewWorldDialog extends WorldPainterDialog {
             return null;
         }
         world.addHistoryEntry(HistoryEntry.WORLD_CREATED);
-        final boolean minecraft11Only = dimension.getMaxHeight() != DEFAULT_MAX_HEIGHT_ANVIL;
         world.setName(name);
 
         // Export settings
@@ -284,7 +283,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         world.setAllowCheats(config.isDefaultAllowCheats());
 
         world.addDimension(dimension);
-        if (! minecraft11Only) {
+        if ((! platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION)) {
             world.setExtendedBlockIds(checkBoxExtendedBlockIds.isSelected());
         }
         if (tiles != null) {
@@ -346,7 +345,6 @@ public class NewWorldDialog extends WorldPainterDialog {
         final TileFactory tileFactory = createTileFactory(worldpainterSeed);
 
         final int maxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
-        final boolean minecraft11Only = maxHeight != DEFAULT_MAX_HEIGHT_ANVIL;
         final Dimension dimension = new Dimension(world, minecraftSeed, tileFactory, dim, platform.minZ, maxHeight);
         dimension.setEventsInhibited(true);
         try {
@@ -528,9 +526,9 @@ public class NewWorldDialog extends WorldPainterDialog {
                 if (generator instanceof SeededGenerator) {
                     ((SeededGenerator) generator).setSeed(dimension.getMinecraftSeed());
                 }
-                if (minecraft11Only && (generator.getType() == Generator.LARGE_BIOMES)) {
+                if ((platform == JAVA_MCREGION) && (generator.getType() == Generator.LARGE_BIOMES)) {
                     generator = new SeededGenerator(DEFAULT, dimension.getMinecraftSeed());
-                } else if ((! minecraft11Only) && ((dimension.getMinecraftSeed() == World2.DEFAULT_OCEAN_SEED) || (dimension.getMinecraftSeed() == World2.DEFAULT_LAND_SEED)) && (generator.getType() == Generator.DEFAULT)) {
+                } else if ((platform != JAVA_MCREGION) && ((dimension.getMinecraftSeed() == World2.DEFAULT_OCEAN_SEED) || (dimension.getMinecraftSeed() == World2.DEFAULT_LAND_SEED)) && (generator.getType() == Generator.DEFAULT)) {
                     generator = new SeededGenerator(LARGE_BIOMES, dimension.getMinecraftSeed());
                 }
                 dimension.setGenerator(generator);
