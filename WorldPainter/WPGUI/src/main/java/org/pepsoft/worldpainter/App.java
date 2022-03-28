@@ -3184,7 +3184,7 @@ public final class App extends JFrame implements RadiusControl,
             customLayerMenu.addSeparator();
 
             for (Class<? extends CustomLayer> customLayerClass: allPluginLayers) {
-                menuItem = new JMenuItem("Add a " + customLayerClass.getSimpleName() + " layer...");
+                menuItem = new JMenuItem("Add a " + customLayerClass.getSimpleName() + " layer..."); // TODO: introduce a proper display name for custom layers
                 menuItem.addActionListener(e -> {
                     EditLayerDialog<CustomLayer> dialog = new EditLayerDialog<>(App.this, world.getPlatform(), (Class<CustomLayer>) customLayerClass);
                     dialog.setVisible(true);

@@ -46,6 +46,7 @@ public class EditLayerDialog<L extends Layer> extends AbstractEditLayerDialog<L>
      * @param parent The window relative to which to display the dialog.
      * @param layer The layer to edit..
      */
+    @SuppressWarnings("unchecked") // Guaranteed by Java
     public EditLayerDialog(Window parent, Platform platform, L layer) {
         this(parent, layer, LayerEditorManager.getInstance().createEditor(platform, (Class<L>) layer.getClass()));
     }
