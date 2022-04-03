@@ -4,14 +4,16 @@
  */
 package org.pepsoft.worldpainter.util;
 
-import java.awt.event.ActionEvent;
-import java.util.HashMap;
-import java.util.Map;
-import javax.swing.Icon;
 import org.jetbrains.annotations.NonNls;
 import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.EventLogger;
+import org.pepsoft.worldpainter.WorldPainter;
 import org.pepsoft.worldpainter.vo.EventVO;
+
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -60,6 +62,14 @@ public abstract class BetterAction extends org.pepsoft.util.swing.BetterAction {
                 }
             }
         }
+    }
+
+    /**
+     * Allows the action to install itself where it wishes, for example in the provided menu bar and/or action and input
+     * maps. The default implementation does nothing.
+     */
+    public void install(JMenuBar menuBar, ActionMap actionMap, InputMap inputMap, WorldPainter view) {
+        // Do nothing
     }
     
     protected abstract void performAction(ActionEvent e);

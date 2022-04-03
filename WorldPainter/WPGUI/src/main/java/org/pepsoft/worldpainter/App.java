@@ -28,6 +28,7 @@ import org.pepsoft.worldpainter.brushes.BitmapBrush;
 import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.brushes.RotatedBrush;
 import org.pepsoft.worldpainter.brushes.SymmetricBrush;
+import org.pepsoft.worldpainter.exporting.DefaultExportService;
 import org.pepsoft.worldpainter.gardenofeden.GardenOfEdenOperation;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.history.WorldHistoryDialog;
@@ -263,6 +264,12 @@ public final class App extends JFrame implements RadiusControl,
         inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD8, 0), "intensity80");
         inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD9, 0), "intensity90");
         inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD0, 0), "intensity100");
+
+        if (Main.privateContext != null) {
+            for (BetterAction action: Main.privateContext.getAdditionalActions()) {
+                action.install(getJMenuBar(), actionMap, inputMap, view);
+            }
+        }
 
         // Log some information about the graphics environment
         GraphicsDevice graphicsDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
@@ -3856,15 +3863,14 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.setMnemonic('a');
         menu.add(menuItem);
 
+        JMenu exportMenu = new JMenu(strings.getString("export"));
+        exportMenu.setMnemonic('e');
+
         menuItem = new JMenuItem(ACTION_EXPORT_WORLD);
         menuItem.setMnemonic('m');
-        if (config.isEasyMode()) {
-            menu.add(menuItem);
-        } else {
-            JMenu exportMenu = new JMenu(strings.getString("export"));
-            exportMenu.setMnemonic('e');
-            exportMenu.add(menuItem);
+        exportMenu.add(menuItem);
 
+        if (! config.isEasyMode()) {
             menuItem = new JMenuItem(strings.getString("export.as.image.file") + "...");
             menuItem.addActionListener(event -> exportImage());
             menuItem.setMnemonic('i');
@@ -3878,9 +3884,9 @@ public final class App extends JFrame implements RadiusControl,
             exportHighResHeightMapMenuItem = new JMenuItem("Export as high resolution height map...");
             exportHighResHeightMapMenuItem.addActionListener(event -> exportHeightMap(true));
             exportMenu.add(exportHighResHeightMapMenuItem);
-
-            menu.add(exportMenu);
         }
+
+        menu.add(exportMenu);
 
         menuItem = new JMenuItem(ACTION_MERGE_WORLD);
         menuItem.setMnemonic('m');
@@ -6197,7 +6203,7 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 }
                 saveCustomBiomes();
-                ExportWorldDialog dialog = new ExportWorldDialog(App.this, world, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin(), view);
+                ExportWorldDialog dialog = new ExportWorldDialog(App.this, world, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin(), view, DefaultExportService.INSTANCE);
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
                     view.refreshTiles();

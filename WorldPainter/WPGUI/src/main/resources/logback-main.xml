@@ -21,5 +21,6 @@
         <appender-ref ref="FILE"/>
     </root>
     <logger name="org.pepsoft" level="${org.pepsoft.worldpainter.logLevel}"/>
+    <logger name="org.apache.http.wire" level="DEBUG"/>
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator"/>
 </configuration>

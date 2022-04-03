@@ -703,6 +703,25 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.autoDeleteBackups = autoDeleteBackups;
     }
 
+    public synchronized <T extends Serializable> void setAttribute(AttributeKey<T> key, T value) {
+        if (value != null) {
+            if (attributes == null) {
+                attributes = new HashMap<>();
+            }
+            attributes.put(key.key, value);
+        } else if (attributes != null) {
+            attributes.remove(key.key);
+            if (attributes.isEmpty()) {
+                attributes = null;
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked") // Responsibility of caller
+    public synchronized <T extends Serializable> T getAttribute(AttributeKey<T> key) {
+        return ((attributes != null) && attributes.containsKey(key.key)) ? (T) attributes.get(key.key) : key.defaultValue;
+    }
+
     // Transient settings which aren't stored on disk
 
     public boolean isAutosaveInhibited() {
@@ -1200,6 +1219,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private int minimumFreeSpaceForMaps = 1;
     private boolean autoDeleteBackups = true;
     private MapGenerator defaultGeneratorObj = new SeededGenerator(DEFAULT, DEFAULT_OCEAN_SEED);
+    private Map<String, Serializable> attributes;
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk

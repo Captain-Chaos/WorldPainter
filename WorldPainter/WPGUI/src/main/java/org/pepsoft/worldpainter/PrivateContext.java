@@ -1,6 +1,9 @@
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.worldpainter.util.BetterAction;
 import org.pepsoft.worldpainter.vo.UsageVO;
+
+import java.util.Set;
 
 /**
  * Created by pepijn on 8-2-2015.
@@ -25,4 +28,9 @@ public interface PrivateContext {
      *                  error in case of failure.
      */
     void submitUsageData(UsageVO usageData, boolean blocking);
+
+    /**
+     * Get additional actions to install into WorldPainter.
+     */
+    Set<BetterAction> getAdditionalActions();
 }

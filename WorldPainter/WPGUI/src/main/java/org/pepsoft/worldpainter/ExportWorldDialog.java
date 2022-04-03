@@ -13,6 +13,7 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.exporting.ExportService;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Populate;
@@ -43,7 +44,10 @@ import static org.pepsoft.worldpainter.util.MaterialUtils.gatherBlocksWithoutIds
  */
 public class ExportWorldDialog extends WorldPainterDialog {
     /** Creates new form ExportWorldDialog */
-    public ExportWorldDialog(java.awt.Frame parent, World2 world, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, WorldPainter view) {
+    public ExportWorldDialog(java.awt.Frame parent, World2 world, ColourScheme colourScheme,
+                             CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers,
+                             boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin,
+                             WorldPainter view, ExportService exportService) {
         super(parent);
         this.world = world;
         selectedTiles = world.getTilesToExport();
@@ -56,6 +60,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
         this.lightOrigin = lightOrigin;
         this.customBiomeManager = customBiomeManager;
         this.view = view;
+        this.exportService = exportService;
         initComponents();
 
         Configuration config = Configuration.getInstance();
@@ -66,17 +71,41 @@ public class ExportWorldDialog extends WorldPainterDialog {
         }
 
         Platform platform = world.getPlatform();
-        if (config.getExportDirectory(platform) != null) {
-            fieldDirectory.setText(config.getExportDirectory(platform).getAbsolutePath());
-        } else {
-            File exportDir = PlatformManager.getInstance().getDefaultExportDir(platform);
-            if (exportDir != null) {
-                fieldDirectory.setText(exportDir.getAbsolutePath());
-            } else {
-                fieldDirectory.setText(DesktopUtils.getDocumentsFolder().getAbsolutePath());
+        DocumentListener documentListener = new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                setControlStates();
             }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                setControlStates();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                setControlStates();
+            }
+        };
+        if (exportService.isLocalStorage()) {
+            if (config.getExportDirectory(platform) != null) {
+                fieldDirectory.setText(config.getExportDirectory(platform).getAbsolutePath());
+            } else {
+                File exportDir = PlatformManager.getInstance().getDefaultExportDir(platform);
+                if (exportDir != null) {
+                    fieldDirectory.setText(exportDir.getAbsolutePath());
+                } else {
+                    fieldDirectory.setText(DesktopUtils.getDocumentsFolder().getAbsolutePath());
+                }
+            }
+            fieldDirectory.getDocument().addDocumentListener(documentListener);
+        } else {
+            fieldDirectory.setText(exportService.getDirectoryReplacementText());
+            fieldDirectory.setEnabled(false);
+            buttonSelectDirectory.setEnabled(false);
         }
         fieldName.setText(world.getName());
+        fieldName.getDocument().addDocumentListener(documentListener);
 
         nameOnlyMaterials = gatherBlocksWithoutIds(world, platform);
 
@@ -139,27 +168,9 @@ public class ExportWorldDialog extends WorldPainterDialog {
         checkBoxMapFeatures.setSelected(world.isMapFeatures());
         comboBoxDifficulty.setSelectedIndex(world.getDifficulty());
 
-        DocumentListener documentListener = new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                setControlStates();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                setControlStates();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                setControlStates();
-            }
-        };
-        fieldDirectory.getDocument().addDocumentListener(documentListener);
-        fieldName.getDocument().addDocumentListener(documentListener);
-
         disableDisabledLayersWarning = true;
-dims:   for (Dimension dim: world.getDimensions()) {
+        dims:
+        for (Dimension dim: world.getDimensions()) {
             for (CustomLayer customLayer: dim.getCustomLayers()) {
                 if (! customLayer.isExport()) {
                     disableDisabledLayersWarning = false;
@@ -214,7 +225,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
 
     private void export() {
         // Check for errors
-        if (! new File(fieldDirectory.getText().trim()).isDirectory()) {
+        if (exportService.isLocalStorage() && (! new File(fieldDirectory.getText().trim()).isDirectory())) {
             fieldDirectory.requestFocusInWindow();
             DesktopUtils.beep();
             JOptionPane.showMessageDialog(this, "The selected output directory does not exist or is not a directory.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -327,13 +338,15 @@ dims:   for (Dimension dim: world.getDimensions()) {
         File baseDir = new File(fieldDirectory.getText().trim());
         String name = fieldName.getText().trim();
 
-        // Make sure the minimum free disk space is met
-        try {
-            if (! cleanUpBackups(baseDir, null)) {
-                return;
+        if (exportService.isLocalStorage()) {
+            // Make sure the minimum free disk space is met
+            try {
+                if (!cleanUpBackups(baseDir, null)) {
+                    return;
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("I/O error while cleaning backups", e);
             }
-        } catch (IOException e) {
-            throw new RuntimeException("I/O error while cleaning backups", e);
         }
 
         if (! saveDimensionSettings()) {
@@ -374,19 +387,18 @@ dims:   for (Dimension dim: world.getDimensions()) {
         checkBoxMapFeatures.setEnabled(false);
         comboBoxDifficulty.setEnabled(false);
 
-        config.setExportDirectory(world.getPlatform(), baseDir);
+        if (exportService.isLocalStorage()) {
+            config.setExportDirectory(world.getPlatform(), baseDir);
+        }
         if (platform == JAVA_ANVIL_1_18) {
             config.setBeta118WarningDisplayed(true);
         }
 
-        ExportProgressDialog dialog = new ExportProgressDialog(this, world, baseDir, name);
-        view.setInhibitUpdates(true);
-        try {
-            dialog.setVisible(true);
-        } finally {
-            view.setInhibitUpdates(false);
+        if (exportService.doExport(this, view, world, baseDir, name)) {
+            ok();
+        } else {
+            cancel();
         }
-        ok();
     }
 
     private boolean saveDimensionSettings() {
@@ -835,6 +847,7 @@ dims:   for (Dimension dim: world.getDimensions()) {
     private final CustomBiomeManager customBiomeManager;
     private final WorldPainter view;
     private final Map<Integer, DimensionPropertiesEditor> dimensionPropertiesEditors = new HashMap<>();
+    private final ExportService exportService;
     private int selectedDimension;
     private Set<Point> selectedTiles;
     private boolean disableTileSelectionWarning, disableDisabledLayersWarning;
