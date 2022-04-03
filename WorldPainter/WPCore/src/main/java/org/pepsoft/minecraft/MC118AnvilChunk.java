@@ -24,7 +24,7 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
-import static org.pepsoft.minecraft.Material.WATERLOGGED;
+import static org.pepsoft.minecraft.Material.LEVEL;
 
 /**
  * An "Anvil" chunk for Minecraft 1.15 and higher.
@@ -109,8 +109,8 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
             status = getString(TAG_STATUS).intern();
             lightPopulated = getBoolean(TAG_LIGHT_POPULATED);
             inhabitedTime = getLong(TAG_INHABITED_TIME);
-            if (containsTag(TAG_LIQUID_TICKS)) {
-                liquidTicks.addAll(getList(TAG_LIQUID_TICKS));
+            if (containsTag(TAG_FLUID_TICKS_)) {
+                fluidTicks.addAll(getList(TAG_FLUID_TICKS_));
             }
 
 //            debugChunk = (xPos == (debugWorldX >> 4)) && (zPos == (debugWorldZ >> 4));
@@ -144,31 +144,45 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
         return heightMaps;
     }
 
-    private void addLiquidTick(int x, int y, int z) {
-        // Liquid ticks are in world coordinates for some reason
+    private void addFluidTick(int x, int y, int z) {
+        // Fluid ticks are in world coordinates for some reason
         x = (xPos << 4) | x;
         z = (zPos << 4) | z;
-        for (CompoundTag liquidTick: liquidTicks) {
-            if ((x == ((IntTag) liquidTick.getTag(TAG_X_)).getValue())
-                    && (y == ((IntTag) liquidTick.getTag(TAG_Y_)).getValue())
-                    && (z == ((IntTag) liquidTick.getTag(TAG_Z_)).getValue())) {
-                // There is already a liquid tick scheduled for this block
-                return;
-            }
-        }
         String id;
         Material material = getMaterial(x & 0xf, y, z & 0xf);
-        if (material.isNamed(MC_WATER) || material.is(WATERLOGGED)) {
+        if (material.containsWater()) {
             id = MC_WATER;
+        } else if (material.isNamed(MC_WATER)) {
+            // Water with level 0 (stationary water) already matched in the previous branch
+            id = MC_FLOWING_WATER;
+        } else if (material.isNamed(MC_LAVA)) {
+            id = (material.getProperty(LEVEL) == 0) ? MC_LAVA : MC_FLOWING_LAVA;
         } else {
             id = material.name;
         }
-        liquidTicks.add(new CompoundTag("", ImmutableMap.<String, Tag>builder()
+        for (Iterator<CompoundTag> i = fluidTicks.iterator(); i.hasNext(); ) {
+            CompoundTag fluidTick = i.next();
+            if ((x == ((IntTag) fluidTick.getTag(TAG_X_)).getValue())
+                    && (y == ((IntTag) fluidTick.getTag(TAG_Y_)).getValue())
+                    && (z == ((IntTag) fluidTick.getTag(TAG_Z_)).getValue())) {
+                final String existingId = ((StringTag) fluidTick.getTag(TAG_I_)).getValue();
+                if (id.equals(existingId)) {
+                    // There is already a fluid tick scheduled for this block
+                    return;
+                } else {
+                    // There is already a fluid tick scheduled for this block, but it's for the wrong ID
+                    logger.warn("Replacing fluid tick for type {} with type {} @ {},{},{}", existingId, id, x, y, z);
+                    i.remove();
+                    break;
+                }
+            }
+        }
+        fluidTicks.add(new CompoundTag("", ImmutableMap.<String, Tag>builder()
                 .put(TAG_X_, new IntTag(TAG_X_, x))
                 .put(TAG_Y_, new IntTag(TAG_Y_, y))
                 .put(TAG_Z_, new IntTag(TAG_Z_, z))
                 .put(TAG_I_, new StringTag(TAG_I_, id))
-                .put(TAG_P_, new IntTag(TAG_P_, 0))
+                .put(TAG_P_, new IntTag(TAG_P_, 0)) // TODO: what does this do?
                 .put(TAG_T_, new IntTag(TAG_T_, RANDOM.nextInt(30) + 1)).build()));
     }
 
@@ -208,7 +222,7 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
         setString(TAG_STATUS, status);
         setBoolean(TAG_LIGHT_POPULATED, lightPopulated);
         setLong(TAG_INHABITED_TIME, inhabitedTime);
-        setList(TAG_LIQUID_TICKS, CompoundTag.class, liquidTicks);
+        setList(TAG_FLUID_TICKS_, CompoundTag.class, fluidTicks);
 
         setTag(TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, DATA_VERSION_MC_1_18_0));
         return super.toNBT();
@@ -387,7 +401,7 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
     public void markForUpdateChunk(int x, int y, int z) {
         Material material = getMaterial(x, y, z);
         if (material.isNamedOneOf(MC_WATER, MC_LAVA) || material.containsWater()) {
-            addLiquidTick(x, y, z);
+            addFluidTick(x, y, z);
         } else {
             throw new UnsupportedOperationException("Don't know how to mark " + material + " for update");
         }
@@ -734,7 +748,7 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
     long inhabitedTime;
     String status;
     final Map<String, long[]> heightMaps;
-    final List<CompoundTag> liquidTicks = new ArrayList<>();
+    final List<CompoundTag> fluidTicks = new ArrayList<>();
     final boolean debugChunk = false;
 
     private static long debugWorldX, debugWorldZ, debugXInChunk, debugZInChunk;

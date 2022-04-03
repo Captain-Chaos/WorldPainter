@@ -699,6 +699,7 @@ public final class Constants {
     public static final String TAG_HEIGHT_                 = "height";
     public static final String TAG_STRUCTURES_             = "structures";
     public static final String TAG_STRONGHOLD_             = "stronghold";
+    public static final String TAG_FLUID_TICKS_            = "fluid_ticks";
 
     /**
      * Possibly unofficial, SpoutCraft-specific
