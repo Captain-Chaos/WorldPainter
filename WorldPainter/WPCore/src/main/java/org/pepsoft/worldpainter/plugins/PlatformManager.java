@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.nio.channels.ClosedByInterruptException;
+import java.nio.file.InvalidPathException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -82,7 +84,16 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
                     candidates.add(mapInfo);
                 }
             } catch (RuntimeException e) {
-                logger.warn("{} while asking provider {} to identify {}; skipping platform", e.getClass().getSimpleName(), provider.getClass().getName(), worldDir, e);
+                Throwable rootCause = e;
+                while (rootCause.getCause() != null) {
+                    rootCause = e.getCause();
+                }
+                if ((rootCause instanceof ClosedByInterruptException) || (rootCause instanceof InvalidPathException)) {
+                    // These are some exceptions that seem to be thrown for Windows special paths; not worth polluting the log with
+                    logger.debug("{} while asking provider {} to identify {}; skipping platform", e.getClass().getSimpleName(), provider.getClass().getName(), worldDir, e);
+                } else {
+                    logger.warn("{} while asking provider {} to identify {}; skipping platform", e.getClass().getSimpleName(), provider.getClass().getName(), worldDir, e);
+                }
             }
         }
         if (candidates.isEmpty()) {

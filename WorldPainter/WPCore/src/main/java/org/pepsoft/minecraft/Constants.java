@@ -1191,6 +1191,7 @@ public final class Constants {
     public static final String MC_LARGE_BIOMES = "minecraft:large_biomes";
     public static final String MC_NETHER = "minecraft:nether";
     public static final String MC_END = "minecraft:end";
+    public static final String MC_AMPLIFIED = "minecraft:amplified";
 
     // Minecraft 1.18 biome source types
 

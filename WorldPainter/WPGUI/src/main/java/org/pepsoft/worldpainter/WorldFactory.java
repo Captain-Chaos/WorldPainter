@@ -24,8 +24,7 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.TreeMap;
 
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
+import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
@@ -167,9 +166,10 @@ public final class WorldFactory {
             dim0.setCoverSteepTerrain(defaults.isCoverSteepTerrain());
 
             MapGenerator generator = config.getDefaultGenerator();
+            // TODO base this on platforms, and is this black magic even still necessary?
             if ((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_MCREGION) && (generator.getType() == Generator.LARGE_BIOMES)) {
                 generator = new SeededGenerator(DEFAULT, DEFAULT_OCEAN_SEED);
-            } else if ((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL) && (generator.getType() == DEFAULT)) {
+            } else if (((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL) || (world.getMaxHeight() == DEFAULT_MAX_HEIGHT_1_18)) && (generator.getType() == DEFAULT)) {
                 generator = new SeededGenerator(LARGE_BIOMES, DEFAULT_OCEAN_SEED);
             }
             dim0.setGenerator(generator); // TODOMC118 what about Nether and End?

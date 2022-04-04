@@ -62,7 +62,7 @@ public class DirectoryNode extends FileSystemNode {
                         }
                     }
                     if (children[i] == null) {
-                        children[i] = new DirectoryNode(contents[i], showFiles);
+                        children[i] = new DirectoryNode(contents[i], true);
                     }
                 } else if (contents[i].isFile()) {
                     String lowercaseName = contents[i].getName().toLowerCase();

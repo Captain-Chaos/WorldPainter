@@ -90,6 +90,8 @@ public class Java118Level extends JavaLevel {
                     generator = new SeededGenerator(NETHER, generatorSeed);
                 } else if (noiseSettings.equals(MC_END)) {
                     generator = new SeededGenerator(END, generatorSeed);
+                } else if (noiseSettings.equals(MC_AMPLIFIED)) {
+                    generator = new SeededGenerator(AMPLIFIED, generatorSeed);
                 } else {
                     throw new IllegalArgumentException("Settings string \"" + noiseSettings + "\" for minecraft:noise generator type not recognised"); // TODO: minecraft:amplified
                 }

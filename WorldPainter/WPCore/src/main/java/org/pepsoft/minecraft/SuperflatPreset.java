@@ -18,8 +18,9 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.*;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.MODERN_IDS;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.BIOMES_BY_MODERN_ID;
+import static org.pepsoft.worldpainter.biomeschemes.StaticBiomeInfo.BIOME_PLAINS;
+import static org.pepsoft.worldpainter.biomeschemes.StaticBiomeInfo.MODERN_IDS;
 
 public class SuperflatPreset implements Serializable {
     public SuperflatPreset(int biome, List<Layer> layers, Map<Structure, Map<String, String>> structures) {
@@ -78,6 +79,9 @@ public class SuperflatPreset implements Serializable {
     }
 
     public CompoundTag toMinecraft1_18_0() {
+        if (MODERN_IDS[biome] == null) {
+            throw new UnsupportedOperationException("Custom biomes not yet supported for Superflat maps in Minecraft 1.18+");
+        }
         return new CompoundTag(TAG_SETTINGS_, ImmutableMap.of(
                 TAG_BIOME_, new StringTag(TAG_BIOME_, MODERN_IDS[biome]), // TODOMC118 custom biome support
                 TAG_FEATURES_, new ByteTag(TAG_FEATURES_, (byte) 0), // TODOMC118 support
@@ -163,7 +167,7 @@ public class SuperflatPreset implements Serializable {
 
     @SuppressWarnings("unchecked") // Guaranteed by Minecraft
     public static SuperflatPreset fromMinecraft1_15_2(CompoundTag tag) {
-        return new SuperflatPreset(getBiomeByMinecraftName(((StringTag) tag.getTag("biome")).getValue()),
+        return new SuperflatPreset(getBiomeByMinecraft117Name(((StringTag) tag.getTag("biome")).getValue()),
                 ((ListTag<CompoundTag>) tag.getTag("layers")).getValue().stream()
                         .map(layerTag -> new Layer(((StringTag) layerTag.getTag("block")).getValue(), ((NumberTag) layerTag.getTag("height")).intValue()))
                         .collect(toList()),
@@ -173,9 +177,15 @@ public class SuperflatPreset implements Serializable {
         );
     }
 
+    @SuppressWarnings("unchecked") // Guaranteed by Minecraft
     public static SuperflatPreset fromMinecraft1_18_0(CompoundTag tag) {
-        // TODOMC118
-        throw new UnsupportedOperationException("TODO");
+        // TODOMC118 add features, lakes and structures
+        return new SuperflatPreset(getBiomeByMinecraft118Name(((StringTag) tag.getTag(TAG_BIOME_)).getValue()),
+                ((ListTag<CompoundTag>) tag.getTag(TAG_LAYERS_)).getValue().stream()
+                        .map(layerTag -> new Layer(((StringTag) layerTag.getTag(TAG_BLOCK_)).getValue(), ((NumberTag) layerTag.getTag(TAG_HEIGHT_)).intValue()))
+                        .collect(toList()),
+                emptyMap()
+                );
     }
 
     public static SuperflatPreset defaultPreset(Platform platform) {
@@ -186,12 +196,19 @@ public class SuperflatPreset implements Serializable {
         return new Builder(biome, structures);
     }
 
-    private static int getBiomeByMinecraftName(String name) {
+    private static int getBiomeByMinecraft117Name(String name) {
         name = name.substring(name.indexOf(':') + 1).replace('_', ' ');
         for (int i = 0; i < Minecraft1_17Biomes.BIOME_NAMES.length; i++) {
             if (name.equalsIgnoreCase(Minecraft1_17Biomes.BIOME_NAMES[i])) {
                 return i;
             }
+        }
+        throw new IllegalArgumentException("Unknown biome name: " + name);
+    }
+
+    private static int getBiomeByMinecraft118Name(String name) {
+        if (BIOMES_BY_MODERN_ID.containsKey(name)) {
+            return BIOMES_BY_MODERN_ID.get(name);
         }
         throw new IllegalArgumentException("Unknown biome name: " + name);
     }
