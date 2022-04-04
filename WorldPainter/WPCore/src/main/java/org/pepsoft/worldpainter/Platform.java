@@ -7,6 +7,8 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.*;
 
+import static org.pepsoft.worldpainter.Platform.Capability.*;
+
 /**
  * A descriptor for a WorldPainter-supported map storage format. Implements the
  * Enumeration pattern, meaning there is only ever one instance of each unique
@@ -70,6 +72,15 @@ public final class Platform implements Serializable {
             }
         }
         return true;
+    }
+
+    /**
+     * Convenience method for determining whether the platform supports <em>any</em> type of biomes
+     * ({@link #capabilities} contains {@link Capability#BIOMES}, {@link Capability#BIOMES_3D} or
+     * {@link Capability#NAMED_BIOMES}).
+     */
+    public boolean supportsBiomes() {
+        return capabilities.contains(BIOMES) || capabilities.contains(BIOMES_3D) || capabilities.contains(NAMED_BIOMES);
     }
     
     // Object
@@ -203,7 +214,9 @@ public final class Platform implements Serializable {
     public enum Capability {
         /**
          * Has the concept of a 2D, per-column biome, identified by a number. This is mutually exclusive with
-         * {@link #BIOMES_3D} and {@link #NAMED_BIOMES}.
+         * {@link #BIOMES_3D} and {@link #NAMED_BIOMES}. Note that the biomes may still be stored as 4x4x4 3D biomes (as
+         * Minecraft 1.15 does). This will be determined per chunk based on the chunk capabilities (and can therefore
+         * vary by chunk). But in-game the biome will still be the same throughout every vertical column.
          */
         BIOMES,
 

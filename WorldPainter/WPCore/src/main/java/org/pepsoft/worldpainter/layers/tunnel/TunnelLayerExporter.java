@@ -16,6 +16,7 @@ import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.util.BiomeUtils;
 
 import javax.vecmath.Point3i;
 import java.awt.*;
@@ -28,7 +29,6 @@ import java.util.function.Supplier;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
 import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.MODERN_IDS;
 
 /**
  *
@@ -63,13 +63,9 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
         final int floodLevel = layer.getFloodLevel(), biome = (layer.getTunnelBiome() != null) ? layer.getTunnelBiome() : -1;
         final int minHeight = dimension.getMinHeight(), minZ = minHeight + (dimension.isBottomless() ? 0 : 1), maxZ = dimension.getMaxHeight() - 1;
         final boolean removeWater = layer.isRemoveWater(), floodWithLava = layer.isFloodWithLava();
-        final boolean set3DBiomes = platform.capabilities.contains(BIOMES_3D) && (layer.getTunnelBiome() != null);
-        final boolean setNamedBiomes = platform.capabilities.contains(NAMED_BIOMES) && (layer.getTunnelBiome() != null);
+        final boolean set3DBiomes = (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) && (layer.getTunnelBiome() != null);
+        final BiomeUtils biomeUtils = new BiomeUtils(dimension);
         final MixedMaterial floorMaterial = layer.getFloorMaterial(), wallMaterial = layer.getWallMaterial(), roofMaterial = layer.getRoofMaterial();
-        final String[] customBiomeNames = new String[256];
-        if (setNamedBiomes && (dimension.getCustomBiomes() != null)) {
-            dimension.getCustomBiomes().forEach(customBiome -> customBiomeNames[customBiome.getId()] = customBiome.getName());
-        }
         if (floorNoise != null) {
             floorNoise.setSeed(dimension.getSeed());
         }
@@ -144,10 +140,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
                         // 63 too many times, but it's simplest, and ensures that any of those blocks touched is
                         // changed:
                         if (set3DBiomes) {
-                            chunk.set3DBiome((x & 0xf) >> 2, z1 >> 2, (y & 0xf) >> 2, biome);
-                        }
-                        if (setNamedBiomes) {
-                            chunk.setNamedBiome((x & 0xf) >> 2, z1 >> 2, (y & 0xf) >> 2, MODERN_IDS[biome] != null ? MODERN_IDS[biome] : customBiomeNames[biome]);
+                            biomeUtils.set3DBiome(chunk, (x & 0xf) >> 2, z1 >> 2, (y & 0xf) >> 2, biome);
                         }
                     }
                 }

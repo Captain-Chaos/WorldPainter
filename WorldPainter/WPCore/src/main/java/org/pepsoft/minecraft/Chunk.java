@@ -66,15 +66,38 @@ public interface Chunk {
     List<Entity> getEntities();
 
     List<TileEntity> getTileEntities();
-    
+
+    default int getMinHeight() {
+        return 0;
+    }
+
     int getMaxHeight();
+
+    /**
+     * Indicates whether 2D biomes are supported. See {@link #getBiome(int, int)} and {@link #setBiome(int, int, int)}.
+     *
+     * <p>The default implementation returns {@code false}.
+     */
+    default boolean isBiomesSupported() {
+        return false;
+    }
 
     /**
      * Indicates whether 2D biomes are available. See {@link #getBiome(int, int)} and {@link #setBiome(int, int, int)}.
      *
-     * <p>The default implemenation returns {@code false}.
+     * <p>The default implementation returns {@code false}.
      */
     default boolean isBiomesAvailable() {
+        return false;
+    }
+
+    /**
+     * Indicates whether 3D biomes are supported. See {@link #get3DBiome(int, int, int)} and
+     * {@link #set3DBiome(int, int, int, int)}.
+     *
+     * <p>The default implemenation returns {@code false}.
+     */
+    default boolean is3DBiomesSupported() {
         return false;
     }
 
@@ -85,6 +108,16 @@ public interface Chunk {
      * <p>The default implemenation returns {@code false}.
      */
     default boolean is3DBiomesAvailable() {
+        return false;
+    }
+
+    /**
+     * Indicates whether named biomes are supported. See {@link #getNamedBiome(int, int, int)} and
+     * {@link #setNamedBiome(int, int, int, String)}.
+     *
+     * <p>The default implementation returns {@code false}.
+     */
+    default boolean isNamedBiomesSupported() {
         return false;
     }
 

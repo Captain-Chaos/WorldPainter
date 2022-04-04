@@ -239,6 +239,11 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
     }
 
     @Override
+    public boolean isNamedBiomesSupported() {
+        return true;
+    }
+
+    @Override
     public boolean isNamedBiomesAvailable() {
         return true;
     }

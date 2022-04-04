@@ -21,6 +21,7 @@ import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
+import org.pepsoft.worldpainter.util.BiomeUtils;
 import org.pepsoft.worldpainter.util.FileInUseException;
 import org.pepsoft.worldpainter.vo.EventVO;
 
@@ -36,8 +37,7 @@ import java.util.stream.Collectors;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
-import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
+import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 
 /**
@@ -840,6 +840,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         File newRegionDir = new File(worldDir, "region");
         newRegionDir.mkdirs();
         Dimension dimension = world.getDimension(DIM_NORMAL);
+        final BiomeUtils biomeUtils = new BiomeUtils(dimension);
         for (File file: oldRegionFiles) {
             try (RegionFile oldRegion = new RegionFile(file)) {
                 String[] parts = file.getName().split("\\.");
@@ -860,22 +861,19 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 if (platform.capabilities.contains(BIOMES)) {
                                     for (int xx = 0; xx < 16; xx++) {
                                         for (int zz = 0; zz < 16; zz++) {
-                                            chunk.setBiome(xx, zz, dimension.getLayerValueAt(Biome.INSTANCE, (chunkX << 4) | xx, (chunkZ << 4) | zz));
+                                            biomeUtils.set2DBiome(chunk, xx, zz, dimension.getLayerValueAt(Biome.INSTANCE, (chunkX << 4) | xx, (chunkZ << 4) | zz));
                                         }
                                     }
-                                } else if (platform.capabilities.contains(BIOMES_3D)) {
+                                } else if (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) {
                                     for (int xx = 0; xx < 4; xx++) {
                                         for (int zz = 0; zz < 4; zz++) {
                                             final int biome = dimension.getMostPrevalentBiome((chunkX << 2) | xx, (chunkZ << 2) | zz, BIOME_PLAINS);
                                             for (int y = 0; y < chunk.getMaxHeight(); y += 4) {
                                                 // TODOMC118 this obliterates the existing 3D biomes; how to handle that?
-                                                chunk.set3DBiome(xx, y >> 2, zz, biome);
+                                                biomeUtils.set3DBiome(chunk, xx, y >> 2, zz, biome);
                                             }
                                         }
                                     }
-                                } else {
-                                    // TODOMC118: implement
-                                    throw new UnsupportedOperationException();
                                 }
                                 try (NBTOutputStream out = new NBTOutputStream(newRegion.getChunkDataOutputStream(x, z))) {
                                     out.writeTag(chunk.toNBT());

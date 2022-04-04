@@ -304,7 +304,12 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
         }
         heightMap[x + z * 16] = height;
     }
-    
+
+    @Override
+    public boolean isBiomesSupported() {
+        return true;
+    }
+
     @Override
     public boolean isBiomesAvailable() {
         return biomes != null;

@@ -20,7 +20,7 @@ import java.util.*;
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
-import static org.pepsoft.minecraft.Material.WATERLOGGED;
+import static org.pepsoft.minecraft.Material.LEVEL;
 
 /**
  * An "Anvil" chunk for Minecraft 1.15 and higher.
@@ -80,19 +80,19 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
             }
             Tag biomesTag = getTag(TAG_BIOMES);
             if (biomesTag instanceof IntArrayTag) {
-                biomes = getIntArray(TAG_BIOMES);
+                biomes3d = getIntArray(TAG_BIOMES);
             } else if (biomesTag instanceof ByteArrayTag) {
                 byte[] biomesArray = ((ByteArrayTag) biomesTag).getValue();
-                biomes = new int[biomesArray.length];
+                biomes3d = new int[biomesArray.length];
                 for (int i = 0; i < biomesArray.length; i++) {
-                    biomes[i] = biomesArray[i] & 0xff;
+                    biomes3d[i] = biomesArray[i] & 0xff;
                 }
             }
-            if (biomes != null) {
-                fixNegativeValues(biomes);
-                if (biomes.length >= 1024) {
-                    biomes3d = biomes;
-                    biomes = null;
+            if (biomes3d != null) {
+                fixNegativeValues(biomes3d);
+                if (biomes3d.length == 256) {
+                    // This is an old 2D biomes array; migrate it to 3D biomes
+                    throw new UnsupportedOperationException("TODO"); // TODO
                 }
             }
             heightMaps = new HashMap<>();
@@ -206,8 +206,6 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
         }
         if (biomes3d != null) {
             setIntArray(TAG_BIOMES, biomes3d);
-        } else if (biomes != null) {
-            setIntArray(TAG_BIOMES, biomes);
         }
         // TODO heightMaps
         List<CompoundTag> entityTags = new ArrayList<>(entities.size());
@@ -358,30 +356,12 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
     }
 
     @Override
-    public boolean isBiomesAvailable() {
-        return (biomes != null) && (biomes.length > 0);
+    public boolean is3DBiomesSupported() {
+        return true;
     }
 
     public boolean is3DBiomesAvailable() {
         return (biomes3d != null) && (biomes3d.length > 0);
-    }
-
-    @Override
-    public int getBiome(int x, int z) {
-        return biomes[x + z * 16];
-    }
-    
-    @Override
-    public void setBiome(int x, int z, int biome) {
-        if (readOnly) {
-            return;
-        }
-        if (biomes3d != null) {
-            throw new IllegalStateException("This chunk already has 3D biomes");
-        } else if (biomes == null) {
-            biomes = new int[256];
-        }
-        biomes[x + z * 16] = biome;
     }
 
     @Override
@@ -394,9 +374,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
         if (readOnly) {
             return;
         }
-        if (biomes != null) {
-            throw new IllegalStateException("This chunk already has 2D biomes");
-        } else if (biomes3d == null) {
+        if (biomes3d == null) {
             biomes3d = new int[16 * (maxHeight / 4)];
         }
         biomes3d[x + z * 4 + y * 16] = biome;
@@ -718,7 +696,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
 
     final Section[] sections;
     final int xPos, zPos;
-    int[] biomes, biomes3d;
+    int[] biomes3d;
     boolean lightPopulated; // TODO: is this still used by MC 1.15?
     final List<Entity> entities;
     final List<TileEntity> tileEntities;

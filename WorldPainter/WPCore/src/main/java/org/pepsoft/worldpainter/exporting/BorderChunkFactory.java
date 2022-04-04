@@ -14,6 +14,7 @@ import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
+import org.pepsoft.worldpainter.util.BiomeUtils;
 
 import java.util.Map;
 import java.util.Set;
@@ -22,8 +23,6 @@ import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
-import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
-import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
 import static org.pepsoft.worldpainter.Terrain.BEACHES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
 
@@ -52,6 +51,7 @@ public class BorderChunkFactory {
         }
         final int floor = Math.max(borderLevel - 20, 0);
         final int variation = Math.min(15, (borderLevel - floor) / 2);
+        final BiomeUtils biomeUtils = new BiomeUtils();
 
         final ChunkFactory.ChunkCreationResult result = new ChunkFactory.ChunkCreationResult();
         result.chunk = PlatformManager.getInstance().createChunk(platform, chunkX, chunkZ, maxHeight);
@@ -70,18 +70,10 @@ public class BorderChunkFactory {
             default:
                 throw new InternalError();
         }
-        if (platform.capabilities.contains(BIOMES)) {
+        if (platform.supportsBiomes()) {
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
-                    result.chunk.setBiome(x, z, biome);
-                }
-            }
-        } else if (platform.capabilities.contains(BIOMES_3D)) {
-            for (int x = 0; x < 4; x++) {
-                for (int z = 0; z < 4; z++) {
-                    for (int y = 0; y < maxHeight; y += 4) {
-                        result.chunk.set3DBiome(x, y >> 2, z, biome);
-                    }
+                    biomeUtils.set2DBiome(result.chunk, x, z, biome);
                 }
             }
         }

@@ -34,8 +34,9 @@ public class InvertedChunk implements Chunk {
     public InvertedChunk(Chunk chunk, int delta, Platform platform) {
         this.chunk = chunk;
         this.platform = platform;
+        minHeight = chunk.getMinHeight(); // TODOMC118 will this work like this or do we need to transpose min- and maxHeight?
         maxHeight = chunk.getMaxHeight();
-        maxY = maxHeight - delta - 1;
+        maxY = maxHeight - delta - 1; // TODOMC118 is this correct for negative heights?
     }
 
     @Override
@@ -191,8 +192,18 @@ public class InvertedChunk implements Chunk {
     }
 
     @Override
+    public int getMinHeight() {
+        return minHeight;
+    }
+
+    @Override
     public int getMaxHeight() {
         return maxHeight;
+    }
+
+    @Override
+    public boolean isBiomesSupported() {
+        return chunk.isBiomesSupported();
     }
 
     @Override
@@ -201,8 +212,18 @@ public class InvertedChunk implements Chunk {
     }
 
     @Override
+    public boolean is3DBiomesSupported() {
+        return chunk.is3DBiomesSupported();
+    }
+
+    @Override
     public boolean is3DBiomesAvailable() {
         return chunk.is3DBiomesAvailable();
+    }
+
+    @Override
+    public boolean isNamedBiomesSupported() {
+        return chunk.isNamedBiomesSupported();
     }
 
     @Override
@@ -296,5 +317,5 @@ public class InvertedChunk implements Chunk {
 
     private final Chunk chunk;
     private final Platform platform;
-    private final int maxHeight, maxY;
+    private final int minHeight, maxHeight, maxY;
 }

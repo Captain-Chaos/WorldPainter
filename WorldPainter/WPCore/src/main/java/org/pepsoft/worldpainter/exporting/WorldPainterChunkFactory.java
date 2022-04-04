@@ -13,6 +13,7 @@ import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
+import org.pepsoft.worldpainter.util.BiomeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +26,6 @@ import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.MODERN_IDS;
 
 /**
  *
@@ -78,9 +78,6 @@ public class WorldPainterChunkFactory implements ChunkFactory {
             default:
                 throw new InternalError();
         }
-        if (dimension.getCustomBiomes() != null) {
-            dimension.getCustomBiomes().forEach(customBiome -> customBiomeNames[customBiome.getId()] = customBiome.getName());
-        }
     }
 
     @Override
@@ -113,6 +110,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         final Random random = new Random(seed + xOffsetInTile * 3 + yOffsetInTile * 5);
         final boolean populate = platform.capabilities.contains(POPULATE)
                 && (dimension.isPopulate() || tile.getBitLayerValue(Populate.INSTANCE, xOffsetInTile, yOffsetInTile));
+        final BiomeUtils biomeUtils = new BiomeUtils(dimension);
         final ChunkCreationResult result = new ChunkCreationResult();
         final Chunk chunk = platformProvider.createChunk(platform, chunkX, chunkZ, maxHeight);
         result.chunk = chunk;
@@ -125,14 +123,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                     final int biome = dimension.getMostPrevalentBiome((chunkXInWorld | x) >> 2, (chunkZInWorld | z) >> 2, defaultBiome);
                     // Set the whole column to this biome since we don't have 3D biome support yet
                     // TODO add 3D biome support
-                    final int xx = x >> 2, zz = z >> 2;
-                    for (int y = minY; y < maxHeight; y += 4) {
-                        if (biomesSupported3D) {
-                            chunk.set3DBiome(xx, y >> 2, zz, biome);
-                        } else {
-                            chunk.setNamedBiome(xx, y >> 2, zz, MODERN_IDS[biome] != null ? MODERN_IDS[biome] : customBiomeNames[biome]); // TODO maxHeight can be extremely high, e.g. for CubicChunks! Currently not a problem because it does not support biomes, bit something to consider
-                        }
-                    }
+                    biomeUtils.set2DBiome(chunk, x, z, biome);
                 }
             }
         }
@@ -152,7 +143,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                             biome = defaultBiome;
                         }
                     }
-                    chunk.setBiome(x, z, biome);
+                    biomeUtils.set2DBiome(chunk, x, z, biome);
                 }
 
                 final float height = tile.getHeight(xInTile, yInTile);
@@ -289,7 +280,6 @@ public class WorldPainterChunkFactory implements ChunkFactory {
     private final long seed;
     private final Terrain subsurfaceMaterial;
     private final boolean dark, bedrock, coverSteepTerrain, topLayersRelativeToTerrain, subSurfaceLayersRelativeToTerrain, biomesSupported2D, biomesSupported3D, biomesSupportedNamed, copyBiomes;
-    private final String[] customBiomeNames = new String[256];
 
     private static final long SUGAR_CANE_SEED_OFFSET = 127411424;
     private static final float SUGAR_CANE_CHANCE = PerlinNoise.getLevelForPromillage(325);
