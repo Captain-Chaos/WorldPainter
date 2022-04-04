@@ -1,9 +1,10 @@
 -- Version 2.9.0, released ...
 
  * The Minecraft 1.18 map format is now supported
-   + This includes negative heights
+   + This includes negative heights down to y=-64
    + The map format of worlds must now be explicitly set and changed (rather than implicitly on the Export screen). There is a new entry in the Edit menu for this: "Change Map Format...". It allows you to change the map format, and make any required height changes at the same time
    + The Stone Mix material (the default underground material) now places deep slate and pockets of tuff under y=0
+ * The Custom Cave/Tunnel layer now supports setting the biome inside the cave/tunnel to a different one than the surface. This works for Minecraft 1.17 and Minecraft 1.18+
  * Custom brushes are now no longer all loaded at startup
    + This prevents performance problems and WorldPainter hanging at startup due to the use of many and/or large custom brushes taking up too much memory
    + The brushes are now loaded "lazily" (on-demand). This does mean that selecting a brush, or using one after it has not been used for a while, may take a small performance hit as it (re-)loads the brush from disk
