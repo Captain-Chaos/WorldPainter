@@ -28,6 +28,8 @@ import java.util.stream.Collectors;
 import static java.util.Collections.singletonList;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.CollectionUtils.listOf;
+import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
+import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
 
 /**
@@ -73,7 +75,12 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             programmaticChange = false;
         }
         comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager, "None", platform));
-        comboBoxBiome.setModel(new DefaultComboBoxModel<>(listOf(singletonList(null), getAllBiomes(platform, customBiomeManager)).toArray(new Integer[0])));
+        if (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) {
+            comboBoxBiome.setModel(new DefaultComboBoxModel<>(listOf(singletonList(null), getAllBiomes(platform, customBiomeManager)).toArray(new Integer[0])));
+        } else {
+            comboBoxBiome.setModel(new DefaultComboBoxModel<>(new Integer[] {null}));
+            comboBoxBiome.setEnabled(false);
+        }
         
         loadSettings();
 
@@ -206,7 +213,9 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             floorLayersTableModel = new TunnelFloorLayersTableModel(floorLayers, maxHeight);
             tableFloorLayers.setModel(floorLayersTableModel);
             tableFloorLayers.getColumnModel().getColumn(TunnelFloorLayersTableModel.COLUMN_NAME).setCellRenderer(new LayerTableCellRenderer());
-            comboBoxBiome.setSelectedItem(layer.getTunnelBiome());
+            if (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) {
+                comboBoxBiome.setSelectedItem(layer.getTunnelBiome());
+            }
         } finally {
             programmaticChange = false;
         }
@@ -272,7 +281,9 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         layer.setRemoveWater(checkBoxRemoveWater.isSelected());
         layer.setFloodLevel(checkBoxFlood.isSelected() ? (Integer) spinnerFloodLevel.getValue() : Integer.MIN_VALUE);
         layer.setFloodWithLava(checkBoxFloodWithLava.isSelected());
-        layer.setTunnelBiome((Integer) comboBoxBiome.getSelectedItem());
+        if (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) {
+            layer.setTunnelBiome((Integer) comboBoxBiome.getSelectedItem());
+        }
         
         Map<Layer, TunnelLayer.LayerSettings> floorLayers = floorLayersTableModel.getLayers();
         layer.setFloorLayers(((floorLayers != null) && (! floorLayers.isEmpty())) ? floorLayers : null);
