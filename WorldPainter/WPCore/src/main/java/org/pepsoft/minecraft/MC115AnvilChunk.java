@@ -160,27 +160,41 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
         // Liquid ticks are in world coordinates for some reason
         x = (xPos << 4) | x;
         z = (zPos << 4) | z;
-        for (CompoundTag liquidTick: liquidTicks) {
+        String id;
+        Material material = getMaterial(x & 0xf, y, z & 0xf);
+        if (material.containsWater()) {
+            id = MC_WATER;
+        } else if (material.isNamed(MC_WATER)) {
+            // Water with level 0 (stationary water) already matched in the previous branch
+            id = MC_FLOWING_WATER;
+        } else if (material.isNamed(MC_LAVA)) {
+            id = (material.getProperty(LEVEL) == 0) ? MC_LAVA : MC_FLOWING_LAVA;
+        } else {
+            id = material.name;
+        }
+        for (Iterator<CompoundTag> i = liquidTicks.iterator(); i.hasNext(); ) {
+            CompoundTag liquidTick = i.next();
             if ((x == ((IntTag) liquidTick.getTag(TAG_X_)).getValue())
                     && (y == ((IntTag) liquidTick.getTag(TAG_Y_)).getValue())
                     && (z == ((IntTag) liquidTick.getTag(TAG_Z_)).getValue())) {
-                // There is already a liquid tick scheduled for this block
-                return;
+                final String existingId = ((StringTag) liquidTick.getTag(TAG_I_)).getValue();
+                if (id.equals(existingId)) {
+                    // There is already a liquid tick scheduled for this block
+                    return;
+                } else {
+                    // There is already a liquid tick scheduled for this block, but it's for the wrong ID
+                    logger.warn("Replacing liquid tick for type {} with type {} @ {},{},{}", existingId, id, x, y, z);
+                    i.remove();
+                    break;
+                }
             }
-        }
-        String id;
-        Material material = getMaterial(x & 0xf, y, z & 0xf);
-        if (material.isNamed(MC_WATER) || material.is(WATERLOGGED)) {
-            id = MC_WATER;
-        } else {
-            id = material.name;
         }
         liquidTicks.add(new CompoundTag("", ImmutableMap.<String, Tag>builder()
                 .put(TAG_X_, new IntTag(TAG_X_, x))
                 .put(TAG_Y_, new IntTag(TAG_Y_, y))
                 .put(TAG_Z_, new IntTag(TAG_Z_, z))
                 .put(TAG_I_, new StringTag(TAG_I_, id))
-                .put(TAG_P_, new IntTag(TAG_P_, 0))
+                .put(TAG_P_, new IntTag(TAG_P_, 0)) // TODO: what does this do?
                 .put(TAG_T_, new IntTag(TAG_T_, RANDOM.nextInt(30) + 1)).build()));
     }
 
