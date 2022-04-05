@@ -18,6 +18,7 @@ import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static java.awt.FileDialog.LOAD;
 import static java.lang.Boolean.TRUE;
@@ -793,6 +794,26 @@ public class FileUtils {
             return path.substring(p + 1);
         } else {
             return path;
+        }
+    }
+
+    /**
+     * Visit all files contained in a directory, recursively. The order is undefined.
+     *
+     * @param directory The directory to visit.
+     * @param visitor   The visitor that will be invoked for every file in the specified directory, recursively.
+     */
+    @SuppressWarnings("ConstantConditions") // Warranted by isDirectory()
+    public static void visitFilesRecursively(File directory, Consumer<File> visitor) {
+        if (! directory.isDirectory()) {
+            throw new IllegalArgumentException(directory + " is not a directory");
+        }
+        for (File file: directory.listFiles()) {
+            if (file.isDirectory()) {
+                visitFilesRecursively(directory, visitor);
+            } else {
+                visitor.accept(file);
+            }
         }
     }
 
