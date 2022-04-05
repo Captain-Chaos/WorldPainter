@@ -82,7 +82,7 @@ public abstract class PostProcessor {
         for (; solidFloor > minZ; solidFloor--) {
             Material material = world.getMaterialAt(x, y, solidFloor);
             if (material == AIR || (material.insubstantial && material.isNotNamed(lava ? MC_LAVA : MC_WATER))) {
-                world.setMaterialAt(x, y, solidFloor, lava ? STATIONARY_LAVA : STATIONARY_WATER); // TODO make this falling water or lava
+                world.setMaterialAt(x, y, solidFloor, lava ? FALLING_LAVA : FALLING_WATER);
             } else {
                 break;
             }
@@ -95,7 +95,7 @@ public abstract class PostProcessor {
     }
 
     protected boolean isWaterContained(MinecraftWorld world, int x, int y, int z, Material materialBelow) {
-        if (materialBelow.containsWater()) {
+        if (containsWaterOrFallingWater(materialBelow)) {
             // There is already water below
             return true;
         } else if ((! materialBelow.containsWater()) && (! materialBelow.solid)) {
@@ -105,11 +105,15 @@ public abstract class PostProcessor {
             // Check whether the water can flow sideways
             final Material materialNorth = world.getMaterialAt(x, y - 1, z), materialEast = world.getMaterialAt(x + 1, y, z),
                     materialSouth = world.getMaterialAt(x, y + 1, z), materialWest = world.getMaterialAt(x - 1, y, z);
-            return (materialNorth.containsWater() || materialNorth.solid)
-                    && (materialEast.containsWater() || materialEast.solid)
-                    && (materialSouth.containsWater() || materialSouth.solid)
-                    && (materialWest.containsWater() || materialWest.solid);
+            return (containsWaterOrFallingWater(materialNorth) || materialNorth.solid)
+                    && (containsWaterOrFallingWater(materialEast) || materialEast.solid)
+                    && (containsWaterOrFallingWater(materialSouth) || materialSouth.solid)
+                    && (containsWaterOrFallingWater(materialWest) || materialWest.solid);
         }
+    }
+
+    private boolean containsWaterOrFallingWater(Material material) {
+        return material.containsWater() || (material.isNamed(MC_WATER) && material.is(FALLING));
     }
 
     protected boolean isLavaContained(MinecraftWorld world, int x, int y, int z, Material materialBelow) {

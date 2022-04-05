@@ -1731,7 +1731,7 @@ public final class Material implements Serializable {
     public static final Material PUMPKIN_SOUTH_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_SOUTH_FACE)];
     public static final Material PUMPKIN_WEST_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_WEST_FACE)];
 
-    // MC 1.13 block property access helpers
+    // MC 1.13+ block property access helpers
 
     public static final Property<Boolean>   SNOWY       = new Property<>(MC_SNOWY,       Boolean.class);
     public static final Property<Boolean>   NORTH       = new Property<>(MC_NORTH,       Boolean.class);
@@ -1753,6 +1753,7 @@ public final class Material implements Serializable {
     public static final Property<Integer>   ROTATION    = new Property<>(MC_ROTATION,    Integer.class);
     public static final Property<String>    SHAPE       = new Property<>(MC_SHAPE,       String.class);
     public static final Property<String>    HINGE       = new Property<>(MC_HINGE,       String.class);
+    public static final Property<Boolean>   FALLING     = new Property<>(MC_FALLING,     Boolean.class);
 
     // Modern materials (based on MC 1.13+ block names and properties)
 
@@ -1898,6 +1899,8 @@ public final class Material implements Serializable {
     public static final Material MOSS_CARPET = get(MC_MOSS_CARPET);
     public static final Material BIG_DRIPLEAF_STEM_SOUTH = get(MC_BIG_DRIPLEAF_STEM, MC_FACING, "south");
     public static final Material BIG_DRIPLEAF_SOUTH = get(MC_BIG_DRIPLEAF, MC_FACING, "south");
+    public static final Material FALLING_LAVA = get(MC_LAVA, MC_LEVEL, 8, MC_FALLING, true);
+    public static final Material FALLING_WATER = get(MC_WATER, MC_LEVEL, 8, MC_FALLING, true);
 
     // Namespaces
 
