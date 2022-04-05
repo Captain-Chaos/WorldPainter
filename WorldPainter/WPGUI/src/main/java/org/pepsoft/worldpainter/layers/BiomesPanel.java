@@ -112,8 +112,9 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
                 JOptionPane.showMessageDialog(parent, "Maximum number of custom biomes reached", "Maximum Reached", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            CustomBiome customBiome = new CustomBiome("Custom", id, Color.ORANGE.getRGB());
-            CustomBiomeDialog dialog = new CustomBiomeDialog(parent, customBiome, true);
+            final Platform platform = App.getInstance().getWorld().getPlatform();
+            CustomBiome customBiome = new CustomBiome(platform.capabilities.contains(NAMED_BIOMES) ? "namespace:biome" : "Custom", id, Color.ORANGE.getRGB());
+            CustomBiomeDialog dialog = new CustomBiomeDialog(parent, customBiome, true, platform);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 customBiomeManager.addCustomBiome(parent, customBiome);
@@ -304,7 +305,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
                     
                     JMenuItem item = new JMenuItem("Edit...");
                     item.addActionListener(actionEvent -> {
-                        CustomBiomeDialog dialog = new CustomBiomeDialog(SwingUtilities.getWindowAncestor(button), customBiome, false);
+                        CustomBiomeDialog dialog = new CustomBiomeDialog(SwingUtilities.getWindowAncestor(button), customBiome, false, App.getInstance().getWorld().getPlatform());
                         dialog.setVisible(true);
                         if (! dialog.isCancelled()) {
                             customBiomeManager.editCustomBiome(customBiome);
