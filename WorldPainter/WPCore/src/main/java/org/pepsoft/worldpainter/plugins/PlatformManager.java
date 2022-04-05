@@ -17,6 +17,7 @@ import java.nio.file.InvalidPathException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.zip.ZipException;
 
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
@@ -88,8 +89,8 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
                 while (rootCause.getCause() != null) {
                     rootCause = e.getCause();
                 }
-                if ((rootCause instanceof ClosedByInterruptException) || (rootCause instanceof InvalidPathException)) {
-                    // These are some exceptions that seem to be thrown for Windows special paths; not worth polluting the log with
+                if ((rootCause instanceof ClosedByInterruptException) || (rootCause instanceof InvalidPathException) || (rootCause instanceof ZipException)) {
+                    // These are some exceptions that seem to be thrown for special paths or unsupported file formats; not worth polluting the log with
                     logger.debug("{} while asking provider {} to identify {}; skipping platform", e.getClass().getSimpleName(), provider.getClass().getName(), worldDir, e);
                 } else {
                     logger.warn("{} while asking provider {} to identify {}; skipping platform", e.getClass().getSimpleName(), provider.getClass().getName(), worldDir, e);
