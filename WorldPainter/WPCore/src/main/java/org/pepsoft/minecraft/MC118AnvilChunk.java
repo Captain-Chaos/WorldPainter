@@ -8,7 +8,7 @@ package org.pepsoft.minecraft;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jnbt.*;
-import org.pepsoft.minecraft.MC115AnvilChunk.Section.IncompleteSectionException;
+import org.pepsoft.minecraft.MC118AnvilChunk.Section.IncompleteSectionException;
 import org.pepsoft.util.PackedArrayCube;
 import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
@@ -770,6 +770,9 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
                 Tag levelTag = getTag(TAG_Y);
                 level = (levelTag instanceof ByteTag) ? ((ByteTag) levelTag).intValue() : ((IntTag) levelTag).intValue();
                 final CompoundTag blockStatesTag = (CompoundTag) getTag(TAG_BLOCK_STATES_);
+                if (blockStatesTag == null) {
+                    throw new IncompleteSectionException("block_states tag missing");
+                }
                 List<CompoundTag> paletteList = ((ListTag<CompoundTag>) blockStatesTag.getTag(TAG_PALETTE_)).getValue();
                 if (paletteList != null) {
                     final Material[] palette = new Material[paletteList.size()];
