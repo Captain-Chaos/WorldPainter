@@ -11,6 +11,7 @@ import org.pepsoft.minecraft.datapack.Descriptor;
 import org.pepsoft.minecraft.datapack.Meta;
 import org.pepsoft.worldpainter.AccessDeniedException;
 import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.Version;
 import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +65,7 @@ public abstract class JavaLevel extends AbstractNBTItem {
             Map<String, Tag> versionTag = new HashMap<>();
             versionTag.put(TAG_ID, new IntTag(TAG_ID, dataVersion));
             versionTag.put(TAG_NAME, new StringTag(TAG_NAME, "WorldPainter"));
-            versionTag.put(TAG_SNAPSHOT, new ByteTag(TAG_SNAPSHOT, (byte) 0));
+            versionTag.put(TAG_SNAPSHOT, new ByteTag(TAG_SNAPSHOT, (byte) (Version.isSnapshot() ? 1 : 0)));
             setMap(TAG_VERSION, versionTag);
         }
     }
