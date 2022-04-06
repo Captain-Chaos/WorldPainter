@@ -1335,7 +1335,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             || ((newTerrainMaterial == DIRT) && oldTerrainMaterial.isNamed(MC_ROOTED_DIRT)) // Rooted dirt is imported as dirt, so make sure to leave it intact.
                             || ((newTerrainMaterial == STONE) && oldTerrainMaterial.isNamed(MC_INFESTED_STONE)) // Infested stone is imported as stone, so make sure to leave it intact.
                             || ((newTerrainMaterial == DEEPSLATE_Y) && oldTerrainMaterial.isNamed(MC_INFESTED_DEEPSLATE)) // Infested deepslate is imported as deepslate, so make sure to leave it intact.
-                            || (newTerrainMaterial.isNamed(MC_WATER) && oldTerrainMaterial.isNamed(MC_FROSTED_ICE))) { // Frosted ice is imported as water, so make sure to leave it intact
+                            || (newTerrainMaterial.isNamed(MC_ICE) && oldTerrainMaterial.isNamed(MC_FROSTED_ICE))) { // Frosted ice is imported as water + Frost, so make sure to leave it intact TODO do this for other forms of ice?
 
                         newChunk.setMaterial(x, newHeight, z, oldTerrainMaterial);
                     }
