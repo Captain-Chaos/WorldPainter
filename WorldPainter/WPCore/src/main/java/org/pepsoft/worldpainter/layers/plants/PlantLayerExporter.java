@@ -71,7 +71,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                                 } else if (category == WATER_PLANTS) {
                                     if ((! blockRulesEnforced) || plant.isValidFoundation(minecraftWorld, worldX, worldY, height)) {
                                         int waterLevel = tile.getWaterLevel(x, y);
-                                        if (waterLevel > height) {
+                                        if ((waterLevel > height) || (! plant.getName().equals("Big Dripleaf") /* TODO make this dynamic */)) {
                                             // Constrain the height to ensure the plant does not stick out of the water:
                                             if (height + plant.getDimensions().z > waterLevel) {
                                                 int newHeight = waterLevel - height;
