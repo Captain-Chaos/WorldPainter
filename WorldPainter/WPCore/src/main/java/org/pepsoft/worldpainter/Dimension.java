@@ -683,17 +683,13 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
 
     /**
-     * Count the number of blocks where the specified bit layer is set in a
-     * square around a particular location
+     * Count the number of blocks where the specified bit layer is set in a square around a particular location
      *
      * @param layer The bit layer to count.
-     * @param x The global X coordinate of the location around which to count
-     *     the layer.
-     * @param y The global Y coordinate of the location around which to count
-     *     the layer.
-     * @param r The radius of the square.
-     * @return The number of blocks in the specified square where the specified
-     *     bit layer is set.
+     * @param x The global X coordinate of the location around which to count the layer.
+     * @param y The global Y coordinate of the location around which to count the layer.
+     * @param r The radius of the square. The side of the square is 2&middot;r+1
+     * @return The number of blocks in the specified square where the specified bit layer is set.
      */
     public synchronized int getBitLayerCount(final Layer layer, final int x, final int y, final int r) {
         final int tileX = x >> TILE_SIZE_BITS, tileY = y >> TILE_SIZE_BITS;
