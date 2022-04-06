@@ -1403,9 +1403,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                     } else if (tile.getTerrain(x, y) == Terrain.WATER) {
                         biome = BIOME_FROZEN_RIVER;
                     } else {
-                        int waterLevel = tile.getWaterLevel(x, y) - tile.getIntHeight(x, y);
-                        if ((waterLevel > 0) && (!tile.getBitLayerValue(FloodWithLava.INSTANCE, x, y))) {
-                            if (waterLevel <= 5) {
+                        int waterDepth = tile.getWaterLevel(x, y) - tile.getIntHeight(x, y);
+                        if ((waterDepth > 0) && (! tile.getBitLayerValue(FloodWithLava.INSTANCE, x, y))) {
+                            if (waterDepth <= 5) {
                                 biome = BIOME_FROZEN_RIVER;
                             } else {
                                 biome = BIOME_FROZEN_OCEAN;
@@ -1422,11 +1422,11 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                     } else if (tile.getLayerValue(Jungle.INSTANCE, x, y) > 0) {
                         biome = BIOME_JUNGLE;
                     } else {
-                        int waterLevel = tile.getWaterLevel(x, y) - tile.getIntHeight(x, y);
-                        if ((waterLevel > 0) && (!tile.getBitLayerValue(FloodWithLava.INSTANCE, x, y))) {
-                            if (waterLevel <= 5) {
+                        int waterDepth = tile.getWaterLevel(x, y) - tile.getIntHeight(x, y);
+                        if ((waterDepth > 0) && (!tile.getBitLayerValue(FloodWithLava.INSTANCE, x, y))) {
+                            if (waterDepth <= 5) {
                                 biome = BIOME_RIVER;
-                            } else if (waterLevel <= 20) {
+                            } else if (waterDepth <= 20) {
                                 biome = BIOME_OCEAN;
                             } else {
                                 biome = BIOME_DEEP_OCEAN;

@@ -32,12 +32,21 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
  * @author pepijn
  */
 public class WorldPainterChunkFactory implements ChunkFactory {
-    public WorldPainterChunkFactory(Dimension dimension, Map<Layer, LayerExporter> exporters, Platform platform, int maxHeight) {
+    /**
+     * Create a new {@code WorldPainterChunkFactory}.
+     *
+     * @param dimension           The dimension for which the factory should create chunks.
+     * @param exporters           The phase one layer exporters the factory should apply to the created chunks.
+     * @param platform            The platform for which the dimension is being exported.
+     * @param maxHeightConstraint The height to which to constrain the created chunks. May be lower than the
+     * {@code maxHeight} of the dimension, world or platform, e.g. for preview purposes.
+     */
+    public WorldPainterChunkFactory(Dimension dimension, Map<Layer, LayerExporter> exporters, Platform platform, int maxHeightConstraint) {
         this.dimension = dimension;
         this.exporters = exporters;
         this.platform  = platform;
         platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
-        this.maxHeight = Math.min(maxHeight, dimension.getMaxHeight());
+        this.maxHeight = Math.min(maxHeightConstraint, dimension.getMaxHeight());
         minimumLayers = dimension.getMinimumLayers();
         seed = dimension.getSeed();
         if (sugarCaneNoise.getSeed() != (seed + SUGAR_CANE_SEED_OFFSET)) {
@@ -54,7 +63,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                         && (dimension.getSubsurfaceLayerAnchor() == Dimension.LayerAnchor.TERRAIN);
         subSurfacePatternHeight = subSurfaceLayersRelativeToTerrain ? Terrain.getCustomMaterial(subsurfaceMaterial.getCustomTerrainIndex()).getPatternHeight() : -1;
         minY = dimension.getMinHeight();
-        maxY = maxHeight - 1;
+        maxY = this.maxHeight - 1;
         biomesSupported2D = platform.capabilities.contains(BIOMES);
         biomesSupported3D = platform.capabilities.contains(BIOMES_3D);
         biomesSupportedNamed = platform.capabilities.contains(NAMED_BIOMES);
