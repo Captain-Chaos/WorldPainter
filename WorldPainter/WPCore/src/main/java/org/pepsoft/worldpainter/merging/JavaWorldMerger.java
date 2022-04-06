@@ -533,7 +533,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             }
 
             // Merge each individual region
-            final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, world.getMaxHeight());
+            final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, dimension.getMaxHeight());
 
             Runtime runtime = Runtime.getRuntime();
             runtime.gc();
@@ -1245,15 +1245,15 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         if (logger.isDebugEnabled()) {
             logger.debug("Merging chunks at " + existingChunk.getxPos() + "," + existingChunk.getzPos());
         }
-        int maxY = existingChunk.getMaxHeight() - 1;
-        int chunkX = existingChunk.getxPos() << 4, chunkZ = existingChunk.getzPos() << 4;
-        List<Entity> newChunkEntities = newChunk.getEntities();
+        final int minY = platform.minY, maxY = existingChunk.getMaxHeight() - 1;
+        final int chunkX = existingChunk.getxPos() << 4, chunkZ = existingChunk.getzPos() << 4;
+        final List<Entity> newChunkEntities = newChunk.getEntities();
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 if (dimension.getBitLayerValueAt(org.pepsoft.worldpainter.layers.Void.INSTANCE, chunkX | x, chunkZ | z)) {
                     // Void. Just empty the entire column
                     // TODO: only empty from the terrain height on downwards? or find some other way of preserving overhanging trees, that kind of thing?
-                    for (int y = 0; y <= maxY; y++) {
+                    for (int y = minY; y <= maxY; y++) {
                         newChunk.setMaterial(x, y, z, AIR);
                         newChunk.setBlockLightLevel(x, y, z, 0);
                         newChunk.setSkyLightLevel(x, y, z, 15);
@@ -1262,7 +1262,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     final int newHeight = dimension.getIntHeightAt(chunkX | x, chunkZ | z);
                     final boolean frost = dimension.getBitLayerValueAt(Frost.INSTANCE, chunkX | x, chunkZ | z);
                     int oldHeight = 0;
-                    for (int y = maxY; y >= 0; y--) {
+                    for (int y = maxY; y >= minY; y--) {
                         Material oldMaterial = existingChunk.getMaterial(x, y, z);
                         if (oldMaterial.terrain) {
                             // Terrain found
@@ -1275,7 +1275,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         // Terrain has been raised
                         // Copy or merge underground portion from existing chunk
                         final int mergeLimit = Math.min(newHeight - surfaceMergeDepth, oldHeight);
-                        for (int y = 0; y <= mergeLimit; y++) {
+                        for (int y = minY; y <= mergeLimit; y++) {
                             mergeUndergroundBlock(existingChunk, newChunk, x, y, z);
                         }
                         // Merge surface layer blocks
@@ -1292,7 +1292,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         // Terrain has been lowered
                         // Copy underground portion from existing chunk
                         final int mergeLimit = newHeight - surfaceMergeDepth;
-                        for (int y = 0; y <= mergeLimit; y++) {
+                        for (int y = minY; y <= mergeLimit; y++) {
                             mergeUndergroundBlock(existingChunk, newChunk, x, y, z);
                         }
                         // If the new ground height block is insubstantial in the
@@ -1322,7 +1322,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         // Terrain height has not changed. Copy everything from the
                         // existing chunk, except the top layer of the terrain.
                         final int mergeLimit = newHeight - surfaceMergeDepth;
-                        for (int y = 0; y <= mergeLimit; y++) {
+                        for (int y = minY; y <= mergeLimit; y++) {
                             mergeUndergroundBlock(existingChunk, newChunk, x, y, z);
                         }
                         for (int y = newHeight + 1; y <= maxY; y++) {
