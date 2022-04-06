@@ -9,6 +9,7 @@ import org.pepsoft.minecraft.ChunkFactory;
 import org.pepsoft.minecraft.JavaLevel;
 import org.pepsoft.minecraft.SuperflatGenerator;
 import org.pepsoft.minecraft.SuperflatPreset;
+import org.pepsoft.minecraft.SuperflatPreset.Structure;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
@@ -28,6 +29,7 @@ import static org.pepsoft.minecraft.SuperflatPreset.Structure.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Dimension.Border.ENDLESS_WATER;
+import static org.pepsoft.worldpainter.Platform.Capability.GENERATOR_PER_DIMENSION;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
 
 /**
@@ -95,42 +97,83 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
             level.setDifficulty(world.getDifficulty());
             level.setAllowCommands(world.isAllowCheats());
         }
-        Dimension.Border dim0Border = dim0.getBorder();
-        boolean endlessBorder = (dim0Border != null) && dim0Border.isEndless();
-        if (endlessBorder) {
-            SuperflatPreset.Builder superflatPresetBuilder;
-            switch (dim0Border) {
-                case ENDLESS_LAVA:
-                case ENDLESS_WATER:
-                    superflatPresetBuilder = SuperflatPreset.builder((dim0Border == ENDLESS_WATER) ? BIOME_OCEAN : BIOME_PLAINS, MINESHAFT, BIOME_1, DUNGEON, DECORATION, OCEANMONUMENT);
-                    boolean bottomless = dim0.isBottomless();
-                    int borderLevel = dim0.getBorderLevel() + 1;
-                    int oceanDepth = Math.max(Math.min(borderLevel / 2, 20), 1);
-                    int stoneDepth = Math.max(borderLevel - oceanDepth - (bottomless ? 0 : 1) - 5, 0);
-                    int dirtDepth = Math.max(borderLevel - oceanDepth - (bottomless ? 0 : 1) - stoneDepth, 0);
-                    if (! bottomless) {
-                        superflatPresetBuilder.addLayer(MC_BEDROCK, 1);
-                    }
-                    if (stoneDepth > 0) {
-                        superflatPresetBuilder.addLayer(MC_STONE, stoneDepth);
-                    }
-                    if (dirtDepth > 0) {
-                        superflatPresetBuilder.addLayer(MC_DIRT, dirtDepth);
-                    }
-                    if (oceanDepth > 0) {
-                        superflatPresetBuilder.addLayer((dim0Border == ENDLESS_WATER) ? MC_WATER : MC_LAVA, oceanDepth);
-                    }
-                    break;
-                case ENDLESS_VOID:
-                    superflatPresetBuilder = SuperflatPreset.builder(((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) ? BIOME_THE_VOID : BIOME_PLAINS);
-                    superflatPresetBuilder.addLayer(MC_AIR, 1);
-                    break;
-                default:
-                    throw new InternalError();
+        for (Dimension dimension: world.getDimensions()) {
+            if (dimension.getDim() < 0) {
+                // Ceiling dimension
+                continue;
+            } else if ((! platform.capabilities.contains(GENERATOR_PER_DIMENSION)) && (dimension.getDim() != DIM_NORMAL)) {
+                // This platform only supports generator settings for the surface dimension, and this is not the surface dimension
+                continue;
             }
-            level.setGenerator(DIM_NORMAL, new SuperflatGenerator(superflatPresetBuilder.build()));
-        } else {
-            level.setGenerator(DIM_NORMAL, dim0.getGenerator());
+            Dimension.Border dimensionBorder = dimension.getBorder();
+            boolean endlessBorder = (dimensionBorder != null) && dimensionBorder.isEndless();
+            if (endlessBorder) {
+                final SuperflatPreset.Builder superflatPresetBuilder;
+                final int biome;
+                final Structure[] structures;
+                switch (dimension.getDim()) {
+                    case DIM_NETHER:
+                        biome = BIOME_HELL;
+                        structures = null; // TODO are there Nether structures we could put here?
+                        break;
+                    case DIM_END:
+                        biome = BIOME_THE_END;
+                        structures = null; // TODO are there End structures we could put here?
+                        break;
+                    default:
+                        switch (dimensionBorder) {
+                            case ENDLESS_WATER:
+                                biome = BIOME_OCEAN;
+                                break;
+                            case ENDLESS_VOID:
+                                biome = ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) ? BIOME_THE_VOID : BIOME_PLAINS;
+                                break;
+                            default:
+                                biome = BIOME_PLAINS;
+                                break;
+                        }
+                        structures = new Structure[] {MINESHAFT, BIOME_1, DUNGEON, DECORATION, OCEANMONUMENT}; // TODO expand with Minecraft 1.14+ structures?
+                        break;
+                }
+                switch (dimensionBorder) {
+                    case ENDLESS_LAVA:
+                    case ENDLESS_WATER:
+                        superflatPresetBuilder = SuperflatPreset.builder(biome, structures);
+                        final boolean bottomless = dimension.isBottomless();
+                        final int borderLevel = dimension.getBorderLevel() - dimension.getMinHeight() + 1;
+                        final int oceanDepth = Math.max(Math.min(borderLevel / 2, 20), 1);
+                        final int deepSlateDepth = (dimension.getMinHeight() < 0)
+                                ? Math.min(Math.max(borderLevel - oceanDepth - (bottomless ? 0 : 1) - 5, 0), bottomless ? 64 : 63)
+                                : 0;
+                        final int stoneDepth = Math.max(borderLevel - oceanDepth - deepSlateDepth - (bottomless ? 0 : 1) - 5, 0);
+                        final int dirtDepth = Math.max(borderLevel - oceanDepth - deepSlateDepth - stoneDepth - (bottomless ? 0 : 1), 0);
+                        if (! bottomless) {
+                            superflatPresetBuilder.addLayer(MC_BEDROCK, 1);
+                        }
+                        if (deepSlateDepth > 0) {
+                            superflatPresetBuilder.addLayer(MC_DEEPSLATE, deepSlateDepth);
+                        }
+                        if (stoneDepth > 0) {
+                            superflatPresetBuilder.addLayer(MC_STONE, stoneDepth);
+                        }
+                        if (dirtDepth > 0) {
+                            superflatPresetBuilder.addLayer(MC_DIRT, dirtDepth);
+                        }
+                        if (oceanDepth > 0) {
+                            superflatPresetBuilder.addLayer((dimensionBorder == ENDLESS_WATER) ? MC_WATER : MC_LAVA, oceanDepth);
+                        }
+                        break;
+                    case ENDLESS_VOID:
+                        superflatPresetBuilder = SuperflatPreset.builder(biome);
+                        superflatPresetBuilder.addLayer(MC_AIR, 1);
+                        break;
+                    default:
+                        throw new InternalError();
+                }
+                level.setGenerator(dimension.getDim(), new SuperflatGenerator(superflatPresetBuilder.build()));
+            } else {
+                level.setGenerator(dimension.getDim(), dimension.getGenerator());
+            }
         }
         level.setMapFeatures(world.isMapFeatures());
         if ((platform != JAVA_MCREGION)) {

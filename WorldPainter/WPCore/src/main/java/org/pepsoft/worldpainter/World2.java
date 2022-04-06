@@ -181,8 +181,8 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     public final void addDimension(Dimension dimension) {
         if (dimensions.containsKey(dimension.getDim())) {
             throw new IllegalStateException("Dimension " + dimension.getDim() + " already exists");
-        } else if (dimension.getMaxHeight() != maxheight) {
-            throw new IllegalStateException("Dimension has different max height (" + dimension.getMaxHeight() + ") than world (" + maxheight + ")");
+        } else if (dimension.getMaxHeight() > maxheight) {
+            throw new IllegalStateException("Dimension has higher max height (" + dimension.getMaxHeight() + ") than world (" + maxheight + ")");
         } else {
             if (dimension.getWorld() != this) {
                 throw new IllegalArgumentException("Dimension belongs to another world");

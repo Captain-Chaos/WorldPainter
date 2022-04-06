@@ -20,8 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.pepsoft.minecraft.Material.*;
-import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
-import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
+import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Terrain.BEACHES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
@@ -57,18 +56,28 @@ public class BorderChunkFactory {
         result.chunk = PlatformManager.getInstance().createChunk(platform, chunkX, chunkZ, maxHeight);
         final int maxY = maxHeight - 1;
         final int biome;
-        switch(border) {
-            case VOID:
-                biome = ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) ? BIOME_THE_VOID : BIOME_PLAINS;
+        switch (dimension.getDim()) {
+            case DIM_NETHER:
+            case DIM_NETHER_CEILING:
+                biome = BIOME_HELL;
                 break;
-            case LAVA:
-                biome = BIOME_PLAINS;
-                break;
-            case WATER:
-                biome = BIOME_OCEAN;
+            case DIM_END:
+            case DIM_END_CEILING:
+                biome = BIOME_THE_END;
                 break;
             default:
-                throw new InternalError();
+                switch (border) {
+                    case VOID:
+                        biome = ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) ? BIOME_THE_VOID : BIOME_PLAINS;
+                        break;
+                    case WATER:
+                        biome = BIOME_OCEAN;
+                        break;
+                    default:
+                        biome = BIOME_PLAINS;
+                        break;
+                }
+                break;
         }
         if (platform.supportsBiomes()) {
             for (int x = 0; x < 16; x++) {

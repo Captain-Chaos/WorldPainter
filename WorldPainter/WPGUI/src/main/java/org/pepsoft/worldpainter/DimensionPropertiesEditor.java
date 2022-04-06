@@ -44,6 +44,7 @@ import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.worldpainter.DimensionPropertiesEditor.Mode.DEFAULT_SETTINGS;
 import static org.pepsoft.worldpainter.Generator.CUSTOM;
+import static org.pepsoft.worldpainter.Platform.Capability.GENERATOR_PER_DIMENSION;
 import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
 
 /**
@@ -989,6 +990,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         customGeneratorSettings = (generator instanceof CustomGenerator) ? ((CustomGenerator) generator).getSettings() : null;
         superflatPreset = (generator instanceof SuperflatGenerator) ? ((SuperflatGenerator) generator).getSettings() : null;
 
+        borderChanged();
         setControlStates();
     }
     
@@ -1012,7 +1014,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setEnabled(radioButtonWaterBorder, enabled && (! ceiling));
         setEnabled(spinnerBorderLevel, enabled && (! ceiling) && (radioButtonLavaBorder.isSelected() || radioButtonWaterBorder.isSelected()));
         setEnabled(radioButtonFixedBorder, enabled && (! ceiling) && (! radioButtonNoBorder.isSelected()));
-        setEnabled(radioButtonEndlessBorder, enabled && dim0 && (! ceiling) && (! radioButtonNoBorder.isSelected()));
+        setEnabled(radioButtonEndlessBorder, enabled && (platform.capabilities.contains(GENERATOR_PER_DIMENSION) || dim0) && (! ceiling) && (! radioButtonNoBorder.isSelected()));
         setEnabled(spinnerBorderSize, enabled && (! ceiling) && (! radioButtonNoBorder.isSelected()) && radioButtonFixedBorder.isSelected());
         setEnabled(checkBoxBedrockWall, enabled && (! ceiling) && (radioButtonNoBorder.isSelected() || radioButtonFixedBorder.isSelected()));
         setEnabled(sliderCavesEverywhereLevel, enabled && checkBoxCavesEverywhere.isSelected());
@@ -1054,7 +1056,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 setEnabled(comboBoxUndergroundLayerAnchor, false);
             }
         }
-        setEnabled(buttonGeneratorOptions, (! endlessBorder) && ((comboBoxGenerator.getSelectedItem() == Generator.FLAT) || (comboBoxGenerator.getSelectedItem() == CUSTOM)));
+        setEnabled(comboBoxGenerator, enabled && (! endlessBorder));
+        setEnabled(buttonGeneratorOptions, enabled && (! endlessBorder) && ((comboBoxGenerator.getSelectedItem() == Generator.FLAT) || (comboBoxGenerator.getSelectedItem() == CUSTOM)));
     }
     
     private void setEnabled(Component component, boolean enabled) {

@@ -23,9 +23,10 @@ import javax.swing.*;
 import java.awt.*;
 
 import static java.util.Arrays.stream;
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
+import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
+import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_17;
 import static org.pepsoft.worldpainter.history.HistoryEntry.*;
 
@@ -170,20 +171,41 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                     int tileNo = 0;
                     int oldMaxHeight = world.getMaxHeight();
                     for (Dimension dim: world.getDimensions()) {
+                        final int dimNewMinHeight, dimNewMaxHeight;
+                        switch (dim.getDim()) {
+                            case DIM_NETHER:
+                            case DIM_NETHER_CEILING:
+                                dimNewMinHeight = Math.max(newMinHeight, 0);
+                                dimNewMaxHeight = Math.min(newMaxHeight, DEFAULT_MAX_HEIGHT_NETHER);
+                                break;
+                            case DIM_END:
+                            case DIM_END_CEILING:
+                                dimNewMinHeight = Math.max(newMinHeight, 0);
+                                dimNewMaxHeight = Math.min(newMaxHeight, DEFAULT_MAX_HEIGHT_END);
+                                break;
+                            default:
+                                dimNewMinHeight = newMinHeight;
+                                dimNewMaxHeight = newMaxHeight;
+                                break;
+                        }
+                        if ((dimNewMinHeight == dim.getMinHeight()) && (dimNewMaxHeight == dim.getMaxHeight()) && transform.isIdentity()) {
+                            // Dimension heights don't need to change
+                            continue;
+                        }
                         dim.clearUndo();
                         dim.getTiles().forEach(org.pepsoft.worldpainter.Tile::inhibitEvents);
                         try {
                             for (Tile tile: dim.getTiles()) {
-                                tile.setMinMaxHeight(newMinHeight, newMaxHeight, transform);
+                                tile.setMinMaxHeight(dimNewMinHeight, dimNewMaxHeight, transform);
                                 tileNo++;
                                 progressReceiver.setProgress((float) tileNo / finalTileCount);
                             }
-                            dim.setMinHeight(newMinHeight);
-                            dim.setMaxHeight(newMaxHeight);
+                            dim.setMinHeight(dimNewMinHeight);
+                            dim.setMaxHeight(dimNewMaxHeight);
                             TileFactory tileFactory = dim.getTileFactory();
                             if (tileFactory instanceof HeightMapTileFactory) {
                                 HeightMapTileFactory heightMapTileFactory = (HeightMapTileFactory) tileFactory;
-                                heightMapTileFactory.setMinMaxHeight(newMinHeight, newMaxHeight, transform);
+                                heightMapTileFactory.setMinMaxHeight(dimNewMinHeight, dimNewMaxHeight, transform);
                             }
                             if (transformLayers) {
                                 ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dim.getLayerSettings(Resources.INSTANCE);
@@ -192,9 +214,9 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                                     for (Material material: resourcesSettings.getMaterials()) {
                                         int maxLevel = resourcesSettings.getMaxLevel(material);
                                         if (maxLevel == (oldMaxHeight - 1)) {
-                                            maxLevel = newMaxHeight - 1;
+                                            maxLevel = dimNewMaxHeight - 1;
                                         } else if (maxLevel > 1) {
-                                            maxLevel = clamp(newMinHeight, transform.transformHeight(maxLevel), newMaxHeight - 1);
+                                            maxLevel = clamp(dimNewMinHeight, transform.transformHeight(maxLevel), dimNewMaxHeight - 1);
                                         }
                                         // TODO: do the same for minLevels? Or do we WANT those to stay put?
                                         resourcesSettings.setMaxLevel(material, maxLevel);

@@ -4411,7 +4411,8 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void addSurfaceCeiling() {
-        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, world.getPlatform(), DIM_NORMAL_CEILING, world.getMaxHeight(), world.getDimension(DIM_NORMAL).getTileCoords());
+        final Dimension surface = world.getDimension(DIM_NORMAL);
+        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), surface.getSeed() + 3, world.getPlatform(), DIM_NORMAL_CEILING, surface.getMaxHeight(), surface.getTileCoords());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4453,7 +4454,8 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void addNetherCeiling() {
-        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, world.getPlatform(), DIM_NETHER_CEILING, world.getMaxHeight(), world.getDimension(DIM_NETHER).getTileCoords());
+        final Dimension nether = world.getDimension(DIM_NETHER);
+        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), nether.getSeed() + 1, world.getPlatform(), DIM_NETHER_CEILING, nether.getMaxHeight(), nether.getTileCoords());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4495,7 +4497,8 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void addEndCeiling() {
-        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, world.getPlatform(), DIM_END_CEILING, world.getMaxHeight(), world.getDimension(DIM_END).getTileCoords());
+        final Dimension end = world.getDimension(DIM_END);
+        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), end.getSeed() + 1, world.getPlatform(), DIM_END_CEILING, end.getMaxHeight(), end.getTileCoords());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4671,7 +4674,7 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void addNether() {
-        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, world.getPlatform(), DIM_NETHER, world.getMaxHeight());
+        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), world.getDimension(DIM_NORMAL).getSeed() + 1, world.getPlatform(), DIM_NETHER, Math.min(world.getMaxHeight(), DEFAULT_MAX_HEIGHT_NETHER));
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4715,7 +4718,7 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void addEnd() {
-        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), dimension.getSeed() + 1, world.getPlatform(), DIM_END, world.getMaxHeight());
+        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), world.getDimension(DIM_NORMAL).getSeed() + 2, world.getPlatform(), DIM_END, Math.min(world.getMaxHeight(), DEFAULT_MAX_HEIGHT_END));
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {

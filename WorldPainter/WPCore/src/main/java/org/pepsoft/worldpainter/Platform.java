@@ -264,6 +264,12 @@ public final class Platform implements Serializable {
          * Has the concept of named, namespaced biomes, stored per 4x4x4 cube of blocks (like {@link #BIOMES_3D},
          * identified by a string. This is mutually exclusive with {@link #BIOMES} and {@link #BIOMES_3D}.
          */
-        NAMED_BIOMES
+        NAMED_BIOMES,
+
+        /**
+         * Supports generator settings per dimension. Platforms without this capability only support generator settings
+         * for {@link Constants#DIM_NORMAL DIM_NORMAL}.
+         */
+        GENERATOR_PER_DIMENSION
     }
 }

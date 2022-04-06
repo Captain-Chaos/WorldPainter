@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Arrays.stream;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Material.LAVA;
 import static org.pepsoft.minecraft.Material.WATER;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -90,7 +91,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         comboBoxSurfaceMaterial.setModel(new DefaultComboBoxModel(Terrain.PICK_LIST));
         comboBoxSurfaceMaterial.setRenderer(new TerrainListCellRenderer(app.getColourScheme()));
 
-        comboBoxMaxHeight.setSelectedItem(Integer.toString(defaultMaxHeight));
+        comboBoxMaxHeight.setSelectedItem(defaultMaxHeight);
         
         Configuration config = Configuration.getInstance();
         if (dim == DIM_NORMAL) {
@@ -194,7 +195,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         if ((defaultTileFactory instanceof HeightMapTileFactory) && (((HeightMapTileFactory) defaultTileFactory).getTheme() instanceof SimpleTheme)) {
             theme = (SimpleTheme) ((HeightMapTileFactory) defaultTileFactory).getTheme().clone();
         } else {
-            theme = SimpleTheme.createDefault((Terrain) comboBoxSurfaceMaterial.getSelectedItem(), platform.minZ, Integer.parseInt((String) comboBoxMaxHeight.getSelectedItem()), (Integer) spinnerWaterLevel.getValue());
+            theme = SimpleTheme.createDefault((Terrain) comboBoxSurfaceMaterial.getSelectedItem(), platform.minZ, (Integer) comboBoxMaxHeight.getSelectedItem(), (Integer) spinnerWaterLevel.getValue());
         }
 
         scaleToUI();
@@ -345,7 +346,13 @@ public class NewWorldDialog extends WorldPainterDialog {
         final TileFactory tileFactory = createTileFactory(worldpainterSeed);
 
         final int maxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
-        final Dimension dimension = new Dimension(world, minecraftSeed, tileFactory, dim, platform.minZ, maxHeight);
+        final Dimension dimension;
+        if ((dim == DIM_NORMAL) || (dim == DIM_NORMAL_CEILING)) {
+            dimension = new Dimension(world, minecraftSeed, tileFactory, dim, platform.minZ, maxHeight);
+        } else {
+            // TODOMC118 evaluate and remove this temporary test measure
+            dimension = new Dimension(world, minecraftSeed, tileFactory, dim, Math.max(platform.minZ, 0), Math.min(DEFAULT_MAX_HEIGHT_ANVIL, maxHeight));
+       }
         dimension.setEventsInhibited(true);
         try {
             ExecutorService executorService = MDCThreadPoolExecutor.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -609,17 +616,23 @@ public class NewWorldDialog extends WorldPainterDialog {
     }
     
     private TileFactory createTileFactory(long seed) {
-        Terrain terrain = (Terrain) comboBoxSurfaceMaterial.getSelectedItem();
-        int baseHeight = (Integer) spinnerTerrainLevel.getValue();
-        int waterHeight = (Integer) spinnerWaterLevel.getValue();
-        float range = ((Number) spinnerRange.getValue()).floatValue();
-        double scale = ((Integer) spinnerScale.getValue()) / 100.0;
-        boolean floodWithLava = checkBoxLava.isSelected();
-        boolean beaches = checkBoxBeaches.isSelected();
-        int minHeight = platform.minZ;
-        int maxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
-        
-        HeightMapTileFactory tileFactory;
+        final Terrain terrain = (Terrain) comboBoxSurfaceMaterial.getSelectedItem();
+        final int baseHeight = (Integer) spinnerTerrainLevel.getValue();
+        final int waterHeight = (Integer) spinnerWaterLevel.getValue();
+        final float range = ((Number) spinnerRange.getValue()).floatValue();
+        final double scale = ((Integer) spinnerScale.getValue()) / 100.0;
+        final boolean floodWithLava = checkBoxLava.isSelected();
+        final boolean beaches = checkBoxBeaches.isSelected();
+        final int minHeight, maxHeight;
+        if ((dim == DIM_NORMAL) || (dim == DIM_NORMAL_CEILING)) {
+            minHeight = platform.minZ;
+            maxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
+        } else {
+            minHeight = Math.max(platform.minZ, 0);
+            maxHeight = Math.min(DEFAULT_MAX_HEIGHT_ANVIL, (Integer) comboBoxMaxHeight.getSelectedItem());
+        }
+
+        final HeightMapTileFactory tileFactory;
         if ("true".equals(System.getProperty("org.pepsoft.worldpainter.fancyworlds"))) {
             tileFactory = TileFactoryFactory.createFancyTileFactory(seed, terrain, minHeight, maxHeight, baseHeight, waterHeight, floodWithLava, range, scale);
         } else {
