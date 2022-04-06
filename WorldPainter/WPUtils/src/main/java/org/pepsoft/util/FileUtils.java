@@ -803,16 +803,26 @@ public class FileUtils {
      * @param directory The directory to visit.
      * @param visitor   The visitor that will be invoked for every file in the specified directory, recursively.
      */
-    @SuppressWarnings("ConstantConditions") // Warranted by isDirectory()
-    public static void visitFilesRecursively(File directory, Consumer<File> visitor) {
+    public static void visitFilesRecursively(File directory, Consumer<File> visitor) throws IOException {
         if (! directory.isDirectory()) {
             throw new IllegalArgumentException(directory + " is not a directory");
         }
+        visitFilesRecursively(directory, visitor, new HashSet<>());
+    }
+
+    @SuppressWarnings("ConstantConditions") // Warranted by isDirectory()
+    private static void visitFilesRecursively(File directory, Consumer<File> visitor, Set<File> visitedFiles) throws IOException {
+        visitedFiles.add(directory.getCanonicalFile());
         for (File file: directory.listFiles()) {
+            final File canonicalFile = file.getCanonicalFile();
+            if (visitedFiles.contains(canonicalFile)) {
+                continue;
+            }
             if (file.isDirectory()) {
                 visitFilesRecursively(directory, visitor);
             } else {
                 visitor.accept(file);
+                visitedFiles.add(canonicalFile);
             }
         }
     }
