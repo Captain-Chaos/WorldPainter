@@ -46,11 +46,11 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Fir
         }
         final int xOffset = (chunk.getxPos() & 7) << 4;
         final int zOffset = (chunk.getzPos() & 7) << 4;
-        final int minY = settings.getMinimumLevel();
-        final boolean fallThrough = (minY == 0) && dimension.isBottomless();
-        final int minYAdjusted = Math.max(minY, 1);
+        final int minY = settings.getMinimumLevel(), minHeight = dimension.getMinHeight();
+        final boolean fallThrough = (minY == minHeight) && dimension.isBottomless();
+        final int minYAdjusted = Math.max(minY, minHeight + 1);
         final int maxY = Math.min(settings.getMaximumLevel(), dimension.getMaxHeight() - 1);
-        setupForColumn(seed, tile, maxY, (settings.getWaterLevel() > 0) ? settings.getWaterLevel() : -1, glassCeiling,
+        setupForColumn(seed, tile, maxY, (settings.getWaterLevel() > minHeight) ? settings.getWaterLevel() : minHeight - 1, glassCeiling,
                 surfaceBreaking, settings.isLeaveWater(), settings.isFloodWithLava());
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
@@ -70,7 +70,7 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Fir
 //                    if ((x == 0) && (z == 0)) {
 //                        System.out.println("terrainHeight: " + terrainheight);
 //                    }
-                    for (int y = terrainheight; fallThrough ? (y >= 0) : (y >= minYAdjusted); y--) {
+                    for (int y = terrainheight; fallThrough ? (y >= minHeight) : (y >= minYAdjusted); y--) {
                         if (chunk.getMaterial(x, y, z) == AIR) {
                             // There is already a void here; assume that things
                             // like removing water, etc. have already been done
@@ -87,9 +87,9 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Fir
                                         10)),
                                 1.0f - chasmsValue / 15.0f);
 //                                0.5f - chasmsValue / 15.0f); // TODO: higher than 50% has no effect
-                        if (fallThrough && (y < 5)) {
+                        if (fallThrough && (y < minHeight + 5)) {
                             // Widen the caverns towards the bottom
-                            bias -= (5 - y) * 0.05f;
+                            bias -= (minHeight + 5 - y) * 0.05f;
                         }
 //                        final float pz = y / SMALL_BLOBS;
 //                        final float pz = y / MEDIUM_BLOBS; // [2] ravine?

@@ -69,7 +69,7 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
                         if (cavesValue > 0) {
                             final int height = tile.getIntHeight(xInTile, yInTile);
                             final int maxZ = Math.min(maxZForWorld, height - (surfaceBreaking ? 0 : dimension.getTopLayerDepth(x, y, height)));
-                            random.setSeed(dimension.getSeed() + x * 65537 + y);
+                            random.setSeed(dimension.getSeed() + x * 65537L + y);
                             for (int z = minZ; z <= maxZ; z++) {
                                 if (cavesValue > random.nextInt(CAVE_CHANCE)) {
                                     caveSettings.start = new Point3i(x, y, z);

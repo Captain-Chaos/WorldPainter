@@ -3,16 +3,19 @@ package org.pepsoft.worldpainter;
 //Original algorithm by J. Dunlap http://www.codeproject.com/KB/GDI-plus/queuelinearfloodfill.aspx
 //Java port by Owen Kaluza
 // Adapted for WorldPainter by Pepijn Schmitz on 28-3-2011
-import java.awt.Window;
-import java.util.BitSet;
-import java.util.Queue;
-import java.util.LinkedList;
+
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
-import static org.pepsoft.worldpainter.Constants.*;
+
+import java.awt.*;
+import java.util.BitSet;
+import java.util.LinkedList;
+import java.util.Queue;
+
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 
 public class QueueLinearFloodFiller {
     // Dimension to flood
@@ -205,11 +208,11 @@ public class QueueLinearFloodFiller {
         } else {
             int height = dimension.getIntHeightAt(offsetX + x, offsetY + y);
             if (undo) {
-                return (height != -1)
+                return (height != Integer.MIN_VALUE)
                     && (dimension.getWaterLevelAt(offsetX + x, offsetY + y) >= waterLevel)
                     && (height < waterLevel);
             } else {
-                return (height != -1)
+                return (height != Integer.MIN_VALUE)
                     && (waterLevel > height)
                     && ((waterLevel > dimension.getWaterLevelAt(offsetX + x, offsetY + y))
                         || (floodWithLava != dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, offsetX + x, offsetY + y)));

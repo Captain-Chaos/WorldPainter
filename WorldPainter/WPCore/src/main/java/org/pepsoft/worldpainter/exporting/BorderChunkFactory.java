@@ -31,7 +31,7 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
  */
 public class BorderChunkFactory {
     public static ChunkFactory.ChunkCreationResult create(int chunkX, int chunkZ, Dimension dimension, Platform platform, Map<Layer, LayerExporter> exporters) {
-        final int maxHeight = dimension.getMaxHeight();
+        final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
         final Border border = dimension.getBorder();
         final int borderLevel = dimension.getBorderLevel();
         final boolean dark = dimension.isDarkLevel();
@@ -92,8 +92,8 @@ public class BorderChunkFactory {
                     final int worldX = (chunkX << 4) | x, worldZ = (chunkZ << 4) | z;
                     final int floorLevel = (int) (floor + (noiseGenerator.getPerlinNoise(worldX / MEDIUM_BLOBS, worldZ / MEDIUM_BLOBS) + 0.5f) * variation + 0.5f);
                     final int surfaceLayerLevel = floorLevel - dimension.getTopLayerDepth(worldX, worldZ, floorLevel);
-                    for (int y = 0; y <= maxY; y++) {
-                        if ((y == 0) && (! bottomless)) {
+                    for (int y = minHeight; y <= maxY; y++) {
+                        if ((y == minHeight) && (! bottomless)) {
                             result.chunk.setMaterial(x, y, z, BEDROCK);
                         } else if (y <= surfaceLayerLevel) {
                             result.chunk.setMaterial(x, y, z, subsurfaceMaterial.getMaterial(platform, seed, worldX, worldZ, y, floorLevel));
@@ -117,7 +117,7 @@ public class BorderChunkFactory {
                     result.chunk.setMaterial(x, maxY, z, BEDROCK);
                     result.chunk.setHeight(x, z, maxY);
                 } else if (border == Border.VOID) {
-                    result.chunk.setHeight(x, z, 0);
+                    result.chunk.setHeight(x, z, minHeight);
                 } else {
                     result.chunk.setHeight(x, z, (borderLevel < maxY) ? (borderLevel + 1) : maxY);
                 }

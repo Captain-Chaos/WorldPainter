@@ -62,8 +62,8 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                     for (int x = chunkX; x < chunkX + 16; x++) {
                         for (int y = chunkY; y < chunkY + 16; y++) {
                             final int height = dimension.getIntHeightAt(x, y);
-                            if ((height == -1) || (height >= maxZ)) {
-                                // height == -1 means no tile present
+                            if ((height == Integer.MIN_VALUE) || (height >= maxZ)) {
+                                // height == Integer.MIN_VALUE means no tile present
                                 continue;
                             }
                             final int strength = dimension.getLayerValueAt(layer, x, y);

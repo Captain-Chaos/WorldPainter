@@ -47,8 +47,8 @@ public class SwampLandExporter extends TreesExporter<TreeLayer> {
                 for (int x = chunkX; x < chunkX + 16; x++) {
                     for (int y = chunkY; y < chunkY + 16; y++) {
                         int terrainLevel = dimension.getIntHeightAt(x, y);
-                        if (terrainLevel == -1) {
-                            // height == -1 means there is no tile there
+                        if (terrainLevel == Integer.MIN_VALUE) {
+                            // height == Integer.MIN_VALUE means there is no tile there
                             continue;
                         }
                         int waterLevel = dimension.getWaterLevelAt(x, y);

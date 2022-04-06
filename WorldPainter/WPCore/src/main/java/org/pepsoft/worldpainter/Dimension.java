@@ -472,7 +472,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public int getIntHeightAt(int x, int y) {
-        return getIntHeightAt(x, y, -1);
+        return getIntHeightAt(x, y, Integer.MIN_VALUE);
     }
 
     public int getIntHeightAt(int x, int y, int defaultHeight) {
@@ -485,7 +485,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public int getIntHeightAt(Point coords) {
-        return getIntHeightAt(coords.x, coords.y, -1);
+        return getIntHeightAt(coords.x, coords.y, Integer.MIN_VALUE);
     }
 
     public int getLowestIntHeight() {

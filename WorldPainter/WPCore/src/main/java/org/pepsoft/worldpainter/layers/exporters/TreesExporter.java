@@ -56,8 +56,8 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
                 for (int x = chunkX; x < chunkX + 16; x++) {
                     for (int y = chunkY; y < chunkY + 16; y++) {
                         int height = dimension.getIntHeightAt(x, y);
-                        if ((height == -1) || (height >= maxZ)) {
-                            // height == -1 means there is no tile there
+                        if ((height == Integer.MIN_VALUE) || (height >= maxZ)) {
+                            // height == Integer.MIN_VALUE means there is no tile there
                             continue;
                         }
                         int strength = Math.max(minimumLevel, dimension.getLayerValueAt(layer, x, y));
@@ -110,7 +110,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
     
     private boolean room(Dimension dimension, int x, int y, int dx, int dy, MinecraftWorld minecraftWorld) {
         final int height = dimension.getIntHeightAt(x + dx, y + dy);
-        return (height >= 0)
+        return (height >= dimension.getMinHeight())
             && (height < (dimension.getMaxHeight() - 1))
             && (! minecraftWorld.getMaterialAt(x + dx, y + dy, height + 1).simpleName.endsWith("_log"))
             && (! minecraftWorld.getMaterialAt(x + dx, y + dy, height + 1).simpleName.endsWith("_bark"))

@@ -38,8 +38,8 @@ public class RaiseMountain extends RadiusOperation {
         Dimension dimension = getDimension();
         float adjustment = (float) Math.pow(getLevel() * dynamicLevel * 2, 2.0);
         float peakHeight = dimension.getHeightAt(centreX + peakDX, centreY + peakDY) + (inverse ? -adjustment : adjustment);
-        if (peakHeight < 0.0f) {
-            peakHeight = 0.0f;
+        if (peakHeight < dimension.getMinHeight()) {
+            peakHeight = dimension.getMinHeight();
         } else if (peakHeight > (dimension.getMaxHeight() - 1)) {
             peakHeight = dimension.getMaxHeight() - 1;
         }

@@ -119,7 +119,7 @@ public abstract class RODelegatingDimension extends Dimension {
 
     @Override
     public int getIntHeightAt(int x, int y) {
-        return getIntHeightAt(x, y, -1);
+        return getIntHeightAt(x, y, Integer.MIN_VALUE);
     }
 
     @Override
@@ -129,7 +129,7 @@ public abstract class RODelegatingDimension extends Dimension {
     
     @Override
     public int getIntHeightAt(Point coords) {
-        return getIntHeightAt(coords.x, coords.y, -1);
+        return getIntHeightAt(coords.x, coords.y, Integer.MIN_VALUE);
     }
 
     @Override

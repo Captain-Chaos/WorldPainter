@@ -80,7 +80,7 @@ public class TunnelFloorDimension extends RODelegatingDimension {
     @Override
     public int getIntHeightAt(int x, int y, int defaultValue) {
         float height = getHeightAt(x, y);
-        return (height == Float.MIN_VALUE) ? -1 : (int) (height + 0.5f);
+        return (height == Float.MIN_VALUE) ? Integer.MIN_VALUE : (int) (height + 0.5f);
     }
 
     @Override

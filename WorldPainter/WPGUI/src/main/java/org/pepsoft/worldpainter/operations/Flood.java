@@ -40,13 +40,13 @@ public class Flood extends MouseOrTabletOperation {
         try {
             Dimension dimension = getDimension();
             final int terrainHeight = dimension.getIntHeightAt(centreX, centreY);
-            if (terrainHeight == -1) {
+            if (terrainHeight == Integer.MIN_VALUE) {
                 // Not on a tile
                 return;
             }
             final int waterLevel = dimension.getWaterLevelAt(centreX, centreY);
             final boolean fluidPresent = waterLevel > terrainHeight;
-            if (inverse && (!fluidPresent)) {
+            if (inverse && (! fluidPresent)) {
                 // No point lowering the water level if there is no water...
                 return;
             }

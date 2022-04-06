@@ -92,7 +92,8 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             }
             final boolean replaceBlocks = replaceMaterial != null;
             final boolean extendFoundation = object.getAttribute(ATTRIBUTE_EXTEND_FOUNDATION);
-            if ((z + offset.z + dim.z - 1) >= world.getMaxHeight()) {
+            final int minHeight = world.getMinHeight(), maxHeight = world.getMaxHeight();
+            if ((z + offset.z + dim.z - 1) >= maxHeight) {
                 // Object doesn't fit in the world vertically
                 return;
             }
@@ -139,9 +140,9 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                     }
                                 }
                             }
-                            if (extendFoundation && (dz == 0) && (terrainHeight != -1) && (worldZ > terrainHeight) && (!finalMaterial.veryInsubstantial)) {
+                            if (extendFoundation && (dz == 0) && (terrainHeight != Integer.MIN_VALUE) && (worldZ > terrainHeight) && (! finalMaterial.veryInsubstantial)) {
                                 int legZ = worldZ - 1;
-                                while ((legZ >= 0) && world.getMaterialAt(worldX, worldY, legZ).veryInsubstantial) {
+                                while ((legZ >= minHeight) && world.getMaterialAt(worldX, worldY, legZ).veryInsubstantial) {
                                     placeBlock(world, worldX, worldY, legZ, finalMaterial, leafDecayMode);
                                     legZ--;
                                 }
@@ -157,7 +158,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                     double entityX = x + pos[0] + offset.x,
                             entityY = y + pos[2] + offset.y,
                             entityZ = z + pos[1] + offset.z;
-                    if ((entityZ < 0) || (entityY > (world.getMaxHeight() - 1))) {
+                    if ((entityZ < minHeight) || (entityZ >= maxHeight)) {
                         if (logger.isTraceEnabled()) {
                             logger.trace("NOT adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ + " because z coordinate is out of range!");
                         }
@@ -180,7 +181,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                             tileEntityY = y + tileEntity.getZ() + offset.y,
                             tileEntityZ = z + tileEntity.getY() + offset.z;
                     final String entityId = tileEntity.getId();
-                    if ((tileEntityZ < 0) || (tileEntityZ >= world.getMaxHeight())) {
+                    if ((tileEntityZ < minHeight) || (tileEntityZ >= maxHeight)) {
                         if (logger.isTraceEnabled()) {
                             logger.trace("NOT adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " because z coordinate is out of range!");
                         }
@@ -240,16 +241,17 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
     public static boolean isRoom(final MinecraftWorld world, final Dimension dimension, final WPObject object, final int x, final int y, final int z, final Placement placement) {
         final Point3i dimensions = object.getDimensions();
         final Point3i offset = object.getOffset();
-        final int collisionMode = object.getAttribute(ATTRIBUTE_COLLISION_MODE), maxHeight = world.getMaxHeight();
+        final int collisionMode = object.getAttribute(ATTRIBUTE_COLLISION_MODE), minHeight = world.getMinHeight(), maxHeight = world.getMaxHeight();
         final boolean allowConnectingBlocks = false, bottomlessWorld = dimension.isBottomless();
+        final int minZ = minHeight + (bottomlessWorld ? 0 : 1);
         // Check if the object fits vertically
-        if (((long) z + dimensions.z - 1 + offset.z) >= world.getMaxHeight()) {
+        if (((long) z + dimensions.z - 1 + offset.z) >= maxHeight) {
             if (logger.isTraceEnabled()) {
-                logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it does not fit below the map height of " + world.getMaxHeight());
+                logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it does not fit below the map height of " + maxHeight);
             }
             return false;
         }
-        if (((long) z + dimensions.z - 1 + offset.z) < 0) {
+        if (((long) z + dimensions.z - 1 + offset.z) < minHeight) {
             if (logger.isTraceEnabled()) {
                 logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it is entirely below the bedrock");
             }
@@ -265,7 +267,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                             final Material objectBlock = object.getMaterial(dx, dy, dz);
                             if (! objectBlock.veryInsubstantial) {
                                 final int worldZ = z + dz + offset.z;
-                                if (worldZ < (bottomlessWorld ? 0 : 1)) {
+                                if (worldZ < minZ) {
                                     if (logger.isTraceEnabled()) {
                                         logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it extends below the bottom of the map");
                                     }
@@ -312,7 +314,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                             final Material objectBlock = object.getMaterial(dx, dy, dz);
                             if (! objectBlock.veryInsubstantial) {
                                 final int worldZ = z + dz + offset.z;
-                                if (worldZ < (bottomlessWorld ? 0 : 1)) {
+                                if (worldZ < minZ) {
                                     if (logger.isTraceEnabled()) {
                                         logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it extends below the bottom of the map");
                                     }
@@ -547,7 +549,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             // Transpose coordinates from WP to MC coordinate system. Also
             // expand the box to light around it and try to account for uneven
             // terrain underneath the object
-            Box dirtyArea = new Box(lightBox.getX1() - 1, lightBox.getX2() + 1, MathUtils.clamp(0, lightBox.getZ1() - 4, world.getMaxHeight() - 1), lightBox.getZ2(), lightBox.getY1() - 1, lightBox.getY2() + 1);
+            Box dirtyArea = new Box(lightBox.getX1() - 1, lightBox.getX2() + 1, MathUtils.clamp(world.getMinHeight(), lightBox.getZ1() - 4, world.getMaxHeight() - 1), lightBox.getZ2(), lightBox.getY1() - 1, lightBox.getY2() + 1);
             if (dirtyArea.getVolume() == 0) {
                 if (logger.isTraceEnabled()) {
                     logger.trace("Dirty area for lighting calculation is empty; skipping lighting calculation");

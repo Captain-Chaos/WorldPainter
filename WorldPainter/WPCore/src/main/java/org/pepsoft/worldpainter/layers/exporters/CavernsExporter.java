@@ -34,17 +34,17 @@ public class CavernsExporter extends AbstractCavesExporter<Caverns> implements F
         final boolean surfaceBreaking = settings.isSurfaceBreaking();
         final boolean glassCeiling = settings.isGlassCeiling();
         final int minimumLevel = settings.getCavernsEverywhereLevel();
-        final int minY = settings.getMinimumLevel();
+        final int minY = settings.getMinimumLevel(), minHeight = dimension.getMinHeight();
         final int maxY = Math.min(settings.getMaximumLevel(), dimension.getMaxHeight() - 1);
-        final boolean fallThrough = (minY == 0) && dimension.isBottomless();
-        final int minYAdjusted = Math.max(minY, 1);
+        final boolean fallThrough = (minY == minHeight) && dimension.isBottomless();
+        final int minYAdjusted = Math.max(minY, minHeight + 1);
         final long seed = dimension.getSeed();
         if ((seed + SEED_OFFSET) != perlinNoise.getSeed()) {
             perlinNoise.setSeed(seed + SEED_OFFSET);
         }
         final int xOffset = (chunk.getxPos() & 7) << 4;
         final int zOffset = (chunk.getzPos() & 7) << 4;
-        setupForColumn(seed, tile, maxY, (settings.getWaterLevel() > 0) ? settings.getWaterLevel() : -1, glassCeiling,
+        setupForColumn(seed, tile, maxY, (settings.getWaterLevel() > minHeight) ? settings.getWaterLevel() : minHeight - 1, glassCeiling,
                 surfaceBreaking, settings.isLeaveWater(), settings.isFloodWithLava());
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
@@ -59,7 +59,7 @@ public class CavernsExporter extends AbstractCavesExporter<Caverns> implements F
 //                    if ((x == 0) && (z == 0)) {
 //                        System.out.println("terrainHeight: " + terrainheight);
 //                    }
-                    for (int y = terrainheight; fallThrough ? (y >= 0) : (y >= minYAdjusted); y--) {
+                    for (int y = terrainheight; fallThrough ? (y >= minHeight) : (y >= minYAdjusted); y--) {
                         if (chunk.getMaterial(x, y, z) == AIR) {
                             // There is already a void here; assume that things
                             // like removing water, etc. have already been done
@@ -75,9 +75,9 @@ public class CavernsExporter extends AbstractCavesExporter<Caverns> implements F
                                         (fallThrough ? Integer.MAX_VALUE : (y - 1)) - minY),
                                     10)),
                                 1.0f - cavernsValue / 15.0f);
-                        if (fallThrough && (y < 5)) {
+                        if (fallThrough && (y < minHeight + 5)) {
                             // Widen the caverns towards the bottom
-                            bias -= (5 - y) * 0.05f;
+                            bias -= (minHeight + 5 - y) * 0.05f;
                         }
                         final float cavernLikelyhood = perlinNoise.getPerlinNoise(worldX / MEDIUM_BLOBS, worldY / MEDIUM_BLOBS, y / SMALL_BLOBS) + 0.5f - bias;
 //                        if ((x == 0) && (z == 0)) {

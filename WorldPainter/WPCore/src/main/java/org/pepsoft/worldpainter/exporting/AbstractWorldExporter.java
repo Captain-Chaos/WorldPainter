@@ -227,8 +227,8 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 }
             }
 
-            final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, world.getMaxHeight());
-            final WorldPainterChunkFactory ceilingChunkFactory = (ceiling != null) ? new WorldPainterChunkFactory(ceiling, ceilingExporters, platform, world.getMaxHeight()) : null;
+            final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, dimension.getMaxHeight());
+            final WorldPainterChunkFactory ceilingChunkFactory = (ceiling != null) ? new WorldPainterChunkFactory(ceiling, ceilingExporters, platform, dimension.getMaxHeight()) : null;
 
             Runtime runtime = Runtime.getRuntime();
             runtime.gc();
