@@ -84,7 +84,7 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
         fieldsClear = false;
         float height = tile.getHeight(x, y);
         setTextIfDifferent(labelHeight, heightFormatter.format(height));
-        int intHeight = (int) (height + 0.5f);
+        int intHeight = Math.round(height);
         int waterLevel = tile.getWaterLevel(x, y);
         setTextIfDifferent(labelWaterLevel, Integer.toString(waterLevel));
         if (waterLevel > intHeight) {
@@ -98,7 +98,7 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
         } else {
             slope = dim.getSlope(worldCoords.x, worldCoords.y);
         }
-        setTextIfDifferent(labelSlope, ((int) (Math.atan(slope) * 180 / Math.PI + 0.5)) + "°");
+        setTextIfDifferent(labelSlope, (int) Math.round(Math.atan(slope) * 180 / Math.PI) + "°");
         Terrain terrain = tile.getTerrain(x, y);
         if (terrain != currentTerrain) {
             labelTerrain.setText(terrain.getName());
@@ -348,7 +348,7 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
                                 .addComponent(jLabel17))))
                     .addComponent(jLabel2)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel6)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel9))
                     .addGroup(layout.createSequentialGroup()
@@ -397,7 +397,7 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jLabel9)
-                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel6))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(labelBiome)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
