@@ -4,6 +4,11 @@
    + This includes negative heights down to y=-64
    + The map format of worlds must now be explicitly set and changed (rather than implicitly on the Export screen). There is a new entry in the Edit menu for this: "Change Map Format...". It allows you to change the map format, and make any required height changes at the same time
    + The Stone Mix material (the default underground material) now places deep slate and pockets of tuff under y=0
+   + Minecraft 1.18 (and earlier) plants have been added to the Custom Plants layer. Hanging plants are still missing, as it is not clear how WorldPainter would place those
+   + Minecraft 1.18 (and earlier) terrain types and biomes have been added to the various palettes
+ * Nether and End dimension changes:
+   + The Nether and End dimensions can now have Endless Borders, which will have Nether and End biomes respectively
+   + The build heights of Nether and End dimensions are constrained to a low of 0 and high of 255, regardless of those of the Surface dimension, since those are the allowed build heights in those dimensions in Minecraft
  * The Custom Cave/Tunnel layer now supports setting the biome inside the cave/tunnel to a different one than the surface. This works for Minecraft 1.17 and Minecraft 1.18+
  * Custom brushes are now no longer all loaded at startup
    + This prevents performance problems and WorldPainter hanging at startup due to the use of many and/or large custom brushes taking up too much memory
