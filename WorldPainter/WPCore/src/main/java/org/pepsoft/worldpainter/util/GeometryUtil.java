@@ -118,7 +118,7 @@ public final class GeometryUtil {
      */
     public static boolean visitFilledSphere(int radius, VolumeVisitor visitor) {
         for (int dz = 0; dz <= radius; dz++) {
-            int r = (int) (Math.sqrt(radius * radius - dz * dz) + 0.5);
+            int r = (int) Math.round(Math.sqrt(radius * radius - dz * dz));
             final int finalDz = dz;
             if (! visitFilledCircle(r, ((dx, dy, d) -> visitor.visit(dx, dy, finalDz, MathUtils.getDistance(dx, dy, finalDz))))) {
                 return false;

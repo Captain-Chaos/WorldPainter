@@ -156,7 +156,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                 }
 
                 final float height = tile.getHeight(xInTile, yInTile);
-                final int intHeight = (int) (height + 0.5f);
+                final int intHeight = Math.round(height);
                 final int waterLevel = tile.getWaterLevel(xInTile, yInTile);
                 final boolean _void = tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, xInTile, yInTile);
                 if (! _void) {

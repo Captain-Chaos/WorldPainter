@@ -128,7 +128,7 @@ public final class NoiseHeightMap extends AbstractHeightMap {
 
     @Override
     public int getColour(int x, int y) {
-        int value = MathUtils.clamp(0, (int) (getHeight(x, y) + 0.5f), 255);
+        int value = MathUtils.clamp(0, Math.round(getHeight(x, y)), 255);
         return (value << 16) | (value << 8) | value;
     }
 

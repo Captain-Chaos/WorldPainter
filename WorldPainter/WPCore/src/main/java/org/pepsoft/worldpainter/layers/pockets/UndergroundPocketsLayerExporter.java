@@ -175,7 +175,7 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
 //            g2.setColor(Color.WHITE);
 //            g2.setFont(font);
 //            LineMetrics lineMetrics = font.getLineMetrics("000", g2.getFontRenderContext());
-//            int offset = (int) (lineMetrics.getAscent() / 2 + 0.5f);
+//            int offset = Math.round(lineMetrics.getAscent() / 2);
 //            for (int z = 16; z < height; z += 16) {
 //                String text = Integer.toString(z);
 //                for (int dx = -1; dx <= 1; dx++) {

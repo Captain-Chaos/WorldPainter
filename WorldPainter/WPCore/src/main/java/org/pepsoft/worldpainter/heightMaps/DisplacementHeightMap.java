@@ -78,7 +78,7 @@ public class DisplacementHeightMap extends DelegatingHeightMap {
         float distance = children[2].getHeight(x, y);
         double actualX = x + Math.sin(angle) * distance;
         double actualY = y + Math.cos(angle) * distance;
-        return children[0].getColour((int) (actualX + 0.5), (int) (actualY + 0.5));
+        return children[0].getColour((int) Math.round(actualX), (int) Math.round(actualY));
     }
 
     @Override

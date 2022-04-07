@@ -73,7 +73,7 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
                             for (int z = minZ; z <= maxZ; z++) {
                                 if (cavesValue > random.nextInt(CAVE_CHANCE)) {
                                     caveSettings.start = new Point3i(x, y, z);
-                                    caveSettings.length = MathUtils.clamp(0, (int) ((random.nextGaussian() + 2.0) * (MAX_CAVE_LENGTH / 3.0) + 0.5), MAX_CAVE_LENGTH);
+                                    caveSettings.length = MathUtils.clamp(0, (int) Math.round((random.nextGaussian() + 2.0) * (MAX_CAVE_LENGTH / 3.0)), MAX_CAVE_LENGTH);
                                     createTunnel(minecraftWorld, exportedArea, dimension, new Random(random.nextLong()), caveSettings, surfaceBreaking, minimumLevel);
                                 }
                             }

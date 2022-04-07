@@ -13,7 +13,8 @@ import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
 import java.util.Random;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Constants.BLK_WOOD;
+import static org.pepsoft.minecraft.Constants.BLK_WOOD2;
 import static org.pepsoft.minecraft.Material.*;
 
 /**
@@ -27,7 +28,7 @@ public class JungleTree extends TreeType {
     
     @Override
     public void renderTree(int x, int y, int height, int strength, MinecraftWorld world, Dimension dimension, Random random) {
-        int size = (int) (random.nextInt(strength) + Math.pow(random.nextDouble(), 4) * strength * 3 + 0.5);
+        int size = (int) Math.round(random.nextInt(strength) + Math.pow(random.nextDouble(), 4) * strength * 3);
         if ((height + size) >= world.getMaxHeight()) {
             // Tree won't fit under the sky
             return;
@@ -66,13 +67,13 @@ public class JungleTree extends TreeType {
     }
 
     private void renderRoot(int x, int y, int height, int size, float angle, MinecraftWorld world, Random random) {
-        int h = (int) (size / 5f + 0.5f);
+        int h = Math.round(size / 5f);
         Material capMaterial = getCapMaterial();
         int i = 1, maxDepth = -1;
         int previousDx = Integer.MIN_VALUE, previousDy = Integer.MIN_VALUE;
         while (h > 0) {
-            int dx = (int) (Math.sin(angle) * i + 0.5f);
-            int dy = (int) (Math.cos(angle) * i + 0.5f);
+            int dx = (int) Math.round(Math.sin(angle) * i);
+            int dy = (int) Math.round(Math.cos(angle) * i);
             if ((dx == previousDx) && (dy == previousDy)) {
                 i++;
                 continue;
@@ -157,7 +158,7 @@ public class JungleTree extends TreeType {
 //            }
             for (int d = 1; d <= maxDistance; d++) {
                 for (int i = 0; i < d; i++) {
-                    distance = (int) (MathUtils.getDistance(d - i, i, (z - size) * 2) + 0.5f);
+                    distance = Math.round(MathUtils.getDistance(d - i, i, (z - size) * 2));
 //                    System.out.printf("%.1f", distance);
                     maybePlaceLeaves(x - d + i, y - i,     height +z, r, distance + random.nextInt(2), world, random);
                     maybePlaceLeaves(x + i,     y - d + i, height + z, r, distance + random.nextInt(2), world, random);
@@ -170,7 +171,7 @@ public class JungleTree extends TreeType {
     }
     
     protected void renderBranch(int x, int y, int height, int size, float angle, MinecraftWorld world, Random random) {
-        int l = (int) (size / 5f + 0.5f);
+        int l = Math.round(size / 5f);
         Material branchMaterial, capMaterial;
         if ((trunkMaterial.blockType == BLK_WOOD) || (trunkMaterial.blockType == BLK_WOOD2)) {
             branchMaterial = ((angle < (0.25 * Math.PI)) || ((angle > (0.75 * Math.PI)) && (angle < (1.25 * Math.PI))) || (angle > (1.75 * Math.PI)))
@@ -182,8 +183,8 @@ public class JungleTree extends TreeType {
         }
         float slope = random.nextFloat() / 10 - 0.5f;
         for (int i = 1; i < l; i++) {
-            int dx = (int) (Math.sin(angle) * i + 0.5f);
-            int dy = (int) (Math.cos(angle) * i + 0.5f);
+            int dx = (int) Math.round(Math.sin(angle) * i);
+            int dy = (int) Math.round(Math.cos(angle) * i);
             int dz = (int) (i * slope);
             if (! world.getMaterialAt(x + dx, y + dy, height + size + dz + 1).veryInsubstantial) {
                 continue;

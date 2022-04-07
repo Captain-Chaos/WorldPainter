@@ -44,7 +44,7 @@ public final class WorldFactory {
     
     public static World2 createDefaultWorld(final Configuration config, final long seed) {
         if (config.isDefaultCircularWorld()) {
-            logger.info("Creating default circular world with {} tiles diameter (approximately {} tiles total)", config.getDefaultWidth(), (int) (Math.PI * config.getDefaultWidth() / 2 * config.getDefaultWidth() / 2 + 0.5));
+            logger.info("Creating default circular world with {} tiles diameter (approximately {} tiles total)", config.getDefaultWidth(), (int) Math.round(Math.PI * config.getDefaultWidth() / 2 * config.getDefaultWidth() / 2));
         } else {
             logger.info("Creating default world of {} by {} tiles ({} tiles total)", config.getDefaultWidth(), config.getDefaultHeight(), config.getDefaultWidth() * config.getDefaultHeight());
         }

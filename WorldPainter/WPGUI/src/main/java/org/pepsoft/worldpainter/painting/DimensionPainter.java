@@ -90,7 +90,7 @@ public final class DimensionPainter {
             float x = x1 - 0.5f;
             final float fDx = (float) (x2 - x1) / dy;
             for (int y = y1; y <= y2; y++) {
-                drawPoint(dimension, (int) (x + 0.5f), y);
+                drawPoint(dimension, Math.round(x), y);
                 x += fDx;
             }
         } else {
@@ -107,7 +107,7 @@ public final class DimensionPainter {
             float y = y1 - 0.5f;
             final float fDy = (float) (y2 - y1) / dx;
             for (int x = x1; x <= x2; x++) {
-                drawPoint(dimension, x, (int) (y + 0.5f));
+                drawPoint(dimension, x, Math.round(y));
                 y += fDy;
             }
         }
@@ -141,7 +141,7 @@ public final class DimensionPainter {
             float x = x1 - 0.5f;
             final float fDx = (float) (x2 - x1) / dy;
             for (int y = y1; y <= y2; y++) {
-                drawPoint(dimension, (int) (x + 0.5f), y, dynamicLevel);
+                drawPoint(dimension, Math.round(x), y, dynamicLevel);
                 x += fDx;
             }
         } else {
@@ -158,7 +158,7 @@ public final class DimensionPainter {
             float y = y1 - 0.5f;
             final float fDy = (float) (y2 - y1) / dx;
             for (int x = x1; x <= x2; x++) {
-                drawPoint(dimension, x, (int) (y + 0.5f), dynamicLevel);
+                drawPoint(dimension, x, Math.round(y), dynamicLevel);
                 y += fDy;
             }
         }
@@ -272,7 +272,7 @@ public final class DimensionPainter {
                                     return dimension.getLayerValueAt(layer, x, y) >= targetValue;
                                 }
 
-                                final int targetValue = 1 + (int) ((layer.getDataSize() == Layer.DataSize.NIBBLE) ? (paint.getBrush().getLevel() * 14 + 0.5f) : (paint.getBrush().getLevel() * 254 + 0.5f));
+                                final int targetValue = 1 + Math.round((layer.getDataSize() == Layer.DataSize.NIBBLE) ? (paint.getBrush().getLevel() * 14) : (paint.getBrush().getLevel() * 254));
                             };
                         }
                     }

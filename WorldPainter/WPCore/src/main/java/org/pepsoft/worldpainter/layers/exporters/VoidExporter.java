@@ -66,7 +66,7 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
                     }
                     final float distance = MathUtils.getDistance(dx, dy);
                     final float height = dimension.getHeightAt(x2, y2) - minHeight;
-                    final int depth = (int) (height / Math.pow(2, distance + noise.getPerlinNoise(x2 / SMALL_BLOBS, y2 / SMALL_BLOBS)) + 0.5f);
+                    final int depth = (int) Math.round(height / Math.pow(2, distance + noise.getPerlinNoise(x2 / SMALL_BLOBS, y2 / SMALL_BLOBS)));
                     for (int z = 0; z < depth; z++) {
                         minecraftWorld.setMaterialAt(x2, y2, z + minHeight, AIR);
                     }

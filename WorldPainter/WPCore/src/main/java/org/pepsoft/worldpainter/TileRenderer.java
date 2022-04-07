@@ -153,7 +153,7 @@ public final class TileRenderer {
             for (int y = 0; y < TILE_SIZE; y++) {
                 final float height = tile.getHeight(x, y);
                 floatHeightCache[x | (y << TILE_SIZE_BITS)] = height;
-                intHeightCache[x | (y << TILE_SIZE_BITS)] = (int) (height + 0.5f);
+                intHeightCache[x | (y << TILE_SIZE_BITS)] = Math.round(height);
                 intFluidHeightCache[x | (y << TILE_SIZE_BITS)] = tile.getWaterLevel(x, y);
             }
         }

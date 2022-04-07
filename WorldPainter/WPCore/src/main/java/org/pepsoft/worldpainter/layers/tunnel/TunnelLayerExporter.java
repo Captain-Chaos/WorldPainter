@@ -185,7 +185,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
                     for (int i = 0; i < floorExporters.length; i++) {
                         if ((z >= floorLayerSettings[i].getMinLevel()) && (z <= floorLayerSettings[i].getMaxLevel())) {
                             final int intensity = floorLayerNoise[i] != null
-                                    ? MathUtils.clamp(0, (int) (floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z) + 0.5f), 100)
+                                    ? MathUtils.clamp(0, Math.round(floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z)), 100)
                                     : floorLayerSettings[i].getIntensity();
                             if (intensity > 0) {
                                 Fixup fixup = floorExporters[i].apply(floorDimension, location, intensity, exportedArea, world, platform);
@@ -291,7 +291,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
             return 0;
         } else {
             final float a = wallDepth - distanceToWall;
-            return (int) (wallDepth - Math.sqrt(wallDepth * wallDepth - a * a) + 0.5);
+            return (int) Math.round(wallDepth - Math.sqrt(wallDepth * wallDepth - a * a));
         }
     }
 

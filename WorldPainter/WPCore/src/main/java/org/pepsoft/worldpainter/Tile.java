@@ -174,7 +174,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
     }
 
     public int getIntHeight(int x, int y) {
-        return (int) (getHeight(x, y) + 0.5f);
+        return Math.round(getHeight(x, y));
     }
 
     public synchronized int getLowestIntHeight() {
@@ -189,7 +189,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                     return minHeight;
                 }
             }
-            return (int) (lowestHeight / 256f + minHeight + 0.5f);
+            return Math.round(lowestHeight / 256f + minHeight);
         } else {
             ensureReadable(HEIGHTMAP);
             short lowestHeight = Short.MAX_VALUE;
@@ -201,7 +201,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                     return minHeight;
                 }
             }
-            return (int) ((lowestHeight & 0xFFFF) / 256f + minHeight + 0.5f);
+            return Math.round((lowestHeight & 0xFFFF) / 256f + minHeight);
         }
     }
 
@@ -214,7 +214,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                     highestHeight = height;
                 }
             }
-            return (int) (highestHeight / 256f + minHeight + 0.5f);
+            return Math.round(highestHeight / 256f + minHeight);
         } else {
             ensureReadable(HEIGHTMAP);
             short highestHeight = Short.MIN_VALUE;
@@ -223,7 +223,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                     highestHeight = height;
                 }
             }
-            return (int) ((highestHeight & 0xFFFF) / 256f + minHeight + 0.5f);
+            return Math.round((highestHeight & 0xFFFF) / 256f + minHeight);
         }
     }
 
@@ -540,7 +540,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
             for (int dx = -r; dx <= r; dx++) {
                 for (int dy = -r; dy <= r; dy++) {
                     final int xx = x + dx, yy = y + dy;
-                    if (((tallWaterLevel[xx + yy * TILE_SIZE]) > ((int) (tallHeightMap[xx + yy * TILE_SIZE] / 256f + 0.5f)))
+                    if (((tallWaterLevel[xx + yy * TILE_SIZE]) > (Math.round(tallHeightMap[xx + yy * TILE_SIZE] / 256f)))
                             && (lava ? ((floodWithLava != null) && getBitPerBlockLayerValue(floodWithLava, xx, yy))
                                 : ((floodWithLava == null) || (! getBitPerBlockLayerValue(floodWithLava, xx, yy))))) {
                         count++;
@@ -557,7 +557,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
             for (int dx = -r; dx <= r; dx++) {
                 for (int dy = -r; dy <= r; dy++) {
                     final int xx = x + dx, yy = y + dy;
-                    if (((waterLevel[xx + yy * TILE_SIZE] & 0xFF) > ((int) ((heightMap[xx + yy * TILE_SIZE] & 0xFFFF) / 256f + 0.5f)))
+                    if (((waterLevel[xx + yy * TILE_SIZE] & 0xFF) > (Math.round((heightMap[xx + yy * TILE_SIZE] & 0xFFFF) / 256f)))
                             && (lava ? ((floodWithLava != null) && getBitPerBlockLayerValue(floodWithLava, xx, yy))
                                 : ((floodWithLava == null) || (! getBitPerBlockLayerValue(floodWithLava, xx, yy))))) {
                         count++;

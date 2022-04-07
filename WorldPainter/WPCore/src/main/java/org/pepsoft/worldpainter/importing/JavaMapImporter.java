@@ -198,15 +198,15 @@ public class JavaMapImporter extends MapImporter {
         }
         world.setDifficulty(level.getDifficulty());
         if ((platform != JAVA_MCREGION) && (level.getBorderSize() > 0.0)) {
-            world.getBorderSettings().setCentreX((int) (level.getBorderCenterX() + 0.5));
-            world.getBorderSettings().setCentreY((int) (level.getBorderCenterZ() + 0.5));
-            world.getBorderSettings().setSize((int) (level.getBorderSize() + 0.5));
-            world.getBorderSettings().setSafeZone((int) (level.getBorderSafeZone() + 0.5));
-            world.getBorderSettings().setWarningBlocks((int) (level.getBorderWarningBlocks()+ 0.5));
-            world.getBorderSettings().setWarningTime((int) (level.getBorderWarningTime() + 0.5));
-            world.getBorderSettings().setSizeLerpTarget((int) (level.getBorderSizeLerpTarget() + 0.5));
+            world.getBorderSettings().setCentreX((int) Math.round(level.getBorderCenterX()));
+            world.getBorderSettings().setCentreY((int) Math.round(level.getBorderCenterZ()));
+            world.getBorderSettings().setSize((int) Math.round(level.getBorderSize()));
+            world.getBorderSettings().setSafeZone((int) Math.round(level.getBorderSafeZone()));
+            world.getBorderSettings().setWarningBlocks((int) Math.round(level.getBorderWarningBlocks()));
+            world.getBorderSettings().setWarningTime((int) Math.round(level.getBorderWarningTime()));
+            world.getBorderSettings().setSizeLerpTarget((int) Math.round(level.getBorderSizeLerpTarget()));
             world.getBorderSettings().setSizeLerpTime((int) level.getBorderSizeLerpTime());
-            world.getBorderSettings().setDamagePerBlock((int) (level.getBorderDamagePerBlock() + 0.5));
+            world.getBorderSettings().setDamagePerBlock((float) level.getBorderDamagePerBlock());
         }
         world.setAttribute(SEED, level.getSeed()); // TODO include this in more generic refactored map import mechanism
         return world;
@@ -336,7 +336,7 @@ public class JavaMapImporter extends MapImporter {
                                         }
                                     }
                                     // Use smooth snow, if present, to better approximate world height, so smooth snow will survive merge
-                                    final int intHeight = (int) (height + 0.5f);
+                                    final int intHeight = Math.round(height);
                                     if ((height != Float.MIN_VALUE) && (intHeight < maxY)) {
                                         Material materialAbove = chunk.getMaterial(xx, intHeight + 1, zz);
                                         if (materialAbove.isNamed(MC_SNOW)) {

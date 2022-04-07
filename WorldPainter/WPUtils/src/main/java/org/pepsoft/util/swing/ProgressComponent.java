@@ -122,7 +122,7 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
             if (jProgressBar1.isIndeterminate()) {
                 jProgressBar1.setIndeterminate(false);
             }
-            jProgressBar1.setValue((int) (progress * 100f + 0.5f));
+            jProgressBar1.setValue(Math.round(progress * 100f));
         });
     }
 

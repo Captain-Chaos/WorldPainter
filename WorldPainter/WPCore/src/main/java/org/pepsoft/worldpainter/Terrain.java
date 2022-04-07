@@ -1024,7 +1024,7 @@ public enum Terrain {
             if (seed != this.seed) {
                 init(seed);
             }
-            final int dz = (int) (z + 0.5f) - height;
+            final int dz = Math.round(z) - height;
             if (dz <= 0) {
                 return LAYERS[mod((int) (z + (perlinNoise.getPerlinNoise(x / GIGANTIC_BLOBS, y / GIGANTIC_BLOBS) * 4 + perlinNoise.getPerlinNoise(x / HUGE_BLOBS, y / HUGE_BLOBS) + perlinNoise.getPerlinNoise(x / LARGE_BLOBS, y / LARGE_BLOBS) + perlinNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS) / 4 + 3.125f) * 8), LAYER_COUNT)];
             } else if (dz == 1) {
@@ -2862,7 +2862,7 @@ public enum Terrain {
      * @return The material at the specified location in the terrain.
      */
     public Material getMaterial(final long seed, final int x, final int y, final float z, final int height) {
-        return getMaterial(JAVA_ANVIL_1_15, seed, x, y, (int) (z + 0.5f), height);
+        return getMaterial(JAVA_ANVIL_1_15, seed, x, y, Math.round(z), height);
     }
 
     /**
@@ -2901,7 +2901,7 @@ public enum Terrain {
      * @return The material at the specified location in the terrain.
      */
     public Material getMaterial(final Platform platform, final long seed, final int x, final int y, final float z, final int height) {
-        return getMaterial(platform, seed, x, y, (int) (z + 0.5f), height);
+        return getMaterial(platform, seed, x, y, Math.round(z), height);
     }
 
     /**

@@ -119,8 +119,8 @@ public class PreferencesDialog extends WorldPainterDialog {
             spinnerRange.setEnabled(false);
             spinnerScale.setEnabled(false);
         }
-        spinnerRange.setValue((int) (config.getDefaultRange() + 0.5f));
-        spinnerScale.setValue((int) (config.getDefaultScale() * 100 + 0.5f));
+        spinnerRange.setValue(Math.round(config.getDefaultRange()));
+        spinnerScale.setValue((int) Math.round(config.getDefaultScale() * 100));
         spinnerGroundLevel.setValue(config.getLevel());
         spinnerWaterLevel.setValue(config.getWaterLevel());
         checkBoxLava.setSelected(config.isLava());

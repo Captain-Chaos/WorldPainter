@@ -27,7 +27,7 @@ public class HeightTransform {
     }
     
     public int transformHeight(int height) {
-        return (int) (height * scalingFactor + translateAmount + 0.5f);
+        return Math.round(height * scalingFactor + translateAmount);
     }
 
     public HeightMap transformHeightMap(HeightMap heightMap) {

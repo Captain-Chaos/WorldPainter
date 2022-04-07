@@ -307,7 +307,7 @@ public class CustomMaterialDialog extends WorldPainterDialog implements Property
                 case BLOBS:
                     jTabbedPane1.setSelectedIndex(1);
                     radioButtonBlobs.setSelected(true);
-                    spinnerScale.setValue((int) (mixedMaterial.getScale() * 100 + 0.5f));
+                    spinnerScale.setValue(Math.round(mixedMaterial.getScale() * 100));
                     break;
                 case LAYERED:
                     jTabbedPane1.setSelectedIndex(1);

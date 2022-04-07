@@ -1188,7 +1188,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             // Determine the exclusion zone for preventing labels from being
             // obscured by grid lines or other labels
             final Rectangle2D fontBounds = BOLD_FONT.getStringBounds("-00000", g2.getFontRenderContext());
-            final int fontHeight = (int) (fontBounds.getHeight() + 0.5), fontWidth = (int) (fontBounds.getWidth() + 0.5);
+            final int fontHeight = (int) Math.round(fontBounds.getHeight()), fontWidth = (int) Math.round(fontBounds.getWidth());
             final int leftClear = fontWidth + 4, topClear = fontHeight + 6;
 
             // Create and install strokes and fonts

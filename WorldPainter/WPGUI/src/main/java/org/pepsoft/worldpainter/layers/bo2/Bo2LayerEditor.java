@@ -587,7 +587,7 @@ outer:  for (Enumeration<WPObject> e = listModel.elements(); e.hasMoreElements()
 
     private void updateBlocksPerAttempt() {
         int blocksAt50 = (Integer) spinnerBlocksPerAttempt.getValue();
-        int blocksAt1 = blocksAt50 * 64, blocksAt100 = (int) (blocksAt50 / 3.515625f + 0.5f);
+        int blocksAt1 = blocksAt50 * 64, blocksAt100 = Math.round(blocksAt50 / 3.515625f);
         StringBuilder sb = new StringBuilder();
         sb.append("one per ").append(numberFormat.format(blocksAt1)).append(" blocks at 1%");
         if (blocksAt100 <= 1) {

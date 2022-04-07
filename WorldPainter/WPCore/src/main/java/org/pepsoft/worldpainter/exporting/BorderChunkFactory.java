@@ -90,7 +90,7 @@ public class BorderChunkFactory {
             for (int z = 0; z < 16; z++) {
                 if (border != Border.VOID) {
                     final int worldX = (chunkX << 4) | x, worldZ = (chunkZ << 4) | z;
-                    final int floorLevel = (int) (floor + (noiseGenerator.getPerlinNoise(worldX / MEDIUM_BLOBS, worldZ / MEDIUM_BLOBS) + 0.5f) * variation + 0.5f);
+                    final int floorLevel = Math.round(floor + (noiseGenerator.getPerlinNoise(worldX / MEDIUM_BLOBS, worldZ / MEDIUM_BLOBS) + 0.5f) * variation);
                     final int surfaceLayerLevel = floorLevel - dimension.getTopLayerDepth(worldX, worldZ, floorLevel);
                     for (int y = minHeight; y <= maxY; y++) {
                         if ((y == minHeight) && (! bottomless)) {

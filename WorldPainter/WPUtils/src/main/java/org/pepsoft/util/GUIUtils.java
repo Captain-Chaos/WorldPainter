@@ -103,13 +103,13 @@ public class GUIUtils {
         }
         if (container instanceof Window) {
             Window window = (Window) container;
-            window.setSize((int) (window.getWidth() * UI_SCALE_FLOAT + 0.5f), (int) (window.getHeight() * UI_SCALE_FLOAT + 0.5f));
+            window.setSize(Math.round(window.getWidth() * UI_SCALE_FLOAT), Math.round(window.getHeight() * UI_SCALE_FLOAT));
         }
         for (Component component: container.getComponents()) {
             if (component instanceof JTable) {
                 JTable table = (JTable) component;
-                table.setRowHeight((int) (table.getRowHeight() * UI_SCALE_FLOAT + 0.5f));
-                table.setRowMargin((int) (table.getRowMargin() * UI_SCALE_FLOAT + 0.5f));
+                table.setRowHeight(Math.round(table.getRowHeight() * UI_SCALE_FLOAT));
+                table.setRowMargin(Math.round(table.getRowMargin() * UI_SCALE_FLOAT));
             } else if (component instanceof JTextArea) {
                 component.setFont(UIManager.getFont("TextField.font"));
             } else if (component instanceof Container) {
@@ -132,23 +132,23 @@ public class GUIUtils {
             Object value = UIManager.get(key);
             if (value instanceof FontUIResource) {
                 FontUIResource previousResource = (FontUIResource) value;
-                FontUIResource newResource = new FontUIResource(previousResource.getFamily(), previousResource.getStyle(), (int) (previousResource.getSize() * scale + 0.5f));
+                FontUIResource newResource = new FontUIResource(previousResource.getFamily(), previousResource.getStyle(), Math.round(previousResource.getSize() * scale));
                 UIManager.put(key, newResource);
                 logger.trace("Scaled FontUIResource {}", key);
             } else if (value instanceof InsetsUIResource) {
                 InsetsUIResource oldResource = (InsetsUIResource) value;
-                InsetsUIResource newResource = new InsetsUIResource((int) (oldResource.top * scale + 0.5f),
-                        (int) (oldResource.left * scale + 0.5f),
-                        (int) (oldResource.bottom * scale + 0.5f),
-                        (int) (oldResource.right * scale + 0.5f));
+                InsetsUIResource newResource = new InsetsUIResource(Math.round(oldResource.top * scale),
+                        Math.round(oldResource.left * scale),
+                        Math.round(oldResource.bottom * scale),
+                        Math.round(oldResource.right * scale));
                 UIManager.put(key, newResource);
                 logger.trace("Scaled InsetsUIResource {}", key);
             } else if (value instanceof Insets) {
                 Insets oldResource = (Insets) value;
-                Insets newResource = new Insets((int) (oldResource.top * scale + 0.5f),
-                        (int) (oldResource.left * scale + 0.5f),
-                        (int) (oldResource.bottom * scale + 0.5f),
-                        (int) (oldResource.right * scale + 0.5f));
+                Insets newResource = new Insets(Math.round(oldResource.top * scale),
+                        Math.round(oldResource.left * scale),
+                        Math.round(oldResource.bottom * scale),
+                        Math.round(oldResource.right * scale));
                 UIManager.put(key, newResource);
                 logger.trace("Scaled Insets {}", key);
             } else if ((value instanceof Integer) && (key instanceof String)) {
@@ -165,7 +165,7 @@ public class GUIUtils {
                             || ((String) key).toLowerCase().contains("indent")
                             || ((String) key).toLowerCase().contains("padding")) {
                     int oldValue = (Integer) value;
-                    int newValue = (int) (oldValue * scale + 0.5f);
+                    int newValue = Math.round(oldValue * scale);
                     UIManager.put(key, newValue);
                     logger.trace("Scaled integer {}", key);
                 } else {
@@ -176,7 +176,7 @@ public class GUIUtils {
                 }
             } else if (value instanceof ImageIcon) {
                 ImageIcon icon = (ImageIcon) value;
-                Image scaledImage = icon.getImage().getScaledInstance((int) (icon.getIconWidth() * scale + 0.5f + 0.5f), -1, SCALE_SMOOTH);
+                Image scaledImage = icon.getImage().getScaledInstance(Math.round(icon.getIconWidth() * scale), -1, SCALE_SMOOTH);
                 UIManager.put(key, new ImageIcon(scaledImage));
                 logger.trace("Scaled ImageIcon {}", key);
             } else if (value instanceof Icon) {
@@ -185,7 +185,7 @@ public class GUIUtils {
                 Graphics2D g2 = image.createGraphics();
                 try {
                     icon.paintIcon(null, g2, 0, 0);
-                    Image scaledImage = image.getScaledInstance((int) (icon.getIconWidth() * scale + 0.5f + 0.5f), -1, SCALE_SMOOTH);
+                    Image scaledImage = image.getScaledInstance(Math.round(icon.getIconWidth() * scale), -1, SCALE_SMOOTH);
                     UIManager.put(key, new ImageIcon(scaledImage));
                     logger.trace("Scaled Icon {}", key);
                 } catch (NullPointerException e) {

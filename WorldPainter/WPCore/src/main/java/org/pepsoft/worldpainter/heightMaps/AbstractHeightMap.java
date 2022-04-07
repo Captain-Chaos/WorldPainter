@@ -4,9 +4,10 @@
  */
 package org.pepsoft.worldpainter.heightMaps;
 
-import java.awt.Rectangle;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.worldpainter.HeightMap;
+
+import java.awt.*;
 
 /**
  *
@@ -60,13 +61,13 @@ public abstract class AbstractHeightMap implements HeightMap, Cloneable {
 
     @Override
     public int getColour(int x, int y) {
-        int value = MathUtils.clamp(0, (int) (getHeight(x, y) + 0.5f), 255);
+        int value = MathUtils.clamp(0, Math.round(getHeight(x, y)), 255);
         return (value << 16) | (value << 8) | value;
     }
 
     @Override
     public float getHeight(float x, float y) {
-        return getHeight((int) (x + 0.5f), (int) (y + 0.5f));
+        return getHeight(Math.round(x), Math.round(y));
     }
 
     @Override

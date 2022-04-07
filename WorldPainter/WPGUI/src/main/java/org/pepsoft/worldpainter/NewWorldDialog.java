@@ -104,8 +104,8 @@ public class NewWorldDialog extends WorldPainterDialog {
             spinnerLength.setValue(config.getDefaultHeight() * 128);
             spinnerTerrainLevel.setValue(config.getLevel());
             spinnerWaterLevel.setValue(config.getWaterLevel());
-            spinnerRange.setValue((int) (config.getDefaultRange() + 0.5f));
-            spinnerScale.setValue((int) (config.getDefaultScale() * 100 + 0.5));
+            spinnerRange.setValue(Math.round(config.getDefaultRange()));
+            spinnerScale.setValue((int) Math.round(config.getDefaultScale() * 100));
             checkBoxLava.setSelected(config.isLava());
             comboBoxSurfaceMaterial.setSelectedItem(config.getSurface());
             checkBoxBeaches.setSelected(config.isBeaches());

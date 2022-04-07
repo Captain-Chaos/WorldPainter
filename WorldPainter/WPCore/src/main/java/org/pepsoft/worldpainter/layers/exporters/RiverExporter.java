@@ -56,7 +56,7 @@ public class RiverExporter extends AbstractLayerExporter<River> implements Secon
             for (int y = area.y; y < area.y + area.height; y++) {
                 if (dimension.getBitLayerValueAt(River.INSTANCE, x, y)) {
                     final float distanceToShore = dimension.getDistanceToEdge(River.INSTANCE, x, y, maxDepth);
-                    final int depth = (int) Math.min(distanceToShore, maxDepth - (int) ((floorNoise.getPerlinNoise(x / TINY_BLOBS, y / TINY_BLOBS) + 0.5f) * depthVariation + 0.5f));
+                    final int depth = (int) Math.min(distanceToShore, maxDepth - Math.round((floorNoise.getPerlinNoise(x / TINY_BLOBS, y / TINY_BLOBS) + 0.5f) * depthVariation));
                     final int terrainHeight = dimension.getIntHeightAt(x, y);
                     final int waterLevel = dimension.getWaterLevelAt(x, y);
                     if ((waterLevel > terrainHeight) && (! dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, x, y))) {

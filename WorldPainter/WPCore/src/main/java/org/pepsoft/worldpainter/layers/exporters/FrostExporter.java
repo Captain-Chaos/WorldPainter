@@ -84,7 +84,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                                 break;
                                             case FrostSettings.MODE_SMOOTH:
                                             case FrostSettings.MODE_SMOOTH_AT_ALL_ELEVATIONS:
-                                                int layers = (int) ((dimension.getHeightAt(x, y) + 0.5f - dimension.getIntHeightAt(x, y)) / 0.125f) + 1;
+                                                int layers = (int) Math.floor((dimension.getHeightAt(x, y) + 0.5f - dimension.getIntHeightAt(x, y)) / 0.125f) + 1;
                                                 if ((layers > 1) && (! frostEverywhere)) {
                                                     layers = Math.max(Math.min(layers, dimension.getBitLayerCount(Frost.INSTANCE, x, y, 1) - 1), 1);
                                                 }

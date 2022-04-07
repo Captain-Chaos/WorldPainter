@@ -679,7 +679,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         int height = tile.getIntHeight(xInTile, yInTile);
         setTextIfDifferent(heightLabel, MessageFormat.format(strings.getString("height.0.of.1"), height, dimension.getMaxHeight() - 1));
-        setTextIfDifferent(slopeLabel, MessageFormat.format("Slope: {0}°", (int) (Math.atan(dimension.getSlope(x, y)) * 180 / Math.PI + 0.5)));
+        setTextIfDifferent(slopeLabel, MessageFormat.format("Slope: {0}°", (int) Math.round(Math.atan(dimension.getSlope(x, y)) * 180 / Math.PI)));
         if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint)) {
             Layer layer = ((LayerPaint) paint).getLayer();
             switch (layer.getDataSize()) {
@@ -2482,7 +2482,7 @@ public final class App extends JFrame implements RadiusControl,
         if ((bestCursorSize.width != 0) && (bestCursorSize.height == bestCursorSize.width)) {
             int hotspot = 15;
             if (bestCursorSize.width != 32) {
-                hotspot = (int) (15 * ((float) bestCursorSize.width / 32) + 0.5f);
+                hotspot = Math.round(15 * ((float) bestCursorSize.width / 32));
             }
             final Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(cursorImage, new Point(hotspot, hotspot), "Custom Crosshair");
             glassPane.setCursor(cursor);
@@ -5145,7 +5145,7 @@ public final class App extends JFrame implements RadiusControl,
         for (int dx = -r + 1; dx < r; dx++) {
             for (int dy = -r + 1; dy < r; dy++) {
                 float strength = brush.getFullStrength(dx, dy);
-                int alpha = (int) (strength * 255f + 0.5f);
+                int alpha = Math.round(strength * 255f);
                 image.setRGB(dx + r - 1, dy + r - 1, alpha << 24);
             }
         }

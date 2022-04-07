@@ -56,8 +56,8 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
         if (dimension.getOverlay() != null) {
             fieldImage.setText(dimension.getOverlay().getAbsolutePath());
         }
-        spinnerScale.setValue((int) (dimension.getOverlayScale() * 100 + 0.5f));
-        spinnerTransparency.setValue((int) (view.getOverlayTransparency() * 100 + 0.5f));
+        spinnerScale.setValue(Math.round(dimension.getOverlayScale() * 100));
+        spinnerTransparency.setValue(Math.round(view.getOverlayTransparency() * 100));
         spinnerXOffset.setValue(view.getOverlayOffsetX());
         spinnerYOffset.setValue(view.getOverlayOffsetY());
         checkBoxContours.setSelected(view.isDrawContours());

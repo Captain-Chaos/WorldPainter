@@ -14,8 +14,6 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 
-import javax.swing.*;
-
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 
 /**
@@ -57,7 +55,7 @@ final class ProgressViewer extends javax.swing.JPanel implements ProgressReceive
             if (jProgressBar1.isIndeterminate()) {
                 jProgressBar1.setIndeterminate(false);
             }
-            jProgressBar1.setValue((int) (progress * 100f + 0.5f));
+            jProgressBar1.setValue(Math.round(progress * 100f));
         });
     }
 

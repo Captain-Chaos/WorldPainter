@@ -175,12 +175,12 @@ public abstract class DelegatingHeightMap extends AbstractHeightMap {
     }
 
     protected int doGetColour(int x, int y) {
-        int value = MathUtils.clamp(0, (int) (doGetHeight(x, y) + 0.5f), 255);
+        int value = MathUtils.clamp(0, Math.round(doGetHeight(x, y)), 255);
         return (value << 16) | (value << 8) | value;
     }
 
     protected float doGetHeight(float x, float y) {
-        return doGetHeight((int) (x + 0.5f), (int) (y + 0.5f));
+        return doGetHeight(Math.round(x), Math.round(y));
     }
 
     protected float doGetHeight(int x, int y) {

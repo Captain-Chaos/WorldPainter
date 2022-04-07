@@ -64,7 +64,7 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
                     int maxValue = (dataSize == NIBBLE) ? 15 : 255;
                     for (int x = 0; x < TILE_SIZE; x++) {
                         for (int y = 0; y < TILE_SIZE; y++) {
-                            int value = Math.min((int) (tile.getLayerValue(this, x, y) * factor + 0.5f), maxValue);
+                            int value = Math.min(Math.round(tile.getLayerValue(this, x, y) * factor), maxValue);
                             if (value > 0) {
                                 tile.setLayerValue(layer, x, y, value);
                                 layerAdded = true;

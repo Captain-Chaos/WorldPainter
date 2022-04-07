@@ -4,17 +4,18 @@
  */
 package org.pepsoft.worldpainter.layers.combined;
 
+import org.pepsoft.worldpainter.layers.CombinedLayer;
+import org.pepsoft.worldpainter.layers.CustomLayer;
+import org.pepsoft.worldpainter.layers.Layer;
+
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableModel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.TableModel;
-import org.pepsoft.worldpainter.layers.CombinedLayer;
-import org.pepsoft.worldpainter.layers.CustomLayer;
-import org.pepsoft.worldpainter.layers.Layer;
 
 /**
  *
@@ -23,7 +24,7 @@ import org.pepsoft.worldpainter.layers.Layer;
 public class CombinedLayerTableModel implements TableModel {
     public CombinedLayerTableModel(List<Layer> layers, Map<Layer, Float> factors) {
         rows = new ArrayList<>(layers.size());
-        rows.addAll(layers.stream().map(layer -> new Row(layer, (int) (factors.get(layer) * 100 + 0.5f), ((layer instanceof CustomLayer) ? ((CustomLayer) layer).isHide() : false))).collect(Collectors.toList()));
+        rows.addAll(layers.stream().map(layer -> new Row(layer, Math.round(factors.get(layer) * 100), ((layer instanceof CustomLayer) ? ((CustomLayer) layer).isHide() : false))).collect(Collectors.toList()));
     }
     
     void addRow(Row row) {

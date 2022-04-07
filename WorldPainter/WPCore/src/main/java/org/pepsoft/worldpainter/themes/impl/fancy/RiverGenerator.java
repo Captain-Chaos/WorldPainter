@@ -70,7 +70,7 @@ public class RiverGenerator {
 //        System.out.println("Start coordinates: " + x + ", " + y);
         int waterLevel = snapshot.getWaterLevelAt(x, y);
         float height = snapshot.getHeightAt(x, y);
-        int intHeight = (int) (height + 0.5f);
+        int intHeight = Math.round(height);
         if (waterLevel > intHeight) {
             // Already flooded
         } else {
@@ -121,7 +121,7 @@ public class RiverGenerator {
 ////            System.out.println("Next coordinates: " + x + ", " + y);
 //            waterLevel = snapshot.getWaterLevelAt(x, y);
 //            height = snapshot.getHeightAt(x, y);
-//            intHeight = (int) (height + 0.5f);
+//            intHeight = Math.round(height);
 //        }
     }
     
