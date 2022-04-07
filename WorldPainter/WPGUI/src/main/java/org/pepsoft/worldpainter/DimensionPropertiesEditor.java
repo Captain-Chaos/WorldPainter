@@ -267,7 +267,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     }
     
     public boolean saveSettings() {
-        int maxHeight = dimension.getMaxHeight() - 1;
+        final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight() - 1;
 
         // sanity checks
         if ((comboBoxGenerator.getSelectedItem() == CUSTOM) && ((generatorName == null) || generatorName.trim().isEmpty())) {
@@ -337,7 +337,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         if (checkBoxFloodCaverns.isSelected()) {
             cavesSettings.setWaterLevel((Integer) spinnerCavernsFloodLevel.getValue());
         } else {
-            cavesSettings.setWaterLevel(0);
+            cavesSettings.setWaterLevel(minHeight);
         }
         cavesSettings.setFloodWithLava(checkBoxCavernsFloodWithLava.isSelected());
         cavesSettings.setLeaveWater(! checkBoxCavernsRemoveWater.isSelected());
@@ -357,7 +357,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         if (checkBoxFloodCaverns.isSelected()) {
             cavernsSettings.setWaterLevel((Integer) spinnerCavernsFloodLevel.getValue());
         } else {
-            cavernsSettings.setWaterLevel(0);
+            cavernsSettings.setWaterLevel(minHeight);
         }
         cavernsSettings.setFloodWithLava(checkBoxCavernsFloodWithLava.isSelected());
         cavernsSettings.setSurfaceBreaking(checkBoxCavernsBreakSurface.isSelected());
@@ -385,7 +385,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         if (checkBoxFloodCaverns.isSelected()) {
             chasmsSettings.setWaterLevel((Integer) spinnerCavernsFloodLevel.getValue());
         } else {
-            chasmsSettings.setWaterLevel(0);
+            chasmsSettings.setWaterLevel(minHeight);
         }
         chasmsSettings.setFloodWithLava(checkBoxCavernsFloodWithLava.isSelected());
         chasmsSettings.setLeaveWater(! checkBoxCavernsRemoveWater.isSelected());

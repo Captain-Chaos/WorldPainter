@@ -63,14 +63,7 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
                 }
                 if (state.surfaceBreaking) {
                     final Material blockAbove = chunk.getMaterial(x, y + 1, z);
-                    if (state.leaveWater) {
-                        // TODOMC13: migrate to modern materials:
-                        if (blockAbove.blockType == BLK_STATIONARY_WATER) {
-                            chunk.setMaterial(x, y + 1, z, WATER);
-                        } else if (blockAbove.blockType == BLK_STATIONARY_LAVA) {
-                            chunk.setMaterial(x, y + 1, z, LAVA);
-                        }
-                    } else {
+                    if (! state.leaveWater) {
                         if (blockAbove.isNamed(MC_WATER)) {
                             for (int yy = y + 1; yy <= state.maxY; yy++) {
                                 final Material block = chunk.getMaterial(x, yy, z);
@@ -126,16 +119,6 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
                 }
             }
             state.breachedCeiling = true;
-            if ((! state.previousBlockInCavern) && (y < state.maxY)) {
-                final Material blockAbove = chunk.getMaterial(x, y + 1, z);
-                // Note that the post processor will take care
-                // of supporting sand with sandstone, if that is
-                // not disabled
-                if (blockAbove == GRAVEL) {
-                    // Support gravel with stone
-                    chunk.setMaterial(x, y + 1, z, STONE);
-                }
-            }
             if (y > state.waterLevel) {
                 chunk.setMaterial(x, y, z, AIR);
                 state.previousBlockInCavern = true;
@@ -152,7 +135,7 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
                 && (! chunk.getMaterial(x, y, z).veryInsubstantial)) {
             int worldX = (chunk.getxPos() << 4) | x;
             int worldZ = (chunk.getzPos() << 4) | z;
-            final int rnd = new Random(state.seed + (worldX * 65537) + (worldZ * 4099)).nextInt(MUSHROOM_CHANCE);
+            final int rnd = new Random(state.seed + (worldX * 65537L) + (worldZ * 4099L)).nextInt(MUSHROOM_CHANCE);
             if ((rnd == 0) && (y < state.maxY)) {
                 chunk.setMaterial(x, y + 1, z, BROWN_MUSHROOM);
             }
