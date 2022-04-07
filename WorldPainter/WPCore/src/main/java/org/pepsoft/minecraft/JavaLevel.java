@@ -25,6 +25,7 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.util.CollectionUtils.listOf;
 import static org.pepsoft.worldpainter.Constants.MAX_HEIGHT;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
@@ -346,22 +347,29 @@ public abstract class JavaLevel extends AbstractNBTItem {
 
     @SuppressWarnings("unchecked") // Guaranteed by this method/Minecraft
     public void enableDataPacks(String... dataPacks) {
-        CompoundTag dataPacksTag = (CompoundTag) getTag("DataPacks");
+        CompoundTag dataPacksTag = (CompoundTag) getTag(TAG_DATA_PACKS);
         if (dataPacksTag == null) {
-            dataPacksTag = new CompoundTag("", new HashMap<>());
-            setTag("DataPacks", dataPacksTag);
+            dataPacksTag = new CompoundTag(TAG_DATA_PACKS, new HashMap<>());
+            setTag(TAG_DATA_PACKS, dataPacksTag);
         }
-        List<String> enabledDataPacks = new ArrayList<>();
-        ListTag<StringTag> enabledTag = (ListTag<StringTag>) dataPacksTag.getTag("Enabled");
+        List<String> enabledDataPacks = new ArrayList<>(), disabledDataPacks = new ArrayList<>();
+        ListTag<StringTag> enabledTag = (ListTag<StringTag>) dataPacksTag.getTag(TAG_ENABLED);
         if (enabledTag != null) {
             enabledTag.getValue().forEach(tag -> enabledDataPacks.add(tag.getValue()));
+        }
+        ListTag<StringTag> disabledTag = (ListTag<StringTag>) dataPacksTag.getTag(TAG_DISABLED);
+        if (disabledTag != null) {
+            disabledTag.getValue().forEach(tag -> disabledDataPacks.add(tag.getValue()));
         }
         stream(dataPacks).forEach(dataPack -> {
             if (! enabledDataPacks.contains(dataPack)) {
                 enabledDataPacks.add(dataPack);
             }
+            disabledDataPacks.remove(dataPack);
         });
-        dataPacksTag.setTag("Enabled", new ListTag<>("", StringTag.class, enabledDataPacks.stream().map(dataPack -> new StringTag("", dataPack)).collect(toList())));
+        dataPacksTag.setTag(TAG_ENABLED, new ListTag<>(TAG_ENABLED, StringTag.class, listOf(
+                enabledDataPacks.stream().map(dataPack -> new StringTag("", dataPack)).collect(toList()),
+                disabledDataPacks.stream().map(dataPack -> new StringTag("", dataPack)).collect(toList()))));
     }
     
     @Override
