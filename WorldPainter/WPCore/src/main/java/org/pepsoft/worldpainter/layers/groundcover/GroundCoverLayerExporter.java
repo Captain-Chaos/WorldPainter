@@ -54,7 +54,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
         }
         final int xOffset = (chunk.getxPos() & 7) << 4;
         final int zOffset = (chunk.getzPos() & 7) << 4;
-        final int minY = dimension.isBottomless() ? 0 : 1;
+        final int minY = dimension.getMinHeight() + (dimension.isBottomless() ? 0 : 1);
         final int maxY = dimension.getMaxHeight() - 1;
         final MixedMaterial mixedMaterial = layer.getMaterial();
         final int thickness = layer.getThickness(), edgeThickness = Math.abs(thickness) - 2;
@@ -253,7 +253,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                         }
                     }
                 } else {
-                    final int minZ = dimension.isBottomless() ? 0 : 1;
+                    final int minZ = dimension.getMinHeight() + (dimension.isBottomless() ? 0 : 1);
                     for (int dz = 0; dz < effectiveThickness; dz++) {
                         final int z = location.z - 1 - dz;
                         if (z < minZ) {
