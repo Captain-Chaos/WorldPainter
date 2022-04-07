@@ -25,7 +25,6 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.util.CollectionUtils.listOf;
 import static org.pepsoft.worldpainter.Constants.MAX_HEIGHT;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
@@ -367,9 +366,8 @@ public abstract class JavaLevel extends AbstractNBTItem {
             }
             disabledDataPacks.remove(dataPack);
         });
-        dataPacksTag.setTag(TAG_ENABLED, new ListTag<>(TAG_ENABLED, StringTag.class, listOf(
-                enabledDataPacks.stream().map(dataPack -> new StringTag("", dataPack)).collect(toList()),
-                disabledDataPacks.stream().map(dataPack -> new StringTag("", dataPack)).collect(toList()))));
+        dataPacksTag.setTag(TAG_ENABLED, new ListTag<>(TAG_ENABLED, StringTag.class, enabledDataPacks.stream().map(dataPack -> new StringTag("", dataPack)).collect(toList())));
+        dataPacksTag.setTag(TAG_DISABLED, new ListTag<>(TAG_DISABLED, StringTag.class, disabledDataPacks.stream().map(dataPack -> new StringTag("", dataPack)).collect(toList())));
     }
     
     @Override
