@@ -43,7 +43,7 @@ public enum Category {
     CROPS {
         @Override
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
-            return world.getMaterialAt(x, y, z).isNamed(MC_FARMLAND) && (! isFlooded(world, x, y, z));
+            return world.getMaterialAt(x, y, z).isNamedOneOf(MC_FARMLAND, MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_ROOTED_DIRT, MC_GRASS_PATH, MC_DIRT_PATH) && (! isFlooded(world, x, y, z));
         }
     },
 
@@ -71,10 +71,10 @@ public enum Category {
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
             final Material material = world.getMaterialAt(x, y, z);
             return (material.isNamed(MC_SAND) || material.isNamed(MC_RED_SAND))
-                    && (! isSolid(world, x - 1, y, z + 1))
-                    && (! isSolid(world, x, y - 1, z + 1))
-                    && (! isSolid(world, x + 1, y, z + 1))
-                    && (! isSolid(world, x, y + 1, z + 1))
+                    && (! isSolidOrCactus(world, x - 1, y, z + 1))
+                    && (! isSolidOrCactus(world, x, y - 1, z + 1))
+                    && (! isSolidOrCactus(world, x + 1, y, z + 1))
+                    && (! isSolidOrCactus(world, x, y + 1, z + 1))
                     && (! isFlooded(world, x, y, z));
         }
     },
@@ -115,7 +115,7 @@ public enum Category {
 
     abstract boolean isValidFoundation(MinecraftWorld world, int x, int y, int z);
 
-    protected final boolean isSolid(MinecraftWorld world, int x, int y, int z) {
+    protected final boolean isSolidOrCactus(MinecraftWorld world, int x, int y, int z) {
         Material material = world.getMaterialAt(x, y, z);
         return material.isNamed(MC_CACTUS) || (! material.veryInsubstantial);
     }

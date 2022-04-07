@@ -108,7 +108,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                             final Material objectMaterial = object.getMaterial(dx, dy, dz);
                             final Material finalMaterial = (replaceBlocks && (objectMaterial == replaceMaterial)) ? AIR : objectMaterial;
                             final int worldZ = z + dz + offset.z;
-                            if ((bottomless || obliterate) ? (worldZ < 0) : (worldZ < 1)) {
+                            if (worldZ < minHeight + (bottomless || obliterate ? 0 : 1)) {
                                 continue;
                             } else if (obliterate) {
                                 placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);

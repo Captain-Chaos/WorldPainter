@@ -26,6 +26,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import static java.lang.Math.max;
+import static java.util.Arrays.asList;
 import static org.pepsoft.worldpainter.layers.plants.Category.*;
 import static org.pepsoft.worldpainter.layers.plants.Plants.ALL_PLANTS;
 import static org.pepsoft.worldpainter.util.I18nHelper.m;
@@ -163,7 +164,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         panel.add(new JLabel("<html><b>" + m(category) + "</b></html>"), constraints);
         for (int i = 0; i < ALL_PLANTS.length; i++) {
             Plant plant = ALL_PLANTS[i];
-            if (plant.getCategory() == category) {
+            if (plant.getCategories()[0] == category) {
                 addPlantRow(panel, plant, i);
             }
         }
@@ -179,7 +180,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         for (Category category: categories) {
             for (int i = 0; i < ALL_PLANTS.length; i++) {
                 Plant plant = ALL_PLANTS[i];
-                if (plant.getCategory() == category) {
+                if (plant.getCategories()[0] == category) {
                     addPlantRow(panel, plant, i);
                 }
             }
@@ -324,7 +325,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
                     percentageLabels[i].setEnabled(true);
                     plantLabels[i].setFont(boldFont);
                 }
-                if (ALL_PLANTS[i].getCategory() == CROPS) {
+                if (asList(ALL_PLANTS[i].getCategories()).contains(CROPS)) {
                     cropsSelected = true;
                 }
                 int percentage = value * 100 / totalOccurrence;

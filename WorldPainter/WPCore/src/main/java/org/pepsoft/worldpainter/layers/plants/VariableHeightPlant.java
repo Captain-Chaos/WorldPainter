@@ -11,24 +11,24 @@ import java.util.Optional;
  * overridable methods so that subclasses can optionally manage them.
  */
 class VariableHeightPlant extends Plant {
-    VariableHeightPlant(String name, Material middleMaterial, Category category, int defaultHeight) {
+    VariableHeightPlant(String name, Material middleMaterial, int defaultHeight, Category... category) {
         this(name, category, "block/" + middleMaterial.simpleName + ".png", null, middleMaterial, null, defaultHeight, defaultHeight, null);
     }
 
-    VariableHeightPlant(String name, Material middleMaterial, Category category, String iconName, int defaultHeight) {
+    VariableHeightPlant(String name, Material middleMaterial, String iconName, int defaultHeight, Category... category) {
         this(name, category, iconName, null, middleMaterial, null, defaultHeight, defaultHeight, null);
     }
 
-    VariableHeightPlant(String name, Material middleMaterial, Material topMaterial, Category category, int defaultHeight) {
+    VariableHeightPlant(String name, Material middleMaterial, Material topMaterial, int defaultHeight, Category... category) {
         this(name, category, "block/" + topMaterial.simpleName + ".png", null, middleMaterial, topMaterial, defaultHeight, defaultHeight, null);
     }
 
-    VariableHeightPlant(String name, Material middleMaterial, Material topMaterial, Category category, String iconName, int defaultHeight) {
+    VariableHeightPlant(String name, Material middleMaterial, Material topMaterial, String iconName, int defaultHeight, Category... category) {
         this(name, category, iconName, null, middleMaterial, topMaterial, defaultHeight, defaultHeight, null);
     }
 
-    private VariableHeightPlant(String name, Category category, String iconName, Material bottomMaterial, Material middleMaterial, Material topMaterial, int defaultGrowth, int growth, Platform platform) {
-        super(name, middleMaterial, category, iconName);
+    private VariableHeightPlant(String name, Category[] categories, String iconName, Material bottomMaterial, Material middleMaterial, Material topMaterial, int defaultGrowth, int growth, Platform platform) {
+        super(name, middleMaterial, iconName, categories);
         this.bottomMaterial = bottomMaterial;
         this.topMaterial = topMaterial;
         this.defaultGrowth = defaultGrowth;
@@ -68,7 +68,7 @@ class VariableHeightPlant extends Plant {
 
     @Override
     public Plant realise(int growth, Platform platform) {
-        return new VariableHeightPlant(name, category, iconName, bottomMaterial, material, topMaterial, defaultGrowth, growth, platform);
+        return new VariableHeightPlant(name, categories, iconName, bottomMaterial, material, topMaterial, defaultGrowth, growth, platform);
     }
 
     Optional<Material> getBottomMaterial() {

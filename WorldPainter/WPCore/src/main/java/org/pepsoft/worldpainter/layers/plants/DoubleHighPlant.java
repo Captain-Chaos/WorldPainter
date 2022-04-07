@@ -23,7 +23,7 @@ final class DoubleHighPlant extends Plant {
      * @param category      The category of the plant.
      */
     DoubleHighPlant(String name, Material lowerMaterial, Category category) {
-        super(name, lowerMaterial, category, "block/" + lowerMaterial.simpleName + "_top.png");
+        super(name, lowerMaterial, "block/" + lowerMaterial.simpleName + "_top.png", category);
         platform = null;
     }
 
@@ -31,22 +31,21 @@ final class DoubleHighPlant extends Plant {
      * Create a new double high plant.
      *
      * @param name          The name of the plant.
-     * @param lowerMaterial The material of the lower block. The object will
-     *                      automatically provide the correct matching upper
-     *                      block for the type of plant and the platform.
-     * @param category      The category of the plant.
+     * @param lowerMaterial The material of the lower block. The object will automatically provide the correct matching
+     *                      upper block for the type of plant and the platform.
      * @param iconName      The name of the icon of the plant.
+     * @param category      The category of the plant.
      */
-    DoubleHighPlant(String name, Material lowerMaterial, Category category, String iconName) {
-        super(name, lowerMaterial, category, iconName);
+    DoubleHighPlant(String name, Material lowerMaterial, String iconName, Category category) {
+        super(name, lowerMaterial, iconName, category);
         platform = null;
     }
 
     /**
      * Copy constructor.
      */
-    private DoubleHighPlant(String name, Material lowerMaterial, Category category, String iconName, Platform platform) {
-        super(name, lowerMaterial, category, iconName);
+    private DoubleHighPlant(String name, Material lowerMaterial, Category[] categories, String iconName, Platform platform) {
+        super(name, lowerMaterial, iconName, categories);
         this.platform = platform;
     }
 
@@ -70,7 +69,7 @@ final class DoubleHighPlant extends Plant {
 
     @Override
     public DoubleHighPlant realise(int growth, Platform platform) {
-        return new DoubleHighPlant(name, material, category, iconName, platform);
+        return new DoubleHighPlant(name, material, categories, iconName, platform);
     }
 
     private final Platform platform;
