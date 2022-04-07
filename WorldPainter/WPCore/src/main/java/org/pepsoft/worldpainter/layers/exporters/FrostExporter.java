@@ -36,7 +36,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
         final boolean frostEverywhere = settings.isFrostEverywhere();
         final int mode = settings.getMode();
         final boolean snowUnderTrees = settings.isSnowUnderTrees();
-        final int maxHeight = dimension.getMaxHeight();
+        final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
         final Random random = new Random(); // Only used for random snow height, so it's not a big deal if it's different every time
         String customNoSnowOnIds = System.getProperty("org.pepsoft.worldpainter.noSnowOn");
         if ((customNoSnowOnIds != null) && (! customNoSnowOnIds.trim().isEmpty())) {
@@ -48,7 +48,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                     int highestNonAirBlock = minecraftWorld.getHighestNonAirBlock(x, y);
                     Material previousMaterial = (highestNonAirBlock == (maxHeight - 1)) ? minecraftWorld.getMaterialAt(x, y, maxHeight - 1) : AIR;
                     int leafBlocksEncountered = 0;
-                    for (int height = Math.min(highestNonAirBlock, maxHeight - 2); height >= 0; height--) {
+                    for (int height = Math.min(highestNonAirBlock, maxHeight - 2); height >= minHeight; height--) {
                         Material material = minecraftWorld.getMaterialAt(x, y, height);
                         if (material.isNamed(MC_WATER) && (material.getProperty(LAYERS, 0) == 0)) {
                             minecraftWorld.setMaterialAt(x, y, height, ICE);
@@ -61,19 +61,16 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                     minecraftWorld.setMaterialAt(x, y, height + 1, SNOW);
                                 }
                                 leafBlocksEncountered++;
-                                if ((!snowUnderTrees) && (leafBlocksEncountered > 1)) {
+                                if ((! snowUnderTrees) && (leafBlocksEncountered > 1)) {
                                     break;
                                 }
                             } else {
-                                // Obliterate tall grass, 'cause there is too
-                                // much of it, and leaving it in would look
-                                // strange. Also replace existing snow, as we
-                                // might want to place thicker snow
+                                // Obliterate tall grass, 'cause there is too much of it, and leaving it in would look
+                                // strange. Also replace existing snow, as we might want to place thicker snow
                                 if ((previousMaterial == AIR) || (previousMaterial == GRASS) || (previousMaterial == FERN) || (previousMaterial == SNOW)) {
                                     if ((mode == FrostSettings.MODE_SMOOTH_AT_ALL_ELEVATIONS)
                                             || (height == dimension.getIntHeightAt(x, y))) {
-                                        // Only vary the snow thickness if we're
-                                        // at surface height, otherwise it looks
+                                        // Only vary the snow thickness if we're at surface height, otherwise it looks
                                         // odd
                                         switch (mode) {
                                             case FrostSettings.MODE_FLAT:
