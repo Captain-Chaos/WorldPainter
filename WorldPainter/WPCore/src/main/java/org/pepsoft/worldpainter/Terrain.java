@@ -1109,19 +1109,25 @@ public enum Terrain {
                     graniteNoise.setSeed(seed + GRANITE_SEED_OFFSET);
                     dioriteNoise.setSeed(seed + DIORITE_SEED_OFFSET);
                     andesiteNoise.setSeed(seed + ANDESITE_SEED_OFFSET);
+                    RANDOM.setSeed(seed);
                 }
-                if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
-                    return (z >= 0) ? Material.GRANITE : Material.TUFF; // TODOMC118: make this more gradual
-                } else if(dioriteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > DIORITE_CHANCE) {
-                    return Material.DIORITE;
-                } else if(andesiteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > ANDESITE_CHANCE) {
-                    return Material.ANDESITE;
-                } else if (z >= 0) {
-                    return Material.STONE;
+                if (z >= -RANDOM.nextInt(5)) { // TODO this is not stable
+                    if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
+                        return Material.GRANITE;
+                    } else if(dioriteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > DIORITE_CHANCE) {
+                        return Material.DIORITE;
+                    } else if(andesiteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > ANDESITE_CHANCE) {
+                        return Material.ANDESITE;
+                    } else {
+                        return Material.STONE;
+                    }
                 } else {
-                    // TODOMC118 make this gradual
-                    // TODOMC118 also use X and Z orientations
-                    return Material.DEEPSLATE_Y;
+                    if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
+                        return Material.TUFF;
+                    } else {
+                        // TODOMC118 also use X and Z orientations
+                        return Material.DEEPSLATE_Y;
+                    }
                 }
             }
         }
@@ -1133,6 +1139,8 @@ public enum Terrain {
         private static final int GRANITE_SEED_OFFSET  = 145827825;
         private static final int DIORITE_SEED_OFFSET  =  59606124;
         private static final int ANDESITE_SEED_OFFSET =  87772192;
+
+        private final Random RANDOM = new Random();
     },
     CUSTOM_25("Custom 25",                                  "custom material twenty-five", BIOME_PLAINS) {
         @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
