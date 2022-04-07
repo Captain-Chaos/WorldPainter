@@ -67,13 +67,15 @@ public class JungleTree extends TreeType {
     }
 
     private void renderRoot(int x, int y, int height, int size, float angle, MinecraftWorld world, Random random) {
+        final int minHeight = world.getMinHeight();
         int h = Math.round(size / 5f);
-        Material capMaterial = getCapMaterial();
-        int i = 1, maxDepth = -1;
+        final Material capMaterial = getCapMaterial();
+        int i = 1;
+        int maxDepth = -1;
         int previousDx = Integer.MIN_VALUE, previousDy = Integer.MIN_VALUE;
         while (h > 0) {
-            int dx = (int) Math.round(Math.sin(angle) * i);
-            int dy = (int) Math.round(Math.cos(angle) * i);
+            final int dx = (int) Math.round(Math.sin(angle) * i);
+            final int dy = (int) Math.round(Math.cos(angle) * i);
             if ((dx == previousDx) && (dy == previousDy)) {
                 i++;
                 continue;
@@ -81,9 +83,9 @@ public class JungleTree extends TreeType {
                 previousDx = dx;
                 previousDy = dy;
             }
-            int worldX = x + dx, worldY = y + dy;
+            final int worldX = x + dx, worldY = y + dy;
             int depth = 0;
-            for (int z = height + h; z > 0; z--) {
+            for (int z = height + h; z > minHeight; z--) {
                 if (! world.getMaterialAt(worldX, worldY, z).veryInsubstantial) {
                     depth++;
                 }
@@ -173,6 +175,7 @@ public class JungleTree extends TreeType {
     protected void renderBranch(int x, int y, int height, int size, float angle, MinecraftWorld world, Random random) {
         int l = Math.round(size / 5f);
         Material branchMaterial, capMaterial;
+        // TODO migrate to modern materials
         if ((trunkMaterial.blockType == BLK_WOOD) || (trunkMaterial.blockType == BLK_WOOD2)) {
             branchMaterial = ((angle < (0.25 * Math.PI)) || ((angle > (0.75 * Math.PI)) && (angle < (1.25 * Math.PI))) || (angle > (1.75 * Math.PI)))
                 ? Material.get(trunkMaterial.blockType, (trunkMaterial.data & 0x3) | 0x8)
