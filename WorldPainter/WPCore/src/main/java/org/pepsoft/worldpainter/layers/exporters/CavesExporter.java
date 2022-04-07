@@ -38,7 +38,7 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
     @Override
     public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         final CavesSettings settings = (CavesSettings) getSettings();
-        final int minZ = Math.max(settings.getMinimumLevel(), dimension.isBottomless() ? 0 : 1),
+        final int minZ = Math.max(settings.getMinimumLevel(), dimension.getMinHeight() + (dimension.isBottomless() ? 0 : 1)),
                 maxZForWorld = Math.min(settings.getMaximumLevel(), minecraftWorld.getMaxHeight() - 1),
                 minimumLevel = settings.getCavesEverywhereLevel();
         final boolean surfaceBreaking = settings.isSurfaceBreaking();
@@ -167,15 +167,15 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
                     blockExcavated = true;
                 }
                 if (blockExcavated && removeFloatingBlocks && (radius - d <= 2)) {
-                    checkForFloatingBlock(world, x - 1, y, z, maxZ, settings);
-                    checkForFloatingBlock(world, x, y - 1, z, maxZ, settings);
-                    checkForFloatingBlock(world, x + 1, y, z, maxZ, settings);
-                    checkForFloatingBlock(world, x, y + 1, z, maxZ, settings);
+                    checkForFloatingBlock(world, x - 1, y, z, minZ, maxZ, settings);
+                    checkForFloatingBlock(world, x, y - 1, z, minZ, maxZ, settings);
+                    checkForFloatingBlock(world, x + 1, y, z, minZ, maxZ, settings);
+                    checkForFloatingBlock(world, x, y + 1, z, minZ, maxZ, settings);
                     if (z > 1) {
-                        checkForFloatingBlock(world, x, y, z - 1, maxZ, settings);
+                        checkForFloatingBlock(world, x, y, z - 1, minZ, maxZ, settings);
                     }
                     if (z < maxZ) {
-                        checkForFloatingBlock(world, x, y, z + 1, maxZ, settings);
+                        checkForFloatingBlock(world, x, y, z + 1, minZ, maxZ, settings);
                     }
                 }
             }
@@ -192,11 +192,11 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
     /**
      * Check if the indicated block is a "floating block" and if so remove it.
      */
-    static void checkForFloatingBlock(MinecraftWorld world, int x, int y, int z, int maxZ, CaveSettings settings) {
+    static void checkForFloatingBlock(MinecraftWorld world, int x, int y, int z, int minZ, int maxZ, CaveSettings settings) {
         Material material = world.getMaterialAt(x, y, z);
-        if (material.isNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_PODZOL, MC_FARMLAND, MC_GRASS_PATH, MC_SAND, MC_RED_SAND, MC_GRAVEL)) {
-            if (((z > 0) && (!world.getMaterialAt(x, y, z - 1).solid))
-                    && ((z <= maxZ) && (!world.getMaterialAt(x, y, z + 1).solid))) {
+        if (material.isNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_PODZOL, MC_FARMLAND, MC_GRASS_PATH, MC_DIRT_PATH, MC_SAND, MC_RED_SAND, MC_GRAVEL)) {
+            if (((z > minZ) && (! world.getMaterialAt(x, y, z - 1).solid))
+                    && ((z <= maxZ) && (! world.getMaterialAt(x, y, z + 1).solid))) {
                 // The block is only one layer thick
                 excavateBlock(world, x, y, z, settings);
                 // TODO: this isn't removing nearly all one-block thick dirt. Why?
@@ -206,7 +206,7 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
                     && (! world.getMaterialAt(x, y - 1, z).solid)
                     && (! world.getMaterialAt(x + 1, y, z).solid)
                     && (! world.getMaterialAt(x, y + 1, z).solid)
-                    && ((z > 0) && (! world.getMaterialAt(x, y, z - 1).solid))
+                    && ((z > minZ) && (! world.getMaterialAt(x, y, z - 1).solid))
                     && ((z <= maxZ) && (! world.getMaterialAt(x, y, z + 1).solid))) {
                 // The block is floating in the air
                 excavateBlock(world, x, y, z, settings);
