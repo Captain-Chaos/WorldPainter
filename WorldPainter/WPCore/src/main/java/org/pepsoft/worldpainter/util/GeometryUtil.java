@@ -131,7 +131,7 @@ public final class GeometryUtil {
     }
 
     /**
-     * Visit all the points in integer coordinate space inside a spherical volume in an floating point coordinate space
+     * Visit all the points in integer coordinate space inside a spherical volume in a floating point coordinate space
      * with a specified center. The order in which the points are visited is not defined. The visitor may abort the
      * process at any point by returning {@code false}.
      *
