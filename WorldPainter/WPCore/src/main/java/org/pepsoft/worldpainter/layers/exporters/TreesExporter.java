@@ -38,6 +38,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
         super(layer, new TreeLayerSettings<>(layer));
     }
     
+    @SuppressWarnings("unchecked") // Responsibility of caller
     @Override
     public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         TreeLayerSettings<T> settings = (TreeLayerSettings<T>) getSettings();
@@ -51,7 +52,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
                 // Set the seed and randomizer according to the chunk
                 // coordinates to make sure the chunk is always rendered the
                 // same, no matter how often it is rendererd
-                long seed = dimension.getSeed() + (chunkX >> 4) * 65537 + (chunkY >> 4) * 4099 + layer.hashCode();
+                long seed = dimension.getSeed() + (chunkX >> 4) * 65537L + (chunkY >> 4) * 4099L + layer.hashCode();
                 Random random = new Random(seed);
                 for (int x = chunkX; x < chunkX + 16; x++) {
                     for (int y = chunkY; y < chunkY + 16; y++) {
@@ -81,7 +82,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
                             // or extremely near
                             if (room(dimension, x, y, minecraftWorld)) {
                                 // Plant a tree
-                                renderTree(layer, x, y, height, strength, minecraftWorld, dimension, new Random(seed + x * 65537 + y), seed);
+                                renderTree(layer, x, y, height, strength, minecraftWorld, dimension, new Random(seed + x * 65537L + y), seed);
                             }
                         }
                     }
@@ -123,6 +124,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
         renderMushrooms(x, y, height, strength, minecraftWorld, random, seed);
     }
 
+    @SuppressWarnings("unchecked") // Responsibility of caller
     private void renderMushrooms(int blockInWorldX, int blockInWorldY, int height, int strength, MinecraftWorld minecraftWorld, Random random, long seed) {
         if (height > (minecraftWorld.getMaxHeight() - 2)) {
             return;
