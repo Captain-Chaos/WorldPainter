@@ -1861,7 +1861,9 @@ public final class Material implements Serializable {
      */
     public static final Material SWEET_BERRY_BUSH = get(MC_SWEET_BERRY_BUSH, MC_AGE, 0);
     public static final Material OAK_SIGN = get(MC_OAK_SIGN);
+    public static final Material DEEPSLATE_X = get(MC_DEEPSLATE, MC_AXIS, "x");
     public static final Material DEEPSLATE_Y = get(MC_DEEPSLATE, MC_AXIS, "y");
+    public static final Material DEEPSLATE_Z = get(MC_DEEPSLATE, MC_AXIS, "z");
     public static final Material DEEPSLATE_COAL_ORE = get(MC_DEEPSLATE_COAL_ORE);
     public static final Material DEEPSLATE_COPPER_ORE = get(MC_DEEPSLATE_COPPER_ORE);
     public static final Material DEEPSLATE_LAPIS_ORE = get(MC_DEEPSLATE_LAPIS_ORE);

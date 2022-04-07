@@ -1124,8 +1124,11 @@ public enum Terrain {
                 } else {
                     if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
                         return Material.TUFF;
+                    } else if(dioriteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > DIORITE_CHANCE) {
+                        return Material.DEEPSLATE_X;
+                    } else if(andesiteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > ANDESITE_CHANCE) {
+                        return Material.DEEPSLATE_Z;
                     } else {
-                        // TODOMC118 also use X and Z orientations
                         return Material.DEEPSLATE_Y;
                     }
                 }
