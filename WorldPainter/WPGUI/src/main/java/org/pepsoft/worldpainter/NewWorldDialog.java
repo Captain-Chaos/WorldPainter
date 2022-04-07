@@ -42,7 +42,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Arrays.stream;
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_END;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_NETHER;
 import static org.pepsoft.minecraft.Material.LAVA;
 import static org.pepsoft.minecraft.Material.WATER;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -345,14 +346,8 @@ public class NewWorldDialog extends WorldPainterDialog {
 
         final TileFactory tileFactory = createTileFactory(worldpainterSeed);
 
-        final int maxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
         final Dimension dimension;
-        if ((dim == DIM_NORMAL) || (dim == DIM_NORMAL_CEILING)) {
-            dimension = new Dimension(world, minecraftSeed, tileFactory, dim, platform.minZ, maxHeight);
-        } else {
-            // TODOMC118 evaluate and remove this temporary test measure
-            dimension = new Dimension(world, minecraftSeed, tileFactory, dim, Math.max(platform.minZ, 0), Math.min(DEFAULT_MAX_HEIGHT_ANVIL, maxHeight));
-       }
+        dimension = new Dimension(world, minecraftSeed, tileFactory, dim, tileFactory.getMinHeight(), tileFactory.getMaxHeight());
         dimension.setEventsInhibited(true);
         try {
             ExecutorService executorService = MDCThreadPoolExecutor.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -484,10 +479,10 @@ public class NewWorldDialog extends WorldPainterDialog {
             }
 
             if (dim == DIM_NORMAL_CEILING) {
-                ResourcesExporterSettings resourcesSettings = ResourcesExporterSettings.defaultSettings(platform, DIM_NORMAL, maxHeight);
+                ResourcesExporterSettings resourcesSettings = ResourcesExporterSettings.defaultSettings(platform, DIM_NORMAL, dimension.getMaxHeight());
                 // Invert min and max levels:
                 // TODOMC118 is this correct for platforms with minZ < 0?
-                int maxZ = maxHeight - 1;
+                int maxZ = dimension.getMaxHeight() - 1;
                 for (Material material: resourcesSettings.getMaterials()) {
                     int low = resourcesSettings.getMinLevel(material);
                     int high = resourcesSettings.getMaxLevel(material);
@@ -623,13 +618,22 @@ public class NewWorldDialog extends WorldPainterDialog {
         final double scale = ((Integer) spinnerScale.getValue()) / 100.0;
         final boolean floodWithLava = checkBoxLava.isSelected();
         final boolean beaches = checkBoxBeaches.isSelected();
-        final int minHeight, maxHeight;
-        if ((dim == DIM_NORMAL) || (dim == DIM_NORMAL_CEILING)) {
-            minHeight = platform.minZ;
-            maxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
-        } else {
-            minHeight = Math.max(platform.minZ, 0);
-            maxHeight = Math.min(DEFAULT_MAX_HEIGHT_ANVIL, (Integer) comboBoxMaxHeight.getSelectedItem());
+        final int minHeight;
+        int maxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
+        switch (dim) {
+            case DIM_NETHER:
+            case DIM_NETHER_CEILING:
+                minHeight = Math.max(platform.minZ, 0);
+                maxHeight = Math.min(maxHeight, DEFAULT_MAX_HEIGHT_NETHER);
+                break;
+            case DIM_END:
+            case DIM_END_CEILING:
+                minHeight = Math.max(platform.minZ, 0);
+                maxHeight = Math.min(maxHeight, DEFAULT_MAX_HEIGHT_END);
+                break;
+            default:
+                minHeight = platform.minZ;
+                break;
         }
 
         final HeightMapTileFactory tileFactory;
