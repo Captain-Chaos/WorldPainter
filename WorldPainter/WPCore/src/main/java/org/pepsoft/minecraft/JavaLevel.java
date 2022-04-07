@@ -115,9 +115,13 @@ public abstract class JavaLevel extends AbstractNBTItem {
                 dataVersion = ((IntTag) versionTag.getTag(TAG_ID)).getValue();
             }
         }
-        if ((version == VERSION_ANVIL) && (maxHeight != DEFAULT_MAX_HEIGHT_ANVIL) && (dataVersion < DATA_VERSION_MC_1_18_0)) {
-            enableDataPacks(DATAPACK_VANILLA, DATAPACK_WORLDPAINTER);
-            createDataPack(worldDir);
+        if (version == VERSION_ANVIL) {
+            if ((maxHeight != DEFAULT_MAX_HEIGHT_ANVIL) && (dataVersion > DATA_VERSION_MC_1_16_5) && (dataVersion <= DATA_VERSION_MC_1_17_1)) {
+                enableDataPacks(DATAPACK_VANILLA, DATAPACK_WORLDPAINTER);
+                createDataPack(worldDir);
+            } else if (dataVersion > DATA_VERSION_MC_1_16_5) {
+                enableDataPacks(DATAPACK_VANILLA);
+            }
         }
 
         // Write level.dat file
