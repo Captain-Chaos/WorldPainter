@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import static org.pepsoft.minecraft.Block.*;
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.minecraft.Material.*;
 
 /**
  * Helper class which can post process a fully rendered Minecraft 1.2 to 1.12.2
@@ -341,20 +340,14 @@ public class Java1_2PostProcessor extends PostProcessor {
             for (int x = x1; x <= x2; x++) {
                 for (int y = y1; y <= y2; y++) {
                     // Iterate over one column from bottom to top
-                    Material materialBelow = (minZ <= 0) ? AIR : minecraftWorld.getMaterialAt(x, y, minZ - 1);
-                    Material materialAbove = minecraftWorld.getMaterialAt(x, y, minZ);
                     final int columnMaxZ = Math.min(minecraftWorld.getHighestNonAirBlock(x, y), maxZ);
                     for (int z = minZ; z <= columnMaxZ; z++) {
-                        Material material = materialAbove;
-                        materialAbove = (z < worldMaxZ) ? minecraftWorld.getMaterialAt(x, y, z + 1) : AIR;
-                        if (flowWater && (material == STATIONARY_WATER) && (! isWaterContained(minecraftWorld, x, y, z, materialBelow))) {
-                            minecraftWorld.setMaterialAt(x, y, z, WATER);
-                            material = WATER;
-                        } else if (flowLava && (material == STATIONARY_LAVA) && (! isLavaContained(minecraftWorld, x, y, z, materialBelow))) {
-                            minecraftWorld.setMaterialAt(x, y, z, LAVA);
-                            material = LAVA;
+                        final int blockType = minecraftWorld.getBlockTypeAt(x, y, z);
+                        if (flowWater && (blockType == BLK_STATIONARY_WATER) && (! isWaterContained(minecraftWorld, x, y, z, minecraftWorld.getMaterialAt(x, y, z - 1)))) {
+                            minecraftWorld.setMaterialAt(x, y, z, Material.get(BLK_WATER, minecraftWorld.getDataAt(x, y, z)));
+                        } else if (flowLava && (blockType == BLK_STATIONARY_LAVA) && (! isLavaContained(minecraftWorld, x, y, z, minecraftWorld.getMaterialAt(x, y, z - 1)))) {
+                            minecraftWorld.setMaterialAt(x, y, z, Material.get(BLK_LAVA, minecraftWorld.getDataAt(x, y, z)));
                         }
-                        materialBelow = material;
                     }
                 }
                 if (progressReceiver != null) {

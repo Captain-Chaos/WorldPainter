@@ -1179,7 +1179,7 @@ public final class Material implements Serializable {
      * Get the full, non abreviated identity of this material as a string.
      */
     public String toFullString() {
-        return identity.toString() + ((blockType != -1) ? ("; id=" + blockType + "; data=" + data) : "");
+        return identity.toString() + ((blockType != -1) ? (" (id=" + blockType + "; data=" + data + ")") : "");
     }
 
     private Object readResolve() throws ObjectStreamException {
@@ -1589,6 +1589,9 @@ public final class Material implements Serializable {
     public static final Material FIRE = LEGACY_MATERIALS[(BLK_FIRE) << 4];
     public static final Material GLOWSTONE = LEGACY_MATERIALS[(BLK_GLOWSTONE) << 4];
     public static final Material SOUL_SAND = LEGACY_MATERIALS[(BLK_SOUL_SAND) << 4];
+    /**
+     * Lava that maps to flowing lava in Minecraft 1.12 and older. Minecraft 1.15+ does not make that distinction.
+     */
     public static final Material LAVA = LEGACY_MATERIALS[(BLK_LAVA) << 4];
     public static final Material NETHERRACK = LEGACY_MATERIALS[(BLK_NETHERRACK) << 4];
     public static final Material END_STONE = LEGACY_MATERIALS[BLK_END_STONE << 4];
@@ -1597,12 +1600,21 @@ public final class Material implements Serializable {
     public static final Material GRAVEL = LEGACY_MATERIALS[(BLK_GRAVEL) << 4];
     public static final Material REDSTONE_ORE = LEGACY_MATERIALS[(BLK_REDSTONE_ORE) << 4];
     public static final Material IRON_ORE = LEGACY_MATERIALS[(BLK_IRON_ORE) << 4];
+    /**
+     * Water that maps to flowing water in Minecraft 1.12 and older. Minecraft 1.15+ does not make that distinction.
+     */
     public static final Material WATER = LEGACY_MATERIALS[(BLK_WATER) << 4];
     public static final Material GOLD_ORE = LEGACY_MATERIALS[(BLK_GOLD_ORE) << 4];
     public static final Material LAPIS_LAZULI_ORE = LEGACY_MATERIALS[(BLK_LAPIS_LAZULI_ORE) << 4];
     public static final Material DIAMOND_ORE = LEGACY_MATERIALS[(BLK_DIAMOND_ORE) << 4];
     public static final Material BEDROCK = LEGACY_MATERIALS[(BLK_BEDROCK) << 4];
+    /**
+     * Water that maps to stationary water in Minecraft 1.12 and older. Minecraft 1.15+ does not make that distinction.
+     */
     public static final Material STATIONARY_WATER = LEGACY_MATERIALS[(BLK_STATIONARY_WATER) << 4];
+    /**
+     * Lava that maps to stationary lava in Minecraft 1.12 and older. Minecraft 1.15+ does not make that distinction.
+     */
     public static final Material STATIONARY_LAVA = LEGACY_MATERIALS[(BLK_STATIONARY_LAVA) << 4];
     public static final Material SNOW_BLOCK = LEGACY_MATERIALS[(BLK_SNOW_BLOCK) << 4];
     public static final Material SANDSTONE = LEGACY_MATERIALS[(BLK_SANDSTONE) << 4];
@@ -1753,7 +1765,6 @@ public final class Material implements Serializable {
     public static final Property<Integer>   ROTATION    = new Property<>(MC_ROTATION,    Integer.class);
     public static final Property<String>    SHAPE       = new Property<>(MC_SHAPE,       String.class);
     public static final Property<String>    HINGE       = new Property<>(MC_HINGE,       String.class);
-    public static final Property<Boolean>   FALLING     = new Property<>(MC_FALLING,     Boolean.class);
 
     // Modern materials (based on MC 1.13+ block names and properties)
 
@@ -1901,8 +1912,22 @@ public final class Material implements Serializable {
     public static final Material MOSS_CARPET = get(MC_MOSS_CARPET);
     public static final Material BIG_DRIPLEAF_STEM_SOUTH = get(MC_BIG_DRIPLEAF_STEM, MC_FACING, "south");
     public static final Material BIG_DRIPLEAF_SOUTH = get(MC_BIG_DRIPLEAF, MC_FACING, "south");
-    public static final Material FALLING_LAVA = get(MC_LAVA, MC_LEVEL, 8, MC_FALLING, true);
-    public static final Material FALLING_WATER = get(MC_WATER, MC_LEVEL, 8, MC_FALLING, true);
+    /**
+     * Lava that maps to sideways flowing, non-permanent lava in all Minecraft versions.
+     */
+    public static final Material FLOWING_LAVA = LEGACY_MATERIALS[(BLK_STATIONARY_LAVA << 4) | 2];
+    /**
+     * Water that maps to sideways flowing, non-permanent water in all Minecraft versions.
+     */
+    public static final Material FLOWING_WATER = LEGACY_MATERIALS[(BLK_STATIONARY_WATER << 4) | 1];
+    /**
+     * Lava that maps to falling, non-permanent lava in all Minecraft versions.
+     */
+    public static final Material FALLING_LAVA = LEGACY_MATERIALS[(BLK_STATIONARY_LAVA << 4) | 10];
+    /**
+     * Water that maps to falling, non-permanent water in all Minecraft versions.
+     */
+    public static final Material FALLING_WATER = LEGACY_MATERIALS[(BLK_STATIONARY_WATER << 4) | 9];
 
     // Namespaces
 

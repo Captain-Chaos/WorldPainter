@@ -95,18 +95,18 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
                         || isWaterAndNotVoid(dimension, minecraftWorld, x, y - 1, z)
                         || isWaterAndNotVoid(dimension, minecraftWorld, x + 1, y, z)
                         || isWaterAndNotVoid(dimension, minecraftWorld, x, y + 1, z)) {
-                    minecraftWorld.setMaterialAt(x, y, z, WATER.withProperty(LEVEL, 1));
+                    minecraftWorld.setMaterialAt(x, y, z, FLOWING_WATER);
                     for (z--; z >= minHeight; z--) {
-                        minecraftWorld.setMaterialAt( x, y, z, WATER.withProperty(LEVEL, 9));
+                        minecraftWorld.setMaterialAt( x, y, z, FALLING_WATER);
                     }
                     break;
                 } else if (isLavaAndNotVoid(dimension, minecraftWorld, x - 1, y, z)
                         || isLavaAndNotVoid(dimension, minecraftWorld, x, y - 1, z)
                         || isLavaAndNotVoid(dimension, minecraftWorld, x + 1, y, z)
                         || isLavaAndNotVoid(dimension, minecraftWorld, x, y + 1, z)) {
-                    minecraftWorld.setMaterialAt(x, y, z, LAVA.withProperty(LEVEL, 2));
+                    minecraftWorld.setMaterialAt(x, y, z, FLOWING_LAVA);
                     for (z--; z >= minHeight; z--) {
-                        minecraftWorld.setMaterialAt(x, y, z, LAVA.withProperty(LEVEL, 10));
+                        minecraftWorld.setMaterialAt(x, y, z, FALLING_LAVA);
                     }
                     break;
                 }

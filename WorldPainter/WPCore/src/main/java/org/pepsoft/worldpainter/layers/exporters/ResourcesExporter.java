@@ -365,31 +365,19 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                 settings.put(ANCIENT_DEBRIS, new ResourceSettings(ANCIENT_DEBRIS, -64, 319, 0, random.nextLong()));
             }
             version = 2;
-
-            // Not sure how, but the liquids are reverting to the stationary
-            // variants (something to do with the Minecraft 1.14 migration?).
-            // Just keep changing them back
-            if (settings.containsKey(STATIONARY_WATER)) {
-                settings.put(WATER, settings.get(STATIONARY_WATER));
-                settings.remove(STATIONARY_WATER);
-            }
-            if (settings.containsKey(STATIONARY_LAVA)) {
-                settings.put(LAVA, settings.get(STATIONARY_LAVA));
-                settings.remove(STATIONARY_LAVA);
-            }
         }
         
         private int minimumLevel = 8;
-        private Map<Material, ResourceSettings> settings = new LinkedHashMap<>();
+        private Map<Material, ResourceSettings> settings;
         /** @deprecated */
-        private Map<Integer, Integer> maxLevels = null;
+        @Deprecated private Map<Integer, Integer> maxLevels = null;
         /** @deprecated */
-        private Map<Integer, Integer> chances = null;
+        @Deprecated private Map<Integer, Integer> chances = null;
         /** @deprecated */
-        private Map<Integer, Long> seedOffsets = null;
+        @Deprecated private Map<Integer, Long> seedOffsets = null;
         /** @deprecated */
-        private Map<Integer, Integer> minLevels = null;
-        private int version = 1;
+        @Deprecated private Map<Integer, Integer> minLevels = null;
+        private int version = 2;
 
         private static final long serialVersionUID = 1L;
         private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ResourcesExporter.class);

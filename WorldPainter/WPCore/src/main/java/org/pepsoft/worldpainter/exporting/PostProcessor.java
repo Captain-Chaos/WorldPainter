@@ -95,7 +95,7 @@ public abstract class PostProcessor {
     }
 
     protected boolean isWaterContained(MinecraftWorld world, int x, int y, int z, Material materialBelow) {
-        if (containsWaterOrFallingWater(materialBelow)) {
+        if (containsAnyWater(materialBelow)) {
             // There is already water below
             return true;
         } else if ((! materialBelow.containsWater()) && (! materialBelow.solid)) {
@@ -105,15 +105,18 @@ public abstract class PostProcessor {
             // Check whether the water can flow sideways
             final Material materialNorth = world.getMaterialAt(x, y - 1, z), materialEast = world.getMaterialAt(x + 1, y, z),
                     materialSouth = world.getMaterialAt(x, y + 1, z), materialWest = world.getMaterialAt(x - 1, y, z);
-            return (containsWaterOrFallingWater(materialNorth) || materialNorth.solid)
-                    && (containsWaterOrFallingWater(materialEast) || materialEast.solid)
-                    && (containsWaterOrFallingWater(materialSouth) || materialSouth.solid)
-                    && (containsWaterOrFallingWater(materialWest) || materialWest.solid);
+            return (containsAnyWater(materialNorth) || materialNorth.solid)
+                    && (containsAnyWater(materialEast) || materialEast.solid)
+                    && (containsAnyWater(materialSouth) || materialSouth.solid)
+                    && (containsAnyWater(materialWest) || materialWest.solid);
         }
     }
 
-    private boolean containsWaterOrFallingWater(Material material) {
-        return material.containsWater() || (material.isNamed(MC_WATER) && material.is(FALLING));
+    /**
+     * Whether the material is any kind of water, including falling or flowing water (with a non zero level).
+     */
+    private boolean containsAnyWater(Material material) {
+        return material.containsWater() || material.isNamed(MC_WATER);
     }
 
     protected boolean isLavaContained(MinecraftWorld world, int x, int y, int z, Material materialBelow) {

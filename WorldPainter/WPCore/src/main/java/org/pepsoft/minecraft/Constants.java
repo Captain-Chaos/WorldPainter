@@ -572,7 +572,6 @@ public final class Constants {
     public static final String MC_HINGE       = "hinge";
     public static final String MC_LEAVES      = "leaves";
     public static final String MC_DOWN        = "down";
-    public static final String MC_FALLING     = "falling";
 
     // Minecraft NBT tag names. An underscore at the end signifies a lower case
     // initial
