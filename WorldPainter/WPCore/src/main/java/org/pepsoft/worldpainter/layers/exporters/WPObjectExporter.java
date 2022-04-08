@@ -206,7 +206,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      * @return {@code true} if the object could potentially be placeable
      *     and the caller can proceed with further checks.
      */
-    public static boolean isSane(WPObject object, int x, int y, int z, int maxHeight) {
+    public static boolean isSane(WPObject object, int x, int y, int z, int minHeight, int maxHeight) {
         final Point3i dimensions = object.getDimensions();
         final Point3i offset = object.getOffset();
         if ((((long) x + offset.x) < Integer.MIN_VALUE) || (((long) x + dimensions.x - 1 + offset.x) > Integer.MAX_VALUE)) {
@@ -221,7 +221,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             // The object is entirely above maxHeight
             return false;
         }
-        if (((long) z + dimensions.z - 1 + offset.z) < 0) {
+        if (((long) z + dimensions.z - 1 + offset.z) < minHeight) {
             // The object is entirely below bedrock
             return false;
         }
@@ -232,7 +232,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      * Checks block by block and taking the object's collision mode attributes
      * and other rules into account whether it can be placed at a particular
      * location. This is a slow operation, so use
-     * {@link #isSane(WPObject, int, int, int, int)} first to weed out objects
+     * {@link #isSane(WPObject, int, int, int, int, int)} first to weed out objects
      * for which this check does not even apply.
      *
      * @return {@code true} if the object may be placed at the specified
