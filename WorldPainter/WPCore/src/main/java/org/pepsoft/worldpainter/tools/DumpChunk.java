@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
+import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 
@@ -179,7 +180,7 @@ x:          for (int x = 0; x < 16; x++) {
                 }
                 System.out.println();
             }
-            materialsInSlice.forEach((tag, materials) -> System.out.println(tag + ": " + materials));
+            materialsInSlice.forEach((tag, materials) -> System.out.println(tag + ": " + materials.stream().map(Material::toFullString).collect(joining(", "))));
 
             for (Entity entity: entities) {
                 if ((entity.getPos()[1] >= y) && (entity.getPos()[1] < (y + 1))) {
