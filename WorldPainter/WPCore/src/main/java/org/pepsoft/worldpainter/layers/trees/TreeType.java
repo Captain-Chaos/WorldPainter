@@ -94,7 +94,8 @@ public abstract class TreeType implements Serializable {
             final String simpleName = material.simpleName;
             return simpleName.endsWith("_log")
                     || simpleName.endsWith("_bark")
-                    || simpleName.endsWith("_leaves");
+                    || simpleName.endsWith("_leaves")
+                    || simpleName.endsWith("_wood");
         } else {
             return false;
         }

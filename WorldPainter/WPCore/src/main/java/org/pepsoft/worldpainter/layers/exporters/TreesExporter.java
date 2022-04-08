@@ -115,6 +115,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
             && (height < (dimension.getMaxHeight() - 1))
             && (! minecraftWorld.getMaterialAt(x + dx, y + dy, height + 1).simpleName.endsWith("_log"))
             && (! minecraftWorld.getMaterialAt(x + dx, y + dy, height + 1).simpleName.endsWith("_bark"))
+            && (! minecraftWorld.getMaterialAt(x + dx, y + dy, height + 1).simpleName.endsWith("_wood"))
             && (dimension.getLayerValueAt(GardenCategory.INSTANCE, x + dx, y + dy) == GardenCategory.CATEGORY_UNOCCUPIED);
     }
 
