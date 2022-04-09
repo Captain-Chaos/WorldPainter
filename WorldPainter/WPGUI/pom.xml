@@ -46,21 +46,21 @@
         <!--<dependency>-->
             <!--<groupId>com.jidesoft</groupId>-->
             <!--<artifactId>jide-oss</artifactId>-->
-            <!--<version>3.7.12</version>-->
+            <!--<version>3.7.13</version>-->
         <!--</dependency>-->
         <dependency>
             <!-- Commercial product; you will need to download the evaluation version, or obtain a license to use JIDE
                  (an open source license is free). -->
             <groupId>com.jidesoft</groupId>
             <artifactId>jide-common</artifactId>
-            <version>3.7.12</version>
+            <version>3.7.13</version>
         </dependency>
         <dependency>
             <!-- Commercial product; you will need to download the evaluation version, or obtain a license to use JIDE
                  (an open source license is free). -->
             <groupId>com.jidesoft</groupId>
             <artifactId>jide-dock</artifactId>
-            <version>3.7.12</version>
+            <version>3.7.13</version>
         </dependency>
         <dependency>
             <!-- Commercial product; you will need to download the evaluation version, or obtain a license to use JIDE
@@ -68,7 +68,7 @@
                  work correctly. -->
             <groupId>com.jidesoft</groupId>
             <artifactId>jide-plaf-jdk7</artifactId>
-            <version>3.7.12</version>
+            <version>3.7.13</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -95,28 +95,28 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.32</version>
+            <version>1.7.36</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.6</version>
+            <version>1.2.11</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
-            <version>1.7.32</version>
+            <version>1.7.36</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
-            <version>1.7.32</version>
+            <version>1.7.36</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-to-slf4j</artifactId>
-            <version>2.14.1</version>
+            <version>2.17.2</version>
             <scope>runtime</scope>
         </dependency>
 
