@@ -22,6 +22,7 @@ import java.util.Set;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
 import static org.pepsoft.worldpainter.Terrain.BEACHES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
 
@@ -150,7 +151,7 @@ public class BorderChunkFactory {
             }
         }
 
-        result.chunk.setTerrainPopulated(true);
+        result.chunk.setTerrainPopulated(platform.capabilities.contains(POPULATE) && (dimension.isPopulate()));
         result.stats.surfaceArea = 256;
         if ((border == Border.WATER) || (border == Border.LAVA)) {
             result.stats.waterArea = 256;
