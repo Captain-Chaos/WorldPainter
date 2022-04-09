@@ -104,6 +104,11 @@ public class Java1_15PostProcessor extends PostProcessor {
                         // be dirt
                         minecraftWorld.setMaterialAt(x, y, z - 1, DIRT);
                         materialBelow = DIRT;
+                    } else if (((materialBelow.isNamedOneOf(MC_WARPED_NYLIUM, MC_CRIMSON_NYLIUM)))
+                            && (material.opaque)) {
+                        // Covered nylium should be netherrack
+                        minecraftWorld.setMaterialAt(x, y, z - 1, NETHERRACK);
+                        materialBelow = NETHERRACK;
                     }
                     if (materialBelow.hasPropertySnowy) {
                         // The material below has a "snowy" property, so make sure it is set correctly
