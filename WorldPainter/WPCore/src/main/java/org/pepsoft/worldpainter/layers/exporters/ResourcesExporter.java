@@ -252,8 +252,8 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                     settings.put(LAPIS_LAZULI_ORE, new ResourceSettings(LAPIS_LAZULI_ORE, platform.minZ,            31,  1,     random.nextLong()));
                     settings.put(DIAMOND_ORE,      new ResourceSettings(DIAMOND_ORE,      platform.minZ,            15,  1,     random.nextLong()));
                     settings.put(REDSTONE_ORE,     new ResourceSettings(REDSTONE_ORE,     platform.minZ,            15,  8,     random.nextLong()));
-                    settings.put(WATER,            new ResourceSettings(WATER,            platform.minZ, maxHeight - 1,  1,     random.nextLong()));
-                    settings.put(LAVA,             new ResourceSettings(LAVA,             platform.minZ,            15,  2,     random.nextLong()));
+                    settings.put(STATIONARY_WATER, new ResourceSettings(STATIONARY_WATER, platform.minZ, maxHeight - 1,  1,     random.nextLong()));
+                    settings.put(STATIONARY_LAVA,  new ResourceSettings(STATIONARY_LAVA,  platform.minZ,            15,  2,     random.nextLong()));
                     settings.put(EMERALD_ORE,      new ResourceSettings(EMERALD_ORE,      64,            maxHeight - 1, (platform != JAVA_MCREGION) ?
                                                                                                                          1 : 0, random.nextLong()));
                     settings.put(COPPER_ORE,       new ResourceSettings(COPPER_ORE,       0,             88,           ((platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) ?
@@ -277,8 +277,8 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                     settings.put(LAPIS_LAZULI_ORE, new ResourceSettings(LAPIS_LAZULI_ORE, platform.minZ,            31, 0, random.nextLong()));
                     settings.put(DIAMOND_ORE,      new ResourceSettings(DIAMOND_ORE,      platform.minZ,            15, 0, random.nextLong()));
                     settings.put(REDSTONE_ORE,     new ResourceSettings(REDSTONE_ORE,     platform.minZ,            15, 0, random.nextLong()));
-                    settings.put(WATER,            new ResourceSettings(WATER,            platform.minZ, maxHeight - 1, 0, random.nextLong()));
-                    settings.put(LAVA,             new ResourceSettings(LAVA,             platform.minZ,            15, 0, random.nextLong()));
+                    settings.put(STATIONARY_WATER, new ResourceSettings(STATIONARY_WATER, platform.minZ, maxHeight - 1, 0, random.nextLong()));
+                    settings.put(STATIONARY_LAVA,  new ResourceSettings(STATIONARY_LAVA,  platform.minZ,            15, 0, random.nextLong()));
                     settings.put(EMERALD_ORE,      new ResourceSettings(EMERALD_ORE,      64,            maxHeight - 1, 0, random.nextLong()));
                     settings.put(COPPER_ORE,       new ResourceSettings(COPPER_ORE,       0,             88,            0, random.nextLong()));
                     break;
@@ -291,8 +291,8 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                     settings.put(LAPIS_LAZULI_ORE, new ResourceSettings(LAPIS_LAZULI_ORE, platform.minZ,            31, 0, random.nextLong()));
                     settings.put(DIAMOND_ORE,      new ResourceSettings(DIAMOND_ORE,      platform.minZ,            15, 0, random.nextLong()));
                     settings.put(REDSTONE_ORE,     new ResourceSettings(REDSTONE_ORE,     platform.minZ,            15, 0, random.nextLong()));
-                    settings.put(WATER,            new ResourceSettings(WATER,            platform.minZ, maxHeight - 1, 0, random.nextLong()));
-                    settings.put(LAVA,             new ResourceSettings(LAVA,             platform.minZ,            15, 0, random.nextLong()));
+                    settings.put(STATIONARY_WATER, new ResourceSettings(STATIONARY_WATER, platform.minZ, maxHeight - 1, 0, random.nextLong()));
+                    settings.put(STATIONARY_LAVA,  new ResourceSettings(STATIONARY_LAVA,  platform.minZ,            15, 0, random.nextLong()));
                     settings.put(EMERALD_ORE,      new ResourceSettings(EMERALD_ORE,      64,            maxHeight - 1, 0, random.nextLong()));
                     settings.put(COPPER_ORE,       new ResourceSettings(COPPER_ORE,       0,             88,            0, random.nextLong()));
                     settings.put(QUARTZ_ORE,       new ResourceSettings(QUARTZ_ORE,       platform.minZ, maxHeight - 1, 0, random.nextLong()));
@@ -364,7 +364,17 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                 settings.put(COPPER_ORE,     new ResourceSettings(COPPER_ORE,       0,  88, 0, random.nextLong()));
                 settings.put(ANCIENT_DEBRIS, new ResourceSettings(ANCIENT_DEBRIS, -64, 319, 0, random.nextLong()));
             }
-            version = 2;
+            if (version < 3) {
+                if (settings.containsKey(WATER)) {
+                    settings.put(STATIONARY_WATER, settings.get(WATER));
+                    settings.remove(WATER);
+                }
+                if (settings.containsKey(LAVA)) {
+                    settings.put(STATIONARY_LAVA, settings.get(LAVA));
+                    settings.remove(LAVA);
+                }
+            }
+            version = 3;
         }
         
         private int minimumLevel = 8;
@@ -377,7 +387,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
         @Deprecated private Map<Integer, Long> seedOffsets = null;
         /** @deprecated */
         @Deprecated private Map<Integer, Integer> minLevels = null;
-        private int version = 2;
+        private int version = 3;
 
         private static final long serialVersionUID = 1L;
         private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ResourcesExporter.class);

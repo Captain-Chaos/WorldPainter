@@ -52,7 +52,7 @@ public abstract class PostProcessor {
      */
     public abstract void postProcess(MinecraftWorld minecraftWorld, Box volume, ExportSettings exportSettings, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled;
 
-    protected void dropBlock(MinecraftWorld world, int x, int y, int z) {
+    protected final void dropBlock(MinecraftWorld world, int x, int y, int z) {
         final int minZ = world.getMinHeight();
         int solidFloor = z - 1;
         for (; solidFloor > minZ; solidFloor--) {
@@ -75,7 +75,7 @@ public abstract class PostProcessor {
         }
     }
 
-    protected void dropFluid(MinecraftWorld world, int x, int y, int z) {
+    protected final void dropFluid(MinecraftWorld world, int x, int y, int z) {
         final int minZ = world.getMinHeight();
         final boolean lava = world.getMaterialAt(x, y, z).isNamed(MC_LAVA);
         int solidFloor = z - 1;
@@ -94,7 +94,7 @@ public abstract class PostProcessor {
         }
     }
 
-    protected boolean isWaterContained(MinecraftWorld world, int x, int y, int z, Material materialBelow) {
+    protected final boolean isWaterContained(MinecraftWorld world, int x, int y, int z, Material materialBelow) {
         if (containsAnyWater(materialBelow)) {
             // There is already water below
             return true;
@@ -115,11 +115,11 @@ public abstract class PostProcessor {
     /**
      * Whether the material is any kind of water, including falling or flowing water (with a non zero level).
      */
-    private boolean containsAnyWater(Material material) {
+    protected final boolean containsAnyWater(Material material) {
         return material.containsWater() || material.isNamed(MC_WATER);
     }
 
-    protected boolean isLavaContained(MinecraftWorld world, int x, int y, int z, Material materialBelow) {
+    protected final boolean isLavaContained(MinecraftWorld world, int x, int y, int z, Material materialBelow) {
         if (materialBelow.isNamed(MC_LAVA)) {
             // There is already lava below
             return true;

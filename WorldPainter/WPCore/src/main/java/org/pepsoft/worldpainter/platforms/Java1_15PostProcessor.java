@@ -372,10 +372,11 @@ public class Java1_15PostProcessor extends PostProcessor {
                     Material materialBelow = (minZ <= worldMinZ) ? AIR : minecraftWorld.getMaterialAt(x, y, minZ - 1);
                     Material materialAbove = minecraftWorld.getMaterialAt(x, y, minZ);
                     final int columnMaxZ = Math.min(minecraftWorld.getHighestNonAirBlock(x, y), maxZ);
-                    for (int z = minZ; z <= columnMaxZ; z++) {
+                    // Water at the lowest level can always flow down into the void, so skip that level:
+                    for (int z = minZ + 1; z <= columnMaxZ; z++) {
                         Material material = materialAbove;
                         materialAbove = (z < worldMaxZ) ? minecraftWorld.getMaterialAt(x, y, z + 1) : AIR;
-                        if (flowWater && material.containsWater() && (! isWaterContained(minecraftWorld, x, y, z, materialBelow))) {
+                        if (flowWater && containsAnyWater(material) && (! isWaterContained(minecraftWorld, x, y, z, materialBelow))) {
                             minecraftWorld.markForUpdateWorld(x, y, z);
                         } else if (flowLava && material.isNamed(MC_LAVA) && (! isLavaContained(minecraftWorld, x, y, z, materialBelow))) {
                             minecraftWorld.markForUpdateWorld(x, y, z);

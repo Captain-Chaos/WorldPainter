@@ -8,7 +8,8 @@ import org.pepsoft.worldpainter.layers.Layer;
 
 import java.util.Random;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Constants.MC_LAVA;
+import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.*;
 
 /**
@@ -31,7 +32,7 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
         super(layer);
     }
 
-    protected void setupForColumn(long seed, Tile tile, int maxY, int waterLevel, boolean glassCeiling, boolean surfaceBreaking, boolean leaveWater, boolean floodWithLava) {
+    protected final void setupForColumn(long seed, Tile tile, int maxY, int waterLevel, boolean glassCeiling, boolean surfaceBreaking, boolean leaveWater, boolean floodWithLava) {
         State state = new State();
         state.seed = seed;
         state.tile = tile;
@@ -44,19 +45,25 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
         STATE_HOLDER.set(state);
     }
 
-    protected void emptyBlockEncountered() {
+    protected final void resetColumn() {
+        final State state = STATE_HOLDER.get();
+        state.breachedCeiling = false;
+        state.previousBlockInCavern = false;
+    }
+
+    protected final void emptyBlockEncountered() {
         State state = STATE_HOLDER.get();
         state.breachedCeiling = true;
         state.previousBlockInCavern = true;
     }
 
-    protected void processBlock(Chunk chunk, int x, int y, int z, boolean excavate) {
-        State state = STATE_HOLDER.get();
+    protected final void processBlock(Chunk chunk, int x, int y, int z, boolean excavate) {
+        final State state = STATE_HOLDER.get();
         if (excavate) {
             // In a cavern
             if ((! state.breachedCeiling) && (y < state.maxY)) {
                 if (state.glassCeiling) {
-                    int terrainheight = state.tile.getIntHeight(x, z);
+                    final int terrainheight = state.tile.getIntHeight(x, z);
                     for (int yy = y + 1; yy <= terrainheight; yy++) {
                         chunk.setMaterial(x, yy, z, GLASS);
                     }
@@ -64,52 +71,19 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
                 if (state.surfaceBreaking) {
                     final Material blockAbove = chunk.getMaterial(x, y + 1, z);
                     if (! state.leaveWater) {
+                        final int terrainheight = state.tile.getIntHeight(x, z);
                         if (blockAbove.isNamed(MC_WATER)) {
-                            for (int yy = y + 1; yy <= state.maxY; yy++) {
-                                final Material block = chunk.getMaterial(x, yy, z);
-                                if (block.isNamed(MC_WATER)) {
+                            for (int yy = y + 1; yy <= terrainheight; yy++) {
+                                if (chunk.getMaterial(x, yy, z).isNamed(MC_WATER)) {
                                     chunk.setMaterial(x, yy, z, AIR);
-                                    // Set the surrounding water, if
-                                    // any, to non-stationary, so that
-                                    // it will flow into the cavern
-                                    // TODOMC13: migrate to modern materials:
-                                    if ((x > 0) && (chunk.getMaterial(x - 1, yy, z).blockType == BLK_STATIONARY_WATER)) {
-                                        chunk.setMaterial(x - 1, yy, z, WATER);
-                                    }
-                                    if ((x < 15) && (chunk.getMaterial(x + 1, yy, z).blockType == BLK_STATIONARY_WATER)) {
-                                        chunk.setMaterial(x + 1, yy, z, WATER);
-                                    }
-                                    if ((z > 0) && (chunk.getMaterial(x, yy, z - 1).blockType == BLK_STATIONARY_WATER)) {
-                                        chunk.setMaterial(x, yy, z - 1, WATER);
-                                    }
-                                    if ((z < 15) && (chunk.getMaterial(x, yy, z + 1).blockType == BLK_STATIONARY_WATER)) {
-                                        chunk.setMaterial(x, yy, z + 1, WATER);
-                                    }
                                 } else {
                                     break;
                                 }
                             }
                         } else if (blockAbove.isNamed(MC_LAVA)) {
-                            for (int yy = y + 1; yy <= state.maxY; yy++) {
-                                final Material block = chunk.getMaterial(x, yy, z);
-                                if (block.isNamed(MC_LAVA)) {
+                            for (int yy = y + 1; yy <= terrainheight; yy++) {
+                                if (chunk.getMaterial(x, yy, z).isNamed(MC_LAVA)) {
                                     chunk.setMaterial(x, yy, z, AIR);
-                                    // Set the surrounding water, if
-                                    // any, to non-stationary, so that
-                                    // it will flow into the cavern
-                                    // TODOMC13: migrate to modern materials:
-                                    if ((x > 0) && (chunk.getMaterial(x - 1, yy, z).blockType == BLK_STATIONARY_LAVA)) {
-                                        chunk.setMaterial(x - 1, yy, z, LAVA);
-                                    }
-                                    if ((x < 15) && (chunk.getMaterial(x + 1, yy, z).blockType == BLK_STATIONARY_LAVA)) {
-                                        chunk.setMaterial(x + 1, yy, z, LAVA);
-                                    }
-                                    if ((z > 0) && (chunk.getMaterial(x, yy, z - 1).blockType == BLK_STATIONARY_LAVA)) {
-                                        chunk.setMaterial(x, yy, z - 1, LAVA);
-                                    }
-                                    if ((z < 15) && (chunk.getMaterial(x, yy, z + 1).blockType == BLK_STATIONARY_LAVA)) {
-                                        chunk.setMaterial(x, yy, z + 1, LAVA);
-                                    }
                                 } else {
                                     break;
                                 }

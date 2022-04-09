@@ -213,10 +213,10 @@ public enum Terrain {
 
         private static final int STONE_SEED_OFFSET = 188434540;
     },
-    WATER("Water", BLK_WATER, BLK_WATER, "flowing water", BIOME_RIVER),
-    LAVA("Lava", BLK_LAVA, BLK_LAVA, "flowing lava", BIOME_PLAINS),
+    WATER("Water", STATIONARY_WATER, STATIONARY_WATER, "[DEPRECATED] water instead of terrain", BIOME_RIVER),
+    LAVA("Lava", STATIONARY_LAVA, STATIONARY_LAVA, "[DEPRECATED] lava instead of terrain", BIOME_PLAINS),
     @Deprecated
-    SNOW("Snow on Rock", "a thin layer of snow on a mix of stone and cobblestone", BIOME_ICE_PLAINS, 1) {
+    SNOW("Snow on Rock", "[DEPRECATED] a thin layer of snow on a mix of stone and cobblestone", BIOME_ICE_PLAINS, 1) {
         @Override
         public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
             final int dz = z - height;

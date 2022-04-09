@@ -341,11 +341,13 @@ public class Java1_2PostProcessor extends PostProcessor {
                 for (int y = y1; y <= y2; y++) {
                     // Iterate over one column from bottom to top
                     final int columnMaxZ = Math.min(minecraftWorld.getHighestNonAirBlock(x, y), maxZ);
-                    for (int z = minZ; z <= columnMaxZ; z++) {
+                    // Water at the lowest level can always flow down into the void, so skip that level:
+                    for (int z = minZ + 1; z <= columnMaxZ; z++) {
                         final int blockType = minecraftWorld.getBlockTypeAt(x, y, z);
-                        if (flowWater && (blockType == BLK_STATIONARY_WATER) && (! isWaterContained(minecraftWorld, x, y, z, minecraftWorld.getMaterialAt(x, y, z - 1)))) {
+                        final Material materialBelow = (z > minZ) ? minecraftWorld.getMaterialAt(x, y, z - 1) : Material.AIR;
+                        if (flowWater && (blockType == BLK_STATIONARY_WATER) && (! isWaterContained(minecraftWorld, x, y, z, materialBelow))) {
                             minecraftWorld.setMaterialAt(x, y, z, Material.get(BLK_WATER, minecraftWorld.getDataAt(x, y, z)));
-                        } else if (flowLava && (blockType == BLK_STATIONARY_LAVA) && (! isLavaContained(minecraftWorld, x, y, z, minecraftWorld.getMaterialAt(x, y, z - 1)))) {
+                        } else if (flowLava && (blockType == BLK_STATIONARY_LAVA) && (! isLavaContained(minecraftWorld, x, y, z, materialBelow))) {
                             minecraftWorld.setMaterialAt(x, y, z, Material.get(BLK_LAVA, minecraftWorld.getDataAt(x, y, z)));
                         }
                     }
