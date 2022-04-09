@@ -17,7 +17,6 @@ import java.util.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
@@ -139,7 +138,7 @@ public final class Material implements Serializable {
 
         if (namespace != null) {
             ALL_NAMESPACES.add(namespace);
-            SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, name -> new HashSet<>(singleton(name))).add(simpleName);
+            SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, s -> new HashSet<>()).add(simpleName);
         }
         if (! DEFAULT_MATERIALS_BY_NAME.containsKey(identity.name)) {
             DEFAULT_MATERIALS_BY_NAME.put(identity.name, this);
@@ -269,7 +268,7 @@ public final class Material implements Serializable {
         canSupportSnow = determineCanSupportSnow();
 
         ALL_NAMESPACES.add(namespace);
-        SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, name -> new HashSet<>(singleton(name))).add(simpleName);
+        SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, s -> new HashSet<>()).add(simpleName);
         if (! DEFAULT_MATERIALS_BY_NAME.containsKey(name)) {
             DEFAULT_MATERIALS_BY_NAME.put(name, this);
         }
