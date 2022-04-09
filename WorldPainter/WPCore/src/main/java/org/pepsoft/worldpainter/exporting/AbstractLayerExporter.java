@@ -68,15 +68,15 @@ public abstract class AbstractLayerExporter<L extends Layer> implements LayerExp
     }
 
     /**
-     * Visits the chunks in a particular rectangular area and containing a particular layer for editing. The chunks are
-     * lazily loaded. The visitor can abort the process by returning {@code false}.
+     * Visits the existent chunks in a particular rectangular area, and containing a particular layer, for editing. The
+     * chunks are lazily loaded. The visitor can abort the process by returning {@code false}.
      *
      * @param dimension The dimension in which to check which tiles contain the layer.
-     * @param world     The {@link MinecraftWorld} in which to visit the chunks.
+     * @param world     The {@link MinecraftWorld} in which to visit the existent chunks.
      * @param layer     The layer to which to constrain the visited tiles.
      * @param area      The area in block coordinates in which to visit the chunks.
-     * @param visitor   The visitor to invoke for each chunk that is in the specified area, and which is on a tile
-     *                  containing the specified layer.
+     * @param visitor   The visitor to invoke for each existing chunk that is in the specified area, and which is on a
+     *                  tile containing the specified layer.
      * @return {@code true} is all chunks were visited, {@code false} if the visitor returned {@code false}.
      */
     protected final boolean visitChunksForLayerInAreaForEditing(MinecraftWorld world, Layer layer, Rectangle area, Dimension dimension, ChunksInTilesVisitor visitor) {
@@ -92,6 +92,7 @@ public abstract class AbstractLayerExporter<L extends Layer> implements LayerExp
                             final int chunkX = (tileX << 3) | chunkXInTile, chunkZ = (tileY << 3) | chunkYInTile;
                             if ((chunkX >= chunkX1) && (chunkX <= chunkX2)
                                     && (chunkZ >= chunkZ1) && (chunkZ <= chunkZ2)
+                                    && (world.isChunkPresent(chunkX, chunkZ))
                                     && (! visitor.visitChunk(tile, chunkX, chunkZ, () -> world.getChunkForEditing(chunkX, chunkZ)))) {
                                 return false;
                             }
