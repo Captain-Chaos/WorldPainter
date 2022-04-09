@@ -110,6 +110,7 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Fir
                 if (glassCeiling) {
                     chunk.setHeight(x, z, 1);
                 }
+                resetColumn();
             }
         }
     }

@@ -89,6 +89,7 @@ public class CavernsExporter extends AbstractCavesExporter<Caverns> implements F
                 if (glassCeiling) {
                     chunk.setHeight(x, z, 1);
                 }
+                resetColumn();
             }
         }
     }
