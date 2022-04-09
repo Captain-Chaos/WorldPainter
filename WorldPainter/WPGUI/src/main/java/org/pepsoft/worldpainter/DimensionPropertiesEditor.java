@@ -717,7 +717,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         checkBoxCavesBreakSurface.setSelected(cavesSettings.isSurfaceBreaking());
         ((SpinnerNumberModel) spinnerCavesMinLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerCavesMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerCavesMinLevel.setValue(cavesSettings.getMinimumLevel());
+        spinnerCavesMinLevel.setValue(Math.max(cavesSettings.getMinimumLevel(), minHeight));
         ((SpinnerNumberModel) spinnerCavesMaxLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerCavesMaxLevel.getModel()).setMaximum(maxHeight);
         spinnerCavesMaxLevel.setValue(Math.min(cavesSettings.getMaximumLevel(), maxHeight));
@@ -736,7 +736,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         }
         ((SpinnerNumberModel) spinnerCavernsFloodLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerCavernsFloodLevel.getModel()).setMaximum(maxHeight);
-        if (cavernsSettings.getWaterLevel() > 0) {
+        if (cavernsSettings.getWaterLevel() > minHeight) {
             checkBoxFloodCaverns.setSelected(true);
             spinnerCavernsFloodLevel.setValue(cavernsSettings.getWaterLevel());
         } else {
@@ -748,7 +748,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         checkBoxCavernsRemoveWater.setSelected(! cavernsSettings.isLeaveWater());
         ((SpinnerNumberModel) spinnerCavernsMinLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerCavernsMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerCavernsMinLevel.setValue(cavernsSettings.getMinimumLevel());
+        spinnerCavernsMinLevel.setValue(Math.max(cavernsSettings.getMinimumLevel(), minHeight));
         ((SpinnerNumberModel) spinnerCavernsMaxLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerCavernsMaxLevel.getModel()).setMaximum(maxHeight);
         spinnerCavernsMaxLevel.setValue(Math.min(cavernsSettings.getMaximumLevel(), maxHeight));
@@ -768,7 +768,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         checkBoxChasmsBreakSurface.setSelected(chasmsSettings.isSurfaceBreaking());
         ((SpinnerNumberModel) spinnerChasmsMinLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerChasmsMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerChasmsMinLevel.setValue(chasmsSettings.getMinimumLevel());
+        spinnerChasmsMinLevel.setValue(Math.max(chasmsSettings.getMinimumLevel(), minHeight));
         ((SpinnerNumberModel) spinnerChasmsMaxLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerChasmsMaxLevel.getModel()).setMaximum(maxHeight);
         spinnerChasmsMaxLevel.setValue(Math.min(chasmsSettings.getMaximumLevel(), maxHeight));
