@@ -109,6 +109,7 @@ import static org.pepsoft.util.GUIUtils.getUIScaleInt;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.ProgressDialog.NO_FOCUS_STEALING;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.Terrain.*;
@@ -5234,6 +5235,7 @@ public final class App extends JFrame implements RadiusControl,
             layerControls.get(Populate.INSTANCE).setEnabled(true);
         }
         biomesPanel.loadBiomes(platform, selectedColourScheme);
+        extendedBlockIdsMenuItem.setEnabled((! platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION));
     }
 
     private void addMaterialSelectionTo(final JToggleButton button, final int customMaterialIndex) {

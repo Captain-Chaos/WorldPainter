@@ -551,7 +551,7 @@ public class NewWorldDialog extends WorldPainterDialog {
 
     private void setControlStates() {
         boolean surfaceDimension = dim == DIM_NORMAL;
-        checkBoxExtendedBlockIds.setEnabled(platform != JAVA_MCREGION);
+        checkBoxExtendedBlockIds.setEnabled((! platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION));
         boolean hilly = radioButtonHilly.isSelected();
         spinnerRange.setEnabled(hilly);
         spinnerScale.setEnabled(hilly);
@@ -741,10 +741,6 @@ public class NewWorldDialog extends WorldPainterDialog {
         }
         comboBoxMaxHeight.setEnabled(platform.maxHeights.length > 1);
         maxHeightChanged(true);
-
-        if ((platform == JAVA_MCREGION)) {
-            checkBoxExtendedBlockIds.setSelected(false);
-        }
 
         setControlStates();
     }
