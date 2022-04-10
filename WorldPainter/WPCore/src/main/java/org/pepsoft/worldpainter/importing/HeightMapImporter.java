@@ -169,7 +169,9 @@ public class HeightMapImporter {
                             if (onlyRaise && (! tileIsNew)) {
                                 if (height > tile.getHeight(x, y)) {
                                     tile.setHeight(x, y, height);
-                                    tileFactory.applyTheme(tile, x, y);
+                                    if (theme != null) {
+                                        theme.apply(tile, x, y);
+                                    }
                                 }
                             } else {
                                 tile.setHeight(x, y, height);
@@ -177,7 +179,9 @@ public class HeightMapImporter {
                                 if (useVoidBelow && (imageLevel < voidBelowLevel)) {
                                     tile.setBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y, true);
                                 }
-                                tileFactory.applyTheme(tile, x, y);
+                                if (theme != null) {
+                                    theme.apply(tile, x, y);
+                                }
                             }
                         } else if (tileIsNew) {
                             tile.setHeight(x, y, floor + (noiseGenerator.getPerlinNoise(imageX / MEDIUM_BLOBS, imageY / MEDIUM_BLOBS) + 0.5f) * variation);
@@ -221,7 +225,7 @@ public class HeightMapImporter {
             }
 
             HeightMapTileFactory heightMapTileFactory = (HeightMapTileFactory) this.tileFactory;
-            Theme theme = heightMapTileFactory.getTheme().clone();
+            Theme theme = ((this.theme != null) ? this.theme : heightMapTileFactory.getTheme()).clone();
             theme.setWaterHeight(worldWaterLevel);
             HeightMapTileFactory tileFactory = new HeightMapTileFactory(1L, previewHeightMap, platform.minZ, maxHeight, heightMapTileFactory.isFloodWithLava(), theme);
             return new WPTileProvider(tileFactory, colourScheme, null, null, contourLines, contourSeparation, lightOrigin, false, null);
@@ -313,6 +317,17 @@ public class HeightMapImporter {
 
     public void setTileFactory(TileFactory tileFactory) {
         this.tileFactory = tileFactory;
+        if ((tileFactory instanceof HeightMapTileFactory) && (theme == null)){
+            setTheme(((HeightMapTileFactory) tileFactory).getTheme());
+        }
+    }
+
+    public Theme getTheme() {
+        return theme;
+    }
+
+    public void setTheme(Theme theme) {
+        this.theme = theme;
     }
 
     public String getName() {
@@ -383,6 +398,7 @@ public class HeightMapImporter {
     private HeightMap heightMap;
     private int worldLowLevel, worldWaterLevel = 62, worldHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, imageLowLevel, imageHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, maxHeight = DEFAULT_MAX_HEIGHT_ANVIL, voidBelowLevel, maxZ;
     private TileFactory tileFactory;
+    private Theme theme;
     private String name;
     private boolean onlyRaise, oneOnOne, highRes, mayBeScaled;
     private File imageFile;

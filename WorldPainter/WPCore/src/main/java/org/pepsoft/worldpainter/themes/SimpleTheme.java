@@ -5,6 +5,7 @@
  */
 package org.pepsoft.worldpainter.themes;
 
+import com.google.common.collect.ImmutableMap;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.HeightTransform;
 import org.pepsoft.worldpainter.Terrain;
@@ -336,7 +337,11 @@ public class SimpleTheme implements Theme, Cloneable {
             }
         }
     }
-    
+
+    public static SimpleTheme createSingleTerrain(Terrain terrain, int minHeight, int maxHeight, int waterHeight) {
+        return new SimpleTheme(0, waterHeight, new TreeMap<>(ImmutableMap.of(minHeight - 1, terrain)), null, minHeight, maxHeight, false, false);
+    }
+
     public static SimpleTheme createDefault(Terrain topTerrain, int minHeight, int maxHeight, int waterHeight) {
         return createDefault(topTerrain, minHeight, maxHeight, waterHeight, false, true);
     }
