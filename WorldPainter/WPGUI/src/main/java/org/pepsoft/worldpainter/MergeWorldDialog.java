@@ -32,7 +32,8 @@ import java.io.IOException;
 import java.util.*;
 
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.Platform.Capability.*;
+import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.util.BackupUtils.cleanUpBackups;
 
 /**
@@ -307,7 +308,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
             levelDatFile = file;
             platform = PlatformManager.getInstance().identifyPlatform(file.getParentFile());
             if (platform != null) {
-                if (! (platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D))) {
+                if (! platform.supportsBiomes()) {
                     if (radioButtonBiomes.isSelected()) {
                         radioButtonAll.setSelected(true);
                     }

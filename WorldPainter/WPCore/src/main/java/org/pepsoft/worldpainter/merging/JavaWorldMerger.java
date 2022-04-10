@@ -4,9 +4,7 @@
  */
 package org.pepsoft.worldpainter.merging;
 
-import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
-import org.jnbt.NBTOutputStream;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.FileUtils;
@@ -32,6 +30,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static org.pepsoft.minecraft.Constants.*;
@@ -787,12 +786,12 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
      * Merge only the biomes, leave everything else the same.
      */
     public void mergeBiomes(File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
-        if (! (platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D))) {
+        if (! (platform.supportsBiomes())) {
             throw new IllegalArgumentException("Platform " + platform + " does not support biomes");
         }
 
         // Read existing level.dat file and perform sanity checks
-        JavaLevel level = performSanityChecks(true);
+        performSanityChecks(true);
 
         // Backup existing level
         File worldDir = levelDatFile.getParentFile();
@@ -803,13 +802,11 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             throw new IOException("Could not create " + worldDir);
         }
         
-        // Copy everything that we are not going to generate (this includes the
-        // Nether and End dimensions)
+        // Copy everything that we are not going to generate (this includes all dimensions)
         File[] files = backupDir.listFiles();
         //noinspection ConstantConditions // Cannot happen because we previously loaded level.dat from it
         for (File file: files) {
-            if ((! file.getName().equalsIgnoreCase("session.lock"))
-                    && (! file.getName().equalsIgnoreCase("region"))) {
+            if (! file.getName().equalsIgnoreCase("session.lock")) {
                 if (file.isFile()) {
                     FileUtils.copyFileToDir(file, worldDir);
                 } else if (file.isDirectory()) {
@@ -830,63 +827,36 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         if (progressReceiver != null) {
             progressReceiver.setMessage("Merging biomes");
         }
-        // Find all the region files of the existing level
-        // TODO make this work with other platforms, or at least more generic
-        File[] oldRegionFiles = ((JavaPlatformProvider) platformProvider).getRegionFiles(platform, new File(backupDir, "region"));
-
-        // Process each region file, copying every chunk unmodified, except
-        // for the biomes
-        int totalChunkCount = oldRegionFiles.length * 32 * 32, chunkCount = 0;
-        File newRegionDir = new File(worldDir, "region");
-        newRegionDir.mkdirs();
         Dimension dimension = world.getDimension(DIM_NORMAL);
         final BiomeUtils biomeUtils = new BiomeUtils(dimension);
-        for (File file: oldRegionFiles) {
-            try (RegionFile oldRegion = new RegionFile(file)) {
-                String[] parts = file.getName().split("\\.");
-                int regionX = Integer.parseInt(parts[1]);
-                int regionZ = Integer.parseInt(parts[2]);
-                File newRegionFile = new File(newRegionDir, "r." + regionX + "." + regionZ + ".mca");
-                try (RegionFile newRegion = new RegionFile(newRegionFile)) {
-                    for (int x = 0; x < 32; x++) {
-                        for (int z = 0; z < 32; z++) {
-                            if (oldRegion.containsChunk(x, z)) {
-                                NBTChunk chunk;
-                                try (NBTInputStream in = new NBTInputStream(oldRegion.getChunkDataInputStream(x, z))) {
-                                    CompoundTag tag = (CompoundTag) in.readTag();
-                                    // TODO make this work with other platforms, or at least more generic
-                                    chunk = ((JavaPlatformProvider) platformProvider).createChunk(platform, tag, level.getMaxHeight());
-                                }
-                                int chunkX = chunk.getxPos(), chunkZ = chunk.getzPos();
-                                if (platform.capabilities.contains(BIOMES)) {
-                                    for (int xx = 0; xx < 16; xx++) {
-                                        for (int zz = 0; zz < 16; zz++) {
-                                            biomeUtils.set2DBiome(chunk, xx, zz, dimension.getLayerValueAt(Biome.INSTANCE, (chunkX << 4) | xx, (chunkZ << 4) | zz));
-                                        }
-                                    }
-                                } else if (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) {
-                                    for (int xx = 0; xx < 4; xx++) {
-                                        for (int zz = 0; zz < 4; zz++) {
-                                            final int biome = dimension.getMostPrevalentBiome((chunkX << 2) | xx, (chunkZ << 2) | zz, BIOME_PLAINS);
-                                            for (int y = 0; y < chunk.getMaxHeight(); y += 4) {
-                                                // TODOMC118 this obliterates the existing 3D biomes; how to handle that?
-                                                biomeUtils.set3DBiome(chunk, xx, y >> 2, zz, biome);
-                                            }
-                                        }
-                                    }
-                                }
-                                try (NBTOutputStream out = new NBTOutputStream(newRegion.getChunkDataOutputStream(x, z))) {
-                                    out.writeTag(chunk.toNBT());
-                                }
-                            }
-                            chunkCount++;
-                            if (progressReceiver != null) {
-                                progressReceiver.setProgress((float) chunkCount / totalChunkCount);
+        try (ChunkStore chunkStore = platformProvider.getChunkStore(platform, worldDir, DIM_NORMAL)) {
+            final int totalChunkCount = chunkStore.getChunkCount();
+            final AtomicInteger chunkCount = new AtomicInteger(0);
+            chunkStore.doInTransaction(() -> chunkStore.visitChunksForEditing(chunk -> {
+                int chunkX = chunk.getxPos(), chunkZ = chunk.getzPos();
+                if (platform.capabilities.contains(BIOMES)) {
+                    for (int xx = 0; xx < 16; xx++) {
+                        for (int zz = 0; zz < 16; zz++) {
+                            biomeUtils.set2DBiome(chunk, xx, zz, dimension.getLayerValueAt(Biome.INSTANCE, (chunkX << 4) | xx, (chunkZ << 4) | zz));
+                        }
+                    }
+                } else if (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) {
+                    for (int xx = 0; xx < 4; xx++) {
+                        for (int zz = 0; zz < 4; zz++) {
+                            final int biome = dimension.getMostPrevalentBiome((chunkX << 2) | xx, (chunkZ << 2) | zz, BIOME_PLAINS);
+                            for (int y = 0; y < chunk.getMaxHeight(); y += 4) {
+                                // TODOMC118 this obliterates the existing 3D biomes; how to handle that?
+                                biomeUtils.set3DBiome(chunk, xx, y >> 2, zz, biome);
                             }
                         }
                     }
                 }
-            }
+                chunkCount.incrementAndGet();
+                if (progressReceiver != null) {
+                    progressReceiver.setProgress((float) chunkCount.get() / totalChunkCount);
+                }
+                return true;
+            }));
         }
 
         // Rewrite session.lock file

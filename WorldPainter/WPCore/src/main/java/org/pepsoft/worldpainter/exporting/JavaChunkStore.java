@@ -6,6 +6,7 @@ import org.jnbt.NBTInputStream;
 import org.jnbt.NBTOutputStream;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +17,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.util.Objects.requireNonNull;
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
@@ -245,17 +248,47 @@ public class JavaChunkStore implements ChunkStore {
     }
 
     @FunctionalInterface interface RegionVisitor {
-        boolean visitRegion(RegionFile region) throws IOException;
+        /**
+         * Visit a Minecraft region file.
+         *
+         * <p>For convenience, the visitor may throw checked exceptions. They will be wrapped in a
+         * {@link WPRuntimeException} if this happens.
+         *
+         * @param region The region file to be visited.
+         * @return {@code true} if more chunks should be visited, or {@code false} if no more chunks need to be visited.
+         */
+        boolean visitRegion(RegionFile region) throws Exception;
     }
 
     private boolean visitRegions(RegionVisitor visitor, boolean readOnly) throws IOException {
         final Pattern regionFilePattern = (platform == JAVA_MCREGION)
-                ? Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr")
-                : Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mca");
-        for (File file: regionDir.listFiles((dir, name) -> regionFilePattern.matcher(name).matches())) {
-            try (RegionFile regionFile = new RegionFile(file, readOnly)) {
-                if (! visitor.visitRegion(regionFile)) {
-                    return false;
+                ? Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mcr")
+                : Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mca");
+        flush();
+        for (File file: requireNonNull(regionDir.listFiles())) {
+            final Matcher matcher = regionFilePattern.matcher(file.getName());
+            if (matcher.matches()) {
+                final int regionX = Integer.parseInt(matcher.group(1));
+                final int regionZ = Integer.parseInt(matcher.group(2));
+                final Point regionCoords = new Point(regionX, regionZ);
+                final RegionFile regionFile;
+                if (regionFiles.containsKey(regionCoords)) {
+                    regionFile = regionFiles.get(regionCoords);
+                } else {
+                    regionFile = new RegionFile(file, readOnly);
+                    regionFiles.put(regionCoords, regionFile);
+                }
+                try {
+                    if (!visitor.visitRegion(regionFile)) {
+                        return false;
+                    }
+                } catch (RuntimeException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new WPRuntimeException("Checked exception visiting region file " + file, e);
+                } finally {
+                    regionFile.close();
+                    regionFiles.remove(regionCoords);
                 }
             }
         }
@@ -274,24 +307,28 @@ public class JavaChunkStore implements ChunkStore {
                                     CompoundTag tag = (CompoundTag) in.readTag();
                                     Chunk chunk = platformProvider.createChunk(platform, tag, maxHeight, readOnly);
                                     exceptionFromChunkVisitor = true;
-                                    if (!visitor.visitChunk(chunk)) {
+                                    if (visitor.visitChunk(chunk)) {
+                                        if (! readOnly) {
+                                            saveChunk(chunk);
+                                        }
+                                    } else {
                                         return false;
                                     }
                                 }
                             }
                         } catch (RuntimeException e) {
-                            // If it was the chunk visitor that threw the
-                            // exception just propagate it; if it was the
-                            // loading of the chunk that failed then log it and
-                            // report it to the visitor
+                            // If it was the chunk visitor that threw the exception just propagate it; if it was the
+                            // loading of the chunk that failed then log it and report it to the visitor
                             if (exceptionFromChunkVisitor) {
                                 throw e;
                             } else {
                                 logger.error("{} while visiting chunk {},{} in region {},{} (message: \"{}\")", e.getClass().getSimpleName(), x, z, region.getX(), region.getZ(), e.getMessage(), e);
-                                if (!visitor.chunkError(new MinecraftCoords(x, z), e.getClass().getSimpleName() + ": " + e.getMessage())) {
+                                if (! visitor.chunkError(new MinecraftCoords(x, z), e.getClass().getSimpleName() + ": " + e.getMessage())) {
                                     return false;
                                 }
                             }
+                        } catch (Exception e) {
+                            throw new WPRuntimeException("Checked exception visiting chunk " + x + "," + z + " in region " + region.getX() + "," + region.getZ(), e);
                         }
                     }
                 }
