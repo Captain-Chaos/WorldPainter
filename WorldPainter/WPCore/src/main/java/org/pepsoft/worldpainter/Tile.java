@@ -46,7 +46,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         }
         if (init) {
             terrain = new byte[TILE_SIZE * TILE_SIZE];
-            if (maxHeight > 256) {
+            if (tall) {
                 tallHeightMap = new int[TILE_SIZE * TILE_SIZE];
                 tallWaterLevel = new short[TILE_SIZE * TILE_SIZE];
             } else {
