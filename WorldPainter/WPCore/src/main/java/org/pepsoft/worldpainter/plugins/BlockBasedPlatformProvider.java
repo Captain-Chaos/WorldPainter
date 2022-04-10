@@ -10,7 +10,7 @@ import java.io.File;
 
 /**
  * A {@link PlatformProvider} for Minecraft-like
- * {@link Platform.Capability#BLOCK_BASED block based} platforms.
+ * {@link Platform.Capability#BLOCK_BASED block based} platforms based on 16x16 chunks.
  */
 public interface BlockBasedPlatformProvider extends PlatformProvider {
     /**
