@@ -279,7 +279,7 @@ public class JavaChunkStore implements ChunkStore {
                     regionFiles.put(regionCoords, regionFile);
                 }
                 try {
-                    if (!visitor.visitRegion(regionFile)) {
+                    if (! visitor.visitRegion(regionFile)) {
                         return false;
                     }
                 } catch (RuntimeException e) {

@@ -34,6 +34,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
         this.zPos = zPos;
         this.maxHeight = maxHeight;
 
+        inputDataVersion = null;
         sections = new Section[maxHeight >> 4];
         heightMaps = new HashMap<>();
         entities = new ArrayList<>();
@@ -57,6 +58,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
             this.maxHeight = maxHeight;
             this.readOnly = readOnly;
 
+            inputDataVersion = ((IntTag) tag.getTag(TAG_DATA_VERSION)).getValue();
             sections = new Section[maxHeight >> 4];
             List<CompoundTag> sectionTags = getList(TAG_SECTIONS);
             // MC 1.14 has chunks without any sections; we're not sure yet if
@@ -154,6 +156,10 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
 
     public Map<String, long[]> getHeightMaps() {
         return heightMaps;
+    }
+
+    public Integer getInputDataVersion() {
+        return inputDataVersion;
     }
 
     private void addLiquidTick(int x, int y, int z) {
@@ -720,6 +726,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
     final Map<String, long[]> heightMaps;
     final List<CompoundTag> liquidTicks = new ArrayList<>();
 //    final boolean debugChunk;
+    final Integer inputDataVersion;
 
 //    private static long debugWorldX, debugWorldZ, debugXInChunk, debugZInChunk;
 

@@ -33,7 +33,7 @@ import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
 
@@ -236,6 +236,7 @@ public class JavaMapImporter extends MapImporter {
             final int total = chunkStore.getChunkCount();
             final AtomicInteger count = new AtomicInteger();
             final StringBuilder reportBuilder = new StringBuilder();
+            final Map<Platform, AtomicInteger> nonNativePlatformsEncountered = new HashMap<>();
             if (! chunkStore.visitChunks(new ChunkVisitor() {
                 @Override
                 public boolean visitChunk(Chunk chunk) {
@@ -250,6 +251,7 @@ public class JavaMapImporter extends MapImporter {
 
                         final int chunkX = chunkCoords.x;
                         final int chunkZ = chunkCoords.z;
+                        final int chunkMinHeight = Math.max(minHeight, chunk.getMinHeight());
 
                         // Sanity checks
                         if ((chunk instanceof MC115AnvilChunk) || (chunk instanceof MC118AnvilChunk)) {
@@ -277,6 +279,10 @@ public class JavaMapImporter extends MapImporter {
                                 return true;
                             }
                         }
+                        Platform chunkNativePlatform = determineNativePlatform(chunk);
+                        if ((chunkNativePlatform != null) && (chunkNativePlatform != platform)) {
+                            nonNativePlatformsEncountered.computeIfAbsent(chunkNativePlatform, p -> new AtomicInteger()).incrementAndGet();
+                        }
 
                         final Point tileCoords = new Point(chunkX >> 3, chunkZ >> 3);
                         Tile tile = dimension.getTile(tileCoords);
@@ -301,7 +307,7 @@ public class JavaMapImporter extends MapImporter {
                                     int waterLevel = Integer.MIN_VALUE;
                                     boolean floodWithLava = false, frost = false;
                                     Terrain terrain = Terrain.BEDROCK;
-                                    for (int y = Math.min(maxY, chunk.getHighestNonAirBlock(xx, zz)); y >= minHeight; y--) {
+                                    for (int y = Math.min(maxY, chunk.getHighestNonAirBlock(xx, zz)); y >= chunkMinHeight; y--) {
                                         Material material = chunk.getMaterial(xx, y, zz);
                                         if (! material.natural) {
                                             if (height == Float.MIN_VALUE) {
@@ -446,6 +452,25 @@ public class JavaMapImporter extends MapImporter {
                     return true;
                 }
 
+                // TODO make this dynamic
+                private Platform determineNativePlatform(Chunk chunk) {
+                    if (chunk instanceof MCRegionChunk) {
+                        return JAVA_MCREGION;
+                    } else if (chunk instanceof MC12AnvilChunk) {
+                        return JAVA_ANVIL;
+                    } else if (chunk instanceof MC115AnvilChunk) {
+                        if (((MC115AnvilChunk) chunk).getInputDataVersion() > DATA_VERSION_MC_1_16_5) {
+                            return JAVA_ANVIL_1_17;
+                        } else {
+                            return JAVA_ANVIL_1_15;
+                        }
+                    } else if (chunk instanceof MC118AnvilChunk) {
+                        return JAVA_ANVIL_1_18;
+                    } else {
+                        return null;
+                    }
+                }
+
                 @Override
                 public boolean chunkError(MinecraftCoords coords, String message) {
                     reportBuilder.append("\"" + message + "\" while reading chunk " + coords.x + "," + coords.z + "; skipping chunk" + EOL);
@@ -453,6 +478,19 @@ public class JavaMapImporter extends MapImporter {
                 }
             })) {
                 throw new ProgressReceiver.OperationCancelled("Operation cancelled");
+            }
+
+            if (! nonNativePlatformsEncountered.isEmpty()) {
+                if (reportBuilder.length() > 0) {
+                    reportBuilder.insert(0, EOL + EOL);
+                }
+                reportBuilder.insert(0, "This map contains chunks that belong to (an)other version(s) of Minecraft: " + EOL
+                        + nonNativePlatformsEncountered.entrySet().stream()
+                            .map(e -> e.getKey().displayName + " (" + e.getValue().get() + " chunk(s))")
+                            .collect(joining(", ")) + EOL
+                        + "It may therefore not be possible to Merge your changes back to this map." + EOL
+                        + "It is highly recommended to use the Optimize option of" + EOL
+                        + platform + " to bring the map fully up to date.");
             }
 
             if (! customNamedBiomes.isEmpty()) {
