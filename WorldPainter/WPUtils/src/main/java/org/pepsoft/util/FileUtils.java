@@ -804,10 +804,14 @@ public class FileUtils {
      * @param visitor   The visitor that will be invoked for every file in the specified directory, recursively.
      */
     public static void visitFilesRecursively(File directory, Consumer<File> visitor) throws IOException {
-        if (! directory.isDirectory()) {
-            throw new IllegalArgumentException(directory + " is not a directory");
+        try {
+            if (! directory.isDirectory()) {
+                throw new IllegalArgumentException(directory + " is not a directory");
+            }
+            visitFilesRecursively(directory, visitor, new HashSet<>());
+        } catch (StackOverflowError e) {
+            throw new RuntimeException("Stack overflow while visiting " + directory, e);
         }
-        visitFilesRecursively(directory, visitor, new HashSet<>());
     }
 
     @SuppressWarnings("ConstantConditions") // Warranted by isDirectory()
@@ -816,10 +820,11 @@ public class FileUtils {
         for (File file: directory.listFiles()) {
             final File canonicalFile = file.getCanonicalFile();
             if (visitedFiles.contains(canonicalFile)) {
+                logger.warn("Cycle detected on filesystem: {} has already been visited", canonicalFile);
                 continue;
             }
             if (file.isDirectory()) {
-                visitFilesRecursively(directory, visitor);
+                visitFilesRecursively(directory, visitor, visitedFiles);
             } else {
                 visitor.accept(file);
                 visitedFiles.add(canonicalFile);
