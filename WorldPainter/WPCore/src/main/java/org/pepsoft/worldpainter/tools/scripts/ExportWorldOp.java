@@ -17,7 +17,6 @@
  */
 package org.pepsoft.worldpainter.tools.scripts;
 
-import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.MixedMaterial;
@@ -77,10 +76,9 @@ public class ExportWorldOp extends AbstractOperation<Void> {
         if (! baseDir.isDirectory()) {
             throw new ScriptException("Directory " + directory + " does not exist or is not a directory");
         }
-        File worldDir = new File(baseDir, FileUtils.sanitiseName(world.getName()));
         JavaWorldExporter exporter = new JavaWorldExporter(world);
         try {
-            File backupDir = exporter.selectBackupDir(worldDir);
+            File backupDir = exporter.selectBackupDir(baseDir, world);
         
             // Export the world
             exporter.export(baseDir, world.getName(), backupDir, null);
