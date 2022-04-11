@@ -485,6 +485,10 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             File[] existingRegionFiles = ((JavaPlatformProvider) platformProvider).getRegionFiles(platform, backupRegionDir);
             Map<Point, File> existingRegions = new HashMap<>();
             for (File file: existingRegionFiles) {
+                if (file.length() == 0L) {
+                    logger.warn("Skipping empty region file {}", file);
+                    continue;
+                }
                 String[] parts = file.getName().split("\\.");
                 int regionX = Integer.parseInt(parts[1]);
                 int regionZ = Integer.parseInt(parts[2]);
