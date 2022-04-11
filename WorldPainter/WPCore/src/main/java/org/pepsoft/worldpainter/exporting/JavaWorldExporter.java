@@ -55,8 +55,8 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
     @Override
     public Map<Integer, ChunkFactory.Stats> export(File baseDir, String name, File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
         // Sanity checks
-        if ((selectedTiles == null) && (selectedDimensions != null)) {
-            throw new IllegalArgumentException("Exporting a subset of dimensions not supported");
+        if ((selectedTiles != null) && ((selectedDimensions == null) || (selectedDimensions.size() != 1))) {
+            throw new IllegalArgumentException("If a tile selection is active then exactly one dimension must be selected");
         }
 
         // Backup existing level
@@ -206,9 +206,9 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                 selectedDimension = -1;
                 boolean first = true;
                 for (Dimension dimension: world.getDimensions()) {
-                    if (dimension.getDim() < 0) {
-                        // This dimension will be exported as part of another
-                        // dimension, so skip it
+                    if ((dimension.getDim() < 0) || ((selectedDimensions != null) && (! selectedDimensions.contains(dimension.getDim())))) {
+                        // This dimension will be exported as part of another dimension, or it has not been selected to
+                        // be exported, so skip it
                         continue;
                     }
                     if (first) {
