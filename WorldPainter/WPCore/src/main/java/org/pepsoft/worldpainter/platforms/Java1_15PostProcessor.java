@@ -374,10 +374,10 @@ public class Java1_15PostProcessor extends PostProcessor {
             for (int x = x1; x <= x2; x++) {
                 for (int y = y1; y <= y2; y++) {
                     // Iterate over one column from bottom to top
-                    Material materialBelow = (minZ <= worldMinZ) ? AIR : minecraftWorld.getMaterialAt(x, y, minZ - 1);
-                    Material materialAbove = minecraftWorld.getMaterialAt(x, y, minZ);
+                    // Water at the lowest level can always flow down into the void, so skip that level
+                    Material materialBelow = (minZ + 1 <= worldMinZ) ? AIR : minecraftWorld.getMaterialAt(x, y, minZ);
+                    Material materialAbove = minecraftWorld.getMaterialAt(x, y, minZ + 1);
                     final int columnMaxZ = Math.min(minecraftWorld.getHighestNonAirBlock(x, y), maxZ);
-                    // Water at the lowest level can always flow down into the void, so skip that level:
                     for (int z = minZ + 1; z <= columnMaxZ; z++) {
                         Material material = materialAbove;
                         materialAbove = (z < worldMaxZ) ? minecraftWorld.getMaterialAt(x, y, z + 1) : AIR;
