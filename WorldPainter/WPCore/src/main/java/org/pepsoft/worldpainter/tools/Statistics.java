@@ -6,7 +6,7 @@ package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.minecraft.JavaLevel;
-import org.pepsoft.worldpainter.AbstractMain;
+import org.pepsoft.worldpainter.AbstractTool;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
@@ -23,7 +23,7 @@ import static org.pepsoft.worldpainter.Constants.*;
  *
  * @author pepijn
  */
-public class Statistics extends AbstractMain {
+public class Statistics extends AbstractTool {
     @SuppressWarnings("unchecked") // Java limitation
     public static void main(String[] args) throws IOException {
         initialisePlatform();

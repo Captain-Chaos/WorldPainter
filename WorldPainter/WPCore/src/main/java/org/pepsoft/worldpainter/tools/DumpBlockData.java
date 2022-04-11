@@ -2,7 +2,7 @@ package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.minecraft.Material;
-import org.pepsoft.worldpainter.AbstractMain;
+import org.pepsoft.worldpainter.AbstractTool;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
@@ -17,7 +17,7 @@ import static java.util.Collections.synchronizedSet;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
-public class DumpBlockData extends AbstractMain {
+public class DumpBlockData extends AbstractTool {
     public static void main(String[] args) {
         initialisePlatform();
 

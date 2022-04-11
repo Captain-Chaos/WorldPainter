@@ -17,7 +17,7 @@ import java.util.Random;
 import static com.google.common.primitives.Ints.asList;
 import static org.pepsoft.worldpainter.Terrain.GRASS;
 
-public class ImportTester extends AbstractMain {
+public class ImportTester extends AbstractTool {
     public static void main(String[] args) throws IOException, ProgressReceiver.OperationCancelled {
         initialisePlatform();
 

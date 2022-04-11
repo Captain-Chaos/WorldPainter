@@ -17,9 +17,9 @@ import java.util.Locale;
 import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
 
 /**
- * A base class for WorldPainter main classes
+ * A base class for WorldPainter command line tools.
  */
-public class AbstractMain {
+public class AbstractTool {
     protected static void initialisePlatform() {
         // Force language to English for now. TODO: remove this once the first translations are implemented
         Locale.setDefault(Locale.US);
@@ -76,7 +76,7 @@ public class AbstractMain {
         X509Certificate trustedCert = null;
         try {
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-            trustedCert = (X509Certificate) certificateFactory.generateCertificate(AbstractMain.class.getResourceAsStream("/wproot.pem"));
+            trustedCert = (X509Certificate) certificateFactory.generateCertificate(AbstractTool.class.getResourceAsStream("/wproot.pem"));
         } catch (CertificateException e) {
             logger.error("Certificate exception while loading trusted root certificate", e);
         }
@@ -114,5 +114,9 @@ public class AbstractMain {
         logger.error("Exception while initialising configuration", e);
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractMain.class);
+    static {
+        System.setProperty("logback.configurationFile", "logback-tools.xml");
+    }
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractTool.class);
 }

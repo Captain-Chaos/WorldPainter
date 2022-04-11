@@ -15,7 +15,7 @@ import java.io.IOException;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.importing.MapImporter.ReadOnlyOption.MAN_MADE;
 
-public class Import extends AbstractMain {
+public class Import extends AbstractTool {
     public static void main(String[] args) throws ProgressReceiver.OperationCancelled, IOException {
         initialisePlatform();
 

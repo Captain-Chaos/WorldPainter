@@ -1,7 +1,7 @@
 package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.Material;
-import org.pepsoft.worldpainter.AbstractMain;
+import org.pepsoft.worldpainter.AbstractTool;
 import org.pepsoft.worldpainter.UnloadableWorldException;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.WorldIO;
@@ -12,7 +12,7 @@ import java.util.Set;
 
 import static org.pepsoft.worldpainter.util.MaterialUtils.gatherAllMaterials;
 
-public class AnalyseMaterials extends AbstractMain {
+public class AnalyseMaterials extends AbstractTool {
     public static void main(String[] args) throws IOException, UnloadableWorldException {
         initialisePlatform();
 

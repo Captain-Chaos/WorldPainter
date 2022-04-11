@@ -4,7 +4,7 @@ import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.minecraft.MC115AnvilChunk;
 import org.pepsoft.minecraft.MC12AnvilChunk;
 import org.pepsoft.minecraft.MCRegionChunk;
-import org.pepsoft.worldpainter.AbstractMain;
+import org.pepsoft.worldpainter.AbstractTool;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
@@ -16,7 +16,7 @@ import static java.util.Collections.synchronizedMap;
 import static java.util.Collections.synchronizedSet;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
-public class ScanMap extends AbstractMain {
+public class ScanMap extends AbstractTool {
     public static void main(String[] args) {
         initialisePlatform();
 

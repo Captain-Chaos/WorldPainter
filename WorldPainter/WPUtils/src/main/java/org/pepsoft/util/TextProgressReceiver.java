@@ -5,7 +5,11 @@ package org.pepsoft.util;
  */
 public class TextProgressReceiver implements ProgressReceiver {
     @Override
-    public void setProgress(float progressFraction) {
+    public synchronized void setProgress(float progressFraction) {
+        if (! headerPrinted) {
+            System.out.println("+---------+---------+---------+---------+---------+");
+            headerPrinted = true;
+        }
         int progress = (int) (progressFraction * 50);
         while (progress > previousProgress) {
             System.out.print('.');
@@ -19,7 +23,7 @@ public class TextProgressReceiver implements ProgressReceiver {
         System.exit(1);
     }
 
-    @Override public void reset() {
+    @Override public synchronized void reset() {
         System.out.println();
         previousProgress = -1;
     }
@@ -32,5 +36,6 @@ public class TextProgressReceiver implements ProgressReceiver {
 
     @Override public void subProgressStarted(SubProgressReceiver subProgressReceiver) {}
 
+    private boolean headerPrinted;
     private int previousProgress = -1;
 }

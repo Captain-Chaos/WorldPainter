@@ -8,7 +8,7 @@ import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.DataUtils;
-import org.pepsoft.worldpainter.AbstractMain;
+import org.pepsoft.worldpainter.AbstractTool;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
@@ -27,7 +27,7 @@ import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
  *
  * @author pepijn
  */
-public class DumpChunk extends AbstractMain {
+public class DumpChunk extends AbstractTool {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         initialisePlatform();
 
