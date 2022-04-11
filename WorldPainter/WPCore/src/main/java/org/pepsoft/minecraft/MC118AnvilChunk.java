@@ -144,12 +144,11 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
         return heightMaps;
     }
 
-    private void addFluidTick(int x, int y, int z) {
+    private void addFluidTick(int x, int y, int z, Material material) {
         // Fluid ticks are in world coordinates for some reason
         x = (xPos << 4) | x;
         z = (zPos << 4) | z;
         String id;
-        Material material = getMaterial(x & 0xf, y, z & 0xf);
         if (material.containsWater()) {
             id = MC_WATER;
         } else if (material.isNamed(MC_WATER)) {
@@ -406,7 +405,7 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
     public void markForUpdateChunk(int x, int y, int z) {
         Material material = getMaterial(x, y, z);
         if (material.isNamedOneOf(MC_WATER, MC_LAVA) || material.containsWater()) {
-            addFluidTick(x, y, z);
+            addFluidTick(x, y, z, material);
         } else {
             throw new UnsupportedOperationException("Don't know how to mark " + material + " for update");
         }

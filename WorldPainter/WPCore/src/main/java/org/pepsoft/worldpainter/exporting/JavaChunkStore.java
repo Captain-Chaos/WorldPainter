@@ -285,7 +285,7 @@ public class JavaChunkStore implements ChunkStore {
                 return false;
             } else if (new File(dir, name).length() == 0) {
                 // TODO should we be skipping empty files when readOnly is false?
-                logger.warn("Skipping empty region file {}", name);
+                logger.debug("Skipping empty region file {}", name);
                 return false;
             }
             return true;
@@ -349,7 +349,7 @@ public class JavaChunkStore implements ChunkStore {
         try {
             for (File file: files) {
                 if (file.length() == 0L) {
-                    logger.warn("Skipping empty region file {}", file);
+                    logger.debug("Skipping empty region file {}", file);
                     continue;
                 }
                 executor.execute(() -> {

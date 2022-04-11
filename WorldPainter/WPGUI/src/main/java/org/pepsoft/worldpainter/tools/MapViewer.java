@@ -8,7 +8,7 @@ import org.pepsoft.minecraft.MinecraftMapTileProvider;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.swing.TileProvider;
 import org.pepsoft.util.swing.TiledImageViewer;
-import org.pepsoft.worldpainter.AbstractMain;
+import org.pepsoft.worldpainter.AbstractTool;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 import javax.swing.*;
@@ -21,7 +21,7 @@ import java.io.IOException;
  *
  * @author pepijn
  */
-public class MapViewer extends AbstractMain {
+public class MapViewer extends AbstractTool {
     public static void main(String[] args) throws IOException {
         initialisePlatform();
 

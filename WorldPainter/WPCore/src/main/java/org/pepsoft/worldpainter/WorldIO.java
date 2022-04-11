@@ -25,6 +25,8 @@ import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
 
+// TODO why this design again? Just make these utility methods, surely?
+
 /**
  * A utility class for saving and loading WorldPainter {@link World2 worlds} in
  * the WorldPainter binary file format, with support for metadata and for

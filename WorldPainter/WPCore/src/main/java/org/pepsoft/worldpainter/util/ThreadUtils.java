@@ -35,7 +35,7 @@ public final class ThreadUtils {
         } else {
             threadCount = Math.max(Math.min(Math.min(maxThreadsByMem, runtime.availableProcessors()), jobCount), 1);
         }
-        logger.info("Using " + threadCount + " thread(s) for " + operation + " (cores: " + runtime.availableProcessors() + ", available memory: " + (maxMemoryAvailable / 1048576L) + " MB)");
+        logger.info("Using " + threadCount + " thread(s) for " + operation + " (logical processors: " + runtime.availableProcessors() + ", available memory: " + (maxMemoryAvailable / 1048576L) + " MB)");
         return threadCount;
     }
 
