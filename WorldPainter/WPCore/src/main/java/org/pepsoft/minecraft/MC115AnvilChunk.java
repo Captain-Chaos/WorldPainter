@@ -93,8 +93,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
             if (biomes3d != null) {
                 fixNegativeValues(biomes3d);
                 if (biomes3d.length == 256) {
-                    // This is an old 2D biomes array; migrate it to 3D biomes
-                    throw new UnsupportedOperationException("TODO"); // TODO
+                    biomes3d = migrate2DBiomesTo3D(biomes3d);
                 }
             }
             heightMaps = new HashMap<>();
@@ -136,6 +135,38 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
             logger.error("{} while creating chunk from NBT: {}", e.getClass().getSimpleName(), tag);
             throw e;
         }
+    }
+
+    private int[] migrate2DBiomesTo3D(int[] biomes2d) {
+        final int[] biomes3d = new int[1024];
+        for (int x = 0; x < 4; x++) {
+            for (int z = 0; z < 4; z++) {
+                final int biome = determineMostPrevalentBiome(biomes2d, x, z);
+                for (int y = 0; y < 64; y++) {
+                    biomes3d[(y << 4) | (z << 2) | x] = biome;
+                }
+            }
+        }
+        return biomes3d;
+    }
+
+    private int determineMostPrevalentBiome(int[] biomes, int x, int z) {
+        final int[] biomeBuckets = BIOME_BUCKETS_HOLDER.get();
+        Arrays.fill(biomeBuckets, 0);
+        for (int dx = 0; dx < 4; dx++) {
+            for (int dz = 0; dz < 4; dz++) {
+                final int biome = biomes[(x << 2) + dx + ((z << 2) + dz) * 16];
+                biomeBuckets[biome]++;
+            }
+        }
+        int mostPrevalentBiome = 0, mostPrevalentBiomeCount = 0;
+        for (int i = 0; i < biomeBuckets.length; i++) {
+            if (biomeBuckets[i] > mostPrevalentBiomeCount) {
+                mostPrevalentBiome = i;
+                mostPrevalentBiomeCount = biomeBuckets[i];
+            }
+        }
+        return mostPrevalentBiome;
     }
 
     public boolean isSectionPresent(int y) {
@@ -731,6 +762,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
 //    private static long debugWorldX, debugWorldZ, debugXInChunk, debugZInChunk;
 
     private static final Random RANDOM = new Random();
+    private static final ThreadLocal<int[]> BIOME_BUCKETS_HOLDER = ThreadLocal.withInitial(() -> new int[256]);
     private static final Logger logger = LoggerFactory.getLogger(MC115AnvilChunk.class);
 
     public static class Section extends AbstractNBTItem implements SectionedChunk.Section {
