@@ -12,6 +12,8 @@ import java.awt.*;
 import java.io.File;
 import java.util.*;
 
+import static java.util.Collections.synchronizedMap;
+import static java.util.Collections.synchronizedSet;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
 public class ScanMap extends AbstractMain {
@@ -19,8 +21,8 @@ public class ScanMap extends AbstractMain {
         initialisePlatform();
 
         int[] bounds = {Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE};
-        Map<Point, String> statusMap = new HashMap<>();
-        Set<String> heightmapTypes = new HashSet<>();
+        Map<Point, String> statusMap = synchronizedMap(new HashMap<>());
+        Set<String> heightmapTypes = synchronizedSet(new HashSet<>());
         File worldDir = new File(args[0]);
         PlatformManager platformManager = PlatformManager.getInstance();
         Platform platform = platformManager.identifyPlatform(worldDir);
@@ -35,17 +37,19 @@ public class ScanMap extends AbstractMain {
             } else if (chunk instanceof MCRegionChunk) {
                 status = "MCR";
             }
-            if (chunk.getxPos() < bounds[0]) {
-                bounds[0] = chunk.getxPos();
-            }
-            if (chunk.getxPos() > bounds[1]) {
-                bounds[1] = chunk.getxPos();
-            }
-            if (chunk.getzPos() < bounds[2]) {
-                bounds[2] = chunk.getzPos();
-            }
-            if (chunk.getzPos() > bounds[3]) {
-                bounds[3] = chunk.getzPos();
+            synchronized (bounds) {
+                if (chunk.getxPos() < bounds[0]) {
+                    bounds[0] = chunk.getxPos();
+                }
+                if (chunk.getxPos() > bounds[1]) {
+                    bounds[1] = chunk.getxPos();
+                }
+                if (chunk.getzPos() < bounds[2]) {
+                    bounds[2] = chunk.getzPos();
+                }
+                if (chunk.getzPos() > bounds[3]) {
+                    bounds[3] = chunk.getzPos();
+                }
             }
             statusMap.put(new Point(chunk.getxPos(), chunk.getzPos()), status);
             return true;

@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.util.Collections.synchronizedMap;
 import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
@@ -235,8 +236,8 @@ public class JavaMapImporter extends MapImporter {
         try (ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension.getDim())) {
             final int total = chunkStore.getChunkCount();
             final AtomicInteger count = new AtomicInteger();
-            final StringBuilder reportBuilder = new StringBuilder();
-            final Map<Platform, AtomicInteger> nonNativePlatformsEncountered = new HashMap<>();
+            final StringBuffer reportBuilder = new StringBuffer();
+            final Map<Platform, AtomicInteger> nonNativePlatformsEncountered = synchronizedMap(new HashMap<>());
             if (! chunkStore.visitChunks(new ChunkVisitor() {
                 @Override
                 public boolean visitChunk(Chunk chunk) {
@@ -489,7 +490,7 @@ public class JavaMapImporter extends MapImporter {
                             .map(e -> e.getKey().displayName + " (" + e.getValue().get() + " chunk(s))")
                             .collect(joining(", ")) + EOL
                         + "It may therefore not be possible to Merge your changes back to this map." + EOL
-                        + "It is highly recommended to use the Optimize option of" + EOL
+                        + "It is highly recommended to use the Optimize function of" + EOL
                         + platform + " to bring the map fully up to date.");
             }
 

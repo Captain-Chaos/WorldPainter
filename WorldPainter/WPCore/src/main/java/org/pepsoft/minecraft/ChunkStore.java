@@ -29,13 +29,18 @@ public interface ChunkStore extends ChunkProvider {
     Set<MinecraftCoords> getChunkCoords();
 
     /**
-     * Visit all known chunks. Note that the order is undefined, allowing the
-     * provider to use as efficient an implementation as is possible. The
-     * provided chunks <em>may</em> be read-only.
+     * Visit all known chunks.
+     *
+     * <p><strong>Note</strong> that the order is undefined, allowing the provider to use as efficient an implementation
+     * as is possible. The provided chunks <em>may</em> be read-only.
+     *
+     * <p><strong>Also note</strong> that to improve performance the process may be parallelised. In other words the
+     * visitor may be invoked concurrently for different chunks and must therefore be thread-safe. It also means that if
+     * the visitor returns false, the iteration may not stop immediately.
      *
      * @param visitor The visitor to invoke for each chunk.
-     * @return {@code true} if all chunks were visited; {@code false} if not all
-     * chunks may have been visited because the visitor returned {@code false}.
+     * @return {@code true} if all chunks were visited; {@code false} if not all chunks may have been visited because
+     * the visitor returned {@code false}.
      */
     boolean visitChunks(ChunkVisitor visitor);
 

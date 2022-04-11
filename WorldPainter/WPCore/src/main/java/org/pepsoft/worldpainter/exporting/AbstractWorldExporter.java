@@ -12,6 +12,7 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.World2;
+import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.gardenofeden.GardenExporter;
 import org.pepsoft.worldpainter.gardenofeden.Seed;
 import org.pepsoft.worldpainter.layers.CombinedLayer;
@@ -44,6 +45,7 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
 
 /**
  * An abstract {@link WorldExporter} for block based platforms.
@@ -230,21 +232,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, dimension.getMaxHeight());
             final WorldPainterChunkFactory ceilingChunkFactory = (ceiling != null) ? new WorldPainterChunkFactory(ceiling, ceilingExporters, platform, dimension.getMaxHeight()) : null;
 
-            Runtime runtime = Runtime.getRuntime();
-            runtime.gc();
-            long totalMemory = runtime.totalMemory();
-            long freeMemory = runtime.freeMemory();
-            long memoryInUse = totalMemory - freeMemory;
-            long maxMemory = runtime.maxMemory();
-            long maxMemoryAvailable = maxMemory - memoryInUse;
-            int maxThreadsByMem = (int) (maxMemoryAvailable / 250000000L);
-            int threads;
-            if (System.getProperty("org.pepsoft.worldpainter.threads") != null) {
-                threads = Math.max(Math.min(Integer.parseInt(System.getProperty("org.pepsoft.worldpainter.threads")), sortedRegions.size()), 1);
-            } else {
-                threads = Math.max(Math.min(Math.min(maxThreadsByMem, runtime.availableProcessors()), sortedRegions.size()), 1);
-            }
-            logger.info("Using " + threads + " thread(s) for export (cores: " + runtime.availableProcessors() + ", available memory: " + (maxMemoryAvailable / 1048576L) + " MB)");
+            final int threads = chooseThreadCount("export", sortedRegions.size());
 
             final Map<Point, List<Fixup>> fixups = new HashMap<>();
             ExecutorService executor = MDCThreadPoolExecutor.newFixedThreadPool(threads, new ThreadFactory() {
@@ -322,7 +310,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 try {
                     executor.awaitTermination(366, TimeUnit.DAYS);
                 } catch (InterruptedException e) {
-                    throw new RuntimeException("Thread interrupted while waiting for all tasks to finish", e);
+                    throw new WPRuntimeException("Thread interrupted while waiting for all tasks to finish", e);
                 }
             }
 
