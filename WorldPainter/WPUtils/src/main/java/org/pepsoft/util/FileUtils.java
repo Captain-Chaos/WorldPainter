@@ -800,34 +800,34 @@ public class FileUtils {
     /**
      * Visit all files contained in a directory, recursively. The order is undefined.
      *
+     * <p>This method tries to guard against endless loops caused by symbolic or hard links creating a cycle, by keeping
+     * track of the canonical path of all visited directories.
+     *
      * @param directory The directory to visit.
      * @param visitor   The visitor that will be invoked for every file in the specified directory, recursively.
      */
     public static void visitFilesRecursively(File directory, Consumer<File> visitor) throws IOException {
-        try {
-            if (! directory.isDirectory()) {
-                throw new IllegalArgumentException(directory + " is not a directory");
-            }
-            visitFilesRecursively(directory, visitor, new HashSet<>());
-        } catch (StackOverflowError e) {
-            throw new RuntimeException("Stack overflow while visiting " + directory, e);
+        if (! directory.isDirectory()) {
+            throw new IllegalArgumentException(directory + " is not a directory");
         }
+        visitFilesRecursively(directory, visitor, new HashSet<>());
     }
 
     @SuppressWarnings("ConstantConditions") // Warranted by isDirectory()
-    private static void visitFilesRecursively(File directory, Consumer<File> visitor, Set<File> visitedFiles) throws IOException {
-        visitedFiles.add(directory.getCanonicalFile());
+    private static void visitFilesRecursively(File directory, Consumer<File> visitor, Set<File> visitedDirectories) throws IOException {
+        logger.debug("Visiting {}", directory);
+        visitedDirectories.add(directory.getCanonicalFile());
         for (File file: directory.listFiles()) {
-            final File canonicalFile = file.getCanonicalFile();
-            if (visitedFiles.contains(canonicalFile)) {
-                logger.warn("Cycle detected on filesystem: {} has already been visited", canonicalFile);
-                continue;
-            }
             if (file.isDirectory()) {
-                visitFilesRecursively(directory, visitor, visitedFiles);
+                final File canonicalFile = file.getCanonicalFile();
+                if (visitedDirectories.contains(canonicalFile)) {
+                    logger.warn("Cycle detected on filesystem: {} has already been visited (as {})", file, canonicalFile);
+                    continue;
+                }
+                visitFilesRecursively(file, visitor, visitedDirectories);
             } else {
+                logger.debug("Visiting {}", file);
                 visitor.accept(file);
-                visitedFiles.add(canonicalFile);
             }
         }
     }
