@@ -678,7 +678,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             long t1 = System.currentTimeMillis();
             // First pass. Create terrain and apply layers which don't need access
             // to neighbouring chunks
-            ExportResults exportResults = firstPass(minecraftWorld, dimension, regionCoords, tiles, tileSelection, exporters, chunkFactory, false, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, ((ceiling != null) ? 0.225f : 0.45f)) : null);
+            ExportResults exportResults = firstPass(minecraftWorld, dimension, regionCoords, tiles, tileSelection, exporters, chunkFactory, false, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, ((ceiling != null) ? 0.225f : 0.45f) /* TODO why doesn't this work? */) : null);
 
             ExportResults ceilingExportResults = null;
             if (ceiling != null) {

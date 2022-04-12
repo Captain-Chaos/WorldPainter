@@ -486,7 +486,6 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             Map<Point, File> existingRegions = new HashMap<>();
             for (File file: existingRegionFiles) {
                 if (file.length() == 0L) {
-                    logger.debug("Skipping empty region file {}", file);
                     continue;
                 }
                 String[] parts = file.getName().split("\\.");
@@ -1021,17 +1020,17 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         if (! (clearTrees || fillCaves || clearResources || clearVegetation || clearManMadeAboveGround || clearManMadeBelowGround)) {
             return;
         }
-        int maxZ = world.getMaxHeight() - 1;
+        final int minHeight = existingChunk.getMinHeight();
         for (int x = 0; x < 16; x++) {
-            for (int y = 0; y < 16; y++) {
+            for (int z = 0; z < 16; z++) {
                 boolean aboveGround = true;
-                for (int z = maxZ; z >= 0; z--) {
-                    Material existingBlock = existingChunk.getMaterial(x, z, y);
+                for (int y = existingChunk.getHighestNonAirBlock(x, z); y > minHeight; y--) {
+                    Material existingBlock = existingChunk.getMaterial(x, y, z);
                     if (aboveGround) {
                         if ((clearTrees && existingBlock.treeRelated)
                                 || (clearVegetation && existingBlock.vegetation)
                                 || (clearManMadeAboveGround && (! existingBlock.natural))) {
-                            setToAirOrWater(existingChunk, x, y, z, existingBlock);
+                            setToAirOrWater(existingChunk, x, z, y, existingBlock);
                         } else if (existingBlock.terrain) {
                             aboveGround = false;
                         }
@@ -1040,30 +1039,30 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         // man made blocks are correctly removed and then filled
                         // in
                         if (clearManMadeBelowGround && (! existingBlock.natural)) {
-                            final Material newMaterial = findMostPrevalentSolidSurroundingMaterial(existingChunk, x, y, z);
+                            final Material newMaterial = findMostPrevalentSolidSurroundingMaterial(existingChunk, x, z, y);
                             if (newMaterial == AIR) {
-                                setToAirOrWater(existingChunk, x, y, z, existingBlock);
+                                setToAirOrWater(existingChunk, x, z, y, existingBlock);
                             } else {
-                                existingChunk.setMaterial(x, z, y, newMaterial);
-                                existingChunk.setSkyLightLevel(x, z, y, 0);
-                                existingChunk.setBlockLightLevel(x, z, y, 0);
+                                existingChunk.setMaterial(x, y, z, newMaterial);
+                                existingChunk.setSkyLightLevel(x, y, z, 0);
+                                existingChunk.setBlockLightLevel(x, y, z, 0);
                             }
-                            existingBlock = existingChunk.getMaterial(x, z, y);
+                            existingBlock = existingChunk.getMaterial(x, y, z);
                         }
                         if (fillCaves && existingBlock.veryInsubstantial) {
-                            final Material newMaterial = findMostPrevalentSolidSurroundingMaterial(existingChunk, x, y, z);
+                            final Material newMaterial = findMostPrevalentSolidSurroundingMaterial(existingChunk, x, z, y);
                             if (newMaterial == AIR) {
-                                existingChunk.setMaterial(x, z, y, STONE);
+                                existingChunk.setMaterial(x, y, z, STONE);
                             } else {
-                                existingChunk.setMaterial(x, z, y, newMaterial);
+                                existingChunk.setMaterial(x, y, z, newMaterial);
                             }
-                            existingChunk.setSkyLightLevel(x, z, y, 0);
-                            existingChunk.setBlockLightLevel(x, z, y, 0);
+                            existingChunk.setSkyLightLevel(x, y, z, 0);
+                            existingChunk.setBlockLightLevel(x, y, z, 0);
                         } else if (clearResources && existingBlock.resource) {
                             if (existingBlock.isNamed(MC_NETHER_QUARTZ_ORE)) {
-                                existingChunk.setMaterial(x, z, y, NETHERRACK);
+                                existingChunk.setMaterial(x, y, z, NETHERRACK);
                             } else {
-                                existingChunk.setMaterial(x, z, y, STONE);
+                                existingChunk.setMaterial(x, y, z, STONE);
                             }
                         }
                     }
@@ -1228,6 +1227,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     // Void. Just empty the entire column
                     // TODO: only empty from the terrain height on downwards? or find some other way of preserving overhanging trees, that kind of thing?
                     for (int y = minY; y <= maxY; y++) {
+                        // TODO the new chunk is _already_ empty here, no?
                         newChunk.setMaterial(x, y, z, AIR);
                         newChunk.setBlockLightLevel(x, y, z, 0);
                         newChunk.setSkyLightLevel(x, y, z, 15);

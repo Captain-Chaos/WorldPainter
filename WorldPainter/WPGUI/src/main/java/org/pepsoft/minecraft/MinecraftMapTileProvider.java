@@ -22,6 +22,7 @@ import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.util.swing.TiledImageViewer.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
+import static org.pepsoft.worldpainter.Constants.UNKNOWN_MATERIAL_COLOUR;
 
 /**
  * Created by Pepijn Schmitz on 27-10-16.
@@ -188,10 +189,16 @@ public class MinecraftMapTileProvider implements TileProvider {
     }
 
     private int getColour(Chunk chunk, int x, int y) {
-        for (int z = maxHeight - 1; z >= 0; z--) {
-            Material material = chunk.getMaterial(x, z, y);
+        final int minHeight = chunk.getMinHeight();
+        for (int z = maxHeight - 1; z >= minHeight; z--) {
+            final Material material = chunk.getMaterial(x, z, y);
             if (material != AIR) {
-                return colourScheme.getColour(material);
+                final int colour = colourScheme.getColour(material);
+                if ((colour == UNKNOWN_MATERIAL_COLOUR) && (! reportedMaterials.contains(material))){
+                    logger.warn("Don't know colour of material {}", material);
+                    reportedMaterials.add(material);
+                }
+                return colour;
             }
         }
         return DEFAULT_VOID_COLOUR;
@@ -204,6 +211,7 @@ public class MinecraftMapTileProvider implements TileProvider {
     private final Rectangle extent;
     private final Set<Point> presentTiles = new HashSet<>();
     private final Map<String, String> statusSymbols = new HashMap<>();
+    private final Set<Material> reportedMaterials = new HashSet<>();
 
     private static final int DEFAULT_VOID_COLOUR = 0x00FFFF;
     private static final ThreadLocal<BufferedImage> renderBufferRef = ThreadLocal.withInitial(() -> new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_ARGB));
