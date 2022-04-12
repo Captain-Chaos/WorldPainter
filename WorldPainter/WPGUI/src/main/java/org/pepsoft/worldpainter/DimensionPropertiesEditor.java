@@ -540,24 +540,26 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         // world generation settings
         if (! endlessBorder) {
             final Generator generatorType = (Generator) comboBoxGenerator.getSelectedItem();
-            switch (generatorType) {
-                case FLAT:
-                    dimension.setGenerator(new SuperflatGenerator(superflatPreset));
-                    break;
-                case DEFAULT:
-                case LARGE_BIOMES:
-                case BUFFET:
-                case CUSTOMIZED:
-                case NETHER:
-                case END:
-                    dimension.setGenerator(new SeededGenerator(generatorType, dimension.getMinecraftSeed()));
-                    break;
-                case CUSTOM:
-                    dimension.setGenerator(new CustomGenerator(generatorName.trim(), customGeneratorSettings));
-                    break;
-                case UNKNOWN:
-                    // Do nothing
-                    break;
+            if (generatorType != null) {
+                switch (generatorType) {
+                    case FLAT:
+                        dimension.setGenerator(new SuperflatGenerator(superflatPreset));
+                        break;
+                    case DEFAULT:
+                    case LARGE_BIOMES:
+                    case BUFFET:
+                    case CUSTOMIZED:
+                    case NETHER:
+                    case END:
+                        dimension.setGenerator(new SeededGenerator(generatorType, dimension.getMinecraftSeed()));
+                        break;
+                    case CUSTOM:
+                        dimension.setGenerator(new CustomGenerator(generatorName.trim(), customGeneratorSettings));
+                        break;
+                    case UNKNOWN:
+                        // Do nothing
+                        break;
+                }
             }
         }
 
@@ -668,6 +670,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         spinnerMinecraftSeed.setValue(dimension.getMinecraftSeed());
         checkBoxBottomless.setSelected(dimension.isBottomless());
         checkBoxCoverSteepTerrain.setSelected(dimension.isCoverSteepTerrain());
+        ((SpinnerNumberModel) spinnerCeilingHeight.getModel()).setMinimum(minHeight + 1);
         ((SpinnerNumberModel) spinnerCeilingHeight.getModel()).setMaximum(maxHeight + 1);
         spinnerCeilingHeight.setValue(dimension.getCeilingHeight());
 
@@ -985,7 +988,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         // world generation settings
         final MapGenerator generator = dimension.getGenerator();
-        comboBoxGenerator.setSelectedItem(generator.getType());
+        comboBoxGenerator.setSelectedItem((generator != null) ? generator.getType() : null);
         generatorName = (generator instanceof CustomGenerator) ? ((CustomGenerator) generator).getName() : null;
         customGeneratorSettings = (generator instanceof CustomGenerator) ? ((CustomGenerator) generator).getSettings() : null;
         superflatPreset = (generator instanceof SuperflatGenerator) ? ((SuperflatGenerator) generator).getSettings() : null;
@@ -1110,16 +1113,20 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     }
 
     private void updateGeneratorButtonTooltip() {
-        switch ((Generator) comboBoxGenerator.getSelectedItem()) {
-            case FLAT:
-                buttonGeneratorOptions.setToolTipText("Edit the Superflat mode preset");
-                break;
-            case CUSTOM:
-                buttonGeneratorOptions.setToolTipText("Set the custom world generator name");
-                break;
-            default:
-                buttonGeneratorOptions.setToolTipText(null);
-                break;
+        if (comboBoxGenerator.getSelectedItem() != null) {
+            switch ((Generator) comboBoxGenerator.getSelectedItem()) {
+                case FLAT:
+                    buttonGeneratorOptions.setToolTipText("Edit the Superflat mode preset");
+                    break;
+                case CUSTOM:
+                    buttonGeneratorOptions.setToolTipText("Set the custom world generator name");
+                    break;
+                default:
+                    buttonGeneratorOptions.setToolTipText(null);
+                    break;
+            }
+        } else {
+            buttonGeneratorOptions.setToolTipText(null);
         }
     }
 

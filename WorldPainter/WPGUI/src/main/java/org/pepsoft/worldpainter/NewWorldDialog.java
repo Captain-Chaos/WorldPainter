@@ -44,8 +44,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static java.util.Arrays.stream;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_END;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_NETHER;
-import static org.pepsoft.minecraft.Material.LAVA;
-import static org.pepsoft.minecraft.Material.WATER;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_17;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
@@ -478,22 +476,17 @@ public class NewWorldDialog extends WorldPainterDialog {
                 return null;
             }
 
-            if (dim == DIM_NORMAL_CEILING) {
-                ResourcesExporterSettings resourcesSettings = ResourcesExporterSettings.defaultSettings(platform, DIM_NORMAL, dimension.getMaxHeight());
-                // Invert min and max levels:
-                // TODOMC118 is this correct for platforms with minZ < 0?
-                int maxZ = dimension.getMaxHeight() - 1;
+            final ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
+            if (dim < 0) {
+                // Ceiling dimension; invert min and max levels:
+                final int maxZ = dimension.getMaxHeight() + dimension.getMinHeight() - 1;
                 for (Material material: resourcesSettings.getMaterials()) {
-                    int low = resourcesSettings.getMinLevel(material);
-                    int high = resourcesSettings.getMaxLevel(material);
-                    resourcesSettings.setMinLevel(material, maxZ - high);
-                    resourcesSettings.setMaxLevel(material, maxZ - low);
+                    final int oldMinLevel = resourcesSettings.getMinLevel(material);
+                    resourcesSettings.setMinLevel(material, maxZ - resourcesSettings.getMaxLevel(material));
+                    resourcesSettings.setMaxLevel(material, maxZ - oldMinLevel);
                 }
-                // Remove lava and water:
-                resourcesSettings.setChance(WATER, 0);
-                resourcesSettings.setChance(LAVA, 0);
-                dimension.setLayerSettings(Resources.INSTANCE, resourcesSettings);
-            } else if (dim == DIM_NETHER) {
+            }
+            if (dim == DIM_NETHER) {
                 dimension.setSubsurfaceMaterial(NETHERLIKE);
 
                 CavernsSettings cavernsSettings = new CavernsSettings();

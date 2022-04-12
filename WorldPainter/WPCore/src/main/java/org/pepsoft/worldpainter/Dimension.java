@@ -71,6 +71,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         this.dim = dim;
         this.minHeight = minHeight;
         this.maxHeight = maxHeight;
+        ceilingHeight = maxHeight;
         if (init) {
             layerSettings.put(Resources.INSTANCE, ResourcesExporterSettings.defaultSettings(world.getPlatform(), dim, maxHeight));
             topLayerDepthNoise = new PerlinNoise(seed + TOP_LAYER_DEPTH_SEED_OFFSET);
@@ -1953,7 +1954,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private List<CustomLayer> customLayers = new ArrayList<>();
     private int wpVersion = CURRENT_WP_VERSION;
     private boolean fixOverlayCoords;
-    private int ceilingHeight = maxHeight;
+    private int ceilingHeight;
     private Map<String, Object> attributes;
     private LayerAnchor subsurfaceLayerAnchor = LayerAnchor.BEDROCK, topLayerAnchor = LayerAnchor.BEDROCK;
     private ExportSettings exportSettings;

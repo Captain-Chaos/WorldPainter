@@ -33,16 +33,13 @@ public class InvertedWorld implements MinecraftWorld {
         this.delta = delta;
         this.platform = platform;
         minHeight = platform.minZ;
-
-        // TODOMC118: figure out
-
         maxHeight = world.getMaxHeight();
-        maxZ = maxHeight - delta - 1;
+        maxZ = maxHeight + minHeight - delta - 1;
     }
 
     @Override
     public int getBlockTypeAt(int x, int y, int height) {
-        if (height > maxZ) {
+        if (((maxZ - height) < minHeight) || ((maxZ - height) >= maxHeight)) {
             return Constants.BLK_AIR;
         } else {
             return world.getBlockTypeAt(x, y, maxZ - height);
@@ -51,7 +48,7 @@ public class InvertedWorld implements MinecraftWorld {
 
     @Override
     public int getDataAt(int x, int y, int height) {
-        if (height > maxZ) {
+        if (((maxZ - height) < minHeight) || ((maxZ - height) >= maxHeight)) {
             return 0;
         } else {
             return world.getDataAt(x, y, maxZ - height);
@@ -60,7 +57,7 @@ public class InvertedWorld implements MinecraftWorld {
 
     @Override
     public Material getMaterialAt(int x, int y, int height) {
-        if (height > maxZ) {
+        if (((maxZ - height) < minHeight) || ((maxZ - height) >= maxHeight)) {
             return Material.AIR;
         } else {
             return world.getMaterialAt(x, y, maxZ - height).invert(platform);
@@ -69,21 +66,21 @@ public class InvertedWorld implements MinecraftWorld {
 
     @Override
     public void setBlockTypeAt(int x, int y, int height, int blockType) {
-        if (height <= maxZ) {
+        if (((maxZ - height) >= minHeight) && ((maxZ - height) < maxHeight)) {
             world.setBlockTypeAt(x, y, maxZ - height, blockType);
         }
     }
 
     @Override
     public void setDataAt(int x, int y, int height, int data) {
-        if (height <= maxZ) {
+        if (((maxZ - height) >= minHeight) && ((maxZ - height) < maxHeight)) {
             world.setDataAt(x, y, maxZ - height, data);
         }
     }
 
     @Override
     public void setMaterialAt(int x, int y, int height, Material material) {
-        if (height <= maxZ) {
+        if (((maxZ - height) >= minHeight) && ((maxZ - height) < maxHeight)) {
             world.setMaterialAt(x, y, maxZ - height, material.invert(platform));
         }
     }
@@ -127,7 +124,7 @@ public class InvertedWorld implements MinecraftWorld {
 
     @Override
     public int getBlockLightLevel(int x, int y, int height) {
-        if (height > maxZ) {
+        if (((maxZ - height) < minHeight) || ((maxZ - height) >= maxHeight)) {
             return 0;
         } else {
             return world.getBlockLightLevel(x, y, maxZ - height);
@@ -136,14 +133,14 @@ public class InvertedWorld implements MinecraftWorld {
 
     @Override
     public void setBlockLightLevel(int x, int y, int height, int blockLightLevel) {
-        if (height <= maxZ) {
+        if (((maxZ - height) >= minHeight) && ((maxZ - height) < maxHeight)) {
             world.setBlockLightLevel(x, y, maxZ - height, blockLightLevel);
         }
     }
 
     @Override
     public int getSkyLightLevel(int x, int y, int height) {
-        if (height > maxZ) {
+        if (((maxZ - height) < minHeight) || ((maxZ - height) >= maxHeight)) {
             return 15;
         } else {
             return world.getSkyLightLevel(x, y, maxZ - height);
@@ -152,7 +149,7 @@ public class InvertedWorld implements MinecraftWorld {
 
     @Override
     public void setSkyLightLevel(int x, int y, int height, int skyLightLevel) {
-        if (height <= maxZ) {
+        if (((maxZ - height) >= minHeight) && ((maxZ - height) < maxHeight)) {
             world.setSkyLightLevel(x, y, maxZ - height, skyLightLevel);
         }
     }
@@ -171,7 +168,7 @@ public class InvertedWorld implements MinecraftWorld {
     public int getHighestNonAirBlock(int x, int y) { // TODOMC118 does this work for minHeight < 0?
         int worldHighestNonAirBlock = world.getHighestNonAirBlock(x, y);
         if (worldHighestNonAirBlock >= 0) {
-            for (int z = 0; z < worldHighestNonAirBlock; z++) {
+            for (int z = minHeight; z < worldHighestNonAirBlock; z++) {
                 if (world.getMaterialAt(x, y, z) != Material.AIR) {
                     return maxZ - z;
                 }

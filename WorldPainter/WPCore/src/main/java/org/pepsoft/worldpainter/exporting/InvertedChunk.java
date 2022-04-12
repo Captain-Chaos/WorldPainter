@@ -34,14 +34,14 @@ public class InvertedChunk implements Chunk {
     public InvertedChunk(Chunk chunk, int delta, Platform platform) {
         this.chunk = chunk;
         this.platform = platform;
-        minHeight = chunk.getMinHeight(); // TODOMC118 will this work like this or do we need to transpose min- and maxHeight?
+        minHeight = chunk.getMinHeight();
         maxHeight = chunk.getMaxHeight();
-        maxY = maxHeight - delta - 1; // TODOMC118 is this correct for negative heights?
+        maxY = maxHeight + minHeight - delta - 1;
     }
 
     @Override
     public int getBlockLightLevel(int x, int y, int z) {
-        if (y > maxY) {
+        if (((maxY - y) < minHeight) || ((maxY - y) >= maxHeight)) {
             return 0;
         } else {
             return chunk.getBlockLightLevel(x, maxY - y, z);
@@ -50,14 +50,14 @@ public class InvertedChunk implements Chunk {
 
     @Override
     public void setBlockLightLevel(int x, int y, int z, int blockLightLevel) {
-        if (y <= maxY) {
+        if (((maxY - y) >= minHeight) && ((maxY - y) < maxHeight)) {
             chunk.setBlockLightLevel(x, maxY - y, z, blockLightLevel);
         }
     }
 
     @Override
     public int getBlockType(int x, int y, int z) {
-        if (y > maxY) {
+        if (((maxY - y) < minHeight) || ((maxY - y) >= maxHeight)) {
             return Constants.BLK_AIR;
         } else {
             return chunk.getBlockType(x, maxY - y, z);
@@ -66,14 +66,14 @@ public class InvertedChunk implements Chunk {
 
     @Override
     public void setBlockType(int x, int y, int z, int blockType) {
-        if (y <= maxY) {
+        if (((maxY - y) >= minHeight) && ((maxY - y) < maxHeight)) {
             chunk.setBlockType(x, maxY - y, z, blockType);
         }
     }
 
     @Override
     public int getDataValue(int x, int y, int z) {
-        if (y > maxY) {
+        if (((maxY - y) < minHeight) || ((maxY - y) >= maxHeight)) {
             return 0;
         } else {
             return chunk.getDataValue(x, maxY - y, z);
@@ -82,7 +82,7 @@ public class InvertedChunk implements Chunk {
 
     @Override
     public void setDataValue(int x, int y, int z, int dataValue) {
-        if (y <= maxY) {
+        if (((maxY - y) >= minHeight) && ((maxY - y) < maxHeight)) {
             chunk.setDataValue(x, maxY - y, z, dataValue);
         }
     }
@@ -99,7 +99,9 @@ public class InvertedChunk implements Chunk {
 
     @Override
     public int getSkyLightLevel(int x, int y, int z) {
-        if (y > maxY) {
+        if ((maxY - y) < minHeight) {
+            return 0;
+        } else if ((maxY - y) >= maxHeight) {
             return 15;
         } else {
             return chunk.getSkyLightLevel(x, maxY - y, z);
@@ -108,7 +110,7 @@ public class InvertedChunk implements Chunk {
 
     @Override
     public void setSkyLightLevel(int x, int y, int z, int skyLightLevel) {
-        if (y <= maxY) {
+        if (((maxY - y) >= minHeight) && ((maxY - y) < maxHeight)) {
             chunk.setSkyLightLevel(x, maxY - y, z, skyLightLevel);
         }
     }
@@ -140,7 +142,7 @@ public class InvertedChunk implements Chunk {
 
     @Override
     public Material getMaterial(int x, int y, int z) {
-        if (y > maxY) {
+        if (((maxY - y) < minHeight) || ((maxY - y) >= maxHeight)) {
             return Material.AIR;
         } else {
             return chunk.getMaterial(x, maxY - y, z).invert(platform);
@@ -149,7 +151,7 @@ public class InvertedChunk implements Chunk {
 
     @Override
     public void setMaterial(int x, int y, int z, Material material) {
-        if (y <= maxY) {
+        if (((maxY - y) >= minHeight) && ((maxY - y) < maxHeight)) {
             chunk.setMaterial(x, maxY - y, z, material.invert(platform));
         }
     }
@@ -243,22 +245,38 @@ public class InvertedChunk implements Chunk {
 
     @Override
     public int get3DBiome(int x, int y, int z) {
-        return chunk.get3DBiome(x, (maxHeight >> 2) - y, z);
+        if ((maxY - y) < minHeight) {
+            return chunk.get3DBiome(x, 0, z);
+        } else if ((maxY - y) >= maxHeight) {
+            return chunk.get3DBiome(x, maxHeight >> 2, z);
+        } else {
+            return chunk.get3DBiome(x, (maxY /* TODO this is almost certainly wrong */ >> 2) - y, z);
+        }
     }
 
     @Override
     public void set3DBiome(int x, int y, int z, int biome) {
-        chunk.set3DBiome(x, (maxHeight >> 2) - y, z, biome);
+        if (((maxY - y) >= minHeight) && ((maxY - y) < maxHeight)) { // TODO shift coordinates right
+            chunk.set3DBiome(x, (maxY /* TODO this is almost certainly wrong */ >> 2) - y, z, biome);
+        }
     }
 
     @Override
     public String getNamedBiome(int x, int y, int z) {
-        return chunk.getNamedBiome(x, (maxHeight >> 2) - y, z);
+        if ((maxY - y) < minHeight) {
+            return chunk.getNamedBiome(x, 0, z);
+        } else if ((maxY - y) >= maxHeight) {
+            return chunk.getNamedBiome(x, maxHeight >> 2, z);
+        } else {
+            return chunk.getNamedBiome(x, (maxY /* TODO this is almost certainly wrong */ >> 2) - y, z);
+        }
     }
 
     @Override
     public void setNamedBiome(int x, int y, int z, String biome) {
-        chunk.setNamedBiome(x, (maxHeight >> 2) - y, z, biome);
+        if (((maxY - y) >= minHeight) && ((maxY - y) < maxHeight)) { // TODO shift coordinates right
+            chunk.setNamedBiome(x, (maxY /* TODO this is almost certainly wrong */ >> 2) - y, z, biome);
+        }
     }
 
     @Override
@@ -293,7 +311,7 @@ public class InvertedChunk implements Chunk {
 
     @Override
     public int getHighestNonAirBlock(int x, int z) { // TODOMC118 Does this work for minHeight < 0?
-        for (int y = 0; y <= maxY; y++) {
+        for (int y = minHeight; y < maxHeight; y++) {
             if (chunk.getBlockType(x, y, z) != Constants.BLK_AIR) {
                 return maxY - y;
             }
@@ -303,7 +321,7 @@ public class InvertedChunk implements Chunk {
 
     @Override
     public int getHighestNonAirBlock() { // TODOMC118 Does this work for minHeight < 0?
-        for (int y = 0; y <= maxY; y++) {
+        for (int y = minHeight; y < maxHeight; y++) {
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
                     if (chunk.getBlockType(x, y, z) != Constants.BLK_AIR) {

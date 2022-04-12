@@ -250,6 +250,10 @@ dims:   for (Dimension dim: world.getDimensions()) {
             showWarning = true;
         }
         for (Dimension dimension: world.getDimensions()) {
+            if (dimension.getDim() < 0) {
+                // Skip ceilings
+                continue;
+            }
             final DimensionPropertiesEditor editor = dimensionPropertiesEditors.get(dimension.getDim());
             final Generator generatorType = editor.getSelectedGeneratorType();
             if ((editor.isPopulateSelected() || dimension.getAllLayers(true).contains(Populate.INSTANCE)) && (! platform.capabilities.contains(POPULATE))) {

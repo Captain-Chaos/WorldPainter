@@ -243,6 +243,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
             final Map<Material, ResourceSettings> settings = new HashMap<>();
             switch (dim) {
                 case DIM_NORMAL:
+                case DIM_NORMAL_CEILING:
                     // TODO make these normal distributions or something else more similar to Minecraft
                     settings.put(DIRT,             new ResourceSettings(DIRT,             0            , maxHeight - 1, 57,     random.nextLong()));
                     settings.put(GRAVEL,           new ResourceSettings(GRAVEL,           platform.minZ, maxHeight - 1, 28,     random.nextLong()));
@@ -263,6 +264,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                     settings.put(ANCIENT_DEBRIS, new ResourceSettings(ANCIENT_DEBRIS, platform.minZ, maxHeight - 1, 0, random.nextLong()));
                     break;
                 case DIM_NETHER:
+                case DIM_NETHER_CEILING:
                     settings.put(QUARTZ_ORE,     new ResourceSettings(QUARTZ_ORE,     platform.minZ, maxHeight - 1, (platform != JAVA_MCREGION) ?
                                                                                                                     7 : 0, random.nextLong()));
                     settings.put(GOLD_ORE,       new ResourceSettings(GOLD_ORE,       platform.minZ, maxHeight - 1, ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) ?
@@ -283,6 +285,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                     settings.put(COPPER_ORE,       new ResourceSettings(COPPER_ORE,       0,             88,            0, random.nextLong()));
                     break;
                 case DIM_END:
+                case DIM_END_CEILING:
                     settings.put(DIRT,             new ResourceSettings(DIRT,             0            , maxHeight - 1, 0, random.nextLong()));
                     settings.put(GRAVEL,           new ResourceSettings(GRAVEL,           platform.minZ, maxHeight - 1, 0, random.nextLong()));
                     settings.put(GOLD_ORE,         new ResourceSettings(GOLD_ORE,         platform.minZ,            31, 0, random.nextLong()));

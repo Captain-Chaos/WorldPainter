@@ -22,7 +22,8 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 
 /**
- * This class is <strong>not</strong> thread-safe!
+ * This class is <strong>not</strong> thread-safe! It keeps render state and should only be used to render one tile at a
+ * time.
  * 
  * @author pepijn
  */
@@ -169,14 +170,14 @@ public final class TileRenderer {
             topLayersRelativeToTerrain = dim.getTopLayerAnchor() == Dimension.LayerAnchor.TERRAIN;
             seed = dim.getSeed();
             if (oppositeTileProvider instanceof Dimension) {
-                final int maxHeight = tile.getMaxHeight();
+                final int totalRange = dim.getMaxHeight() + dim.getMinHeight();
                 final Tile oppositeTile = oppositeTileProvider.getTile(tile.getX(), tile.getY());
                 if (oppositeTile != null) {
                     Arrays.fill(oppositesOverlap, false);
                     final int oppositesDelta = Math.abs(dim.getCeilingHeight() - ((Dimension) oppositeTileProvider).getCeilingHeight());
                     for (int x = 0; x < TILE_SIZE; x++) {
                         for (int y = 0; y < TILE_SIZE; y++) {
-                            if ((oppositeTile.getIntHeight(x, y) + intHeightCache[x | (y << TILE_SIZE_BITS)] + oppositesDelta) >= maxHeight) {
+                            if ((oppositeTile.getIntHeight(x, y) + intHeightCache[x | (y << TILE_SIZE_BITS)] + oppositesDelta) >= totalRange) {
                                 oppositesOverlap[x | (y << TILE_SIZE_BITS)] = true;
                                 noOpposites = false;
                             }
