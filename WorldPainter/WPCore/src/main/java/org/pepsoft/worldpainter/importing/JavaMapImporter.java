@@ -250,40 +250,18 @@ public class JavaMapImporter extends MapImporter {
                             return true;
                         }
 
-                        final int chunkX = chunkCoords.x;
-                        final int chunkZ = chunkCoords.z;
-                        final int chunkMinHeight = Math.max(minHeight, chunk.getMinHeight());
-
                         // Sanity checks
-                        if ((chunk instanceof MC115AnvilChunk) || (chunk instanceof MC118AnvilChunk)) {
-                            final String status = (chunk instanceof MC115AnvilChunk) ? ((MC115AnvilChunk) chunk).getStatus() : ((MC118AnvilChunk) chunk).getStatus();
-                            if (status.equals(STATUS_STRUCTURE_STARTS) || status.equals(STATUS_BIOMES)) {
-                                if (logger.isDebugEnabled()) {
-                                    logger.debug("Skipping chunk {},{} because the status is {}", chunkX, chunkZ, status);
-                                }
-                                // Minecraft 1.18 seems to put lots of these empty chunks around the already generated parts; skip them
-                                return true;
-                            }
-                        }
-                        if (chunk instanceof SectionedChunk) {
-                            boolean sectionFound = false;
-                            for (Section section: ((SectionedChunk) chunk).getSections()) {
-                                if (section != null) {
-                                    sectionFound = true;
-                                    break;
-                                }
-                            }
-                            if (! sectionFound) {
-                                if (logger.isDebugEnabled()) {
-                                    logger.debug("Skipping chunk {},{} because it has no sections, or no sections with y >= minHeight", chunkX, chunkZ);
-                                }
-                                return true;
-                            }
+                        if (skipChunk(chunk)) {
+                            return true;
                         }
                         Platform chunkNativePlatform = determineNativePlatform(chunk);
                         if ((chunkNativePlatform != null) && (chunkNativePlatform != platform)) {
                             nonNativePlatformsEncountered.computeIfAbsent(chunkNativePlatform, p -> new AtomicInteger()).incrementAndGet();
                         }
+
+                        final int chunkX = chunkCoords.x;
+                        final int chunkZ = chunkCoords.z;
+                        final int chunkMinHeight = Math.max(minHeight, chunk.getMinHeight());
 
                         final Point tileCoords = new Point(chunkX >> 3, chunkZ >> 3);
                         Tile tile = dimension.getTile(tileCoords);
@@ -528,6 +506,44 @@ public class JavaMapImporter extends MapImporter {
 
             return reportBuilder.length() != 0 ? reportBuilder.toString() : null;
         }
+    }
+
+    private boolean skipChunk(Chunk chunk) {
+        if ((chunk instanceof MC115AnvilChunk) || (chunk instanceof MC118AnvilChunk)) {
+            final String status = (chunk instanceof MC115AnvilChunk) ? ((MC115AnvilChunk) chunk).getStatus() : ((MC118AnvilChunk) chunk).getStatus();
+            if (status.equals(STATUS_STRUCTURE_STARTS) || status.equals(STATUS_BIOMES)) {
+                boolean nonEmptySectionFound = false;
+                for (Section section: ((SectionedChunk) chunk).getSections()) {
+                    if ((section != null) && (! section.isEmpty())) {
+                        nonEmptySectionFound = true;
+                        break;
+                    }
+                }
+                if (! nonEmptySectionFound) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Skipping chunk {},{} because the status is {} and it is empty", chunk.getxPos(), chunk.getzPos(), status);
+                    }
+                    // Minecraft 1.18 seems to put lots of these empty chunks around the already generated parts; skip them
+                    return true;
+                }
+            }
+        }
+        if (chunk instanceof SectionedChunk) {
+            boolean sectionFound = false;
+            for (Section section: ((SectionedChunk) chunk).getSections()) {
+                if (section != null) {
+                    sectionFound = true;
+                    break;
+                }
+            }
+            if (! sectionFound) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Skipping chunk {},{} because it has no sections, or no sections with y >= minHeight", chunk.getxPos(), chunk.getzPos());
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
     private final Platform platform;

@@ -77,7 +77,7 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
                     } catch (IncompleteSectionException e) {
                         // Ignore sections that don't have blocks
                         if (logger.isDebugEnabled()) {
-                            logger.debug("Block states and/or palette missing from section @ y=" + ((ByteTag) sectionTag.getTag(TAG_Y)).getValue());
+                            logger.debug("Ignoring chunk section with missing data @ " + getxPos() + "," + ((ByteTag) sectionTag.getTag(TAG_Y)).getValue() + "," + getzPos());
                         }
                     }
                 }
@@ -886,7 +886,6 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
          * 
          * @return {@code true} if the section is empty
          */
-        @SuppressWarnings("StringEquality") // Interned strings
         @Override
         public boolean isEmpty() {
             if ((singleMaterial != null) && (singleMaterial != AIR)) {
@@ -894,12 +893,6 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
             } else if ((materials != null) && (! materials.isEmpty())) {
                 return false;
             }
-            if ((singleBiome != null) && (singleBiome != MC_PLAINS)) {
-                return false;
-            } else if ((biomes != null) && (! biomes.isEmpty())) {
-                return false;
-            }
-            // TODOMC118 what to do when singleBiome is set and the section is otherwise empty?
             for (int i = 0; i < LIGHT_ARRAY_SIZE; i++) {
                 if (skyLight[i] != (byte) -1) {
                     return false;

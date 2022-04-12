@@ -75,7 +75,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
                     } catch (IncompleteSectionException e) {
                         // Ignore sections that don't have blocks
                         if (logger.isDebugEnabled()) {
-                            logger.debug("Block states and/or palette missing from section @ y=" + ((ByteTag) sectionTag.getTag(TAG_Y)).getValue());
+                            logger.debug("Ignoring chunk section with missing data @ " + getxPos() + "," + ((ByteTag) sectionTag.getTag(TAG_Y)).getValue() + "," + getzPos());
                         }
                     }
                 }
@@ -249,7 +249,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
         if (sections != null) {
             List<CompoundTag> sectionTags = new ArrayList<>(maxHeight >> 4);
             for (Section section: sections) {
-                if ((section != null) && (!section.isEmpty())) {
+                if ((section != null) && (! section.isEmpty())) {
                     sectionTags.add(section.toNBT());
                 }
             }
