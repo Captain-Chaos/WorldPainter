@@ -511,7 +511,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 highestHeight = tileHighestHeight;
             }
             if (highestHeight >= (maxHeight - 1)) {
-                return maxHeight;
+                return maxHeight - 1;
             }
         }
         return highestHeight;

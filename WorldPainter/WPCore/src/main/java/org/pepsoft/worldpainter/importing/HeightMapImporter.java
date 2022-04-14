@@ -279,19 +279,19 @@ public class HeightMapImporter {
         this.worldHighLevel = worldHighLevel;
     }
 
-    public int getImageLowLevel() {
+    public long getImageLowLevel() {
         return imageLowLevel;
     }
 
-    public void setImageLowLevel(int imageLowLevel) {
+    public void setImageLowLevel(long imageLowLevel) {
         this.imageLowLevel = imageLowLevel;
     }
 
-    public int getImageHighLevel() {
+    public long getImageHighLevel() {
         return imageHighLevel;
     }
 
-    public void setImageHighLevel(int imageHighLevel) {
+    public void setImageHighLevel(long imageHighLevel) {
         this.imageHighLevel = imageHighLevel;
     }
 
@@ -396,7 +396,8 @@ public class HeightMapImporter {
 
     private Platform platform = JAVA_ANVIL_1_15; // TODOMC118 make dynamic/upgrade to 1.18 when finished
     private HeightMap heightMap;
-    private int worldLowLevel, worldWaterLevel = 62, worldHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, imageLowLevel, imageHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, maxHeight = DEFAULT_MAX_HEIGHT_ANVIL, voidBelowLevel, maxZ;
+    private int worldLowLevel, worldWaterLevel = 62, worldHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, maxHeight = DEFAULT_MAX_HEIGHT_ANVIL, voidBelowLevel, maxZ;
+    private long imageLowLevel, imageHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1;
     private TileFactory tileFactory;
     private Theme theme;
     private String name;

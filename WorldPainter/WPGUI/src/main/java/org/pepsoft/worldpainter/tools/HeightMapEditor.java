@@ -248,7 +248,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                     if (file != null) {
                         try {
                             BufferedImage image = ImageIO.read(file);
-                            BitmapHeightMap bitmapHeightMap = new BitmapHeightMap(file.getName(), image, 0, file, false, false);
+                            BitmapHeightMap bitmapHeightMap = BitmapHeightMap.build().withName(file.getName()).withImage(image).withFile(file).now();
                             replace(parent, heightMap, bitmapHeightMap);
                         } catch (IOException e) {
                             throw new RuntimeException(e);

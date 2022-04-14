@@ -20,7 +20,7 @@ import java.io.File;
  * @author SchmitzP
  */
 public final class BitmapHeightMap extends AbstractHeightMap {
-    public BitmapHeightMap(String name, BufferedImage image, int channel, File imageFile, boolean repeat, boolean smoothScaling) {
+    private BitmapHeightMap(String name, BufferedImage image, int channel, File imageFile, boolean repeat, boolean smoothScaling) {
         super(name);
         this.image = image;
         raster = image.getRaster();
@@ -38,34 +38,12 @@ public final class BitmapHeightMap extends AbstractHeightMap {
         return image;
     }
 
-    public void setImage(BufferedImage image) {
-        this.image = image;
-        raster = image.getRaster();
-        width = image.getWidth();
-        height = image.getHeight();
-        extent = repeat ? null : new Rectangle(0, 0, width, height);
-        bits = raster.getSampleModel().getSampleSize(0);
-    }
-
     public int getChannel() {
         return channel;
     }
 
-    public void setChannel(int channel) {
-        this.channel = channel;
-    }
-
-    public void setImageFile(File imageFile) {
-        this.imageFile = imageFile;
-    }
-
     public boolean isRepeat() {
         return repeat;
-    }
-
-    public void setRepeat(boolean repeat) {
-        this.repeat = repeat;
-        extent = repeat ? null : new Rectangle(0, 0, width, height);
     }
 
     public boolean isSmoothScaling() {
@@ -81,9 +59,9 @@ public final class BitmapHeightMap extends AbstractHeightMap {
     @Override
     public float getHeight(int x, int y) {
         if (repeat) {
-            return raster.getSample(MathUtils.mod(x, width), MathUtils.mod(y, height), channel);
+            return getUnsignedSample(MathUtils.mod(x, width), MathUtils.mod(y, height));
         } else if (extent.contains(x, y)) {
-            return raster.getSample(x, y, channel);
+            return getUnsignedSample(x, y);
         } else {
             return 0f;
         }
@@ -114,41 +92,41 @@ public final class BitmapHeightMap extends AbstractHeightMap {
      */
     private float getExtHeight(int x, int y) {
         if (repeat) {
-            return raster.getSample(MathUtils.mod(x, width), MathUtils.mod(y, height), channel);
+            return getUnsignedSample(MathUtils.mod(x, width), MathUtils.mod(y, height));
         } else if (extent.contains(x, y)) {
-            return raster.getSample(x, y, channel);
+            return getUnsignedSample(x, y);
         } else if (x < 0) {
             // West of the extent
             if (y < 0) {
                 // Northwest of the extent
-                return raster.getSample(0, 0, channel);
+                return getUnsignedSample(0, 0);
             } else if (y < height) {
                 // Due west of the extent
-                return raster.getSample(0, y, channel);
+                return getUnsignedSample(0, y);
             } else {
                 // Southwest of the extent
-                return raster.getSample(0, height - 1, channel);
+                return getUnsignedSample(0, height - 1);
             }
         } else if (x < width) {
             // North or south of the extent
             if (y < 0) {
                 // Due north of the extent
-                return raster.getSample(x, 0, channel);
+                return getUnsignedSample(x, 0);
             } else {
                 // Due south of the extent
-                return raster.getSample(x, height - 1, channel);
+                return getUnsignedSample(x, height - 1);
             }
         } else {
             // East of the extent
             if (y < 0) {
                 // Northeast of the extent
-                return raster.getSample(width - 1, 0, channel);
+                return getUnsignedSample(width - 1, 0);
             } else if (y < height) {
                 // Due east of the extent
-                return raster.getSample(width - 1, y, channel);
+                return getUnsignedSample(width - 1, y);
             } else {
                 // Southeast of the extent
-                return raster.getSample(width - 1, height - 1, channel);
+                return getUnsignedSample(width - 1, height - 1);
             }
         }
     }
@@ -181,6 +159,8 @@ public final class BitmapHeightMap extends AbstractHeightMap {
                 return RANGE_8BIT;
             case 16:
                 return RANGE_16BIT;
+            case 32:
+                return RANGE_32BIT;
             default:
                 throw new UnsupportedOperationException();
         }
@@ -201,16 +181,21 @@ public final class BitmapHeightMap extends AbstractHeightMap {
         return y1 + 0.5f * μ * (y2 - y0 + μ * (2.0f * y0 - 5.0f * y1 + 4.0f * y2 - y3 + μ * (3.0f * (y1 - y2) + y3 - y0)));
     }
 
-    private BufferedImage image;
-    private int channel, width, height, bits;
-    private Raster raster;
-    private Rectangle extent;
-    private File imageFile;
-    private boolean repeat, smoothScaling;
+    private long getUnsignedSample(int x, int y) {
+        return raster.getSample(x, y, channel) & 0xffffffffL; // Convert to unsigned integer
+    }
+
+    private final BufferedImage image;
+    private final int channel, width, height, bits;
+    private final Raster raster;
+    private final Rectangle extent;
+    private final File imageFile;
+    private final boolean repeat;
+    private boolean smoothScaling;
 
     private static final long serialVersionUID = 1L;
     private static final Icon ICON_BITMAP_HEIGHTMAP = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/height_map.png");
-    private static final float[] RANGE_8BIT = {0.0f, 255.0f}, RANGE_16BIT = {0.0f, 65535.0f};
+    private static final float[] RANGE_8BIT = {0.0f, 255.0f}, RANGE_16BIT = {0.0f, 65535.0f}, RANGE_32BIT = {0.0f, 4294967295.0f};
 
     public static class BitmapHeightMapBuilder {
         public BitmapHeightMapBuilder withName(String name) {

@@ -28,6 +28,7 @@ import org.pepsoft.worldpainter.brushes.BitmapBrush;
 import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.brushes.RotatedBrush;
 import org.pepsoft.worldpainter.brushes.SymmetricBrush;
+import org.pepsoft.worldpainter.exporting.HeightMapExporter;
 import org.pepsoft.worldpainter.gardenofeden.GardenOfEdenOperation;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.history.WorldHistoryDialog;
@@ -78,7 +79,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
-import java.awt.image.WritableRaster;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
@@ -1176,13 +1176,7 @@ public final class App extends JFrame implements RadiusControl,
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if (evt.getSource() == dimension) {
-            lastChangeTimestamp = System.currentTimeMillis();
-            if (evt.getPropertyName().equals("maxHeight")) {
-                boolean enableHighResHeightMapMenuItem = (Integer) evt.getNewValue() <= 256;
-                doOnEventThread(() -> exportHighResHeightMapMenuItem.setEnabled(enableHighResHeightMapMenuItem));
-            }
-        } else if (evt.getSource() == world) {
+        if (evt.getSource() == world) {
             lastChangeTimestamp = System.currentTimeMillis();
             if (evt.getPropertyName().equals("platform")) {
                 doOnEventThread(this::configureForPlatform);
@@ -3877,9 +3871,9 @@ public final class App extends JFrame implements RadiusControl,
             menuItem.setMnemonic('h');
             exportMenu.add(menuItem);
 
-            exportHighResHeightMapMenuItem = new JMenuItem("Export as high resolution height map...");
-            exportHighResHeightMapMenuItem.addActionListener(event -> exportHeightMap(true));
-            exportMenu.add(exportHighResHeightMapMenuItem);
+            menuItem = new JMenuItem("Export as high resolution height map...");
+            menuItem.addActionListener(event -> exportHeightMap(true));
+            exportMenu.add(menuItem);
 
             menu.add(exportMenu);
         }
@@ -5224,10 +5218,6 @@ public final class App extends JFrame implements RadiusControl,
                     ACTION_MOVE_TO_SPAWN.setEnabled(false);
                     break;
             }
-            boolean enableHighResHeightMapMenuItem = dimension.getMaxHeight() <= 256;
-            exportHighResHeightMapMenuItem.setEnabled(enableHighResHeightMapMenuItem);
-        } else {
-            exportHighResHeightMapMenuItem.setEnabled(false);
         }
         if (! platform.capabilities.contains(POPULATE)) {
             layerControls.get(Populate.INSTANCE).disable("Automatic population not support by format " + platform);
@@ -5507,7 +5497,8 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void exportHeightMap(boolean highRes) {
-        final Set<String> extensions = new HashSet<>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
+        final HeightMapExporter heightMapExporter = new HeightMapExporter(dimension, highRes);
+        final List<String> extensions = heightMapExporter.getSupportedFileExtensions();
         StringBuilder sb = new StringBuilder(strings.getString("supported.image.formats"));
         sb.append(" (");
         boolean first = true;
@@ -5522,7 +5513,8 @@ public final class App extends JFrame implements RadiusControl,
         }
         sb.append(')');
         final String description = sb.toString();
-        String defaultname = world.getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getDim() == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + (highRes ? "_high-res-heightmap.png" : "_heightmap.png"); // NOI18N
+        final String defaultExtension = extensions.get(0);
+        String defaultname = world.getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getDim() == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + (highRes ? "_high-res-heightmap." + defaultExtension : "_heightmap.png" + defaultExtension); // NOI18N
         Configuration config = Configuration.getInstance();
         File dir = config.getHeightMapsDirectory();
         if ((dir == null) || (! dir.isDirectory())) {
@@ -5556,8 +5548,8 @@ public final class App extends JFrame implements RadiusControl,
             if (p != -1) {
                 type = selectedFile.getName().substring(p + 1).toUpperCase();
             } else {
-                type = "PNG"; // NOI18N
-                selectedFile = new File(selectedFile.getParentFile(), selectedFile.getName() + ".png");
+                showMessageDialog(App.this, "No filename extension specified", "Missing Extension", ERROR_MESSAGE);
+                return;
             }
             if (selectedFile.exists()) {
                 if (showConfirmDialog(App.this, strings.getString("the.file.already.exists"), strings.getString("overwrite.file"), YES_NO_OPTION) != YES_OPTION) {
@@ -5575,37 +5567,10 @@ public final class App extends JFrame implements RadiusControl,
 
                         @Override
                         public Boolean execute(ProgressReceiver progressReceiver) {
-                            // Leave the progress receiver indeterminate, since
-                            // by *far* the most time goes into actually writing
-                            // the file, and we can't report progress for that
-                            try {
-                                final int minHeight = dimension.getMinHeight(), totalHeight = dimension.getMaxHeight() - dimension.getMinHeight();
-                                final BufferedImage image = new BufferedImage(dimension.getWidth() * TILE_SIZE, dimension.getHeight() * TILE_SIZE, ((totalHeight <= 256) && (! highRes)) ? BufferedImage.TYPE_BYTE_GRAY : BufferedImage.TYPE_USHORT_GRAY);
-                                final WritableRaster raster = image.getRaster();
-                                for (Tile tile: dimension.getTiles()) {
-                                    final int tileOffsetX = (tile.getX() - dimension.getLowestX()) * TILE_SIZE;
-                                    final int tileOffsetY = (tile.getY() - dimension.getLowestY()) * TILE_SIZE;
-                                    if (highRes) {
-                                        for (int dx = 0; dx < TILE_SIZE; dx++) {
-                                            for (int dy = 0; dy < TILE_SIZE; dy++) {
-                                                raster.setSample(tileOffsetX + dx, tileOffsetY + dy, 0, tile.getRawHeight(dx, dy));
-                                            }
-                                        }
-                                    } else {
-                                        for (int dx = 0; dx < TILE_SIZE; dx++) {
-                                            for (int dy = 0; dy < TILE_SIZE; dy++) {
-                                                raster.setSample(tileOffsetX + dx, tileOffsetY + dy, 0, tile.getIntHeight(dx, dy) - minHeight);
-                                            }
-                                        }
-                                    }
-                                }
-                                return ImageIO.write(image, type, file);
-                            } catch (IOException e) {
-                                throw new RuntimeException("I/O error while exporting image", e);
-                            }
+                            return heightMapExporter.exportToFile(file);
                         }
                     }, NOT_CANCELABLE)) {
-                showMessageDialog(App.this, MessageFormat.format(strings.getString("format.0.not.supported"), type));
+                showMessageDialog(App.this, MessageFormat.format(strings.getString("format.0.not.supported"), type, defaultExtension.toUpperCase()));
             }
         }
     }
@@ -6875,7 +6840,7 @@ public final class App extends JFrame implements RadiusControl,
     private GlassPane glassPane;
     private JCheckBox terrainCheckBox, terrainSoloCheckBox;
     private JToggleButton setSpawnPointToggleButton;
-    private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addSurfaceCeilingMenuItem, removeSurfaceCeilingMenuItem, addNetherCeilingMenuItem, removeNetherCeilingMenuItem, addEndCeilingMenuItem, removeEndCeilingMenuItem, exportHighResHeightMapMenuItem;
+    private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addSurfaceCeilingMenuItem, removeSurfaceCeilingMenuItem, addNetherCeilingMenuItem, removeNetherCeilingMenuItem, addEndCeilingMenuItem, removeEndCeilingMenuItem;
     private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem, viewSurfaceCeilingMenuItem, viewNetherCeilingMenuItem, viewEndCeilingMenuItem;
     private final JToggleButton[] customMaterialButtons = new JToggleButton[CUSTOM_TERRAIN_COUNT];
     private final ColourScheme selectedColourScheme;
