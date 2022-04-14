@@ -5197,7 +5197,7 @@ public final class App extends JFrame implements RadiusControl,
         addEndCeilingMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_END) && end && (! endCeiling));
         removeEndCeilingMenuItem.setEnabled(endCeiling);
         if (dimension != null) {
-            final boolean biomesSupported = platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
+            final boolean biomesSupported = (dimension.getDim() >= 0) && platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
             if ((! biomesSupported) && (paint instanceof DiscreteLayerPaint) && (((DiscreteLayerPaint) paint).getLayer() == Biome.INSTANCE)) {
                 deselectPaint();
             }
