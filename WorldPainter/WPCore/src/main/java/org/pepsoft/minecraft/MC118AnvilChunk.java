@@ -201,7 +201,7 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
         if (sections != null) {
             List<CompoundTag> sectionTags = new ArrayList<>(maxHeight >> 4);
             for (Section section: sections) {
-                if ((section != null) && (! section.isEmpty())) {
+                if ((section != null) && ((! section.isEmpty()) || section.hasBiomes())) {
                     sectionTags.add(section.toNBT());
                 }
             }
@@ -904,6 +904,14 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
                 }
             }
             return true;
+        }
+
+        /**
+         * Indicates whether the section contains any biome other than minecraft:plains.
+         */
+        public boolean hasBiomes() {
+            // We cheat slightly by concluding from biomes not being null that there must be more than one biome in there:
+            return ((singleBiome != null) && (! singleBiome.equals(MC_PLAINS))) || (biomes != null);
         }
 
         private void writeObject(ObjectOutputStream out) throws IOException {
