@@ -266,39 +266,45 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                 labelImageDimensions.setText("Premultiplied alpha not supported! Please convert to non-premultiplied.");
                 selectedFile = null;
             } else {
-                if (image.getColorModel().hasAlpha()) {
-                    spinnerScale.setValue(100);
-                    spinnerScale.setEnabled(false);
-                    spinnerScale.setToolTipText("<html>Scaling not supported for grey scale images with an alpha channel!<br>To enable scaling, please remove the alpha channel.</html>");
-                } else {
-                    spinnerScale.setEnabled(true);
-                    spinnerScale.setToolTipText(null);
-                }
-                labelImageDimensions.setForeground(null);
                 final int width = image.getWidth(), height = image.getHeight();
-                bitDepth = image.getSampleModel().getSampleSize(0);
-                final WritableRaster raster = image.getRaster();
-                imageLowValue = Long.MAX_VALUE;
-                imageHighValue = Long.MIN_VALUE;
-                final long imageMaxHeight = (long) Math.pow(2, bitDepth) - 1;
-                final boolean invert = checkBoxInvert.isSelected();
-outer:          for (int x = 0; x < width; x++) {
-                    for (int y = 0; y < height; y++) {
-                        final long value = invert ? (imageMaxHeight - raster.getSample(x, y, 0) & 0xffffffffL) : raster.getSample(x, y, 0) & 0xffffffffL; // Convert to unsigned integers
-                        if (value < imageLowValue) {
-                            imageLowValue = value;
-                        }
-                        if (value > imageHighValue) {
-                            imageHighValue = value;
-                        }
-                        if ((imageLowValue == 0L) && (imageHighValue == imageMaxHeight)) {
-                            // No point in looking any further!
-                            break outer;
+                programmaticChange = true;
+                try {
+                    if (image.getColorModel().hasAlpha()) {
+                        spinnerScale.setValue(100);
+                        spinnerScale.setEnabled(false);
+                        spinnerScale.setToolTipText("<html>Scaling not supported for grey scale images with an alpha channel!<br>To enable scaling, please remove the alpha channel.</html>");
+                    } else {
+                        spinnerScale.setEnabled(true);
+                        spinnerScale.setToolTipText(null);
+                    }
+                    labelImageDimensions.setForeground(null);
+                    bitDepth = image.getSampleModel().getSampleSize(0);
+                    final WritableRaster raster = image.getRaster();
+                    imageLowValue = Long.MAX_VALUE;
+                    imageHighValue = Long.MIN_VALUE;
+                    final long imageMaxHeight = (long) Math.pow(2, bitDepth) - 1;
+                    final boolean invert = checkBoxInvert.isSelected();
+                    outer:
+                    for (int x = 0; x < width; x++) {
+                        for (int y = 0; y < height; y++) {
+                            final long value = invert ? (imageMaxHeight - raster.getSample(x, y, 0) & 0xffffffffL) : raster.getSample(x, y, 0) & 0xffffffffL; // Convert to unsigned integers
+                            if (value < imageLowValue) {
+                                imageLowValue = value;
+                            }
+                            if (value > imageHighValue) {
+                                imageHighValue = value;
+                            }
+                            if ((imageLowValue == 0L) && (imageHighValue == imageMaxHeight)) {
+                                // No point in looking any further!
+                                break outer;
+                            }
                         }
                     }
+                    setMaximum(spinnerImageLow, imageMaxHeight);
+                    setMaximum(spinnerImageHigh, imageMaxHeight);
+                } finally {
+                    programmaticChange = false;
                 }
-                setMaximum(spinnerImageLow, imageMaxHeight);
-                setMaximum(spinnerImageHigh, imageMaxHeight);
                 labelImageLowestLevel.setText(NUMBER_FORMAT.format(imageLowValue));
                 labelImageHighestLevel.setText(NUMBER_FORMAT.format(imageHighValue));
 
@@ -482,35 +488,45 @@ outer:          for (int x = 0; x < width; x++) {
         platform = (Platform) comboBoxPlatform.getSelectedItem();
         int maxMaxHeight = Math.min(platform.maxMaxHeight, MAX_HEIGHT);
         int maxHeight;
-        if (currentDimension != null) {
-            maxHeight = currentDimension.getMaxHeight();
-            comboBoxHeight.setModel(new DefaultComboBoxModel<>(new Integer[] {maxMaxHeight}));
-            comboBoxHeight.setEnabled(false);
-        } else if ((platform.minMaxHeight == maxMaxHeight) || (maxMaxHeight == MAX_HEIGHT)) {
-            maxHeight = maxMaxHeight;
-            comboBoxHeight.setModel(new DefaultComboBoxModel<>(new Integer[] {maxMaxHeight}));
-            comboBoxHeight.setEnabled(false);
-        } else {
-            maxHeight = platform.standardMaxHeight;
-            List<Integer> maxHeights = asList(platform.maxHeights);
-            comboBoxHeight.setModel(new DefaultComboBoxModel<>(maxHeights.toArray(new Integer[maxHeights.size()])));
-            comboBoxHeight.setEnabled(true);
+        programmaticChange = true;
+        try {
+            if (currentDimension != null) {
+                maxHeight = currentDimension.getMaxHeight();
+                comboBoxHeight.setModel(new DefaultComboBoxModel<>(new Integer[] {maxMaxHeight}));
+                comboBoxHeight.setEnabled(false);
+            } else if ((platform.minMaxHeight == maxMaxHeight) || (maxMaxHeight == MAX_HEIGHT)) {
+                maxHeight = maxMaxHeight;
+                comboBoxHeight.setModel(new DefaultComboBoxModel<>(new Integer[] {maxMaxHeight}));
+                comboBoxHeight.setEnabled(false);
+            } else {
+                maxHeight = platform.standardMaxHeight;
+                List<Integer> maxHeights = asList(platform.maxHeights);
+                comboBoxHeight.setModel(new DefaultComboBoxModel<>(maxHeights.toArray(new Integer[maxHeights.size()])));
+                comboBoxHeight.setEnabled(true);
+            }
+            setMinimum(spinnerWorldLow, platform.minZ);
+            setMinimum(spinnerWorldMiddle, platform.minZ);
+            setMinimum(spinnerWorldHigh, platform.minZ);
+            comboBoxHeight.setSelectedItem(platform.standardMaxHeight);
+            labelMinHeight.setText(String.valueOf(platform.minZ));
+            maxHeightChanged();
+            spinnerWorldHigh.setValue((int) Math.min(maxHeight - 1, (long) Math.pow(2, bitDepth) - 1)); // TODO overflow
+        } finally {
+            programmaticChange = false;
         }
-        setMinimum(spinnerWorldLow, platform.minZ);
-        setMinimum(spinnerWorldMiddle, platform.minZ);
-        setMinimum(spinnerWorldHigh, platform.minZ);
-        comboBoxHeight.setSelectedItem(platform.standardMaxHeight);
-        labelMinHeight.setText(String.valueOf(platform.minZ));
-        maxHeightChanged();
-        spinnerWorldHigh.setValue((int) Math.min(maxHeight - 1, (long) Math.pow(2, bitDepth) - 1)); // TODO overflow
     }
 
     private void maxHeightChanged() {
         int platformMaxHeight = (int) comboBoxHeight.getSelectedItem();
-        setMaximum(spinnerWorldLow, platformMaxHeight - 1);
-        setMaximum(spinnerWorldMiddle, platformMaxHeight - 1);
-        setMaximum(spinnerWorldHigh, platformMaxHeight - 1);
-        labelMaxHeight.setText(NUMBER_FORMAT.format(platformMaxHeight - 1));
+        programmaticChange = true;
+        try {
+            setMaximum(spinnerWorldLow, platformMaxHeight - 1);
+            setMaximum(spinnerWorldMiddle, platformMaxHeight - 1);
+            setMaximum(spinnerWorldHigh, platformMaxHeight - 1);
+            labelMaxHeight.setText(NUMBER_FORMAT.format(platformMaxHeight - 1));
+        } finally {
+            programmaticChange = false;
+        }
 
         // Set levels to reasonable defaults
         selectDefaultVerticalScaling();

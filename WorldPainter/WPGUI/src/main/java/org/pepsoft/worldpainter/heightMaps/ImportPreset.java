@@ -14,7 +14,8 @@ public abstract class ImportPreset {
     public boolean isValid(int bitDepth, long imageLow, long imageHigh, Platform platform, int maxHeight) {
         final long[][] mapping = getMapping(bitDepth, imageLow, imageHigh, platform, maxHeight);
         return (mapping[0][0] >= 0) && (mapping[0][1] < 1L << bitDepth)
-                && (mapping[1][0] >= platform.minZ) && (mapping[1][1] < maxHeight);
+                && (mapping[1][0] >= platform.minZ) && (mapping[1][1] < maxHeight)
+                && (getWorldValue(imageHigh, mapping) < maxHeight);
     }
 
     /**
@@ -28,6 +29,13 @@ public abstract class ImportPreset {
      * @return An array containing the image low and high values in [0][0] and [0][1] respectively,
      */
     public abstract long[][] getMapping(int bitDepth, long imageLow, long imageHigh, Platform platform, int maxHeight);
+
+    private int getWorldValue(long imageValue, long[][] mapping) {
+        final long imageLowLevel = mapping[0][0];
+        final int worldLowLevel  = (int) mapping[1][0];
+        final float levelScale   = (float) ((int) mapping[1][1] - worldLowLevel) / (mapping[0][1] - imageLowLevel);
+        return (int) ((imageValue - imageLowLevel) * levelScale + worldLowLevel);
+    }
 
     private final String description;
 
@@ -50,7 +58,7 @@ public abstract class ImportPreset {
             };
         }
     };
-    public static final ImportPreset WORLDPAINTER_LOW_RES_0_BASED = new ImportPreset("(1:1)/low res WorldPainter export; from 0") {
+    public static final ImportPreset WORLDPAINTER_LOW_RES_0_BASED = new ImportPreset("One to one (e.g. low res WorldPainter export); from 0") {
         @Override
         public long[][] getMapping(int bitDepth, long imageLow, long imageHigh, Platform platform, int maxHeight) {
             final long imageMaxHeight = 1L << bitDepth;
@@ -61,7 +69,7 @@ public abstract class ImportPreset {
         }
     };
 
-    public static final ImportPreset WORLDPAINTER_HIGH_RES_0_BASED = new ImportPreset("(256:1)/high res WorldPainter export; from 0") {
+    public static final ImportPreset WORLDPAINTER_HIGH_RES_0_BASED = new ImportPreset("256 to one (e.g. high res WorldPainter export); from 0") {
         @Override
         public long[][] getMapping(int bitDepth, long imageLow, long imageHigh, Platform platform, int maxHeight) {
             final long imageMaxHeight = 1L << bitDepth;
@@ -76,7 +84,7 @@ public abstract class ImportPreset {
         }
     };
 
-    public static final ImportPreset WORLDPAINTER_LOW_RES_MINUS_64_BASED = new ImportPreset("(1:1)/low res WorldPainter export; from -64") {
+    public static final ImportPreset WORLDPAINTER_LOW_RES_MINUS_64_BASED = new ImportPreset("One to one (e.g. low res WorldPainter export); from -64") {
         @Override
         public long[][] getMapping(int bitDepth, long imageLow, long imageHigh, Platform platform, int maxHeight) {
             final long imageMaxHeight = 1L << bitDepth;
@@ -87,7 +95,7 @@ public abstract class ImportPreset {
         }
     };
 
-    public static final ImportPreset WORLDPAINTER_HIGH_RES_MINUS_64_BASED = new ImportPreset("(256:1)/high res WorldPainter export; from -64") {
+    public static final ImportPreset WORLDPAINTER_HIGH_RES_MINUS_64_BASED = new ImportPreset("256 to one (e.g. high res WorldPainter export); from -64") {
         @Override
         public long[][] getMapping(int bitDepth, long imageLow, long imageHigh, Platform platform, int maxHeight) {
             final long imageMaxHeight = 1L << bitDepth;
@@ -102,5 +110,5 @@ public abstract class ImportPreset {
         }
     };
 
-    public static final ImportPreset[] PRESETS = { FULL_RANGE_0_BASED, FULL_RANGE_MINUS_64_BASED, WORLDPAINTER_LOW_RES_0_BASED, WORLDPAINTER_HIGH_RES_0_BASED, WORLDPAINTER_LOW_RES_MINUS_64_BASED, WORLDPAINTER_HIGH_RES_MINUS_64_BASED };
+    public static final ImportPreset[] PRESETS = { FULL_RANGE_0_BASED, FULL_RANGE_MINUS_64_BASED, WORLDPAINTER_HIGH_RES_0_BASED, WORLDPAINTER_LOW_RES_0_BASED, WORLDPAINTER_HIGH_RES_MINUS_64_BASED, WORLDPAINTER_LOW_RES_MINUS_64_BASED };
 }
