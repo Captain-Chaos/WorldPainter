@@ -42,13 +42,13 @@ public class UndoManager {
         registerActions(undoAction, redoAction);
     }
 
-    public void registerActions(Action undoAction, Action redoAction) {
+    public synchronized void registerActions(Action undoAction, Action redoAction) {
         this.undoAction = undoAction;
         this.redoAction = redoAction;
         updateActions();
     }
 
-    public void unregisterActions() {
+    public synchronized void unregisterActions() {
         disableActions();
         undoAction = null;
         redoAction = null;
@@ -67,8 +67,14 @@ public class UndoManager {
      * frame is the last one and it is not dirty.
      */
     public void armSavePoint() {
-        if ((! savePointArmed) /*&& ((currentFrame < (history.size() - 1)) || isDirty())*/) {
-            savePointArmed = true;
+        boolean savePointWasArmed = true;
+        synchronized (this) {
+            if ((!savePointArmed) /*&& ((currentFrame < (history.size() - 1)) || isDirty())*/) {
+                savePointArmed = true;
+                savePointWasArmed = false;
+            }
+        }
+        if (! savePointWasArmed) {
             listeners.forEach(UndoListener::savePointArmed);
             if (logger.isDebugEnabled()) {
                 logger.debug("Save point armed");
@@ -80,21 +86,23 @@ public class UndoManager {
      * Save the current state of all buffers as an undo point.
      */
     public void savePoint() {
-        clearRedo();
+        synchronized (this) {
+            clearRedo();
 
-        // Add a new frame
-        history.add(new WeakHashMap<>());
-        
-        // Update the current frame pointer
-        currentFrame++;
+            // Add a new frame
+            history.add(new WeakHashMap<>());
 
-        // If the max undos has been reached, throw away the oldest
-        pruneHistory();
+            // Update the current frame pointer
+            currentFrame++;
 
-        // Clear cache
-        writeableBufferCache.clear();
+            // If the max undos has been reached, throw away the oldest
+            pruneHistory();
 
-        savePointArmed = false;
+            // Clear cache
+            writeableBufferCache.clear();
+
+            savePointArmed = false;
+        }
 
         listeners.forEach(UndoListener::savePointCreated);
         
@@ -117,7 +125,7 @@ public class UndoManager {
      * 
      * @return A snapshot of the current undo history frame.
      */
-    public Snapshot getSnapshot() {
+    public synchronized Snapshot getSnapshot() {
         Snapshot snapshot = new Snapshot(this, currentFrame);
         snapshots.add(new WeakReference<>(snapshot));
         return snapshot;
@@ -129,7 +137,7 @@ public class UndoManager {
      * 
      * @return {@code true} if the current history frame is dirty.
      */
-    public boolean isDirty() {
+    public synchronized boolean isDirty() {
         return ! writeableBufferCache.isEmpty();
     }
 
@@ -140,12 +148,22 @@ public class UndoManager {
      * @return {@code true} if the undo was succesful.
      */
     public boolean undo() {
-        if (currentFrame > 0) {
-            currentFrame--;
-            readOnlyBufferCache.clear();
-            writeableBufferCache.clear();
+        final boolean undoPerformed;
+        final Map<BufferKey<?>, Object> previousHistoryFrame;
+        synchronized (this) {
+            if (currentFrame > 0) {
+                currentFrame--;
+                readOnlyBufferCache.clear();
+                writeableBufferCache.clear();
+                previousHistoryFrame = history.get(currentFrame + 1);
+                undoPerformed = true;
+            } else {
+                undoPerformed = false;
+                previousHistoryFrame = null;
+            }
+        }
+        if (undoPerformed) {
             listeners.forEach(UndoListener::undoPerformed);
-            Map<BufferKey<?>, Object> previousHistoryFrame = history.get(currentFrame + 1);
             for (BufferKey<?> key: previousHistoryFrame.keySet()) {
                 UndoListener listener = keyListeners.get(key);
                 if (listener != null) {
@@ -175,12 +193,22 @@ public class UndoManager {
      * @return {@code true} if the redo was succesful.
      */
     public boolean redo() {
-        if (currentFrame < (history.size() - 1)) {
-            currentFrame++;
-            readOnlyBufferCache.clear();
-            writeableBufferCache.clear();
+        final boolean redoPerformed;
+        final Map<BufferKey<?>, Object> currentHistoryFrame;
+        synchronized (this) {
+            if (currentFrame < (history.size() - 1)) {
+                currentFrame++;
+                readOnlyBufferCache.clear();
+                writeableBufferCache.clear();
+                currentHistoryFrame = history.get(currentFrame);
+                redoPerformed = true;
+            } else {
+                redoPerformed = false;
+                currentHistoryFrame = null;
+            }
+        }
+        if (redoPerformed) {
             listeners.forEach(UndoListener::redoPerformed);
-            Map<BufferKey<?>, Object> currentHistoryFrame = history.get(currentFrame);
             for (BufferKey<?> key: currentHistoryFrame.keySet()) {
                 UndoListener listener = keyListeners.get(key);
                 if (listener != null) {
@@ -206,7 +234,7 @@ public class UndoManager {
     /**
      * Throw away all undo and redo information.
      */
-    public void clear() {
+    public synchronized void clear() {
         clearRedo();
         
         int deletedFrames = 0;
@@ -225,7 +253,7 @@ public class UndoManager {
     /**
      * Throw away all redo information
      */
-    public void clearRedo() {
+    public synchronized void clearRedo() {
         // Make sure there is no history after the current frame (which there
         // might be if an undo has been performed)
         if (currentFrame < (history.size() - 1)) {
@@ -241,7 +269,7 @@ public class UndoManager {
         addBuffer(key, buffer, null);
     }
 
-    public <T> void addBuffer(BufferKey<T> key, T buffer, UndoListener listener) {
+    public synchronized <T> void addBuffer(BufferKey<T> key, T buffer, UndoListener listener) {
         clearRedo();
         
         history.getLast().put(key, buffer);
@@ -254,7 +282,7 @@ public class UndoManager {
         }
     }
 
-    public void removeBuffer(BufferKey<?> key) {
+    public synchronized void removeBuffer(BufferKey<?> key) {
         writeableBufferCache.remove(key);
         readOnlyBufferCache.remove(key);
         for (Map<BufferKey<?>, Object> historyFrame: history) {
@@ -267,7 +295,7 @@ public class UndoManager {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getBuffer(BufferKey<T> key) {
+    public synchronized <T> T getBuffer(BufferKey<T> key) {
         if (writeableBufferCache.containsKey(key)) {
             if (logger.isTraceEnabled()) {
                 logger.trace("Getting buffer " + key + " for reading from writeable buffer cache");
@@ -289,7 +317,7 @@ public class UndoManager {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getBufferForEditing(BufferKey<T> key) {
+    public synchronized <T> T getBufferForEditing(BufferKey<T> key) {
         if (savePointArmed) {
             savePoint();
         }
@@ -332,29 +360,29 @@ public class UndoManager {
         }
     }
 
-    public void addListener(UndoListener listener) {
+    public synchronized void addListener(UndoListener listener) {
         if (logger.isTraceEnabled()) {
             logger.trace("Adding listener " + listener);
         }
         listeners.add(listener);
     }
 
-    public void removeListener(UndoListener listener) {
+    public synchronized void removeListener(UndoListener listener) {
         if (logger.isTraceEnabled()) {
             logger.trace("Removing listener " + listener);
         }
         listeners.remove(listener);
     }
 
-    public Class<?>[] getStopAtClasses() {
+    public synchronized Class<?>[] getStopAtClasses() {
         return stopAt.toArray(new Class<?>[stopAt.size()]);
     }
 
-    public void setStopAtClasses(Class<?>... stopAt) {
+    public synchronized void setStopAtClasses(Class<?>... stopAt) {
         this.stopAt = new HashSet<>(Arrays.asList(stopAt));
     }
     
-    public long getDataSize() {
+    public synchronized long getDataSize() {
         return MemoryUtils.getSize(history, stopAt);
     }
     
@@ -422,7 +450,7 @@ public class UndoManager {
     }
     
     @SuppressWarnings("unchecked")
-    <T> T findMostRecentCopy(BufferKey<T> key, int frame) {
+    synchronized <T> T findMostRecentCopy(BufferKey<T> key, int frame) {
         for (ListIterator<Map<BufferKey<?>, Object>> i = history.listIterator(frame + 1); i.hasPrevious(); ) {
             Map<BufferKey<?>, Object> historyFrame = i.previous();
             if (historyFrame.containsKey(key)) {
