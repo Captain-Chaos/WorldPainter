@@ -171,10 +171,14 @@ public class FillDialog extends WorldPainterDialog implements Listener {
                 if (dimension.undoChanges()) {
                     dimension.clearRedo();
                 }
-                cancel();
+                if (! checkBoxKeepOpen.isSelected()) {
+                    cancel();
+                }
             } else {
                 dimension.armSavePoint();
-                ok();
+                if (! checkBoxKeepOpen.isSelected()) {
+                    ok();
+                }
             }
         } finally {
             view.setInhibitUpdates(false);
@@ -734,6 +738,7 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
+        checkBoxKeepOpen = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Global Operations");
@@ -983,6 +988,9 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
 
         jLabel2.setText("Other global tools:");
 
+        checkBoxKeepOpen.setText("keep this window open");
+        checkBoxKeepOpen.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -1012,6 +1020,8 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(checkBoxKeepOpen)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(buttonFill)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(buttonCancel)
@@ -1040,7 +1050,8 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
-                    .addComponent(buttonFill))
+                    .addComponent(buttonFill)
+                    .addComponent(checkBoxKeepOpen))
                 .addContainerGap())
         );
 
@@ -1120,6 +1131,7 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     private javax.swing.JButton buttonCancel;
     private javax.swing.JButton buttonFill;
     private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.JCheckBox checkBoxKeepOpen;
     private javax.swing.JComboBox comboBoxBiome;
     private javax.swing.JComboBox comboBoxClearLayer;
     private javax.swing.JComboBox comboBoxInvertLayer;
