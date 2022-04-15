@@ -18,7 +18,8 @@
    + The height map import screen has been improved to be easier to use; among other things it now offers presets to quickly set the mapping
  * The default theme no longer uses the Rock terrain type. Rock includes cobblestone, which is not Imported and caused confusion as a result. Instead it uses Stone Mix (the default underground material), which makes more sense
  * The Flood With Water, Flood With Lava and Bucket Fill tools now work on very large maps
-   + They will take a very long time to fill large areas (depending on available resources it could be on the order of magnitude of an hour)
+   + They will take a very long time to fill large areas (up to ten minutes or more)
+   + Undoing or redoing such large operations may also take a very long time and should not be interrupted
    + There is a maximum size for the area that can be filled: a square with sides of 46340 blocks. The tools will only fill up to the edges of this square and warn you if they were hit
  * Custom brushes are now no longer all loaded at startup
    + This prevents performance problems and WorldPainter hanging at startup due to the use of many and/or large custom brushes taking up too much memory
