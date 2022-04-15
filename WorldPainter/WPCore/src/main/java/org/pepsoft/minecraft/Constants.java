@@ -542,6 +542,7 @@ public final class Constants {
     public static final String MC_MOSS_CARPET = "minecraft:moss_carpet";
     public static final String MC_BIG_DRIPLEAF_STEM = "minecraft:big_dripleaf_stem";
     public static final String MC_BIG_DRIPLEAF = "minecraft:big_dripleaf";
+    public static final String MC_POWDER_SNOW = "minecraft:powder_snow";
 
     // MC 1.18 biome names
 

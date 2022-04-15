@@ -1557,8 +1557,8 @@ public final class Material implements Serializable {
     private static final Map<String, Set<String>> SIMPLE_NAMES_BY_NAMESPACE = new HashMap<>();
     private static final Map<String, Material> DEFAULT_MATERIALS_BY_NAME = new HashMap<>();
 
-    private static final Set<String> SNOW_ON = ImmutableSet.of(MC_SNOW_BLOCK);
-    private static final Set<String> NO_SNOW_ON = ImmutableSet.of(MC_END_PORTAL_FRAME, MC_PACKED_ICE, MC_GRASS_PATH, MC_FARMLAND);
+    private static final Set<String> SNOW_ON = ImmutableSet.of(MC_SNOW_BLOCK, MC_POWDER_SNOW);
+    private static final Set<String> NO_SNOW_ON = ImmutableSet.of(MC_END_PORTAL_FRAME, MC_PACKED_ICE, MC_GRASS_PATH, MC_DIRT_PATH, MC_FARMLAND);
 
     static {
         for (int i = 0; i < 4096; i++) {
