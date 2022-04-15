@@ -200,12 +200,18 @@ public final class DimensionPainter {
      * nothing happens. If the operation takes more than two seconds a modal dialog is shown to the user with an
      * indeterminate progress bar.
      *
+     * <p>The total filled area cannot exceed a square around the given coordinates with a surface area of
+     * {@link Integer#MAX_VALUE}, due to Java limitations. If the boundary of this area has been hit, the method will
+     * return {@code false} and the entire matching area may not have been filled.
+     *
      * @param x The X coordinate to start the flood fill.
      * @param y The Y coordinate to start the flood fill.
      * @param parent The window to use as parent for the modal dialog shown if the operation takes more than two
      *               seconds.
+     * @return {@code true} if the fill operation was completed, or {@code false} if the filled area touched the
+     * maximum bounds and the operation may not have filled the entire matching area.
      */
-    public void fill(Dimension dimension, final int x, final int y, Window parent) {
+    public boolean fill(Dimension dimension, final int x, final int y, Window parent) {
         AbstractDimensionPaintFillMethod fillMethod;
         if (paint instanceof LayerPaint) {
             final Layer layer = ((LayerPaint) paint).getLayer();
@@ -253,7 +259,7 @@ public final class DimensionPainter {
 
                                 @Override
                                 boolean isFilled(int x, int y) {
-                                    return dimension.getLayerValueAt(layer, x, y) == (int) ((DiscreteLayerPaint) paint).getValue();
+                                    return dimension.getLayerValueAt(layer, x, y) == ((DiscreteLayerPaint) paint).getValue();
                                 }
                             };
                         }
@@ -308,13 +314,16 @@ public final class DimensionPainter {
                 };
             }
         } else if (paint instanceof PaintFactory.NullPaint) {
-            return;
+            return true;
         } else {
             throw new IllegalArgumentException("Don't know how to fill with paint " + paint);
         }
         if (! fillMethod.isFilled(x, y)) {
             GeneralQueueLinearFloodFiller filler = new GeneralQueueLinearFloodFiller(fillMethod);
             filler.floodFill(x, y, parent);
+            return ! filler.isBoundsHit();
+        } else {
+            return true;
         }
     }
 
