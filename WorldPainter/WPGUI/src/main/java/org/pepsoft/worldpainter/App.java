@@ -5514,7 +5514,7 @@ public final class App extends JFrame implements RadiusControl,
         sb.append(')');
         final String description = sb.toString();
         final String defaultExtension = extensions.get(0);
-        String defaultname = world.getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getDim() == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + (highRes ? "_high-res-heightmap." + defaultExtension : "_heightmap.png" + defaultExtension); // NOI18N
+        String defaultname = world.getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getDim() == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + (highRes ? "_high-res-heightmap." + defaultExtension : "_heightmap." + defaultExtension); // NOI18N
         Configuration config = Configuration.getInstance();
         File dir = config.getHeightMapsDirectory();
         if ((dir == null) || (! dir.isDirectory())) {
