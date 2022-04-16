@@ -29,7 +29,7 @@ public class GeneralQueueLinearFloodFiller {
      */
     private final FillMethod fillMethod;
 
-    private static final int MAX_INT_SQUARE_SIDE = 46340;
+    private static final int MAX_INT_SQUARE_SIDE = 46340; // sqrt(Integer.MAX_VALUE)
 
     public GeneralQueueLinearFloodFiller(FillMethod fillMethod) {
         this.fillMethod = fillMethod;
