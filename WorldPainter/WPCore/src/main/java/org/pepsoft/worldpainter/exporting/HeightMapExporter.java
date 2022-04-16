@@ -5,8 +5,8 @@ import com.twelvemonkeys.imageio.util.ImageTypeSpecifiers;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
 
-import javax.imageio.ImageIO;
-import javax.imageio.ImageTypeSpecifier;
+import javax.imageio.*;
+import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.File;
@@ -15,6 +15,7 @@ import java.util.List;
 
 import static java.awt.image.DataBuffer.TYPE_INT;
 import static java.util.Collections.singletonList;
+import static javax.imageio.ImageWriteParam.MODE_EXPLICIT;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 
 public class HeightMapExporter {
@@ -45,12 +46,21 @@ public class HeightMapExporter {
         // the file, and we can't report progress for that
         try {
             final BufferedImage image;
+            final ImageWriter writer;
+            final ImageWriteParam params;
             // TODO fail gracefully if the world is too large because the data buffer would overflow
             if (bitsRequired > 16) {
                 ImageTypeSpecifier imageTypeSpecifier = ImageTypeSpecifiers.createGrayscale(32, TYPE_INT);
                 image = imageTypeSpecifier.createBufferedImage(dimension.getWidth() * TILE_SIZE, dimension.getHeight() * TILE_SIZE);
+                writer = ImageIO.getImageWriters(imageTypeSpecifier, type).next();
+                params = writer.getDefaultWriteParam();
+                params.setCompressionMode(MODE_EXPLICIT);
+                params.setCompressionType("LZW");
+                params.setCompressionQuality(0f);
             } else {
                 image = new BufferedImage(dimension.getWidth() * TILE_SIZE, dimension.getHeight() * TILE_SIZE, (bitsRequired <= 8) ? BufferedImage.TYPE_BYTE_GRAY : BufferedImage.TYPE_USHORT_GRAY);
+                writer = ImageIO.getImageWriters(ImageTypeSpecifier.createFromRenderedImage(image), type).next();
+                params = writer.getDefaultWriteParam();
             }
             final WritableRaster raster = image.getRaster();
             for (Tile tile: dimension.getTiles()) {
@@ -70,7 +80,11 @@ public class HeightMapExporter {
                     }
                 }
             }
-            return ImageIO.write(image, type, file);
+            try (ImageOutputStream out = ImageIO.createImageOutputStream(file)) {
+                writer.setOutput(out);
+                writer.write(null, new IIOImage(image, null, null), params);
+                return true;
+            }
         } catch (IOException e) {
             throw new RuntimeException("I/O error while exporting image", e);
         }
