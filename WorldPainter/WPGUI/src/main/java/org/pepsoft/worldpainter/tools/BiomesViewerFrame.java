@@ -265,6 +265,7 @@ public class BiomesViewerFrame extends JFrame {
         }
         final NewWorldDialog dialog = new NewWorldDialog(
             app,
+            app.getColourScheme(),
             "Generated World",
             ((Number) seedSpinner.getValue()).longValue(),
             ((Integer) schemeChooser.getSelectedItem() == BIOME_ALGORITHM_1_1) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL,

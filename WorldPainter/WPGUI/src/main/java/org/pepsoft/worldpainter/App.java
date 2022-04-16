@@ -28,6 +28,7 @@ import org.pepsoft.worldpainter.brushes.BitmapBrush;
 import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.brushes.RotatedBrush;
 import org.pepsoft.worldpainter.brushes.SymmetricBrush;
+import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 import org.pepsoft.worldpainter.exporting.HeightMapExporter;
 import org.pepsoft.worldpainter.gardenofeden.GardenOfEdenOperation;
 import org.pepsoft.worldpainter.history.HistoryEntry;
@@ -135,7 +136,17 @@ public final class App extends JFrame implements RadiusControl,
         setIconImage(ICON);
 
         Configuration config = Configuration.getInstance();
-        selectedColourScheme = ColourScheme.DEFAULT;
+        final String customColourSchemeLocation = System.getProperty("org.pepsoft.worldpainter.colourSchemeFile");
+        if (customColourSchemeLocation != null) {
+            logger.info("Loading custom DynMap colour scheme from " + customColourSchemeLocation);
+            try {
+                selectedColourScheme = new DynMapColourScheme(new FileInputStream(customColourSchemeLocation), true);
+            } catch (FileNotFoundException e) {
+                throw new IllegalArgumentException("Colour scheme file not found: " + customColourSchemeLocation);
+            }
+        } else {
+            selectedColourScheme = ColourScheme.DEFAULT;
+        }
         operations = OperationManager.getInstance().getOperations();
         setMaxRadius(config.getMaximumBrushSize());
 
@@ -1874,7 +1885,7 @@ public final class App extends JFrame implements RadiusControl,
             return;
         }
         Configuration config = Configuration.getInstance();
-        final NewWorldDialog dialog = new NewWorldDialog(this, strings.getString("generated.world"), DEFAULT_OCEAN_SEED, config.getDefaultPlatform(), DIM_NORMAL, config.getDefaultMaxHeight());
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, strings.getString("generated.world"), DEFAULT_OCEAN_SEED, config.getDefaultPlatform(), DIM_NORMAL, config.getDefaultMaxHeight());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             clearWorld(); // Free up memory of the world and the undo buffer
@@ -4407,7 +4418,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private void addSurfaceCeiling() {
         final Dimension surface = world.getDimension(DIM_NORMAL);
-        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), surface.getSeed() + 3, world.getPlatform(), DIM_NORMAL_CEILING, surface.getMaxHeight(), surface.getTileCoords());
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), surface.getSeed() + 3, world.getPlatform(), DIM_NORMAL_CEILING, surface.getMaxHeight(), surface.getTileCoords());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4450,7 +4461,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private void addNetherCeiling() {
         final Dimension nether = world.getDimension(DIM_NETHER);
-        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), nether.getSeed() + 1, world.getPlatform(), DIM_NETHER_CEILING, nether.getMaxHeight(), nether.getTileCoords());
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), nether.getSeed() + 1, world.getPlatform(), DIM_NETHER_CEILING, nether.getMaxHeight(), nether.getTileCoords());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4493,7 +4504,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private void addEndCeiling() {
         final Dimension end = world.getDimension(DIM_END);
-        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), end.getSeed() + 1, world.getPlatform(), DIM_END_CEILING, end.getMaxHeight(), end.getTileCoords());
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), end.getSeed() + 1, world.getPlatform(), DIM_END_CEILING, end.getMaxHeight(), end.getTileCoords());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4669,7 +4680,7 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void addNether() {
-        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), world.getDimension(DIM_NORMAL).getSeed() + 1, world.getPlatform(), DIM_NETHER, Math.min(world.getMaxHeight(), DEFAULT_MAX_HEIGHT_NETHER));
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), world.getDimension(DIM_NORMAL).getSeed() + 1, world.getPlatform(), DIM_NETHER, Math.min(world.getMaxHeight(), DEFAULT_MAX_HEIGHT_NETHER));
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4713,7 +4724,7 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void addEnd() {
-        final NewWorldDialog dialog = new NewWorldDialog(this, world.getName(), world.getDimension(DIM_NORMAL).getSeed() + 2, world.getPlatform(), DIM_END, Math.min(world.getMaxHeight(), DEFAULT_MAX_HEIGHT_END));
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), world.getDimension(DIM_NORMAL).getSeed() + 2, world.getPlatform(), DIM_END, Math.min(world.getMaxHeight(), DEFAULT_MAX_HEIGHT_END));
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {

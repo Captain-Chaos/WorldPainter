@@ -60,14 +60,15 @@ import static org.pepsoft.worldpainter.util.MinecraftUtil.blocksToWalkingTime;
  */
 public class NewWorldDialog extends WorldPainterDialog {
     /** Creates new form NewWorldDialog */
-    public NewWorldDialog(App app, String name, long seed, Platform platform, int dim, int defaultMaxHeight) {
-        this(app, name, seed, platform, dim, defaultMaxHeight, null);
+    public NewWorldDialog(App app, ColourScheme colourScheme, String name, long seed, Platform platform, int dim, int defaultMaxHeight) {
+        this(app, colourScheme, name, seed, platform, dim, defaultMaxHeight, null);
     }
     
     /** Creates new form NewWorldDialog */
-    public NewWorldDialog(App app, String name, long seed, Platform platform, int dim, int defaultMaxHeight, Set<Point> tiles) {
+    public NewWorldDialog(App app, ColourScheme colourScheme, String name, long seed, Platform platform, int dim, int defaultMaxHeight, Set<Point> tiles) {
         super(app);
         this.app = app;
+        this.colourScheme = colourScheme;
         this.dim = dim;
         this.tiles = tiles;
         
@@ -600,7 +601,7 @@ public class NewWorldDialog extends WorldPainterDialog {
             private final Map<Point, Tile> cache = new HashMap<>();
         };
         Configuration config = Configuration.getInstance();
-        tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, ColourScheme.DEFAULT, app.getCustomBiomeManager(), Collections.singleton(Biome.INSTANCE), config.isDefaultContoursEnabled(), config.getDefaultContourSeparation(), config.getDefaultLightOrigin(), false, null));
+        tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, colourScheme, app.getCustomBiomeManager(), Collections.singleton(Biome.INSTANCE), config.isDefaultContoursEnabled(), config.getDefaultContourSeparation(), config.getDefaultLightOrigin(), false, null));
     }
     
     private TileFactory createTileFactory(long seed) {
@@ -1519,6 +1520,7 @@ public class NewWorldDialog extends WorldPainterDialog {
 
     private final App app;
     private final Set<Point> tiles;
+    private final ColourScheme colourScheme;
     private Platform platform;
     private int previousExp = -1, dim, savedTerrainLevel;
     private long worldpainterSeed;
