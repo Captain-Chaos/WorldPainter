@@ -17,7 +17,7 @@ public class InstanceKeeper {
         @SuppressWarnings("unchecked")
         InstantiationListener<Object> listener = (InstantiationListener<Object>) listeners.get(getClass());
         if (listener != null) {
-            listener.objectInstaniated(this);
+            listener.objectInstantiated(this);
         }
     }
     
@@ -27,7 +27,7 @@ public class InstanceKeeper {
     
     private static Map<Class<?>, InstantiationListener<?>> listeners = new HashMap<>();
     
-    public static interface InstantiationListener<T> {
-        void objectInstaniated(T object);
+    public interface InstantiationListener<T> {
+        void objectInstantiated(T object);
     }
 }
