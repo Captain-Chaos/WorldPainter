@@ -815,7 +815,6 @@ public class FileUtils {
 
     @SuppressWarnings("ConstantConditions") // Warranted by isDirectory()
     private static void visitFilesRecursively(File directory, Consumer<File> visitor, Set<File> visitedDirectories) throws IOException {
-        logger.debug("Visiting {}", directory);
         visitedDirectories.add(directory.getCanonicalFile());
         for (File file: directory.listFiles()) {
             if (file.isDirectory()) {
@@ -826,7 +825,6 @@ public class FileUtils {
                 }
                 visitFilesRecursively(file, visitor, visitedDirectories);
             } else {
-                logger.debug("Visiting {}", file);
                 visitor.accept(file);
             }
         }
