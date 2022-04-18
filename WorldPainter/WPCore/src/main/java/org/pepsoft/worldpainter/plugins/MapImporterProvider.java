@@ -24,5 +24,5 @@ public interface MapImporterProvider {
      * @param dimensionsToImport The set of dimensions (specified as a set of {@link Constants#DIM_NORMAL}, {@link Constants#DIM_NETHER} and/or {@link Constants#DIM_END}) to import.
      * @return A map importer configured as specified.
      */
-    MapImporter getImporter(File dir, TileFactory tileFactory, Set<MinecraftCoords> chunksToSkip, MapImporter.ReadOnlyOption readOnlyOption, Set<Integer> dimensionsToImport);
+    MapImporter getImporter(File dir, TileFactory tileFactory, Set<MinecraftCoords> chunksToSkip /* TODO remove this */, MapImporter.ReadOnlyOption readOnlyOption, Set<Integer> dimensionsToImport);
 }
