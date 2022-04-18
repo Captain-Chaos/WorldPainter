@@ -29,7 +29,11 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
     public CompoundTag toNBT() {
         return tag;
     }
-    
+
+    protected Map<String, Tag> getAllTags() {
+        return tag.getValue();
+    }
+
     protected final boolean containsTag(String name) {
         return tag.containsTag(name);
     }

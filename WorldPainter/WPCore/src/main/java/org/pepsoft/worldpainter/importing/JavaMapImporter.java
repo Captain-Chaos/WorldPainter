@@ -6,7 +6,6 @@ package org.pepsoft.worldpainter.importing;
 
 import org.pepsoft.minecraft.*;
 import org.pepsoft.minecraft.ChunkStore.ChunkVisitor;
-import org.pepsoft.minecraft.SectionedChunk.Section;
 import org.pepsoft.util.LongAttributeKey;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
@@ -37,6 +36,7 @@ import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
+import static org.pepsoft.worldpainter.util.ChunkUtils.skipChunk;
 
 /**
  * An importer of Minecraft-like maps (with Minecraft-compatible
@@ -79,7 +79,7 @@ public class JavaMapImporter extends MapImporter {
         try {
             dimension.setCoverSteepTerrain(false);
             dimension.setSubsurfaceMaterial(Terrain.STONE);
-            dimension.setBorderLevel(62);
+            dimension.setBorderLevel(DEFAULT_WATER_LEVEL);
             
             // Turn off smooth snow
             FrostSettings frostSettings = new FrostSettings();
@@ -317,6 +317,9 @@ public class JavaMapImporter extends MapImporter {
                                                 // Terrain found
                                                 height = y - 0.4375f; // Value that falls in the middle of the lowest one eighth which will still round to the same integer value and will receive a one layer thick smooth snow block (principle of least surprise)
                                                 terrain = TERRAIN_MAPPING.get(name);
+                                                if (waterLevel == Integer.MIN_VALUE) {
+                                                    waterLevel = DEFAULT_WATER_LEVEL;
+                                                }
                                             }
                                         }
                                     }
@@ -331,7 +334,7 @@ public class JavaMapImporter extends MapImporter {
                                     }
                                     if (waterLevel == Integer.MIN_VALUE) {
                                         if (height >= 61.5f) {
-                                            waterLevel = 62;
+                                            waterLevel = DEFAULT_WATER_LEVEL;
                                         } else {
                                             waterLevel = minHeight;
                                         }
@@ -506,44 +509,6 @@ public class JavaMapImporter extends MapImporter {
 
             return reportBuilder.length() != 0 ? reportBuilder.toString() : null;
         }
-    }
-
-    private boolean skipChunk(Chunk chunk) {
-        if ((chunk instanceof MC115AnvilChunk) || (chunk instanceof MC118AnvilChunk)) {
-            final String status = (chunk instanceof MC115AnvilChunk) ? ((MC115AnvilChunk) chunk).getStatus() : ((MC118AnvilChunk) chunk).getStatus();
-            if (status.equals(STATUS_STRUCTURE_STARTS) || status.equals(STATUS_BIOMES)) {
-                boolean nonEmptySectionFound = false;
-                for (Section section: ((SectionedChunk) chunk).getSections()) {
-                    if ((section != null) && (! section.isEmpty())) {
-                        nonEmptySectionFound = true;
-                        break;
-                    }
-                }
-                if (! nonEmptySectionFound) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Skipping chunk {},{} because the status is {} and it is empty", chunk.getxPos(), chunk.getzPos(), status);
-                    }
-                    // Minecraft 1.18 seems to put lots of these empty chunks around the already generated parts; skip them
-                    return true;
-                }
-            }
-        }
-        if (chunk instanceof SectionedChunk) {
-            boolean sectionFound = false;
-            for (Section section: ((SectionedChunk) chunk).getSections()) {
-                if (section != null) {
-                    sectionFound = true;
-                    break;
-                }
-            }
-            if (! sectionFound) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Skipping chunk {},{} because it has no sections, or no sections with y >= minHeight", chunk.getxPos(), chunk.getzPos());
-                }
-                return true;
-            }
-        }
-        return false;
     }
 
     private final Platform platform;
