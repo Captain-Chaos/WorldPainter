@@ -45,6 +45,7 @@ import static org.pepsoft.worldpainter.Platform.Capability.BLOCK_BASED;
  *
  * @author SchmitzP
  */
+@SuppressWarnings({"Convert2Lambda", "Anonymous2MethodRef", "FieldCanBeLocal", "unused"}) // Managed by NetBeans
 public class MapImportDialog extends WorldPainterDialog {
     /**
      * Creates new form MapImportDialog
@@ -193,7 +194,6 @@ public class MapImportDialog extends WorldPainterDialog {
                 final MapStatistics stats = new MapStatistics();
 
                 // TODO do this for the other dimensions as well
-                final List<Integer> xValues = new ArrayList<>(), zValues = new ArrayList<>();
                 final Set<MinecraftCoords> allChunkCoords;
                 try (ChunkStore chunkStore = platformProvider.getChunkStore(platform, worldDir, DIM_NORMAL)) {
                     allChunkCoords = chunkStore.getChunkCoords();
@@ -213,62 +213,6 @@ public class MapImportDialog extends WorldPainterDialog {
                     if (chunkCoords.z > stats.highestChunkZ) {
                         stats.highestChunkZ = chunkCoords.z;
                     }
-                    xValues.add(chunkCoords.x);
-                    zValues.add(chunkCoords.z);
-                }
-
-                Collections.sort(xValues);
-                int p1 = xValues.size() / 4;
-                float q1 = xValues.get(p1) * 0.75f + xValues.get(p1 + 1) * 0.25f;
-                int p2 = xValues.size() / 2;
-                float q2 = (xValues.get(p2) + xValues.get(p2 + 1)) / 2f;
-                int p3 = xValues.size() * 3 / 4;
-                float q3 = xValues.get(p3) * 0.25f + xValues.get(p3 + 1) * 0.75f;
-                float iqr = q3 - q1;
-                int lowerLimit = (int) (q2 - iqr * 1.5f);
-                int upperLimit = (int) (q2 + iqr * 1.5f);
-                for (MinecraftCoords chunkCoords: allChunkCoords) {
-                    if ((chunkCoords.x < lowerLimit) || (chunkCoords.x > upperLimit)) {
-                        stats.outlyingChunks.add(chunkCoords);
-                    }
-                }
-
-                Collections.sort(zValues);
-                p1 = zValues.size() / 4;
-                q1 = zValues.get(p1) * 0.75f + zValues.get(p1 + 1) * 0.25f;
-                p2 = zValues.size() / 2;
-                q2 = (zValues.get(p2) + zValues.get(p2 + 1)) / 2f;
-                p3 = zValues.size() * 3 / 4;
-                q3 = zValues.get(p3) * 0.25f + zValues.get(p3 + 1) * 0.75f;
-                iqr = q3 - q1;
-                lowerLimit = (int) (q2 - iqr * 1.5f);
-                upperLimit = (int) (q2 + iqr * 1.5f);
-                for (MinecraftCoords chunkCoords: allChunkCoords) {
-                    if ((chunkCoords.z < lowerLimit) || (chunkCoords.z > upperLimit)) {
-                        stats.outlyingChunks.add(chunkCoords);
-                    }
-                }
-
-                if (! stats.outlyingChunks.isEmpty()) {
-                    allChunkCoords.stream().filter(chunk -> !stats.outlyingChunks.contains(chunk)).forEach(chunk -> {
-                        if (chunk.x < stats.lowestChunkXNoOutliers) {
-                            stats.lowestChunkXNoOutliers = chunk.x;
-                        }
-                        if (chunk.x > stats.highestChunkXNoOutliers) {
-                            stats.highestChunkXNoOutliers = chunk.x;
-                        }
-                        if (chunk.z < stats.lowestChunkZNoOutliers) {
-                            stats.lowestChunkZNoOutliers = chunk.z;
-                        }
-                        if (chunk.z > stats.highestChunkZNoOutliers) {
-                            stats.highestChunkZNoOutliers = chunk.z;
-                        }
-                    });
-                } else {
-                    stats.lowestChunkXNoOutliers = stats.lowestChunkX;
-                    stats.highestChunkXNoOutliers = stats.highestChunkX;
-                    stats.lowestChunkZNoOutliers = stats.lowestChunkZ;
-                    stats.highestChunkZNoOutliers = stats.highestChunkZ;
                 }
 
                 progressReceiver.setProgress(1.0f);
@@ -281,31 +225,12 @@ public class MapImportDialog extends WorldPainterDialog {
             mapStatistics.levelDat = levelDat;
             labelPlatform.setIcon(mapInfo.icon);
             labelPlatform.setText(platform.displayName);
-            int width = mapStatistics.highestChunkXNoOutliers - mapStatistics.lowestChunkXNoOutliers + 1;
-            int length = mapStatistics.highestChunkZNoOutliers - mapStatistics.lowestChunkZNoOutliers + 1;
-            int area = (mapStatistics.chunkCount - mapStatistics.outlyingChunks.size());
-            labelWidth.setText(FORMATTER.format(width * 16) + " blocks (from " + FORMATTER.format(mapStatistics.lowestChunkXNoOutliers << 4) + " to " + FORMATTER.format((mapStatistics.highestChunkXNoOutliers << 4) + 15) + "; " + FORMATTER.format(width) + " chunks)");
-            labelLength.setText(FORMATTER.format(length * 16) + " blocks (from " + FORMATTER.format(mapStatistics.lowestChunkZNoOutliers << 4) + " to " + FORMATTER.format((mapStatistics.highestChunkZNoOutliers << 4) + 15) + "; " + FORMATTER.format(length) + " chunks)");
+            int width = mapStatistics.highestChunkX - mapStatistics.lowestChunkX + 1;
+            int length = mapStatistics.highestChunkZ - mapStatistics.lowestChunkZ + 1;
+            int area = mapStatistics.chunkCount;
+            labelWidth.setText(FORMATTER.format(width * 16L) + " blocks (from " + FORMATTER.format((long) mapStatistics.lowestChunkX << 4) + " to " + FORMATTER.format(((long) mapStatistics.highestChunkX << 4) + 15) + "; " + FORMATTER.format(width) + " chunks)");
+            labelLength.setText(FORMATTER.format(length * 16L) + " blocks (from " + FORMATTER.format((long) mapStatistics.lowestChunkZ << 4) + " to " + FORMATTER.format(((long) mapStatistics.highestChunkZ << 4) + 15) + "; " + FORMATTER.format(length) + " chunks)");
             labelArea.setText(FORMATTER.format(area * 256L) + " blocks (" + FORMATTER.format(area) + " chunks)");
-            if (! mapStatistics.outlyingChunks.isEmpty()) {
-                // There are outlying chunks
-                int widthWithOutliers = mapStatistics.highestChunkX - mapStatistics.lowestChunkX + 1;
-                int lengthWithOutliers = mapStatistics.highestChunkZ - mapStatistics.lowestChunkZ + 1;
-                int areaOfOutliers = mapStatistics.outlyingChunks.size();
-                labelOutliers1.setVisible(true);
-                labelOutliers2.setVisible(true);
-                labelWidthWithOutliers.setText(FORMATTER.format(widthWithOutliers * 16) + " blocks (" + FORMATTER.format(widthWithOutliers) + " chunks)");
-                labelWidthWithOutliers.setVisible(true);
-                labelOutliers3.setVisible(true);
-                labelLengthWithOutliers.setText(FORMATTER.format(lengthWithOutliers * 16) + " blocks (" + FORMATTER.format(lengthWithOutliers) + " chunks)");
-                labelLengthWithOutliers.setVisible(true);
-                labelOutliers4.setVisible(true);
-                labelAreaOutliers.setText(FORMATTER.format(areaOfOutliers * 256L) + " blocks (" + FORMATTER.format(areaOfOutliers) + " chunks)");
-                labelAreaOutliers.setVisible(true);
-                checkBoxImportOutliers.setVisible(true);
-                // The dialog may need to become bigger:
-                pack();
-            }
         }
     }
     
@@ -323,16 +248,6 @@ public class MapImportDialog extends WorldPainterDialog {
         labelWidth.setText("0 blocks (from ? to ?; 0 chunks)");
         labelLength.setText("0 blocks (from ? to ?; 0 chunks)");
         labelArea.setText("0 blocks² (0 chunks)");
-
-        labelOutliers1.setVisible(false);
-        labelOutliers2.setVisible(false);
-        labelWidthWithOutliers.setVisible(false);
-        labelOutliers3.setVisible(false);
-        labelLengthWithOutliers.setVisible(false);
-        labelOutliers4.setVisible(false);
-        labelAreaOutliers.setVisible(false);
-        checkBoxImportOutliers.setSelected(true);
-        checkBoxImportOutliers.setVisible(false);
     }
     
     private void selectDir() {
@@ -393,7 +308,6 @@ public class MapImportDialog extends WorldPainterDialog {
     
     private void importWorld() {
         final File worldDir = new File(fieldFilename.getText());
-        final Set<MinecraftCoords> chunksToSkip = checkBoxImportOutliers.isSelected() ? null : mapStatistics.outlyingChunks;
         final MapImporter.ReadOnlyOption readOnlyOption;
         if (radioButtonReadOnlyAll.isSelected()) {
             readOnlyOption = MapImporter.ReadOnlyOption.ALL;
@@ -437,7 +351,7 @@ public class MapImportDialog extends WorldPainterDialog {
                     if (checkBoxImportEnd.isSelected()) {
                         dimensionsToImport.add(Constants.DIM_END);
                     }
-                    final MapImporter importer = ((MapImporterProvider) PlatformManager.getInstance().getPlatformProvider(platform)).getImporter(mapStatistics.dir, tileFactory, chunksToSkip, readOnlyOption, dimensionsToImport);
+                    final MapImporter importer = ((MapImporterProvider) PlatformManager.getInstance().getPlatformProvider(platform)).getImporter(mapStatistics.dir, tileFactory, null, readOnlyOption, dimensionsToImport);
                     final World2 world = importer.doImport(progressReceiver);
                     if (importer.getWarnings() != null) {
                         try {
@@ -478,7 +392,6 @@ public class MapImportDialog extends WorldPainterDialog {
      * WARNING: Do NOT modify this code. The content of this method is always
      * regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -493,16 +406,8 @@ public class MapImportDialog extends WorldPainterDialog {
         labelLength = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         labelArea = new javax.swing.JLabel();
-        labelOutliers3 = new javax.swing.JLabel();
-        labelOutliers2 = new javax.swing.JLabel();
-        labelOutliers1 = new javax.swing.JLabel();
-        labelWidthWithOutliers = new javax.swing.JLabel();
-        labelLengthWithOutliers = new javax.swing.JLabel();
-        labelOutliers4 = new javax.swing.JLabel();
-        labelAreaOutliers = new javax.swing.JLabel();
         buttonCancel = new javax.swing.JButton();
         buttonOK = new javax.swing.JButton();
-        checkBoxImportOutliers = new javax.swing.JCheckBox();
         jLabel5 = new javax.swing.JLabel();
         radioButtonReadOnlyNone = new javax.swing.JRadioButton();
         radioButtonReadOnlyManMade = new javax.swing.JRadioButton();
@@ -540,21 +445,6 @@ public class MapImportDialog extends WorldPainterDialog {
 
         labelArea.setText("0");
 
-        labelOutliers3.setText("Length including outliers:");
-
-        labelOutliers2.setText("Width including outliers:");
-
-        labelOutliers1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/error.png"))); // NOI18N
-        labelOutliers1.setText("This map has rogue outlying chunks!");
-
-        labelWidthWithOutliers.setText("0");
-
-        labelLengthWithOutliers.setText("0");
-
-        labelOutliers4.setText("Area of outlying chunks:");
-
-        labelAreaOutliers.setText("0");
-
         buttonCancel.setText("Cancel");
         buttonCancel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -569,9 +459,6 @@ public class MapImportDialog extends WorldPainterDialog {
                 buttonOKActionPerformed(evt);
             }
         });
-
-        checkBoxImportOutliers.setSelected(true);
-        checkBoxImportOutliers.setText("include outlying chunks in import");
 
         jLabel5.setText("Options:");
 
@@ -623,40 +510,21 @@ public class MapImportDialog extends WorldPainterDialog {
                             .addComponent(radioButtonReadOnlyManMade)
                             .addComponent(radioButtonReadOnlyNone)
                             .addComponent(jLabel1)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel4)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(labelLength))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel3)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(labelWidth))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel7)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(labelArea)))
-                                .addGap(18, 18, 18)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(labelOutliers4)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(labelAreaOutliers))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(labelOutliers2)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(labelWidthWithOutliers))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(labelOutliers3)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(labelLengthWithOutliers))
-                                    .addComponent(checkBoxImportOutliers)))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jLabel4)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(labelLength))
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jLabel3)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(labelWidth))
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jLabel7)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(labelArea)))
                             .addComponent(jLabel5)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addGap(18, 18, 18)
-                                .addComponent(labelOutliers1))
+                            .addComponent(jLabel2)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(checkBoxImportSurface)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -684,29 +552,19 @@ public class MapImportDialog extends WorldPainterDialog {
                     .addComponent(jLabel6)
                     .addComponent(labelPlatform))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(labelOutliers1))
+                .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
-                    .addComponent(labelWidth)
-                    .addComponent(labelOutliers2)
-                    .addComponent(labelWidthWithOutliers))
+                    .addComponent(labelWidth))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
-                    .addComponent(labelLength)
-                    .addComponent(labelOutliers3)
-                    .addComponent(labelLengthWithOutliers))
+                    .addComponent(labelLength))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
-                    .addComponent(labelArea)
-                    .addComponent(labelOutliers4)
-                    .addComponent(labelAreaOutliers))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(checkBoxImportOutliers)
+                    .addComponent(labelArea))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(checkBoxImportSurface)
@@ -751,7 +609,6 @@ public class MapImportDialog extends WorldPainterDialog {
     private javax.swing.JButton buttonSelectFile;
     private javax.swing.JCheckBox checkBoxImportEnd;
     private javax.swing.JCheckBox checkBoxImportNether;
-    private javax.swing.JCheckBox checkBoxImportOutliers;
     private javax.swing.JCheckBox checkBoxImportSurface;
     private javax.swing.JTextField fieldFilename;
     private javax.swing.JLabel jLabel1;
@@ -762,16 +619,9 @@ public class MapImportDialog extends WorldPainterDialog {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel labelArea;
-    private javax.swing.JLabel labelAreaOutliers;
     private javax.swing.JLabel labelLength;
-    private javax.swing.JLabel labelLengthWithOutliers;
-    private javax.swing.JLabel labelOutliers1;
-    private javax.swing.JLabel labelOutliers2;
-    private javax.swing.JLabel labelOutliers3;
-    private javax.swing.JLabel labelOutliers4;
     private javax.swing.JLabel labelPlatform;
     private javax.swing.JLabel labelWidth;
-    private javax.swing.JLabel labelWidthWithOutliers;
     private javax.swing.JRadioButton radioButtonReadOnlyAll;
     private javax.swing.JRadioButton radioButtonReadOnlyManMade;
     private javax.swing.JRadioButton radioButtonReadOnlyManMadeAboveGround;
@@ -793,9 +643,7 @@ public class MapImportDialog extends WorldPainterDialog {
         Platform platform;
         JavaLevel levelDat;
         int lowestChunkX = Integer.MAX_VALUE, lowestChunkZ = Integer.MAX_VALUE, highestChunkX = Integer.MIN_VALUE, highestChunkZ = Integer.MIN_VALUE;
-        int lowestChunkXNoOutliers = Integer.MAX_VALUE, lowestChunkZNoOutliers = Integer.MAX_VALUE, highestChunkXNoOutliers = Integer.MIN_VALUE, highestChunkZNoOutliers = Integer.MIN_VALUE;
         int chunkCount;
-        final Set<MinecraftCoords> outlyingChunks = new HashSet<>();
         String errorMessage;
     }
 }
