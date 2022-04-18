@@ -6,7 +6,11 @@ import org.pepsoft.worldpainter.mapexplorer.Node;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
+import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.io.File;
+
+import static org.pepsoft.worldpainter.mapexplorer.Node.Action.REFRESH;
 
 /**
  * Created by Pepijn on 15-6-2016.
@@ -44,6 +48,18 @@ public class FileSystemNode extends AbstractNode {
     @Override
     public void doubleClicked() {
         DesktopUtils.open(file);
+    }
+
+    @Override
+    public void showPopupMenu(Component invoker, int x, int y, ActionListener actionListener) {
+        JPopupMenu popupMenu = new JPopupMenu(getName());
+        popupMenu.add(new AbstractAction("Refresh") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                actionListener.performAction(REFRESH);
+            }
+        });
+        popupMenu.show(invoker, x, y);
     }
 
     public static String getName(File file) {

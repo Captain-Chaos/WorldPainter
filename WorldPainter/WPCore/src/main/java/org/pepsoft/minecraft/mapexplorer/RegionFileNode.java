@@ -7,7 +7,6 @@ package org.pepsoft.minecraft.mapexplorer;
 
 import org.pepsoft.minecraft.RegionFile;
 import org.pepsoft.util.IconUtils;
-import org.pepsoft.worldpainter.mapexplorer.AbstractNode;
 import org.pepsoft.worldpainter.mapexplorer.Node;
 
 import javax.swing.*;
@@ -21,9 +20,9 @@ import java.util.StringTokenizer;
  *
  * @author pepijn
  */
-public class RegionFileNode extends AbstractNode {
+public class RegionFileNode extends FileSystemNode {
     RegionFileNode(File file) {
-        this.file = file;
+        super(file);
         StringTokenizer tokenizer = new StringTokenizer(file.getName(), ".");
         tokenizer.nextToken();
         x = Integer.parseInt(tokenizer.nextToken());
@@ -71,7 +70,6 @@ public class RegionFileNode extends AbstractNode {
         }
     }
 
-    private final File file;
     private final int x, z;
 
     private static final Icon ICON = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/plugin.png");

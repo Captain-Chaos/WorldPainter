@@ -34,10 +34,6 @@ public class NBTFileNode extends FileSystemNode {
         return ICON;
     }
 
-    @Override
-    public void doubleClicked() {
-        // Do nothing
-    }
 
     @Override
     protected Node[] loadChildren() {

@@ -39,6 +39,7 @@ import java.util.Set;
 
 import static java.awt.BorderLayout.CENTER;
 import static java.awt.BorderLayout.NORTH;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.swing.SwingConstants.TOP;
 import static javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION;
 import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
@@ -156,6 +157,21 @@ public class MapExplorer {
         });
         tree.addMouseListener(new MouseAdapter() {
             @Override
+            public void mousePressed(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+                    if (path != null) {
+                        showPopupMenu(e, path);
+                    }
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                mousePressed(e);
+            }
+
+            @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
                     TreePath path = tree.getPathForLocation(e.getX(), e.getY());
@@ -163,6 +179,17 @@ public class MapExplorer {
                         ((Node) path.getLastPathComponent()).doubleClicked();
                     }
                 }
+            }
+
+            private void showPopupMenu(MouseEvent e, TreePath path) {
+                Node node = (Node) path.getLastPathComponent();
+                tree.setSelectionPath(path);
+                node.showPopupMenu(e.getComponent(), e.getX(), e.getY(), action -> {
+                    switch (action) {
+                        case REFRESH:
+                            treeModel.refresh(path);
+                    }
+                });
             }
         });
         tree.getSelectionModel().addTreeSelectionListener(e -> {
@@ -175,6 +202,7 @@ public class MapExplorer {
         scrollPane.setMinimumSize(new Dimension(0, 0));
         return scrollPane;
     }
+
 
     private static void updateDetails(Node node) {
         try {
@@ -216,21 +244,23 @@ public class MapExplorer {
                 } else {
                     extension = null;
                 }
-                byte[] contents = Files.readAllBytes(file.toPath());
                 if (SUPPORTED_IMAGE_TYPES.contains(extension)) {
                     // Image
+                    byte[] contents = Files.readAllBytes(file.toPath());
                     BufferedImage image = ImageIO.read(new ByteArrayInputStream(contents));
                     data = null;
                     detailsArea.setIcon(new ImageIcon(image));
                     detailsArea.setText(null);
                 } else if (TEXT_FILES.contains(extension)) {
+                    byte[] contents = Files.readAllBytes(file.toPath());
                     data = null;
                     detailsArea.setIcon(null);
-                    detailsArea.setText("<html><pre>" + new String(contents, "UTF-8") + "</pre></html>");
+                    detailsArea.setText("<html><pre>" + new String(contents, UTF_8) + "</pre></html>");
                 } else {
                     // Binary file
-                    data = contents;
-                    updateBinaryData();
+                    data = null;
+                    detailsArea.setIcon(null);
+                    detailsArea.setText(null);
                 }
             } else {
                 clearDetails();
