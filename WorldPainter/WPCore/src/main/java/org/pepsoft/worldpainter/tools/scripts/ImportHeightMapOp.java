@@ -33,6 +33,7 @@ import org.pepsoft.worldpainter.themes.Theme;
 
 import java.util.Random;
 
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 
 /**
@@ -147,6 +148,6 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
     private final HeightMapImporter importer = new HeightMapImporter();
     private BitmapHeightMap heightMap;
     private boolean fromLevelsSpecified, toLevelsSpecified;
-    private int scale = 100, waterLevel = 62, offsetX, offsetY;
+    private int scale = 100, waterLevel = DEFAULT_WATER_LEVEL, offsetX, offsetY;
     private Platform platform = JAVA_ANVIL_1_15; // TODOMC118 make dynamic/upgrade when 1.18 support is finished
 }

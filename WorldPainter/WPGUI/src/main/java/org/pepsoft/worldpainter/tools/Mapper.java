@@ -428,7 +428,7 @@ public class Mapper {
                     return height;
                 }
             }
-            heightCache[x][y] = 62;
+            heightCache[x][y] = DEFAULT_WATER_LEVEL;
         }
         return heightCache[x][y];
     }

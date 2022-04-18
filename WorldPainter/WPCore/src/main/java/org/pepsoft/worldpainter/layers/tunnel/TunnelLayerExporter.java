@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
 import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
@@ -249,7 +250,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
                     final int floorLedgeHeight = calculateLedgeHeight(floorWallDepth, distanceToWall);
                     final int roofLedgeHeight = calculateLedgeHeight(roofWallDepth, distanceToWall);
                     actualFloorLevel += floorLedgeHeight;
-                    actualRoofLevel = Math.min(actualRoofLevel - roofLedgeHeight, Math.max(terrainHeight, 62));
+                    actualRoofLevel = Math.min(actualRoofLevel - roofLedgeHeight, Math.max(terrainHeight, DEFAULT_WATER_LEVEL));
                     for (int z = actualFloorLevel + 1; z <= actualRoofLevel; z++) {
                         if (z <= floodLevel) {
                             if (floodWithLava) {

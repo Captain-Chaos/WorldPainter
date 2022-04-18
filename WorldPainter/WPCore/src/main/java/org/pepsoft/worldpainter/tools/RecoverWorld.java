@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
@@ -191,7 +192,7 @@ public class RecoverWorld {
             TileFactory tileFactory = dimension.getTileFactory();
             if (tileFactory == null) {
                 System.err.println("Dimension " + dimension.getName() + " tile factory lost; creating default tile factory");
-                tileFactory = TileFactoryFactory.createNoiseTileFactory(dimension.getSeed(), Terrain.GRASS, minHeight, maxHeight, 58, 62, false, true, 20, 1.0);
+                tileFactory = TileFactoryFactory.createNoiseTileFactory(dimension.getSeed(), Terrain.GRASS, minHeight, maxHeight, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0);
             }
             Dimension newDimension = new Dimension(newWorld, dimension.getMinecraftSeed(), tileFactory, dimension.getDim(), minHeight, maxHeight);
             try {

@@ -1170,6 +1170,7 @@ public final class Constants {
     public static final int DEFAULT_MAX_HEIGHT_1_18 = 320;
     public static final int DEFAULT_MAX_HEIGHT_NETHER = 256;
     public static final int DEFAULT_MAX_HEIGHT_END = 256;
+    public static final int DEFAULT_WATER_LEVEL = 62;
 
     public static final int DIFFICULTY_PEACEFUL = 0;
     public static final int DIFFICULTY_EASY     = 1;

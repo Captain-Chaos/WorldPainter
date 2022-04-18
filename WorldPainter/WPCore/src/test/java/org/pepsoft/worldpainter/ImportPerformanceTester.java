@@ -19,6 +19,7 @@ import java.util.TreeMap;
 
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.Terrain.GRASS;
 import static org.pepsoft.worldpainter.importing.MapImporter.ReadOnlyOption.MAN_MADE_ABOVE_GROUND;
@@ -50,7 +51,7 @@ public class ImportPerformanceTester extends AbstractTool {
         logger.info("Testing import of {} with {} thread(s)", mapDir, threadCount);
         final Platform platform = mapInfo.platform;
         final PlatformProvider provider = PlatformManager.getInstance().getPlatformProvider(platform);
-        final MapImporter importer = ((MapImporterProvider) provider).getImporter(mapDir, TileFactoryFactory.createNoiseTileFactory(0, GRASS, platform.minZ, platform.standardMaxHeight, 58, 62, false, true, 20, 1.0), null, MAN_MADE_ABOVE_GROUND, singleton(DIM_NORMAL)); // TODO include the other dimensions
+        final MapImporter importer = ((MapImporterProvider) provider).getImporter(mapDir, TileFactoryFactory.createNoiseTileFactory(0, GRASS, platform.minZ, platform.standardMaxHeight, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0), null, MAN_MADE_ABOVE_GROUND, singleton(DIM_NORMAL)); // TODO include the other dimensions
         long start = System.currentTimeMillis();
         try {
             importer.doImport(new TextProgressReceiver());

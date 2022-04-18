@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.minecraft.Material.DIRT;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
@@ -1134,7 +1135,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
 
     private Rectangle windowBounds;
     private boolean maximised, hilly = true, lava, goodies = true, populate, beaches = true, mergeWarningDisplayed, importWarningDisplayed;
-    private int level = 58, waterLevel = 62, borderLevel = 62;
+    private int level = 58, waterLevel = DEFAULT_WATER_LEVEL, borderLevel = DEFAULT_WATER_LEVEL;
     private Terrain surface = Terrain.GRASS, underground = Terrain.RESOURCES;
     private File worldDirectory;
     @Deprecated

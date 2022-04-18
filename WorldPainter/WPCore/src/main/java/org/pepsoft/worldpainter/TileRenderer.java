@@ -457,7 +457,7 @@ public final class TileRenderer {
                 y -= TILE_SIZE;
             }
             Tile neighborTile = tileProvider.getTile(tile.getX() + tileDX, tile.getY() + tileDY);
-            return (neighborTile != null) ? neighborTile.getIntHeight(x, y) : 62;
+            return (neighborTile != null) ? neighborTile.getIntHeight(x, y) : DEFAULT_WATER_LEVEL;
         }
     }
 

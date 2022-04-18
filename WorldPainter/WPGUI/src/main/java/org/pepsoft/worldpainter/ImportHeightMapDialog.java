@@ -42,8 +42,7 @@ import java.util.List;
 import java.util.*;
 
 import static com.google.common.primitives.Ints.asList;
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
+import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.SpinnerUtils.setMaximum;
@@ -109,7 +108,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             comboBoxSingleTerrain.setModel(new DefaultComboBoxModel<>(Terrain.getConfiguredValues()));
         } else {
             platform = JAVA_ANVIL_1_15;
-            themeEditor.setTheme(SimpleTheme.createDefault(GRASS, platform.minZ, platform.standardMaxHeight, 62, true, true));
+            themeEditor.setTheme(SimpleTheme.createDefault(GRASS, platform.minZ, platform.standardMaxHeight, DEFAULT_WATER_LEVEL, true, true));
             themeEditor.setChangeListener(this);
             comboBoxPlatform.setSelectedItem(JAVA_ANVIL_1_15);
             labelNoUndo.setText(" ");
@@ -406,7 +405,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     private void loadDefaults() {
         Theme defaultTheme = Configuration.getInstance().getHeightMapDefaultTheme();
         if (defaultTheme == null) {
-            HeightMapTileFactory tmpTileFactory = TileFactoryFactory.createNoiseTileFactory(seed, GRASS, 0, DEFAULT_MAX_HEIGHT_ANVIL, 58, 62, false, true, 20, 1.0);
+            HeightMapTileFactory tmpTileFactory = TileFactoryFactory.createNoiseTileFactory(seed, GRASS, 0, DEFAULT_MAX_HEIGHT_ANVIL, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0);
             defaultTheme = tmpTileFactory.getTheme();
             if (currentDimension == null) {
                 buttonResetDefaults.setEnabled(false);

@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.SortedMap;
 
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 import static org.pepsoft.worldpainter.Generator.*;
@@ -1466,11 +1467,11 @@ public class PreferencesDialog extends WorldPainterDialog {
             comboBoxHeight.setSelectedIndex(3);
             radioButtonHilly.setSelected(true);
             spinnerGroundLevel.setValue(58);
-            spinnerWaterLevel.setValue(62);
+            spinnerWaterLevel.setValue(DEFAULT_WATER_LEVEL);
             checkBoxLava.setSelected(false);
             checkBoxBeaches.setSelected(true);
             comboBoxSurfaceMaterial.setSelectedItem(GRASS);
-            Configuration.getInstance().setDefaultTerrainAndLayerSettings(new World2(JAVA_ANVIL_1_15, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), GRASS, JAVA_ANVIL_1_15.minZ, JAVA_ANVIL_1_15.standardMaxHeight, 58, 62, false, true, 20, 1.0), JAVA_ANVIL_1_15.standardMaxHeight).getDimension(DIM_NORMAL));
+            Configuration.getInstance().setDefaultTerrainAndLayerSettings(new World2(JAVA_ANVIL_1_15, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), GRASS, JAVA_ANVIL_1_15.minZ, JAVA_ANVIL_1_15.standardMaxHeight, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0), JAVA_ANVIL_1_15.standardMaxHeight).getDimension(DIM_NORMAL));
         }
     }//GEN-LAST:event_buttonResetActionPerformed
 

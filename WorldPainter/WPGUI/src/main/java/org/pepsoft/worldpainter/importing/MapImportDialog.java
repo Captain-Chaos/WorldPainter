@@ -335,11 +335,11 @@ public class MapImportDialog extends WorldPainterDialog {
                         if (mapStatistics.levelDat.getVersion() == VERSION_MCREGION) {
                             waterLevel = maxHeight / 2 - 2;
                         } else {
-                            waterLevel = 62;
+                            waterLevel = DEFAULT_WATER_LEVEL;
                         }
                     } else {
                         maxHeight = platform.maxMaxHeight;
-                        waterLevel = 62;
+                        waterLevel = DEFAULT_WATER_LEVEL;
                     }
                     final int terrainLevel = waterLevel - 4;
                     final TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0, Terrain.GRASS, platform.minZ, maxHeight, terrainLevel, waterLevel, false, true, 20, 1.0);

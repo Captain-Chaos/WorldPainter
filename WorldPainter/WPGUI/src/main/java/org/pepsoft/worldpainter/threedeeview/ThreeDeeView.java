@@ -23,6 +23,7 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.*;
 
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 
 /**
@@ -43,7 +44,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         if (dimension.getTileFactory() instanceof HeightMapTileFactory) {
             waterLevel = ((HeightMapTileFactory) dimension.getTileFactory()).getWaterHeight();
         } else {
-            waterLevel = 62;
+            waterLevel = DEFAULT_WATER_LEVEL;
         }
         upsideDown = dimension.getDim() < 0; // Ceiling dimension
         switch (rotation) {

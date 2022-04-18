@@ -395,7 +395,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
     @Override
     public int getHeight(int x, int z) {
         // TODO: how necessary is this? Will Minecraft create these if they're missing?
-        return 62;
+        return DEFAULT_WATER_LEVEL;
     }
 
     @Override

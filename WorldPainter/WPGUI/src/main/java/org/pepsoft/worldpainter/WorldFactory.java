@@ -180,7 +180,7 @@ public final class WorldFactory {
     }
     
     public static World2 createFancyWorld(final Configuration config, final long seed) {
-        final HeightMapTileFactory tileFactory = TileFactoryFactory.createFancyTileFactory(seed, Terrain.GRASS, JAVA_ANVIL_1_15.minZ, JAVA_ANVIL_1_15.standardMaxHeight, 58, 62, false, 20f, 1.0);
+        final HeightMapTileFactory tileFactory = TileFactoryFactory.createFancyTileFactory(seed, Terrain.GRASS, JAVA_ANVIL_1_15.minZ, JAVA_ANVIL_1_15.standardMaxHeight, 58, DEFAULT_WATER_LEVEL, false, 20f, 1.0);
         final Dimension defaults = config.getDefaultTerrainAndLayerSettings();
         final World2 world = new World2(JAVA_ANVIL_1_15, DEFAULT_OCEAN_SEED, tileFactory, tileFactory.getMaxHeight());
         world.addHistoryEntry(HistoryEntry.WORLD_CREATED);

@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
@@ -1936,7 +1937,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private Terrain subsurfaceMaterial = Terrain.STONE_MIX;
     private boolean populate;
     private Border border;
-    private int borderLevel = 62, borderSize = 2;
+    private int borderLevel = DEFAULT_WATER_LEVEL, borderSize = 2;
     private boolean darkLevel, bedrockWall;
     private Map<Layer, ExporterSettings> layerSettings = new HashMap<>();
     private long minecraftSeed;

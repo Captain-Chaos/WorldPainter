@@ -19,6 +19,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.zip.GZIPInputStream;
 
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
@@ -122,7 +123,7 @@ public class DumpObject {
     private static final Dimension FAKE_DIMENSION;
 
     static {
-        TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0L, Terrain.GRASS, JAVA_ANVIL_1_15.minZ, JAVA_ANVIL_1_15.standardMaxHeight, 58, 62, false, true, 20.0f, 1.0);
+        TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0L, Terrain.GRASS, JAVA_ANVIL_1_15.minZ, JAVA_ANVIL_1_15.standardMaxHeight, 58, DEFAULT_WATER_LEVEL, false, true, 20.0f, 1.0);
         FAKE_DIMENSION = new World2(JAVA_ANVIL_1_15, 0L, tileFactory, JAVA_ANVIL_1_15.standardMaxHeight).getDimension(DIM_NORMAL);
     }
 

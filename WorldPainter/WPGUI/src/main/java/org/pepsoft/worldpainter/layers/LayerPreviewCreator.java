@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.*;
 
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_17;
 
@@ -49,7 +50,7 @@ public class LayerPreviewCreator {
         long timestamp = System.currentTimeMillis();
         long seed = 0L;
         TileFactory tileFactory = subterranean
-                ? TileFactoryFactory.createNoiseTileFactory(seed, Terrain.BARE_GRASS, JAVA_ANVIL_1_17.minZ, previewHeight, 56, 62, false, true, 20f, 0.5)
+                ? TileFactoryFactory.createNoiseTileFactory(seed, Terrain.BARE_GRASS, JAVA_ANVIL_1_17.minZ, previewHeight, 56, DEFAULT_WATER_LEVEL, false, true, 20f, 0.5)
                 : TileFactoryFactory.createNoiseTileFactory(seed, Terrain.BARE_GRASS, JAVA_ANVIL_1_17.minZ, previewHeight, 8, 14, false, true, 20f, 0.5);
         Dimension dimension = new World2(DefaultPlugin.JAVA_MCREGION, seed, tileFactory, previewHeight).getDimension(DIM_NORMAL);
         dimension.setSubsurfaceMaterial(Terrain.STONE);

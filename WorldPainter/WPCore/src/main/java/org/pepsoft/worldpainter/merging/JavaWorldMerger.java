@@ -38,6 +38,7 @@ import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
+import static org.pepsoft.worldpainter.util.ChunkUtils.skipChunk;
 
 /**
  *
@@ -277,6 +278,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             mergeDimension(worldDir, backupDir, world.getDimension(DIM_END), progressReceiver);
         }
 
+        // TODO: move player positions if necessary
+
         // Update the session.lock file, hopefully kicking out any Minecraft instances which may have tried to open the
         // map in the mean time:
         File sessionLockFile = new File(worldDir, "session.lock");
@@ -408,7 +411,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 for (Point tileCoords: selectedTiles) {
                     Tile tile = dimension.getTile(tileCoords);
                     boolean nonReadOnlyChunksFound = false;
-outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
+                    outerLoop:
+                    for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         for (int chunkY = 0; chunkY < TILE_SIZE; chunkY += 16) {
                             if (! tile.getBitLayerValue(ReadOnly.INSTANCE, chunkX, chunkY)) {
                                 nonReadOnlyChunksFound = true;
@@ -444,7 +448,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             } else {
                 for (Tile tile: dimension.getTiles()) {
                     boolean nonReadOnlyChunksFound = false;
-outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
+                    outerLoop:
+                    for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         for (int chunkY = 0; chunkY < TILE_SIZE; chunkY += 16) {
                             if (! tile.getBitLayerValue(ReadOnly.INSTANCE, chunkX, chunkY)) {
                                 nonReadOnlyChunksFound = true;
@@ -784,7 +789,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         }
         return warnings;
     }
-    
+
+    // TODO make more configurable; e.g. only merge biomes above ground; only change biomes that are the same as a specified biome, or the existing biome at ground level
     /**
      * Merge only the biomes, leave everything else the same.
      */
@@ -948,10 +954,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 existingChunk = ((JavaPlatformProvider) platformProvider).createChunk(platform, in.readTag(), maxHeight);
 
                                 // Sanity checks
-                                if ((existingChunk instanceof MC115AnvilChunk)
-                                        && ((MC115AnvilChunk) existingChunk).getStatus().equals(STATUS_STRUCTURE_STARTS)
-                                        && (newChunk != null)) {
-                                    logger.warn("Replacing chunk " + chunkX + "," + chunkY + "from existing map because it has status structure_starts");
+                                if (skipChunk(existingChunk) && (newChunk != null)) {
+                                    logger.warn("Replacing chunk " + chunkX + "," + chunkY + "from existing map because it has an unfinished status and is empty");
                                     existingChunk = null;
                                 }
                             }
@@ -983,8 +987,8 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             // be here
                             processExistingChunk(existingChunk);
                             try {
-                                newChunk = mergeChunk(existingChunk, newChunk, dimension);
-                                minecraftWorld.addChunk(newChunk);
+                                mergeChunk(existingChunk, newChunk, dimension);
+                                minecraftWorld.addChunk(existingChunk);
                             } catch (NullPointerException e) {
                                 reportBuilder.append("Null pointer exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk" + EOL);
                                 logger.error("Null pointer exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
@@ -1212,25 +1216,31 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         }
         return reportBuilder.length() != 0 ? reportBuilder.toString() : null;
     }
-    
-    private Chunk mergeChunk(Chunk existingChunk, Chunk newChunk, Dimension dimension) {
+
+    /**
+     * Merge the changes contained in a dimension and new chunk generated from it, into an existing chunk.
+     *
+     * @param existingChunk The existing chunk into which to merge the changes.
+     * @param newChunk      The new chunk from which to take the changes to merge.
+     * @param dimension     The dimension from which to take the changes to merge.
+     * @return The specified existing chunk, with the changes merged into it.
+     */
+    private void mergeChunk(Chunk existingChunk, Chunk newChunk, Dimension dimension) {
         // TODO support 3D biomes
         if (logger.isDebugEnabled()) {
             logger.debug("Merging chunks at " + existingChunk.getxPos() + "," + existingChunk.getzPos());
         }
-        final int minY = platform.minY, maxY = existingChunk.getMaxHeight() - 1;
+        final int minY = platform.minZ, maxY = existingChunk.getMaxHeight() - 1;
         final int chunkX = existingChunk.getxPos() << 4, chunkZ = existingChunk.getzPos() << 4;
-        final List<Entity> newChunkEntities = newChunk.getEntities();
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 if (dimension.getBitLayerValueAt(org.pepsoft.worldpainter.layers.Void.INSTANCE, chunkX | x, chunkZ | z)) {
                     // Void. Just empty the entire column
                     // TODO: only empty from the terrain height on downwards? or find some other way of preserving overhanging trees, that kind of thing?
-                    for (int y = minY; y <= maxY; y++) {
-                        // TODO the new chunk is _already_ empty here, no?
-                        newChunk.setMaterial(x, y, z, AIR);
-                        newChunk.setBlockLightLevel(x, y, z, 0);
-                        newChunk.setSkyLightLevel(x, y, z, 15);
+                    for (int y = existingChunk.getHighestNonAirBlock(x, z); y >= minY; y--) {
+                        existingChunk.setMaterial(x, y, z, AIR);
+                        existingChunk.setBlockLightLevel(x, y, z, 0);
+                        existingChunk.setSkyLightLevel(x, y, z, 15);
                     }
                 } else {
                     final int newHeight = dimension.getIntHeightAt(chunkX | x, chunkZ | z);
@@ -1246,25 +1256,24 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     }
                     final int dy = newHeight - oldHeight;
                     if (dy > 0) {
-                        // Terrain has been raised
-                        // Copy or merge underground portion from existing chunk
-                        final int mergeLimit = Math.min(newHeight - surfaceMergeDepth, oldHeight);
-                        for (int y = minY; y <= mergeLimit; y++) {
-                            mergeUndergroundBlock(existingChunk, newChunk, x, y, z);
-                        }
-                        // Merge surface layer blocks
-                        for (int y = mergeLimit + 1; y <= newHeight; y++) {
-                            mergeSurfaceBlock(existingChunk, newChunk, x, y, z, y < oldHeight);
-                        }
-                        // Merge above ground portion from existing chunk, raised by
-                        // the appropriate amount
-                        for (int y = newHeight + 1; y <= maxY; y++) {
+                        // Terrain has been raised; go from top to bottom to avoid stepping on ourselves
+                        // Merge underground portion if requested
+                        // Merge above ground portion from new chunk
+                        for (int y = maxY; y >= newHeight + 1; y--) {
                             mergeAboveGroundBlock(existingChunk, newChunk, x, y, z, dy, frost);
                         }
-                        newChunk.setHeight(x, z, Math.min(existingChunk.getHeight(x, z) + dy, maxY));
+                        final int mergeLimit = Math.min(newHeight - surfaceMergeDepth, oldHeight);
+                        // Merge surface layer blocks
+                        for (int y = newHeight; y >= mergeLimit + 1; y--) {
+                            mergeSurfaceBlock(existingChunk, newChunk, x, y, z, y < oldHeight);
+                        }
+                        for (int y = mergeLimit; y >= minY; y--) {
+                            mergeUndergroundBlock(existingChunk, newChunk, x, y, z);
+                        }
+                        existingChunk.setHeight(x, z, Math.min(Math.max(existingChunk.getHeight(x, z), newChunk.getHeight(x, z)) + dy, maxY));
                     } else if (dy < 0) {
                         // Terrain has been lowered
-                        // Copy underground portion from existing chunk
+                        // Merge underground portion if requested
                         final int mergeLimit = newHeight - surfaceMergeDepth;
                         for (int y = minY; y <= mergeLimit; y++) {
                             mergeUndergroundBlock(existingChunk, newChunk, x, y, z);
@@ -1276,22 +1285,23 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         // opened up voids such as caves, chasms, abandoned mines,
                         // etc.
                         final int mergeStartHeight = newHeight + 1;
-                        final Material existingMaterial = existingChunk.getMaterial(x, newHeight, z);
-                        if ((existingMaterial == AIR) || existingMaterial.insubstantial) {
-                            Material existingMaterialAbove = (newHeight < maxY) ? existingChunk.getMaterial(x, newHeight + 1, z) : AIR;
-                            Material newMaterialAbove = (((newHeight - dy) >= -1) && ((newHeight - dy) < maxY)) ? newChunk.getMaterial(x, newHeight + 1 - dy, z) : AIR;
-                            if (((newMaterialAbove == AIR) || newMaterialAbove.insubstantial) && ((existingMaterialAbove == AIR) || existingMaterialAbove.insubstantial)) {
-                                newChunk.setMaterial(x, newHeight, z, AIR);
-                                newChunk.setSkyLightLevel(x, newHeight, z, 0);
-                                newChunk.setBlockLightLevel(x, newHeight, z, 0);
-                            }
-                        }
+                        // TODO reinstate this:
+//                        final Material existingMaterial = existingChunk.getMaterial(x, newHeight, z);
+//                        if ((existingMaterial == AIR) || existingMaterial.insubstantial) {
+//                            Material existingMaterialAbove = (newHeight < maxY) ? existingChunk.getMaterial(x, newHeight + 1, z) : AIR;
+//                            Material newMaterialAbove = (((newHeight - dy) >= -1) && ((newHeight - dy) < maxY)) ? newChunk.getMaterial(x, newHeight + 1 - dy, z) : AIR;
+//                            if (((newMaterialAbove == AIR) || newMaterialAbove.insubstantial) && ((existingMaterialAbove == AIR) || existingMaterialAbove.insubstantial)) {
+//                                newChunk.setMaterial(x, newHeight, z, AIR);
+//                                newChunk.setSkyLightLevel(x, newHeight, z, 0);
+//                                newChunk.setBlockLightLevel(x, newHeight, z, 0);
+//                            }
+//                        }
                         // Copy above ground portion from existing chunk, lowered by
                         // the appropriate amount
                         for (int y = mergeStartHeight; y <= (maxY + dy); y++) {
                             mergeAboveGroundBlock(existingChunk, newChunk, x, y, z, dy, frost);
                         }
-                        newChunk.setHeight(x, z, Math.min(existingChunk.getHeight(x, z) + dy, maxY));
+                        existingChunk.setHeight(x, z, Math.min(Math.max(existingChunk.getHeight(x, z), newChunk.getHeight(x, z)) + dy, maxY));
                     } else {
                         // Terrain height has not changed. Copy everything from the
                         // existing chunk, except the top layer of the terrain.
@@ -1303,16 +1313,17 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                             mergeAboveGroundBlock(existingChunk, newChunk, x, y, z, 0, frost);
                         }
                     }
-                    Material newTerrainMaterial = newChunk.getMaterial(x, newHeight, z);
-                    Material oldTerrainMaterial = existingChunk.getMaterial(x, oldHeight, z);
-                    if (((newTerrainMaterial == DIRT) && oldTerrainMaterial.isNamed(MC_FARMLAND)) // Tilled earth is imported as dirt, so make sure to leave it intact.
-                            || ((newTerrainMaterial == DIRT) && oldTerrainMaterial.isNamed(MC_ROOTED_DIRT)) // Rooted dirt is imported as dirt, so make sure to leave it intact.
-                            || ((newTerrainMaterial == STONE) && oldTerrainMaterial.isNamed(MC_INFESTED_STONE)) // Infested stone is imported as stone, so make sure to leave it intact.
-                            || ((newTerrainMaterial == DEEPSLATE_Y) && oldTerrainMaterial.isNamed(MC_INFESTED_DEEPSLATE)) // Infested deepslate is imported as deepslate, so make sure to leave it intact.
-                            || (newTerrainMaterial.isNamed(MC_ICE) && oldTerrainMaterial.isNamed(MC_FROSTED_ICE))) { // Frosted ice is imported as water + Frost, so make sure to leave it intact TODO do this for other forms of ice?
-
-                        newChunk.setMaterial(x, newHeight, z, oldTerrainMaterial);
-                    }
+                    // TODO reinstate this:
+//                    Material newTerrainMaterial = newChunk.getMaterial(x, newHeight, z);
+//                    Material oldTerrainMaterial = existingChunk.getMaterial(x, oldHeight, z);
+//                    if (((newTerrainMaterial == DIRT) && oldTerrainMaterial.isNamed(MC_FARMLAND)) // Tilled earth is imported as dirt, so make sure to leave it intact.
+//                            || ((newTerrainMaterial == DIRT) && oldTerrainMaterial.isNamed(MC_ROOTED_DIRT)) // Rooted dirt is imported as dirt, so make sure to leave it intact.
+//                            || ((newTerrainMaterial == STONE) && oldTerrainMaterial.isNamed(MC_INFESTED_STONE)) // Infested stone is imported as stone, so make sure to leave it intact.
+//                            || ((newTerrainMaterial == DEEPSLATE_Y) && oldTerrainMaterial.isNamed(MC_INFESTED_DEEPSLATE)) // Infested deepslate is imported as deepslate, so make sure to leave it intact.
+//                            || (newTerrainMaterial.isNamed(MC_ICE) && oldTerrainMaterial.isNamed(MC_FROSTED_ICE))) { // Frosted ice is imported as water + Frost, so make sure to leave it intact TODO do this for other forms of ice?
+//
+//                        newChunk.setMaterial(x, newHeight, z, oldTerrainMaterial);
+//                    }
                     final int blockX = chunkX + x, blockZ = chunkZ + z;
                     for (Entity entity: existingChunk.getEntities()) {
                         final double[] pos = entity.getPos();
@@ -1324,28 +1335,14 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                                 }
                                 entity.setPos(pos);
                             }
-                            newChunkEntities.add(entity);
                         }
                     }
                 }
             }
         }
-        for (Entity entity: existingChunk.getEntities()) {
-            final double[] pos = entity.getPos();
-            if ((pos[0] < chunkX) || (pos[0] >= chunkX + 16) || (pos[2] < chunkZ) || (pos[2] >= chunkZ + 16)) {
-                // The entity has wandered outside of the chunk, we
-                // don't have the information to determine how much to
-                // adjust its vertical position; just copy it, since in
-                // practice most chunks will not have changed height
-                // anyway, so at least in those cases the result will be
-                // correct
-                newChunkEntities.add(entity);
-            }
-        }
         newChunk.setInhabitedTime(existingChunk.getInhabitedTime());
         // TODO: merge other NBT tags (?)
         //  (in which case *do* merge 1.14 structure_starts chunks)
-        return newChunk;
     }
 
     /**
@@ -1360,12 +1357,13 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
      */
     private void mergeSurfaceBlock(final Chunk existingChunk, final Chunk newChunk, final int x, final int y, final int z, final boolean preserveCaves) {
         final Material existingMaterial = existingChunk.getMaterial(x, y, z);
-        if (preserveCaves && (existingMaterial.veryInsubstantial || (! existingMaterial.natural))) {
-            newChunk.setMaterial(x, y, z, existingMaterial);
-            newChunk.setSkyLightLevel(x, y, z, existingChunk.getSkyLightLevel(x, y, z));
-            newChunk.setBlockLightLevel(x, y, z, existingChunk.getBlockLightLevel(x, y, z));
-            if (existingMaterial.tileEntity) {
-                copyEntityTileData(existingChunk, newChunk, x, y, z, 0);
+        if ((! preserveCaves) || ((! existingMaterial.veryInsubstantial) && existingMaterial.natural)) {
+            final Material newMaterial = newChunk.getMaterial(x, y, z);
+            existingChunk.setMaterial(x, y, z, newMaterial);
+            existingChunk.setSkyLightLevel(x, y, z, newChunk.getSkyLightLevel(x, y, z));
+            existingChunk.setBlockLightLevel(x, y, z, newChunk.getBlockLightLevel(x, y, z));
+            if (newMaterial.tileEntity) {
+                moveEntityTileData(existingChunk, newChunk, x, y, z, 0);
             }
         }
     }
@@ -1381,31 +1379,22 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
      */
     private void mergeUndergroundBlock(final Chunk existingChunk, final Chunk newChunk, final int x, final int y, final int z) {
         if (mergeUnderworld) {
-            final Material existingMaterial = existingChunk.getMaterial(x, y, z);
-            if (UNDERGROUND_MERGE_MATRIX[newChunk.getMaterial(x, y, z).category][existingMaterial.category]) {
-                newChunk.setMaterial(x, y, z, existingMaterial);
-                newChunk.setSkyLightLevel(x, y, z, existingChunk.getSkyLightLevel(x, y, z));
-                newChunk.setBlockLightLevel(x, y, z, existingChunk.getBlockLightLevel(x, y, z));
-                if (existingMaterial.tileEntity) {
-                    copyEntityTileData(existingChunk, newChunk, x, y, z, 0);
+            final Material newMaterial = newChunk.getMaterial(x, y, z);
+            if (! UNDERGROUND_MERGE_MATRIX[newMaterial.category][existingChunk.getMaterial(x, y, z).category]) {
+                existingChunk.setMaterial(x, y, z, newMaterial);
+                existingChunk.setSkyLightLevel(x, y, z, newChunk.getSkyLightLevel(x, y, z));
+                existingChunk.setBlockLightLevel(x, y, z, newChunk.getBlockLightLevel(x, y, z));
+                if (newMaterial.tileEntity) {
+                    moveEntityTileData(existingChunk, newChunk, x, y, z, 0);
                 }
-            }
-        } else {
-            final Material existingMaterial = existingChunk.getMaterial(x, y, z);
-            newChunk.setMaterial(x, y, z, existingMaterial);
-            newChunk.setSkyLightLevel(x, y, z, existingChunk.getSkyLightLevel(x, y, z));
-            newChunk.setBlockLightLevel(x, y, z, existingChunk.getBlockLightLevel(x, y, z));
-            if (existingMaterial.tileEntity) {
-                copyEntityTileData(existingChunk, newChunk, x, y, z, 0);
             }
         }
     }
 
     /**
-     * Merge one above ground block. Supports a changed surface height by
-     * specifying a delta between the Y coordinate of the block to merge in the
-     * existing and new chunks. This method assumes that {@code newChunk} will
-     * end up in the final map, so will merge the change into that chunk.
+     * Merge one above ground block. Supports a changed surface height by specifying a delta between the Y coordinate of
+     * the block to merge in the existing and new chunks. This method assumes that {@code existingChunk} will end up in
+     * the final map, so will merge the change into that chunk.
      * 
      * <p>Coordinates are in Minecraft coordinate system.
      * 
@@ -1414,22 +1403,12 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
      * @param x The X coordinate of the block to merge.
      * @param y The Y coordinate of the block to merge, in the new chunk.
      * @param z The Z coordinate of the block to merge.
-     * @param dy The difference between the Y coordinate in the new chunk and
-     *     the Y coordinate of the corresponding block in the existing chunk.
-     * @param frost Whether the {@link Frost} layer was applied at the specified
-     *     x,z coordinates in the new map.
+     * @param dy The number of blocks the terrain has been raised.
+     * @param frost Whether the {@link Frost} layer was applied at the specified x,z coordinates in the new map.
      */
     private void mergeAboveGroundBlock(final Chunk existingChunk, final Chunk newChunk, final int x, final int y, final int z, final int dy, final boolean frost) {
         final Material existingMaterial = existingChunk.getMaterial(x, y - dy, z);
         final Material newMaterial = newChunk.getMaterial(x, y, z);
-//        if ((existingMaterial.isNamedOneOf(MC_KELP, MC_KELP_PLANT, MC_SEAGRASS, MC_TALL_SEAGRASS)
-//                || ((existingMaterial.isNamed(MC_SEA_PICKLE) || existingMaterial.name.contains("_coral")) && existingMaterial.is(WATERLOGGED)))
-//                && newMaterial.isNamed(MC_AIR)) {
-//            System.out.println(existingMaterial + " becoming dry");
-//        } else if (((existingMaterial.isNamed(MC_SEA_PICKLE) || existingMaterial.name.contains("_coral")) && (! existingMaterial.is(WATERLOGGED)))
-//                && newMaterial.isNamed(MC_WATER)) {
-//            System.out.println(existingMaterial + " becoming wet");
-//        }
         final boolean existingMaterialIsWatery = existingMaterial.isNamed(MC_WATER) || existingMaterial.is(WATERLOGGED) || existingMaterial.watery;
         final boolean newMaterialIsWatery = newMaterial.isNamed(MC_WATER) || newMaterial.is(WATERLOGGED) || newMaterial.watery;
         if  (((existingMaterial == AIR) // replace *all* fluids (and ice) from the existing map with fluids (or lack thereof) from the new map
@@ -1445,50 +1424,82 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                 || ((! frost) && existingMaterial.isNamed(MC_SNOW))
 
                 // the existing block is insubstantial and the new block would wash it away
-                || (newMaterialIsWatery && existingMaterial.insubstantial && (! existingMaterial.hasProperty(WATERLOGGED)) && (! existingMaterial.watery))
+                || (newMaterialIsWatery && existingMaterial.veryInsubstantial && (! existingMaterial.hasProperty(WATERLOGGED)) && (! existingMaterial.watery))
 
                 // the existing block is insubstantial and the new block would burn it away
-                || (newMaterial.isNamedOneOf(MC_LAVA) && existingMaterial.insubstantial)
+                || (newMaterial.isNamedOneOf(MC_LAVA) && existingMaterial.veryInsubstantial)
 
                 // the existing block is an underwater block which would now be above the water
                 || (existingMaterial.watery && (! newMaterialIsWatery))) {
-            // Leave the new block in place
-        } else {
-            // Copy the existing block over the new block, modifying it if necessary
+
+            // Copy the new block over the existing block, modifying it if necessary
             if (existingMaterial.isNamed(MC_SNOW) && newMaterial.isNamed(MC_SNOW)) {
                 // If both the existing and new blocks are snow, use the highest snow level of the two, to leave smooth snow in the existing map intact
-                newChunk.setMaterial(x, y, z, SNOW.withProperty(LAYERS, Math.max(existingMaterial.getProperty(LAYERS), newMaterial.getProperty(LAYERS))));
+                existingChunk.setMaterial(x, y, z, SNOW.withProperty(LAYERS, Math.max(existingMaterial.getProperty(LAYERS), newMaterial.getProperty(LAYERS))));
             } else {
-                if (existingMaterial.hasProperty(WATERLOGGED)) {
+                if (newMaterial.hasProperty(WATERLOGGED)) {
                     // The block has a waterlogged property; manage it correctly
-                    if (existingMaterialIsWatery && (! newMaterialIsWatery)) {
-                        newChunk.setMaterial(x, y, z, existingMaterial.withProperty(WATERLOGGED, false));
-                    } else if ((! existingMaterialIsWatery) && newMaterialIsWatery) {
-                        newChunk.setMaterial(x, y, z, existingMaterial.withProperty(WATERLOGGED, true));
+                    if (newMaterialIsWatery && (! existingMaterialIsWatery)) {
+                        existingChunk.setMaterial(x, y, z, newMaterial.withProperty(WATERLOGGED, false));
+                    } else if ((! newMaterialIsWatery) && existingMaterialIsWatery) {
+                        existingChunk.setMaterial(x, y, z, newMaterial.withProperty(WATERLOGGED, true));
                     } else {
-                        newChunk.setMaterial(x, y, z, existingMaterial);
+                        existingChunk.setMaterial(x, y, z, newMaterial);
                     }
                 } else {
-                    // Just use the existing block as-is
-                    newChunk.setMaterial(x, y, z, existingMaterial);
+                    // Just use the new block as-is
+                    existingChunk.setMaterial(x, y, z, newMaterial);
                 }
-                if (existingMaterial.tileEntity) {
-                    copyEntityTileData(existingChunk, newChunk, x, y, z, dy); // TODOMC13 this doesn't seem to be working?
+                if (newMaterial.tileEntity) {
+                    moveEntityTileData(existingChunk, newChunk, x, y, z, dy); // TODOMC13 this doesn't seem to be working?
                 }
             }
-            newChunk.setSkyLightLevel(x, y, z, existingChunk.getSkyLightLevel(x, y - dy, z));
-            newChunk.setBlockLightLevel(x, y, z, existingChunk.getBlockLightLevel(x, y - dy, z));
+            existingChunk.setSkyLightLevel(x, y, z, newChunk.getSkyLightLevel(x, y - dy, z));
+            existingChunk.setBlockLightLevel(x, y, z, newChunk.getBlockLightLevel(x, y - dy, z));
+        } else if (dy != 0) {
+            // Move the existing block
+            if (existingMaterial.hasProperty(WATERLOGGED) && (newMaterialIsWatery != existingMaterialIsWatery)) {
+                // The block has a waterlogged property; manage it correctly
+                if (newMaterialIsWatery) {
+                    existingChunk.setMaterial(x, y, z, existingMaterial.withProperty(WATERLOGGED, true));
+                } else {
+                    existingChunk.setMaterial(x, y, z, existingMaterial.withProperty(WATERLOGGED, false));
+                }
+            } else {
+                existingChunk.setMaterial(x, y, z, existingMaterial);
+            }
+            existingChunk.setSkyLightLevel(x, y, z, existingChunk.getSkyLightLevel(x, y - dy, z));
+            existingChunk.setBlockLightLevel(x, y, z, existingChunk.getBlockLightLevel(x, y - dy, z));
+            if (existingMaterial.tileEntity) {
+                moveEntityTileData(existingChunk, existingChunk, x, y, z, dy);
+            }
+            // TODO do we need to remove the source block? Set it to air? Copy if from the new chunk?
+        } else if (existingMaterial.hasProperty(WATERLOGGED) && (newMaterialIsWatery != existingMaterialIsWatery)) {
+            // The block has a waterlogged property; manage it correctly
+            if (newMaterialIsWatery) {
+                existingChunk.setMaterial(x, y, z, existingMaterial.withProperty(WATERLOGGED, true));
+            } else {
+                existingChunk.setMaterial(x, y, z, existingMaterial.withProperty(WATERLOGGED, false));
+            }
         }
     }
 
     // Coordinates are in Minecraft coordinate system
-    private void copyEntityTileData(Chunk fromChunk, Chunk toChunk, int x, int y, int z, int dy) {
+    private void moveEntityTileData(Chunk toChunk, Chunk fromChunk, int x, int y, int z, int dy) {
         int existingBlockDX = fromChunk.getxPos() << 4, existingBlockDZ = fromChunk.getzPos() << 4;
         List<TileEntity> fromEntities = fromChunk.getTileEntities();
         for (TileEntity entity: fromEntities) {
             if ((entity.getY() == (y - dy)) && ((entity.getX() - existingBlockDX) == x) && ((entity.getZ() - existingBlockDZ) == z)) {
                 entity.setY(y);
                 toChunk.getTileEntities().add(entity);
+                break;
+            }
+        }
+        // Do this in a separate iteration, since toChunk may be the same one as fromChunk
+        for (Iterator<TileEntity> i = fromEntities.iterator(); i.hasNext(); ) {
+            TileEntity entity = i.next();
+            if ((entity.getY() == (y - dy)) && ((entity.getX() - existingBlockDX) == x) && ((entity.getZ() - existingBlockDZ) == z)) {
+                i.remove();
                 return;
             }
         }
@@ -1506,7 +1517,7 @@ outerLoop:          for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     private static final Object TIMING_FILE_LOCK = new Object();
     private static final String EOL = System.getProperty("line.separator");
 
-    // true means copy existing block               Existing map: Air:   Fluid: Insub: Manmd: Resrc: Solid:
+    // true means keep existing block               Existing map: Air:   Fluid: Insub: Manmd: Resrc: Solid:
     private static final boolean[][] UNDERGROUND_MERGE_MATRIX = {{false, false, true , true , false, false},  // Air in new map
                                                                  {false, false, false, true , false, false},  // Fluids in new map
                                                                  {false, false, false, true , false, false},  // Insubstantial in new map

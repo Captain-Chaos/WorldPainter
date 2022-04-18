@@ -10,6 +10,8 @@ import org.pepsoft.worldpainter.themes.impl.fancy.FancyTheme;
 
 import java.util.Random;
 
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
+
 /**
  *
  * @author pepijn
@@ -28,7 +30,7 @@ public final class TileFactoryFactory {
     }
     
     public static HeightMapTileFactory createFancyTileFactory(long seed, Terrain terrain, int minHeight, int maxHeight, int baseHeight, int waterLevel, boolean floodWithLava, float range, double scale) {
-//        final HeightMapTileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(Terrain.GRASS, World2.DEFAULT_MAX_HEIGHT, 58, 62, false, true, 20.0f, 1.0);
+//        final HeightMapTileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(Terrain.GRASS, World2.DEFAULT_MAX_HEIGHT, 58, DEFAULT_WATER_LEVEL, false, true, 20.0f, 1.0);
         HeightMap oceanFloor = new ConstantHeightMap("Ocean Floor", waterLevel - 22);
         HeightMap continent;
 //        continent = new NinePatchHeightMap(200, 100, 50, 58f);
@@ -56,6 +58,6 @@ public final class TileFactoryFactory {
         HeightMap mountainsDistanceMap = new NoiseHeightMap(25f, 2.5, 1, random.nextLong());
         HeightMap mountains = new DisplacementHeightMap("Mountains", mountainsHeight, mountainsAngleMap, mountainsDistanceMap);
         HeightMap heightMap = new MaximisingHeightMap(continent, mountains);
-        return new HeightMapTileFactory(seed, heightMap, minHeight, maxHeight, false, new FancyTheme(minHeight, maxHeight, 62, heightMap, terrain));
+        return new HeightMapTileFactory(seed, heightMap, minHeight, maxHeight, false, new FancyTheme(minHeight, maxHeight, DEFAULT_WATER_LEVEL, heightMap, terrain));
     }
 }

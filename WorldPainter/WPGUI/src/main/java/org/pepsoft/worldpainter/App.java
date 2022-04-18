@@ -3141,7 +3141,7 @@ public final class App extends JFrame implements RadiusControl,
                 layer.setFloodWithLava(((HeightMapTileFactory) tileFactory).isFloodWithLava());
             } else {
                 baseHeight = 58;
-                waterLevel = 62;
+                waterLevel = DEFAULT_WATER_LEVEL;
             }
             TunnelLayerDialog dialog = new TunnelLayerDialog(App.this, world.getPlatform(), layer, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
             dialog.setVisible(true);
@@ -3681,7 +3681,7 @@ public final class App extends JFrame implements RadiusControl,
                         waterLevel = ((HeightMapTileFactory) tileFactory).getWaterHeight();
                     } else {
                         baseHeight = 58;
-                        waterLevel = 62;
+                        waterLevel = DEFAULT_WATER_LEVEL;
                     }
                     dialog = (AbstractEditLayerDialog<L>) new TunnelLayerDialog(App.this, world.getPlatform(), (TunnelLayer) layer, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
                 } else {

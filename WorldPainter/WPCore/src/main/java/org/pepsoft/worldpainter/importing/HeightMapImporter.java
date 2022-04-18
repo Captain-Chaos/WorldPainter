@@ -28,6 +28,7 @@ import java.io.File;
 import java.util.Map;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
@@ -396,7 +397,7 @@ public class HeightMapImporter {
 
     private Platform platform = JAVA_ANVIL_1_15; // TODOMC118 make dynamic/upgrade to 1.18 when finished
     private HeightMap heightMap;
-    private int worldLowLevel, worldWaterLevel = 62, worldHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, maxHeight = DEFAULT_MAX_HEIGHT_ANVIL, voidBelowLevel, maxZ;
+    private int worldLowLevel, worldWaterLevel = DEFAULT_WATER_LEVEL, worldHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, maxHeight = DEFAULT_MAX_HEIGHT_ANVIL, voidBelowLevel, maxZ;
     private long imageLowLevel, imageHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1;
     private TileFactory tileFactory;
     private Theme theme;
