@@ -17,8 +17,8 @@ public class Painting extends Entity {
         super(LEGACY_ID_PAINTING); // TODO add MC 1.15 support
     }
 
-    public Painting(CompoundTag tag) {
-        super(tag);
+    public Painting(CompoundTag tag, double[] relPos) {
+        super(tag, relPos);
     }
     
     public byte getDir() {

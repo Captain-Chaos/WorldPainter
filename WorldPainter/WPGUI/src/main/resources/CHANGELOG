@@ -7,6 +7,8 @@
    + Minecraft 1.18 (and earlier) plants have been added to the Custom Plants layer. Hanging plants are still missing, as it is not clear how WorldPainter would place those
    + Minecraft 1.18 (and earlier) terrain types and biomes have been added to the various palettes
    + The Populate layer (and the Allow Minecraft to Populate the Entire Terrain option on the Export screen) are once again supported by Minecraft from version 1.18, so those have been re-enabled. It allows you to tell Minecraft to populate the terrain with trees, vegetation, etc. according to the painted biome
+ * Entities (mobs) and tile entities (block entities) from Custom Objects are once again correctly placed on the map
+   + NOTE: for entities (mobs), you may have to remove and re-add the Custom Object to the layer for this to work
  * When Importing an existing map, or Merging with an existing map, the map directory should now be selected, rather than the level.dat file
  * Nether and End dimension changes:
    + The world type can now be configured for Nether and End dimensions

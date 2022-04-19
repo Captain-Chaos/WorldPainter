@@ -177,7 +177,14 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
         ListTag<CompoundTag> entitiesTag = (ListTag<CompoundTag>) root.getTag(TAG_ENTITIES_);
         List<Entity> entities = new ArrayList<>(entitiesTag.getValue().size());
         for (CompoundTag entityTag: entitiesTag.getValue()) {
-            entities.add(Entity.fromNBT(entityTag));
+            double[] relPos = null;
+            if (entityTag.getTag(TAG_POS_) instanceof ListTag) {
+                relPos = ((ListTag<DoubleTag>) entityTag.getTag(TAG_POS_)).getValue().stream().mapToDouble(DoubleTag::getValue).toArray();
+            }
+            if (entityTag.getTag(TAG_NBT_) instanceof CompoundTag) {
+                entityTag = (CompoundTag) entityTag.getTag(TAG_NBT_);
+            }
+            entities.add(Entity.fromNBT(entityTag, relPos));
         }
 
         // Remove palette, blocks and entities from the tag so we don't waste space

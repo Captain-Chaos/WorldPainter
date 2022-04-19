@@ -1290,7 +1290,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         // opened up voids such as caves, chasms, abandoned mines,
                         // etc.
                         final int mergeStartHeight = newHeight + 1;
-                        // TODO reinstate this:
+                        // TODOMC118 reinstate this:
 //                        final Material existingMaterial = existingChunk.getMaterial(x, newHeight, z);
 //                        if ((existingMaterial == AIR) || existingMaterial.insubstantial) {
 //                            Material existingMaterialAbove = (newHeight < maxY) ? existingChunk.getMaterial(x, newHeight + 1, z) : AIR;
@@ -1318,7 +1318,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             mergeAboveGroundBlock(existingChunk, newChunk, x, y, z, 0, frost);
                         }
                     }
-                    // TODO reinstate this:
+                    // TODOMC118 reinstate this:
 //                    Material newTerrainMaterial = newChunk.getMaterial(x, newHeight, z);
 //                    Material oldTerrainMaterial = existingChunk.getMaterial(x, oldHeight, z);
 //                    if (((newTerrainMaterial == DIRT) && oldTerrainMaterial.isNamed(MC_FARMLAND)) // Tilled earth is imported as dirt, so make sure to leave it intact.
@@ -1342,6 +1342,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             }
                         }
                     }
+                    // TODOMC118: copy entities from newChunk to existingChunk
                 }
             }
         }

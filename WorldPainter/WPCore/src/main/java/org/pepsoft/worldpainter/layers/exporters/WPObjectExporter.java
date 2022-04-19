@@ -154,10 +154,10 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             List<Entity> entities = object.getEntities();
             if (entities != null) {
                 for (Entity entity: entities) {
-                    double[] pos = entity.getPos();
-                    double entityX = x + pos[0] + offset.x,
-                            entityY = y + pos[2] + offset.y,
-                            entityZ = z + pos[1] + offset.z;
+                    double[] relPos = entity.getRelPos();
+                    double entityX = x + relPos[0] + offset.x,
+                            entityY = y + relPos[2] + offset.y,
+                            entityZ = z + relPos[1] + offset.z;
                     if ((entityZ < minHeight) || (entityZ >= maxHeight)) {
                         if (logger.isTraceEnabled()) {
                             logger.trace("NOT adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ + " because z coordinate is out of range!");
