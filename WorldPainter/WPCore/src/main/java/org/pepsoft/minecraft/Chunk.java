@@ -63,8 +63,20 @@ public interface Chunk {
     
     void setMaterial(int x, int y, int z, Material material);
 
+    /**
+     * Get a list of entities contained in this chunk. This list must be an editable live view; in other words it must
+     * be possible to add or remove entities by editing this list.
+     *
+     * @return An editable live view of the entities contained in this chunk.
+     */
     List<Entity> getEntities();
 
+    /**
+     * Get a list of tile entities (also known as block entities) contained in this chunk. This list must be an editable
+     * live view; in other words it must be possible to add or remove tile entities by editing this list.
+     *
+     * @return An editable live view of the tile entities contained in this chunk.
+     */
     List<TileEntity> getTileEntities();
 
     default int getMinHeight() {

@@ -1412,8 +1412,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         final boolean existingMaterialIsWatery = existingMaterial.isNamed(MC_WATER) || existingMaterial.is(WATERLOGGED) || existingMaterial.watery;
         final boolean newMaterialIsWatery = newMaterial.isNamed(MC_WATER) || newMaterial.is(WATERLOGGED) || newMaterial.watery;
         if  (((existingMaterial == AIR) // replace *all* fluids (and ice) from the existing map with fluids (or lack thereof) from the new map
-                    || existingMaterial.isNamedOneOf(MC_ICE, MC_LAVA)
-                    || existingMaterial == STATIONARY_WATER)
+                    || existingMaterial.isNamedOneOf(MC_WATER, MC_ICE, MC_LAVA))
 
                 || (existingMaterial.insubstantial // the existing block is insubstantial and the new block is not (but treat water and lava separately below)
                         && (newMaterial != AIR)
@@ -1437,21 +1436,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 // If both the existing and new blocks are snow, use the highest snow level of the two, to leave smooth snow in the existing map intact
                 existingChunk.setMaterial(x, y, z, SNOW.withProperty(LAYERS, Math.max(existingMaterial.getProperty(LAYERS), newMaterial.getProperty(LAYERS))));
             } else {
-                if (newMaterial.hasProperty(WATERLOGGED)) {
-                    // The block has a waterlogged property; manage it correctly
-                    if (newMaterialIsWatery && (! existingMaterialIsWatery)) {
-                        existingChunk.setMaterial(x, y, z, newMaterial.withProperty(WATERLOGGED, false));
-                    } else if ((! newMaterialIsWatery) && existingMaterialIsWatery) {
-                        existingChunk.setMaterial(x, y, z, newMaterial.withProperty(WATERLOGGED, true));
-                    } else {
-                        existingChunk.setMaterial(x, y, z, newMaterial);
-                    }
-                } else {
-                    // Just use the new block as-is
-                    existingChunk.setMaterial(x, y, z, newMaterial);
-                }
+                existingChunk.setMaterial(x, y, z, newMaterial);
                 if (newMaterial.tileEntity) {
-                    moveEntityTileData(existingChunk, newChunk, x, y, z, dy); // TODOMC13 this doesn't seem to be working?
+                    moveEntityTileData(existingChunk, newChunk, x, y, z, dy);
                 }
             }
             existingChunk.setSkyLightLevel(x, y, z, newChunk.getSkyLightLevel(x, y - dy, z));
