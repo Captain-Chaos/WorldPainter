@@ -4,25 +4,19 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import com.google.common.collect.ImmutableMap;
-import org.jnbt.CompoundTag;
-import org.jnbt.NBTInputStream;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.DataUtils;
 import org.pepsoft.worldpainter.AbstractTool;
 import org.pepsoft.worldpainter.Platform;
-import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
-import org.pepsoft.worldpainter.plugins.PlatformProvider;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 
 import static java.util.stream.Collectors.joining;
-import static org.pepsoft.minecraft.DataType.REGION;
 import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 
 /**
@@ -39,21 +33,9 @@ public class DumpChunk extends AbstractTool {
         int chunkX = blockX >> 4;
         int chunkZ = blockZ >> 4;
         JavaLevel level = JavaLevel.load(levelDatFile);
-        CompoundTag chunkTag;
-        try (InputStream chunkIn = RegionFileCache.getChunkDataInputStream(levelDatFile.getParentFile(), chunkX, chunkZ, level.getVersion())) {
-            if (chunkIn != null) {
-                try (NBTInputStream in = new NBTInputStream(chunkIn)) {
-                    chunkTag = (CompoundTag) in.readTag();
-                }
-            } else {
-                System.err.printf("Chunk %d,%d not present!%n", chunkX, chunkZ);
-                System.exit(1);
-                return;
-            }
-        }
-        Platform platform = PlatformManager.getInstance().identifyPlatform(levelDatFile.getParentFile());
-        PlatformProvider provider = PlatformManager.getInstance().getPlatformProvider(platform);
-        Chunk chunk = ((JavaPlatformProvider) provider).createChunk(platform, ImmutableMap.of(REGION, chunkTag), level.getMaxHeight(), true);
+        final File worldDir = levelDatFile.getParentFile();
+        Platform platform = PlatformManager.getInstance().identifyPlatform(worldDir);
+        Chunk chunk = PlatformManager.getInstance().getChunkStore(platform, worldDir, DIM_NORMAL).getChunk(chunkX, chunkZ);
 
         if (platform.capabilities.contains(BIOMES)) {
             System.out.println("Biomes");
