@@ -19,14 +19,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static org.pepsoft.util.AwtUtils.doOnEventThread;
+import static org.pepsoft.util.AwtUtils.doOnEventThreadAndWait;
 
 /**
  * A component which can execute a task in the background, reporting its
@@ -35,6 +34,7 @@ import static org.pepsoft.util.AwtUtils.doOnEventThread;
  *
  * @author pepijn
  */
+@SuppressWarnings({"Convert2Lambda", "Anonymous2MethodRef", "unused"}) // Managed by NetBeans
 public class MultiProgressComponent<T> extends javax.swing.JPanel implements ProgressReceiver, ActionListener {
     /**
      * Creates a new ProgressComponent
@@ -84,7 +84,7 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
         }
         jButton1.setEnabled(cancelable);
         jProgressBar1.setIndeterminate(true);
-        thread = new Thread(task.getName()) {
+        final Thread thread = new Thread(task.getName()) {
             @Override
             public void run() {
                 try {
@@ -114,9 +114,9 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
     // ProgressReceiver
     
     @Override
-    public synchronized void setProgress(final float progress) throws OperationCancelled {
+    public void setProgress(final float progress) throws OperationCancelled {
         checkForCancellation();
-        doOnEventThread(() -> {
+        doOnEventThreadAndWait(() -> {
             progressReports++;
             long now = System.currentTimeMillis();
             long elapsed = now - start;
@@ -134,9 +134,9 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
     }
 
     @Override
-    public synchronized void exceptionThrown(final Throwable exception) {
+    public void exceptionThrown(final Throwable exception) {
         if (! exceptionReported) {
-            doOnEventThread(() -> {
+            doOnEventThreadAndWait(() -> {
                 timer.stop();
                 if (jProgressBar1.isIndeterminate()) {
                     jProgressBar1.setIndeterminate(false);
@@ -160,8 +160,8 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
     }
 
     @Override
-    public synchronized void done() {
-        doOnEventThread(() -> {
+    public void done() {
+        doOnEventThreadAndWait(() -> {
             timer.stop();
             if (jProgressBar1.isIndeterminate()) {
                 jProgressBar1.setIndeterminate(false);
@@ -171,7 +171,7 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
             jLabel2.setText("Done");
             scrollablePanel1.removeAll();
             if (stats != null) {
-                try (PrintWriter out = new PrintWriter(new File("logs/" + FileUtils.sanitiseName(task.getName() + "-" + new Date() + ".csv")))) {
+                try (PrintWriter out = new PrintWriter("logs/" + FileUtils.sanitiseName(task.getName() + "-" + new Date() + ".csv"))) {
                     int second = 1;
                     out.println("second,calculated,displayed");
                     for (int[] statsRow : stats) {
@@ -188,24 +188,24 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
     }
     
     @Override
-    public synchronized void setMessage(final String message) throws OperationCancelled {
+    public void setMessage(final String message) throws OperationCancelled {
         checkForCancellation();
     }
 
     @Override
-    public synchronized void checkForCancellation() throws OperationCancelled {
+    public void checkForCancellation() throws OperationCancelled {
         if (cancelRequested) {
             throw new OperationCancelledByUser();
         }
     }
 
     @Override
-    public synchronized void reset() throws OperationCancelled {
+    public void reset() throws OperationCancelled {
         checkForCancellation();
-        doOnEventThread(() -> {
+        doOnEventThreadAndWait(() -> {
             if (stats != null) {
                 try {
-                    try (PrintWriter out = new PrintWriter(new File("logs/" + FileUtils.sanitiseName(task.getName() + "-" + new Date() + ".csv")))) {
+                    try (PrintWriter out = new PrintWriter("logs/" + FileUtils.sanitiseName(task.getName() + "-" + new Date() + ".csv"))) {
                         int second = 1;
                         out.println("second,calculated,displayed");
                         for (int[] statsRow: stats) {
@@ -227,102 +227,97 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
     }
 
     @Override
-    public synchronized void subProgressStarted(SubProgressReceiver subProgressReceiver) throws OperationCancelled {
+    public void subProgressStarted(SubProgressReceiver subProgressReceiver) throws OperationCancelled {
         checkForCancellation();
-        doOnEventThread(() -> {
-            synchronized (MultiProgressComponent.this) {
-                ProgressViewer progressViewer = new ProgressViewer(subProgressReceiver);
-                JPanel progressPanel = null;
-                ProgressReceiver parent = subProgressReceiver.getParent();
-                if (parent == null) {
-                    // No parent; insert at start
-                    scrollablePanel1.add(progressViewer, 0);
-                    progressPanel = progressViewer;
-                } else {
-                    boolean parentFound = false;
-                    do {
-                        for (int i = 0; i < scrollablePanel1.getComponentCount(); i++) {
-                            Component component = scrollablePanel1.getComponent(i);
-                            ProgressViewer parentViewer = (ProgressViewer) ((component instanceof ProgressViewer) ? component : ((JPanel) component).getComponent(1));
-                            if (parentViewer.getSubProgressReceiver() == parent) {
-                                // Progress viewer for parent found; insert below
-                                Integer parentIndentation = (Integer) parentViewer.getClientProperty(CLIENT_PROPERTY_INDENTATION);
-                                int indentation = (parentIndentation != null) ? parentIndentation + 1 : 1;
-                                progressPanel = new JPanel();
-                                progressPanel.setLayout(new BoxLayout(progressPanel, BoxLayout.LINE_AXIS));
-                                progressPanel.add(Box.createHorizontalStrut(indentation * INDENTATION_SIZE));
-                                progressPanel.add(progressViewer);
-                                scrollablePanel1.add(progressPanel, i + 1);
-                                parentFound = true;
-                                break;
-                            }
+        doOnEventThreadAndWait(() -> {
+            ProgressViewer progressViewer = new ProgressViewer(subProgressReceiver);
+            ProgressReceiver parent = subProgressReceiver.getParent();
+            if (parent == null) {
+                // No parent; insert at start
+                scrollablePanel1.add(progressViewer, 0);
+            } else {
+                boolean parentFound = false;
+                do {
+                    for (int i = 0; i < scrollablePanel1.getComponentCount(); i++) {
+                        Component component = scrollablePanel1.getComponent(i);
+                        ProgressViewer parentViewer = (ProgressViewer) ((component instanceof ProgressViewer) ? component : ((JPanel) component).getComponent(1));
+                        if (parentViewer.getSubProgressReceiver() == parent) {
+                            // Progress viewer for parent found; insert below
+                            Integer parentIndentation = (Integer) parentViewer.getClientProperty(CLIENT_PROPERTY_INDENTATION);
+                            int indentation = (parentIndentation != null) ? parentIndentation + 1 : 1;
+                            JPanel progressPanel = new JPanel();
+                            progressPanel.setLayout(new BoxLayout(progressPanel, BoxLayout.LINE_AXIS));
+                            progressPanel.add(Box.createHorizontalStrut(indentation * INDENTATION_SIZE));
+                            progressPanel.add(progressViewer);
+                            scrollablePanel1.add(progressPanel, i + 1);
+                            parentFound = true;
+                            break;
                         }
-                        if (parent instanceof SubProgressReceiver) {
-                            parent = ((SubProgressReceiver) parent).getParent();
-                        } else {
-                            parent = null;
-                        }
-                    } while ((! parentFound) && (parent != null));
-                    if (! parentFound) {
-                        // Progress viewer not found for any ancestor; append to end
-                        scrollablePanel1.add(progressViewer);
-                        progressPanel = progressViewer;
+                    }
+                    if (parent instanceof SubProgressReceiver) {
+                        parent = ((SubProgressReceiver) parent).getParent();
+                    } else {
+                        parent = null;
+                    }
+                } while ((! parentFound) && (parent != null));
+                if (! parentFound) {
+                    // Progress viewer not found for any ancestor; append to end
+                    scrollablePanel1.add(progressViewer);
+                }
+            }
+
+            subProgressReceiver.addListener(new ProgressReceiver() {
+                @Override
+                public void setProgress(float progress) {
+                    if (progress >= 1.0f) {
+                        doOnEventThreadAndWait(() -> removeViewerHierarchy(subProgressReceiver));
                     }
                 }
 
-                subProgressReceiver.addListener(new ProgressReceiver() {
-                    @Override
-                    public void setProgress(float progress) throws OperationCancelled {
-                        if (progress >= 1.0f) {
-                            doOnEventThread(() -> removeViewerHierarchy(subProgressReceiver));
-                        }
-                    }
+                @Override
+                public void exceptionThrown(Throwable exception) {
+                    doOnEventThreadAndWait(() -> removeViewerHierarchy(subProgressReceiver));
+                }
 
-                    @Override
-                    public void exceptionThrown(Throwable exception) {
-                        doOnEventThread(() -> removeViewerHierarchy(subProgressReceiver));
-                    }
+                @Override
+                public void done() {
+                    doOnEventThreadAndWait(() -> removeViewerHierarchy(subProgressReceiver));
+                }
 
-                    @Override
-                    public void done() {
-                        doOnEventThread(() -> removeViewerHierarchy(subProgressReceiver));
-                    }
-
-                    /**
-                     * Remove a particular viewer, and any children which may
-                     * still exist (this happens in the wild; not entirely clear
-                     * why; may be because they never started any progress;
-                     * perhaps some kind of race condition).
-                     */
-                    private void removeViewerHierarchy(SubProgressReceiver subProgressReceiver) {
-                        // Remove any children
-                        for (Component component: scrollablePanel1.getComponents()) {
-                            ProgressViewer viewer = (ProgressViewer) ((component instanceof ProgressViewer) ? component : ((JPanel) component).getComponent(1));
-                            if (viewer.getSubProgressReceiver().getParent() == subProgressReceiver) {
-                                if (logger.isTraceEnabled()) {
-                                    logger.trace("Progress receiver still has child; removing child. Stack trace is of child creation", viewer.getSubProgressReceiver().getCreationTrace());
-                                }
-                                removeViewerHierarchy(viewer.getSubProgressReceiver());
+                /**
+                 * Remove a particular viewer, and any children which may
+                 * still exist (this happens in the wild; not entirely clear
+                 * why; may be because they never started any progress;
+                 * perhaps some kind of race condition).
+                 */
+                private void removeViewerHierarchy(SubProgressReceiver subProgressReceiver) {
+                    // Remove any children
+                    for (Component component: scrollablePanel1.getComponents()) {
+                        ProgressViewer viewer = (ProgressViewer) ((component instanceof ProgressViewer) ? component : ((JPanel) component).getComponent(1));
+                        if (viewer.getSubProgressReceiver().getParent() == subProgressReceiver) {
+                            if (logger.isTraceEnabled()) {
+                                logger.trace("Progress receiver still has child; removing child. Stack trace is of child creation", viewer.getSubProgressReceiver().getCreationTrace());
                             }
-                        }
-
-                        // Remove the viewer for this sub progress receiver
-                        // itself
-                        for (Component component: scrollablePanel1.getComponents()) {
-                            ProgressViewer viewer = (ProgressViewer) ((component instanceof ProgressViewer) ? component : ((JPanel) component).getComponent(1));
-                            if (viewer.getSubProgressReceiver() == subProgressReceiver) {
-                                scrollablePanel1.remove(component);
-                                break;
-                            }
+                            removeViewerHierarchy(viewer.getSubProgressReceiver());
                         }
                     }
 
-                    @Override public void setMessage(String message) throws OperationCancelled {}
-                    @Override public void checkForCancellation() throws OperationCancelled {}
-                    @Override public void reset() throws OperationCancelled {}
-                    @Override public void subProgressStarted(SubProgressReceiver subProgressReceiver) throws OperationCancelled {}
-                });
-            }
+                    // Remove the viewer for this sub progress receiver
+                    // itself
+                    for (Component component: scrollablePanel1.getComponents()) {
+                        ProgressViewer viewer = (ProgressViewer) ((component instanceof ProgressViewer) ? component : ((JPanel) component).getComponent(1));
+                        if (viewer.getSubProgressReceiver() == subProgressReceiver) {
+                            scrollablePanel1.remove(component);
+                            break;
+                        }
+                    }
+                }
+
+                @Override public void setMessage(String message) {}
+                @Override public void checkForCancellation() {}
+                @Override public void reset() {}
+                @Override public void subProgressStarted(SubProgressReceiver subProgressReceiver) {}
+            });
             jScrollPane1.validate();
         });
     }
@@ -360,7 +355,6 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
      * WARNING: Do NOT modify this code. The content of this method is
      * always regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -430,14 +424,13 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
     // End of variables declaration//GEN-END:variables
 
     private ProgressTask<T> task;
-    private volatile boolean cancelRequested;
+    private volatile boolean cancelRequested, exceptionReported;
     private volatile T result;
-    private Thread thread;
     private long start, remaining, lastUpdate;
     private int progressReports, lastReportedMinutes = Integer.MAX_VALUE;
     private Timer timer;
     private Listener<T> listener;
-    private boolean timeEstimatesActivated, inhibitDone, cancelable = true, exceptionReported;
+    private boolean timeEstimatesActivated, inhibitDone, cancelable = true;
     private List<int[]> stats;
 
     private static final String CLIENT_PROPERTY_INDENTATION = MultiProgressComponent.class.getName() + ".indentation";

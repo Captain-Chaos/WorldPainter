@@ -272,13 +272,13 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         level.save(worldDir);
 
         if ((selectedDimensions == null) ? (world.getDimension(DIM_NORMAL) != null) : selectedDimensions.contains(DIM_NORMAL)) {
-            mergeDimension(worldDir, backupDir, world.getDimension(DIM_NORMAL), progressReceiver);
+            mergeDimension(worldDir, backupDir, world.getDimension(DIM_NORMAL), progressReceiver); // TODO: this should be a SubProgressReceiver if we are exporting more than one dimension, or we should reset it
         }
         if ((selectedDimensions == null) ? (world.getDimension(DIM_NETHER) != null) : selectedDimensions.contains(DIM_NETHER)) {
-            mergeDimension(worldDir, backupDir, world.getDimension(DIM_NETHER), progressReceiver);
+            mergeDimension(worldDir, backupDir, world.getDimension(DIM_NETHER), progressReceiver); // TODO: this should be a SubProgressReceiver if we are exporting more than one dimension, or we should reset it
         }
         if ((selectedDimensions == null) ? (world.getDimension(DIM_END) != null) : selectedDimensions.contains(DIM_END)) {
-            mergeDimension(worldDir, backupDir, world.getDimension(DIM_END), progressReceiver);
+            mergeDimension(worldDir, backupDir, world.getDimension(DIM_END), progressReceiver); // TODO: this should be a SubProgressReceiver if we are exporting more than one dimension, or we should reset it
         }
 
         // TODO: move player positions if necessary
@@ -360,9 +360,13 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             default:
                 throw new IllegalArgumentException("Dimension " + dimension.getDim() + " not supported");
         }
-        File regionDir = new File(dimensionDir, "region");
-        if (! regionDir.exists()) {
-            regionDir.mkdirs();
+        for (DataType dataType: ((JavaPlatformProvider) platformProvider).getDataTypes()) {
+            File regionDir = new File(dimensionDir, dataType.name().toLowerCase());
+            if (! regionDir.exists()) {
+                if (! regionDir.mkdirs()) {
+                    throw new RuntimeException("Could not create directory " + regionDir);
+                }
+            }
         }
         
         dimension.rememberChanges();
@@ -491,14 +495,14 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             final File backupRegionDir = new File(backupDimensionDir, "region");
             // TODO: support any platform
             File[] existingRegionFiles = ((JavaPlatformProvider) platformProvider).getRegionFiles(platform, backupRegionDir, REGION);
-            Map<Point, File> existingRegions = new HashMap<>();
+            final Map<Point, File> existingRegions = new HashMap<>();
             for (File file: existingRegionFiles) {
                 if (file.length() == 0L) {
                     continue;
                 }
-                String[] parts = file.getName().split("\\.");
-                int regionX = Integer.parseInt(parts[1]);
-                int regionZ = Integer.parseInt(parts[2]);
+                final String[] parts = file.getName().split("\\.");
+                final int regionX = Integer.parseInt(parts[1]);
+                final int regionZ = Integer.parseInt(parts[2]);
                 existingRegions.put(new Point(regionX, regionZ), file);
                 if (regionX < lowestRegionX) {
                     lowestRegionX = regionX;
@@ -516,6 +520,27 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             final Set<Point> allRegionCoords = new HashSet<>();
             allRegionCoords.addAll(tilesByRegion.keySet());
             allRegionCoords.addAll(existingRegions.keySet());
+
+            // Find all the existing region files of other types that don't have a corresponding REGION type region in
+            // either old or new map
+            final Map<Point, Map<DataType, File>> additionalRegions = new HashMap<>();
+            for (DataType dataType: ((JavaPlatformProvider) platformProvider).getDataTypes()) {
+                if (dataType == REGION) {
+                    // Already handled above
+                    continue;
+                }
+                existingRegionFiles = ((JavaPlatformProvider) platformProvider).getRegionFiles(platform, backupRegionDir, dataType);
+                for (File file: existingRegionFiles) {
+                    if (file.length() == 0L) {
+                        continue;
+                    }
+                    final String[] parts = file.getName().split("\\.");
+                    final Point coords = new Point(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+                    if (! allRegionCoords.contains(coords)) {
+                        additionalRegions.computeIfAbsent(coords, p -> new HashMap<>()).put(dataType, file);
+                    }
+                }
+            }
 
             // Sort the regions to export the first two rows together, and then
             // row by row, to get the optimum tempo of performing fixups
@@ -574,7 +599,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 private final ThreadGroup threadGroup = new ThreadGroup("Mergers");
                 private int nextID = 1;
             });
-            final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, allRegionCoords.size()) : null;
+            final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, sortedRegions.size() + additionalRegions.size()) : null;
             try {
                 // Merge each individual region
                 for (final Point regionCoords: sortedRegions) {
@@ -628,22 +653,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                 }
                             });
                         } else {
-                            // Region only exists in existing world. Copy it to the new
-                            // world
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("Region " + regionCoords + " does not exist in new world and will be copied from existing map");
-                            }
-                            ProgressReceiver subProgressReceiver = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
-                            if (subProgressReceiver != null) {
-                                subProgressReceiver.setMessage("Copying region " + regionCoords.x + "," + regionCoords.y + " unchanged");
-                            }
-                            FileUtils.copyFileToDir(existingRegions.get(regionCoords), regionDir, subProgressReceiver);
-                            synchronized (fixups) {
-                                exportedRegions.add(regionCoords);
-                            }
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("Copied region " + regionCoords.x + "," + regionCoords.y);
-                            }
+                            // Region only exists in existing world. Copy it to the new world
+                            copyRegionsUnchanged(fixups, exportedRegions, executor, parallelProgressManager, regionCoords, ImmutableMap.of(REGION, existingRegions.get(regionCoords)), dimensionDir);
                         }
                     } else {
                         // Region only exists in new world. Create it as new
@@ -689,6 +700,12 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         });
                     }
                 }
+                additionalRegions.forEach((coords, regions) -> {
+                    // This is a region file from a directory other than "region" which does not have a
+                    // corresponding region file in "region" in either the old or new maps, so it was not processed
+                    // yet. Just copy it
+                    copyRegionsUnchanged(fixups, exportedRegions, executor, parallelProgressManager, coords, regions, dimensionDir);
+                });
             } finally {
                 executor.shutdown();
                 try {
@@ -724,6 +741,47 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 dimension.armSavePoint();
             }
         }
+    }
+
+    private void copyRegionsUnchanged(Map<Point, List<Fixup>> fixups, Set<Point> exportedRegions, ExecutorService executor, ParallelProgressManager parallelProgressManager, Point coords, Map<DataType, File> regions, File dimensionDir) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Region " + coords + " does not exist in new world and will be copied from existing map");
+        }
+        executor.execute(() -> {
+            final ProgressReceiver progressReceiver = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
+            if (progressReceiver != null) {
+                try {
+                    progressReceiver.checkForCancellation();
+                } catch (ProgressReceiver.OperationCancelled e) {
+                    return;
+                }
+            }
+            try {
+                if (progressReceiver != null) {
+                    progressReceiver.setMessage("Copying region " + coords.x + "," + coords.y + " unchanged");
+                }
+                final int fileCount = regions.size();
+                int fileNo = 0;
+                for (Map.Entry<DataType, File> entry: regions.entrySet()) {
+                    DataType type = entry.getKey();
+                    File file = entry.getValue();
+                    FileUtils.copyFileToDir(file, new File(dimensionDir, type.name().toLowerCase()), (fileCount == 1) ? progressReceiver : new SubProgressReceiver(progressReceiver, (float) fileNo / fileCount, 1.0f / fileCount));
+                    fileNo++;
+                }
+                synchronized (fixups) {
+                    exportedRegions.add(coords);
+                }
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Copied region " + coords.x + "," + coords.y);
+                }
+            } catch (Throwable t) {
+                if (progressReceiver != null) {
+                    progressReceiver.exceptionThrown(t);
+                } else {
+                    logger.error("Exception while copying region " + coords.x + "," + coords.y, t);
+                }
+            }
+        });
     }
 
     private String mergeRegion(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter> exporters, ChunkFactory chunkFactory, List<Fixup> fixups, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
