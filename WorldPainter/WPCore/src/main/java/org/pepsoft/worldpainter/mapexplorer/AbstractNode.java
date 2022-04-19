@@ -30,6 +30,11 @@ public abstract class AbstractNode implements Node {
         // Do nothing
     }
 
+    @Override
+    public void refresh() {
+        children = null;
+    }
+
     protected abstract Node[] loadChildren();
 
     private Node[] children;

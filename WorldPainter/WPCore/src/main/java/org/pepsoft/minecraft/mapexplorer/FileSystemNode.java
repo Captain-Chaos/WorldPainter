@@ -56,6 +56,7 @@ public class FileSystemNode extends AbstractNode {
         popupMenu.add(new AbstractAction("Refresh") {
             @Override
             public void actionPerformed(ActionEvent e) {
+                refresh();
                 actionListener.performAction(REFRESH);
             }
         });

@@ -10,6 +10,7 @@ public interface Node {
     Node[] getChildren();
     void doubleClicked();
     void showPopupMenu(Component invoker, int x, int y, ActionListener actionListener);
+    void refresh();
 
     enum Action { REFRESH }
 
