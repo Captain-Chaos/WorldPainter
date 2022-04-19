@@ -23,10 +23,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.primitives.Ints.toArray;
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.DataType.REGION;
 import static org.pepsoft.util.IconUtils.loadUnscaledImage;
 import static org.pepsoft.util.IconUtils.scaleIcon;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -41,24 +44,40 @@ public abstract class JavaPlatformProvider extends AbstractPlatformProvider impl
         super(version, platform);
     }
 
-    public NBTChunk createChunk(Platform platform, Tag tag, int maxHeight) {
-        return createChunk(platform, tag, maxHeight, false);
+    public Set<DataType> getDataTypes() {
+        return DATA_TYPES;
     }
 
-    public abstract NBTChunk createChunk(Platform platform, Tag tag, int maxHeight, boolean readOnly);
-
-    public abstract File[] getRegionFiles(Platform platform, File regionDir);
-
-    public RegionFile getRegionFile(Platform platform, File regionDir, Point coords, boolean readOnly) throws IOException{
-        return new RegionFile(getRegionFileFile(platform, regionDir, coords), readOnly);
+    public NBTChunk createChunk(Platform platform, Map<DataType, Tag> tags, int maxHeight) {
+        return createChunk(platform, tags, maxHeight, false);
     }
 
-    public RegionFile getRegionFileIfExists(Platform platform, File regionDir, Point coords, boolean readOnly) throws IOException{
-        File file = getRegionFileFile(platform, regionDir, coords);
+    public abstract NBTChunk createChunk(Platform platform, Map<DataType, Tag> tags, int maxHeight, boolean readOnly);
+
+    public abstract File[] getRegionFiles(Platform platform, File regionDir, DataType dataType);
+
+    /**
+     * Get a region file. If {@code readOnly} is false, a region file will be created if it does not exist. Otherwise,
+     * {@code null} will be returned if the region file does not exist.
+     */
+    public RegionFile getRegionFile(Platform platform, File regionDir, DataType dataType, Point coords, boolean readOnly) throws IOException{
+        File file = getRegionFileFile(platform, regionDir, dataType, coords);
+        if (file.isFile() || (! readOnly)) {
+            return new RegionFile(file, readOnly);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Get a region file, if it exists. Otherwise, {@code null} will be returned.
+     */
+    public RegionFile getRegionFileIfExists(Platform platform, File regionDir, DataType dataType, Point coords, boolean readOnly) throws IOException{
+        File file = getRegionFileFile(platform, regionDir, dataType, coords);
         return file.isFile() ? new RegionFile(file, readOnly) : null;
     }
 
-    protected abstract File getRegionFileFile(Platform platform, File regionDir, Point coords);
+    protected abstract File getRegionFileFile(Platform platform, File regionDir, DataType dataType, Point coords);
 
     // BlockBasedPlatformProvider
 
@@ -177,5 +196,6 @@ public abstract class JavaPlatformProvider extends AbstractPlatformProvider impl
 
     public static final Icon ICON = new ImageIcon(scaleIcon(loadUnscaledImage("org/pepsoft/worldpainter/mapexplorer/maproot.png"), 16));
 
+    private static final Set<DataType> DATA_TYPES = singleton(REGION);
     private static final Logger logger = LoggerFactory.getLogger(JavaPlatformProvider.class);
 }

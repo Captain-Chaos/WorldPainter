@@ -5,16 +5,14 @@
 
 package org.pepsoft.worldpainter.exporting;
 
-import org.pepsoft.minecraft.ChunkFactory;
-import org.pepsoft.minecraft.JavaLevel;
-import org.pepsoft.minecraft.SuperflatGenerator;
-import org.pepsoft.minecraft.SuperflatPreset;
+import org.pepsoft.minecraft.*;
 import org.pepsoft.minecraft.SuperflatPreset.Structure;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.history.HistoryEntry;
+import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
 import org.pepsoft.worldpainter.util.FileInUseException;
 import org.pepsoft.worldpainter.vo.EventVO;
 import org.slf4j.Logger;
@@ -296,10 +294,12 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
             default:
                 throw new IllegalArgumentException("Dimension " + dimension.getDim() + " not supported");
         }
-        File regionDir = new File(dimensionDir, "region");
-        if (! regionDir.exists()) {
-            if (! regionDir.mkdirs()) {
-                throw new RuntimeException("Could not create directory " + regionDir);
+        for (DataType dataType: ((JavaPlatformProvider) platformProvider).getDataTypes()) {
+            File regionDir = new File(dimensionDir, dataType.name().toLowerCase());
+            if (! regionDir.exists()) {
+                if (! regionDir.mkdirs()) {
+                    throw new RuntimeException("Could not create directory " + regionDir);
+                }
             }
         }
 

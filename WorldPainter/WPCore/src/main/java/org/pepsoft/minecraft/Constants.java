@@ -706,6 +706,7 @@ public final class Constants {
     public static final String TAG_DISABLED                = "Disabled";
     public static final String TAG_BLOCK_ENTITIES_         = "block_entities";
     public static final String TAG_IS_LIGHT_ON_            = "isLightOn";
+    public static final String TAG_POSITION                = "Position";
 
     /**
      * Possibly unofficial, SpoutCraft-specific

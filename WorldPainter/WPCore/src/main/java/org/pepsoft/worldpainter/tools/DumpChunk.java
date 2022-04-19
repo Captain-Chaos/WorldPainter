@@ -4,6 +4,7 @@
  */
 package org.pepsoft.worldpainter.tools;
 
+import com.google.common.collect.ImmutableMap;
 import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
 import org.pepsoft.minecraft.*;
@@ -20,6 +21,7 @@ import java.io.InputStream;
 import java.util.*;
 
 import static java.util.stream.Collectors.joining;
+import static org.pepsoft.minecraft.DataType.REGION;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 
@@ -51,7 +53,7 @@ public class DumpChunk extends AbstractTool {
         }
         Platform platform = PlatformManager.getInstance().identifyPlatform(levelDatFile.getParentFile());
         PlatformProvider provider = PlatformManager.getInstance().getPlatformProvider(platform);
-        Chunk chunk = ((JavaPlatformProvider) provider).createChunk(platform, chunkTag, level.getMaxHeight(), true);
+        Chunk chunk = ((JavaPlatformProvider) provider).createChunk(platform, ImmutableMap.of(REGION, chunkTag), level.getMaxHeight(), true);
 
         if (platform.capabilities.contains(BIOMES)) {
             System.out.println("Biomes");

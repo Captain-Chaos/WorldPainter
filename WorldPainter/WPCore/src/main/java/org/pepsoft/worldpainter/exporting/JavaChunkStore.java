@@ -1,9 +1,9 @@
 package org.pepsoft.worldpainter.exporting;
 
 import com.google.common.collect.ImmutableSet;
-import org.jnbt.CompoundTag;
 import org.jnbt.NBTInputStream;
 import org.jnbt.NBTOutputStream;
+import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.mdc.MDCThreadPoolExecutor;
 import org.pepsoft.worldpainter.Platform;
@@ -26,10 +26,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.util.Collections.singleton;
 import static java.util.Collections.synchronizedSet;
 import static java.util.Objects.requireNonNull;
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.DataType.REGION;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
@@ -46,16 +48,17 @@ public class JavaChunkStore implements ChunkStore {
         if (! ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18))) {
             throw new IllegalArgumentException("Unsupported platform " + platform);
         }
+        dataTypes = ImmutableSet.copyOf(platformProvider.getDataTypes());
     }
 
     @Override
     public int getChunkCount() {
         final AtomicInteger chunkCount = new AtomicInteger();
         try {
-            visitRegions(region -> {
-                chunkCount.addAndGet(region.getChunkCount());
+            visitRegions(regions -> {
+                chunkCount.addAndGet(regions.get(REGION).getChunkCount());
                 return true;
-            }, true, "counting chunks");
+            }, true, "counting chunks", singleton(REGION));
         } catch (IOException e) {
             throw new RuntimeException("I/O error while visiting regions of " + regionDir, e);
         }
@@ -66,16 +69,17 @@ public class JavaChunkStore implements ChunkStore {
     public Set<MinecraftCoords> getChunkCoords() {
         Set<MinecraftCoords> coords = synchronizedSet(new HashSet<>());
         try {
-            visitRegions(region -> {
+            visitRegions(regions -> {
+                final RegionFile regionFile = regions.get(REGION);
                 for (int x = 0; x < 32; x++) {
                     for (int z = 0; z < 32; z++) {
-                        if (region.containsChunk(x, z)) {
-                            coords.add(new MinecraftCoords(region.getX() * 32 + x, region.getZ() * 32 + z));
+                        if (regionFile.containsChunk(x, z)) {
+                            coords.add(new MinecraftCoords(regionFile.getX() * 32 + x, regionFile.getZ() * 32 + z));
                         }
                     }
                 }
                 return true;
-            }, true, "collecting chunk coordinates");
+            }, true, "collecting chunk coordinates", singleton(REGION));
         } catch (IOException e) {
             throw new RuntimeException("I/O error while visiting regions of " + regionDir, e);
         }
@@ -84,19 +88,16 @@ public class JavaChunkStore implements ChunkStore {
 
     @Override
     public boolean visitChunks(ChunkVisitor visitor) {
-        return visitChunks(visitor, true, "visiting chunks");
+        return visitChunks(visitor, true, "visiting chunks", dataTypes);
     }
 
     @Override
     public boolean visitChunksForEditing(ChunkVisitor visitor) {
-        return visitChunks(visitor, false, "modifying chunks");
+        return visitChunks(visitor, false, "modifying chunks", dataTypes);
     }
 
     @Override
     public void saveChunk(Chunk chunk) {
-//        chunksSaved++;
-//        updateStatistics();
-//        long start = System.currentTimeMillis();
         // Do some sanity checks first
         if (! platform.capabilities.contains(NAME_BASED)) {
             // Check that all tile entities for which the chunk contains data are
@@ -138,16 +139,18 @@ public class JavaChunkStore implements ChunkStore {
             // TODOMC13: similar sanity checks
         }
 
-        try {
-            int x = chunk.getxPos(), z = chunk.getzPos();
-            RegionFile regionFile = getOrCreateRegionFile(new Point(x >> 5, z >> 5));
-            try (NBTOutputStream out = new NBTOutputStream(regionFile.getChunkDataOutputStream(x & 31, z & 31))) {
-                out.writeTag(((NBTItem) chunk).toNBT());
+        final int x = chunk.getxPos(), z = chunk.getzPos();
+        final Map<DataType, ? extends Tag> tags = ((NBTItem) chunk).toMultipleNBT();
+        tags.forEach((type, tag) -> {
+            try {
+                final RegionFile regionFile = getOrCreateRegionFile(new Point(x >> 5, z >> 5), type);
+                try (NBTOutputStream out = new NBTOutputStream(regionFile.getChunkDataOutputStream(x & 31, z & 31))) {
+                    out.writeTag(tag);
+                }
+            } catch (IOException e) {
+                throw new WPRuntimeException("I/O error saving chunk @" + x + "," + z + " to region of type " + type, e);
             }
-        } catch (IOException e) {
-            throw new RuntimeException("I/O error saving chunk", e);
-        }
-//        timeSpentSaving += System.currentTimeMillis() - start;
+        });
     }
 
     @Override
@@ -160,7 +163,7 @@ public class JavaChunkStore implements ChunkStore {
      * saved and no system resources are being used, but the objects can still
      * be used; any subsequent operations will open files as needed again.
      */
-//    @Override
+    @Override
     public void flush() {
         synchronized (regionFiles) {
             try {
@@ -174,11 +177,6 @@ public class JavaChunkStore implements ChunkStore {
                 throw new RuntimeException("I/O error while closing region files", e);
             }
             regionFiles.clear();
-//            float elapsed = (System.currentTimeMillis() - lastStatisticsTimestamp) / 1000f;
-//            System.out.println("Loading " + chunksLoaded / elapsed + " chunks per second");
-//            System.out.println("Saving " + chunksSaved / elapsed + " chunks per second");
-//            System.out.println("Fast cache hits: " + fastCacheHits / elapsed + " per second");
-//            System.out.println("Cache hits: " + cacheHits / elapsed + " per second");
         }
     }
 
@@ -196,25 +194,24 @@ public class JavaChunkStore implements ChunkStore {
      */
     @Override
     public Chunk getChunk(int x, int z) {
-//        updateStatistics();
-//        long start = System.currentTimeMillis();
         try {
-            RegionFile regionFile = getRegionFile(new Point(x >> 5, z >> 5));
-            if (regionFile == null) {
-                return null;
-            }
-            InputStream chunkIn = regionFile.getChunkDataInputStream(x & 31, z & 31);
-            if (chunkIn != null) {
-//                chunksLoaded++;
-                try (NBTInputStream in = new NBTInputStream(chunkIn)) {
-                    CompoundTag tag = (CompoundTag) in.readTag();
-//                    timeSpentLoading += System.currentTimeMillis() - start;
-                    return platformProvider.createChunk(platform, tag, maxHeight, false);
+            final Map<DataType, Tag> tags = new HashMap<>();
+            for (DataType type: dataTypes) {
+                final RegionFile regionFile = getRegionFile(new Point(x >> 5, z >> 5), type);
+                if (regionFile == null) {
+                    continue;
                 }
-            } else {
-//                timeSpentLoading += System.currentTimeMillis() - start;
+                final InputStream chunkIn = regionFile.getChunkDataInputStream(x & 31, z & 31);
+                if (chunkIn != null) {
+                    try (NBTInputStream in = new NBTInputStream(chunkIn)) {
+                        tags.put(type, in.readTag());
+                    }
+                }
+            }
+            if (! tags.containsKey(REGION)) {
                 return null;
             }
+            return platformProvider.createChunk(platform, tags, maxHeight, false);
         } catch (IOException e) {
             throw new RuntimeException("I/O error loading chunk", e);
         }
@@ -237,25 +234,27 @@ public class JavaChunkStore implements ChunkStore {
         flush();
     }
 
-    private RegionFile getRegionFile(Point regionCoords) throws IOException {
+    private RegionFile getRegionFile(Point regionCoords, DataType type) throws IOException {
         synchronized (regionFiles) {
-            RegionFile regionFile = regionFiles.get(regionCoords);
+            final RegionKey key = new RegionKey(type, regionCoords);
+            RegionFile regionFile = regionFiles.get(key);
             if (regionFile == null) {
-                regionFile = platformProvider.getRegionFileIfExists(platform, regionDir, regionCoords, false);
+                regionFile = platformProvider.getRegionFileIfExists(platform, regionDir, type, regionCoords, false);
                 if (regionFile != null) {
-                    regionFiles.put(regionCoords, regionFile);
+                    regionFiles.put(key, regionFile);
                 }
             }
             return regionFile;
         }
     }
 
-    private RegionFile getOrCreateRegionFile(Point regionCoords) throws IOException {
+    private RegionFile getOrCreateRegionFile(Point regionCoords, DataType type) throws IOException {
         synchronized (regionFiles) {
-            RegionFile regionFile = regionFiles.get(regionCoords);
+            final RegionKey key = new RegionKey(type, regionCoords);
+            RegionFile regionFile = regionFiles.get(key);
             if (regionFile == null) {
-                regionFile = platformProvider.getRegionFile(platform, regionDir, regionCoords, false);
-                regionFiles.put(regionCoords, regionFile);
+                regionFile = platformProvider.getRegionFile(platform, regionDir, type, regionCoords, false);
+                regionFiles.put(key, regionFile);
             }
             return regionFile;
         }
@@ -268,13 +267,13 @@ public class JavaChunkStore implements ChunkStore {
          * <p>For convenience, the visitor may throw checked exceptions. They will be wrapped in a
          * {@link WPRuntimeException} if this happens.
          *
-         * @param region The region file to be visited.
+         * @param regions The region file(s) to be visited.
          * @return {@code true} if more chunks should be visited, or {@code false} if no more chunks need to be visited.
          */
-        boolean visitRegion(RegionFile region) throws Exception;
+        boolean visitRegion(Map<DataType, RegionFile> regions) throws Exception;
     }
 
-    private boolean visitRegions(RegionVisitor visitor, boolean readOnly, String operation) throws IOException {
+    private boolean visitRegions(RegionVisitor visitor, boolean readOnly, String operation, Set<DataType> dataTypes) throws IOException {
         flush();
 
         final Pattern regionFilePattern = (platform == JAVA_MCREGION)
@@ -302,18 +301,23 @@ public class JavaChunkStore implements ChunkStore {
             for (File file: requireNonNull(files)) {
                 final Matcher matcher = regionFilePattern.matcher(file.getName());
                 if (matcher.matches()) {
-                    final int regionX = Integer.parseInt(matcher.group(1));
-                    final int regionZ = Integer.parseInt(matcher.group(2));
-                    final Point regionCoords = new Point(regionX, regionZ);
-                    final RegionFile regionFile;
-                    if (regionFiles.containsKey(regionCoords)) {
-                        regionFile = regionFiles.get(regionCoords);
-                    } else {
-                        regionFile = new RegionFile(file, readOnly);
-                        regionFiles.put(regionCoords, regionFile);
+                    final Map<DataType, RegionFile> regionFilesToVisit = new HashMap<>();
+                    final Point coords = new Point(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
+                    for (DataType type: dataTypes) {
+                        final RegionKey key = new RegionKey(type, coords);
+                        final RegionFile regionFile;
+                        if (regionFiles.containsKey(key)) {
+                            regionFilesToVisit.put(type, regionFiles.get(key));
+                        } else {
+                            regionFile = (type == REGION) ? new RegionFile(file, readOnly) : platformProvider.getRegionFile(platform, regionDir, type, coords, readOnly);
+                            if (regionFile != null) {
+                                regionFiles.put(key, regionFile);
+                                regionFilesToVisit.put(type, regionFile);
+                            }
+                        }
                     }
                     try {
-                        if (! visitor.visitRegion(regionFile)) {
+                        if (! visitor.visitRegion(regionFilesToVisit)) {
                             return false;
                         }
                     } catch (RuntimeException e) {
@@ -321,8 +325,10 @@ public class JavaChunkStore implements ChunkStore {
                     } catch (Exception e) {
                         throw new WPRuntimeException("Checked exception visiting region file " + file, e);
                     } finally {
-                        regionFile.close();
-                        regionFiles.remove(regionCoords);
+                        for (Map.Entry<DataType, RegionFile> entry: regionFilesToVisit.entrySet()) {
+                            entry.getValue().close();
+                            regionFiles.remove(new RegionKey(entry.getKey(), coords));
+                        }
                     }
                 }
             }
@@ -361,28 +367,35 @@ public class JavaChunkStore implements ChunkStore {
                         }
                     }
                     try {
+                        final Map<DataType, RegionFile> regionFilesToVisit = new HashMap<>();
                         final Matcher matcher = regionFilePattern.matcher(file.getName());
                         matcher.find();
-                        final int regionX = Integer.parseInt(matcher.group(1));
-                        final int regionZ = Integer.parseInt(matcher.group(2));
-                        final Point regionCoords = new Point(regionX, regionZ);
-                        final RegionFile regionFile;
+                        final Point coords = new Point(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
                         synchronized (regionFiles) {
-                            if (regionFiles.containsKey(regionCoords)) {
-                                regionFile = regionFiles.get(regionCoords);
-                            } else {
-                                regionFile = new RegionFile(file, true);
-                                regionFiles.put(regionCoords, regionFile);
+                            for (DataType type: dataTypes) {
+                                final RegionKey key = new RegionKey(type, coords);
+                                final RegionFile regionFile;
+                                if (regionFiles.containsKey(key)) {
+                                    regionFilesToVisit.put(type, regionFiles.get(key));
+                                } else {
+                                    regionFile = (type == REGION) ? new RegionFile(file, true) : platformProvider.getRegionFile(platform, regionDir, type, coords, true);
+                                    if (regionFile != null) {
+                                        regionFiles.put(key, regionFile);
+                                        regionFilesToVisit.put(type, regionFile);
+                                    }
+                                }
                             }
                         }
                         try {
-                            if (! visitor.visitRegion(regionFile)) {
+                            if (! visitor.visitRegion(regionFilesToVisit)) {
                                 cancelled.set(true);
                             }
                         } finally {
                             synchronized (regionFiles) {
-                                regionFile.close();
-                                regionFiles.remove(regionCoords);
+                                for (Map.Entry<DataType, RegionFile> entry: regionFilesToVisit.entrySet()) {
+                                    entry.getValue().close();
+                                    regionFiles.remove(new RegionKey(entry.getKey(), coords));
+                                }
                             }
                         }
                     } catch (Throwable e) {
@@ -412,25 +425,31 @@ public class JavaChunkStore implements ChunkStore {
         }
     }
 
-    private boolean visitChunks(ChunkVisitor visitor, boolean readOnly, String operation) {
+    private boolean visitChunks(ChunkVisitor visitor, boolean readOnly, String operation, Set<DataType> dataTypes) {
         try {
-            return visitRegions(region -> {
+            return visitRegions(regions -> {
                 for (int x = 0; x < 32; x++) {
                     for (int z = 0; z < 32; z++) {
                         boolean exceptionFromChunkVisitor = false;
                         try {
-                            if (region.containsChunk(x, z)) {
-                                try (NBTInputStream in = new NBTInputStream(region.getChunkDataInputStream(x, z))) {
-                                    CompoundTag tag = (CompoundTag) in.readTag();
-                                    Chunk chunk = platformProvider.createChunk(platform, tag, maxHeight, readOnly);
-                                    exceptionFromChunkVisitor = true;
-                                    if (visitor.visitChunk(chunk)) {
-                                        if (! readOnly) {
-                                            saveChunk(chunk);
+                            if (regions.get(REGION).containsChunk(x, z)) {
+                                final Map<DataType, Tag> tags = new HashMap<>();
+                                for (Map.Entry<DataType, RegionFile> entry: regions.entrySet()) {
+                                    final InputStream chunkIn = entry.getValue().getChunkDataInputStream(x & 31, z & 31);
+                                    if (chunkIn != null) {
+                                        try (NBTInputStream in = new NBTInputStream(chunkIn)) {
+                                            tags.put(entry.getKey(), in.readTag());
                                         }
-                                    } else {
-                                        return false;
                                     }
+                                }
+                                Chunk chunk = platformProvider.createChunk(platform, tags, maxHeight, readOnly);
+                                exceptionFromChunkVisitor = true;
+                                if (visitor.visitChunk(chunk)) {
+                                    if (! readOnly) {
+                                        saveChunk(chunk);
+                                    }
+                                } else {
+                                    return false;
                                 }
                             }
                         } catch (RuntimeException e) {
@@ -439,56 +458,29 @@ public class JavaChunkStore implements ChunkStore {
                             if (exceptionFromChunkVisitor) {
                                 throw e;
                             } else {
-                                logger.error("{} while visiting chunk {},{} in region {},{} (message: \"{}\")", e.getClass().getSimpleName(), x, z, region.getX(), region.getZ(), e.getMessage(), e);
+                                logger.error("{} while visiting chunk {},{} in regions {} (message: \"{}\")", e.getClass().getSimpleName(), x, z, regions, e.getMessage(), e);
                                 if (! visitor.chunkError(new MinecraftCoords(x, z), e.getClass().getSimpleName() + ": " + e.getMessage())) {
                                     return false;
                                 }
                             }
                         } catch (Exception e) {
-                            throw new WPRuntimeException("Checked exception visiting chunk " + x + "," + z + " in region " + region.getX() + "," + region.getZ(), e);
+                            throw new WPRuntimeException("Checked exception visiting chunk " + x + "," + z + " in regions " + regions, e);
                         }
                     }
                 }
                 return true;
-            }, readOnly, operation);
+            }, readOnly, operation, dataTypes);
         } catch (IOException e) {
             throw new RuntimeException("I/O error while visiting regions of " + regionDir, e);
         }
     }
 
-//    private void updateStatistics() {
-//        long now = System.currentTimeMillis();
-//        if ((now - lastStatisticsTimestamp) > 5000) {
-//            float elapsed = (now - lastStatisticsTimestamp) / 1000f;
-//            System.out.println("Cached chunks: " + cache.size());
-//            System.out.println("Dirty chunks: " + dirtyChunks.size());
-//            System.out.println("Loading " + chunksLoaded / elapsed + " chunks per second");
-//            System.out.println("Saving " + chunksSaved / elapsed + " chunks per second");
-//            System.out.println("Fast cache hits: " + fastCacheHits / elapsed + " per second");
-//            System.out.println("Cache hits: " + cacheHits / elapsed + " per second");
-//            System.out.println("Time spent getting chunks: " + timeSpentGetting + " ms");
-//            if (chunksLoaded > 0) {
-//                System.out.println("Time spent loading chunks: " + timeSpentLoading + " ms (" + (timeSpentLoading / chunksLoaded) + " ms per chunk");
-//            }
-//            if (chunksSaved > 0) {
-//                System.out.println("Time spent saving chunks: " + timeSpentSaving + " ms (" + (timeSpentSaving / chunksSaved) + " ms per chunk");
-//            }
-//            lastStatisticsTimestamp = now;
-//            chunksLoaded = 0;
-//            chunksSaved = 0;
-//            fastCacheHits = 0;
-//            cacheHits = 0;
-//            timeSpentGetting = 0;
-//            timeSpentLoading = 0;
-//            timeSpentSaving = 0;
-//        }
-//    }
-
     private final Platform platform;
     private final JavaPlatformProvider platformProvider;
     private final File regionDir;
-    private final Map<Point, RegionFile> regionFiles = new HashMap<>();
+    private final Map<RegionKey, RegionFile> regionFiles = new HashMap<>();
     private final int maxHeight;
+    private final Set<DataType> dataTypes;
 
     private static final Map<String, Set<Integer>> LEGACY_TILE_ENTITY_MAP = new HashMap<>();
 
@@ -540,4 +532,27 @@ public class JavaChunkStore implements ChunkStore {
     }
 
     private static final Logger logger = LoggerFactory.getLogger(JavaChunkStore.class);
+
+    static class RegionKey {
+        RegionKey(DataType type, Point coords) {
+            this.type = type;
+            this.coords = coords;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            RegionKey regionKey = (RegionKey) o;
+            return type == regionKey.type && coords.equals(regionKey.coords);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type, coords);
+        }
+
+        private final DataType type;
+        private final Point coords;
+    }
 }

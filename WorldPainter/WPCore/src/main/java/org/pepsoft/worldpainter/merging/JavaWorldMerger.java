@@ -4,6 +4,7 @@
  */
 package org.pepsoft.worldpainter.merging;
 
+import com.google.common.collect.ImmutableMap;
 import org.jnbt.NBTInputStream;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
@@ -34,6 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.DataType.REGION;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
@@ -249,10 +251,11 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     && (! file.getName().equalsIgnoreCase("level.dat_old"))
                     && (! file.getName().equalsIgnoreCase("session.lock"))
                     && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_NORMAL))) || (! file.getName().equalsIgnoreCase("region")))
+                    && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_NORMAL))) || (! file.getName().equalsIgnoreCase("entities")))
                     && (! file.getName().equalsIgnoreCase("maxheight.txt"))
                     && (! file.getName().equalsIgnoreCase("Height.txt"))
-                    && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_NETHER))) || (! file.getName().equalsIgnoreCase("DIM-1")))
-                    && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_END))) || (! file.getName().equalsIgnoreCase("DIM1")))
+                    && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_NETHER))) || (! file.getName().equalsIgnoreCase("DIM-1"))) // TODO still copy dirs other than region and entities
+                    && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_END))) || (! file.getName().equalsIgnoreCase("DIM1"))) // TODO still copy dirs other than region and entities
                     && (! file.getName().equalsIgnoreCase("worldpainter.zip"))) {
                 if (file.isFile()) {
                     FileUtils.copyFileToDir(file, worldDir);
@@ -487,7 +490,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             // Read the region coordinates of the existing map
             final File backupRegionDir = new File(backupDimensionDir, "region");
             // TODO: support any platform
-            File[] existingRegionFiles = ((JavaPlatformProvider) platformProvider).getRegionFiles(platform, backupRegionDir);
+            File[] existingRegionFiles = ((JavaPlatformProvider) platformProvider).getRegionFiles(platform, backupRegionDir, REGION);
             Map<Point, File> existingRegions = new HashMap<>();
             for (File file: existingRegionFiles) {
                 if (file.length() == 0L) {
@@ -926,7 +929,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     if (regionFile == null) {
                         try {
                             // TODO support any platform
-                            regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, coords, true);
+                            regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, REGION, coords, true);
                             regionFiles.put(coords, regionFile);
                         } catch (IOException e) {
                             reportBuilder.append("I/O error while opening region " + regionX + "," + regionY + " (message: \"" + e.getMessage() + "\"); skipping region" + EOL);
@@ -937,6 +940,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     }
                     int chunkXInRegion = chunkX & 0x1f;
                     int chunkYInRegion = chunkY & 0x1f;
+                    // TODO multiple region chunks support
                     Chunk existingChunk = null;
                     if (regionFile.containsChunk(chunkXInRegion, chunkYInRegion)) {
                         try {
@@ -951,7 +955,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             }
                             try (NBTInputStream in = new NBTInputStream(chunkData)) {
                                 // TODO: support any platform
-                                existingChunk = ((JavaPlatformProvider) platformProvider).createChunk(platform, in.readTag(), maxHeight);
+                                existingChunk = ((JavaPlatformProvider) platformProvider).createChunk(platform, ImmutableMap.of(REGION, in.readTag()) /* TODO */, maxHeight);
 
                                 // Sanity checks
                                 if (skipChunk(existingChunk) && (newChunk != null)) {
@@ -1166,7 +1170,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     if (regionFile == null) {
                         try {
                             // TODO: support any platform
-                            regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, coords, true);
+                            regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, REGION, coords, true);
                             regionFiles.put(coords, regionFile);
                         } catch (IOException e) {
                             reportBuilder.append("I/O error while opening region " + regionX + "," + regionY + " (message: \"" + e.getMessage() + "\"); skipping region" + EOL);
@@ -1177,6 +1181,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     }
                     int chunkXInRegion = chunkX & 0x1f;
                     int chunkYInRegion = chunkY & 0x1f;
+                    // TODO multiple region chunks support
                     if (regionFile.containsChunk(chunkXInRegion, chunkYInRegion)) {
                         Tag tag;
                         try {
@@ -1202,7 +1207,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             continue;
                         }
                         // TODO: support any platform
-                        minecraftWorld.addChunk(((JavaPlatformProvider) platformProvider).createChunk(platform, tag, maxHeight));
+                        minecraftWorld.addChunk(((JavaPlatformProvider) platformProvider).createChunk(platform, ImmutableMap.of(REGION, tag) /* TODO */, maxHeight));
                     }
                 }
             }

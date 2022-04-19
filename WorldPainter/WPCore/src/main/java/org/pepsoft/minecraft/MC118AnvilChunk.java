@@ -21,10 +21,11 @@ import java.io.ObjectOutputStream;
 import java.util.*;
 
 import static java.lang.Integer.MIN_VALUE;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.DataType.ENTITIES;
+import static org.pepsoft.minecraft.DataType.REGION;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.minecraft.Material.LEVEL;
 
@@ -35,7 +36,7 @@ import static org.pepsoft.minecraft.Material.LEVEL;
  */
 public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, MinecraftWorld {
     public MC118AnvilChunk(int xPos, int zPos, int maxHeight) {
-        super(new CompoundTag("", new HashMap<>()));
+        super(ImmutableMap.of(REGION, new CompoundTag("", new HashMap<>()), ENTITIES, new CompoundTag("", new HashMap<>())));
         this.xPos = xPos;
         this.zPos = zPos;
         this.maxHeight = maxHeight;
@@ -43,6 +44,7 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
         dataVersion = DATA_VERSION_MC_1_18_0;
         sections = new Section[(maxHeight >> 4) + UNDERGROUND_SECTIONS];
         heightMaps = new HashMap<>();
+        entities = new ArrayList<>();
         blockEntities = new ArrayList<>();
         readOnly = false;
         lightOn = true;
@@ -53,20 +55,20 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
 //        debugChunk = (xPos == (debugWorldX >> 4)) && (zPos == (debugWorldZ >> 4));
     }
 
-    public MC118AnvilChunk(CompoundTag tag, int maxHeight) {
-        this(tag, maxHeight, false);
+    public MC118AnvilChunk(Map<DataType, CompoundTag> tags, int maxHeight) {
+        this(tags, maxHeight, false);
     }
 
     @SuppressWarnings("ConstantConditions") // Guaranteed by containsTag()
-    public MC118AnvilChunk(CompoundTag tag, int maxHeight, boolean readOnly) {
-        super(tag);
+    public MC118AnvilChunk(Map<DataType, CompoundTag> tags, int maxHeight, boolean readOnly) {
+        super(tags);
         try {
             this.maxHeight = maxHeight;
             this.readOnly = readOnly;
 
-            dataVersion = getInt(TAG_DATA_VERSION); // TODO: also do this for the other chunk types
+            dataVersion = getInt(REGION, TAG_DATA_VERSION); // TODO: also do this for the other chunk types
             sections = new Section[(maxHeight >> 4) + UNDERGROUND_SECTIONS];
-            List<CompoundTag> sectionTags = getList(TAG_SECTIONS_);
+            List<CompoundTag> sectionTags = getList(REGION, TAG_SECTIONS_);
             // MC 1.18 has chunks without any sections; we're not sure yet if
             // this is a bug
             if (sectionTags != null) {
@@ -87,35 +89,44 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
                 }
             }
             heightMaps = new HashMap<>();
-            Map<String, Tag> heightMapTags = getMap(TAG_HEIGHT_MAPS);
+            Map<String, Tag> heightMapTags = getMap(REGION, TAG_HEIGHT_MAPS);
             if (heightMapTags != null) {
                 for (Map.Entry<String, Tag> entry: heightMapTags.entrySet()) {
                     heightMaps.put(entry.getKey().intern(), ((LongArrayTag) entry.getValue()).getValue());
                 }
             }
-            List<CompoundTag> blockEntityTags = getList(TAG_BLOCK_ENTITIES_);
+            List<CompoundTag> entityTags = getList(ENTITIES, TAG_ENTITIES);
+            if (entityTags != null) {
+                entities = new ArrayList<>(entityTags.size());
+                entities.addAll(entityTags.stream().map(Entity::fromNBT).collect(toList()));
+            } else {
+                entities = new ArrayList<>();
+            }
+            List<CompoundTag> blockEntityTags = getList(REGION, TAG_BLOCK_ENTITIES_);
             if (blockEntityTags != null) {
                 blockEntities = new ArrayList<>(blockEntityTags.size());
                 blockEntities.addAll(blockEntityTags.stream().map(TileEntity::fromNBT).collect(toList()));
             } else {
                 blockEntities = new ArrayList<>();
             }
-            // TODOMC118: last update is ignored, is that correct?
-            xPos = getInt(TAG_X_POS_);
-            zPos = getInt(TAG_Z_POS_);
-            status = getString(TAG_STATUS).intern();
-            lightOn = getBoolean(TAG_IS_LIGHT_ON_);
-            inhabitedTime = getLong(TAG_INHABITED_TIME);
-            if (containsTag(TAG_FLUID_TICKS_)) {
-                fluidTicks.addAll(getList(TAG_FLUID_TICKS_));
+            lastUpdate = getLong(REGION, TAG_LAST_UPDATE);
+            xPos = getInt(REGION, TAG_X_POS_);
+            zPos = getInt(REGION, TAG_Z_POS_);
+            status = getString(REGION, TAG_STATUS).intern();
+            lightOn = getBoolean(REGION, TAG_IS_LIGHT_ON_);
+            inhabitedTime = getLong(REGION, TAG_INHABITED_TIME);
+            if (containsTag(REGION, TAG_FLUID_TICKS_)) {
+                fluidTicks.addAll(getList(REGION, TAG_FLUID_TICKS_));
             }
 
             extraTags = new HashMap<>();
-            getAllTags().forEach((key, value) -> {
-                if (! KNOWN_TAGS.contains(key)) {
-                    extraTags.put(key, value);
-                }
-            });
+            for (DataType type: DataType.values()) {
+                getAllTags(type).forEach((key, value) -> {
+                    if ((KNOWN_TAGS.containsKey(type) && (KNOWN_TAGS.get(type).contains(key)))) {
+                        extraTags.computeIfAbsent(type, t -> new HashMap<>()).put(key, value);
+                    }
+                });
+            }
 //            debugChunk = (xPos == (debugWorldX >> 4)) && (zPos == (debugWorldZ >> 4));
         } catch (Section.ExceptionParsingSectionException e) {
             // Already reported; just rethrow
@@ -198,9 +209,7 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
     // Chunk
 
     @Override
-    public CompoundTag toNBT() {
-        // TODOMC118
-
+    public Map<DataType, ? extends Tag> toMultipleNBT() {
         if (sections != null) {
             List<CompoundTag> sectionTags = new ArrayList<>(maxHeight >> 4);
             for (Section section: sections) {
@@ -208,29 +217,34 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
                     sectionTags.add(section.toNBT());
                 }
             }
-            setList(TAG_SECTIONS_, CompoundTag.class, sectionTags);
+            setList(REGION, TAG_SECTIONS_, CompoundTag.class, sectionTags);
         }
         Map<String, Tag> heightMapTags = new HashMap<>(heightMaps.size());
         heightMaps.forEach((key, value) -> heightMapTags.put(key, new LongArrayTag(key, value)));
-        setMap(TAG_HEIGHT_MAPS, heightMapTags);
+        setMap(REGION, TAG_HEIGHT_MAPS, heightMapTags);
+        List<CompoundTag> entityTags = new ArrayList<>(entities.size());
+        entities.stream().map(Entity::toNBT).forEach(entityTags::add);
+        setList(ENTITIES, TAG_ENTITIES, CompoundTag.class, entityTags);
         List<CompoundTag> blockEntityTags = new ArrayList<>(blockEntities.size());
         blockEntities.stream().map(TileEntity::toNBT).forEach(blockEntityTags::add);
-        setList(TAG_BLOCK_ENTITIES_, CompoundTag.class, blockEntityTags);
-        setLong(TAG_LAST_UPDATE, System.currentTimeMillis()); // TODOMC118: is this correct?
-        setInt(TAG_X_POS_, xPos);
-        setInt(TAG_Y_POS_, -UNDERGROUND_SECTIONS);
-        setInt(TAG_Z_POS_, zPos);
-        setString(TAG_STATUS, status);
-        setBoolean(TAG_IS_LIGHT_ON_, lightOn);
-        setLong(TAG_INHABITED_TIME, inhabitedTime);
-        setList(TAG_FLUID_TICKS_, CompoundTag.class, fluidTicks);
+        setList(REGION, TAG_BLOCK_ENTITIES_, CompoundTag.class, blockEntityTags);
+        setLong(REGION, TAG_LAST_UPDATE, lastUpdate);
+        setInt(REGION, TAG_X_POS_, xPos);
+        setInt(REGION, TAG_Y_POS_, -UNDERGROUND_SECTIONS);
+        setInt(REGION, TAG_Z_POS_, zPos);
+        setString(REGION, TAG_STATUS, status);
+        setBoolean(REGION, TAG_IS_LIGHT_ON_, lightOn);
+        setLong(REGION, TAG_INHABITED_TIME, inhabitedTime);
+        setList(REGION, TAG_FLUID_TICKS_, CompoundTag.class, fluidTicks);
 
         if (extraTags != null) {
-            extraTags.forEach(this::setTag);
+            extraTags.forEach((type, tags) -> tags.forEach((name, tag) -> setTag(type, name, tag)));
         }
 
-        setTag(TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, dataVersion));
-        return super.toNBT();
+        setTag(REGION, TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, dataVersion));
+        setTag(ENTITIES, TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, dataVersion));
+        setTag(ENTITIES, TAG_POSITION, new IntArrayTag(TAG_POSITION, new int[] { xPos, zPos }));
+        return super.toMultipleNBT();
     }
 
     @Override
@@ -436,7 +450,7 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
 
     @Override
     public List<Entity> getEntities() {
-        return emptyList();
+        return entities;
     }
 
     @Override
@@ -622,12 +636,16 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
 
     @Override
     public void addEntity(int x, int y, int height, Entity entity) {
-        throw new UnsupportedOperationException("Entities not stored in region chunk in Minecraft 1.18+");
+        entity = (Entity) entity.clone();
+        entity.setPos(new double[] {x, height, y});
+        getEntities().add(entity);
     }
 
     @Override
     public void addEntity(double x, double y, double height, Entity entity) {
-        throw new UnsupportedOperationException("Entities not stored in region chunk in Minecraft 1.18+");
+        entity = (Entity) entity.clone();
+        entity.setPos(new double[] {x, height, y});
+        getEntities().add(entity);
     }
 
     @Override
@@ -749,20 +767,21 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
     final Section[] sections;
     final int xPos, zPos;
     boolean lightOn; // TODOMC118: is this still used by MC 1.15?
+    final List<Entity> entities;
     final List<TileEntity> blockEntities;
     final int maxHeight;
-    long inhabitedTime;
+    long inhabitedTime, lastUpdate;
     String status;
     final Map<String, long[]> heightMaps;
     final List<CompoundTag> fluidTicks = new ArrayList<>();
-    final Map<String, Tag> extraTags;
+    final Map<DataType, Map<String, Tag>> extraTags;
     final boolean debugChunk = false;
 
     private static long debugWorldX, debugWorldZ, debugXInChunk, debugZInChunk;
 
     public static final int UNDERGROUND_SECTIONS = 4, LIGHT_ARRAY_SIZE = 2048;
     private static final Random RANDOM = new Random();
-    private static final Set<String> KNOWN_TAGS = ImmutableSet.of(TAG_DATA_VERSION, TAG_SECTIONS_, TAG_HEIGHT_MAPS, TAG_BLOCK_ENTITIES_, TAG_X_POS_, TAG_Z_POS_, TAG_STATUS, TAG_IS_LIGHT_ON_, TAG_INHABITED_TIME, TAG_FLUID_TICKS_);
+    private static final Map<DataType, Set<String>> KNOWN_TAGS = ImmutableMap.of(REGION, ImmutableSet.of(TAG_DATA_VERSION, TAG_SECTIONS_, TAG_HEIGHT_MAPS, TAG_BLOCK_ENTITIES_, TAG_X_POS_, TAG_Z_POS_, TAG_STATUS, TAG_IS_LIGHT_ON_, TAG_INHABITED_TIME, TAG_FLUID_TICKS_));
     private static final Logger logger = LoggerFactory.getLogger(MC118AnvilChunk.class);
 
     public static class Section extends AbstractNBTItem implements SectionedChunk.Section {

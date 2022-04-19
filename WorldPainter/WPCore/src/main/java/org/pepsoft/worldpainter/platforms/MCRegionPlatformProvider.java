@@ -3,6 +3,7 @@ package org.pepsoft.worldpainter.platforms;
 import org.jnbt.CompoundTag;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.Chunk;
+import org.pepsoft.minecraft.DataType;
 import org.pepsoft.minecraft.MCRegionChunk;
 import org.pepsoft.minecraft.NBTChunk;
 import org.pepsoft.worldpainter.Platform;
@@ -11,8 +12,10 @@ import org.pepsoft.worldpainter.exporting.PostProcessor;
 
 import java.awt.*;
 import java.io.File;
+import java.util.Map;
 import java.util.regex.Pattern;
 
+import static org.pepsoft.minecraft.DataType.REGION;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 
 public final class MCRegionPlatformProvider extends JavaPlatformProvider {
@@ -21,20 +24,26 @@ public final class MCRegionPlatformProvider extends JavaPlatformProvider {
     }
 
     @Override
-    public NBTChunk createChunk(Platform platform, Tag tag, int maxHeight, boolean readOnly) {
+    public NBTChunk createChunk(Platform platform, Map<DataType, Tag> tags, int maxHeight, boolean readOnly) {
         ensurePlatformSupported(platform);
-        return new MCRegionChunk((CompoundTag) tag, maxHeight, readOnly);
+        return new MCRegionChunk((CompoundTag) tags.get(REGION), maxHeight, readOnly);
     }
 
     @Override
-    public File[] getRegionFiles(Platform platform, File regionDir) {
+    public File[] getRegionFiles(Platform platform, File regionDir, DataType dataType) {
         ensurePlatformSupported(platform);
+        if (dataType != REGION) {
+            throw new IllegalArgumentException("Only REGION data type is supported");
+        }
         return regionDir.listFiles((dir, name) -> REGION_FILE_PATTERN.matcher(name).matches());
     }
 
     @Override
-    protected File getRegionFileFile(Platform platform, File regionDir, Point coords) {
+    protected File getRegionFileFile(Platform platform, File regionDir, DataType dataType, Point coords) {
         ensurePlatformSupported(platform);
+        if (dataType != REGION) {
+            throw new IllegalArgumentException("Only REGION data type is supported");
+        }
         return new File(regionDir, "r." + coords.x + "." + coords.y + ".mcr");
     }
 
