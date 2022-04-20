@@ -44,11 +44,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static java.util.Arrays.stream;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_END;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_NETHER;
+import static org.pepsoft.util.swing.SpinnerUtils.setMinimum;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_17;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
+import static org.pepsoft.worldpainter.HeightTransform.IDENTITY;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.Platform.Capability.SEED;
 import static org.pepsoft.worldpainter.Terrain.*;
@@ -219,9 +221,9 @@ public class NewWorldDialog extends WorldPainterDialog {
         checkBoxExtendedBlockIds.setSelected(config.isDefaultExtendedBlockIds());
         
         rootPane.setDefaultButton(buttonCreate);
-        
-//        setPlatform(platform);
-        updatePreview();
+
+        programmaticChange = false;
+        setPlatform(platform);
         updateWalkingTimes();
     }
 
@@ -563,6 +565,10 @@ public class NewWorldDialog extends WorldPainterDialog {
     }
 
     private void updatePreview() {
+        if (programmaticChange) {
+            return;
+        }
+
         long tmpSeed;
         if (radioButtonCustomSeed.isSelected()) {
             try {
@@ -650,17 +656,17 @@ public class NewWorldDialog extends WorldPainterDialog {
             if ((dim == DIM_NORMAL)
                     && (defaults.getTileFactory() instanceof HeightMapTileFactory)
                     && (((HeightMapTileFactory) defaults.getTileFactory()).getTheme() instanceof SimpleTheme)
-                    && (((SimpleTheme) ((HeightMapTileFactory) defaults.getTileFactory()).getTheme()).getTerrainRanges() != null)) {
-                HeightMapTileFactory defaultTileFactory = (HeightMapTileFactory) defaults.getTileFactory();
-                SimpleTheme defaultTheme = (SimpleTheme) defaultTileFactory.getTheme();
-                if (radioButtonSimpleTerrain.isSelected()) {
-                    SortedMap<Integer, Terrain> terrainRanges = new TreeMap<>(defaultTheme.getTerrainRanges());
-                    int surfaceLevel = terrainRanges.headMap(waterHeight + 3).lastKey();
-                    terrainRanges.put(surfaceLevel, terrain);
-                    SimpleTheme theme = (SimpleTheme) tileFactory.getTheme();
-                    theme.setTerrainRanges(terrainRanges);
-                    theme.setRandomise(defaultTheme.isRandomise());
-                }
+                    && (((SimpleTheme) ((HeightMapTileFactory) defaults.getTileFactory()).getTheme()).getTerrainRanges() != null)
+                    && radioButtonSimpleTerrain.isSelected()) {
+                final HeightMapTileFactory defaultTileFactory = (HeightMapTileFactory) defaults.getTileFactory();
+                final SimpleTheme defaultTheme = (SimpleTheme) defaultTileFactory.getTheme().clone();
+                defaultTheme.setMinMaxHeight(minHeight, maxHeight, IDENTITY);
+                final SortedMap<Integer, Terrain> terrainRanges = new TreeMap<>(defaultTheme.getTerrainRanges());
+                final int surfaceLevel = terrainRanges.headMap(waterHeight + 3).lastKey();
+                terrainRanges.put(surfaceLevel, terrain);
+                final SimpleTheme theme = (SimpleTheme) tileFactory.getTheme();
+                theme.setTerrainRanges(terrainRanges);
+                theme.setRandomise(defaultTheme.isRandomise());
             } else if ((dim != DIM_NORMAL) && radioButtonSimpleTerrain.isSelected()) {
                 // Override the default terrain map:
                 SortedMap<Integer, Terrain> terrainMap = new TreeMap<>();
@@ -704,6 +710,10 @@ public class NewWorldDialog extends WorldPainterDialog {
     }
 
     private void setPlatform(Platform platform) {
+        if (programmaticChange) {
+            return;
+        }
+
         Platform previousPlatform = this.platform;
         this.platform = platform;
 
@@ -736,12 +746,15 @@ public class NewWorldDialog extends WorldPainterDialog {
         comboBoxMaxHeight.setEnabled(platform.maxHeights.length > 1);
         maxHeightChanged(true);
 
+        setMinimum(spinnerTerrainLevel, platform.minZ);
+        setMinimum(spinnerWaterLevel, platform.minZ);
+
         setControlStates();
     }
 
     private void maxHeightChanged(boolean force) {
-        int maxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
-        int exp = (int) (Math.log(maxHeight) / Math.log(2));
+        final int minHeight = platform.minZ, maxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
+        final int exp = (int) (Math.log(maxHeight) / Math.log(2));
         if (force || (exp != previousExp)) {
             previousExp = exp;
 
@@ -765,10 +778,10 @@ public class NewWorldDialog extends WorldPainterDialog {
             }
 
             int range = (Integer) spinnerRange.getValue();
-            if (range >= maxHeight) {
+            if (range >= maxHeight - minHeight) {
                 spinnerRange.setValue(maxHeight - 1);
             }
-            ((SpinnerNumberModel) spinnerRange.getModel()).setMaximum(maxHeight - 1);
+            ((SpinnerNumberModel) spinnerRange.getModel()).setMaximum(maxHeight - 1 - minHeight);
 
             setControlStates();
             updatePreview();
@@ -1313,7 +1326,7 @@ public class NewWorldDialog extends WorldPainterDialog {
             int terrainLevel = (Integer) spinnerTerrainLevel.getValue();
             int waterLevel = (Integer) spinnerWaterLevel.getValue();
             int maxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
-            int minimumSpawnHeight = ((maxHeight == 128) || (maxHeight == 256)) ? 63 : (maxHeight / 2 - 1);
+            int minimumSpawnHeight = ((maxHeight == 128) || (maxHeight == 256) || (maxHeight == 320)) ? 63 : (maxHeight / 2 - 1);
             if ((terrainLevel < (minimumSpawnHeight + 1)) && (waterLevel < minimumSpawnHeight)) {
                 savedTerrainLevel = terrainLevel;
                 terrainLevel = minimumSpawnHeight + 1; // Add one to avoid beaches everywhere
@@ -1525,6 +1538,7 @@ public class NewWorldDialog extends WorldPainterDialog {
     private int previousExp = -1, dim, savedTerrainLevel;
     private long worldpainterSeed;
     private SimpleTheme theme;
+    private boolean programmaticChange = true;
 
     static final int ESTIMATED_TILE_DATA_SIZE = 81; // in KB
     
