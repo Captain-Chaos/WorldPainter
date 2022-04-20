@@ -41,37 +41,31 @@ public class Height extends RadiusOperation {
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
         final float adjustment = (float) Math.pow(dynamicLevel * getLevel() * 2, 2.0);
         final Dimension dimension = getDimension();
-        final int minHeight, maxHeight;
+        final float minZ, maxZ;
         if (getFilter() instanceof DefaultFilter) {
             final DefaultFilter filter = (DefaultFilter) getFilter();
-            if (filter.getAboveLevel() != -1) {
-                minHeight = filter.getAboveLevel();
+            if (filter.getAboveLevel() != Integer.MIN_VALUE) {
+                minZ = Math.max(filter.getAboveLevel(), dimension.getMinHeight());
             } else {
-                minHeight = Integer.MIN_VALUE;
+                minZ = dimension.getMinHeight();
             }
-            if (filter.getBelowLevel() != -1) {
-                maxHeight = filter.getBelowLevel();
+            if (filter.getBelowLevel() != Integer.MIN_VALUE) {
+                maxZ = Math.min(filter.getBelowLevel(), dimension.getMaxHeight());
             } else {
-                maxHeight = Integer.MAX_VALUE;
+                maxZ = Integer.MAX_VALUE;
             }
         } else {
-            minHeight = Integer.MIN_VALUE;
-            maxHeight = Integer.MAX_VALUE;
+            minZ = dimension.getMinHeight();
+            maxZ = dimension.getMaxHeight() - 1;
         }
         boolean applyTheme = options.isApplyTheme();
         dimension.setEventsInhibited(true);
         try {
             final int radius = getEffectiveRadius();
-            final float minZ = dimension.getMinHeight(), maxZ = dimension.getMaxHeight() - 1;
             for (int x = centreX - radius; x <= centreX + radius; x++) {
                 for (int y = centreY - radius; y <= centreY + radius; y++) {
                     final float currentHeight = dimension.getHeightAt(x, y);
-                    float targetHeight = inverse ? Math.max(currentHeight - adjustment, minHeight) : Math.min(currentHeight + adjustment, maxHeight);
-                    if (targetHeight < minZ) {
-                        targetHeight = minZ;
-                    } else if (targetHeight > maxZ) {
-                        targetHeight = maxZ;
-                    }
+                    final float targetHeight = inverse ? Math.max(currentHeight - adjustment, minZ) : Math.min(currentHeight + adjustment, maxZ);
                     final float strength = getFullStrength(centreX, centreY, x, y);
                     if (strength > 0.0f) {
                         final float newHeight = strength * targetHeight + (1 - strength) * currentHeight;
