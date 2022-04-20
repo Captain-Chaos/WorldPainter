@@ -31,9 +31,9 @@ public final class DefaultFilter implements Filter {
         }
         this.aboveLevel = aboveLevel;
         this.belowLevel = belowLevel;
-        if (aboveLevel >= 0) {
+        if (aboveLevel != Integer.MIN_VALUE) {
             checkLevel = true;
-            if (belowLevel >= 0) {
+            if (belowLevel != Integer.MIN_VALUE) {
                 // Above and below are checked
                 if (belowLevel >= aboveLevel) {
                     levelType = LevelType.BETWEEN;
@@ -44,7 +44,7 @@ public final class DefaultFilter implements Filter {
                 // Only above checked
                 levelType = LevelType.ABOVE;
             }
-        } else if (belowLevel >= 0) {
+        } else if (belowLevel != Integer.MIN_VALUE) {
             // Only below checked
             checkLevel = true;
             levelType = LevelType.BELOW;

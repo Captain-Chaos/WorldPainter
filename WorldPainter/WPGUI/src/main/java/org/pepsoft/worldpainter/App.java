@@ -402,8 +402,6 @@ public final class App extends JFrame implements RadiusControl,
             }
             view.setLightOrigin(config.getDefaultLightOrigin());
 
-            brushOptions.setMaxHeight(world.getMaxHeight());
-
             if (config.isEasyMode()) {
                 boolean imported = world.getImportedFrom() != null;
                 ACTION_EXPORT_WORLD.setEnabled(!imported);
@@ -611,6 +609,9 @@ public final class App extends JFrame implements RadiusControl,
             } finally {
                 programmaticChange = false;
             }
+
+            brushOptions.setMaxHeight(dimension.getMaxHeight());
+
             dimension.addPropertyChangeListener(this);
             dimension.addDimensionListener(this);
             for (Tile tile: dimension.getTiles()) {
@@ -1107,6 +1108,7 @@ public final class App extends JFrame implements RadiusControl,
             if (threeDeeFrame != null) {
                 threeDeeFrame.refresh();
             }
+            brushOptions.setMaxHeight(dimension.getMaxHeight());
             return true;
         } else {
             return false;
@@ -5237,6 +5239,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         biomesPanel.loadBiomes(platform, selectedColourScheme);
         extendedBlockIdsMenuItem.setEnabled((! platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION));
+        brushOptions.setMinHeight(platform.minZ);
     }
 
     private void addMaterialSelectionTo(final JToggleButton button, final int customMaterialIndex) {
