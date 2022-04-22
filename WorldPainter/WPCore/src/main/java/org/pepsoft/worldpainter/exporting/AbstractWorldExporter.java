@@ -622,12 +622,12 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 for (int tileY = lowestTileY; tileY <= highestTileY; tileY++) {
                     Point tileCoords = new Point(tileX, tileY);
                     Tile tile = dimension.getTile(tileCoords);
-                    if ((tile != null) && ((!tileSelection) || dimension.getWorld().getTilesToExport().contains(tileCoords))) {
+                    if ((tile != null) && ((! tileSelection) || dimension.getWorld().getTilesToExport().contains(tileCoords))) {
                         tiles.put(tileCoords, tile);
                     }
                     if (ceiling != null) {
                         tile = ceiling.getTile(tileCoords);
-                        if ((tile != null) && ((!tileSelection) || dimension.getWorld().getTilesToExport().contains(tileCoords))) {
+                        if ((tile != null) && ((! tileSelection) || dimension.getWorld().getTilesToExport().contains(tileCoords))) {
                             ceilingTiles.put(tileCoords, tile);
                         }
                     }
@@ -644,7 +644,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             allLayers.addAll(minimumLayers);
 
             // Remove layers which have been excluded for export
-            allLayers.removeIf(layer -> (layer instanceof CustomLayer) && (!((CustomLayer) layer).isExport()));
+            allLayers.removeIf(layer -> (layer instanceof CustomLayer) && (! ((CustomLayer) layer).isExport()));
 
             List<Layer> secondaryPassLayers = new ArrayList<>(), ceilingSecondaryPassLayers = new ArrayList<>();
             for (Layer layer: allLayers) {
@@ -664,7 +664,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 allCeilingLayers.addAll(ceilingMinimumLayers);
 
                 // Remove layers which have been excluded for export
-                allCeilingLayers.removeIf(layer -> (layer instanceof CustomLayer) && (!((CustomLayer) layer).isExport()));
+                allCeilingLayers.removeIf(layer -> (layer instanceof CustomLayer) && (! ((CustomLayer) layer).isExport()));
 
                 for (Layer layer: allCeilingLayers) {
                     LayerExporter exporter = layer.getExporter();
