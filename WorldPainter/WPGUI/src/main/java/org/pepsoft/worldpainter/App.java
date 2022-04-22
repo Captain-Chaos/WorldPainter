@@ -108,6 +108,7 @@ import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.util.GUIUtils.getUIScale;
 import static org.pepsoft.util.GUIUtils.getUIScaleInt;
 import static org.pepsoft.util.IconUtils.createScaledLetterIcon;
+import static org.pepsoft.util.IconUtils.scaleIcon;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.ProgressDialog.NO_FOCUS_STEALING;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -3417,7 +3418,7 @@ public final class App extends JFrame implements RadiusControl,
         customBrushesPanel.add(customBrushPanel, constraints);
 
         if (brushGroup.icon != null) {
-            customBrushesPanel.putClientProperty(KEY_ICON, brushGroup.icon);
+            customBrushesPanel.putClientProperty(KEY_ICON, new ImageIcon(scaleIcon(brushGroup.icon, 16)));
         } else {
             customBrushesPanel.putClientProperty(KEY_ICON, createScaledLetterIcon(title.charAt(0)));
         }
