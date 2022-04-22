@@ -54,7 +54,7 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
         if (tags != null) {
             return tags;
         } else {
-            return ImmutableMap.of(REGION, tag);
+            return ImmutableMap.of(REGION, toNBT());
         }
     }
 
