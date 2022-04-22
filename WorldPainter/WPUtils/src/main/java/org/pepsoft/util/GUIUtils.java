@@ -14,6 +14,7 @@ import java.awt.image.BufferedImageOp;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.prefs.Preferences;
 
 import static java.awt.Image.SCALE_SMOOTH;
 import static java.awt.RenderingHints.*;
@@ -239,7 +240,7 @@ public class GUIUtils {
      * <p><strong>Note:</strong> for now UI scaling is only activated on <!-- TODO -->
      * Windows, until the current support on Mac and Linux can be investigated. <!-- TODO -->
      */
-    public static final float SYSTEM_UI_SCALE_FLOAT;
+    public static final float SYSTEM_UI_SCALE_FLOAT = SystemUtils.isWindows() ? MathUtils.clamp(1.0f, (float) Toolkit.getDefaultToolkit().getScreenResolution() / 96, 2.0f) : 1.0f;
 
     /**
      * How many times to scale pixel sizes to display at approximately the
@@ -253,21 +254,25 @@ public class GUIUtils {
      * <p><strong>Note:</strong> for now UI scaling is only activated on <!-- TODO -->
      * Windows, until the current support on Mac and Linux can be investigated. <!-- TODO -->
      */
-    public static final int SYSTEM_UI_SCALE;
+    public static final int SYSTEM_UI_SCALE = round(SYSTEM_UI_SCALE_FLOAT);
 
     private static final Logger logger = LoggerFactory.getLogger(GUIUtils.class);
+
+    private static float UI_SCALE_FLOAT;
+    private static int UI_SCALE;
 
     static {
         if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"))) {
             logger.info("[SAFE MODE] Not scaling GUI");
-            SYSTEM_UI_SCALE_FLOAT = 1.0f;
-            SYSTEM_UI_SCALE = 1;
+            UI_SCALE_FLOAT = 1.0f;
         } else {
-            SYSTEM_UI_SCALE_FLOAT = SystemUtils.isWindows() ? MathUtils.clamp(1.0f, (float) Toolkit.getDefaultToolkit().getScreenResolution() / 96, 2.0f) : 1.0f;
-            SYSTEM_UI_SCALE = round(SYSTEM_UI_SCALE_FLOAT);
+            float manualUIScale = Preferences.userNodeForPackage(GUIUtils.class).getFloat("manualUIScale", -1f);
+            if (manualUIScale > 0) {
+                UI_SCALE_FLOAT = manualUIScale;
+            } else {
+                UI_SCALE_FLOAT = SYSTEM_UI_SCALE_FLOAT;
+            }
         }
+        UI_SCALE = round(UI_SCALE_FLOAT);
     }
-
-    private static float UI_SCALE_FLOAT = SYSTEM_UI_SCALE_FLOAT;
-    private static int UI_SCALE = SYSTEM_UI_SCALE;
 }

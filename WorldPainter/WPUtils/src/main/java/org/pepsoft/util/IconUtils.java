@@ -10,10 +10,19 @@ import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
 import java.io.IOException;
 import java.net.URL;
 
+import static java.awt.Color.BLACK;
+import static java.awt.RenderingHints.KEY_ANTIALIASING;
+import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
+import static java.awt.Transparency.TRANSLUCENT;
+import static java.awt.geom.AffineTransform.getRotateInstance;
+import static java.awt.image.AffineTransformOp.TYPE_BICUBIC;
+import static java.lang.Math.toRadians;
 import static org.pepsoft.util.GUIUtils.getUIScaleInt;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 
@@ -131,11 +140,27 @@ public final class IconUtils {
      * @return A 16x16 icon of the specified colour.
      */
     public static Icon createScaledColourIcon(int colour) {
-        BufferedImage image = new BufferedImage(16 * getUIScaleInt(), 16 * getUIScaleInt(), BufferedImage.TYPE_INT_RGB);
-        for (int x = 1; x < 16 * getUIScaleInt() - 1; x++) {
-            for (int y = 1; y < 16 * getUIScaleInt() - 1; y++) {
+        final int size = 16 * getUIScaleInt();
+        final BufferedImage image = newBufferedImage(size);
+        for (int x = 1; x < size - 1; x++) {
+            for (int y = 1; y < size - 1; y++) {
                 image.setRGB(x, y, colour);
             }
+        }
+        return new ImageIcon(image);
+    }
+
+    public static Icon createScaledLetterIcon(char letter) {
+        final int size = 16 * getUIScaleInt();
+        final BufferedImage image = newBufferedImage(size);
+        final Graphics2D g2 = image.createGraphics();
+        try {
+            g2.setFont(Font.decode("SansSerif-BOLD").deriveFont(16.0f * getUIScaleInt()));
+            g2.setColor(BLACK);
+            g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
+            g2.drawString(String.valueOf(letter), 1 + 2 * getUIScaleInt(), size - 1 - 2 * getUIScaleInt());
+        } finally {
+            g2.dispose();
         }
         return new ImageIcon(image);
     }
@@ -167,7 +192,7 @@ public final class IconUtils {
         if ((iconImage instanceof BufferedImage) && (((BufferedImage) iconImage).getWidth() == scaledSize)) {
             return (BufferedImage) iconImage;
         }
-        BufferedImage newImage = new BufferedImage(scaledSize, scaledSize, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage newImage = newBufferedImage(scaledSize);
         Graphics2D g2 = newImage.createGraphics();
         try {
             g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
@@ -177,4 +202,49 @@ public final class IconUtils {
         }
         return newImage;
     }
+
+    /**
+     * Rotate a square icon clockwise by the specified number of degrees.
+     *
+     * @param icon    The icon to rotate.
+     * @param degrees The number of degrees to rotate the icon.
+     * @return The rotated icon.
+     */
+    public static Icon rotateIcon(Icon icon, int degrees) {
+        if (degrees == 0) {
+            return icon;
+        }
+        final BufferedImage bufferedImage;
+        if (icon instanceof ImageIcon) {
+            final Image image = ((ImageIcon) icon).getImage();
+            if (image instanceof BufferedImage) {
+                bufferedImage = (BufferedImage) image;
+            } else {
+                bufferedImage = newBufferedImage(image.getWidth(null));
+                final Graphics2D g2 = bufferedImage.createGraphics();
+                try {
+                    g2.drawImage(image, 0, 0, null);
+                } finally {
+                    g2.dispose();
+                }
+            }
+        } else {
+            bufferedImage = newBufferedImage(icon.getIconWidth());
+            final Graphics2D g2 = bufferedImage.createGraphics();
+            try {
+                icon.paintIcon(ICON_PAINTING_COMPONENT, g2, 0, 0);
+            } finally {
+                g2.dispose();
+            }
+        }
+        final BufferedImageOp op = new AffineTransformOp(getRotateInstance(toRadians(degrees), icon.getIconWidth() / 2.0, icon.getIconHeight() / 2.0), TYPE_BICUBIC);
+        final BufferedImage targetImage = newBufferedImage(icon.getIconWidth());
+        return new ImageIcon(op.filter(bufferedImage, targetImage));
+    }
+
+    private static BufferedImage newBufferedImage(int size) {
+        return GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(size, size, TRANSLUCENT);
+    }
+
+    private static final Component ICON_PAINTING_COMPONENT = new Label();
 }

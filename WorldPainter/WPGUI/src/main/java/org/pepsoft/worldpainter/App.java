@@ -107,6 +107,7 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.util.GUIUtils.getUIScale;
 import static org.pepsoft.util.GUIUtils.getUIScaleInt;
+import static org.pepsoft.util.IconUtils.createScaledLetterIcon;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.ProgressDialog.NO_FOCUS_STEALING;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -162,7 +163,7 @@ public final class App extends JFrame implements RadiusControl,
 
         initComponents();
 
-        getRootPane().putClientProperty(HELP_KEY_KEY, "Main");
+        getRootPane().putClientProperty(KEY_HELP_KEY, "Main");
 
         hiddenLayers.add(Biome.INSTANCE);
         view.addHiddenLayer(Biome.INSTANCE);
@@ -1608,12 +1609,12 @@ public final class App extends JFrame implements RadiusControl,
     public void showHelp(Component component) {
         String helpKey = null;
         do {
-            if ((component instanceof AbstractButton) && (((AbstractButton) component).getAction() != null) && (((AbstractButton) component).getAction().getValue(HELP_KEY_KEY) != null)) {
-                helpKey = (String) ((AbstractButton) component).getAction().getValue(HELP_KEY_KEY);
+            if ((component instanceof AbstractButton) && (((AbstractButton) component).getAction() != null) && (((AbstractButton) component).getAction().getValue(KEY_HELP_KEY) != null)) {
+                helpKey = (String) ((AbstractButton) component).getAction().getValue(KEY_HELP_KEY);
             } else if (component instanceof JComponent) {
-                helpKey = (String) ((JComponent) component).getClientProperty(HELP_KEY_KEY);
+                helpKey = (String) ((JComponent) component).getClientProperty(KEY_HELP_KEY);
             } else if (component instanceof RootPaneContainer) {
-                helpKey = (String) ((RootPaneContainer) component).getRootPane().getClientProperty(HELP_KEY_KEY);
+                helpKey = (String) ((RootPaneContainer) component).getRootPane().getClientProperty(KEY_HELP_KEY);
             }
             component = component.getParent();
         } while ((helpKey == null) && (component != null));
@@ -1823,7 +1824,7 @@ public final class App extends JFrame implements RadiusControl,
                     return true;
                 }
                 String name = pathname.getName();
-                for (String extension : extensions) {
+                for (String extension: extensions) {
                     if (name.toLowerCase().endsWith(extension)) {
                         return true;
                     }
@@ -1834,19 +1835,30 @@ public final class App extends JFrame implements RadiusControl,
             private final String[] extensions = ImageIO.getReaderFileSuffixes();
         });
         List<Brush> brushes = new ArrayList<>();
+        BufferedImage icon = null;
         for (File file: files) {
             if (file.isDirectory()) {
                 loadCustomBrushes(file.getName(), file);
-            } else {
-                try {
-                    brushes.add(new BitmapBrush(file));
-                } catch (RuntimeException e) {
-                    logger.error("There was an error loading custom brush image file " + file.getName() + "; skipping file", e);
+            } else if (file.isFile()) {
+                if (file.getName().equalsIgnoreCase("icon.png")) {
+                    try {
+                        icon = ImageIO.read(file);
+                    } catch (Exception e) {
+                        logger.error("There was an error loading the brush group icon file icon.png; skipping icon file", e);
+                    }
+                } else {
+                    try {
+                        brushes.add(new BitmapBrush(file));
+                    } catch (RuntimeException e) {
+                        logger.error("There was an error loading custom brush image file " + file.getName() + "; skipping file", e);
+                    }
                 }
+            } else {
+                logger.warn("Skipping file " + file + "; it is neither a file nor a directory");
             }
         }
         if (! brushes.isEmpty()) {
-            customBrushes.put(category, brushes);
+            customBrushes.put(category, new BrushGroup(category, icon, brushes));
         }
     }
     
@@ -2496,7 +2508,7 @@ public final class App extends JFrame implements RadiusControl,
             glassPane.setCursor(cursor);
         }
         JRootPane privateRootPane = new JRootPane();
-        privateRootPane.putClientProperty(HELP_KEY_KEY, "Editor");
+        privateRootPane.putClientProperty(KEY_HELP_KEY, "Editor");
         privateRootPane.setContentPane(view);
         privateRootPane.setGlassPane(glassPane);
         glassPane.setVisible(true);
@@ -2565,7 +2577,7 @@ public final class App extends JFrame implements RadiusControl,
         if (customBrushes.containsKey(CUSTOM_BRUSHES_DEFAULT_TITLE)) {
             dockingManager.addFrame(new DockableFrameBuilder(createCustomBrushPanel(CUSTOM_BRUSHES_DEFAULT_TITLE, customBrushes.get(CUSTOM_BRUSHES_DEFAULT_TITLE)), "Custom Brushes", DOCK_SIDE_EAST, 1).withId("customBrushesDefault").build());
         }
-        for (Map.Entry<String, List<Brush>> entry: customBrushes.entrySet()) {
+        for (Map.Entry<String, BrushGroup> entry: customBrushes.entrySet()) {
             if (entry.getKey().equals(CUSTOM_BRUSHES_DEFAULT_TITLE)) {
                 continue;
             }
@@ -2867,7 +2879,7 @@ public final class App extends JFrame implements RadiusControl,
         button.setMargin(App.BUTTON_INSETS);
         button.addActionListener(e -> showGlobalOperations());
         button.setToolTipText(strings.getString("global.operations.fill.or.clear.the.world.with.a.terrain.biome.or.layer"));
-        button.putClientProperty(HELP_KEY_KEY, "Operation/GlobalOperations");
+        button.putClientProperty(KEY_HELP_KEY, "Operation/GlobalOperations");
         toolPanel.add(button);
         toolPanel.add(createButtonForOperation(new RaiseRotatedPyramid(view)));
         toolPanel.add(createButtonForOperation(new RaisePyramid(view)));
@@ -2902,7 +2914,7 @@ public final class App extends JFrame implements RadiusControl,
             copySelectionButton.setEnabled((boolean) selectionMayBePresent);
             clearSelectionButton.setEnabled((boolean) selectionMayBePresent);
         });
-        clearSelectionButton.putClientProperty(HELP_KEY_KEY, "Operation/ClearSelection");
+        clearSelectionButton.putClientProperty(KEY_HELP_KEY, "Operation/ClearSelection");
         toolPanel.add(clearSelectionButton);
 
         for (Operation operation: operations) {
@@ -2972,6 +2984,8 @@ public final class App extends JFrame implements RadiusControl,
         constraints.weightx = 1.0;
         layerPanel.add(addLayerButton, constraints);
 
+        layerPanel.putClientProperty(KEY_ICON, ICON_LAYERS);
+
         return layerPanel;
     }
 
@@ -3021,6 +3035,8 @@ public final class App extends JFrame implements RadiusControl,
         biomesPanelContainer.add(biomesPanel, constraints);
 
         layerControls.put(Biome.INSTANCE, new LayerControls(Biome.INSTANCE, checkBox, soloCheckBox, null));
+
+        biomesPanelContainer.putClientProperty(KEY_ICON, ICON_BIOMES);
 
         return biomesPanelContainer;
     }
@@ -3084,6 +3100,8 @@ public final class App extends JFrame implements RadiusControl,
         layerPanel.add(colourGrid, constraints);
 
         layerControls.put(Annotations.INSTANCE, new LayerControls(Annotations.INSTANCE, checkBox, soloCheckBox));
+
+        layerPanel.putClientProperty(KEY_ICON, ICON_ANNOTATIONS);
 
         return layerPanel;
     }
@@ -3377,15 +3395,17 @@ public final class App extends JFrame implements RadiusControl,
         constraints.weightx = 1.0;
         constraints.insets = new Insets(1, 1, 1, 1);
         optionsPanel.add(brushPanel, constraints);
-        
+
+        optionsPanel.putClientProperty(KEY_ICON, createBrushThumbnail(SymmetricBrush.COSINE_CIRCLE, 16 * getUIScaleInt()));
+
         return optionsPanel;
     }
 
-    private JPanel createCustomBrushPanel(String title, List<Brush> customBrushes) {
+    private JPanel createCustomBrushPanel(String title, BrushGroup brushGroup) {
         JPanel customBrushesPanel = new JPanel();
         customBrushesPanel.setLayout(new GridBagLayout());
         JPanel customBrushPanel = new JPanel(new GridLayout(0, 3));
-        for (Brush customBrush: customBrushes) {
+        for (Brush customBrush: brushGroup.brushes) {
             customBrushPanel.add(createBrushButton(customBrush));
         }
         
@@ -3395,7 +3415,13 @@ public final class App extends JFrame implements RadiusControl,
         constraints.weightx = 1.0;
         constraints.insets = new Insets(1, 1, 1, 1);
         customBrushesPanel.add(customBrushPanel, constraints);
-        
+
+        if (brushGroup.icon != null) {
+            customBrushesPanel.putClientProperty(KEY_ICON, brushGroup.icon);
+        } else {
+            customBrushesPanel.putClientProperty(KEY_ICON, createScaledLetterIcon(title.charAt(0)));
+        }
+
         return customBrushesPanel;
     }
     
@@ -3485,28 +3511,49 @@ public final class App extends JFrame implements RadiusControl,
         
         constraints.insets = new Insets(1, 1, 1, 1);
         brushSettingsPanel.add(brushOptions, constraints);
-        
+
+        brushSettingsPanel.putClientProperty(KEY_ICON, ICON_SETTINGS);
+
         return brushSettingsPanel;
     }
 
     private void updateBrushRotation() {
-        int desiredBrushRotation = (activeOperation instanceof PaintOperation) ? brushRotation : toolBrushRotation;
+        final int desiredBrushRotation = (activeOperation instanceof PaintOperation) ? brushRotation : toolBrushRotation;
         if (desiredBrushRotation != previousBrushRotation) {
 //            long start = System.currentTimeMillis();
             if (activeOperation instanceof BrushOperation) {
-                Brush brush = (activeOperation instanceof PaintOperation) ? this.brush : this.toolBrush;
+                final Brush brush = (activeOperation instanceof PaintOperation) ? this.brush : this.toolBrush;
                 if (desiredBrushRotation == 0) {
                     ((BrushOperation) activeOperation).setBrush(brush);
                 } else {
                     Brush rotatedBrush = RotatedBrush.rotate(brush, desiredBrushRotation);
                     ((BrushOperation) activeOperation).setBrush(rotatedBrush);
                 }
+                updateBrushRotation(brush, brushButtons.get(brush));
             }
             view.setBrushRotation(desiredBrushRotation);
 //            if (logger.isDebugEnabled()) {
 //                logger.debug("Updating brush rotation took " + (System.currentTimeMillis() - start) + " ms");
 //            }
             previousBrushRotation = desiredBrushRotation;
+        }
+    }
+
+    /**
+     * Update the image of a single brush button
+     */
+    private void updateBrushRotation(Brush brush, JToggleButton button) {
+        if (! (brush instanceof BitmapBrush)) {
+            return;
+        }
+        final int desiredBrushRotation = (activeOperation instanceof PaintOperation) ? brushRotation : toolBrushRotation;
+        final Icon thumbnail = (Icon) button.getClientProperty(KEY_THUMBNAIL);
+        if (thumbnail != null) {
+            if ((desiredBrushRotation == 0) || (! button.isSelected())){
+                button.setIcon(thumbnail);
+            } else {
+                button.setIcon(IconUtils.rotateIcon(thumbnail, desiredBrushRotation));
+            }
         }
     }
 
@@ -3902,7 +3949,7 @@ public final class App extends JFrame implements RadiusControl,
             menuItem.setMnemonic('x');
             menu.add(menuItem);
         }
-        menu.putClientProperty(HELP_KEY_KEY, "Menu/File");
+        menu.putClientProperty(KEY_HELP_KEY, "Menu/File");
         return menu;
     }
     
@@ -4122,7 +4169,7 @@ public final class App extends JFrame implements RadiusControl,
             menu.add(menuItem);
         }
 
-        menu.putClientProperty(HELP_KEY_KEY, "Menu/Edit");
+        menu.putClientProperty(KEY_HELP_KEY, "Menu/Edit");
         return menu;
     }
 
@@ -4261,7 +4308,7 @@ public final class App extends JFrame implements RadiusControl,
         });
         menu.add(menuItem);
 
-        menu.putClientProperty(HELP_KEY_KEY, "Menu/View");
+        menu.putClientProperty(KEY_HELP_KEY, "Menu/View");
         return menu;
     }
 
@@ -4390,7 +4437,7 @@ public final class App extends JFrame implements RadiusControl,
         menuItem = new JMenuItem("Run script...");
         menuItem.addActionListener(e -> new ScriptRunner(this, world, dimension, undoManagers.values()).setVisible(true));
         menu.add(menuItem);
-        menu.putClientProperty(HELP_KEY_KEY, "Menu/Tools");
+        menu.putClientProperty(KEY_HELP_KEY, "Menu/Tools");
         return menu;
     }
 
@@ -4414,7 +4461,7 @@ public final class App extends JFrame implements RadiusControl,
             });
             menu.add(menuItem);
         }
-        menu.putClientProperty(HELP_KEY_KEY, "Menu/Help");
+        menu.putClientProperty(KEY_HELP_KEY, "Menu/Help");
         return menu;
     }
 
@@ -4933,7 +4980,7 @@ public final class App extends JFrame implements RadiusControl,
                 }
             }
         });
-        button.putClientProperty(HELP_KEY_KEY, "Operation/" + operation.getClass().getSimpleName());
+        button.putClientProperty(KEY_HELP_KEY, "Operation/" + operation.getClass().getSimpleName());
         toolButtonGroup.add(button);
         return button;
     }
@@ -4993,12 +5040,12 @@ public final class App extends JFrame implements RadiusControl,
             });
             paintButtonGroup.add(button);
             button.setText(layer.getName());
-            button.putClientProperty(HELP_KEY_KEY, "Layer/" + layer.getId());
+            button.putClientProperty(KEY_HELP_KEY, "Layer/" + layer.getId());
             components.add(button);
         } else {
             button = null;
             JLabel label = new JLabel(layer.getName(), new ImageIcon(layer.getIcon()), JLabel.LEADING);
-            label.putClientProperty(HELP_KEY_KEY, "Layer/" + layer.getId());
+            label.putClientProperty(KEY_HELP_KEY, "Layer/" + layer.getId());
             components.add(label);
         }
 
@@ -5102,6 +5149,7 @@ public final class App extends JFrame implements RadiusControl,
                 JToggleButton button = entry.getValue();
                 if (button.isSelected()) {
                     button.setSelected(false);
+                    updateBrushRotation(entry.getKey(), button);
                     break;
                 }
             }
@@ -5110,11 +5158,13 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private JComponent createBrushButton(final Brush brush) {
-        final JToggleButton button = new LazyLoadingIconToggleButton((int) (32 * getUIScale()), () -> createBrushIcon(brush));
+        final JToggleButton button = new LazyLoadingIconToggleButton((int) (32 * getUIScale()), () -> setBrushThumbnail(brush));
         button.setMargin(new Insets(2, 2, 2, 2));
         button.setToolTipText(brush.getName());
         button.addItemListener(e -> {
+            System.out.println("itemStateChanged()");
             if (! programmaticChange) {
+                updateBrushRotation(brush, button);
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     int effectiveRotation;
                     if (activeOperation instanceof PaintOperation) {
@@ -5141,23 +5191,27 @@ public final class App extends JFrame implements RadiusControl,
         brushButtons.put(brush, button);
         return button;
     }
-    
-    private Icon createBrushIcon(Brush brush) {
-        brush.setRadius((int) (16 * getUIScale()) - 1);
-        return new ImageIcon(createBrushImage(brush));
-    }
 
-    private BufferedImage createBrushImage(Brush brush) {
-        int r = (int) (16 * getUIScale());
-        BufferedImage image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(r * 2, r * 2, Transparency.TRANSLUCENT);
-        for (int dx = -r + 1; dx < r; dx++) {
-            for (int dy = -r + 1; dy < r; dy++) {
-                float strength = brush.getFullStrength(dx, dy);
-                int alpha = Math.round(strength * 255f);
-                image.setRGB(dx + r - 1, dy + r - 1, alpha << 24);
+    private Icon setBrushThumbnail(Brush brush) {
+        final Icon thumbnail = createBrushThumbnail(brush.clone(), Math.round(32 * getUIScale()));
+        final JToggleButton button = brushButtons.get(brush);
+        button.putClientProperty(KEY_THUMBNAIL, thumbnail);
+        updateBrushRotation(brush, button);
+        return thumbnail;
+    }
+    
+    private Icon createBrushThumbnail(Brush brush, int size) {
+        final int radius = size / 2;
+        brush.setRadius(radius - 1);
+        final BufferedImage image = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(size, size, Transparency.TRANSLUCENT);
+        for (int dx = -radius + 1; dx < radius; dx++) {
+            for (int dy = -radius + 1; dy < radius; dy++) {
+                final float strength = brush.getFullStrength(dx, dy);
+                final int alpha = Math.round(strength * 255f);
+                image.setRGB(dx + radius - 1, dy + radius - 1, alpha << 24);
             }
         }
-        return image;
+        return new ImageIcon(image);
     }
 
     private static Icon loadScaledIcon(@NonNls String name) {
@@ -6013,7 +6067,7 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 }
             }
-            dockableFrame.setFrameIcon(icon);
+            dockableFrame.setFrameIcon((icon != null) ? icon : ICON_UNKNOWN_PATTERN);
 
             // Use preferred size of component as much as possible
             final java.awt.Dimension preferredSize = component.getPreferredSize();
@@ -6038,7 +6092,7 @@ public final class App extends JFrame implements RadiusControl,
             dockableFrame.setMaximizable(false);
 
             //Help key
-            dockableFrame.putClientProperty(HELP_KEY_KEY, "Panel/" + id);
+            dockableFrame.putClientProperty(KEY_HELP_KEY, "Panel/" + id);
             return dockableFrame;
         }
 
@@ -6081,6 +6135,12 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     static Icon findIcon(Container container) {
+        if (container instanceof JComponent) {
+            Icon icon = (Icon) ((JComponent) container).getClientProperty(KEY_ICON);
+            if (icon != null) {
+                return icon;
+            }
+        }
         for (Component component: container.getComponents()) {
             if ((component instanceof AbstractButton) && (((AbstractButton) component).getIcon() != null)) {
                 return ((AbstractButton) component).getIcon();
@@ -6859,7 +6919,7 @@ public final class App extends JFrame implements RadiusControl,
     private final JToggleButton[] customMaterialButtons = new JToggleButton[CUSTOM_TERRAIN_COUNT];
     private final ColourScheme selectedColourScheme;
     private final String[] biomeNames = new String[256];
-    private SortedMap<String, List<Brush>> customBrushes;
+    private SortedMap<String, BrushGroup> customBrushes;
     private final List<Layer> layers = LayerManager.getInstance().getLayers();
     private final List<Operation> operations;
     private ThreeDeeFrame threeDeeFrame;
@@ -6895,7 +6955,9 @@ public final class App extends JFrame implements RadiusControl,
     
     public static final int DEFAULT_MAX_RADIUS = 300;
 
-    public static final String HELP_KEY_KEY = "org.pepsoft.worldpainter.helpKey";
+    public static final String KEY_HELP_KEY = "org.pepsoft.worldpainter.helpKey";
+    public static final String KEY_ICON = "org.pepsoft.worldpainter.icon";
+    public static final String KEY_THUMBNAIL = "org.pepsoft.worldpainter.thumbnail";
 
     public static final Insets BUTTON_INSETS = new Insets(3, 5, 3, 5) {
         @Override
@@ -6943,7 +7005,11 @@ public final class App extends JFrame implements RadiusControl,
     private static final Icon ICON_MOVE_TO_ORIGIN       = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_in.png");
     private static final Icon ICON_UNKNOWN_PATTERN      = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/unknown_pattern.png");
     private static final Icon ICON_SHIFT_WORLD          = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_cross.png");
-    
+    private static final Icon ICON_SETTINGS             = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/wrench.png");
+    private static final Icon ICON_ANNOTATIONS          = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/annotations.png");
+    private static final Icon ICON_BIOMES               = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/deciduous_trees_pattern.png");
+    private static final Icon ICON_LAYERS               = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/layers.png");
+
     private static final int PLATFORM_COMMAND_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
     private static final String CUSTOM_BRUSHES_DEFAULT_TITLE = "Custom Brushes";
@@ -7256,5 +7322,17 @@ public final class App extends JFrame implements RadiusControl,
         protected final String defaultCheckBoxToolTip, defaultSoloCheckBoxToolTip, defaultButtonToolTip;
     }
 
-    public enum Mode {WORLDPAINTER, MINECRAFTMAPEDITOR}
+    public enum Mode { WORLDPAINTER, MINECRAFTMAPEDITOR }
+
+    class BrushGroup {
+        BrushGroup(String name, BufferedImage icon, List<Brush> brushes) {
+            this.name = name;
+            this.icon = icon;
+            this.brushes = brushes;
+        }
+
+        final String name;
+        final BufferedImage icon;
+        final List<Brush> brushes;
+    }
 }

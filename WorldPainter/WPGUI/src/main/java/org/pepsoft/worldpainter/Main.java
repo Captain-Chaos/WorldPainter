@@ -353,10 +353,13 @@ public class Main {
                     config.logEvent(sessionEvent);
                     config.save();
 
-                    // Store the acceleration type separately, because we need
-                    // it before we can load the config:
+                    // Store the acceleration type and manual GUI scale separately, because we need them before we can
+                    // load the config:
                     Preferences prefs = Preferences.userNodeForPackage(Main.class);
                     prefs.put("accelerationType", config.getAccelerationType().name());
+                    prefs.flush();
+                    prefs = Preferences.userNodeForPackage(GUIUtils.class);
+                    prefs.putFloat("manualUIScale", config.getUiScale());
                     prefs.flush();
                 } catch (IOException e) {
                     logger.error("I/O error saving configuration", e);
@@ -415,10 +418,6 @@ public class Main {
                 GUIUtils.setUIScale(1.0f);
                 logger.info("[SAFE MODE] Not installing visual theme");
             } else {
-                if (myConfig.getUiScale() != 0.0f) {
-                    GUIUtils.setUIScale(myConfig.getUiScale());
-                }
-
                 // Install configured look and feel
                 try {
                     String laf;
