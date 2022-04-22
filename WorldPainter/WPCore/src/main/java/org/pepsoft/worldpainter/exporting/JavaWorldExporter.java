@@ -50,6 +50,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
         super(world, platform);
     }
 
+    @SuppressWarnings("ConstantConditions") // Clarity
     @Override
     public Map<Integer, ChunkFactory.Stats> export(File baseDir, String name, File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
         // Sanity checks

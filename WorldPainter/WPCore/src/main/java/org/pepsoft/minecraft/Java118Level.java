@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.SuperflatPreset.defaultPreset;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Generator.*;
 
@@ -14,11 +15,11 @@ import static org.pepsoft.worldpainter.Generator.*;
  * The {@code level.dat} file for a Minecraft 1.18 map.
  */
 public class Java118Level extends JavaLevel {
-    public Java118Level(int mapHeight, Platform platform) {
+    Java118Level(int mapHeight, Platform platform) {
         super(mapHeight, platform);
     }
 
-    public Java118Level(CompoundTag tag, int mapHeight) {
+    Java118Level(CompoundTag tag, int mapHeight) {
         super(tag, mapHeight);
         loadWorldGenSettings();
     }
@@ -173,7 +174,8 @@ public class Java118Level extends JavaLevel {
                 case FLAT:
                     generatorType = MC_FLAT;
                     // TODO make this configurable:
-                    settingsTag = ((SuperflatGenerator) generator).getSettings().toMinecraft1_18_0();
+                    final SuperflatPreset settings = ((SuperflatGenerator) generator).getSettings();
+                    settingsTag = ((settings != null) ? settings : defaultPreset(platform)).toMinecraft1_18_0();
                     biomeSourceType = biomeSourcePreset = null;
                     break;
                 case NETHER:

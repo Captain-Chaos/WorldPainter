@@ -58,7 +58,7 @@ public class BlockNameHarvester {
             if (worldDir.isDirectory()) {
                 FileUtils.deleteDir(worldDir);
             }
-            Java117Level level = new Java117Level(DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL);
+            JavaLevel level = JavaLevel.create(JAVA_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL);
             level.setSeed(0L);
             level.setName("BlockNames");
             level.setGameType(GAME_TYPE_CREATIVE);

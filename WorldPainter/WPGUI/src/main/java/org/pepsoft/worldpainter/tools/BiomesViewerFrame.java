@@ -5,7 +5,7 @@
 package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.Constants;
-import org.pepsoft.minecraft.Java117Level;
+import org.pepsoft.minecraft.JavaLevel;
 import org.pepsoft.minecraft.SeededGenerator;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.ProgressReceiver;
@@ -228,7 +228,7 @@ public class BiomesViewerFrame extends JFrame {
         }
         BiomeScheme biomeScheme1 = BiomesViewerFrame.this.biomeScheme;
         final Platform platform = (biomeScheme1 instanceof Minecraft1_1BiomeScheme) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL;
-        Java117Level level = new Java117Level(platform.standardMaxHeight, platform);
+        JavaLevel level = JavaLevel.create(platform, platform.standardMaxHeight);
         final long seed = ((Number) seedSpinner.getValue()).longValue();
         if (! (biomeScheme1 instanceof Minecraft1_1BiomeScheme)) {
             final Generator generatorType = ((biomeScheme1 instanceof Minecraft1_3LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_7LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_8LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_12LargeBiomeScheme)) ? Generator.LARGE_BIOMES : Generator.DEFAULT;

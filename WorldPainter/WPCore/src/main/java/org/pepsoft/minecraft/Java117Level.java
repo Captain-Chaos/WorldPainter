@@ -8,17 +8,19 @@ import org.pepsoft.worldpainter.Platform;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.MapGenerator.UNKNOWN;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Generator.*;
 
 /**
  * The {@code level.dat} file for a Minecraft 1.17 or earlier map.
  */
 public class Java117Level extends JavaLevel {
-    public Java117Level(int mapHeight, Platform platform) {
+    Java117Level(int mapHeight, Platform platform) {
         super(mapHeight, platform);
     }
 
-    public Java117Level(CompoundTag tag, int mapHeight) {
+    Java117Level(CompoundTag tag, int mapHeight) {
         super(tag, mapHeight);
     }
 
@@ -100,6 +102,15 @@ public class Java117Level extends JavaLevel {
                             setString(TAG_GENERATOR_NAME_, "FLAT");
                         } else {
                             setString(TAG_GENERATOR_NAME_, "flat");
+                        }
+                        SuperflatPreset preset = ((SuperflatGenerator) generator).getSettings();
+                        if (preset == null) {
+                            preset = SuperflatPreset.defaultPreset(platform);
+                        }
+                        if ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL)) {
+                            setGeneratorOptions(new StringTag(TAG_GENERATOR_OPTIONS_, preset.toMinecraft1_12_2()));
+                        } else {
+                            setGeneratorOptions(preset.toMinecraft1_15_2());
                         }
                         break;
                     case LARGE_BIOMES:

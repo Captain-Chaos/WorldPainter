@@ -16,14 +16,23 @@ import org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 import static org.pepsoft.minecraft.Constants.MC_DIRT;
+import static org.pepsoft.minecraft.Constants.MC_PLAINS;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.BIOMES_BY_MODERN_ID;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.MODERN_IDS;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 
 /**
  *
  * @author Pepijn
  */
+@SuppressWarnings("unchecked") // Managed by NetBeans
 public class EditSuperflatPresetDialog extends WorldPainterDialog {
     /**
      * Creates new form EditSuperflatPresetDialog
@@ -36,32 +45,54 @@ public class EditSuperflatPresetDialog extends WorldPainterDialog {
         initComponents();
         tableLayers.getSelectionModel().addListSelectionListener(e -> setControlStates());
 
-        String[] biomeNames;
-        if (platform == DefaultPlugin.JAVA_MCREGION) {
-            biomeNames = AbstractMinecraft1_1BiomeScheme.BIOME_NAMES;
-        } else if (platform == DefaultPlugin.JAVA_ANVIL) {
-            biomeNames = Minecraft1_7Biomes.BIOME_NAMES;
-        } else {
-            // Default to 1.13 biomes for now, even for other platforms
+        if (platform.capabilities.contains(NAMED_BIOMES)) {
             // TODO move available biomes to Platform
-            biomeNames = Minecraft1_17Biomes.BIOME_NAMES;
-        }
-        Integer[] availableBiomes = IntStream.range(0, biomeNames.length).filter(i -> biomeNames[i] != null).boxed().toArray(Integer[]::new);
-        comboBoxBiome.setModel(new DefaultComboBoxModel<>(availableBiomes));
-        comboBoxBiome.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                setText(biomeNames[(Integer) value] + " (" + value + ")");
-                return this;
+            final String[] availableBiomes = Arrays.stream(MODERN_IDS).filter(Objects::nonNull).toArray(String[]::new);
+            comboBoxBiome.setModel(new DefaultComboBoxModel<>(availableBiomes));
+            comboBoxBiome.setEditable(true);
+            if (superflatPreset.getBiomeName() != null) {
+                comboBoxBiome.setSelectedItem(superflatPreset.getBiomeName());
+            } else if (MODERN_IDS[superflatPreset.getBiome()] != null) {
+                comboBoxBiome.setSelectedItem(MODERN_IDS[superflatPreset.getBiome()]);
+            } else {
+                comboBoxBiome.setSelectedItem(MC_PLAINS);
             }
-        });
-        comboBoxBiome.setSelectedItem(superflatPreset.getBiome());
+        } else {
+            final String[] biomeNames;
+            if (platform == DefaultPlugin.JAVA_MCREGION) {
+                biomeNames = AbstractMinecraft1_1BiomeScheme.BIOME_NAMES;
+            } else if (platform == DefaultPlugin.JAVA_ANVIL) {
+                biomeNames = Minecraft1_7Biomes.BIOME_NAMES;
+            } else {
+                // Default to 1.17 biomes for now, even for other platforms
+                // TODO move available biomes to Platform
+                biomeNames = Minecraft1_17Biomes.BIOME_NAMES;
+            }
+            final Integer[] availableBiomes = IntStream.range(0, biomeNames.length).filter(i -> biomeNames[i] != null).boxed().toArray(Integer[]::new);
+            comboBoxBiome.setModel(new DefaultComboBoxModel<>(availableBiomes));
+            comboBoxBiome.setRenderer(new DefaultListCellRenderer() {
+                @Override
+                public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                    super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                    setText(biomeNames[(Integer) value] + " (" + value + ")");
+                    return this;
+                }
+            });
+            comboBoxBiome.setSelectedItem(superflatPreset.getBiome());
+        }
 
         layersTableModel = new SuperflatPresetLayersTableModel(superflatPreset.getLayers());
         tableLayers.setModel(layersTableModel);
-        structuresTableModel = new SuperflatPresetStructuresTableModel(superflatPreset.getStructures());
-        tableStructures.setModel(structuresTableModel);
+
+        if ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_15)) {
+            structuresTableModel = new SuperflatPresetStructuresTableModel(superflatPreset.getStructures());
+            tableStructures.setModel(structuresTableModel);
+        } else {
+            // TODO add new flags? strongholds, lakes?
+            structuresTableModel = null;
+            jLabel3.setVisible(false);
+            tableStructures.setVisible(false);
+        }
 
         setControlStates();
         
@@ -76,6 +107,18 @@ public class EditSuperflatPresetDialog extends WorldPainterDialog {
     }
 
     private boolean save() {
+        Object selectedBiome = comboBoxBiome.getSelectedItem();
+        if (selectedBiome instanceof String) {
+            superflatPreset.setBiomeName((String) selectedBiome);
+            superflatPreset.setBiome(BIOMES_BY_MODERN_ID.getOrDefault(selectedBiome, BIOME_PLAINS));
+        } else if (selectedBiome instanceof Integer) {
+            superflatPreset.setBiome((Integer) selectedBiome);
+            if (MODERN_IDS[(Integer) selectedBiome] != null) {
+                superflatPreset.setBiomeName(MODERN_IDS[(Integer) selectedBiome]);
+            } else {
+                superflatPreset.setBiomeName(MC_PLAINS);
+            }
+        }
         superflatPreset.setBiome((Integer) comboBoxBiome.getSelectedItem());
         superflatPreset.setLayers(layersTableModel.getLayers());
         superflatPreset.setStructures(structuresTableModel.getStructures());
@@ -105,7 +148,7 @@ public class EditSuperflatPresetDialog extends WorldPainterDialog {
         buttonLayerAdd = new javax.swing.JButton();
         buttonLayerDelete = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
-        comboBoxBiome = new javax.swing.JComboBox<>();
+        comboBoxBiome = new javax.swing.JComboBox();
         buttonCancel = new javax.swing.JButton();
         buttonOK = new javax.swing.JButton();
         tableStructures = new javax.swing.JTable();
@@ -264,7 +307,7 @@ public class EditSuperflatPresetDialog extends WorldPainterDialog {
     private javax.swing.JButton buttonLayerAdd;
     private javax.swing.JButton buttonLayerDelete;
     private javax.swing.JButton buttonOK;
-    private javax.swing.JComboBox<Integer> comboBoxBiome;
+    private javax.swing.JComboBox comboBoxBiome;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

@@ -36,6 +36,7 @@ public abstract class JavaLevel extends AbstractNBTItem {
     @SuppressWarnings("ConstantConditions") // Defensive programming
     protected JavaLevel(int mapHeight, Platform platform) {
         super(new CompoundTag(TAG_DATA, new HashMap<>()));
+        this.platform = platform;
         if ((platform != JAVA_ANVIL)
                 && (platform != JAVA_MCREGION)
                 && (platform != JAVA_ANVIL_1_15)
@@ -72,7 +73,7 @@ public abstract class JavaLevel extends AbstractNBTItem {
 
     protected JavaLevel(CompoundTag tag, int mapHeight) {
         super((CompoundTag) tag.getTag(TAG_DATA));
-        int version = getInt(TAG_VERSION_);
+        final int version = getInt(TAG_VERSION_);
         if ((version != VERSION_UNKNOWN) && (version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
             // TODO refactor support for non-vanilla level.dat files (VERSION_UNKNOWN) out of here
             throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(version));
@@ -90,6 +91,20 @@ public abstract class JavaLevel extends AbstractNBTItem {
             tag.getValue().values().stream()
                     .filter(extraTag -> ! extraTag.getName().equals(TAG_DATA))
                     .forEach(extraTags::add);
+        }
+        if (version == VERSION_MCREGION) {
+            platform = JAVA_MCREGION;
+        } else {
+            final int dataVersion = getInt(TAG_DATA_VERSION);
+            if (dataVersion <= DATA_VERSION_MC_1_12_2) {
+                platform = JAVA_ANVIL;
+            } else if (dataVersion <= DATA_VERSION_MC_1_16_5) {
+                platform = JAVA_ANVIL_1_15;
+            } else if (dataVersion <= DATA_VERSION_MC_1_17_1) {
+                platform = (maxHeight == DEFAULT_MAX_HEIGHT_ANVIL) ? JAVA_ANVIL_1_15 : JAVA_ANVIL_1_17;
+            } else {
+                platform = JAVA_ANVIL_1_18;
+            }
         }
     }
     
@@ -511,6 +526,7 @@ public abstract class JavaLevel extends AbstractNBTItem {
         }
     }
 
+    protected final Platform platform;
     protected final int maxHeight;
     protected final Set<Tag> extraTags;
 

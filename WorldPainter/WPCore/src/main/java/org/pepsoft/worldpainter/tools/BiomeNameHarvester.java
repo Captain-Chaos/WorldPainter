@@ -57,7 +57,7 @@ public class BiomeNameHarvester {
             if (worldDir.isDirectory()) {
                 FileUtils.deleteDir(worldDir);
             }
-            Java117Level level = new Java117Level(DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL_1_15);
+            JavaLevel level = JavaLevel.create(JAVA_ANVIL_1_15, DEFAULT_MAX_HEIGHT_ANVIL);
             level.setSeed(0L);
             level.setName("BiomeNames");
             level.setGameType(GAME_TYPE_CREATIVE);

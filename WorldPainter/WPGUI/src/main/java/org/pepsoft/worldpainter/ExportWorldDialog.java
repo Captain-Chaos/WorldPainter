@@ -25,8 +25,12 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_PEACEFUL;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -159,7 +163,8 @@ public class ExportWorldDialog extends WorldPainterDialog {
         fieldName.getDocument().addDocumentListener(documentListener);
 
         disableDisabledLayersWarning = true;
-dims:   for (Dimension dim: world.getDimensions()) {
+        dims:
+        for (Dimension dim: world.getDimensions()) {
             for (CustomLayer customLayer: dim.getCustomLayers()) {
                 if (! customLayer.isExport()) {
                     disableDisabledLayersWarning = false;
@@ -347,15 +352,12 @@ dims:   for (Dimension dim: world.getDimensions()) {
         world.setCreateGoodiesChest(checkBoxGoodies.isSelected());
         world.setGameType((GameType) comboBoxGameType.getSelectedItem());
         world.setAllowCheats(checkBoxAllowCheats.isSelected());
-        final Dimension dim0 = world.getDimension(DIM_NORMAL);
-        if ((dim0.getBorder() == null) || (! dim0.getBorder().isEndless())) {
-            world.setMapFeatures(checkBoxMapFeatures.isSelected());
-        }
+        world.setMapFeatures(checkBoxMapFeatures.isSelected());
         if (radioButtonExportEverything.isSelected()) {
             world.setDimensionsToExport(null);
             world.setTilesToExport(null);
         } else {
-            world.setDimensionsToExport(Collections.singleton(selectedDimension));
+            world.setDimensionsToExport(singleton(selectedDimension));
             world.setTilesToExport(selectedTiles);
         }
         world.setDifficulty(comboBoxDifficulty.getSelectedIndex());
