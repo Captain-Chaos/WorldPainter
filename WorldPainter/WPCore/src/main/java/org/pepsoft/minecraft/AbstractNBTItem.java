@@ -5,6 +5,7 @@
 
 package org.pepsoft.minecraft;
 
+import com.google.common.collect.ImmutableMap;
 import org.jnbt.*;
 
 import java.io.Serializable;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
+import static org.pepsoft.minecraft.DataType.REGION;
 
 /**
  * A data structure based on an NBT tag or hierarchy of tags.
@@ -49,10 +51,11 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
 
     @Override
     public Map<DataType, ? extends Tag> toMultipleNBT() {
-        if (tags == null) {
-            throw new UnsupportedOperationException("This NBT item has no multiple tags");
+        if (tags != null) {
+            return tags;
+        } else {
+            return ImmutableMap.of(REGION, tag);
         }
-        return tags;
     }
 
     protected final Map<String, Tag> getAllTags() {
