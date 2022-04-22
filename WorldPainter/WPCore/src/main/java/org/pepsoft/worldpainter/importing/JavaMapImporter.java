@@ -36,6 +36,7 @@ import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
+import static org.pepsoft.worldpainter.importing.MapImporter.ReadOnlyOption.*;
 import static org.pepsoft.worldpainter.util.ChunkUtils.skipChunk;
 
 /**
@@ -299,7 +300,7 @@ public class JavaMapImporter extends MapImporter {
                                             }
                                         }
                                         String name = material.name;
-                                        if ((name == MC_SNOW) || (name == MC_ICE) || (name == MC_FROSTED_ICE)) {
+                                        if ((name == MC_SNOW) || (name == MC_ICE)) {
                                             frost = true;
                                         }
                                         if ((waterLevel == Integer.MIN_VALUE)
@@ -318,7 +319,12 @@ public class JavaMapImporter extends MapImporter {
                                                 height = y - 0.4375f; // Value that falls in the middle of the lowest one eighth which will still round to the same integer value and will receive a one layer thick smooth snow block (principle of least surprise)
                                                 terrain = TERRAIN_MAPPING.get(name);
                                                 if (waterLevel == Integer.MIN_VALUE) {
-                                                    waterLevel = DEFAULT_WATER_LEVEL;
+                                                    waterLevel = (y >= DEFAULT_WATER_LEVEL) ? DEFAULT_WATER_LEVEL : minHeight;
+                                                }
+                                                if (readOnlyOption != MAN_MADE) {
+                                                    // We only need to keep going if we're going to mark chunks with
+                                                    // underground man-made blocks as read-only
+                                                    break;
                                                 }
                                             }
                                         }
@@ -422,9 +428,9 @@ public class JavaMapImporter extends MapImporter {
                             return true;
                         }
 
-                        if (((readOnlyOption == ReadOnlyOption.MAN_MADE) && (manMadeStructuresBelowGround || manMadeStructuresAboveGround))
-                                || ((readOnlyOption == ReadOnlyOption.MAN_MADE_ABOVE_GROUND) && manMadeStructuresAboveGround)
-                                || (readOnlyOption == ReadOnlyOption.ALL)) {
+                        if (((readOnlyOption == MAN_MADE) && (manMadeStructuresBelowGround || manMadeStructuresAboveGround))
+                                || ((readOnlyOption == MAN_MADE_ABOVE_GROUND) && manMadeStructuresAboveGround)
+                                || (readOnlyOption == ALL)) {
                             dimension.setBitLayerValueAt(ReadOnly.INSTANCE, chunkX << 4, chunkZ << 4, true);
                         }
                     } catch (ProgressReceiver.OperationCancelled e) {
