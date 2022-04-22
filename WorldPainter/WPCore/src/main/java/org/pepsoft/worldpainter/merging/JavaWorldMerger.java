@@ -360,7 +360,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             default:
                 throw new IllegalArgumentException("Dimension " + dimension.getDim() + " not supported");
         }
-        for (DataType dataType: ((JavaPlatformProvider) platformProvider).getDataTypes()) {
+        final Set<DataType> dataTypes = ((JavaPlatformProvider) platformProvider).getDataTypes();
+        for (DataType dataType: dataTypes) {
             File regionDir = new File(dimensionDir, dataType.name().toLowerCase());
             if (! regionDir.exists()) {
                 if (! regionDir.mkdirs()) {
@@ -521,10 +522,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             allRegionCoords.addAll(tilesByRegion.keySet());
             allRegionCoords.addAll(existingRegions.keySet());
 
-            // Find all the existing region files of other types that don't have a corresponding REGION type region in
-            // either old or new map
+            // Find all the existing region files of other types than REGION
             final Map<Point, Map<DataType, File>> additionalRegions = new HashMap<>();
-            for (DataType dataType: ((JavaPlatformProvider) platformProvider).getDataTypes()) {
+            for (DataType dataType: dataTypes) {
                 if (dataType == REGION) {
                     // Already handled above
                     continue;
@@ -536,9 +536,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     }
                     final String[] parts = file.getName().split("\\.");
                     final Point coords = new Point(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
-                    if (! allRegionCoords.contains(coords)) {
-                        additionalRegions.computeIfAbsent(coords, p -> new HashMap<>()).put(dataType, file);
-                    }
+                    additionalRegions.computeIfAbsent(coords, p -> new HashMap<>()).put(dataType, file);
                 }
             }
 
@@ -580,9 +578,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             int maxThreadsByMem = (int) (maxMemoryAvailable / 250000000L);
             int threads;
             if (System.getProperty("org.pepsoft.worldpainter.threads") != null) {
-                threads = Math.max(Math.min(Integer.parseInt(System.getProperty("org.pepsoft.worldpainter.threads")), tilesByRegion.size()), 1);
+                threads = Math.max(Math.min(Integer.parseInt(System.getProperty("org.pepsoft.worldpainter.threads")), allRegionCoords.size() + additionalRegions.size()), 1);
             } else {
-                threads = Math.max(Math.min(Math.min(maxThreadsByMem, runtime.availableProcessors()), allRegionCoords.size()), 1);
+                threads = Math.max(Math.min(Math.min(maxThreadsByMem, runtime.availableProcessors()), allRegionCoords.size() + additionalRegions.size()), 1);
             }
             logger.info("Using " + threads + " thread(s) for merge (cores: " + runtime.availableProcessors() + ", available memory: " + (maxMemoryAvailable / 1048576L) + " MB)");
 
@@ -654,7 +652,10 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             });
                         } else {
                             // Region only exists in existing world. Copy it to the new world
-                            copyRegionsUnchanged(fixups, exportedRegions, executor, parallelProgressManager, regionCoords, ImmutableMap.of(REGION, existingRegions.get(regionCoords)), dimensionDir);
+                            final Map<DataType, File> regions = new HashMap<>();
+                            regions.put(REGION, existingRegions.get(regionCoords));
+                            regions.putAll(additionalRegions.get(regionCoords));
+                            copyRegionsUnchanged(fixups, exportedRegions, executor, parallelProgressManager, regionCoords, regions, dimensionDir);
                         }
                     } else {
                         // Region only exists in new world. Create it as new
@@ -701,10 +702,12 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     }
                 }
                 additionalRegions.forEach((coords, regions) -> {
-                    // This is a region file from a directory other than "region" which does not have a
-                    // corresponding region file in "region" in either the old or new maps, so it was not processed
-                    // yet. Just copy it
-                    copyRegionsUnchanged(fixups, exportedRegions, executor, parallelProgressManager, coords, regions, dimensionDir);
+                    if (! allRegionCoords.contains(coords)) {
+                        // This is a region file from a directory other than "region" which does not have a
+                        // corresponding region file in "region" in either the old or new maps, so it was not processed
+                        // yet. Just copy it
+                        copyRegionsUnchanged(fixups, exportedRegions, executor, parallelProgressManager, coords, regions, dimensionDir);
+                    }
                 });
             } finally {
                 executor.shutdown();
@@ -765,7 +768,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 for (Map.Entry<DataType, File> entry: regions.entrySet()) {
                     DataType type = entry.getKey();
                     File file = entry.getValue();
-                    FileUtils.copyFileToDir(file, new File(dimensionDir, type.name().toLowerCase()), (fileCount == 1) ? progressReceiver : new SubProgressReceiver(progressReceiver, (float) fileNo / fileCount, 1.0f / fileCount));
+                    FileUtils.copyFileToDir(file, new File(dimensionDir, type.name().toLowerCase()), (progressReceiver != null)
+                            ? ((fileCount == 1) ? progressReceiver : new SubProgressReceiver(progressReceiver, (float) fileNo / fileCount, 1.0f / fileCount))
+                            : null);
                     fileNo++;
                 }
                 synchronized (fixups) {
@@ -1090,7 +1095,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 boolean aboveGround = true;
-                for (int y = existingChunk.getHighestNonAirBlock(x, z); y > minHeight; y--) {
+                for (int y = existingChunk.getHighestNonAirBlock(x, z); y >= minHeight; y--) {
                     Material existingBlock = existingChunk.getMaterial(x, y, z);
                     if (aboveGround) {
                         if ((clearTrees && existingBlock.treeRelated)
@@ -1100,7 +1105,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         } else if (existingBlock.terrain) {
                             aboveGround = false;
                         }
-                    } else {
+                    }
+                    if (! aboveGround) {
                         // Separate if-statements so that if both are enabled,
                         // man made blocks are correctly removed and then filled
                         // in
@@ -1183,7 +1189,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     }
                     Material material = existingChunk.getMaterial(xx, zz, yy);
                     if (material.solid && (! material.resource) && material.opaque) {
-                        int newCount = materialCounts.merge(material, 1, (count, delta) -> count + delta);
+                        int newCount = materialCounts.merge(material, 1, Integer::sum);
                         if (newCount > mostPrevalentMaterialCount) {
                             mostPrevalentMaterialCount = newCount;
                             mostPrevalentMaterial = material;
