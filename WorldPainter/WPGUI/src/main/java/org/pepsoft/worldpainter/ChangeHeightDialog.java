@@ -11,23 +11,28 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.SuperflatGenerator;
+import org.pepsoft.minecraft.SuperflatPreset;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
+import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Resources;
+import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 import static java.util.Arrays.stream;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_17;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.history.HistoryEntry.*;
 
 /**
@@ -125,10 +130,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         if (((newPlatform != oldPlatform) || (newMinHeight != oldMinHeight) || (newMaxHeight != oldMaxHeight)) && (world.getImportedFrom() != null) && (JOptionPane.showConfirmDialog(this, "<html>This world was imported from an existing map!<br>Are you <i>sure</i> you want to retarget it?<br>You will not be able to merge it back to the existing map any more!</html>", "Import from Existing Map", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)) {
             return;
         }
-        if (newPlatform != oldPlatform) {
-            world.setPlatform(newPlatform);
-            world.addHistoryEntry(WORLD_RETARGETED, oldPlatform.displayName, newPlatform.displayName);
-        }
+        changePlatform(newPlatform, checkBoxAdjustLayers.isSelected());
         resizeWorld(world, getTransform(), newMinHeight, newMaxHeight, checkBoxAdjustLayers.isSelected(), this);
         if (newMinHeight != oldMinHeight) {
             world.addHistoryEntry(WORLD_MIN_HEIGHT_CHANGED, newMinHeight);
@@ -140,6 +142,46 @@ public class ChangeHeightDialog extends WorldPainterDialog {
             for (Dimension dimension: world.getDimensions()) {
                 world.addHistoryEntry(WORLD_DIMENSION_SHIFTED_VERTICALLY, dimension.getName(), (Integer) spinnerTranslateAmount.getValue());
             }
+        }
+    }
+
+    private void changePlatform(Platform newPlatform, boolean transformLayers) {
+        final Platform oldPlatform = world.getPlatform();
+        if (newPlatform != oldPlatform) {
+            world.setPlatform(newPlatform);
+            if (transformLayers) {
+                for (Dimension dim: world.getDimensions()) {
+                    if (dim.getGenerator() instanceof SuperflatGenerator) {
+                        // Patch some block names TODO are there more (that are commonly used in Superflat presets)?
+                        SuperflatPreset settings = ((SuperflatGenerator) dim.getGenerator()).getSettings();
+                        if (((oldPlatform == JAVA_MCREGION) || (oldPlatform == JAVA_ANVIL)) && (newPlatform != JAVA_MCREGION) && (newPlatform != JAVA_ANVIL)) {
+                            for (SuperflatPreset.Layer layer: settings.getLayers()) {
+                                switch (layer.getMaterialName()) {
+                                    case "minecraft:grass":
+                                        layer.setMaterialName(MC_GRASS_BLOCK);
+                                        break;
+                                    case "minecraft:snow_layer":
+                                        layer.setMaterialName(MC_SNOW);
+                                        break;
+                                }
+                            }
+                        } else if ((oldPlatform != JAVA_MCREGION) && (oldPlatform != JAVA_ANVIL) && ((newPlatform == JAVA_MCREGION) || (newPlatform == JAVA_ANVIL))) {
+                            for (SuperflatPreset.Layer layer: settings.getLayers()) {
+                                switch (layer.getMaterialName()) {
+                                    case MC_GRASS_BLOCK:
+                                        layer.setMaterialName("minecraft:grass");
+                                        break;
+                                    case MC_SNOW:
+                                        layer.setMaterialName("minecraft:snow_layer");
+                                        break;
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+            world.addHistoryEntry(WORLD_RETARGETED, oldPlatform.displayName, newPlatform.displayName);
         }
     }
 
@@ -169,8 +211,8 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                 @Override
                 public World2 execute(ProgressReceiver progressReceiver) throws OperationCancelled {
                     int tileNo = 0;
-                    int oldMaxHeight = world.getMaxHeight();
                     for (Dimension dim: world.getDimensions()) {
+                        final int oldMinheight = dim.getMinHeight(), oldMaxHeight = dim.getMaxHeight();
                         final int dimNewMinHeight, dimNewMaxHeight;
                         switch (dim.getDim()) {
                             case DIM_NETHER:
@@ -188,7 +230,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                                 dimNewMaxHeight = newMaxHeight;
                                 break;
                         }
-                        if ((dimNewMinHeight == dim.getMinHeight()) && (dimNewMaxHeight == dim.getMaxHeight()) && transform.isIdentity()) {
+                        if ((dimNewMinHeight == oldMinheight) && (dimNewMaxHeight == oldMaxHeight) && transform.isIdentity()) {
                             // Dimension heights don't need to change
                             continue;
                         }
@@ -222,7 +264,52 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                                         resourcesSettings.setMaxLevel(material, maxLevel);
                                     }
                                 }
-                                // TODOMC118: rest of layers
+                                for (ExporterSettings exporterSettings: dim.getAllLayerSettings().values()) {
+                                    if (! (exporterSettings instanceof ResourcesExporterSettings)) {
+                                        exporterSettings.setMinMaxHeight(dimNewMinHeight, dimNewMaxHeight, transform);
+                                    }
+                                }
+                                for (CustomLayer customLayer: dim.getCustomLayers()) {
+                                    customLayer.setMinMaxHeight(dimNewMinHeight, dimNewMaxHeight, transform);
+                                }
+                                if (dim.getGenerator() instanceof SuperflatGenerator) {
+                                    if (dimNewMinHeight != oldMinheight) {
+                                        final int raiseBy = oldMinheight - dimNewMinHeight;
+                                        final SuperflatPreset settings = ((SuperflatGenerator) dim.getGenerator()).getSettings();
+                                        final List<SuperflatPreset.Layer> layers = settings.getLayers();
+                                        final int currentHeight = layers.stream().mapToInt(SuperflatPreset.Layer::getThickness).sum();
+                                        if (raiseBy > 0) {
+                                            // Insert deepslate to raise the Superflat terrain up. Skip the lowest layer
+                                            // if that is bedrock, so that bedrock remains at the bottom. If the lowest
+                                            // or second-lowest layer is already deepslate: expand that
+                                            if (layers.get(0).getMaterialName().equals(MC_BEDROCK)) {
+                                                if (layers.get(1).getMaterialName().equals(MC_DEEPSLATE)) {
+                                                    layers.get(1).setThickness(layers.get(1).getThickness() + raiseBy);
+                                                } else {
+                                                    layers.add(1, new SuperflatPreset.Layer(MC_DEEPSLATE, raiseBy));
+                                                }
+                                            } else if (layers.get(0).getMaterialName().equals(MC_DEEPSLATE)) {
+                                                layers.get(0).setThickness(layers.get(0).getThickness() + raiseBy);
+                                            } else {
+                                                layers.add(0, new SuperflatPreset.Layer(MC_DEEPSLATE, raiseBy));
+                                            }
+                                        } else {
+                                            int lowerBy = -raiseBy;
+                                            // Keep reducing the thickness of layers, starting with the bottom one, until we
+                                            // have shaved off enough, or we run out of layers
+                                            for (SuperflatPreset.Layer layer: layers) {
+                                                final int amount = Math.min(lowerBy, layer.getThickness() - 1);
+                                                if (amount > 0) {
+                                                    layer.setThickness(layer.getThickness() - amount);
+                                                    lowerBy -= amount;
+                                                    if (lowerBy == 0) {
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             dim.clearUndo();
                             dim.armSavePoint();

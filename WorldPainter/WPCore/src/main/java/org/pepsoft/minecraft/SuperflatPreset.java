@@ -30,13 +30,17 @@ public class SuperflatPreset implements Serializable {
         this.layers = layers;
         // Deep copy of map to avoid unserializable or read only implementations
         structuresMap = structures.entrySet().stream().collect(toMap(Entry::getKey, entry -> new HashMap<>(entry.getValue())));
+        features = structuresMap.containsKey(Structure.DECORATION);
+        lakes = structuresMap.containsKey(Structure.LAKE) || structuresMap.containsKey(Structure.LAVA_LAKE);
     }
 
-    public SuperflatPreset(String biome, List<Layer> layers, Map<Structure, Map<String, String>> structures) {
+    public SuperflatPreset(String biome, List<Layer> layers, Map<Structure, Map<String, String>> structures, boolean features, boolean lakes) {
         biomeName = biome;
         this.layers = layers;
         // Deep copy of map to avoid unserializable or read only implementations
         structuresMap = structures.entrySet().stream().collect(toMap(Entry::getKey, entry -> new HashMap<>(entry.getValue())));
+        this.features = features;
+        this.lakes = lakes;
     }
 
     public int getBiome() {
@@ -70,6 +74,24 @@ public class SuperflatPreset implements Serializable {
     public void setStructures(Map<Structure, Map<String, String>> structures) {
         // Deep copy of map to avoid unserializable or read only implementations
         structuresMap = structures.entrySet().stream().collect(toMap(Entry::getKey, entry -> new HashMap<>(entry.getValue())));
+        features = structuresMap.containsKey(Structure.DECORATION);
+        lakes = structuresMap.containsKey(Structure.LAKE) || structuresMap.containsKey(Structure.LAVA_LAKE);
+    }
+
+    public boolean isFeatures() {
+        return features;
+    }
+
+    public void setFeatures(boolean features) {
+        this.features = features;
+    }
+
+    public boolean isLakes() {
+        return lakes;
+    }
+
+    public void setLakes(boolean lakes) {
+        this.lakes = lakes;
     }
 
     public String toMinecraft1_12_2() {
@@ -83,8 +105,16 @@ public class SuperflatPreset implements Serializable {
     }
 
     public CompoundTag toMinecraft1_15_2() {
+        String biome = biomeName;
+        if ((biome == null) && (this.biome != -1) && (Minecraft1_17Biomes.BIOME_NAMES[this.biome] != null)) {
+            biome = "minecraft:" + Minecraft1_17Biomes.BIOME_NAMES[this.biome].toLowerCase().replace(' ', '_');
+        }
+        if (biome == null) {
+            logger.warn("Biome ID {} not recognised while exporting Superflat preset; substituting minecraft:plains", biome);
+            biome = MC_PLAINS;
+        }
         return new CompoundTag("generatorOptions", ImmutableMap.of(
-                "biome", new StringTag("biome", "minecraft:" + Minecraft1_17Biomes.BIOME_NAMES[biome].toLowerCase().replace(' ', '_')), // TODOMC118 custom biome support
+                "biome", new StringTag("biome", biome),
                 "layers", new ListTag<>("layers", CompoundTag.class, layers.stream().map(layer -> new CompoundTag("", ImmutableMap.of(
                         "block", new StringTag("block", layer.materialName),
                         "height", new ShortTag("height", (short) layer.thickness)))).collect(toList())),
@@ -105,9 +135,9 @@ public class SuperflatPreset implements Serializable {
             biome = MC_PLAINS;
         }
         return new CompoundTag(TAG_SETTINGS_, ImmutableMap.of(
-                TAG_BIOME_, new StringTag(TAG_BIOME_, biome), // TODOMC118 custom biome support
-                TAG_FEATURES_, new ByteTag(TAG_FEATURES_, (byte) 0), // TODOMC118 support
-                TAG_LAKES_, new ByteTag(TAG_LAKES_, (byte) 0), // TODOMC118 support
+                TAG_BIOME_, new StringTag(TAG_BIOME_, biome),
+                TAG_FEATURES_, new ByteTag(TAG_FEATURES_, (byte) (features ? 1 : 0)),
+                TAG_LAKES_, new ByteTag(TAG_LAKES_, (byte) (lakes ? 1 : 0)),
                 TAG_LAYERS_, new ListTag<>(TAG_LAYERS_, CompoundTag.class, layers.stream().map(layer -> new CompoundTag("", ImmutableMap.of(
                         TAG_BLOCK_, new StringTag(TAG_BLOCK_, layer.materialName),
                         TAG_HEIGHT_, new IntTag(TAG_HEIGHT_, layer.thickness)))).collect(toList())),
@@ -189,25 +219,37 @@ public class SuperflatPreset implements Serializable {
 
     @SuppressWarnings("unchecked") // Guaranteed by Minecraft
     public static SuperflatPreset fromMinecraft1_15_2(CompoundTag tag) {
-        return new SuperflatPreset(getBiomeByMinecraft117Name(((StringTag) tag.getTag("biome")).getValue()),
+        final String biomeName = ((StringTag) tag.getTag("biome")).getValue();
+        final SuperflatPreset preset = new SuperflatPreset(biomeName,
                 ((ListTag<CompoundTag>) tag.getTag("layers")).getValue().stream()
                         .map(layerTag -> new Layer(((StringTag) layerTag.getTag("block")).getValue(), ((NumberTag) layerTag.getTag("height")).intValue()))
                         .collect(toList()),
                 ((CompoundTag) tag.getTag("structures")).getValue().values().stream()
                         .collect(toMap(structureTag -> Structure.valueOf(structureTag.getName().toUpperCase()),
-                                structureTag -> ((CompoundTag) structureTag).getValue().entrySet().stream().collect(toMap(Entry::getKey, paramEntry -> ((StringTag) paramEntry.getValue()).getValue()))))
+                                structureTag -> ((CompoundTag) structureTag).getValue().entrySet().stream().collect(toMap(Entry::getKey, paramEntry -> ((StringTag) paramEntry.getValue()).getValue())))),
+                false,
+                false
         );
+        try {
+            preset.setBiome(getBiomeByMinecraft117Name(biomeName));
+        } catch (IllegalArgumentException e) {
+            logger.warn("Biome {} not recognised while importing Superflat preset; substituting Plains biome for older Minecraft versions", biomeName);
+            preset.setBiome(BIOME_PLAINS);
+        }
+        return preset;
     }
 
     @SuppressWarnings("unchecked") // Guaranteed by Minecraft
     public static SuperflatPreset fromMinecraft1_18_0(CompoundTag tag) {
-        // TODOMC118 add features, lakes and structures
+        // TODOMC118 add features, lakes
         final String biomeName = ((StringTag) tag.getTag(TAG_BIOME_)).getValue();
         final SuperflatPreset preset = new SuperflatPreset(biomeName,
                 ((ListTag<CompoundTag>) tag.getTag(TAG_LAYERS_)).getValue().stream()
                         .map(layerTag -> new Layer(((StringTag) layerTag.getTag(TAG_BLOCK_)).getValue(), ((NumberTag) layerTag.getTag(TAG_HEIGHT_)).intValue()))
                         .collect(toList()),
-                emptyMap()
+                emptyMap(),
+                ((ByteTag) tag.getTag(TAG_FEATURES_)).getValue() != 0,
+                ((ByteTag) tag.getTag(TAG_LAKES_)).getValue() != 0
                 );
         try {
             preset.setBiome(getBiomeByMinecraft118Name(biomeName));
@@ -227,10 +269,12 @@ public class SuperflatPreset implements Serializable {
     }
 
     private static int getBiomeByMinecraft117Name(String name) {
-        name = name.substring(name.indexOf(':') + 1).replace('_', ' ');
-        for (int i = 0; i < Minecraft1_17Biomes.BIOME_NAMES.length; i++) {
-            if (name.equalsIgnoreCase(Minecraft1_17Biomes.BIOME_NAMES[i])) {
-                return i;
+        if (name.startsWith("minecraft:")) {
+            name = name.substring(10).replace('_', ' ');
+            for (int i = 0; i < Minecraft1_17Biomes.BIOME_NAMES.length; i++) {
+                if (name.equalsIgnoreCase(Minecraft1_17Biomes.BIOME_NAMES[i])) {
+                    return i;
+                }
             }
         }
         throw new IllegalArgumentException("Unknown biome name: " + name);
@@ -249,6 +293,7 @@ public class SuperflatPreset implements Serializable {
     private Set<Structure> structures;
     private Map<Structure, Map<String, String>> structuresMap;
     private String biomeName;
+    private boolean features, lakes;
 
     private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(SuperflatPreset.class);
@@ -310,16 +355,20 @@ public class SuperflatPreset implements Serializable {
         private final String biomeName;
         private final Map<Structure, Map<String, String>> structures;
         private final List<Layer> layers = new ArrayList<>();
+        private final boolean features, lakes;
 
         Builder(int biome, Structure... structures) {
             this.biome = biome;
             biomeName = null;
             this.structures = ((structures != null) && (structures.length > 0)) ? stream(structures).collect(toMap(identity(), s-> emptyMap())) : emptyMap();
+            features = lakes = false;
         }
 
-        Builder(String biome, Structure... structures) {
+        Builder(String biome, boolean features, boolean lakes, Structure... structures) {
             biomeName = biome;
             this.biome = -1;
+            this.features = features;
+            this.lakes = lakes;
             this.structures = ((structures != null) && (structures.length > 0)) ? stream(structures).collect(toMap(identity(), s-> emptyMap())) : emptyMap();
         }
 
@@ -329,7 +378,7 @@ public class SuperflatPreset implements Serializable {
         }
 
         public SuperflatPreset build() {
-            return (biomeName != null) ? new SuperflatPreset(biomeName, layers, structures) : new SuperflatPreset(biome, layers, structures);
+            return (biomeName != null) ? new SuperflatPreset(biomeName, layers, structures, features, lakes) : new SuperflatPreset(biome, layers, structures);
         }
     }
 }
