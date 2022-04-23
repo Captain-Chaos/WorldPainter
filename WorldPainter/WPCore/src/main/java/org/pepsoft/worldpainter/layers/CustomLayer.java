@@ -4,14 +4,16 @@
  */
 package org.pepsoft.worldpainter.layers;
 
+import org.pepsoft.worldpainter.HeightTransform;
+import org.pepsoft.worldpainter.layers.renderers.LayerRenderer;
+import org.pepsoft.worldpainter.layers.renderers.TransparentColourRenderer;
+
+import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.List;
 import java.util.Random;
-import javax.swing.Action;
-import org.pepsoft.worldpainter.layers.renderers.LayerRenderer;
-import org.pepsoft.worldpainter.layers.renderers.TransparentColourRenderer;
 
 /**
  *
@@ -94,6 +96,17 @@ public abstract class CustomLayer extends Layer implements Cloneable {
     }
 
     /**
+     * This is invoked by WorldPainter when the dimension height is transformed (minHeight and/or maxHeight changes,
+     * and/or a shift and/or scaling operation applied), so that the layer settings may be adjusted accordingly, if
+     * applicable.
+     *
+     * <p>The default implementation does nothing.
+     */
+    public void setMinMaxHeight(int minHeight, int maxHeight, HeightTransform transform) {
+        // Do nothing
+    }
+
+    /**
      * Get a short, human-readable description of the layer type.
      */
     public String getType() {
@@ -128,6 +141,8 @@ public abstract class CustomLayer extends Layer implements Cloneable {
         return null;
     }
 
+    // Comparable
+    
     @Override
     public int compareTo(Layer layer) {
         if ((index != null) && (layer instanceof CustomLayer) && (((CustomLayer) layer).index != null)) {
