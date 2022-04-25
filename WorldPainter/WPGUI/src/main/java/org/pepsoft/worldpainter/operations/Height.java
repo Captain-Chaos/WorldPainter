@@ -52,7 +52,7 @@ public class Height extends RadiusOperation {
             if (filter.getBelowLevel() != Integer.MIN_VALUE) {
                 maxZ = Math.min(filter.getBelowLevel(), dimension.getMaxHeight());
             } else {
-                maxZ = Integer.MAX_VALUE;
+                maxZ = dimension.getMaxHeight() - 1;
             }
         } else {
             minZ = dimension.getMinHeight();
