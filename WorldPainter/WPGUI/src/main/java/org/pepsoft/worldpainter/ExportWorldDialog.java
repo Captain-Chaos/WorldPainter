@@ -128,7 +128,14 @@ public class ExportWorldDialog extends WorldPainterDialog {
         } else {
             jTabbedPane1.setEnabledAt(5, false);
         }
-        checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
+        // TODO make work again
+        if ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) {
+            checkBoxGoodies.setEnabled(false);
+            checkBoxGoodies.setSelected(false);
+        } else {
+            checkBoxGoodies.setEnabled(true);
+            checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
+        }
         labelPlatform.setText("<html><u>" + platform.displayName + "</u></html>");
         labelPlatform.setToolTipText("Click to change the map format");
         comboBoxGameType.setModel(new DefaultComboBoxModel<>(platform.supportedGameTypes.toArray(new GameType[platform.supportedGameTypes.size()])));
