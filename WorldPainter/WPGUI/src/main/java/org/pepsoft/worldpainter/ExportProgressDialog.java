@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Map;
 
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
+import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
@@ -83,9 +83,13 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
         int seconds = (int) (duration - minutes * 60);
         sb.append("<br>Export took ").append(hours).append(":").append((minutes < 10) ? "0" : "").append(minutes).append(":").append((seconds < 10) ? "0" : "").append(seconds);
         if ((world.getPlatform() == JAVA_MCREGION) && (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_MCREGION)) {
-            sb.append("<br><br><b>Please note:</b> this level has a non-standard height! You need to have<br>an appropriate height mod installed to play it!");
-        } else if (((world.getPlatform() == JAVA_ANVIL_1_17) || (world.getPlatform() == JAVA_ANVIL_1_18)) && (world.getMaxHeight() > 320)) {
-            sb.append("<br><br><b>Please note:</b> this level is more than 320 blocks high.<br>This may cause performance problems when playing.");
+            sb.append("<br><br>Please note: this map has a <b>non-standard height!</b> You need to have<br>an appropriate height mod installed to play it!");
+        }
+        if (((world.getPlatform() == JAVA_ANVIL_1_17) || (world.getPlatform() == JAVA_ANVIL_1_18)) && (world.getMaxHeight() > 320)) {
+            sb.append("<br><br>Please note: this map is <b>more than 320 blocks</b> high.<br>This may cause performance problems on lower end computers.");
+        }
+        if (((world.getPlatform() == JAVA_ANVIL_1_17) && (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_ANVIL)) || ((world.getPlatform() == JAVA_ANVIL_1_18) && (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_1_18))) {
+            sb.append("<br><br>Please note: <b>this map uses a data pack</b> for a deviating build height.<br>This may not be forward compatible with newer versions of Minecraft!");
         }
         if (result.size() == 1) {
             ChunkFactory.Stats stats = result.get(result.keySet().iterator().next());
