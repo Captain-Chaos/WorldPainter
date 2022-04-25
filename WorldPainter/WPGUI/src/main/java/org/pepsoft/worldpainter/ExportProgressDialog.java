@@ -88,8 +88,11 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
         if (((world.getPlatform() == JAVA_ANVIL_1_17) || (world.getPlatform() == JAVA_ANVIL_1_18)) && (world.getMaxHeight() > 320)) {
             sb.append("<br><br>Please note: this map is <b>more than 320 blocks</b> high.<br>This may cause performance problems on lower end computers.");
         }
-        if (((world.getPlatform() == JAVA_ANVIL_1_17) && (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_ANVIL)) || ((world.getPlatform() == JAVA_ANVIL_1_18) && (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_1_18))) {
-            sb.append("<br><br>Please note: <b>this map uses a data pack</b> for a deviating build height.<br>This may not be forward compatible with newer versions of Minecraft!");
+        if ((world.getPlatform() == JAVA_ANVIL_1_17) && (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_ANVIL)) {
+            sb.append("<br><br>Please note: <b>this map uses a data pack</b> for a deviating build height.<br>This may not be forward compatible with newer versions of Minecraft.");
+        }
+        if ((world.getPlatform() == JAVA_ANVIL_1_18) && (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_1_18)) {
+            sb.append("<br><br>Please note: <b>this map uses a data pack</b> for a deviating build height.<br>This data pack is only compatible with Minecraft 1.18.2 or later.<br>In addition, this may not be forward compatible with newer versions of Minecraft.");
         }
         if (result.size() == 1) {
             ChunkFactory.Stats stats = result.get(result.keySet().iterator().next());
