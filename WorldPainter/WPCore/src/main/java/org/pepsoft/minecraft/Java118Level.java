@@ -133,17 +133,21 @@ public class Java118Level extends JavaLevel {
             worldGenSettings.put(TAG_DIMENSIONS_, dimensionsTag);
         }
 
-        generators.forEach((dim, generator) -> {
-            String dimensionName;
+        for (int dim: platform.supportedDimensions) {
+            final String dimensionName;
+            final MapGenerator generator;
             switch (dim) {
                 case DIM_NORMAL:
                     dimensionName = MC_OVERWORLD;
+                    generator = generators.getOrDefault(DIM_NORMAL, new SeededGenerator(LARGE_BIOMES, seed));
                     break;
                 case DIM_NETHER:
                     dimensionName = MC_THE_NETHER;
+                    generator = generators.getOrDefault(DIM_NETHER, new SeededGenerator(NETHER, seed));
                     break;
                 case DIM_END:
                     dimensionName = MC_THE_END;
+                    generator = generators.getOrDefault(DIM_END, new SeededGenerator(END, seed));
                     break;
                 default:
                     throw new IllegalArgumentException("Dimension " + dim + " not supported");
@@ -230,7 +234,7 @@ public class Java118Level extends JavaLevel {
                         break;
                 }
             }
-        });
+        }
 
         return worldGenSettings;
     }

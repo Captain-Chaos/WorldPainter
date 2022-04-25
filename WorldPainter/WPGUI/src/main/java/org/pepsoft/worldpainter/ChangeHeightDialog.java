@@ -72,8 +72,8 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         comboBoxPlatform.setSelectedItem(platform);
         comboBoxNewMinHeight.setModel((platform.minZ != 0) ? new DefaultComboBoxModel<>(new Integer[] {platform.minZ, 0}) : new DefaultComboBoxModel<>(new Integer[] {0}));
         comboBoxNewMaxHeight.setModel(new DefaultComboBoxModel<>(stream(platform.maxHeights).boxed().toArray(Integer[]::new)));
-        comboBoxNewMinHeight.setSelectedItem(platform.minZ);
-        comboBoxNewMaxHeight.setSelectedItem(platform.standardMaxHeight);
+        comboBoxNewMinHeight.setSelectedItem(Math.max(platform.minZ, world.getPlatform().minZ));
+        comboBoxNewMaxHeight.setSelectedItem(Math.min(platform.maxMaxHeight, world.getMaxHeight()));
         updateLabels();
         setControlStates();
     }
@@ -113,7 +113,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         if ((newPlatform == DefaultPlugin.JAVA_MCREGION) && (newMaxHeight != DEFAULT_MAX_HEIGHT_MCREGION)) {
             labelWarning.setText("Only with mods!");
             labelWarning.setVisible(true);
-        } else if ((newPlatform == JAVA_ANVIL_1_17) && (newMaxHeight > 320)) {
+        } else if ((newMaxHeight > oldMaxHeight) && ((newPlatform == JAVA_ANVIL_1_17) || (newPlatform == JAVA_ANVIL_1_18)) && (newMaxHeight > 320)) {
             labelWarning.setText("May impact performance");
             labelWarning.setVisible(true);
         } else {

@@ -721,6 +721,7 @@ public final class Constants {
     public static final int DATA_VERSION_MC_1_14_4 = 1976;
     public static final int DATA_VERSION_MC_1_15   = 2230;
     public static final int DATA_VERSION_MC_1_16_5 = 2586;
+    public static final int DATA_VERSION_MC_1_17   = 2724;
     public static final int DATA_VERSION_MC_1_17_1 = 2730;
     public static final int DATA_VERSION_MC_1_18_0 = 2860;
 

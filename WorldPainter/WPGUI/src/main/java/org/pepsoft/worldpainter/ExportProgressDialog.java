@@ -31,8 +31,7 @@ import java.text.NumberFormat;
 import java.util.Map;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_17;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
  *
@@ -85,7 +84,7 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
         sb.append("<br>Export took ").append(hours).append(":").append((minutes < 10) ? "0" : "").append(minutes).append(":").append((seconds < 10) ? "0" : "").append(seconds);
         if ((world.getPlatform() == JAVA_MCREGION) && (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_MCREGION)) {
             sb.append("<br><br><b>Please note:</b> this level has a non-standard height! You need to have<br>an appropriate height mod installed to play it!");
-        } else if ((world.getPlatform() == JAVA_ANVIL_1_17) && (world.getMaxHeight() > 320)) {
+        } else if (((world.getPlatform() == JAVA_ANVIL_1_17) || (world.getPlatform() == JAVA_ANVIL_1_18)) && (world.getMaxHeight() > 320)) {
             sb.append("<br><br><b>Please note:</b> this level is more than 320 blocks high.<br>This may cause performance problems when playing.");
         }
         if (result.size() == 1) {

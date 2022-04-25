@@ -8,6 +8,7 @@ package org.pepsoft.minecraft;
 import org.jnbt.*;
 import org.pepsoft.minecraft.datapack.DataPack;
 import org.pepsoft.minecraft.datapack.Descriptor;
+import org.pepsoft.minecraft.datapack.Dimension;
 import org.pepsoft.minecraft.datapack.Meta;
 import org.pepsoft.worldpainter.AccessDeniedException;
 import org.pepsoft.worldpainter.Platform;
@@ -25,6 +26,7 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.Constants.MAX_HEIGHT;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
@@ -55,8 +57,10 @@ public abstract class JavaLevel extends AbstractNBTItem {
             int dataVersion;
             if (platform == JAVA_ANVIL) {
                 dataVersion = DATA_VERSION_MC_1_12_2;
-            } else if ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17)) {
+            } else if (platform == JAVA_ANVIL_1_15) {
                 dataVersion = DATA_VERSION_MC_1_15;
+            } else if (platform == JAVA_ANVIL_1_17) {
+                dataVersion = DATA_VERSION_MC_1_17;
             } else if (platform == JAVA_ANVIL_1_18) {
                 dataVersion = DATA_VERSION_MC_1_18_0;
             } else {
@@ -101,7 +105,7 @@ public abstract class JavaLevel extends AbstractNBTItem {
             } else if (dataVersion <= DATA_VERSION_MC_1_16_5) {
                 platform = JAVA_ANVIL_1_15;
             } else if (dataVersion <= DATA_VERSION_MC_1_17_1) {
-                platform = (maxHeight == DEFAULT_MAX_HEIGHT_ANVIL) ? JAVA_ANVIL_1_15 : JAVA_ANVIL_1_17;
+                platform = JAVA_ANVIL_1_17;
             } else {
                 platform = JAVA_ANVIL_1_18;
             }
@@ -131,9 +135,10 @@ public abstract class JavaLevel extends AbstractNBTItem {
             }
         }
         if (version == VERSION_ANVIL) {
-            if ((maxHeight != DEFAULT_MAX_HEIGHT_ANVIL) && (dataVersion > DATA_VERSION_MC_1_16_5) && (dataVersion <= DATA_VERSION_MC_1_17_1)) {
+            if (((maxHeight != DEFAULT_MAX_HEIGHT_ANVIL) && (dataVersion > DATA_VERSION_MC_1_14_4) && (dataVersion <= DATA_VERSION_MC_1_17_1))
+                    || ((maxHeight != DEFAULT_MAX_HEIGHT_1_18) && (dataVersion > DATA_VERSION_MC_1_17_1))){
                 enableDataPacks(DATAPACK_VANILLA, DATAPACK_WORLDPAINTER);
-                createDataPack(worldDir);
+                createWorldPainterDataPack(worldDir);
             } else if (dataVersion > DATA_VERSION_MC_1_16_5) {
                 enableDataPacks(DATAPACK_VANILLA);
             }
@@ -359,6 +364,10 @@ public abstract class JavaLevel extends AbstractNBTItem {
         setDouble(TAG_BORDER_DAMAGE_PER_BLOCK, borderDamagePerBlock);
     }
 
+    public Platform getPlatform() {
+        return platform;
+    }
+
     @SuppressWarnings("unchecked") // Guaranteed by this method/Minecraft
     public void enableDataPacks(String... dataPacks) {
         CompoundTag dataPacksTag = (CompoundTag) getTag(TAG_DATA_PACKS);
@@ -504,7 +513,7 @@ public abstract class JavaLevel extends AbstractNBTItem {
         return (dataVersion <= DATA_VERSION_MC_1_17_1) ? new Java117Level((CompoundTag) tag, maxHeight) : new Java118Level((CompoundTag) tag, maxHeight);
     }
 
-    private void createDataPack(File worldDir) {
+    private void createWorldPainterDataPack(File worldDir) {
         try {
             File datapackDir = new File(worldDir, "datapacks");
             datapackDir.mkdirs();
@@ -512,14 +521,9 @@ public abstract class JavaLevel extends AbstractNBTItem {
             DataPack datapack = new DataPack();
             datapack.addDescriptor("pack.mcmeta", Meta.builder()
                     .pack(Meta.Pack.builder()
-                            .packFormat(7)
+                            .packFormat((platform == JAVA_ANVIL_1_17) ? 7 : 9)
                             .description("WorldPainter Settings").build()).build());
-            datapack.addDescriptor("data/minecraft/dimension_type/overworld.json", org.pepsoft.minecraft.datapack.Dimension.builder()
-                    .logicalHeight(maxHeight)
-//                    PROBLEEM: bij min_y = -64 worden de hoogste chunks niet geladen? logical_height/height moet inclusief abs(min_y) zijn?
-                    .minY(0)
-                    .height(maxHeight)
-                    .build());
+            datapack.addDescriptor("data/minecraft/dimension_type/overworld.json", Dimension.createDefault(platform, DIM_NORMAL, maxHeight));
             datapack.write(new FileOutputStream(datapackFile));
         } catch (IOException e) {
             throw new WPRuntimeException("I/O error creating datapack", e);

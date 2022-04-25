@@ -46,8 +46,7 @@ import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_END;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_NETHER;
 import static org.pepsoft.util.swing.SpinnerUtils.setMinimum;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_17;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 import static org.pepsoft.worldpainter.HeightTransform.IDENTITY;
@@ -770,7 +769,7 @@ public class NewWorldDialog extends WorldPainterDialog {
             if ((platform == JAVA_MCREGION) && (exp != 7)) {
                 labelWarning.setText("Only with mods!");
                 labelWarning.setVisible(true);
-            } else if ((platform == JAVA_ANVIL_1_17) && (maxHeight > 320)) {
+            } else if (((platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) && (maxHeight > 320)) {
                 labelWarning.setText("May impact performance");
                 labelWarning.setVisible(true);
             } else {

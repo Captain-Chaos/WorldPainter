@@ -78,7 +78,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
 
     public static final Platform JAVA_ANVIL_1_15 = new Platform(
             "org.pepsoft.anvil.1.13",
-            "Minecraft 1.15 - 1.17",
+            "Minecraft 1.15 - 1.16",
             DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
@@ -88,8 +88,8 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
 
     public static final Platform JAVA_ANVIL_1_17 = new Platform(
             "org.pepsoft.anvil.1.17",
-            "[EXPERIMENTAL] Minecraft 1.17",
-            new int[] { 256, 320, 512, 1024, 1536, 2032 }, 320,
+            "Minecraft 1.17",
+            new int[] { 256, 320, 512, 1024, 1536, 2032 }, 256,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, 0,
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
             Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, AMPLIFIED, CUSTOM, NETHER, END),
@@ -98,8 +98,8 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
 
     public static final Platform JAVA_ANVIL_1_18 = new Platform(
             "org.pepsoft.anvil.1.18",
-            "[ALPHA] Minecraft 1.18 or later",
-            new int[] { 256, 320 }, 320,
+            "[BETA] Minecraft 1.18.2 or later",
+            new int[] { 256, 320, 512, 1024, 1536, 2032 }, 320,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, -64,
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
             Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, AMPLIFIED, CUSTOM, NETHER, END),

@@ -28,12 +28,10 @@ import java.util.Set;
 
 import static com.google.common.primitives.Ints.toArray;
 import static java.util.Collections.singleton;
-import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.DataType.REGION;
 import static org.pepsoft.util.IconUtils.loadUnscaledImage;
 import static org.pepsoft.util.IconUtils.scaleIcon;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.util.MinecraftUtil.getRegionDir;
 
 /**
@@ -131,27 +129,8 @@ public abstract class JavaPlatformProvider extends AbstractPlatformProvider impl
                 && (! new File(dir, "db").isDirectory())
                 && (! new File(dir, "levelname.txt").isFile())) {
             try {
-                Platform platform = null;
                 JavaLevel level = JavaLevel.load(file);
-                int version = level.getVersion();
-                if (version == VERSION_MCREGION) {
-                    platform = JAVA_MCREGION;
-                } else if (version == VERSION_ANVIL) {
-                    if (level.getDataVersion() <= DATA_VERSION_MC_1_12_2) {
-                        platform = JAVA_ANVIL;
-                    } else if (level.getDataVersion() <= DATA_VERSION_MC_1_17_1) {
-                        if (level.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL) {
-                            platform = JAVA_ANVIL_1_15;
-                        } else {
-                            platform = JAVA_ANVIL_1_17;
-                        }
-                    } else {
-                        platform = JAVA_ANVIL_1_18;
-                    }
-                }
-                if (platform != null) {
-                    return new MapInfo(dir, platform, level.getName(), ICON, level.getMaxHeight());
-                }
+                return new MapInfo(dir, level.getPlatform(), level.getName(), ICON, level.getMaxHeight());
             } catch (IOException e) {
                 logger.info("I/O error reading level.dat; assuming it is not a (supported) Java Minecraft level.dat file", e);
             }
