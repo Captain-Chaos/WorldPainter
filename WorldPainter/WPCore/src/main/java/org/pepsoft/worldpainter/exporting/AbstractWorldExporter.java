@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
 
 /**
@@ -529,14 +529,14 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
         // TODO: trying to do this for every region should work but is not very
         //  elegant
-        if ((platform != JAVA_ANVIL_1_15) && (platform != JAVA_ANVIL_1_17) && (platform != JAVA_ANVIL_1_18) /* TODO make dynamic */ && (dimension.getDim() == 0) && world.isCreateGoodiesChest()) { // Temporary workaround TODO make the chest work again
+        if ((dimension.getDim() == 0) && world.isCreateGoodiesChest()) {
             Point goodiesPoint = (Point) world.getSpawnPoint().clone();
             goodiesPoint.translate(3, 3);
             int height = Math.min(dimension.getIntHeightAt(goodiesPoint) + 1, dimension.getMaxHeight() - 1);
-            minecraftWorld.setMaterialAt(goodiesPoint.x, goodiesPoint.y, height, Material.CHEST_NORTH);
             Chunk chunk = minecraftWorld.getChunk(goodiesPoint.x >> 4, goodiesPoint.y >> 4);
-            if ((chunk != null) && (chunk.getTileEntities() != null)) {
-                Chest goodiesChest = createGoodiesChest();
+            if (chunk != null) {
+                chunk.setMaterial(goodiesPoint.x & 0xf, height, goodiesPoint.y & 0xf, Material.CHEST_NORTH);
+                Chest goodiesChest = createGoodiesChest(platform);
                 goodiesChest.setX(goodiesPoint.x);
                 goodiesChest.setY(height);
                 goodiesChest.setZ(goodiesPoint.y);
@@ -902,35 +902,62 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
     }
 
-    private Chest createGoodiesChest() {
+    private Chest createGoodiesChest(Platform platform) {
         // TODOMC13 migrate to Minecraft 1.15
         // TODOMC13 this makes Minecraft 1.15 crash!
         List<InventoryItem> list = new ArrayList<>();
-        list.add(new InventoryItem(ITM_DIAMOND_SWORD,    0,  1,  0));
-        list.add(new InventoryItem(ITM_DIAMOND_SHOVEL,   0,  1,  1));
-        list.add(new InventoryItem(ITM_DIAMOND_PICKAXE,  0,  1,  2));
-        list.add(new InventoryItem(ITM_DIAMOND_AXE,      0,  1,  3));
-        list.add(new InventoryItem(BLK_SAPLING,          0, 64,  4));
-        list.add(new InventoryItem(BLK_SAPLING,          1, 64,  5));
-        list.add(new InventoryItem(BLK_SAPLING,          2, 64,  6));
-        list.add(new InventoryItem(BLK_BROWN_MUSHROOM,   0, 64,  7));
-        list.add(new InventoryItem(BLK_RED_MUSHROOM,     0, 64,  8));
-        list.add(new InventoryItem(ITM_BONE,             0, 64,  9));
-        list.add(new InventoryItem(ITM_WATER_BUCKET,     0,  1, 10));
-        list.add(new InventoryItem(ITM_WATER_BUCKET,     0,  1, 11));
-        list.add(new InventoryItem(ITM_COAL,             0, 64, 12));
-        list.add(new InventoryItem(ITM_IRON_INGOT,       0, 64, 13));
-        list.add(new InventoryItem(BLK_CACTUS,           0, 64, 14));
-        list.add(new InventoryItem(ITM_SUGAR_CANE,       0, 64, 15));
-        list.add(new InventoryItem(BLK_TORCH,            0, 64, 16));
-        list.add(new InventoryItem(ITM_BED,              0,  1, 17));
-        list.add(new InventoryItem(BLK_OBSIDIAN,         0, 64, 18));
-        list.add(new InventoryItem(ITM_FLINT_AND_STEEL,  0,  1, 19));
-        list.add(new InventoryItem(BLK_WOOD,             0, 64, 20));
-        list.add(new InventoryItem(BLK_CRAFTING_TABLE,   0,  1, 21));
-        list.add(new InventoryItem(BLK_END_PORTAL_FRAME, 0, 12, 22));
-        list.add(new InventoryItem(ITM_EYE_OF_ENDER,     0, 12, 23));
-        Chest chest = new Chest();
+        if (platform.capabilities.contains(NAME_BASED)) {
+            list.add(new InventoryItem(ID_DIAMOND_SWORD, 1, 0));
+            list.add(new InventoryItem(ID_DIAMOND_SHOVEL, 1, 1));
+            list.add(new InventoryItem(ID_DIAMOND_PICKAXE, 1, 2));
+            list.add(new InventoryItem(ID_DIAMOND_AXE, 1, 3));
+            list.add(new InventoryItem(ID_OAK_SAPLING, 64, 4));
+            list.add(new InventoryItem(ID_SPRUCE_SAPLING, 64, 5));
+            list.add(new InventoryItem(ID_BIRCH_SAPLING, 64, 6));
+            list.add(new InventoryItem(ID_BROWN_MUSHROOM, 64, 7));
+            list.add(new InventoryItem(ID_RED_MUSHROOM, 64, 8));
+            list.add(new InventoryItem(ID_BONE, 64, 9));
+            list.add(new InventoryItem(ID_WATER_BUCKET, 1, 10));
+            list.add(new InventoryItem(ID_WATER_BUCKET, 1, 11));
+            list.add(new InventoryItem(ID_COAL, 64, 12));
+            list.add(new InventoryItem(ID_IRON_INGOT, 64, 13));
+            list.add(new InventoryItem(ID_CACTUS, 64, 14));
+            list.add(new InventoryItem(ID_SUGAR_CANE, 64, 15));
+            list.add(new InventoryItem(ID_TORCH, 64, 16));
+            list.add(new InventoryItem(ID_RED_BED, 1, 17));
+            list.add(new InventoryItem(ID_OBSIDIAN, 64, 18));
+            list.add(new InventoryItem(ID_FLINT_AND_STEEL, 1, 19));
+            list.add(new InventoryItem(ID_OAK_LOG, 64, 20));
+            list.add(new InventoryItem(ID_CRAFTING_TABLE, 1, 21));
+            list.add(new InventoryItem(ID_END_PORTAL_FRAME, 12, 22));
+            list.add(new InventoryItem(ID_ENDER_EYE, 12, 23));
+        } else {
+            list.add(new InventoryItem(ITM_DIAMOND_SWORD, 0, 1, 0));
+            list.add(new InventoryItem(ITM_DIAMOND_SHOVEL, 0, 1, 1));
+            list.add(new InventoryItem(ITM_DIAMOND_PICKAXE, 0, 1, 2));
+            list.add(new InventoryItem(ITM_DIAMOND_AXE, 0, 1, 3));
+            list.add(new InventoryItem(BLK_SAPLING, 0, 64, 4));
+            list.add(new InventoryItem(BLK_SAPLING, 1, 64, 5));
+            list.add(new InventoryItem(BLK_SAPLING, 2, 64, 6));
+            list.add(new InventoryItem(BLK_BROWN_MUSHROOM, 0, 64, 7));
+            list.add(new InventoryItem(BLK_RED_MUSHROOM, 0, 64, 8));
+            list.add(new InventoryItem(ITM_BONE, 0, 64, 9));
+            list.add(new InventoryItem(ITM_WATER_BUCKET, 0, 1, 10));
+            list.add(new InventoryItem(ITM_WATER_BUCKET, 0, 1, 11));
+            list.add(new InventoryItem(ITM_COAL, 0, 64, 12));
+            list.add(new InventoryItem(ITM_IRON_INGOT, 0, 64, 13));
+            list.add(new InventoryItem(BLK_CACTUS, 0, 64, 14));
+            list.add(new InventoryItem(ITM_SUGAR_CANE, 0, 64, 15));
+            list.add(new InventoryItem(BLK_TORCH, 0, 64, 16));
+            list.add(new InventoryItem(ITM_BED, 0, 1, 17));
+            list.add(new InventoryItem(BLK_OBSIDIAN, 0, 64, 18));
+            list.add(new InventoryItem(ITM_FLINT_AND_STEEL, 0, 1, 19));
+            list.add(new InventoryItem(BLK_WOOD, 0, 64, 20));
+            list.add(new InventoryItem(BLK_CRAFTING_TABLE, 0, 1, 21));
+            list.add(new InventoryItem(BLK_END_PORTAL_FRAME, 0, 12, 22));
+            list.add(new InventoryItem(ITM_EYE_OF_ENDER, 0, 12, 23));
+        }
+        Chest chest = new Chest(platform);
         chest.setItems(list);
         return chest;
     }

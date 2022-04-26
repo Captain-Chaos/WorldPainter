@@ -34,7 +34,8 @@ import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_PEACEFUL;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_18;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.GameType.*;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
@@ -128,14 +129,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
         } else {
             jTabbedPane1.setEnabledAt(5, false);
         }
-        // TODO make work again
-        if ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) {
-            checkBoxGoodies.setEnabled(false);
-            checkBoxGoodies.setSelected(false);
-        } else {
-            checkBoxGoodies.setEnabled(true);
-            checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
-        }
+        checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
         labelPlatform.setText("<html><u>" + platform.displayName + "</u></html>");
         labelPlatform.setToolTipText("Click to change the map format");
         comboBoxGameType.setModel(new DefaultComboBoxModel<>(platform.supportedGameTypes.toArray(new GameType[platform.supportedGameTypes.size()])));
@@ -776,14 +770,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
 
         nameOnlyMaterials = gatherBlocksWithoutIds(world, newPlatform);
 
-        // Temporary workaround TODO make the chest work again
-        if ((newPlatform == JAVA_ANVIL_1_15) || (newPlatform == JAVA_ANVIL_1_17) || (newPlatform == JAVA_ANVIL_1_18)) {
-            checkBoxGoodies.setEnabled(false);
-            checkBoxGoodies.setSelected(false);
-        } else {
-            checkBoxGoodies.setEnabled(true);
-            checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
-        }
+        checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
 
         dimensionPropertiesEditors.forEach((dim, editor) -> editor.setPlatform(newPlatform));
 

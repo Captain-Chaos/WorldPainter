@@ -707,6 +707,7 @@ public final class Constants {
     public static final String TAG_BLOCK_ENTITIES_         = "block_entities";
     public static final String TAG_IS_LIGHT_ON_            = "isLightOn";
     public static final String TAG_POSITION                = "Position";
+    public static final String TAG_TAG_                    = "tag";
 
     /**
      * Possibly unofficial, SpoutCraft-specific
@@ -1089,8 +1090,31 @@ public final class Constants {
 
     // Tile entity IDs
 
-    public static final String ID_CHEST = "minecraft:chest";
-    public static final String ID_SIGN = "minecraft:sign";
+    public static final String ID_CHEST            = "minecraft:chest";
+    public static final String ID_SIGN             = "minecraft:sign";
+    public static final String ID_DIAMOND_SWORD    = "minecraft:diamond_sword";
+    public static final String ID_DIAMOND_SHOVEL   = "minecraft:diamond_shovel";
+    public static final String ID_DIAMOND_PICKAXE  = "minecraft:diamond_pickaxe";
+    public static final String ID_DIAMOND_AXE      = "minecraft:diamond_axe";
+    public static final String ID_OAK_SAPLING      = "minecraft:oak_sapling";
+    public static final String ID_SPRUCE_SAPLING   = "minecraft:spruce_sapling";
+    public static final String ID_BIRCH_SAPLING    = "minecraft:birch_sapling";
+    public static final String ID_BROWN_MUSHROOM   = "minecraft:brown_mushroom";
+    public static final String ID_RED_MUSHROOM     = "minecraft:red_mushroom";
+    public static final String ID_BONE             = "minecraft:bone";
+    public static final String ID_WATER_BUCKET     = "minecraft:water_bucket";
+    public static final String ID_COAL             = "minecraft:coal";
+    public static final String ID_IRON_INGOT       = "minecraft:iron_ingot";
+    public static final String ID_CACTUS           = "minecraft:cactus";
+    public static final String ID_SUGAR_CANE       = "minecraft:sugar_cane";
+    public static final String ID_TORCH            = "minecraft:torch";
+    public static final String ID_RED_BED          = "minecraft:red_bed";
+    public static final String ID_OBSIDIAN         = "minecraft:obsidian";
+    public static final String ID_FLINT_AND_STEEL  = "minecraft:flint_and_steel";
+    public static final String ID_OAK_LOG          = "minecraft:oak_log";
+    public static final String ID_CRAFTING_TABLE   = "minecraft:crafting_table";
+    public static final String ID_END_PORTAL_FRAME = "minecraft:end_portal_frame";
+    public static final String ID_ENDER_EYE        = "minecraft:ender_eye";
 
     // Legacy (pre-MC 1.13) tile entity IDs
 
