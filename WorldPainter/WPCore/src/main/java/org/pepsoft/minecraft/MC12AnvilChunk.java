@@ -73,7 +73,7 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
         List<CompoundTag> tileEntityTags = getList(TAG_TILE_ENTITIES);
         tileEntities = new ArrayList<>(tileEntityTags.size());
         tileEntities.addAll(tileEntityTags.stream().map(TileEntity::fromNBT).collect(toList()));
-        // TODO: last update is ignored, is that correct?
+        lastUpdate = getLong(TAG_LAST_UPDATE);
         xPos = getInt(TAG_X_POS_);
         zPos = getInt(TAG_Z_POS_);
         terrainPopulated = getBoolean(TAG_TERRAIN_POPULATED);
@@ -120,7 +120,7 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
         List<CompoundTag> tileEntityTags = new ArrayList<>(entities.size());
         tileEntities.stream().map(TileEntity::toNBT).forEach(tileEntityTags::add);
         setList(TAG_TILE_ENTITIES, CompoundTag.class, tileEntityTags);
-        setLong(TAG_LAST_UPDATE, System.currentTimeMillis()); // TODO: is this correct?
+        setLong(TAG_LAST_UPDATE, lastUpdate);
         setInt(TAG_X_POS_, xPos);
         setInt(TAG_Z_POS_, zPos);
         setBoolean(TAG_TERRAIN_POPULATED, terrainPopulated);
@@ -629,7 +629,7 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
     final List<Entity> entities;
     final List<TileEntity> tileEntities;
     final int maxHeight;
-    long inhabitedTime;
+    long inhabitedTime, lastUpdate;
 
     public static class Section extends AbstractNBTItem {
         Section(CompoundTag tag) {

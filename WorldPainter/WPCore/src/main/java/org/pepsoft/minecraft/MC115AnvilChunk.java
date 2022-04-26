@@ -117,7 +117,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
             } else {
                 tileEntities = new ArrayList<>();
             }
-            // TODO: last update is ignored, is that correct?
+            lastUpdate = getLong(TAG_LAST_UPDATE);
             xPos = getInt(TAG_X_POS_);
             zPos = getInt(TAG_Z_POS_);
             status = getString(TAG_STATUS).intern();
@@ -265,7 +265,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
         List<CompoundTag> tileEntityTags = new ArrayList<>(entities.size());
         tileEntities.stream().map(TileEntity::toNBT).forEach(tileEntityTags::add);
         setList(TAG_TILE_ENTITIES, CompoundTag.class, tileEntityTags);
-        setLong(TAG_LAST_UPDATE, System.currentTimeMillis()); // TODO: is this correct?
+        setLong(TAG_LAST_UPDATE, lastUpdate);
         setInt(TAG_X_POS_, xPos);
         setInt(TAG_Z_POS_, zPos);
         setString(TAG_STATUS, status);
@@ -752,7 +752,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
     final List<Entity> entities;
     final List<TileEntity> tileEntities;
     final int maxHeight;
-    long inhabitedTime;
+    long inhabitedTime, lastUpdate;
     String status;
     final Map<String, long[]> heightMaps;
     final List<CompoundTag> liquidTicks = new ArrayList<>();
