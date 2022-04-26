@@ -54,6 +54,8 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
     @Override
     public Map<Integer, ChunkFactory.Stats> export(File baseDir, String name, File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
         // Sanity checks
+        final Set<Point> selectedTiles = world.getTilesToExport();
+        final Set<Integer> selectedDimensions = world.getDimensionsToExport();
         if ((selectedTiles != null) && ((selectedDimensions == null) || (selectedDimensions.size() != 1))) {
             throw new IllegalArgumentException("If a tile selection is active then exactly one dimension must be selected");
         }
@@ -308,8 +310,8 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
 
         // Calculate total size of dimension
         Set<Point> regions = new HashSet<>();
-        if (selectedTiles != null) {
-            for (Point tile: selectedTiles) {
+        if (world.getTilesToExport() != null) {
+            for (Point tile: world.getTilesToExport()) {
                 regions.add(new Point(tile.x >> 2, tile.y >> 2));
             }
         } else {

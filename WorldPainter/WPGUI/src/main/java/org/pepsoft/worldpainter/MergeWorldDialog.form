@@ -36,7 +36,7 @@
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="1" attributes="0">
-                              <Component id="fieldLevelDatFile" max="32767" attributes="0"/>
+                              <Component id="fieldSelectedMapDir" max="32767" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="buttonSelectDirectory" min="-2" max="-2" attributes="0"/>
                           </Group>
@@ -128,7 +128,7 @@
               <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="fieldLevelDatFile" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="fieldSelectedMapDir" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="buttonSelectDirectory" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
@@ -200,10 +200,10 @@
   <SubComponents>
     <Component class="javax.swing.JLabel" name="jLabel2">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Select the level.dat file of an existing Minecraft map:"/>
+        <Property name="text" type="java.lang.String" value="Select the existing map to merge your changes with:"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JTextField" name="fieldLevelDatFile">
+    <Component class="javax.swing.JTextField" name="fieldSelectedMapDir">
       <Properties>
         <Property name="text" type="java.lang.String" value="jTextField1"/>
       </Properties>

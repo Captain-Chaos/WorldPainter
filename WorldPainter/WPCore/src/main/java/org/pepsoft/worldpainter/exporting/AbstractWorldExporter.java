@@ -60,11 +60,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         this.world = world;
         this.platform = platform;
         platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
-        this.selectedTiles = world.getTilesToExport();
-        this.selectedDimensions = world.getDimensionsToExport();
-        if ((selectedTiles != null) && (selectedDimensions.size() != 1)) {
-            throw new IllegalArgumentException("When a tile selection is present exactly one dimension must be selected");
-        }
     }
 
     @Override
@@ -135,12 +130,12 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             // Determine regions to export
             int lowestRegionX = Integer.MAX_VALUE, highestRegionX = Integer.MIN_VALUE, lowestRegionZ = Integer.MAX_VALUE, highestRegionZ = Integer.MIN_VALUE;
             final Set<Point> regions = new HashSet<>(), exportedRegions = new HashSet<>();
-            final boolean tileSelection = selectedTiles != null;
+            final boolean tileSelection = world.getTilesToExport() != null;
             if (tileSelection) {
                 // Sanity check
-                assert selectedDimensions.size() == 1;
-                assert selectedDimensions.contains(dimension.getDim());
-                for (Point tile: selectedTiles) {
+                assert world.getDimensionsToExport().size() == 1;
+                assert world.getDimensionsToExport().contains(dimension.getDim());
+                for (Point tile: world.getTilesToExport()) {
                     int regionX = tile.x >> 2;
                     int regionZ = tile.y >> 2;
                     regions.add(new Point(regionX, regionZ));
@@ -942,8 +937,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
     protected final World2 world;
     protected final BlockBasedPlatformProvider platformProvider;
-    protected final Set<Integer> selectedDimensions;
-    protected final Set<Point> selectedTiles;
     protected final Semaphore performingFixups = new Semaphore(1);
     protected final Platform platform;
 

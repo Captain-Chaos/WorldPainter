@@ -117,6 +117,9 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
+    /**
+     * The {@code level.dat} file of the map this world was Imported from.
+     */
     public File getImportedFrom() {
         return importedFrom;
     }
@@ -395,6 +398,9 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         return borderSettings;
     }
 
+    /**
+     * The {@code level.dat} file of the map with which this world was last Merged.
+     */
     public File getMergedWith() {
         return mergedWith;
     }

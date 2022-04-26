@@ -8,7 +8,6 @@ import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.minecraft.JavaLevel;
 import org.pepsoft.minecraft.MinecraftCoords;
 import org.pepsoft.util.DesktopUtils;
-import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
@@ -17,29 +16,28 @@ import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
 import org.pepsoft.worldpainter.plugins.MapImporterProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
-import org.pepsoft.worldpainter.plugins.PlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformProvider.MapInfo;
-import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileView;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.HashSet;
+import java.util.ResourceBundle;
+import java.util.Set;
 
-import static java.lang.Boolean.FALSE;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.BLOCK_BASED;
+import static org.pepsoft.worldpainter.util.MapUtils.selectMap;
 
 /**
  *
@@ -251,58 +249,9 @@ public class MapImportDialog extends WorldPainterDialog {
     }
     
     private void selectDir() {
-        File mySavesDir = (previouslySelectedDir != null) ? previouslySelectedDir.getParentFile() : Configuration.getInstance().getSavesDirectory();
-        if ((mySavesDir == null) && (MinecraftUtil.findMinecraftDir() != null)) {
-            mySavesDir = new File(MinecraftUtil.findMinecraftDir(), "saves");
-        }
-        PlatformManager platformManager = PlatformManager.getInstance();
-        File selectedFile = FileUtils.selectDirectoryForOpen(this, "Select an existing map directory", mySavesDir, "Map Directories", new FileView() {
-            @Override
-            public String getName(File f) {
-                return null;
-            }
-
-            @Override
-            public String getDescription(File f) {
-                MapInfo mapInfo = getMapInfo(f);
-                return (mapInfo != NOT_A_MAP) ? mapInfo.name : null;
-            }
-
-            @Override
-            public String getTypeDescription(File f) {
-                MapInfo mapInfo = getMapInfo(f);
-                return (mapInfo != NOT_A_MAP) ? mapInfo.platform.displayName : null;
-            }
-
-            @Override
-            public Icon getIcon(File f) {
-                MapInfo mapInfo = getMapInfo(f);
-                return (mapInfo != NOT_A_MAP) ? mapInfo.icon : null;
-            }
-
-            @Override
-            public Boolean isTraversable(File f) {
-                return (getMapInfo(f) != NOT_A_MAP) ? FALSE : null;
-            }
-
-            private MapInfo getMapInfo(File dir) {
-                return mapInfoCache.computeIfAbsent(dir, key -> {
-                    MapInfo mapInfo = platformManager.identifyMap(dir);
-                    if (mapInfo != null) {
-                        PlatformProvider platformProvider = platformManager.getPlatformProvider(mapInfo.platform);
-                        if (platformProvider instanceof MapImporterProvider) {
-                            return mapInfo;
-                        }
-                    }
-                    return NOT_A_MAP;
-                });
-            }
-
-            private final Map<File, MapInfo> mapInfoCache = new Hashtable<>();
-            private final MapInfo NOT_A_MAP = new MapInfo(null, null, null, null, -1);
-        });
-        if (selectedFile != null) {
-            fieldFilename.setText(selectedFile.getAbsolutePath());
+        MapInfo selectedMap = selectMap(this, (previouslySelectedDir != null) ? previouslySelectedDir.getParentFile() : null);
+        if (selectedMap != null) {
+            fieldFilename.setText(selectedMap.dir.getAbsolutePath());
         }        
     }
     

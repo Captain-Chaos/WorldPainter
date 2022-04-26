@@ -48,19 +48,21 @@ import static org.pepsoft.worldpainter.util.ChunkUtils.skipChunk;
  */
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend") // Readability
 public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be made a BlockBasedPlatformProviderWorldMerger?
-    public JavaWorldMerger(World2 world, File levelDatFile, Platform platform) {
+    public JavaWorldMerger(World2 world, File mapDir, Platform platform) {
         super(world, platform);
-        if (levelDatFile == null) {
+        if (mapDir == null) {
             throw new NullPointerException();
         }
-        if (! levelDatFile.isFile()) {
-            throw new IllegalArgumentException(levelDatFile + " does not exist or is not a regular file");
+        if (! mapDir.isDirectory()) {
+            throw new IllegalArgumentException(mapDir + " does not exist or is not a directory");
+        } else if (! new File(mapDir, "level.dat").isFile()) {
+            throw new IllegalArgumentException(mapDir + " does not contain a level.dat file");
         }
-        this.levelDatFile = levelDatFile;
+        worldDir = mapDir;
     }
     
-    public File getLevelDatFile() {
-        return levelDatFile;
+    public File getMapDir() {
+        return worldDir;
     }
     
     public boolean isReplaceChunks() {
@@ -183,7 +185,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
      */
     public JavaLevel performSanityChecks(boolean biomesOnly) throws IOException {
         // Read existing level.dat file
-        JavaLevel level = JavaLevel.load(levelDatFile);
+        JavaLevel level = JavaLevel.load(new File(worldDir, "level.dat"));
 
         // Sanity checks
         if (biomesOnly) {
@@ -216,7 +218,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
     }
 
     public void merge(File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
-        logger.info("Merging world " + world.getName() + " with map at " + levelDatFile.getParentFile());
+        logger.info("Merging world " + world.getName() + " with map at " + worldDir);
         
         // Read existing level.dat file and perform sanity checks
         JavaLevel level = performSanityChecks(false);
@@ -225,7 +227,6 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         long start = System.currentTimeMillis();
 
         // Backup existing level
-        File worldDir = levelDatFile.getParentFile();
         if (! worldDir.renameTo(backupDir)) {
             throw new FileInUseException("Could not move " + worldDir + " to " + backupDir);
         }
@@ -234,6 +235,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         }
         
         // Modify it if necessary and write it to the new level
+        final Set<Integer> selectedDimensions = world.getDimensionsToExport();
         if ((selectedDimensions == null) || selectedDimensions.contains(DIM_NORMAL)) {
             Dimension surfaceDimension = world.getDimension(DIM_NORMAL);
             level.setSeed(surfaceDimension.getMinecraftSeed());
@@ -308,7 +310,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 }).collect(Collectors.joining(", "));
             world.addHistoryEntry(HistoryEntry.WORLD_MERGED_PARTIAL, level.getName(), worldDir, dimNames);
         }
-        if (! levelDatFile.equals(world.getMergedWith())) {
+        final File levelDatFile = new File(worldDir, "level.dat");
+        if (! worldDir.equals(levelDatFile)) {
             world.setMergedWith(levelDatFile);
         }
 
@@ -400,7 +403,6 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
 
             // Load all layer settings into the exporters
             for (Layer layer: allLayers) {
-                @SuppressWarnings("unchecked")
                 LayerExporter exporter = layer.getExporter();
                 if (exporter != null) {
                     exporter.setSettings(dimension.getLayerSettings(layer));
@@ -411,11 +413,12 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             // Sort tiles into regions
             int lowestRegionX = Integer.MAX_VALUE, highestRegionX = Integer.MIN_VALUE, lowestRegionZ = Integer.MAX_VALUE, highestRegionZ = Integer.MIN_VALUE;
             Map<Point, Map<Point, Tile>> tilesByRegion = new HashMap<>();
+            final Set<Point> selectedTiles = world.getTilesToExport();
             final boolean tileSelection = selectedTiles != null;
             if (tileSelection) {
                 // Sanity check
-                assert selectedDimensions.size() == 1;
-                assert selectedDimensions.contains(dimension.getDim());
+                assert world.getDimensionsToExport().size() == 1;
+                assert world.getDimensionsToExport().contains(dimension.getDim());
                 for (Point tileCoords: selectedTiles) {
                     Tile tile = dimension.getTile(tileCoords);
                     boolean nonReadOnlyChunksFound = false;
@@ -654,7 +657,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             // Region only exists in existing world. Copy it to the new world
                             final Map<DataType, File> regions = new HashMap<>();
                             regions.put(REGION, existingRegions.get(regionCoords));
-                            regions.putAll(additionalRegions.get(regionCoords));
+                            if (additionalRegions.containsKey(regionCoords)) {
+                                regions.putAll(additionalRegions.get(regionCoords));
+                            }
                             copyRegionsUnchanged(fixups, exportedRegions, executor, parallelProgressManager, regionCoords, regions, dimensionDir);
                         }
                     } else {
@@ -869,7 +874,6 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         performSanityChecks(true);
 
         // Backup existing level
-        File worldDir = levelDatFile.getParentFile();
         if (! worldDir.renameTo(backupDir)) {
             throw new FileInUseException("Could not move " + worldDir + " to " + backupDir);
         }
@@ -946,6 +950,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         }
 
         // TODO: we used to do one extra ring of chunks here. Not sure why, perhaps we'll rediscover it...
+        //  Edit: was it to get accurate lighting around the edges?
         int lowestChunkX = regionCoords.x << 5;
         int highestChunkX = (regionCoords.x << 5) + 31;
         int lowestChunkY = regionCoords.y << 5;
@@ -1562,7 +1567,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         }
     }
 
-    private final File levelDatFile;
+    private final File worldDir;
     private final ThreadLocal<Map<Material, Integer>> materialCountsRef = ThreadLocal.withInitial(HashMap::new);
     private boolean replaceChunks, mergeUnderworld, clearTrees, clearResources,
         fillCaves, clearVegetation, clearManMadeAboveGround,
