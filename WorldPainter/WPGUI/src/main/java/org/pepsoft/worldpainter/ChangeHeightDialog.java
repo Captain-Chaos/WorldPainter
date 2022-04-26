@@ -72,8 +72,19 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         comboBoxPlatform.setSelectedItem(platform);
         comboBoxNewMinHeight.setModel((platform.minZ != 0) ? new DefaultComboBoxModel<>(new Integer[] {platform.minZ, 0}) : new DefaultComboBoxModel<>(new Integer[] {0}));
         comboBoxNewMaxHeight.setModel(new DefaultComboBoxModel<>(stream(platform.maxHeights).boxed().toArray(Integer[]::new)));
-        comboBoxNewMinHeight.setSelectedItem(Math.max(platform.minZ, world.getPlatform().minZ));
-        comboBoxNewMaxHeight.setSelectedItem(Math.min(platform.maxMaxHeight, world.getMaxHeight()));
+        comboBoxNewMinHeight.setSelectedItem(Math.max((platform.minZ < world.getPlatform().minZ) ? platform.minZ : world.getPlatform().minZ, platform.minZ));
+        final int desiredMaxHeight = (platform.standardMaxHeight > world.getMaxHeight()) ? platform.standardMaxHeight : world.getMaxHeight();
+        int matchingMaxHeight = 0;
+        for (int maxHeight : platform.maxHeights) {
+            if (maxHeight >= desiredMaxHeight) {
+                matchingMaxHeight = maxHeight;
+                break;
+            }
+        }
+        if (matchingMaxHeight == 0) {
+            matchingMaxHeight = platform.maxMaxHeight;
+        }
+        comboBoxNewMaxHeight.setSelectedItem(matchingMaxHeight);
         updateLabels();
         setControlStates();
     }
