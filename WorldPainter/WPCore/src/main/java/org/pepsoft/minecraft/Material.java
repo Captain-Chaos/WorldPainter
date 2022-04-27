@@ -17,7 +17,9 @@ import java.util.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.*;
@@ -108,11 +110,13 @@ public final class Material implements Serializable {
             watery = (boolean) spec.get("watery");
             colour = spec.containsKey("colour") ? ((int) spec.get("colour")) : UNKNOWN_MATERIAL_COLOUR;
             category = determineCategory();
+            possibleProperties = (Set<String>) spec.get("properties");
         } else {
             if (logger.isTraceEnabled()) {
                 logger.trace("Legacy material " + blockType + ":" + data + " not found in materials database");
             }
             // Use reasonable defaults for unknown blocks
+            // TODO: guesstimate these from the block name
             opacity = 0;
             terrain = false;
             insubstantial = false;
@@ -127,6 +131,7 @@ public final class Material implements Serializable {
             watery = false;
             colour = UNKNOWN_MATERIAL_COLOUR;
             category = CATEGORY_UNKNOWN;
+            possibleProperties = null;
         }
 
         transparent = (opacity == 0);
@@ -235,6 +240,7 @@ public final class Material implements Serializable {
             watery = (boolean) spec.get("watery");
             colour = spec.containsKey("colour") ? ((int) spec.get("colour")) : UNKNOWN_MATERIAL_COLOUR;
             category = determineCategory();
+            possibleProperties = (Set<String>) spec.get("properties");
         } else {
             if (logger.isDebugEnabled()) {
                 if ((namespace != null) && namespace.equals(MINECRAFT)) {
@@ -244,6 +250,7 @@ public final class Material implements Serializable {
                 }
             }
             // Use reasonable defaults for unknown blocks
+            // TODO: guesstimate these from the block name
             opacity = 0;
             terrain = false;
             insubstantial = false;
@@ -258,6 +265,7 @@ public final class Material implements Serializable {
             watery = false;
             colour = UNKNOWN_MATERIAL_COLOUR;
             category = CATEGORY_UNKNOWN;
+            possibleProperties = null;
         }
 
         transparent = (opacity == 0);
@@ -284,11 +292,10 @@ public final class Material implements Serializable {
                 // There are multiple specs; find a matching one
                 specs:
                 for (Map<String, Object> spec: specs) {
-                    // The spec must specify properties (otherwise there could
-                    // not be multiple for the same name), make sure they match
-                    // the identity
-                    Set<String> properties = (Set<String>) spec.get("properties");
-                    for (String property: properties) {
+                    // The spec must specify a discriminator (otherwise there could not be multiple for the same name),
+                    // make sure the properties in it match the identity
+                    Set<String> discriminator = (Set<String>) spec.get("discriminator");
+                    for (String property: discriminator) {
                         int p = property.indexOf('=');
                         if (p != -1) {
                             // The spec specifies a specific value; check that
@@ -332,13 +339,14 @@ public final class Material implements Serializable {
     }
 
     /**
-     * Indicates whether a specific property is present on this material.
+     * Indicates whether a specific property is present on this type of material, regardless of whether it is set on the
+     * current instance.
      *
      * @param property The property to check for presence.
-     * @return {@code true} if the specified property is present.
+     * @return {@code true} if the specified property is present on this type of material.
      */
     public boolean hasProperty(Property<?> property) {
-        return (identity.properties != null) && identity.properties.containsKey(property.name);
+        return (possibleProperties != null) && possibleProperties.contains(property.name);
     }
 
     /**
@@ -371,7 +379,7 @@ public final class Material implements Serializable {
      * type, or {@code defaultValue} if the property is not set.
      */
     public <T> T getProperty(Property<T> property, T defaultValue) {
-        return hasProperty(property) ? property.fromString(identity.properties.get(property.name)) : defaultValue;
+        return ((identity.properties != null) && (identity.properties.containsKey(property.name))) ? property.fromString(identity.properties.get(property.name)) : defaultValue;
     }
 
     /**
@@ -409,13 +417,14 @@ public final class Material implements Serializable {
     }
 
     /**
-     * Indicates whether a specific property is present on this material.
+     * Indicates whether a specific property is present on this type of material, regardless of whether it is set on the
+     * current instance.
      *
      * @param name The name of the property to check for presence.
-     * @return {@code true} if the specified property is present.
+     * @return {@code true} if the specified property is present on this type of material.
      */
     public boolean hasProperty(String name) {
-        return (identity.properties != null) && identity.properties.containsKey(name);
+        return (possibleProperties != null) && possibleProperties.contains(name);
     }
 
     /**
@@ -603,7 +612,6 @@ public final class Material implements Serializable {
      *                 incompatible material.
      * @return A vertically mirrored version of the material.
      */
-    @SuppressWarnings("ConstantConditions") // Responsibility of client; we don't want to add expensive checks
     public Material invert(Platform platform) {
         if ((verticalOrientationScheme != null) || (legacyVerticalOrientationScheme != null)) {
             VerticalOrientationScheme scheme;
@@ -885,7 +893,6 @@ public final class Material implements Serializable {
         }
     }
 
-    @SuppressWarnings("ConstantConditions") // Responsibility of client; we don't want to add expensive checks
     private VerticalOrientationScheme determineLegacyVerticalOrientation() {
         if (verticalOrientationScheme != null) {
             Material invertedMaterial;
@@ -1467,6 +1474,11 @@ public final class Material implements Serializable {
      */
     public final transient int colour;
 
+    /**
+     * The properties this type of material has, regardless of whether they are set on the current instance.
+     */
+    public final transient Set<String> possibleProperties;
+
     // Optimised versions of hasProperty(...):
 
     /**
@@ -1490,7 +1502,7 @@ public final class Material implements Serializable {
 
     static {
         // Read legacy MC block database
-        try (Reader in = new InputStreamReader(Material.class.getResourceAsStream("legacy-mc-blocks.json"), UTF_8)) {
+        try (Reader in = new InputStreamReader(requireNonNull(Material.class.getResourceAsStream("legacy-mc-blocks.json")), UTF_8)) {
             @SuppressWarnings("unchecked") // Guaranteed by contents of file
             List<Object> items = (List<Object>) OBJECT_MAPPER.readValue(in, List.class);
             for (Object item: items) {
@@ -1513,14 +1525,18 @@ public final class Material implements Serializable {
         }
 
         // Read MC materials database
-        try (Reader in = new InputStreamReader(Material.class.getResourceAsStream("mc-materials.csv"), UTF_8)) {
+        try (Reader in = new InputStreamReader(requireNonNull(Material.class.getResourceAsStream("mc-materials.csv")), UTF_8)) {
             CSVDataSource csvDataSource = new CSVDataSource();
             csvDataSource.openForReading(in);
             do {
                 Map<String, Object> materialSpecs = new HashMap<>();
                 String name = csvDataSource.getString("name");
                 materialSpecs.put("name", name);
-                String str = csvDataSource.getString("properties");
+                String str = csvDataSource.getString("discriminator");
+                if (! isNullOrEmpty(str)) {
+                    materialSpecs.put("discriminator", ImmutableSet.copyOf(str.split(",")));
+                }
+                str = csvDataSource.getString("properties");
                 if (! isNullOrEmpty(str)) {
                     materialSpecs.put("properties", ImmutableSet.copyOf(str.split(",")));
                 }
@@ -1538,6 +1554,10 @@ public final class Material implements Serializable {
                 str = csvDataSource.getString("colour");
                 if (! isNullOrEmpty(str)) {
                     materialSpecs.put("colour", Integer.parseUnsignedInt(str, 16));
+                }
+                str = csvDataSource.getString("colourOrigin");
+                if (! isNullOrEmpty(str)) {
+                    materialSpecs.put("colourOrigin", str);
                 }
                 MATERIAL_SPECS.computeIfAbsent(name, s -> new HashSet<>()).add(materialSpecs);
                 csvDataSource.next();
