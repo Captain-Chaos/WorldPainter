@@ -40,7 +40,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
         entities = new ArrayList<>();
         tileEntities = new ArrayList<>();
         readOnly = false;
-        lightPopulated = true;
+        lightOn = true;
 
         setTerrainPopulated(true);
 
@@ -121,7 +121,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
             xPos = getInt(TAG_X_POS_);
             zPos = getInt(TAG_Z_POS_);
             status = getString(TAG_STATUS).intern();
-            lightPopulated = getBoolean(TAG_LIGHT_POPULATED);
+            lightOn = getBoolean(TAG_IS_LIGHT_ON_);
             inhabitedTime = getLong(TAG_INHABITED_TIME);
             if (containsTag(TAG_LIQUID_TICKS)) {
                 liquidTicks.addAll(getList(TAG_LIQUID_TICKS));
@@ -269,7 +269,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
         setInt(TAG_X_POS_, xPos);
         setInt(TAG_Z_POS_, zPos);
         setString(TAG_STATUS, status);
-        setBoolean(TAG_LIGHT_POPULATED, lightPopulated);
+        setBoolean(TAG_IS_LIGHT_ON_, lightOn);
         setLong(TAG_INHABITED_TIME, inhabitedTime);
         setList(TAG_LIQUID_TICKS, CompoundTag.class, liquidTicks);
 
@@ -506,12 +506,12 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
 
     @Override
     public boolean isLightPopulated() {
-        return lightPopulated;
+        return lightOn;
     }
 
     @Override
-    public void setLightPopulated(boolean lightPopulated) {
-        this.lightPopulated = lightPopulated;
+    public void setLightPopulated(boolean lightOn) {
+        this.lightOn = lightOn;
     }
 
     @Override
@@ -748,7 +748,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
     final Section[] sections;
     final int xPos, zPos;
     int[] biomes3d;
-    boolean lightPopulated; // TODO: is this still used by MC 1.15?
+    boolean lightOn;
     final List<Entity> entities;
     final List<TileEntity> tileEntities;
     final int maxHeight;

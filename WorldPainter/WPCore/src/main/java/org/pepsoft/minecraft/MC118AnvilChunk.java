@@ -515,8 +515,8 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
     }
 
     @Override
-    public void setLightPopulated(boolean lightPopulated) {
-        this.lightOn = lightPopulated;
+    public void setLightPopulated(boolean lightOn) {
+        this.lightOn = lightOn;
     }
 
     @Override
