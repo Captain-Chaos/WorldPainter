@@ -17,7 +17,6 @@ import java.util.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toSet;
@@ -105,7 +104,6 @@ public final class Material implements Serializable {
             treeRelated = (boolean) spec.get("treeRelated");
             vegetation = (boolean) spec.get("vegetation");
             blockLight = (int) spec.get("blockLight");
-            lightSource = (blockLight > 0);
             natural = (boolean) spec.get("natural");
             watery = (boolean) spec.get("watery");
             colour = spec.containsKey("colour") ? ((int) spec.get("colour")) : UNKNOWN_MATERIAL_COLOUR;
@@ -115,18 +113,16 @@ public final class Material implements Serializable {
             if (logger.isTraceEnabled()) {
                 logger.trace("Legacy material " + blockType + ":" + data + " not found in materials database");
             }
-            // Use reasonable defaults for unknown blocks
-            // TODO: guesstimate these from the block name
-            opacity = 0;
+            // Use reasonable defaults and guesses for unknown blocks
+            opacity = guessOpacity(name);
             terrain = false;
             insubstantial = false;
             veryInsubstantial = false;
-            resource = false;
+            resource = guessResource(name);
             tileEntity = false;
-            treeRelated = false;
+            treeRelated = guessTreeRelated(name);
             vegetation = false;
             blockLight = 0;
-            lightSource = false;
             natural = false;
             watery = false;
             colour = UNKNOWN_MATERIAL_COLOUR;
@@ -134,6 +130,7 @@ public final class Material implements Serializable {
             possibleProperties = null;
         }
 
+        lightSource = (blockLight > 0);
         transparent = (opacity == 0);
         translucent = (opacity < 15);
         opaque = (opacity == 15);
@@ -235,7 +232,6 @@ public final class Material implements Serializable {
             treeRelated = (boolean) spec.get("treeRelated");
             vegetation = (boolean) spec.get("vegetation");
             blockLight = (int) spec.get("blockLight");
-            lightSource = (blockLight > 0);
             natural = (boolean) spec.get("natural");
             watery = (boolean) spec.get("watery");
             colour = spec.containsKey("colour") ? ((int) spec.get("colour")) : UNKNOWN_MATERIAL_COLOUR;
@@ -249,18 +245,16 @@ public final class Material implements Serializable {
                     logger.debug("Modern material {} not found in materials database", identity);
                 }
             }
-            // Use reasonable defaults for unknown blocks
-            // TODO: guesstimate these from the block name
-            opacity = 0;
+            // Use reasonable defaults and guesses for unknown blocks
+            opacity = guessOpacity(name);
             terrain = false;
             insubstantial = false;
             veryInsubstantial = false;
-            resource = false;
+            resource = guessResource(name);
             tileEntity = false;
-            treeRelated = false;
+            treeRelated = guessTreeRelated(name);
             vegetation = false;
             blockLight = 0;
-            lightSource = false;
             natural = false;
             watery = false;
             colour = UNKNOWN_MATERIAL_COLOUR;
@@ -268,6 +262,7 @@ public final class Material implements Serializable {
             possibleProperties = null;
         }
 
+        lightSource = (blockLight > 0);
         transparent = (opacity == 0);
         translucent = (opacity < 15);
         opaque = (opacity == 15);
@@ -1204,7 +1199,29 @@ public final class Material implements Serializable {
         }
     }
 
+    private static int guessOpacity(String name) {
+        if (name.contains("slab") || name.contains("stairs") || name.contains("block") || name.endsWith("_log") || name.endsWith("_wood") || name.endsWith("_stem") || name.endsWith("_hyphea") || name.contains("bricks")) {
+            return 15;
+        } else if (name.contains("leaves")) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    private static boolean guessResource(String name) {
+        return name.contains("ore");
+    }
+
+    private static boolean guessTreeRelated(String name) {
+        return name.endsWith("_log") || name.endsWith("_wood") || name.endsWith("_stem") || name.endsWith("_hyphea") || name.endsWith("_leaves") || name.endsWith("_sapling");
+    }
+
 //    public static void main(String[] args) throws IOException, ClassNotFoundException {
+//        enrichMaterialsWithColours();
+//    }
+//
+//    private static void enrichMaterialsWithColours() throws IOException, ClassNotFoundException {
 //        Configuration config = Configuration.load();
 //        if (config == null) {
 //            config = new Configuration();
@@ -1215,11 +1232,15 @@ public final class Material implements Serializable {
 //            CSVDataSource csvIn = new CSVDataSource();
 //            csvIn.openForReading(in);
 //            CSVDataSource csvOut = new CSVDataSource();
-//            csvOut.openForWriting(out, "name", "properties", "opacity", "terrain", "insubstantial", "veryInsubstantial", "resource", "tileEntity", "treeRelated", "vegetation", "blockLight", "natural", "watery", "colour", "colourOrigin");
+//            csvOut.openForWriting(out, "name", "discriminator", "properties", "opacity", "terrain", "insubstantial", "veryInsubstantial", "resource", "tileEntity", "treeRelated", "vegetation", "blockLight", "natural", "watery", "colour", "colourOrigin");
 //            do {
 //                String name = csvIn.getString("name");
 //                csvOut.setString("name", name);
-//                String str = csvIn.getString("properties");
+//                String str = csvIn.getString("discriminator");
+//                if (! isNullOrEmpty(str)) {
+//                    csvOut.setString("discriminator", str);
+//                }
+//                str = csvIn.getString("properties");
 //                if (! isNullOrEmpty(str)) {
 //                    csvOut.setString("properties", str);
 //                }
@@ -1234,18 +1255,100 @@ public final class Material implements Serializable {
 //                csvOut.setInt("blockLight", csvIn.getInt("blockLight"));
 //                csvOut.setBoolean("natural", csvIn.getBoolean("natural"));
 //                csvOut.setBoolean("watery", csvIn.getBoolean("watery"));
-//                Material material = Material.getDefault(name);
-//                if (material == null) {
-//                    material = Material.get(name);
-//                }
-//                final ColourAndOrigin colourAndOrigin = determineColour(material, jarFile);
-//                if (colourAndOrigin != null) {
-//                    csvOut.setString("colour", String.format("%8x", colourAndOrigin.colour));
-//                    csvOut.setString("colourOrigin", colourAndOrigin.origin);
+//                if (! isNullOrEmpty(csvIn.getString("colour"))) {
+//                    csvOut.setString("colour", csvIn.getString("colour"));
+//                    if (csvIn.getString("colourOrigin") != null) {
+//                        csvOut.setString("colourOrigin", csvIn.getString("colourOrigin"));
+//                    }
+//                } else {
+//                    Material material = Material.getDefault(name);
+//                    if (material == null) {
+//                        material = Material.get(name);
+//                    }
+//                    final ColourAndOrigin colourAndOrigin = determineColour(material, jarFile);
+//                    if (colourAndOrigin != null) {
+//                        csvOut.setString("colour", String.format("%8x", colourAndOrigin.colour));
+//                        csvOut.setString("colourOrigin", colourAndOrigin.origin);
+//                    }
 //                }
 //                csvIn.next();
 //                csvOut.next();
 //            } while (! csvIn.isEndOfFile());
+//        }
+//    }
+
+//    private static void enrichMaterialsFromPluginDump() {
+//        try (Reader in = new InputStreamReader(Material.class.getResourceAsStream("materials.csv"), UTF_8)) {
+//            final CSVDataSource csvIn = new CSVDataSource();
+//            csvIn.openForReading(in);
+//            do {
+//                final String name = csvIn.getString("name");
+//                final String properties = csvIn.getString("properties");
+//                final boolean tileEntity = csvIn.getBoolean("tileEntity");
+//                final int blockLight = csvIn.getInt("blockLight");
+//
+//                if (MATERIAL_SPECS.containsKey(name)) {
+//                    final Set<Map<String, Object>> specs = MATERIAL_SPECS.get(name);
+//                    specs.forEach(spec -> {
+//                        if (! isNullOrEmpty(properties)) {
+//                            spec.put("properties", ImmutableSet.copyOf(properties.split(",")));
+//                        } else {
+//                            spec.remove("properties");
+//                        }
+//                        spec.put("tileEntity", tileEntity);
+//                        spec.put("blockLight", blockLight);
+//                    });
+//                } else {
+//                    final Map<String, Object> spec = new HashMap<>();
+//                    if (! isNullOrEmpty(properties)) {
+//                        spec.put("properties", ImmutableSet.copyOf(properties.split(",")));
+//                    }
+//                    spec.put("tileEntity", tileEntity);
+//                    spec.put("blockLight", blockLight);
+//                    MATERIAL_SPECS.put(name, singleton(spec));
+//                }
+//
+//                csvIn.next();
+//            } while (! csvIn.isEndOfFile());
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//
+//        try (Writer out = new OutputStreamWriter(System.out, UTF_8)) {
+//            final CSVDataSource csvOut = new CSVDataSource();
+//            csvOut.openForWriting(out, "name", "discriminator", "properties", "opacity", "terrain", "insubstantial", "veryInsubstantial", "resource", "tileEntity", "treeRelated", "vegetation", "blockLight", "natural", "watery", "colour", "colourOrigin");
+//            for (Map.Entry<String, Set<Map<String, Object>>> entry: MATERIAL_SPECS.entrySet()) {
+//                final String name = entry.getKey();
+//                for (Map<String, Object> spec: entry.getValue()) {
+//                    csvOut.setString("name", name);
+//                    if (spec.containsKey("discriminator")) {
+//                        csvOut.setString("discriminator", String.join(",", (Set<String>) spec.get("discriminator")));
+//                    }
+//                    if (spec.containsKey("properties")) {
+//                        csvOut.setString("properties", String.join(",", (Set<String>) spec.get("properties")));
+//                    }
+//                    csvOut.setInt("opacity", (Integer) spec.getOrDefault("opacity", guessOpacity(name)));
+//                    csvOut.setBoolean("terrain", (Boolean) spec.getOrDefault("terrain", false));
+//                    csvOut.setBoolean("insubstantial", (Boolean) spec.getOrDefault("insubstantial", false));
+//                    csvOut.setBoolean("veryInsubstantial", (Boolean) spec.getOrDefault("veryInsubstantial", false));
+//                    csvOut.setBoolean("resource", (Boolean) spec.getOrDefault("resource", guessResource(name)));
+//                    csvOut.setBoolean("tileEntity", (Boolean) spec.get("tileEntity"));
+//                    csvOut.setBoolean("treeRelated", (Boolean) spec.getOrDefault("treeRelated", guessTreeRelated(name)));
+//                    csvOut.setBoolean("vegetation", (Boolean) spec.getOrDefault("vegetation", false));
+//                    csvOut.setInt("blockLight", (Integer) spec.get("blockLight"));
+//                    csvOut.setBoolean("natural", (Boolean) spec.getOrDefault("natural", false));
+//                    csvOut.setBoolean("watery", (Boolean) spec.getOrDefault("watery", false));
+//                    if (spec.containsKey("colour")) {
+//                        csvOut.setString("colour", String.format("%8x", (Integer) spec.get("colour")));
+//                    }
+//                    if (spec.containsKey("colourOrigin")) {
+//                        csvOut.setString("colourOrigin", (String) spec.get("colourOrigin"));
+//                    }
+//                    csvOut.next();
+//                }
+//            }
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
 //        }
 //    }
 
