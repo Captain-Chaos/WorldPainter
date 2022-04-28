@@ -403,7 +403,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
         // Load all layer settings into the exporters
         for (Layer layer: allLayers) {
-            @SuppressWarnings("unchecked")
             LayerExporter exporter = layer.getExporter();
             if (exporter != null) {
                 exporter.setSettings(dimension.getLayerSettings(layer));
@@ -484,7 +483,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 //                frost = true;
 //                continue;
 //            }
-            @SuppressWarnings("unchecked")
             SecondPassLayerExporter exporter = (SecondPassLayerExporter) exporters.get(layer);
             if (logger.isDebugEnabled()) {
                 logger.debug("Exporting layer {} for region {},{}", layer, regionCoords.x, regionCoords.y);
@@ -590,8 +588,13 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             Box originalDirtyArea = new Box((regionCoords.x << 9) - 16, ((regionCoords.x + 1) << 9) + 16, lightingLowMark, lightingHighMark + 1, (regionCoords.y << 9) - 16, ((regionCoords.y + 1) << 9) + 16);
             int originalVolume = originalDirtyArea.getVolume();
             Box dirtyArea = originalDirtyArea.clone();
+            Box previousDirtyArea = dirtyArea.clone();
             lightingVolume.setDirtyArea(dirtyArea);
             while (lightingVolume.calculateSecondaryLight()) {
+                if (dirtyArea.getVolume() > previousDirtyArea.getVolume()) {
+                    logger.debug("Lighting volume grew from {} to {}!", previousDirtyArea.getVolume(), dirtyArea.getVolume());
+                }
+                previousDirtyArea = dirtyArea.clone();
                 if (progressReceiver != null) {
                     progressReceiver.setProgress(0.2f + 0.8f * (originalVolume - dirtyArea.getVolume()) / originalVolume);
                 }
@@ -841,6 +844,44 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
     }
 
+    // Coordinates are in Minecraft coordinate system
+    /**
+     * Move tile entity data from a source chunk to a potentially different height in a destination chunk. The source
+     * and destination chunks may be the same.
+     *
+     * @param toChunk   The destination chunk.
+     * @param fromChunk The source chunk.
+     * @param x         The X coordinate.
+     * @param y         The Y coordinate in the destination chunk.
+     * @param z         The Z coordinate.
+     * @param dy        The delta to subtract from {@code y} to obtain the Y coordinate in the source chunk. In other
+     *                  words: how many blocks to move the tile entity data up.
+     */
+    protected void moveEntityTileData(Chunk toChunk, Chunk fromChunk, int x, int y, int z, int dy) {
+        if ((toChunk == fromChunk) && (dy == 0)) {
+            return;
+        }
+        final int existingBlockDX = fromChunk.getxPos() << 4, existingBlockDZ = fromChunk.getzPos() << 4;
+
+        // First remove any tile entity data which may already be there
+        toChunk.getTileEntities().removeIf(entity -> (entity.getY() == y) && ((entity.getX() - existingBlockDX) == x) && ((entity.getZ() - existingBlockDZ) == z));
+
+        // Copy the tile entity data
+        final List<TileEntity> fromEntities = fromChunk.getTileEntities();
+        for (TileEntity entity: fromEntities) {
+            if ((entity.getY() == (y - dy)) && ((entity.getX() - existingBlockDX) == x) && ((entity.getZ() - existingBlockDZ) == z)) {
+                logger.debug("Moving tile entity " + entity.getId() + " from  " + x + "," + (y - dy) + "," + z + " to  " + x + "," + y + "," + z);
+                entity.setY(y);
+                toChunk.getTileEntities().add(entity);
+                break;
+            }
+        }
+
+        // Delete the tile entity data in the old location. Do this in a separate iteration, since toChunk may be the
+        // same one as fromChunk
+        fromEntities.removeIf(entity -> (entity.getY() == (y - dy)) && ((entity.getX() - existingBlockDX) == x) && ((entity.getZ() - existingBlockDZ) == z));
+    }
+
     /**
      * Merge the non-air blocks from the source chunk into the destination chunk.
      *
@@ -862,13 +903,19 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                         // that's not air
                         Material sourceMaterial = source.getMaterial(x, y, z);
                         if ((destinationMaterial == AIR) ? (sourceMaterial != AIR) : sourceMaterial.solid) {
-                            destination.setMaterial(x, y, z, source.getMaterial(x, y, z));
+                            destination.setMaterial(x, y, z, sourceMaterial);
                             destination.setBlockLightLevel(x, y, z, source.getBlockLightLevel(x, y, z));
                             destination.setSkyLightLevel(x, y, z, source.getSkyLightLevel(x, y, z));
+                            if (sourceMaterial.tileEntity) {
+                                moveEntityTileData(destination, source, x, y, z, 0);
+                            }
                         }
                     }
                 }
             }
+        }
+        for (Entity entity: source.getEntities()) {
+            destination.getEntities().add(entity);
         }
     }
 

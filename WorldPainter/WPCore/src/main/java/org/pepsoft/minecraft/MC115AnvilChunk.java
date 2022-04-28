@@ -27,7 +27,7 @@ import static org.pepsoft.minecraft.Material.LEVEL;
  * 
  * @author pepijn
  */
-public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, MinecraftWorld {
+public final class MC115AnvilChunk extends MCNamedBlocksChunk implements SectionedChunk, MinecraftWorld {
     public MC115AnvilChunk(int xPos, int zPos, int maxHeight) {
         super(new CompoundTag(TAG_LEVEL, new HashMap<>()));
         this.xPos = xPos;
@@ -246,6 +246,7 @@ public final class MC115AnvilChunk extends NBTChunk implements SectionedChunk, M
 
     @Override
     public CompoundTag toNBT() {
+        normalise();
         if (sections != null) {
             List<CompoundTag> sectionTags = new ArrayList<>(maxHeight >> 4);
             for (Section section: sections) {

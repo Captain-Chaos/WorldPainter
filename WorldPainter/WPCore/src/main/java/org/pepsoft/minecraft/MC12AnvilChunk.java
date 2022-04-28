@@ -21,7 +21,7 @@ import static org.pepsoft.minecraft.Constants.*;
  * 
  * @author pepijn
  */
-public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
+public final class MC12AnvilChunk extends MCNumberedBlocksChunk implements MinecraftWorld {
     public MC12AnvilChunk(int xPos, int zPos, int maxHeight) {
         super(new CompoundTag(TAG_LEVEL, new HashMap<>()));
         this.xPos = xPos;
@@ -91,6 +91,7 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
 
     @Override
     public CompoundTag toNBT() {
+        normalise();
         List<CompoundTag> sectionTags = new ArrayList<>(maxHeight >> 4);
         for (Section section: sections) {
 //            if (section != null) {

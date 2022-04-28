@@ -34,9 +34,9 @@ import static org.pepsoft.minecraft.Material.LEVEL;
  * 
  * @author pepijn
  */
-public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, MinecraftWorld {
+public final class MC118AnvilChunk extends MCNamedBlocksChunk implements SectionedChunk, MinecraftWorld {
     public MC118AnvilChunk(int xPos, int zPos, int maxHeight) {
-        super(ImmutableMap.of(REGION, new CompoundTag("", new HashMap<>()), ENTITIES, new CompoundTag("", new HashMap<>())));
+        super(ImmutableMap.of(REGION, new CompoundTag("", new HashMap<>())));
         this.xPos = xPos;
         this.zPos = zPos;
         this.maxHeight = maxHeight;
@@ -51,8 +51,6 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
         extraTags = null;
 
         setTerrainPopulated(true);
-
-//        debugChunk = (xPos == (debugWorldX >> 4)) && (zPos == (debugWorldZ >> 4));
     }
 
     public MC118AnvilChunk(Map<DataType, CompoundTag> tags, int maxHeight) {
@@ -119,21 +117,18 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
                 fluidTicks.addAll(getList(REGION, TAG_FLUID_TICKS_));
             }
 
-            extraTags = new HashMap<>();
-            for (DataType type: DataType.values()) {
-                getAllTags(type).forEach((key, value) -> {
-                    if ((KNOWN_TAGS.containsKey(type) && (KNOWN_TAGS.get(type).contains(key)))) {
-                        extraTags.computeIfAbsent(type, t -> new HashMap<>()).put(key, value);
-                    }
-                });
-            }
-//            debugChunk = (xPos == (debugWorldX >> 4)) && (zPos == (debugWorldZ >> 4));
+            Map<DataType, Map<String, Tag>> myExtraTags = new HashMap<>();
+            forEachTag((dataType, name, tag) -> {
+                if ((! KNOWN_TAGS.containsKey(dataType)) || (! KNOWN_TAGS.get(dataType).contains(name))) {
+                    myExtraTags.computeIfAbsent(dataType, t -> new HashMap<>()).put(name, tag);
+                }
+            });
+            extraTags = (! myExtraTags.isEmpty()) ? myExtraTags : null;
         } catch (Section.ExceptionParsingSectionException e) {
             // Already reported; just rethrow
             throw e;
         } catch (RuntimeException e) {
             logger.error("{} while creating chunk from NBT", e.getClass().getSimpleName());
-//            logger.error("{} while creating chunk from NBT: {}", e.getClass().getSimpleName(), tag);
             throw e;
         }
     }
@@ -199,17 +194,11 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
                 .put(TAG_T_, new IntTag(TAG_T_, RANDOM.nextInt(30) + 1)).build()));
     }
 
-    public static void setDebugColumn(int worldX, int worldZ) {
-        debugWorldX = worldX;
-        debugXInChunk = debugWorldX & 0xf;
-        debugWorldZ = worldZ;
-        debugZInChunk = debugWorldZ & 0xf;
-    }
-
     // Chunk
 
     @Override
     public Map<DataType, ? extends Tag> toMultipleNBT() {
+        normalise();
         if (sections != null) {
             List<CompoundTag> sectionTags = new ArrayList<>(maxHeight >> 4);
             for (Section section: sections) {
@@ -223,8 +212,13 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
         heightMaps.forEach((key, value) -> heightMapTags.put(key, new LongArrayTag(key, value)));
         setMap(REGION, TAG_HEIGHT_MAPS, heightMapTags);
         List<CompoundTag> entityTags = new ArrayList<>(entities.size());
-        entities.stream().map(Entity::toNBT).forEach(entityTags::add);
-        setList(ENTITIES, TAG_ENTITIES, CompoundTag.class, entityTags);
+        if (! entities.isEmpty()) {
+            entities.stream().map(Entity::toNBT).forEach(entityTags::add);
+            setList(ENTITIES, TAG_ENTITIES, CompoundTag.class, entityTags);
+        } else if (containsType(ENTITIES)) {
+            // Make sure the list is empty
+            setList(ENTITIES, TAG_ENTITIES_, CompoundTag.class, entityTags);
+        }
         List<CompoundTag> blockEntityTags = new ArrayList<>(blockEntities.size());
         blockEntities.stream().map(TileEntity::toNBT).forEach(blockEntityTags::add);
         setList(REGION, TAG_BLOCK_ENTITIES_, CompoundTag.class, blockEntityTags);
@@ -242,8 +236,11 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
         }
 
         setTag(REGION, TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, dataVersion));
-        setTag(ENTITIES, TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, dataVersion));
-        setTag(ENTITIES, TAG_POSITION, new IntArrayTag(TAG_POSITION, new int[] { xPos, zPos }));
+        if (containsType(ENTITIES)) {
+            // Prevent the creation of the separate ENTITIES chunk if it's not necessary
+            setTag(ENTITIES, TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, dataVersion));
+            setTag(ENTITIES, TAG_POSITION, new IntArrayTag(TAG_POSITION, new int[] { xPos, zPos }));
+        }
         return super.toMultipleNBT();
     }
 
@@ -475,9 +472,6 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
 
     @Override
     public void setMaterial(int x, int y, int z, Material material) {
-        if (debugChunk && logger.isDebugEnabled() && (x == debugXInChunk) && (z == debugZInChunk)) {
-            logger.debug("Setting material @ {},{},{} to {}", x, y, z, material, new Throwable("Stacktrace"));
-        }
         if (readOnly) {
             return;
         }
@@ -775,13 +769,12 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
     final Map<String, long[]> heightMaps;
     final List<CompoundTag> fluidTicks = new ArrayList<>();
     final Map<DataType, Map<String, Tag>> extraTags;
-    final boolean debugChunk = false;
-
-    private static long debugWorldX, debugWorldZ, debugXInChunk, debugZInChunk;
 
     public static final int UNDERGROUND_SECTIONS = 4, LIGHT_ARRAY_SIZE = 2048;
     private static final Random RANDOM = new Random();
-    private static final Map<DataType, Set<String>> KNOWN_TAGS = ImmutableMap.of(REGION, ImmutableSet.of(TAG_DATA_VERSION, TAG_SECTIONS_, TAG_HEIGHT_MAPS, TAG_BLOCK_ENTITIES_, TAG_X_POS_, TAG_Z_POS_, TAG_STATUS, TAG_IS_LIGHT_ON_, TAG_INHABITED_TIME, TAG_FLUID_TICKS_));
+    private static final Map<DataType, Set<String>> KNOWN_TAGS = ImmutableMap.of(
+            REGION, ImmutableSet.of(TAG_DATA_VERSION, TAG_SECTIONS_, TAG_HEIGHT_MAPS, TAG_BLOCK_ENTITIES_, TAG_LAST_UPDATE, TAG_X_POS_, TAG_Z_POS_, TAG_STATUS, TAG_IS_LIGHT_ON_, TAG_INHABITED_TIME, TAG_FLUID_TICKS_),
+            ENTITIES, ImmutableSet.of(TAG_DATA_VERSION, TAG_ENTITIES, TAG_POSITION));
     private static final Logger logger = LoggerFactory.getLogger(MC118AnvilChunk.class);
 
     public static class Section extends AbstractNBTItem implements SectionedChunk.Section {
@@ -857,7 +850,6 @@ public final class MC118AnvilChunk extends NBTChunk implements SectionedChunk, M
                 throw e;
             } catch (RuntimeException e) {
                 logger.error("{} while creating chunk from NBT", e.getClass().getSimpleName());
-//                logger.error("{} while creating chunk from NBT: {}", e.getClass().getSimpleName(), tag);
                 throw new ExceptionParsingSectionException(e);
             }
         }

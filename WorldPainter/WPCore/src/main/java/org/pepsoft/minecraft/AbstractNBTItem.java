@@ -289,6 +289,26 @@ public abstract class AbstractNBTItem implements NBTItem, Serializable, Cloneabl
         return tags.getOrDefault(type, EMPTY).containsTag(name);
     }
 
+    protected final boolean containsType(DataType type) {
+        return tags.containsKey(type);
+    }
+
+    @FunctionalInterface interface TagConsumer {
+        void accept(DataType dataType, String name, Tag tag);
+    }
+
+    /**
+     * Iterate over all the tags across region types.
+     */
+    protected final void forEachTag(TagConsumer consumer) {
+        for (Map.Entry<DataType, CompoundTag> tagsForType: tags.entrySet()) {
+            final DataType type = tagsForType.getKey();
+            for (Map.Entry<String, Tag> entry: tagsForType.getValue().getValue().entrySet()) {
+                consumer.accept(type, entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
     protected final Tag getTag(DataType type, String name) {
         return tags.getOrDefault(type, EMPTY).getTag(name);
     }

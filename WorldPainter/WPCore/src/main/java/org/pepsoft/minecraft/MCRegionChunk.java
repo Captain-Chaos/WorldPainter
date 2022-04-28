@@ -23,7 +23,7 @@ import static org.pepsoft.minecraft.Constants.*;
  * 
  * @author pepijn
  */
-public final class MCRegionChunk extends NBTChunk {
+public final class MCRegionChunk extends MCNumberedBlocksChunk {
     public MCRegionChunk(int xPos, int zPos, int maxHeight) {
         super(new CompoundTag(TAG_LEVEL, new HashMap<>()));
         this.xPos = xPos;
@@ -68,6 +68,7 @@ public final class MCRegionChunk extends NBTChunk {
 
     @Override
     public CompoundTag toNBT() {
+        normalise();
         setByteArray(TAG_BLOCKS, blocks);
         setByteArray(TAG_DATA, data);
         setByteArray(TAG_SKY_LIGHT, skyLight);

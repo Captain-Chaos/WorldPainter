@@ -4,7 +4,6 @@
  */
 package org.pepsoft.worldpainter.merging;
 
-import com.google.common.collect.ImmutableMap;
 import org.jnbt.NBTInputStream;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
@@ -40,7 +39,6 @@ import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
-import static org.pepsoft.worldpainter.util.ChunkUtils.skipChunk;
 
 /**
  *
@@ -856,7 +854,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         } else {
             // First pass produced no chunks; copy all chunks from the existing
             // region
-            warnings = copyAllChunks(minecraftWorld, oldRegionDir, dimension, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.3f, 0.7f) : null);
+            warnings = copyAllChunksInRegion(minecraftWorld, oldRegionDir, dimension, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.3f, 0.7f) : null);
         }
         return warnings;
     }
@@ -946,20 +944,30 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
     
     private String thirdPass(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Point regionCoords, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
         if (progressReceiver != null) {
-            progressReceiver.setMessage("Merging existing blocks with new");
+            progressReceiver.setMessage("Merging changes into existing chunks");
         }
 
         // TODO: we used to do one extra ring of chunks here. Not sure why, perhaps we'll rediscover it...
-        //  Edit: was it to get accurate lighting around the edges?
-        int lowestChunkX = regionCoords.x << 5;
-        int highestChunkX = (regionCoords.x << 5) + 31;
-        int lowestChunkY = regionCoords.y << 5;
-        int highestChunkY = (regionCoords.y << 5) + 31;
-        int maxHeight = dimension.getMaxHeight();
-        Map<Point, RegionFile> regionFiles = new HashMap<>();
-        Set<Point> damagedRegions = new HashSet<>();
-        StringBuilder reportBuilder = new StringBuilder();
+        //  Edit: was it to get accurate lighting around the edges? NOTE: if we change this back we also need to re-
+        //  instate multiple region file (by coordinates) support!
+        final Map<DataType, RegionFile> regionFiles = new HashMap<>();
+        final Set<DataType> dataTypes = ((JavaPlatformProvider) platformProvider).getDataTypes();
+        for (DataType dataType: dataTypes) {
+            RegionFile regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, dataType, regionCoords, true);
+            if (regionFile != null) {
+                regionFiles.put(dataType, regionFile);
+            }
+        }
+        if (! regionFiles.containsKey(REGION)) {
+            throw new IllegalStateException("No region files of type REGION found for coordinates " + regionCoords + " in " + oldRegionDir.getParent());
+        }
+        final StringBuilder reportBuilder = new StringBuilder();
         try {
+            final int lowestChunkX = regionCoords.x << 5;
+            final int highestChunkX = (regionCoords.x << 5) + 31;
+            final int lowestChunkY = regionCoords.y << 5;
+            final int highestChunkY = (regionCoords.y << 5) + 31;
+            final int maxHeight = dimension.getMaxHeight();
             int chunkNo = 0;
             for (int chunkX = lowestChunkX; chunkX <= highestChunkX; chunkX++) {
                 for (int chunkY = lowestChunkY; chunkY <= highestChunkY; chunkY++) {
@@ -967,7 +975,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     if (progressReceiver != null) {
                         progressReceiver.setProgress((float) chunkNo / 1156);
                     }
-                    Chunk newChunk;
+                    final Chunk newChunk;
                     if (dimension.getTile(chunkX >> 3, chunkY >> 3) == null) {
                         // The tile for this chunk does not exist in the new
                         // world, so the chunk from the existing world should
@@ -985,69 +993,43 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         }
                         continue;
                     }
-                    int regionX = chunkX >> 5;
-                    int regionY = chunkY >> 5;
-                    Point coords = new Point(regionX, regionY);
-                    if (damagedRegions.contains(coords)) {
-                        // We can't read this region, which we have already
-                        // reported and logged earlier
-                        continue;
-                    }
-                    RegionFile regionFile = regionFiles.get(coords);
-                    if (regionFile == null) {
-                        try {
-                            // TODO support any platform
-                            regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, REGION, coords, true);
-                            regionFiles.put(coords, regionFile);
-                        } catch (IOException e) {
-                            reportBuilder.append("I/O error while opening region " + regionX + "," + regionY + " (message: \"" + e.getMessage() + "\"); skipping region" + EOL);
-                            logger.error("I/O error while opening region " + regionX + "," + regionY + "; skipping region", e);
-                            damagedRegions.add(coords);
-                            continue;
-                        }
-                    }
-                    int chunkXInRegion = chunkX & 0x1f;
-                    int chunkYInRegion = chunkY & 0x1f;
-                    // TODO multiple region chunks support
+                    final int chunkXInRegion = chunkX & 0x1f;
+                    final int chunkYInRegion = chunkY & 0x1f;
                     Chunk existingChunk = null;
-                    if (regionFile.containsChunk(chunkXInRegion, chunkYInRegion)) {
-                        try {
-                            DataInputStream chunkData = regionFile.getChunkDataInputStream(chunkXInRegion, chunkYInRegion);
-                            if (chunkData == null) {
-                                // This should never happen, since we checked with
-                                // isChunkPresent(), but in practice it does. Perhaps
-                                // corrupted data?
-                                reportBuilder.append("Missing chunk data in existing map for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk" + EOL);
-                                logger.warn("Missing chunk data in existing map for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk");
-                                continue;
-                            }
-                            try (NBTInputStream in = new NBTInputStream(chunkData)) {
-                                // TODO: support any platform
-                                existingChunk = ((JavaPlatformProvider) platformProvider).createChunk(platform, ImmutableMap.of(REGION, in.readTag()) /* TODO */, maxHeight);
-
-                                // Sanity checks
-                                if (skipChunk(existingChunk) && (newChunk != null)) {
-                                    logger.warn("Replacing chunk " + chunkX + "," + chunkY + "from existing map because it has an unfinished status and is empty");
-                                    existingChunk = null;
+                    if (regionFiles.get(REGION).containsChunk(chunkXInRegion, chunkYInRegion)) {
+                        final Map<DataType, Tag> tags = new HashMap<>();
+                        regionFiles.forEach((dataType, regionFile) -> {
+                            try {
+                                final InputStream chunkData = regionFiles.get(dataType).getChunkDataInputStream(chunkXInRegion, chunkYInRegion);
+                                if ((chunkData == null) && (dataType == REGION)) {
+                                    // This should never happen, since we checked with isChunkPresent(), but in practice
+                                    // it does. Perhaps corrupted data?
+                                    reportBuilder.append("Missing chunk data in existing map for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk" + EOL);
+                                    logger.warn("Missing chunk data in existing map for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk");
+                                    return;
+                                } else if (chunkData != null) {
+                                    try (NBTInputStream in = new NBTInputStream(chunkData)) {
+                                        tags.put(dataType, in.readTag());
+                                    }
                                 }
+                            } catch (IOException e) {
+                                reportBuilder.append("I/O error while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
+                                logger.error("I/O error while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
+                            } catch (IllegalArgumentException e) {
+                                reportBuilder.append("Illegal argument exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
+                                logger.error("Illegal argument exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
+                            } catch (ClassCastException e) {
+                                reportBuilder.append("Class cast exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
+                                logger.error("Class cast exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
+                            } catch (RegionFile.InvalidRegionFileException e) {
+                                reportBuilder.append("Invalid region file while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
+                                logger.error("Invalid region file while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
                             }
-                        } catch (IOException e) {
-                            reportBuilder.append("I/O error while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                            logger.error("I/O error while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
-                            continue;
-                        } catch (IllegalArgumentException e) {
-                            reportBuilder.append("Illegal argument exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                            logger.error("Illegal argument exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
-                            continue;
-                        } catch (ClassCastException e) {
-                            reportBuilder.append("Class cast exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                            logger.error("Class cast exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
-                            continue;
-                        } catch (RegionFile.InvalidRegionFileException e) {
-                            reportBuilder.append("Invalid region file while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                            logger.error("Invalid region file while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
+                        });
+                        if (! tags.containsKey(REGION)) {
                             continue;
                         }
+                        existingChunk = ((JavaPlatformProvider) platformProvider).createChunk(platform, tags, maxHeight);
                     }
                     if (existingChunk != null) {
                         if (newChunk != null) {
@@ -1062,12 +1044,12 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                 mergeChunk(existingChunk, newChunk, dimension);
                                 minecraftWorld.addChunk(existingChunk);
                             } catch (NullPointerException e) {
-                                reportBuilder.append("Null pointer exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk" + EOL);
-                                logger.error("Null pointer exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
+                                reportBuilder.append("Null pointer exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from region " + regionCoords + "; skipping chunk" + EOL);
+                                logger.error("Null pointer exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from region " + regionCoords + "; skipping chunk", e);
                                 continue;
                             } catch (ArrayIndexOutOfBoundsException e) {
-                                reportBuilder.append("Array index out of bounds while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                                logger.error("Array index out of bounds while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
+                                reportBuilder.append("Array index out of bounds while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from region " + regionCoords + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
+                                logger.error("Array index out of bounds while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from region " + regionCoords + "; skipping chunk", e);
                                 continue;
                             }
                         } else {
@@ -1149,9 +1131,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
     }
 
     private void setToAirOrWater(final Chunk chunk, final int x, final int y, final int z, final Material existingMaterial) {
-        int maxZ = world.getMaxHeight() - 1;
+        final int maxZ = world.getMaxHeight() - 1;
         if (existingMaterial.watery || existingMaterial.is(WATERLOGGED)) {
-            chunk.setMaterial(x, y, z, WATER);
+            chunk.setMaterial(x, y, z, STATIONARY_WATER);
             // TODO skylight adjustment for under water
             // TODO also set to water if water to the side or above
         } else {
@@ -1159,17 +1141,17 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             // Note that these lighting calculations aren't strictly necessary since
             // the lighting will be fully recalculated later on, but it doesn't hurt
             // and it might improve performance and/or fill in gaps in the logic
-            int skyLightLevelAbove = (z < maxZ) ? chunk.getSkyLightLevel(x, z + 1, y) : 15;
-            int skyLightLevelBelow = (z > 0) ? chunk.getSkyLightLevel(x, z - 1, y) : 0;
+            final int skyLightLevelAbove = (z < maxZ) ? chunk.getSkyLightLevel(x, z + 1, y) : 15;
             if (skyLightLevelAbove == 15) {
                 // Propagate full daylight down
                 chunk.setSkyLightLevel(x, z, y, 15);
             } else {
+                int skyLightLevelBelow = (z > platform.minZ) ? chunk.getSkyLightLevel(x, z - 1, y) : 0;
                 chunk.setSkyLightLevel(x, z, y, Math.max(Math.max(skyLightLevelAbove, skyLightLevelBelow) - 1, 0));
             }
         }
         int blockLightLevelAbove = (z < maxZ) ? chunk.getSkyLightLevel(x, z + 1, y) : 0;
-        int blockLightLevelBelow = (z > 0) ? chunk.getBlockLightLevel(x, z - 1, y) : 0;
+        int blockLightLevelBelow = (z > platform.minZ) ? chunk.getBlockLightLevel(x, z - 1, y) : 0;
         chunk.setBlockLightLevel(x, z, y, Math.max(Math.max(blockLightLevelAbove, blockLightLevelBelow) - 1, 0));
     }
 
@@ -1206,20 +1188,29 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         return mostPrevalentMaterial;
     }
     
-    private String copyAllChunks(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Point regionCoords, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
+    private String copyAllChunksInRegion(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Point regionCoords, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
         if (progressReceiver != null) {
             progressReceiver.setMessage("Copying chunks unchanged");
         }
 
-        int lowestChunkX = regionCoords.x << 5;
-        int highestChunkX = (regionCoords.x << 5) + 31;
-        int lowestChunkY = regionCoords.y << 5;
-        int highestChunkY = (regionCoords.y << 5) + 31;
-        int maxHeight = dimension.getMaxHeight();
-        Map<Point, RegionFile> regionFiles = new HashMap<>();
-        Set<Point> damagedRegions = new HashSet<>();
-        StringBuilder reportBuilder = new StringBuilder();
+        final Map<DataType, RegionFile> regionFiles = new HashMap<>();
+        final Set<DataType> dataTypes = ((JavaPlatformProvider) platformProvider).getDataTypes();
+        for (DataType dataType: dataTypes) {
+            RegionFile regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, dataType, regionCoords, true);
+            if (regionFile != null) {
+                regionFiles.put(dataType, regionFile);
+            }
+        }
+        if (! regionFiles.containsKey(REGION)) {
+            throw new IllegalStateException("No region files of type REGION found for coordinates " + regionCoords + " in " + oldRegionDir.getParent());
+        }
+        final StringBuilder reportBuilder = new StringBuilder();
         try {
+            final int lowestChunkX = regionCoords.x << 5;
+            final int highestChunkX = (regionCoords.x << 5) + 31;
+            final int lowestChunkY = regionCoords.y << 5;
+            final int highestChunkY = (regionCoords.y << 5) + 31;
+            final int maxHeight = dimension.getMaxHeight();
             int chunkNo = 0;
             for (int chunkX = lowestChunkX; chunkX <= highestChunkX; chunkX++) {
                 for (int chunkY = lowestChunkY; chunkY <= highestChunkY; chunkY++) {
@@ -1227,56 +1218,43 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     if (progressReceiver != null) {
                         progressReceiver.setProgress((float) chunkNo / 1024);
                     }
-                    int regionX = chunkX >> 5;
-                    int regionY = chunkY >> 5;
-                    Point coords = new Point(regionX, regionY);
-                    if (damagedRegions.contains(coords)) {
-                        // We can't read this region, which we have already
-                        // reported and logged earlier
-                        continue;
-                    }
-                    RegionFile regionFile = regionFiles.get(coords);
-                    if (regionFile == null) {
-                        try {
-                            // TODO: support any platform
-                            regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, REGION, coords, true);
-                            regionFiles.put(coords, regionFile);
-                        } catch (IOException e) {
-                            reportBuilder.append("I/O error while opening region " + regionX + "," + regionY + " (message: \"" + e.getMessage() + "\"); skipping region" + EOL);
-                            logger.error("I/O error while opening region " + regionX + "," + regionY + "; skipping region", e);
-                            damagedRegions.add(coords);
-                            continue;
-                        }
-                    }
-                    int chunkXInRegion = chunkX & 0x1f;
-                    int chunkYInRegion = chunkY & 0x1f;
-                    // TODO multiple region chunks support
-                    if (regionFile.containsChunk(chunkXInRegion, chunkYInRegion)) {
-                        Tag tag;
-                        try {
-                            InputStream chunkData = regionFile.getChunkDataInputStream(chunkXInRegion, chunkYInRegion);
-                            if (chunkData == null) {
-                                // This should never happen, since we checked
-                                // with isChunkPresent(), but in practice it
-                                // does. Perhaps corrupted data?
-                                reportBuilder.append("Missing chunk data for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk" + EOL);
-                                logger.warn("Missing chunk data for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk");
-                                continue;
+                    final int chunkXInRegion = chunkX & 0x1f;
+                    final int chunkYInRegion = chunkY & 0x1f;
+                    if (regionFiles.get(REGION).containsChunk(chunkXInRegion, chunkYInRegion)) {
+                        final Map<DataType, Tag> tags = new HashMap<>();
+                        regionFiles.forEach((dataType, regionFile) -> {
+                            try {
+                                final InputStream chunkData = regionFiles.get(dataType).getChunkDataInputStream(chunkXInRegion, chunkYInRegion);
+                                if ((chunkData == null) && (dataType == REGION)) {
+                                    // This should never happen, since we checked with isChunkPresent(), but in practice
+                                    // it does. Perhaps corrupted data?
+                                    reportBuilder.append("Missing chunk data in existing map for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk" + EOL);
+                                    logger.warn("Missing chunk data in existing map for chunk " + chunkXInRegion + ", " + chunkYInRegion + " in " + regionFile + "; skipping chunk");
+                                    return;
+                                } else if (chunkData != null) {
+                                    try (NBTInputStream in = new NBTInputStream(chunkData)) {
+                                        tags.put(dataType, in.readTag());
+                                    }
+                                }
+                            } catch (IOException e) {
+                                reportBuilder.append("I/O error while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
+                                logger.error("I/O error while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
+                            } catch (IllegalArgumentException e) {
+                                reportBuilder.append("Illegal argument exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
+                                logger.error("Illegal argument exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
+                            } catch (ClassCastException e) {
+                                reportBuilder.append("Class cast exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
+                                logger.error("Class cast exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
+                            } catch (RegionFile.InvalidRegionFileException e) {
+                                reportBuilder.append("Invalid region file while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
+                                logger.error("Invalid region file while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
                             }
-                            try (NBTInputStream in = new NBTInputStream(chunkData)) {
-                                tag = in.readTag();
-                            }
-                        } catch (IOException e) {
-                            reportBuilder.append("I/O error while reading chunk " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                            logger.error("I/O error while reading chunk " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
-                            continue;
-                        } catch (IllegalArgumentException e) {
-                            reportBuilder.append("Illegal argument exception while reading chunk " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                            logger.error("Illegal argument exception while reading chunk " + chunkXInRegion + ", " + chunkYInRegion + " from file " + regionFile + "; skipping chunk", e);
+                        });
+                        if (! tags.containsKey(REGION)) {
                             continue;
                         }
                         // TODO: support any platform
-                        minecraftWorld.addChunk(((JavaPlatformProvider) platformProvider).createChunk(platform, ImmutableMap.of(REGION, tag) /* TODO */, maxHeight));
+                        minecraftWorld.addChunk(((JavaPlatformProvider) platformProvider).createChunk(platform, tags, maxHeight));
                     }
                 }
             }
@@ -1304,14 +1282,14 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         if (logger.isDebugEnabled()) {
             logger.debug("Merging chunks at " + existingChunk.getxPos() + "," + existingChunk.getzPos());
         }
-        final int minY = platform.minZ, maxY = existingChunk.getMaxHeight() - 1;
+        final int minHeight = existingChunk.getMinHeight(), oldMaxY = existingChunk.getHighestNonAirBlock(), newMaxY = newChunk.getHighestNonAirBlock(), maxHeight = existingChunk.getMaxHeight();
         final int chunkX = existingChunk.getxPos() << 4, chunkZ = existingChunk.getzPos() << 4;
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 if (dimension.getBitLayerValueAt(org.pepsoft.worldpainter.layers.Void.INSTANCE, chunkX | x, chunkZ | z)) {
                     // Void. Just empty the entire column
                     // TODO: only empty from the terrain height on downwards? or find some other way of preserving overhanging trees, that kind of thing?
-                    for (int y = existingChunk.getHighestNonAirBlock(x, z); y >= minY; y--) {
+                    for (int y = existingChunk.getHighestNonAirBlock(x, z); y >= minHeight; y--) {
                         existingChunk.setMaterial(x, y, z, AIR);
                         existingChunk.setBlockLightLevel(x, y, z, 0);
                         existingChunk.setSkyLightLevel(x, y, z, 15);
@@ -1319,10 +1297,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 } else {
                     final int newHeight = dimension.getIntHeightAt(chunkX | x, chunkZ | z);
                     final boolean frost = dimension.getBitLayerValueAt(Frost.INSTANCE, chunkX | x, chunkZ | z);
-                    int oldHeight = 0;
-                    for (int y = maxY; y >= minY; y--) {
-                        Material oldMaterial = existingChunk.getMaterial(x, y, z);
-                        if (oldMaterial.terrain) {
+                    int oldHeight = minHeight - 1;
+                    for (int y = oldMaxY; y >= minHeight; y--) {
+                        if (existingChunk.getMaterial(x, y, z).terrain) {
                             // Terrain found
                             oldHeight = y;
                             break;
@@ -1331,35 +1308,53 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     final int dy = newHeight - oldHeight;
                     if (dy > 0) {
                         // Terrain has been raised; go from top to bottom to avoid stepping on ourselves
-                        // Merge underground portion if requested
                         // Merge above ground portion from new chunk
-                        for (int y = maxY; y >= newHeight + 1; y--) {
+                        for (int y = Math.min(Math.max(oldMaxY + dy, newMaxY), maxHeight - 1); y >= newHeight + 1; y--) {
                             mergeAboveGroundBlock(existingChunk, newChunk, x, y, z, dy, frost);
                         }
                         final int mergeLimit = Math.min(newHeight - surfaceMergeDepth, oldHeight);
                         // Merge surface layer blocks
                         for (int y = newHeight; y >= mergeLimit + 1; y--) {
-                            mergeSurfaceBlock(existingChunk, newChunk, x, y, z, y < oldHeight);
+                            mergeSurfaceBlock(existingChunk, newChunk, x, y, z, dy, minHeight, y < oldHeight);
                         }
-                        for (int y = mergeLimit; y >= minY; y--) {
-                            mergeUndergroundBlock(existingChunk, newChunk, x, y, z);
+                        // Merge underground portion if requested
+                        if (mergeUnderworld) {
+                            for (int y = mergeLimit; y >= minHeight; y--) {
+                                mergeUndergroundBlock(existingChunk, newChunk, x, y, z);
+                            }
                         }
-                        existingChunk.setHeight(x, z, Math.min(Math.max(existingChunk.getHeight(x, z), newChunk.getHeight(x, z)) + dy, maxY));
+                        existingChunk.setHeight(x, z, Math.min(Math.max(existingChunk.getHeight(x, z) + dy, newChunk.getHeight(x, z)), maxHeight - 1));
+
+                        // Move existing entities above old surface up
+                        final int blockX = chunkX + x, blockZ = chunkZ + z;
+                        for (Entity entity: existingChunk.getEntities()) {
+                            final double[] pos = entity.getPos();
+                            if ((pos[0] >= blockX) && (pos[0] < blockX + 1) && (pos[2] >= blockZ) && (pos[2] < blockZ + 1)) {
+                                if (pos[1] > oldHeight) {
+                                    pos[1] = Math.min(pos[1] + dy, maxHeight - 1);
+                                    entity.setPos(pos);
+                                }
+                            }
+                        }
                     } else if (dy < 0) {
                         // Terrain has been lowered
                         // Merge underground portion if requested
-                        final int mergeLimit = newHeight - surfaceMergeDepth;
-                        for (int y = minY; y <= mergeLimit; y++) {
-                            mergeUndergroundBlock(existingChunk, newChunk, x, y, z);
+                        final int mergeLimit = Math.max(newHeight - surfaceMergeDepth, minHeight - 1);
+                        if (mergeUnderworld) {
+                            for (int y = minHeight; y <= mergeLimit; y++) {
+                                mergeUndergroundBlock(existingChunk, newChunk, x, y, z);
+                            }
                         }
+                        for (int y = mergeLimit + 1; y <= newHeight; y++) {
+                            mergeSurfaceBlock(existingChunk, newChunk, x, y, z, dy, minHeight, y < newHeight);
+                        }
+                        // TODOMC118 reinstate this:
                         // If the new ground height block is insubstantial in the
                         // existing chunk, and there is nothing substantial on the
                         // block in the new or existing chunks, remove it, so as not
                         // to create a weird one block layer of blocks over newly
                         // opened up voids such as caves, chasms, abandoned mines,
                         // etc.
-                        final int mergeStartHeight = newHeight + 1;
-                        // TODOMC118 reinstate this:
 //                        final Material existingMaterial = existingChunk.getMaterial(x, newHeight, z);
 //                        if ((existingMaterial == AIR) || existingMaterial.insubstantial) {
 //                            Material existingMaterialAbove = (newHeight < maxY) ? existingChunk.getMaterial(x, newHeight + 1, z) : AIR;
@@ -1372,50 +1367,45 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
 //                        }
                         // Copy above ground portion from existing chunk, lowered by
                         // the appropriate amount
-                        for (int y = mergeStartHeight; y <= (maxY + dy); y++) {
+                        final int maxY = Math.min(Math.max(oldMaxY, newMaxY), maxHeight - 1);
+                        for (int y = newHeight + 1; y <= maxY; y++) {
                             mergeAboveGroundBlock(existingChunk, newChunk, x, y, z, dy, frost);
                         }
-                        existingChunk.setHeight(x, z, Math.min(Math.max(existingChunk.getHeight(x, z), newChunk.getHeight(x, z)) + dy, maxY));
+                        existingChunk.setHeight(x, z, Math.min(Math.max(existingChunk.getHeight(x, z) + dy, newChunk.getHeight(x, z)), maxHeight - 1));
+
+                        // Move existing entities above new surface down
+                        final int blockX = chunkX + x, blockZ = chunkZ + z;
+                        for (Entity entity: existingChunk.getEntities()) {
+                            final double[] pos = entity.getPos();
+                            if ((pos[0] >= blockX) && (pos[0] < blockX + 1) && (pos[2] >= blockZ) && (pos[2] < blockZ + 1)) {
+                                if (pos[1] > newHeight) {
+                                    pos[1] = Math.min(Math.max(pos[1] + dy, newHeight), maxHeight - 1);
+                                    entity.setPos(pos);
+                                }
+                            }
+                        }
                     } else {
                         // Terrain height has not changed. Copy everything from the
                         // existing chunk, except the top layer of the terrain.
-                        final int mergeLimit = newHeight - surfaceMergeDepth;
-                        for (int y = minY; y <= mergeLimit; y++) {
-                            mergeUndergroundBlock(existingChunk, newChunk, x, y, z);
+                        final int mergeLimit = Math.max(newHeight - surfaceMergeDepth, minHeight - 1);
+                        if (mergeUnderworld) {
+                            for (int y = minHeight; y <= mergeLimit; y++) {
+                                mergeUndergroundBlock(existingChunk, newChunk, x, y, z);
+                            }
                         }
+                        for (int y = mergeLimit + 1; y <= newHeight; y++) {
+                            mergeSurfaceBlock(existingChunk, newChunk, x, y, z, 0, minHeight, y < newHeight);
+                        }
+                        final int maxY = Math.min(Math.max(oldMaxY, newMaxY), maxHeight - 1);
                         for (int y = newHeight + 1; y <= maxY; y++) {
                             mergeAboveGroundBlock(existingChunk, newChunk, x, y, z, 0, frost);
                         }
                     }
-                    // TODOMC118 reinstate this:
-//                    Material newTerrainMaterial = newChunk.getMaterial(x, newHeight, z);
-//                    Material oldTerrainMaterial = existingChunk.getMaterial(x, oldHeight, z);
-//                    if (((newTerrainMaterial == DIRT) && oldTerrainMaterial.isNamed(MC_FARMLAND)) // Tilled earth is imported as dirt, so make sure to leave it intact.
-//                            || ((newTerrainMaterial == DIRT) && oldTerrainMaterial.isNamed(MC_ROOTED_DIRT)) // Rooted dirt is imported as dirt, so make sure to leave it intact.
-//                            || ((newTerrainMaterial == STONE) && oldTerrainMaterial.isNamed(MC_INFESTED_STONE)) // Infested stone is imported as stone, so make sure to leave it intact.
-//                            || ((newTerrainMaterial == DEEPSLATE_Y) && oldTerrainMaterial.isNamed(MC_INFESTED_DEEPSLATE)) // Infested deepslate is imported as deepslate, so make sure to leave it intact.
-//                            || (newTerrainMaterial.isNamed(MC_ICE) && oldTerrainMaterial.isNamed(MC_FROSTED_ICE))) { // Frosted ice is imported as water + Frost, so make sure to leave it intact TODO do this for other forms of ice?
-//
-//                        newChunk.setMaterial(x, newHeight, z, oldTerrainMaterial);
-//                    }
-                    final int blockX = chunkX + x, blockZ = chunkZ + z;
-                    for (Entity entity: existingChunk.getEntities()) {
-                        final double[] pos = entity.getPos();
-                        if ((pos[0] >= blockX) && (pos[0] < blockX + 1) && (pos[2] >= blockZ) && (pos[2] < blockZ + 1)) {
-                            if (pos[1] > oldHeight) {
-                                pos[1] = pos[1] + dy;
-                                if (pos[1] > maxY + 2) {
-                                    pos[1] = maxY + 2;
-                                }
-                                entity.setPos(pos);
-                            }
-                        }
-                    }
-                    // TODOMC118: copy entities from newChunk to existingChunk
                 }
             }
         }
-        newChunk.setInhabitedTime(existingChunk.getInhabitedTime());
+        // Any entities in the new chunk are already at the correct height; we can just copy them all:
+        existingChunk.getEntities().addAll(newChunk.getEntities());
         // TODO: merge other NBT tags (?)
         //  (in which case *do* merge 1.14 structure_starts chunks)
     }
@@ -1430,10 +1420,20 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
      * @param z The Z coordinate of the block to merge.
      * @param preserveCaves Whether empty blocks from the existing chunk should be preserved.
      */
-    private void mergeSurfaceBlock(final Chunk existingChunk, final Chunk newChunk, final int x, final int y, final int z, final boolean preserveCaves) {
-        final Material existingMaterial = existingChunk.getMaterial(x, y, z);
-        if ((! preserveCaves) || ((! existingMaterial.veryInsubstantial) && existingMaterial.natural)) {
-            final Material newMaterial = newChunk.getMaterial(x, y, z);
+    private void mergeSurfaceBlock(final Chunk existingChunk, final Chunk newChunk, final int x, final int y, final int z, final int dy, final int minHeight, final boolean preserveCaves) {
+        final Material existingMaterial = ((y - dy) >= minHeight) ? existingChunk.getMaterial(x, y - dy, z) : null;
+        if ((! preserveCaves) || (existingMaterial == null) || ((! existingMaterial.veryInsubstantial) && existingMaterial.natural)) {
+            Material newMaterial = newChunk.getMaterial(x, y, z);
+
+            if ((existingMaterial != null)
+                    && (((newMaterial == DIRT) && existingMaterial.isNamed(MC_FARMLAND)) // Tilled earth is imported as dirt, so make sure to leave it intact.
+                    || ((newMaterial == DIRT) && existingMaterial.isNamed(MC_ROOTED_DIRT)) // Rooted dirt is imported as dirt, so make sure to leave it intact.
+                    || ((newMaterial == STONE) && existingMaterial.isNamed(MC_INFESTED_STONE)) // Infested stone is imported as stone, so make sure to leave it intact.
+                    || ((newMaterial == DEEPSLATE_Y) && existingMaterial.isNamed(MC_INFESTED_DEEPSLATE)) // Infested deepslate is imported as deepslate, so make sure to leave it intact.
+                    || (newMaterial.isNamed(MC_ICE) && existingMaterial.isNamed(MC_FROSTED_ICE)))) { // Frosted ice is imported as water + Frost, so make sure to leave it intact TODO do this for other forms of ice?
+                newMaterial = existingMaterial;
+            }
+
             existingChunk.setMaterial(x, y, z, newMaterial);
             existingChunk.setSkyLightLevel(x, y, z, newChunk.getSkyLightLevel(x, y, z));
             existingChunk.setBlockLightLevel(x, y, z, newChunk.getBlockLightLevel(x, y, z));
@@ -1453,15 +1453,13 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
      * @param z The Z coordinate of the block to merge.
      */
     private void mergeUndergroundBlock(final Chunk existingChunk, final Chunk newChunk, final int x, final int y, final int z) {
-        if (mergeUnderworld) {
-            final Material newMaterial = newChunk.getMaterial(x, y, z);
-            if (! UNDERGROUND_MERGE_MATRIX[newMaterial.category][existingChunk.getMaterial(x, y, z).category]) {
-                existingChunk.setMaterial(x, y, z, newMaterial);
-                existingChunk.setSkyLightLevel(x, y, z, newChunk.getSkyLightLevel(x, y, z));
-                existingChunk.setBlockLightLevel(x, y, z, newChunk.getBlockLightLevel(x, y, z));
-                if (newMaterial.tileEntity) {
-                    moveEntityTileData(existingChunk, newChunk, x, y, z, 0);
-                }
+        final Material newMaterial = newChunk.getMaterial(x, y, z);
+        if (! UNDERGROUND_MERGE_MATRIX[newMaterial.category][existingChunk.getMaterial(x, y, z).category]) {
+            existingChunk.setMaterial(x, y, z, newMaterial);
+            existingChunk.setSkyLightLevel(x, y, z, newChunk.getSkyLightLevel(x, y, z));
+            existingChunk.setBlockLightLevel(x, y, z, newChunk.getBlockLightLevel(x, y, z));
+            if (newMaterial.tileEntity) {
+                moveEntityTileData(existingChunk, newChunk, x, y, z, 0);
             }
         }
     }
@@ -1472,6 +1470,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
      * the final map, so will merge the change into that chunk.
      * 
      * <p>Coordinates are in Minecraft coordinate system.
+     *
+     * <p><strong>Note</strong> that this method can copy blocks within existingChunk, so it has to be invoked in the
+     * right vertical direction in regard to the delta, so that it does not step on itself.
      * 
      * @param existingChunk The chunk from the existing map.
      * @param newChunk The newly generated chunk.
@@ -1482,17 +1483,45 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
      * @param frost Whether the {@link Frost} layer was applied at the specified x,z coordinates in the new map.
      */
     private void mergeAboveGroundBlock(final Chunk existingChunk, final Chunk newChunk, final int x, final int y, final int z, final int dy, final boolean frost) {
-        final Material existingMaterial = existingChunk.getMaterial(x, y - dy, z);
-        final Material newMaterial = newChunk.getMaterial(x, y, z);
-        final boolean existingMaterialIsWatery = existingMaterial.isNamed(MC_WATER) || existingMaterial.is(WATERLOGGED) || existingMaterial.watery;
-        final boolean newMaterialIsWatery = newMaterial.isNamed(MC_WATER) || newMaterial.is(WATERLOGGED) || newMaterial.watery;
-        if  (((existingMaterial == AIR) // replace *all* fluids (and ice) from the existing map with fluids (or lack thereof) from the new map
-                    || existingMaterial.isNamedOneOf(MC_WATER, MC_ICE, MC_LAVA))
+        // Three steps, to keep things simpler:
+        // First, move the existing block to the new height if necessary
+        Material existingMaterial = existingChunk.getMaterial(x, y - dy, z);
+        if (dy != 0) {
+            existingChunk.setMaterial(x, y, z, existingMaterial);
+            existingChunk.setSkyLightLevel(x, y, z, existingChunk.getSkyLightLevel(x, y - dy, z));
+            existingChunk.setBlockLightLevel(x, y, z, existingChunk.getBlockLightLevel(x, y - dy, z));
+            if (existingMaterial.tileEntity) {
+                moveEntityTileData(existingChunk, existingChunk, x, y, z, dy);
+            }
+            if (dy < 0) {
+                // Terrain is being lowered, make sure to replace the source block with air. When the terrain is being
+                // raised, that's not necessary because mergeChunk() will fill that part in with blocks from the new
+                // map
+                existingChunk.setMaterial(x, y - dy, z, AIR);
+                existingChunk.setSkyLightLevel(x, y - dy, z, ((y - dy + 1) < existingChunk.getMaxHeight()) ? existingChunk.getSkyLightLevel(x, y - dy + 1, z) : 15);
+                existingChunk.setBlockLightLevel(x, y - dy, z, 0);
+            }
+        }
 
-                || (existingMaterial.insubstantial // the existing block is insubstantial and the new block is not (but treat water and lava separately below)
-                        && (newMaterial != AIR)
-                        && newMaterial.isNotNamedOneOf(MC_WATER, MC_LAVA)
-                        && (! newMaterial.insubstantial))
+        // If the corresponding material is the same in the new chunk, we are done
+        final Material newMaterial = newChunk.getMaterial(x, y, z);
+        if (newMaterial == existingMaterial) {
+            return;
+        }
+
+        // Second, replace the existing block with the new block if that should take precedence
+        boolean existingMaterialIsWatery = existingMaterial.isNamed(MC_WATER) || existingMaterial.is(WATERLOGGED) || existingMaterial.watery;
+        final boolean newMaterialIsWatery = newMaterial.isNamed(MC_WATER) || newMaterial.is(WATERLOGGED) || newMaterial.watery;
+        if  (existingMaterial.isNamedOneOf(MC_WATER, MC_ICE, MC_LAVA) // replace *all* fluids (and ice) from the existing map with fluids (or lack thereof) from the new map
+
+                // replace air with non-air from the new map
+                || (existingMaterial == AIR)
+
+                // replace *all* blocks with substantial blocks from the new map
+                || (! newMaterial.veryInsubstantial)
+
+                // replace insubstantial blocks with insubstantial from the new map
+                || (existingMaterial.insubstantial && newMaterial.insubstantial)
 
                 // the Frost layer has not been applied and the existing block is snow
                 || ((! frost) && existingMaterial.isNamed(MC_SNOW))
@@ -1501,7 +1530,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 || (newMaterialIsWatery && existingMaterial.veryInsubstantial && (! existingMaterial.hasProperty(WATERLOGGED)) && (! existingMaterial.watery))
 
                 // the existing block is insubstantial and the new block would burn it away
-                || (newMaterial.isNamedOneOf(MC_LAVA) && existingMaterial.veryInsubstantial)
+                || (newMaterial.isNamed(MC_LAVA) && existingMaterial.veryInsubstantial)
 
                 // the existing block is an underwater block which would now be above the water
                 || (existingMaterial.watery && (! newMaterialIsWatery))) {
@@ -1513,56 +1542,22 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             } else {
                 existingChunk.setMaterial(x, y, z, newMaterial);
                 if (newMaterial.tileEntity) {
-                    moveEntityTileData(existingChunk, newChunk, x, y, z, dy);
+                    moveEntityTileData(existingChunk, newChunk, x, y, z, 0);
                 }
             }
             existingChunk.setSkyLightLevel(x, y, z, newChunk.getSkyLightLevel(x, y - dy, z));
             existingChunk.setBlockLightLevel(x, y, z, newChunk.getBlockLightLevel(x, y - dy, z));
-        } else if (dy != 0) {
-            // Move the existing block
-            if (existingMaterial.hasProperty(WATERLOGGED) && (newMaterialIsWatery != existingMaterialIsWatery)) {
-                // The block has a waterlogged property; manage it correctly
-                if (newMaterialIsWatery) {
-                    existingChunk.setMaterial(x, y, z, existingMaterial.withProperty(WATERLOGGED, true));
-                } else {
-                    existingChunk.setMaterial(x, y, z, existingMaterial.withProperty(WATERLOGGED, false));
-                }
-            } else {
-                existingChunk.setMaterial(x, y, z, existingMaterial);
-            }
-            existingChunk.setSkyLightLevel(x, y, z, existingChunk.getSkyLightLevel(x, y - dy, z));
-            existingChunk.setBlockLightLevel(x, y, z, existingChunk.getBlockLightLevel(x, y - dy, z));
-            if (existingMaterial.tileEntity) {
-                moveEntityTileData(existingChunk, existingChunk, x, y, z, dy);
-            }
-            // TODO do we need to remove the source block? Set it to air? Copy if from the new chunk?
-        } else if (existingMaterial.hasProperty(WATERLOGGED) && (newMaterialIsWatery != existingMaterialIsWatery)) {
+            existingMaterial = newMaterial;
+            existingMaterialIsWatery = newMaterialIsWatery;
+        }
+
+        // Third, manage the waterlogged property
+        if (existingMaterial.hasProperty(WATERLOGGED) && (newMaterialIsWatery != existingMaterialIsWatery)) {
             // The block has a waterlogged property; manage it correctly
             if (newMaterialIsWatery) {
                 existingChunk.setMaterial(x, y, z, existingMaterial.withProperty(WATERLOGGED, true));
             } else {
                 existingChunk.setMaterial(x, y, z, existingMaterial.withProperty(WATERLOGGED, false));
-            }
-        }
-    }
-
-    // Coordinates are in Minecraft coordinate system
-    private void moveEntityTileData(Chunk toChunk, Chunk fromChunk, int x, int y, int z, int dy) {
-        int existingBlockDX = fromChunk.getxPos() << 4, existingBlockDZ = fromChunk.getzPos() << 4;
-        List<TileEntity> fromEntities = fromChunk.getTileEntities();
-        for (TileEntity entity: fromEntities) {
-            if ((entity.getY() == (y - dy)) && ((entity.getX() - existingBlockDX) == x) && ((entity.getZ() - existingBlockDZ) == z)) {
-                entity.setY(y);
-                toChunk.getTileEntities().add(entity);
-                break;
-            }
-        }
-        // Do this in a separate iteration, since toChunk may be the same one as fromChunk
-        for (Iterator<TileEntity> i = fromEntities.iterator(); i.hasNext(); ) {
-            TileEntity entity = i.next();
-            if ((entity.getY() == (y - dy)) && ((entity.getX() - existingBlockDX) == x) && ((entity.getZ() - existingBlockDZ) == z)) {
-                i.remove();
-                return;
             }
         }
     }
