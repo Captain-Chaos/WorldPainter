@@ -311,6 +311,8 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
                             break;
                         }
                     }
+
+                    jScrollPane1.validate();
                 }
 
                 @Override public void setMessage(String message) {}
