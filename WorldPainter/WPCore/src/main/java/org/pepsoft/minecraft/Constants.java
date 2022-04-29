@@ -1033,7 +1033,6 @@ public final class Constants {
     public static final int DATA_PUMPKIN_WEST_FACE  = 1;
     public static final int DATA_PUMPKIN_NORTH_FACE = 2;
     public static final int DATA_PUMPKIN_EAST_FACE  = 3;
-    public static final int DATA_PUMPKIN_NO_FACE    = 4;
 
     public static final int DATA_WHITE      =  0;
     public static final int DATA_ORANGE     =  1;

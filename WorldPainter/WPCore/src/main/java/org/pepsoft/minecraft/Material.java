@@ -1668,11 +1668,32 @@ public final class Material implements Serializable {
     public static final Material COCOA_PLANT_HALF_RIPE = LEGACY_MATERIALS[((BLK_COCOA_PLANT) << 4) | (0x4)];
     public static final Material COCOA_PLANT_RIPE = LEGACY_MATERIALS[((BLK_COCOA_PLANT) << 4) | (0x8)];
 
-    public static final Material PUMPKIN_NO_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_NO_FACE)];
-    public static final Material PUMPKIN_NORTH_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_NORTH_FACE)];
-    public static final Material PUMPKIN_EAST_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_EAST_FACE)];
-    public static final Material PUMPKIN_SOUTH_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_SOUTH_FACE)];
-    public static final Material PUMPKIN_WEST_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_WEST_FACE)];
+    public static final Material CARVED_PUMPKIN_NORTH_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_NORTH_FACE)];
+    public static final Material CARVED_PUMPKIN_EAST_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_EAST_FACE)];
+    public static final Material CARVED_PUMPKIN_SOUTH_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_SOUTH_FACE)];
+    public static final Material CARVED_PUMPKIN_WEST_FACE = LEGACY_MATERIALS[((BLK_PUMPKIN) << 4) | (DATA_PUMPKIN_WEST_FACE)];
+    public static final Material MELON = LEGACY_MATERIALS[BLK_MELON << 4];
+    public static final Material JACK_O_LANTERN_NORTH_FACE = LEGACY_MATERIALS[((BLK_JACK_O_LANTERN) << 4) | (DATA_PUMPKIN_NORTH_FACE)];
+    public static final Material JACK_O_LANTERN_EAST_FACE = LEGACY_MATERIALS[((BLK_JACK_O_LANTERN) << 4) | (DATA_PUMPKIN_EAST_FACE)];
+    public static final Material JACK_O_LANTERN_SOUTH_FACE = LEGACY_MATERIALS[((BLK_JACK_O_LANTERN) << 4) | (DATA_PUMPKIN_SOUTH_FACE)];
+    public static final Material JACK_O_LANTERN_WEST_FACE = LEGACY_MATERIALS[((BLK_JACK_O_LANTERN) << 4) | (DATA_PUMPKIN_WEST_FACE)];
+
+    /**
+     * Lava that maps to sideways flowing, non-permanent lava in all Minecraft versions.
+     */
+    public static final Material FLOWING_LAVA = LEGACY_MATERIALS[(BLK_STATIONARY_LAVA << 4) | 2];
+    /**
+     * Water that maps to sideways flowing, non-permanent water in all Minecraft versions.
+     */
+    public static final Material FLOWING_WATER = LEGACY_MATERIALS[(BLK_STATIONARY_WATER << 4) | 1];
+    /**
+     * Lava that maps to falling, non-permanent lava in all Minecraft versions.
+     */
+    public static final Material FALLING_LAVA = LEGACY_MATERIALS[(BLK_STATIONARY_LAVA << 4) | 10];
+    /**
+     * Water that maps to falling, non-permanent water in all Minecraft versions.
+     */
+    public static final Material FALLING_WATER = LEGACY_MATERIALS[(BLK_STATIONARY_WATER << 4) | 9];
 
     // MC 1.13+ block property access helpers
 
@@ -1843,22 +1864,7 @@ public final class Material implements Serializable {
     public static final Material MOSS_CARPET = get(MC_MOSS_CARPET);
     public static final Material BIG_DRIPLEAF_STEM_SOUTH = get(MC_BIG_DRIPLEAF_STEM, MC_FACING, "south");
     public static final Material BIG_DRIPLEAF_SOUTH = get(MC_BIG_DRIPLEAF, MC_FACING, "south");
-    /**
-     * Lava that maps to sideways flowing, non-permanent lava in all Minecraft versions.
-     */
-    public static final Material FLOWING_LAVA = LEGACY_MATERIALS[(BLK_STATIONARY_LAVA << 4) | 2];
-    /**
-     * Water that maps to sideways flowing, non-permanent water in all Minecraft versions.
-     */
-    public static final Material FLOWING_WATER = LEGACY_MATERIALS[(BLK_STATIONARY_WATER << 4) | 1];
-    /**
-     * Lava that maps to falling, non-permanent lava in all Minecraft versions.
-     */
-    public static final Material FALLING_LAVA = LEGACY_MATERIALS[(BLK_STATIONARY_LAVA << 4) | 10];
-    /**
-     * Water that maps to falling, non-permanent water in all Minecraft versions.
-     */
-    public static final Material FALLING_WATER = LEGACY_MATERIALS[(BLK_STATIONARY_WATER << 4) | 9];
+    public static final Material PUMPKIN = get(MC_PUMPKIN);
 
     // Namespaces
 

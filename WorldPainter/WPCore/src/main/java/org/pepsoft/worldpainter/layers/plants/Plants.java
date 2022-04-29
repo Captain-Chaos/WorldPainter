@@ -131,10 +131,39 @@ public class Plants {
         @Override
         public VariableHeightPlant realise(int growth, Platform platform) {
             final Direction facing = Direction.values()[(int) (Math.random() * 4)];
-            return new VariableHeightPlant("Big Dripleaf", Material.BIG_DRIPLEAF_STEM_SOUTH.withProperty(MC_FACING, facing.toString()), Material.BIG_DRIPLEAF_SOUTH.withProperty(MC_FACING, facing.toString()), growth, categories) {
+            return new VariableHeightPlant("Big Dripleaf", Material.BIG_DRIPLEAF_STEM_SOUTH.withProperty(MC_FACING, facing.toString()), Material.BIG_DRIPLEAF_SOUTH.withProperty(MC_FACING, facing.toString()), growth, categories);
+        }
+    };
+    public static final Plant PUMPKIN = new SimplePlant("Pumpkin", Material.PUMPKIN, "block/pumpkin_side.png", PLANTS_AND_FLOWERS) {
+        @Override
+        public Category isValidFoundation(MinecraftWorld world, int x, int y, int height) {
+            return world.getMaterialAt(x, y, height).solid ? PLANTS_AND_FLOWERS : null;
+        }
+    };
+    public static final Plant MELON = new SimplePlant("Melon", Material.MELON, "block/melon_side.png", PLANTS_AND_FLOWERS) {
+        @Override
+        public Category isValidFoundation(MinecraftWorld world, int x, int y, int height) {
+            return world.getMaterialAt(x, y, height).solid ? PLANTS_AND_FLOWERS : null;
+        }
+    };
+    public static final Plant CARVED_PUMPKIN = new SimplePlant("Carved Pumpkin", Material.CARVED_PUMPKIN_SOUTH_FACE, "block/carved_pumpkin.png", MUSHROOMS) { // TODO not really mushrooms, but for now those are presented as "Various"
+        @Override
+        public Plant realise(int growth, Platform platform) {
+            return new SimplePlant("Carved Pumpkin", Material.CARVED_PUMPKIN_SOUTH_FACE.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), categories) {
                 @Override
                 public Category isValidFoundation(MinecraftWorld world, int x, int y, int height) {
-                    return super.isValidFoundation(world, x, y, height);
+                    return world.getMaterialAt(x, y, height).solid ? MUSHROOMS : null;
+                }
+            };
+        }
+    };
+    public static final Plant JACK_O_LANTERN = new SimplePlant("Jack-o'-lantern", Material.JACK_O_LANTERN_SOUTH_FACE, "block/jack_o_lantern.png", MUSHROOMS) { // TODO not really mushrooms, but for now those are presented as "Various"
+        @Override
+        public Plant realise(int growth, Platform platform) {
+            return new SimplePlant("Jack-o'-lantern", Material.JACK_O_LANTERN_SOUTH_FACE.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), categories) {
+                @Override
+                public Category isValidFoundation(MinecraftWorld world, int x, int y, int height) {
+                    return world.getMaterialAt(x, y, height).solid ? MUSHROOMS : null;
                 }
             };
         }
@@ -151,7 +180,8 @@ public class Plants {
             FIRE_CORAL, HORN_CORAL, TUBE_CORAL_FAN, BRAIN_CORAL_FAN, BUBBLE_CORAL_FAN, FIRE_CORAL_FAN, HORN_CORAL_FAN,
             KELP, SEAGRASS, TALL_SEAGRASS, SEA_PICKLE, CORNFLOWER, LILY_OF_THE_VALLEY, WITHER_ROSE, SWEET_BERRY_BUSH,
             BAMBOO, SAPLING_AZALEA, SAPLING_FLOWERING_AZALEA, CRIMSON_FUNGUS, WARPED_FUNGUS, CRIMSON_ROOTS,
-            WARPED_ROOTS, NETHER_SPROUTS, TWISTING_VINES, GLOW_LICHEN, MOSS_CARPET, BIG_DRIPLEAF};
+            WARPED_ROOTS, NETHER_SPROUTS, TWISTING_VINES, GLOW_LICHEN, MOSS_CARPET, BIG_DRIPLEAF, PUMPKIN, MELON,
+            CARVED_PUMPKIN, JACK_O_LANTERN};
 
     private static final Random RANDOM = new Random();
 }
