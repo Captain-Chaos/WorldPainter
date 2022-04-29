@@ -242,8 +242,8 @@
         <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
           <ComponentRef name="buttonGroup1"/>
         </Property>
-        <Property name="text" type="java.lang.String" value="Only change the biomes (for the entire Surface dimension)"/>
-        <Property name="toolTipText" type="java.lang.String" value="&lt;html&gt;Will merge &lt;i&gt;only&lt;/i&gt; biome changes. Ignores the read-only layer. Much quicker than merging everything, and with no side effects.&lt;/html&gt;"/>
+        <Property name="text" type="java.lang.String" value="Only change the biomes (Surface dimension only)"/>
+        <Property name="toolTipText" type="java.lang.String" value="&lt;html&gt;Will merge &lt;i&gt;only&lt;/i&gt; biome changes. Much quicker than merging everything, and with no side effects.&lt;/html&gt;"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="radioButtonBiomesActionPerformed"/>
@@ -299,7 +299,7 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel4">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Choose what kind of merge to perform:"/>
+        <Property name="text" type="java.lang.String" value="Choose what kind of merge to perform (non-read-only chunks in selected tiles only):"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel5">

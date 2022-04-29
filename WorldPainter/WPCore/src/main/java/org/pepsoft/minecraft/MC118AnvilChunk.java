@@ -385,7 +385,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
     public String getNamedBiome(int x, int y, int z) {
         final Section section = sections[(y >> 2) + UNDERGROUND_SECTIONS];
         return (section != null)
-                ? ((section.singleBiome != null) ? section.singleBiome : section.biomes.getValue(x, z, y & 0x3))
+                ? ((section.singleBiome != null) ? section.singleBiome : ((section.biomes != null) ? section.biomes.getValue(x, z, y & 0x3) : null))
                 : null;
     }
 

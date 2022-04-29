@@ -227,20 +227,8 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, dimension.getMaxHeight());
             final WorldPainterChunkFactory ceilingChunkFactory = (ceiling != null) ? new WorldPainterChunkFactory(ceiling, ceilingExporters, platform, dimension.getMaxHeight()) : null;
 
-            final int threads = chooseThreadCount("export", sortedRegions.size());
-
             final Map<Point, List<Fixup>> fixups = new HashMap<>();
-            ExecutorService executor = MDCThreadPoolExecutor.newFixedThreadPool(threads, new ThreadFactory() {
-                @Override
-                public synchronized Thread newThread(Runnable r) {
-                    Thread thread = new Thread(threadGroup, r, "Exporter-" + nextID++);
-                    thread.setPriority(Thread.MIN_PRIORITY);
-                    return thread;
-                }
-
-                private final ThreadGroup threadGroup = new ThreadGroup("Exporters");
-                private int nextID = 1;
-            });
+            final ExecutorService executor = createExecutorService("Exporter", sortedRegions.size());
             final RuntimeException[] exception = new RuntimeException[1];
             final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, regions.size()) : null;
             try {
@@ -875,6 +863,20 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         // Delete the tile entity data in the old location. Do this in a separate iteration, since toChunk may be the
         // same one as fromChunk
         fromEntities.removeIf(entity -> (entity.getY() == (y - dy)) && ((entity.getX() - existingBlockDX) == x) && ((entity.getZ() - existingBlockDZ) == z));
+    }
+
+    protected final ExecutorService createExecutorService(String noun, int jobCount) {
+        return MDCThreadPoolExecutor.newFixedThreadPool(chooseThreadCount(noun, jobCount), new ThreadFactory() {
+            @Override
+            public synchronized Thread newThread(Runnable r) {
+                Thread thread = new Thread(threadGroup, r, noun + "-" + nextID++);
+                thread.setPriority(Thread.MIN_PRIORITY);
+                return thread;
+            }
+
+            private final ThreadGroup threadGroup = new ThreadGroup(noun + 's');
+            private int nextID = 1;
+        });
     }
 
     /**

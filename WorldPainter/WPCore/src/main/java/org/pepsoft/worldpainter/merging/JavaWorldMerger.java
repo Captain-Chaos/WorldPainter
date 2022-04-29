@@ -11,7 +11,6 @@ import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ParallelProgressManager;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
-import org.pepsoft.util.mdc.MDCThreadPoolExecutor;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.*;
@@ -28,16 +27,14 @@ import java.io.*;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.DataType.REGION;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 
 /**
@@ -340,7 +337,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         return warnings;
     }
 
-    private void mergeDimension(final File worldDir, File backupWorldDir, final Dimension dimension, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled, IOException {
+    @SuppressWarnings("OptionalGetWithoutIsPresent") // It's always there. The API should allow to assert that
+    private void mergeDimension(final File worldDir, File backupWorldDir, final Dimension dimension, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         if (progressReceiver != null) {
             progressReceiver.setMessage("merging " + dimension.getName() + " dimension");
         }
@@ -409,89 +407,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             }
 
             // Sort tiles into regions
-            int lowestRegionX = Integer.MAX_VALUE, highestRegionX = Integer.MIN_VALUE, lowestRegionZ = Integer.MAX_VALUE, highestRegionZ = Integer.MIN_VALUE;
-            Map<Point, Map<Point, Tile>> tilesByRegion = new HashMap<>();
-            final Set<Point> selectedTiles = world.getTilesToExport();
-            final boolean tileSelection = selectedTiles != null;
-            if (tileSelection) {
-                // Sanity check
-                assert world.getDimensionsToExport().size() == 1;
-                assert world.getDimensionsToExport().contains(dimension.getDim());
-                for (Point tileCoords: selectedTiles) {
-                    Tile tile = dimension.getTile(tileCoords);
-                    boolean nonReadOnlyChunksFound = false;
-                    outerLoop:
-                    for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
-                        for (int chunkY = 0; chunkY < TILE_SIZE; chunkY += 16) {
-                            if (! tile.getBitLayerValue(ReadOnly.INSTANCE, chunkX, chunkY)) {
-                                nonReadOnlyChunksFound = true;
-                                break outerLoop;
-                            }
-                        }
-                    }
-                    if (! nonReadOnlyChunksFound) {
-                        // All chunks in this tile are marked read-only, so we can
-                        // skip the entire tile. If all tiles in the region have
-                        // only read-only chunks, the entire region does not have to
-                        // be merged
-                        continue;
-                    }
-                    int regionX = tileCoords.x >> 2;
-                    int regionZ = tileCoords.y >> 2;
-                    Point regionCoords = new Point(regionX, regionZ);
-                    Map<Point, Tile> tilesForRegion = tilesByRegion.computeIfAbsent(regionCoords, k -> new HashMap<>());
-                    tilesForRegion.put(tileCoords, tile);
-                    if (regionX < lowestRegionX) {
-                        lowestRegionX = regionX;
-                    }
-                    if (regionX > highestRegionX) {
-                        highestRegionX = regionX;
-                    }
-                    if (regionZ < lowestRegionZ) {
-                        lowestRegionZ = regionZ;
-                    }
-                    if (regionZ > highestRegionZ) {
-                        highestRegionZ = regionZ;
-                    }
-                }
-            } else {
-                for (Tile tile: dimension.getTiles()) {
-                    boolean nonReadOnlyChunksFound = false;
-                    outerLoop:
-                    for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
-                        for (int chunkY = 0; chunkY < TILE_SIZE; chunkY += 16) {
-                            if (! tile.getBitLayerValue(ReadOnly.INSTANCE, chunkX, chunkY)) {
-                                nonReadOnlyChunksFound = true;
-                                break outerLoop;
-                            }
-                        }
-                    }
-                    if (! nonReadOnlyChunksFound) {
-                        // All chunks in this tile are marked read-only, so we can
-                        // skip the entire tile. If all tiles in the region have
-                        // only read-only chunks, the entire region does not have to
-                        // be merged
-                        continue;
-                    }
-                    int regionX = tile.getX() >> 2;
-                    int regionZ = tile.getY() >> 2;
-                    Point regionCoords = new Point(regionX, regionZ);
-                    Map<Point, Tile> tilesForRegion = tilesByRegion.computeIfAbsent(regionCoords, k -> new HashMap<>());
-                    tilesForRegion.put(new Point(tile.getX(), tile.getY()), tile);
-                    if (regionX < lowestRegionX) {
-                        lowestRegionX = regionX;
-                    }
-                    if (regionX > highestRegionX) {
-                        highestRegionX = regionX;
-                    }
-                    if (regionZ < lowestRegionZ) {
-                        lowestRegionZ = regionZ;
-                    }
-                    if (regionZ > highestRegionZ) {
-                        highestRegionZ = regionZ;
-                    }
-                }
-            }
+            final Map<Point, Map<Point, Tile>> tilesByRegion = getTilesByRegion(dimension);
 
             // Read the region coordinates of the existing map
             final File backupRegionDir = new File(backupDimensionDir, "region");
@@ -506,22 +422,14 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 final int regionX = Integer.parseInt(parts[1]);
                 final int regionZ = Integer.parseInt(parts[2]);
                 existingRegions.put(new Point(regionX, regionZ), file);
-                if (regionX < lowestRegionX) {
-                    lowestRegionX = regionX;
-                }
-                if (regionX > highestRegionX) {
-                    highestRegionX = regionX;
-                }
-                if (regionZ < lowestRegionZ) {
-                    lowestRegionZ = regionZ;
-                }
-                if (regionZ > highestRegionZ) {
-                    highestRegionZ = regionZ;
-                }
             }
             final Set<Point> allRegionCoords = new HashSet<>();
             allRegionCoords.addAll(tilesByRegion.keySet());
             allRegionCoords.addAll(existingRegions.keySet());
+            final int lowestRegionX = allRegionCoords.stream().mapToInt(p -> p.x).min().getAsInt();
+            final int highestRegionX = allRegionCoords.stream().mapToInt(p -> p.x).max().getAsInt();
+            final int lowestRegionZ = allRegionCoords.stream().mapToInt(p -> p.y).min().getAsInt();
+            final int highestRegionZ = allRegionCoords.stream().mapToInt(p -> p.y).max().getAsInt();
 
             // Find all the existing region files of other types than REGION
             final Map<Point, Map<DataType, File>> additionalRegions = new HashMap<>();
@@ -568,36 +476,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
 
             // Merge each individual region
             final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, dimension.getMaxHeight());
-
-            Runtime runtime = Runtime.getRuntime();
-            runtime.gc();
-            long totalMemory = runtime.totalMemory();
-            long freeMemory = runtime.freeMemory();
-            long memoryInUse = totalMemory - freeMemory;
-            long maxMemory = runtime.maxMemory();
-            long maxMemoryAvailable = maxMemory - memoryInUse;
-            int maxThreadsByMem = (int) (maxMemoryAvailable / 250000000L);
-            int threads;
-            if (System.getProperty("org.pepsoft.worldpainter.threads") != null) {
-                threads = Math.max(Math.min(Integer.parseInt(System.getProperty("org.pepsoft.worldpainter.threads")), allRegionCoords.size() + additionalRegions.size()), 1);
-            } else {
-                threads = Math.max(Math.min(Math.min(maxThreadsByMem, runtime.availableProcessors()), allRegionCoords.size() + additionalRegions.size()), 1);
-            }
-            logger.info("Using " + threads + " thread(s) for merge (cores: " + runtime.availableProcessors() + ", available memory: " + (maxMemoryAvailable / 1048576L) + " MB)");
-
             final Map<Point, List<Fixup>> fixups = new HashMap<>();
             final Set<Point> exportedRegions = new HashSet<>();
-            ExecutorService executor = MDCThreadPoolExecutor.newFixedThreadPool(threads, new ThreadFactory() {
-                @Override
-                public synchronized Thread newThread(Runnable r) {
-                    Thread thread = new Thread(threadGroup, r, "Merger-" + nextID++);
-                    thread.setPriority(Thread.MIN_PRIORITY);
-                    return thread;
-                }
-
-                private final ThreadGroup threadGroup = new ThreadGroup("Mergers");
-                private int nextID = 1;
-            });
+            final ExecutorService executor = createExecutorService("Merger", allRegionCoords.size() + additionalRegions.size());
             final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, sortedRegions.size() + additionalRegions.size()) : null;
             try {
                 // Merge each individual region
@@ -622,7 +503,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                     List<Fixup> regionFixups = new ArrayList<>();
                                     WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
                                     try {
-                                        String regionWarnings = mergeRegion(minecraftWorld, backupRegionDir, dimension, regionCoords, tiles, tileSelection, exporters, chunkFactory, regionFixups, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
+                                        String regionWarnings = mergeRegion(minecraftWorld, backupRegionDir, dimension, regionCoords, tiles, world.getTilesToExport() != null, exporters, chunkFactory, regionFixups, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
                                         if (regionWarnings != null) {
                                             if (warnings == null) {
                                                 warnings = regionWarnings;
@@ -678,7 +559,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                 WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
                                 ExportResults exportResults = null;
                                 try {
-                                    exportResults = exportRegion(minecraftWorld, dimension, null, regionCoords, tileSelection, exporters, null, chunkFactory, null, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.9f, 0.1f) : null);
+                                    exportResults = exportRegion(minecraftWorld, dimension, null, regionCoords, world.getTilesToExport() != null, exporters, null, chunkFactory, null, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.9f, 0.1f) : null);
                                     if (logger.isDebugEnabled()) {
                                         logger.debug("Generated region " + regionCoords.x + "," + regionCoords.y);
                                     }
@@ -747,6 +628,75 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 dimension.armSavePoint();
             }
         }
+    }
+
+    /**
+     * Returns all tiles that should be exported or merged for the specified dimension, based on the tile selection and
+     * the Read-Only layer (if any), grouped by region.
+     *
+     * @param dimension The dimension on which to base the tile selection.
+     * @return A map of region coordinates to maps of tile coordinates to tiles.
+     */
+    private Map<Point, Map<Point, Tile>> getTilesByRegion(Dimension dimension) {
+        final Set<Point> selectedTiles = world.getTilesToExport();
+        final boolean tileSelection = selectedTiles != null;
+        final Map<Point, Map<Point, Tile>> tilesByRegion = new HashMap<>();
+        if (tileSelection) {
+            // Sanity check
+            assert world.getDimensionsToExport().size() == 1;
+            assert world.getDimensionsToExport().contains(dimension.getDim());
+            for (Point tileCoords: selectedTiles) {
+                Tile tile = dimension.getTile(tileCoords);
+                boolean nonReadOnlyChunksFound = false;
+                outerLoop:
+                for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
+                    for (int chunkY = 0; chunkY < TILE_SIZE; chunkY += 16) {
+                        if (! tile.getBitLayerValue(ReadOnly.INSTANCE, chunkX, chunkY)) {
+                            nonReadOnlyChunksFound = true;
+                            break outerLoop;
+                        }
+                    }
+                }
+                if (! nonReadOnlyChunksFound) {
+                    // All chunks in this tile are marked read-only, so we can
+                    // skip the entire tile. If all tiles in the region have
+                    // only read-only chunks, the entire region does not have to
+                    // be merged
+                    continue;
+                }
+                int regionX = tileCoords.x >> 2;
+                int regionZ = tileCoords.y >> 2;
+                Point regionCoords = new Point(regionX, regionZ);
+                Map<Point, Tile> tilesForRegion = tilesByRegion.computeIfAbsent(regionCoords, k -> new HashMap<>());
+                tilesForRegion.put(tileCoords, tile);
+            }
+        } else {
+            for (Tile tile: dimension.getTiles()) {
+                boolean nonReadOnlyChunksFound = false;
+                outerLoop:
+                for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
+                    for (int chunkY = 0; chunkY < TILE_SIZE; chunkY += 16) {
+                        if (! tile.getBitLayerValue(ReadOnly.INSTANCE, chunkX, chunkY)) {
+                            nonReadOnlyChunksFound = true;
+                            break outerLoop;
+                        }
+                    }
+                }
+                if (! nonReadOnlyChunksFound) {
+                    // All chunks in this tile are marked read-only, so we can
+                    // skip the entire tile. If all tiles in the region have
+                    // only read-only chunks, the entire region does not have to
+                    // be merged
+                    continue;
+                }
+                int regionX = tile.getX() >> 2;
+                int regionZ = tile.getY() >> 2;
+                Point regionCoords = new Point(regionX, regionZ);
+                Map<Point, Tile> tilesForRegion = tilesByRegion.computeIfAbsent(regionCoords, k -> new HashMap<>());
+                tilesForRegion.put(new Point(tile.getX(), tile.getY()), tile);
+            }
+        }
+        return tilesByRegion;
     }
 
     private void copyRegionsUnchanged(Map<Point, List<Fixup>> fixups, Set<Point> exportedRegions, ExecutorService executor, ParallelProgressManager parallelProgressManager, Point coords, Map<DataType, File> regions, File dimensionDir) {
@@ -868,8 +818,17 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             throw new IllegalArgumentException("Platform " + platform + " does not support biomes");
         }
 
+        logger.info("Merging biomes of world " + world.getName() + " with map at " + worldDir);
+
         // Read existing level.dat file and perform sanity checks
         performSanityChecks(true);
+
+        final Set<Point> tilesToMerge = world.getTilesToExport();
+        if (tilesToMerge != null) {
+            if (! world.getDimensionsToExport().equals(singleton(DIM_NORMAL))) {
+                throw new IllegalArgumentException("There is a tile section active, but it is not for the Surface dimension");
+            }
+        }
 
         // Backup existing level
         if (! worldDir.renameTo(backupDir)) {
@@ -879,8 +838,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             throw new IOException("Could not create " + worldDir);
         }
         
-        // Copy everything that we are not going to generate (this includes all dimensions)
-        File[] files = backupDir.listFiles();
+        // Copy everything that we are not going to generate
+        final File[] files = backupDir.listFiles();
         //noinspection ConstantConditions // Cannot happen because we previously loaded level.dat from it
         for (File file: files) {
             if (! file.getName().equalsIgnoreCase("session.lock")) {
@@ -895,7 +854,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         }
 
         // Write session.lock file
-        File sessionLockFile = new File(worldDir, "session.lock");
+        final File sessionLockFile = new File(worldDir, "session.lock");
         try (DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile))) {
             sessionOut.writeLong(System.currentTimeMillis());
         }
@@ -904,44 +863,104 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         if (progressReceiver != null) {
             progressReceiver.setMessage("Merging biomes");
         }
-        Dimension dimension = world.getDimension(DIM_NORMAL);
+        final Dimension dimension = world.getDimension(DIM_NORMAL);
         final BiomeUtils biomeUtils = new BiomeUtils(dimension);
-        try (ChunkStore chunkStore = platformProvider.getChunkStore(platform, worldDir, DIM_NORMAL)) {
-            final int totalChunkCount = chunkStore.getChunkCount();
-            final AtomicInteger chunkCount = new AtomicInteger(0);
-            chunkStore.doInTransaction(() -> chunkStore.visitChunksForEditing(chunk -> {
-                int chunkX = chunk.getxPos(), chunkZ = chunk.getzPos();
-                if (platform.capabilities.contains(BIOMES)) {
-                    for (int xx = 0; xx < 16; xx++) {
-                        for (int zz = 0; zz < 16; zz++) {
-                            biomeUtils.set2DBiome(chunk, xx, zz, dimension.getLayerValueAt(Biome.INSTANCE, (chunkX << 4) | xx, (chunkZ << 4) | zz));
+
+        // Determine regions to process
+        final Set<Point> regionsToMerge = getTilesByRegion(dimension).keySet();
+
+        // Merge each individual region
+        final ExecutorService executor = createExecutorService("Merger", regionsToMerge.size());
+        final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, regionsToMerge.size()) : null;
+        final StringBuffer reportBuilder = new StringBuffer();
+        try {
+            for (final Point regionCoords: regionsToMerge) {
+                executor.execute(() -> {
+                    final ProgressReceiver progressReceiver1;
+                    if (parallelProgressManager != null) {
+                        try {
+                            progressReceiver1 = new SubProgressReceiver(parallelProgressManager.createProgressReceiver(), 0.0f, 1.0f);
+                            progressReceiver1.setMessage("Merging biomes of region " + regionCoords.x + "," + regionCoords.y);
+                        } catch (ProgressReceiver.OperationCancelled e) {
+                            return;
                         }
+                    } else {
+                        progressReceiver1 = null;
                     }
-                } else if (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) {
-                    for (int xx = 0; xx < 4; xx++) {
-                        for (int zz = 0; zz < 4; zz++) {
-                            final int biome = dimension.getMostPrevalentBiome((chunkX << 2) | xx, (chunkZ << 2) | zz, BIOME_PLAINS);
-                            for (int y = 0; y < chunk.getMaxHeight(); y += 4) {
-                                // TODOMC118 this obliterates the existing 3D biomes; how to handle that?
-                                biomeUtils.set3DBiome(chunk, xx, y >> 2, zz, biome);
+                    try (JavaChunkStore chunkStore = ((JavaPlatformProvider) platformProvider).getChunkStore(platform, worldDir, DIM_NORMAL)) {
+                        for (int chunkXInRegion = 0; chunkXInRegion < 32; chunkXInRegion++) {
+                            for (int chunkZInRegion = 0; chunkZInRegion < 32; chunkZInRegion++) {
+                                if (progressReceiver1 != null) {
+                                    progressReceiver1.setProgress((float) (chunkXInRegion * 32 + chunkZInRegion) / 1024);
+                                }
+                                final int chunkX = (regionCoords.x << 5) | chunkXInRegion, chunkZ = (regionCoords.y << 5) | chunkZInRegion;
+                                if (dimension.getBitLayerValueAt(ReadOnly.INSTANCE, chunkX << 4, chunkZ << 4)
+                                        || ((tilesToMerge != null) && (! tilesToMerge.contains(new Point(chunkX >> 3, chunkZ >> 3))))) {
+                                    // Skip read-only chunks or chunks that are not part of the tile selection
+                                    continue;
+                                }
+                                if (chunkStore.isChunkPresent(chunkX, chunkZ)) {
+                                    final Chunk chunk = chunkStore.getChunkForEditing(chunkX, chunkZ);
+                                    if (chunk.is3DBiomesSupported() || chunk.isNamedBiomesSupported()) {
+                                        for (int xx = 0; xx < 4; xx++) {
+                                            for (int zz = 0; zz < 4; zz++) {
+                                                final int biome = dimension.getMostPrevalentBiome((chunkX << 2) | xx, (chunkZ << 2) | zz, BIOME_PLAINS);
+                                                for (int y = 0; y < chunk.getMaxHeight(); y += 4) {
+                                                    // TODOMC118 this obliterates the existing 3D biomes; how to handle that?
+                                                    biomeUtils.set3DBiome(chunk, xx, y >> 2, zz, biome);
+                                                }
+                                            }
+                                        }
+                                        chunkStore.saveChunk(chunk);
+                                    } else if (chunk.isBiomesSupported()) {
+                                        for (int xx = 0; xx < 16; xx++) {
+                                            for (int zz = 0; zz < 16; zz++) {
+                                                final int biome = dimension.getLayerValueAt(Biome.INSTANCE, (chunkX << 4) | xx, (chunkZ << 4) | zz);
+                                                biomeUtils.set2DBiome(chunk, xx, zz, (biome != 255) ? biome : dimension.getAutoBiome((chunkX << 4) | xx, (chunkZ << 4) | zz));
+                                            }
+                                        }
+                                        chunkStore.saveChunk(chunk);
+                                    } else {
+                                        reportBuilder.append("Chunk " + chunkX + ", " + chunkZ + " of type " + chunk.getClass().getSimpleName() + " does not support any kind of biomes; skipping chunk" + EOL);
+                                        logger.error("Chunk " + chunkX + ", " + chunkZ + " of type " + chunk.getClass().getSimpleName() + " does not support any kind of biomes; skipping chunk");
+                                    }
+                                }
                             }
                         }
+                        if (progressReceiver1 != null) {
+                            progressReceiver1.setProgress(1.0f);
+                        }
+                    } catch (Throwable t) {
+                        if (progressReceiver1 != null) {
+                            progressReceiver1.exceptionThrown(t);
+                        } else {
+                            logger.error("Exception while merging region", t);
+                        }
                     }
-                }
-                chunkCount.incrementAndGet();
-                if (progressReceiver != null) {
-                    progressReceiver.setProgress((float) chunkCount.get() / totalChunkCount);
-                }
-                return true;
-            }));
+                });
+            }
+        } finally {
+            executor.shutdown();
+            try {
+                executor.awaitTermination(1000, TimeUnit.DAYS);
+            } catch (InterruptedException e) {
+                throw new RuntimeException("Thread interrupted while waiting for all tasks to finish", e);
+            }
         }
 
         // Rewrite session.lock file
         try (DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile))) {
             sessionOut.writeLong(System.currentTimeMillis());
         }
+
+        if (progressReceiver != null) {
+            progressReceiver.setProgress(1.0f);
+        }
+        if (reportBuilder.length() != 0) {
+            warnings = reportBuilder.toString();
+        }
     }
-    
+
     private String thirdPass(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Point regionCoords, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
         if (progressReceiver != null) {
             progressReceiver.setMessage("Merging changes into existing chunks");

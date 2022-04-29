@@ -92,7 +92,7 @@ public abstract class JavaPlatformProvider extends AbstractPlatformProvider impl
     }
 
     @Override
-    public ChunkStore getChunkStore(Platform platform, File worldDir, int dimension) {
+    public JavaChunkStore getChunkStore(Platform platform, File worldDir, int dimension) {
         ensurePlatformSupported(platform);
         JavaLevel level;
         File levelDatFile = new File(worldDir, "level.dat");

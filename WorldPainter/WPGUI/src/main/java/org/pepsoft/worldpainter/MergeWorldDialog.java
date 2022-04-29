@@ -331,8 +331,6 @@ public class MergeWorldDialog extends WorldPainterDialog {
         boolean endPresent = world.getDimension(DIM_END) != null;
         boolean oneDimensionPresent = world.getDimensions().length == 1;
         checkBoxIncludeUnderground.setEnabled(mergeAll);
-        radioButtonExportEverything.setEnabled(! mergeBiomesOnly);
-        radioButtonExportSelection.setEnabled(! mergeBiomesOnly);
         checkBoxFillCaves.setEnabled(mergeAll);
         checkBoxRemoveManMadeAboveGround.setEnabled(mergeAll);
         checkBoxRemoveManMadeBelowGround.setEnabled(mergeAll);
@@ -361,7 +359,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
     }
 
     private void selectTiles() {
-        if (radioButtonExportSelection.isSelected() && (! radioButtonBiomes.isSelected())) {
+        if (radioButtonExportSelection.isSelected()) {
             ExportTileSelectionDialog dialog = new ExportTileSelectionDialog(this, world, selectedDimension, selectedTiles, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin);
             dialog.setVisible(true);
             selectedDimension = dialog.getSelectedDimension();
@@ -489,8 +487,8 @@ public class MergeWorldDialog extends WorldPainterDialog {
         });
 
         buttonGroup1.add(radioButtonBiomes);
-        radioButtonBiomes.setText("Only change the biomes (for the entire Surface dimension)");
-        radioButtonBiomes.setToolTipText("<html>Will merge <i>only</i> biome changes. Ignores the read-only layer. Much quicker than merging everything, and with no side effects.</html>");
+        radioButtonBiomes.setText("Only change the biomes (Surface dimension only)");
+        radioButtonBiomes.setToolTipText("<html>Will merge <i>only</i> biome changes. Much quicker than merging everything, and with no side effects.</html>");
         radioButtonBiomes.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonBiomesActionPerformed(evt);
@@ -532,7 +530,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
 
         jLabel1.setText("Choose which part of the map to merge:");
 
-        jLabel4.setText("Choose what kind of merge to perform:");
+        jLabel4.setText("Choose what kind of merge to perform (non-read-only chunks in selected tiles only):");
 
         jLabel5.setText("<html>Options for the existing map (<b>non-read-only</b> chunks in <b>selected tiles</b> only):</html>");
 

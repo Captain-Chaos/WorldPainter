@@ -18,6 +18,7 @@
  * 32-bit height maps are now supported for both Import and Export
    + Note that they *must* be TIFF files; PNG does not support 32-bit grey scale images
    + The height map import screen has been improved to be easier to use; among other things it now offers presets to quickly set the mapping
+ * Merging biomes now takes the tile selection and the Read-Only layer into account, and has been made parallel
  * The default theme no longer uses the Rock terrain type. Rock includes cobblestone, which is not Imported and caused confusion as a result. Instead it uses Stone Mix (the default underground material), which makes more sense
  * The Flood With Water, Flood With Lava and Bucket Fill tools now work on very large maps
    + They will take a very long time to fill large areas (up to ten minutes or more)
