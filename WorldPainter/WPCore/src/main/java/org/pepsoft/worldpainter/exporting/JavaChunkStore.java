@@ -144,7 +144,16 @@ public class JavaChunkStore implements ChunkStore {
 
     @Override
     public boolean isChunkPresent(int x, int z) {
-        return false;
+        try {
+            final RegionFile regionFile = getRegionFile(new Point(x >> 5, z >> 5), REGION);
+            if (regionFile == null) {
+                return false;
+            } else {
+                return regionFile.containsChunk(x & 31, z & 31);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error determining chunk presence", e);
+        }
     }
 
     /**
