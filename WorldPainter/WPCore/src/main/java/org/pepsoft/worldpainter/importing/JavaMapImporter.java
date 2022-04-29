@@ -229,8 +229,6 @@ public class JavaMapImporter extends MapImporter {
         final Set<String> manMadeBlockTypes = new HashSet<>();
         final Set<Integer> unknownBiomes = new HashSet<>();
         final boolean importBiomes = platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
-//        final boolean import3DBiomes = platform.capabilities.contains(BIOMES_3D);
-        final int defaultBiome = (dimension.getDim() == DIM_NETHER) ? BIOME_HELL : (dimension.getDim() == DIM_END ? BIOME_SKY : BIOME_PLAINS);
         final Map<String, Integer> customNamedBiomes = new HashMap<>();
         final AtomicInteger nextCustomBiomeId = new AtomicInteger(FIRST_UNALLOCATED_ID);
         final Set<String> allBiomes = new HashSet<>();
@@ -362,7 +360,7 @@ public class JavaMapImporter extends MapImporter {
                                         dimension.setBitLayerValueAt(org.pepsoft.worldpainter.layers.Void.INSTANCE, blockX, blockY, true);
                                     }
                                     if (importBiomes) {
-                                        final int biome;
+                                        int biome = 255;
                                         if (chunk.isBiomesAvailable()) {
                                             biome = chunk.getBiome(xx, zz);
                                         } else if (chunk.is3DBiomesAvailable()) {
@@ -370,39 +368,37 @@ public class JavaMapImporter extends MapImporter {
                                             // information
                                             // TODO make this clear to the user
                                             // TODO add way of editing 3D biomes
-                                            // TODO apparently for DIM_NORMAL this should use the bottom layer, although using the actual height also appears to work
                                             biome = chunk.get3DBiome(xx >> 2, dimension.getIntHeightAt(blockX, blockY) >> 2, zz >> 2);
                                         } else if (chunk.isNamedBiomesAvailable()) {
                                             // We accept a reduction in resolution here, and we lose 3D biome
                                             // information
                                             // TODOMC118 make this clear to the user
                                             // TODOMC118 add way of editing 3D biomes
-                                            // TODOMC118 apparently for DIM_NORMAL this should use the bottom layer, although using the actual height also appears to work
                                             String biomeStr = chunk.getNamedBiome(xx >> 2, dimension.getIntHeightAt(blockX, blockY) >> 2, zz >> 2);
-                                            allBiomes.add(biomeStr);
-                                            if (BIOMES_BY_MODERN_ID.containsKey(biomeStr)) {
-                                                biome = BIOMES_BY_MODERN_ID.get(biomeStr);
-                                            } else if (customNamedBiomes.containsKey(biomeStr)) {
-                                                // This is a new biome that WorldPainter does not know about yet, or one
-                                                // from a mod, but we have encountered it before and assigned it a
-                                                // custom ID; reuse that
-                                                biome = customNamedBiomes.get(biomeStr);
-                                            } else {
-                                                // This is a new biome that WorldPainter does not know about yet, or one
-                                                // from a mod, that we have not yet encountered before. Choose a custom
-                                                // ID for it and record it
-                                                int customId;
-                                                do {
-                                                    customId = nextCustomBiomeId.getAndIncrement();
-                                                } while ((MODERN_IDS[customId] != null) && (customId < 255));
-                                                if (customId >= 255) {
-                                                    throw new RuntimeException("More unknown biomes in dimension than available custom biome ids");
+                                            if (biomeStr != null) {
+                                                allBiomes.add(biomeStr);
+                                                if (BIOMES_BY_MODERN_ID.containsKey(biomeStr)) {
+                                                    biome = BIOMES_BY_MODERN_ID.get(biomeStr);
+                                                } else if (customNamedBiomes.containsKey(biomeStr)) {
+                                                    // This is a new biome that WorldPainter does not know about yet, or one
+                                                    // from a mod, but we have encountered it before and assigned it a
+                                                    // custom ID; reuse that
+                                                    biome = customNamedBiomes.get(biomeStr);
+                                                } else {
+                                                    // This is a new biome that WorldPainter does not know about yet, or one
+                                                    // from a mod, that we have not yet encountered before. Choose a custom
+                                                    // ID for it and record it
+                                                    int customId;
+                                                    do {
+                                                        customId = nextCustomBiomeId.getAndIncrement();
+                                                    } while ((MODERN_IDS[customId] != null) && (customId < 255));
+                                                    if (customId >= 255) {
+                                                        throw new RuntimeException("More unknown biomes in dimension than available custom biome ids");
+                                                    }
+                                                    biome = customId;
+                                                    customNamedBiomes.put(biomeStr, biome);
                                                 }
-                                                biome = customId;
-                                                customNamedBiomes.put(biomeStr, biome);
                                             }
-                                        } else {
-                                            biome = defaultBiome;
                                         }
                                         if (collectDebugInfo && ((biome > 255) || (BIOME_NAMES[biome] == null)) && (biome != 255)) {
                                             unknownBiomes.add(biome);
