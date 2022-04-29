@@ -36,7 +36,7 @@ public class CavesExporter extends AbstractLayerExporter<Caves> implements Secon
     }
 
     @Override
-    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    public List<Fixup> carve(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         final CavesSettings settings = (CavesSettings) getSettings();
         final int minZ = Math.max(settings.getMinimumLevel(), dimension.getMinHeight() + (dimension.isBottomless() ? 0 : 1)),
                 maxZForWorld = Math.min(settings.getMaximumLevel(), minecraftWorld.getMaxHeight() - 1),

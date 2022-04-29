@@ -19,6 +19,10 @@ import org.pepsoft.worldpainter.layers.Annotations;
 
 import java.awt.*;
 import java.util.List;
+import java.util.Set;
+
+import static java.util.Collections.singleton;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 
 /**
  *
@@ -30,7 +34,12 @@ public class AnnotationsExporter extends AbstractLayerExporter<Annotations> impl
     }
 
     @Override
-    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    public Set<Stage> getStages() {
+        return singleton(ADD_FEATURES);
+    }
+
+    @Override
+    public List<Fixup> addFeatures(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         AnnotationsSettings settings = (AnnotationsSettings) getSettings();
         if (settings == null) {
             settings = new AnnotationsSettings();

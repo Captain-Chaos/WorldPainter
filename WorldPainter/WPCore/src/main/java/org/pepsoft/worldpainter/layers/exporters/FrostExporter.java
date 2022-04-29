@@ -17,10 +17,13 @@ import org.pepsoft.worldpainter.layers.Frost;
 import java.awt.*;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.MC_SNOW;
 import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.*;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 
 /**
  * @author pepijn
@@ -31,7 +34,12 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
     }
 
     @Override
-    public List<Fixup> render(final Dimension dimension, final Rectangle area, final Rectangle exportedArea, final MinecraftWorld minecraftWorld, Platform platform) {
+    public Set<Stage> getStages() {
+        return singleton(ADD_FEATURES);
+    }
+
+    @Override
+    public List<Fixup> addFeatures(final Dimension dimension, final Rectangle area, final Rectangle exportedArea, final MinecraftWorld minecraftWorld, Platform platform) {
         final FrostSettings settings = (FrostSettings) getSettings();
         final boolean frostEverywhere = settings.isFrostEverywhere();
         final int mode = settings.getMode();

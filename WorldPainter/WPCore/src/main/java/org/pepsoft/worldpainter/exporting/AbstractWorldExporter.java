@@ -457,38 +457,51 @@ public abstract class AbstractWorldExporter implements WorldExporter {
     }
 
     protected List<Fixup> secondPass(List<Layer> secondaryPassLayers, Dimension dimension, MinecraftWorld minecraftWorld, Map<Layer, LayerExporter> exporters, Collection<Tile> tiles, Point regionCoords, ProgressReceiver progressReceiver) throws OperationCancelled {
-        // Apply other secondary pass layers
         if (logger.isDebugEnabled()) {
             logger.debug("Start of second pass for region {},{}", regionCoords.x, regionCoords.y);
         }
-        int layerCount = secondaryPassLayers.size(), counter = 0;
-        Rectangle area = new Rectangle((regionCoords.x << 9) - 16, (regionCoords.y << 9) - 16, 544, 544);
-        Rectangle exportedArea = new Rectangle((regionCoords.x << 9), (regionCoords.y << 9), 512, 512);
-        List<Fixup> fixups = new ArrayList<>();
-//        boolean frost = false;
-        for (Layer layer: secondaryPassLayers) {
-//            if (layer instanceof Frost) {
-//                frost = true;
-//                continue;
-//            }
-            SecondPassLayerExporter exporter = (SecondPassLayerExporter) exporters.get(layer);
+        final int stageCount = secondaryPassLayers.stream().mapToInt(layer -> ((SecondPassLayerExporter) exporters.get(layer)).getStages().size()).sum();
+        int counter = 0;
+        final Rectangle area = new Rectangle((regionCoords.x << 9) - 16, (regionCoords.y << 9) - 16, 544, 544);
+        final Rectangle exportedArea = new Rectangle((regionCoords.x << 9), (regionCoords.y << 9), 512, 512);
+        final List<Fixup> fixups = new ArrayList<>();
+        for (SecondPassLayerExporter.Stage stage: SecondPassLayerExporter.Stage.values()) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Exporting layer {} for region {},{}", layer, regionCoords.x, regionCoords.y);
+                logger.debug("Start of {} stage for region {},{}", stage, regionCoords.x, regionCoords.y);
             }
-            if (progressReceiver != null) {
-                if (minecraftWorld instanceof InvertedWorld) {
-                    progressReceiver.setMessage("Exporting layer " + layer + " for ceiling");
-                } else {
-                    progressReceiver.setMessage("Exporting layer " + layer);
+            for (Layer layer: secondaryPassLayers) {
+                final SecondPassLayerExporter exporter = (SecondPassLayerExporter) exporters.get(layer);
+                if (! exporter.getStages().contains(stage)) {
+                    continue;
                 }
-            }
-            List<Fixup> layerFixups = exporter.render(dimension, area, exportedArea, minecraftWorld, platform);
-            if (layerFixups != null) {
-                fixups.addAll(layerFixups);
-            }
-            if (progressReceiver != null) {
-                counter++;
-                progressReceiver.setProgress((float) counter / layerCount);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Stage {} for layer {} for region {},{}", stage, layer, regionCoords.x, regionCoords.y);
+                }
+                if (progressReceiver != null) {
+                    if (minecraftWorld instanceof InvertedWorld) {
+                        progressReceiver.setMessage("Exporting layer " + layer + " for ceiling (" + stage.name().toLowerCase() + " stage)");
+                    } else {
+                        progressReceiver.setMessage("Exporting layer " + layer + " (" + stage.name().toLowerCase() + " stage)");
+                    }
+                }
+                final List<Fixup> layerFixups;
+                switch (stage) {
+                    case CARVE:
+                        layerFixups = exporter.carve(dimension, area, exportedArea, minecraftWorld, platform);
+                        break;
+                    case ADD_FEATURES:
+                        layerFixups = exporter.addFeatures(dimension, area, exportedArea, minecraftWorld, platform);
+                        break;
+                    default:
+                        throw new InternalError();
+                }
+                if (layerFixups != null) {
+                    fixups.addAll(layerFixups);
+                }
+                if (progressReceiver != null) {
+                    counter++;
+                    progressReceiver.setProgress((float) counter / stageCount);
+                }
             }
         }
 
@@ -500,18 +513,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             gardenExporter.firstPass(dimension, tile, minecraftWorld, firstPassProcessedSeeds);
             gardenExporter.secondPass(dimension, tile, minecraftWorld, secondPassProcessedSeeds);
         });
-
-        // Apply frost layer
-        // TODO: why did we used to do this in a separate step? There must have been a reason...
-//        if (frost) {
-//            @SuppressWarnings("unchecked")
-//            SecondPassLayerExporter<Layer> exporter = (SecondPassLayerExporter<Layer>) exporters.get(Frost.INSTANCE);
-//            exporter.render(dimension, area, exportedArea, minecraftWorld);
-//            if (progressReceiver != null) {
-//                counter++;
-//                progressReceiver.setProgress((float) counter / layerCount);
-//            }
-//        }
 
         // TODO: trying to do this for every region should work but is not very
         //  elegant
