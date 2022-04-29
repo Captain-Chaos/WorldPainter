@@ -586,17 +586,12 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
             // Calculate secondary light
             Box originalDirtyArea = new Box((regionCoords.x << 9) - 16, ((regionCoords.x + 1) << 9) + 16, lightingLowMark, lightingHighMark + 1, (regionCoords.y << 9) - 16, ((regionCoords.y + 1) << 9) + 16);
-            int originalVolume = originalDirtyArea.getVolume();
             Box dirtyArea = originalDirtyArea.clone();
-            Box previousDirtyArea = dirtyArea.clone();
             lightingVolume.setDirtyArea(dirtyArea);
+            int iteration = 1;
             while (lightingVolume.calculateSecondaryLight()) {
-                if (dirtyArea.getVolume() > previousDirtyArea.getVolume()) {
-                    logger.debug("Lighting volume grew from {} to {}!", previousDirtyArea.getVolume(), dirtyArea.getVolume());
-                }
-                previousDirtyArea = dirtyArea.clone();
                 if (progressReceiver != null) {
-                    progressReceiver.setProgress(0.2f + 0.8f * (originalVolume - dirtyArea.getVolume()) / originalVolume);
+                    progressReceiver.setProgress(0.2f + 0.8f * (iteration++ / 15f));
                 }
             }
         }
