@@ -35,13 +35,13 @@ public final class BiomeUtils {
         if (chunk.isBiomesSupported()) {
             chunk.setBiome(x, z, biome);
         } else if (chunk.is3DBiomesSupported()) {
-            final int blockX = x >> 2, blockZ = z >> 2, maxBlockY = chunk.getMaxHeight() >> 2; // TODO maxHeight can be extremely high, e.g. for CubicChunks! Currently not a problem because it does not support biomes, bit something to consider
+            final int blockX = x >> 2, blockZ = z >> 2, maxBlockY = chunk.getMaxHeight() >> 2; // TODO maxHeight can be extremely high, e.g. for CubicChunks! Currently not a problem because it does not support biomes, but something to consider
             for (int blockY = chunk.getMinHeight() >> 2; blockY < maxBlockY; blockY++) {
                 chunk.set3DBiome(blockX, blockY, blockZ, biome);
             }
         } else if (chunk.isNamedBiomesSupported()) {
             final String biomeName = findBiomeName(biome);
-            final int blockX = x >> 2, blockZ = z >> 2, maxBlockY = chunk.getMaxHeight() >> 2; // TODO maxHeight can be extremely high, e.g. for CubicChunks! Currently not a problem because it does not support biomes, bit something to consider
+            final int blockX = x >> 2, blockZ = z >> 2, maxBlockY = chunk.getMaxHeight() >> 2; // TODO maxHeight can be extremely high, e.g. for CubicChunks! Currently not a problem because it does not support biomes, but something to consider
             for (int blockY = chunk.getMinHeight() >> 2; blockY < maxBlockY; blockY++) {
                 chunk.setNamedBiome(blockX, blockY, blockZ, biomeName);
             }
