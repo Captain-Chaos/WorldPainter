@@ -7,6 +7,7 @@
    + Minecraft 1.18 (and earlier) plants have been added to the Custom Plants layer. Hanging plants are still missing, as it is not clear how WorldPainter would place those
    + Minecraft 1.18 (and earlier) terrain types and biomes have been added to the various palettes
    + The Populate layer (and the Allow Minecraft to Populate the Entire Terrain option on the Export screen) are once again supported by Minecraft from version 1.18, so those have been re-enabled. It allows you to tell Minecraft to populate the terrain with trees, vegetation, etc. according to the painted biome
+   + The "chest of goodies" is once again supported for Minecraft 1.18 (and all other Minecraft versions)
  * Entities (mobs) and tile entities (block entities) from Custom Objects are once again correctly placed on the map
    + NOTE: for entities (mobs), you may have to remove and re-add the Custom Object to the layer for this to work
  * When Importing an existing map, or Merging with an existing map, the map directory should now be selected, rather than the level.dat file
@@ -18,13 +19,13 @@
  * 32-bit height maps are now supported for both Import and Export
    + Note that they *must* be TIFF files; PNG does not support 32-bit grey scale images
    + The height map import screen has been improved to be easier to use; among other things it now offers presets to quickly set the mapping
- * Merging biomes now takes the tile selection and the Read-Only layer into account, and has been made parallel
+ * Merging biomes now takes the tile selection and the Read-Only layer into account, and the performance has been improved
  * The default theme no longer uses the Rock terrain type. Rock includes cobblestone, which is not Imported and caused confusion as a result. Instead it uses Stone Mix (the default underground material), which makes more sense
  * The Flood With Water, Flood With Lava and Bucket Fill tools now work on very large maps
    + They will take a very long time to fill large areas (up to ten minutes or more)
    + Undoing or redoing such large operations may also take a very long time and should not be interrupted
    + There is a maximum size for the area that can be filled: a square with sides of 46340 blocks. The tools will only fill up to the edges of this square and warn you if they were hit
- * Various improvements tp Custom Brushes:
+ * Various improvements to Custom Brushes:
    +  Custom brushes are now no longer all loaded at startup
      - This prevents performance problems and WorldPainter hanging at startup due to the use of many and/or large custom brushes taking up too much memory
      - The brushes are now loaded "lazily" (on-demand). This does mean that selecting a brush, or using one after it has not been used for a while, may take a small performance hit as it (re-)loads the brush from disk
@@ -33,7 +34,7 @@
  * Various small usability improvements and performance optimisations have been made
  * Various measures to prevent data corruption and other problems due to lack of disk space were implemented:
    + When Exporting or Merging maps:
-     - If there is less than a configurable amount of free space, WorldPainter will offer to delete backups, oldest first, until the minimum amount of free space is reached
+     - If there is less than a configurable amount of free space (5 GB by default), WorldPainter will offer to delete backups, oldest first, until the minimum amount of free space is reached
      - WorldPainter tries to ensure that at least one backup remains of every map for as long as possible, but if there is not enough space for that it will delete backups of maps for which there is only one backup left
      - This measure can be disabled, or the limit changed from the default of 5 GB, on the Preferences screen. It is also possible to manually trigger a backups clean up from there
    + When Saving .world files:
@@ -43,6 +44,7 @@
    + The GraalVM JavaScript engine is now included, so that scripts implemented in JavaScript will always be supported, even on newer Oracle runtimes which lack JavaScript support
    + When creating new worlds from height maps in scripts the platform (map format) can now be specified
  * Mac OS X binaries are now universal binaries so that they will use the native M1 version of Java on M1 Macs for improved performance
+ * Various bugs have been fixed
 
 -- Version 2.8.10, released 11-12-2021
 
