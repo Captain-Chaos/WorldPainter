@@ -21,15 +21,16 @@ import org.pepsoft.worldpainter.util.BiomeUtils;
 import javax.vecmath.Point3i;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
 import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.CARVE;
 
 /**
  *
@@ -60,7 +61,12 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
     }
 
     @Override
-    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld world, Platform platform) {
+    public Set<Stage> getStages() {
+        return EnumSet.of(CARVE, ADD_FEATURES);
+    }
+
+    @Override
+    public List<Fixup> carve(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld world, Platform platform) {
         final int floodLevel = layer.getFloodLevel(), biome = (layer.getTunnelBiome() != null) ? layer.getTunnelBiome() : -1;
         final int minHeight = dimension.getMinHeight(), minZ = minHeight + (dimension.isBottomless() ? 0 : 1), maxZ = dimension.getMaxHeight() - 1;
         final boolean removeWater = layer.isRemoveWater(), floodWithLava = layer.isFloodWithLava();
@@ -157,8 +163,12 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
                 }
                 return true;
             }));
+        return null;
+    }
 
-        // Second/third pass: render floor layers
+    @Override
+    public List<Fixup> addFeatures(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld world, Platform platform) {
+        // Render floor layers
         // TODO make TunnelFloorDimension much more intelligent, so that "distance to edge" can work and the normal
         //  exporting can be used rather than the incidental exporting
         List<Fixup> fixups = new ArrayList<>();
@@ -180,24 +190,24 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
             }
             final TunnelFloorDimension floorDimension = new TunnelFloorDimension(dimension, layer);
             visitChunksForLayerInAreaForEditing(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) ->
-                whereTunnelIsRealisedDo(dimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
-                    final int z = actualFloorLevel + 1;
-                    final Point3i location = new Point3i(x, y, z);
-                    for (int i = 0; i < floorExporters.length; i++) {
-                        if ((z >= floorLayerSettings[i].getMinLevel()) && (z <= floorLayerSettings[i].getMaxLevel())) {
-                            final int intensity = floorLayerNoise[i] != null
-                                    ? MathUtils.clamp(0, Math.round(floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z)), 100)
-                                    : floorLayerSettings[i].getIntensity();
-                            if (intensity > 0) {
-                                Fixup fixup = floorExporters[i].apply(floorDimension, location, intensity, exportedArea, world, platform);
-                                if (fixup != null) {
-                                    fixups.add(fixup);
+                    whereTunnelIsRealisedDo(dimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
+                        final int z = actualFloorLevel + 1;
+                        final Point3i location = new Point3i(x, y, z);
+                        for (int i = 0; i < floorExporters.length; i++) {
+                            if ((z >= floorLayerSettings[i].getMinLevel()) && (z <= floorLayerSettings[i].getMaxLevel())) {
+                                final int intensity = floorLayerNoise[i] != null
+                                        ? MathUtils.clamp(0, Math.round(floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z)), 100)
+                                        : floorLayerSettings[i].getIntensity();
+                                if (intensity > 0) {
+                                    Fixup fixup = floorExporters[i].apply(floorDimension, location, intensity, exportedArea, world, platform);
+                                    if (fixup != null) {
+                                        fixups.add(fixup);
+                                    }
                                 }
                             }
                         }
-                    }
-                    return true;
-                }));
+                        return true;
+                    }));
         }
 
         return fixups.isEmpty() ? null : fixups;
@@ -341,8 +351,8 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
     }
 
     /**
-     * Set a block on the specified world or chunk, if the existing block at that location is solid and the coordinates
-     * match a set of conditions.
+     * Set a block on the specified world or chunk, if the location is valid and the existing block at that location is
+     * substantial.
      *
      * <p>If the specified coordinates lie on the specified {@link Chunk}, block will be set directly on it; otherwise
      * it will be set via the {@link MinecraftWorld}.

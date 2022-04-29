@@ -26,9 +26,11 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.MC_LAVA;
 import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
@@ -42,9 +44,14 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
     public Bo2LayerExporter(Bo2Layer layer) {
         super(layer);
     }
-    
+
     @Override
-    public List<Fixup> render(final Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    public Set<Stage> getStages() {
+        return singleton(ADD_FEATURES);
+    }
+
+    @Override
+    public List<Fixup> addFeatures(final Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         try {
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider();
             final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
