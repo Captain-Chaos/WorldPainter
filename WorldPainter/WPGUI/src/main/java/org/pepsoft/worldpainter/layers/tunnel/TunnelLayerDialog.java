@@ -30,8 +30,7 @@ import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.CollectionUtils.listOf;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
 import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
-import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayersTableModel.COLUMN_NAME;
-import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayersTableModel.COLUMN_VARIATION;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayersTableModel.*;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
 
 /**
@@ -222,6 +221,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             roofLayersTableModel = new TunnelLayersTableModel(roofLayers, minHeight, maxHeight);
             tableRoofLayers.setModel(roofLayersTableModel);
             tableRoofLayers.getColumnModel().getColumn(COLUMN_NAME).setCellRenderer(new LayerTableCellRenderer());
+            tableRoofLayers.getColumnModel().getColumn(COLUMN_VARIATION).setCellRenderer(new NoiseSettingsTableCellRenderer());
 
             if (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) {
                 comboBoxBiome.setSelectedItem(layer.getTunnelBiome());
@@ -319,17 +319,17 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         buttonEditRoofLayer.setEnabled((selectedRoofRowCount == 1) && (roofLayersTableModel.getLayer(tableRoofLayers.getSelectedRow()) instanceof CustomLayer));
     }
 
-    private void removeFloorLayer() {
-        int selectedRow = tableFloorLayers.getSelectedRow();
-        if (selectedRow != -1) {
-            floorLayersTableModel.removeLayer(selectedRow);
+    private void removeFloorLayers() {
+        int[] selectedRows = tableFloorLayers.getSelectedRows();
+        for (int i = selectedRows.length - 1; i >= 0; i--) {
+            floorLayersTableModel.removeLayer(selectedRows[i]);
         }
     }
 
-    private void removeRoofLayer() {
-        int selectedRow = tableRoofLayers.getSelectedRow();
-        if (selectedRow != -1) {
-            roofLayersTableModel.removeLayer(selectedRow);
+    private void removeRoofLayers() {
+        int[] selectedRows = tableRoofLayers.getSelectedRows();
+        for (int i = selectedRows.length - 1; i >= 0; i--) {
+            roofLayersTableModel.removeLayer(selectedRows[i]);
         }
     }
 
@@ -449,7 +449,33 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         popupMenu.add(item);
         popupMenu.show(button, button.getWidth(), 0);
     }
-    
+
+    private void editFloorLayerVariation() {
+        editLayerVariation(tableFloorLayers, floorLayersTableModel);
+    }
+
+    private void editRoofLayerVariation() {
+        editLayerVariation(tableRoofLayers, roofLayersTableModel);
+    }
+
+    private void editLayerVariation(JTable table, TunnelLayersTableModel tableModel) {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow != -1) {
+            NoiseSettings noiseSettings = (NoiseSettings) tableModel.getValueAt(selectedRow, COLUMN_VARIATION);
+            NoiseSettingsDialog noiseSettingsDialog = new NoiseSettingsDialog(this, (noiseSettings != null) ? noiseSettings : new NoiseSettings(), (Integer) tableModel.getValueAt(selectedRow, COLUMN_INTENSITY));
+            noiseSettingsDialog.setVisible(true);
+            if (! noiseSettingsDialog.isCancelled()) {
+                noiseSettings = noiseSettingsDialog.getNoiseSettings();
+                if (noiseSettings.getRange() == 0) {
+                    tableModel.setValueAt(null, selectedRow, COLUMN_VARIATION);
+                } else {
+                    tableModel.setValueAt(noiseSettings, selectedRow, COLUMN_VARIATION);
+                }
+                tableModel.layerChanged(selectedRow);
+            }
+        }
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -1278,7 +1304,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     }//GEN-LAST:event_buttonEditFloorLayerActionPerformed
 
     private void buttonRemoveFloorLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonRemoveFloorLayerActionPerformed
-        removeFloorLayer();
+        removeFloorLayers();
     }//GEN-LAST:event_buttonRemoveFloorLayerActionPerformed
 
     private void tableFloorLayersMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableFloorLayersMouseClicked
@@ -1286,6 +1312,8 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             int column = tableFloorLayers.columnAtPoint(evt.getPoint());
             if (column == COLUMN_NAME) {
                 editFloorLayer();
+            } else if (column == COLUMN_VARIATION) {
+                editFloorLayerVariation();
             }
         }
     }//GEN-LAST:event_tableFloorLayersMouseClicked
@@ -1295,6 +1323,8 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             int column = tableRoofLayers.columnAtPoint(evt.getPoint());
             if (column == COLUMN_NAME) {
                 editRoofLayer();
+            } else if (column == COLUMN_VARIATION) {
+                editRoofLayerVariation();
             }
         }
     }//GEN-LAST:event_tableRoofLayersMouseClicked
@@ -1312,7 +1342,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     }//GEN-LAST:event_buttonEditRoofLayerActionPerformed
 
     private void buttonRemoveRoofLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonRemoveRoofLayerActionPerformed
-        removeRoofLayer();
+        removeRoofLayers();
     }//GEN-LAST:event_buttonRemoveRoofLayerActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

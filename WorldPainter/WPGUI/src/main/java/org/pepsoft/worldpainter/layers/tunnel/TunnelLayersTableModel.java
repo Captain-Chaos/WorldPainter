@@ -175,6 +175,6 @@ public class TunnelLayersTableModel implements TableModel {
     public static final int COLUMN_MIN_LEVEL = 3;
     public static final int COLUMN_MAX_LEVEL = 4;
     
-    private static final String[] COLUMN_NAMES = {"Layer",      "Intensity",   "Variation",         "Minimum level", "Maximum level"};
-    private static final Class[] COLUMN_TYPES =  {JLabel.class, Integer.class, NoiseSettings.class, Integer.class,   Integer.class};
+    private static final String[] COLUMN_NAMES = {"Layer",      "Base intensity (%)", "Variation (%-points)", "Minimum level", "Maximum level"};
+    private static final Class[] COLUMN_TYPES =  {JLabel.class, Integer.class,        NoiseSettings.class,    Integer.class,   Integer.class};
 }
