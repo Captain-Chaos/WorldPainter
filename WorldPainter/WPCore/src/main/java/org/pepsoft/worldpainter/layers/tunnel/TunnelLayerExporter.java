@@ -15,14 +15,15 @@ import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
-import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.util.BiomeUtils;
 
 import javax.vecmath.Point3i;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.*;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
@@ -79,6 +80,8 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
         if (roofNoise != null) {
             roofNoise.setSeed(dimension.getSeed());
         }
+        // TODO: increase efficiency and correctness by doing this _after_ the carving and then only for blocks which
+        //  adjoin a solid block
         if ((floorMaterial != null) || (wallMaterial != null) || (roofMaterial != null)) {
             // First pass:  place floor, wall and roof materials
             visitChunksForLayerInAreaForEditing(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) ->
@@ -136,18 +139,19 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
         visitChunksForLayerInAreaForEditing(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) ->
             whereTunnelIsRealisedDo(dimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
                 final int waterLevel = tile.getWaterLevel(xInTile, yInTile);
-                for (int z1 = Math.min(removeWater ? Math.max(terrainHeight, waterLevel) : terrainHeight, actualRoofLevel); z1 > actualFloorLevel; z1--) {
-                    if (removeWater || (z1 <= terrainHeight) || (z1 > waterLevel)) {
-                        if (z1 <= floodLevel) {
-                            chunk.setMaterial(x & 0xf, z1, y & 0xf, floodWithLava ? Material.LAVA : Material.WATER);
+                for (int z = Math.min(removeWater ? Math.max(terrainHeight, waterLevel) : terrainHeight, actualRoofLevel); z > actualFloorLevel; z--) {
+                    if (removeWater || (z <= terrainHeight) || (z > waterLevel)) {
+                        if (z <= floodLevel) {
+                            // TODO should this be moved to the ADD_FEATURES stage?
+                            chunk.setMaterial(x & 0xf, z, y & 0xf, floodWithLava ? Material.LAVA : Material.WATER);
                         } else {
-                            chunk.setMaterial(x & 0xf, z1, y & 0xf, Material.AIR);
+                            chunk.setMaterial(x & 0xf, z, y & 0xf, Material.AIR);
                         }
                         // Since the biomes are stored in 4x4x4 blocks this way of doing it results in doing it
                         // 63 too many times, but it's simplest, and ensures that any of those blocks touched is
                         // changed:
                         if (set3DBiomes) {
-                            biomeUtils.set3DBiome(chunk, (x & 0xf) >> 2, z1 >> 2, (y & 0xf) >> 2, biome);
+                            biomeUtils.set3DBiome(chunk, (x & 0xf) >> 2, z >> 2, (y & 0xf) >> 2, biome);
                         }
                     }
                 }
@@ -169,18 +173,15 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
     @Override
     public List<Fixup> addFeatures(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld world, Platform platform) {
         // Render floor layers
-        // TODO make TunnelFloorDimension much more intelligent, so that "distance to edge" can work and the normal
-        //  exporting can be used rather than the incidental exporting
         List<Fixup> fixups = new ArrayList<>();
-        final Map<Layer, TunnelLayer.LayerSettings> floorLayers = layer.getFloorLayers();
+        final List<TunnelLayer.LayerSettings> floorLayers = layer.getFloorLayers();
         if ((floorLayers != null) && (! floorLayers.isEmpty())) {
             final IncidentalLayerExporter[] floorExporters = new IncidentalLayerExporter[floorLayers.size()];
             final TunnelLayer.LayerSettings[] floorLayerSettings = new TunnelLayer.LayerSettings[floorLayers.size()];
             final NoiseHeightMap[] floorLayerNoise = new NoiseHeightMap[floorLayers.size()];
             int index = 0;
-            for (Layer floorLayer: floorLayers.keySet()) {
-                floorExporters[index] = (IncidentalLayerExporter) floorLayer.getExporter();
-                TunnelLayer.LayerSettings layerSettings = floorLayers.get(floorLayer);
+            for (TunnelLayer.LayerSettings layerSettings: floorLayers) {
+                floorExporters[index] = (IncidentalLayerExporter) layerSettings.getLayer().getExporter();
                 floorLayerSettings[index] = layerSettings;
                 if (layerSettings.getVariation() != null) {
                     floorLayerNoise[index] = new NoiseHeightMap(layerSettings.getVariation(), index);
@@ -203,6 +204,44 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
                                     if (fixup != null) {
                                         fixups.add(fixup);
                                     }
+                                }
+                            }
+                        }
+                        return true;
+                    }));
+        }
+
+        // Render roof layers
+        final List<TunnelLayer.LayerSettings> roofLayers = layer.getRoofLayers();
+        if ((roofLayers != null) && (! roofLayers.isEmpty())) {
+            final IncidentalLayerExporter[] roofExporters = new IncidentalLayerExporter[roofLayers.size()];
+            final TunnelLayer.LayerSettings[] roofLayerSettings = new TunnelLayer.LayerSettings[roofLayers.size()];
+            final NoiseHeightMap[] roofLayerNoise = new NoiseHeightMap[roofLayers.size()];
+            int index = 0;
+            for (TunnelLayer.LayerSettings layerSettings: roofLayers) {
+                roofExporters[index] = (IncidentalLayerExporter) layerSettings.getLayer().getExporter();
+                roofLayerSettings[index] = layerSettings;
+                if (layerSettings.getVariation() != null) {
+                    roofLayerNoise[index] = new NoiseHeightMap(layerSettings.getVariation(), index);
+                    roofLayerNoise[index].setSeed(dimension.getSeed());
+                }
+                index++;
+            }
+            final TunnelRoofDimension invertedRoofDimension = new TunnelRoofDimension(dimension, layer);
+            final MinecraftWorld invertedWorld = new InvertedWorld(world, 0, platform);
+            final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
+            visitChunksForLayerInAreaForEditing(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) ->
+                    whereTunnelIsRealisedDo(dimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
+                        final int z = actualRoofLevel;
+                        final Point3i location = new Point3i(x, y, maxHeight + minHeight - 1 - z);
+                        for (int i = 0; i < roofExporters.length; i++) {
+                            if ((z >= roofLayerSettings[i].getMinLevel()) && (z <= roofLayerSettings[i].getMaxLevel())) {
+                                final int intensity = roofLayerNoise[i] != null
+                                        ? MathUtils.clamp(0, Math.round(roofLayerSettings[i].getIntensity() + roofLayerNoise[i].getValue(x, y, z)), 100)
+                                        : roofLayerSettings[i].getIntensity();
+                                if (intensity > 0) {
+                                    roofExporters[i].apply(invertedRoofDimension, location, intensity, exportedArea, invertedWorld, platform);
+                                    // TODO support inverted fixups
                                 }
                             }
                         }

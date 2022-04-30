@@ -153,30 +153,27 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         panelPlantControls.add(panel);
         addCategory(panel, WATER_PLANTS);
         addCategory(panel, NETHER);
+        addCategory(panel, "Hanging Plants", "For ceilings and cave/tunnel roofs", HANGING_DRY_PLANTS, HANGING_WATER_PLANTS);
         addFiller(panel);
     }
 
     private void addCategory(JPanel panel, Category category) {
-        GridBagConstraints constraints = new GridBagConstraints();
-        constraints.gridwidth = GridBagConstraints.REMAINDER;
-        constraints.anchor = GridBagConstraints.BASELINE_LEADING;
-        constraints.insets = new Insets(4, 0, 4, 0);
-        panel.add(new JLabel("<html><b>" + m(category) + "</b></html>"), constraints);
-        for (int i = 0; i < ALL_PLANTS.length; i++) {
-            Plant plant = ALL_PLANTS[i];
-            if (plant.getCategories()[0] == category) {
-                addPlantRow(panel, plant, i);
-            }
-        }
+        addCategory(panel, m(category), category);
     }
 
-
     private void addCategory(JPanel panel, String title, Category... categories) {
+        addCategory(panel, title, null, categories);
+    }
+
+    private void addCategory(JPanel panel, String title, String subTitle, Category... categories) {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.anchor = GridBagConstraints.BASELINE_LEADING;
         constraints.insets = new Insets(4, 0, 4, 0);
         panel.add(new JLabel("<html><b>" + title + "</b></html>"), constraints);
+        if (subTitle != null) {
+            panel.add(new JLabel(subTitle), constraints);
+        }
         for (Category category: categories) {
             for (int i = 0; i < ALL_PLANTS.length; i++) {
                 Plant plant = ALL_PLANTS[i];

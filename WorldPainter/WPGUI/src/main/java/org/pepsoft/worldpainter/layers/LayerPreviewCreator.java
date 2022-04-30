@@ -193,7 +193,10 @@ public class LayerPreviewCreator {
             timestamp = now;
             Rectangle area = new Rectangle(128, 128);
             for (SecondPassLayerExporter exporter: pass2Exporters.values()) {
-                exporter.render(dimension, area, area, minecraftWorldObject, JAVA_ANVIL_1_17);
+                exporter.carve(dimension, area, area, minecraftWorldObject, JAVA_ANVIL_1_17);
+            }
+            for (SecondPassLayerExporter exporter: pass2Exporters.values()) {
+                exporter.addFeatures(dimension, area, area, minecraftWorldObject, JAVA_ANVIL_1_17);
             }
             now = System.currentTimeMillis();
             if (logger.isDebugEnabled()) {
