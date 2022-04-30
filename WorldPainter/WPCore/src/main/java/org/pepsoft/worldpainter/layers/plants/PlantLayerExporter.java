@@ -129,9 +129,6 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider(platform);
             objectProvider.setSeed(seed);
             final Plant plant = (Plant) objectProvider.getObject();
-            if (plant.getMaterial(0, 0, 0).isNamed(MC_VINE)) {
-                System.out.println("We're here!");
-            }
             final Material existingMaterial = minecraftWorld.getMaterialAt(location.x, location.y, location.z);
             Category category = plant.isValidFoundation(minecraftWorld, location.x, location.y, location.z - 1);
             if ((category != null)

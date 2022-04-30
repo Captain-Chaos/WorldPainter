@@ -7,7 +7,6 @@ package org.pepsoft.worldpainter.layers.tunnel;
 
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.Material;
-import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MixedMaterial;
@@ -27,6 +26,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
+import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
 import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
@@ -197,7 +197,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
                         for (int i = 0; i < floorExporters.length; i++) {
                             if ((z >= floorLayerSettings[i].getMinLevel()) && (z <= floorLayerSettings[i].getMaxLevel())) {
                                 final int intensity = floorLayerNoise[i] != null
-                                        ? MathUtils.clamp(0, Math.round(floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z)), 100)
+                                        ? clamp(0, Math.round(floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z) - floorLayerNoise[i].getHeight() / 2), 100)
                                         : floorLayerSettings[i].getIntensity();
                                 if (intensity > 0) {
                                     Fixup fixup = floorExporters[i].apply(floorDimension, location, intensity, exportedArea, world, platform);
@@ -237,7 +237,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
                         for (int i = 0; i < roofExporters.length; i++) {
                             if ((z >= roofLayerSettings[i].getMinLevel()) && (z <= roofLayerSettings[i].getMaxLevel())) {
                                 final int intensity = roofLayerNoise[i] != null
-                                        ? MathUtils.clamp(0, Math.round(roofLayerSettings[i].getIntensity() + roofLayerNoise[i].getValue(x, y, z)), 100)
+                                        ? clamp(0, Math.round(roofLayerSettings[i].getIntensity() + roofLayerNoise[i].getValue(x, y, z) - roofLayerNoise[i].getHeight() / 2), 100)
                                         : roofLayerSettings[i].getIntensity();
                                 if (intensity > 0) {
                                     roofExporters[i].apply(invertedRoofDimension, location, intensity, exportedArea, invertedWorld, platform);
@@ -285,7 +285,7 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
         final BufferedImage preview = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         for (int x = 0; x < width; x++) {
             // Clear the sky
-            final int terrainHeight = MathUtils.clamp(minHeight, (int) (Math.sin((x / (double) width * 1.5 + 1.25) * Math.PI) * heightDifference / 2 + heightDifference / 2 + baseHeight + noise.getPerlinNoise(x / 20.0) * 32 + noise.getPerlinNoise(x / 10.0) * 16 + noise.getPerlinNoise(x / 5.0) * 8), baseHeight + heightDifference - 1);
+            final int terrainHeight = clamp(minHeight, (int) (Math.sin((x / (double) width * 1.5 + 1.25) * Math.PI) * heightDifference / 2 + heightDifference / 2 + baseHeight + noise.getPerlinNoise(x / 20.0) * 32 + noise.getPerlinNoise(x / 10.0) * 16 + noise.getPerlinNoise(x / 5.0) * 8), baseHeight + heightDifference - 1);
             for (int z = height - 1 + minHeight; z > terrainHeight; z--) {
                 preview.setRGB(x, height - 1 - z + minHeight, (z <= waterLevel) ? 0x0000ff : 0xffffff);
             }
@@ -326,11 +326,11 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
     static int calculateLevel(TunnelLayer.Mode mode, int level, int terrainHeight, int minLevel, int maxLevel, int minZ, int maxZ, int offset) {
         switch (mode) {
             case CONSTANT_DEPTH:
-                return MathUtils.clamp(minZ, MathUtils.clamp(minLevel, terrainHeight - level, maxLevel) + offset, maxZ);
+                return clamp(minZ, clamp(minLevel, terrainHeight - level, maxLevel) + offset, maxZ);
             case FIXED_HEIGHT:
-                return MathUtils.clamp(minZ, level + offset, maxZ);
+                return clamp(minZ, level + offset, maxZ);
             case INVERTED_DEPTH:
-                return MathUtils.clamp(minZ, MathUtils.clamp(minLevel, level - (terrainHeight - level), maxLevel) + offset, maxZ);
+                return clamp(minZ, clamp(minLevel, level - (terrainHeight - level), maxLevel) + offset, maxZ);
             default:
                 throw new InternalError();
         }
