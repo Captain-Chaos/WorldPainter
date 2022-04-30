@@ -183,7 +183,8 @@ public class EditLayerDialog<L extends Layer> extends AbstractEditLayerDialog<L>
                     new Thread("Preview Creator for " + editor.getLayer().getName()) {
                         @Override
                         public void run() {
-renderLoop:                 do {
+                            renderLoop:
+                            do {
                                 synchronized (PREVIEW_RENDERER_LOCK) {
                                     previewCreator.setLayer(settings.getLayer());
                                     previewCreator.setSettings(settings);

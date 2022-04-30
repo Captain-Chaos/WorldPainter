@@ -223,7 +223,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                 public World2 execute(ProgressReceiver progressReceiver) throws OperationCancelled {
                     int tileNo = 0;
                     for (Dimension dim: world.getDimensions()) {
-                        final int oldMinheight = dim.getMinHeight(), oldMaxHeight = dim.getMaxHeight();
+                        final int oldMinHeight = dim.getMinHeight(), oldMaxHeight = dim.getMaxHeight();
                         final int dimNewMinHeight, dimNewMaxHeight;
                         switch (dim.getDim()) {
                             case DIM_NETHER:
@@ -241,7 +241,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                                 dimNewMaxHeight = newMaxHeight;
                                 break;
                         }
-                        if ((dimNewMinHeight == oldMinheight) && (dimNewMaxHeight == oldMaxHeight) && transform.isIdentity()) {
+                        if ((dimNewMinHeight == oldMinHeight) && (dimNewMaxHeight == oldMaxHeight) && transform.isIdentity()) {
                             // Dimension heights don't need to change
                             continue;
                         }
@@ -277,15 +277,15 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                                 }
                                 for (ExporterSettings exporterSettings: dim.getAllLayerSettings().values()) {
                                     if (! (exporterSettings instanceof ResourcesExporterSettings)) {
-                                        exporterSettings.setMinMaxHeight(dimNewMinHeight, dimNewMaxHeight, transform);
+                                        exporterSettings.setMinMaxHeight(oldMinHeight, dimNewMinHeight, oldMaxHeight, dimNewMaxHeight, transform);
                                     }
                                 }
                                 for (CustomLayer customLayer: dim.getCustomLayers()) {
-                                    customLayer.setMinMaxHeight(dimNewMinHeight, dimNewMaxHeight, transform);
+                                    customLayer.setMinMaxHeight(oldMinHeight, dimNewMinHeight, oldMaxHeight, dimNewMaxHeight, transform);
                                 }
                                 if (dim.getGenerator() instanceof SuperflatGenerator) {
-                                    if (dimNewMinHeight != oldMinheight) {
-                                        final int raiseBy = oldMinheight - dimNewMinHeight;
+                                    if (dimNewMinHeight != oldMinHeight) {
+                                        final int raiseBy = oldMinHeight - dimNewMinHeight;
                                         final SuperflatPreset settings = ((SuperflatGenerator) dim.getGenerator()).getSettings();
                                         final List<SuperflatPreset.Layer> layers = settings.getLayers();
                                         final int currentHeight = layers.stream().mapToInt(SuperflatPreset.Layer::getThickness).sum();

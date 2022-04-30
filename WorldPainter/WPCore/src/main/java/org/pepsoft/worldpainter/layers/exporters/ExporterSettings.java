@@ -25,7 +25,7 @@ public interface ExporterSettings extends Serializable, Cloneable {
      * 
      * <p>The default implementation does nothing.
      */
-    default void setMinMaxHeight(int minHeight, int maxHeight, HeightTransform transform) {
+    default void setMinMaxHeight(int oldMinHeight, int newMinHeight, int oldMaxHeight, int newMaxHeight, HeightTransform transform) {
         // Do nothing
     }
     

@@ -81,7 +81,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                                 }
                                 if (category == FLOATING_PLANTS) {
                                     possiblyRenderFloatingPlant(minecraftWorld, dimension, plant, worldX, worldY, height + 1);
-                                } else if (category == WATER_PLANTS) {
+                                } else if ((category == WATER_PLANTS) || (category == HANGING_WATER_PLANTS)){
                                     int waterLevel = tile.getWaterLevel(x, y);
                                     if (waterLevel > height) {
                                         // Constrain the height to ensure the plant does not stick out of the water:
@@ -107,6 +107,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                                         renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
                                     }
                                 } else {
+                                    // TODO shrink the plant to fit if necessary
                                     renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
                                 }
                             }
@@ -128,9 +129,13 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider(platform);
             objectProvider.setSeed(seed);
             final Plant plant = (Plant) objectProvider.getObject();
+            if (plant.getMaterial(0, 0, 0).isNamed(MC_VINE)) {
+                System.out.println("We're here!");
+            }
             final Material existingMaterial = minecraftWorld.getMaterialAt(location.x, location.y, location.z);
             Category category = plant.isValidFoundation(minecraftWorld, location.x, location.y, location.z - 1);
-            if ((location.z < (minecraftWorld.getMaxHeight() - 1))
+            if ((category != null)
+                    && (location.z < (minecraftWorld.getMaxHeight() - 1))
                     && ((category == FLOATING_PLANTS) ? existingMaterial.isNamed(MC_WATER) : (existingMaterial == AIR))) {
                 // TODOMC13 support water plants
                 if (category == FLOATING_PLANTS) {
@@ -142,7 +147,8 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                         minecraftWorld.setMaterialAt(location.x, location.y, location.z - 1, TILLED_DIRT);
                         renderObject(minecraftWorld, dimension, plant, location.x, location.y, location.z, false);
                     }
-                } else if (category != null) {
+                } else {
+                    // TODO shrink the plant to fit if necessary
                     renderObject(minecraftWorld, dimension, plant, location.x, location.y, location.z, false);
                 }
             }

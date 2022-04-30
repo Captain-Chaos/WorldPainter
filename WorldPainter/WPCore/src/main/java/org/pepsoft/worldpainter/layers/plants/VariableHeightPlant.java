@@ -27,6 +27,14 @@ class VariableHeightPlant extends Plant {
         this(name, category, iconName, null, middleMaterial, topMaterial, defaultHeight, defaultHeight, null);
     }
 
+    VariableHeightPlant(String name, Material bottomMaterial, Material middleMaterial, Material topMaterial, int defaultHeight, Category... category) {
+        this(name, category, "block/" + topMaterial.simpleName + ".png", bottomMaterial, middleMaterial, topMaterial, defaultHeight, defaultHeight, null);
+    }
+
+    VariableHeightPlant(String name, Material bottomMaterial, Material middleMaterial, Material topMaterial, String iconName, int defaultHeight, Category... category) {
+        this(name, category, iconName, bottomMaterial, middleMaterial, topMaterial, defaultHeight, defaultHeight, null);
+    }
+
     private VariableHeightPlant(String name, Category[] categories, String iconName, Material bottomMaterial, Material middleMaterial, Material topMaterial, int defaultGrowth, int growth, Platform platform) {
         super(name, middleMaterial, iconName, categories);
         this.bottomMaterial = bottomMaterial;

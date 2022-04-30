@@ -102,7 +102,7 @@ public abstract class CustomLayer extends Layer implements Cloneable {
      *
      * <p>The default implementation does nothing.
      */
-    public void setMinMaxHeight(int minHeight, int maxHeight, HeightTransform transform) {
+    public void setMinMaxHeight(int oldMinHeight, int newMinHeight, int oldMaxHeight, int newMaxHeight, HeightTransform transform) {
         // Do nothing
     }
 

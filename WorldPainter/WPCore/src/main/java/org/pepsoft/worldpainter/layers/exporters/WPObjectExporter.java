@@ -520,7 +520,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 Point3i offset = object.getOffset();
                 Point3i dim = object.getDimensions();
                 Rectangle area = new Rectangle(x + offset.x, y + offset.y, dim.x, dim.y);
-                frostExporter.render(dimension, area, null, world, platform);
+                frostExporter.addFeatures(dimension, area, null, world, platform);
 
                 // Fixups are done *after* post processing, so post process
                 // again

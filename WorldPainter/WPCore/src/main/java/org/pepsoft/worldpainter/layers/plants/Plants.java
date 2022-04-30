@@ -125,12 +125,12 @@ public class Plants {
     public static final Plant WARPED_ROOTS = new SimplePlant("Warped Roots", Material.WARPED_ROOTS, NETHER);
     public static final Plant NETHER_SPROUTS = new SimplePlant("Nether Sprouts", Material.NETHER_SPROUTS, NETHER);
     public static final Plant TWISTING_VINES = new VariableHeightPlant("Twisting Vines", Material.TWISTING_VINES_PLANT, TWISTING_VINES_25, 10, MUSHROOMS); // TODO not really mushrooms, but for now those are presented as "Various"
-    public static final Plant GLOW_LICHEN = new SimplePlant("Glow Lichen", Material.GLOW_LICHEN_DOWN, MUSHROOMS, WATER_PLANTS); // TODO not really mushrooms, but for now those are presented as "Various"
+    public static final Plant GLOW_LICHEN = new SimplePlant("Glow Lichen", Material.GLOW_LICHEN_DOWN, MUSHROOMS, WATER_PLANTS, HANGING_DRY_PLANTS, HANGING_WATER_PLANTS); // TODO not really mushrooms, but for now those are presented as "Various"
     public static final Plant MOSS_CARPET = new SimplePlant("Moss Carpet", Material.MOSS_CARPET, "block/moss_block.png", MUSHROOMS); // TODO not really mushrooms, but for now those are presented as "Various"
     public static final Plant BIG_DRIPLEAF = new VariableHeightPlant("Big Dripleaf", Material.BIG_DRIPLEAF_STEM_SOUTH, Material.BIG_DRIPLEAF_SOUTH, "block/big_dripleaf_top.png", 10, PLANTS_AND_FLOWERS, WATER_PLANTS) {
         @Override
         public VariableHeightPlant realise(int growth, Platform platform) {
-            final Direction facing = Direction.values()[(int) (Math.random() * 4)];
+            final Direction facing = Direction.values()[RANDOM.nextInt(4)];
             return new VariableHeightPlant("Big Dripleaf", Material.BIG_DRIPLEAF_STEM_SOUTH.withProperty(MC_FACING, facing.toString()), Material.BIG_DRIPLEAF_SOUTH.withProperty(MC_FACING, facing.toString()), growth, categories);
         }
     };
@@ -146,7 +146,7 @@ public class Plants {
             return world.getMaterialAt(x, y, height).solid ? PLANTS_AND_FLOWERS : null;
         }
     };
-    public static final Plant CARVED_PUMPKIN = new SimplePlant("Carved Pumpkin", Material.CARVED_PUMPKIN_SOUTH_FACE, "block/carved_pumpkin.png", MUSHROOMS) { // TODO not really mushrooms, but for now those are presented as "Various"
+    public static final Plant CARVED_PUMPKIN = new SimplePlant("Carved Pumpkin", Material.CARVED_PUMPKIN_SOUTH_FACE, MUSHROOMS) { // TODO not really mushrooms, but for now those are presented as "Various"
         @Override
         public Plant realise(int growth, Platform platform) {
             return new SimplePlant("Carved Pumpkin", Material.CARVED_PUMPKIN_SOUTH_FACE.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), categories) {
@@ -157,7 +157,7 @@ public class Plants {
             };
         }
     };
-    public static final Plant JACK_O_LANTERN = new SimplePlant("Jack-o'-lantern", Material.JACK_O_LANTERN_SOUTH_FACE, "block/jack_o_lantern.png", MUSHROOMS) { // TODO not really mushrooms, but for now those are presented as "Various"
+    public static final Plant JACK_O_LANTERN = new SimplePlant("Jack-o'-lantern", Material.JACK_O_LANTERN_SOUTH_FACE, MUSHROOMS) { // TODO not really mushrooms, but for now those are presented as "Various"
         @Override
         public Plant realise(int growth, Platform platform) {
             return new SimplePlant("Jack-o'-lantern", Material.JACK_O_LANTERN_SOUTH_FACE.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), categories) {
@@ -168,11 +168,37 @@ public class Plants {
             };
         }
     };
+    public static final Plant VINE = new VariableHeightPlant("Vine", Material.VINE, 10, HANGING_DRY_PLANTS) {
+        @Override
+        public Plant realise(int growth, Platform platform) {
+            final String directionProperty = Direction.values()[RANDOM.nextInt(4)].name().toLowerCase();
+            return new VariableHeightPlant("Vine",
+                    Material.VINE.withProperty(DOWN, true).withProperty(directionProperty, "true"),
+                    Material.VINE.withProperty(directionProperty, "true"),
+                    Material.VINE.withProperty(directionProperty, "true"),
+                    growth,
+                    categories);
+        }
+    };
+    public static final Plant SPORE_BLOSSOM = new SimplePlant("Spore Blossoms", Material.SPORE_BLOSSOM, HANGING_DRY_PLANTS);
+    public static final Plant WEEPING_VINES = new VariableHeightPlant("Weeping Vines", Material.WEEPING_VINES_PLANT, Material.WEEPING_VINES, "block/weeping_vines_plant.png", 10, HANGING_DRY_PLANTS);
+    public static final Plant HANGING_ROOTS = new SimplePlant("Hanging Roots", Material.HANGING_ROOTS, HANGING_DRY_PLANTS, HANGING_WATER_PLANTS);
+    public static final Plant GLOW_BERRIES = new VariableHeightPlant("Glow Berries", Material.CAVE_VINES_PLANT, Material.CAVE_VINES, "block/cave_vines_lit.png", 10, HANGING_DRY_PLANTS) {
+        @Override
+        public Plant realise(int growth, Platform platform) {
+            return new VariableHeightPlant("Glow Berries", Material.CAVE_VINES, Material.CAVE_VINES_PLANT, "block/cave_vines_lit.png", growth, categories) {
+                @Override
+                public Material getMaterial(int x, int y, int z) {
+                    return super.getMaterial(x, y, z).withProperty(BERRIES, RANDOM.nextInt(4) == 0);
+                }
+            };
+        }
+    };
 
     // The code which uses this assumes there will never be more than 128 plants. If that ever happens it needs to be
     // overhauled! IMPORTANT: indices into this array are stored in layer settings! New entries MUST be added at the
     // end, and the order MUST never be changed!
-    public static final Plant[] ALL_PLANTS = {GRASS, TALL_GRASS, FERN, LARGE_FERN, DEAD_SHRUB, DANDELION, POPPY,
+    public static final Plant[] ALL_PLANTS = { GRASS, TALL_GRASS, FERN, LARGE_FERN, DEAD_SHRUB, DANDELION, POPPY,
             BLUE_ORCHID, ALLIUM, AZURE_BLUET, TULIP_RED, TULIP_ORANGE, TULIP_WHITE, TULIP_PINK, OXEYE_DAISY, SUNFLOWER,
             LILAC, ROSE_BUSH, PEONY, SAPLING_OAK, SAPLING_DARK_OAK, SAPLING_PINE, SAPLING_BIRCH, SAPLING_JUNGLE,
             SAPLING_ACACIA, MUSHROOM_RED, MUSHROOM_BROWN, WHEAT, CARROTS, POTATOES, PUMPKIN_STEMS, MELON_STEMS, CACTUS,
@@ -181,7 +207,7 @@ public class Plants {
             KELP, SEAGRASS, TALL_SEAGRASS, SEA_PICKLE, CORNFLOWER, LILY_OF_THE_VALLEY, WITHER_ROSE, SWEET_BERRY_BUSH,
             BAMBOO, SAPLING_AZALEA, SAPLING_FLOWERING_AZALEA, CRIMSON_FUNGUS, WARPED_FUNGUS, CRIMSON_ROOTS,
             WARPED_ROOTS, NETHER_SPROUTS, TWISTING_VINES, GLOW_LICHEN, MOSS_CARPET, BIG_DRIPLEAF, PUMPKIN, MELON,
-            CARVED_PUMPKIN, JACK_O_LANTERN};
+            CARVED_PUMPKIN, JACK_O_LANTERN, VINE, SPORE_BLOSSOM, WEEPING_VINES, HANGING_ROOTS, GLOW_BERRIES };
 
     private static final Random RANDOM = new Random();
 }
