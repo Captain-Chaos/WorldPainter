@@ -428,6 +428,16 @@ public final class Material implements Serializable {
     }
 
     /**
+     * Indicates whether a specific property is currently set on this material.
+     *
+     * @param name The name of the property to check for presence.
+     * @return {@code true} if the specified property is currently set on this material.
+     */
+    public boolean isPropertySet(String name) {
+        return (identity.properties != null) && identity.properties.containsKey(name);
+    }
+
+    /**
      * Get the value of a property as a string.
      *
      * @param name The name of the property of which to get the value.
@@ -452,6 +462,26 @@ public final class Material implements Serializable {
             newProperties.putAll(identity.properties);
         }
         newProperties.put(name, value);
+        return get(identity.name, newProperties);
+    }
+
+    /**
+     * Returns a material identical to this one, except with the specified property removed.
+     *
+     * @param name The name of the property that should be removed.
+     * @return A material identical to this one, except with the specified property removed.
+     */
+    public Material withoutProperty(String name) {
+        Map<String, String> newProperties;
+        if (identity.properties != null) {
+            newProperties = new HashMap<>(identity.properties);
+            newProperties.remove(name);
+            if (newProperties.isEmpty()) {
+                newProperties = null;
+            }
+        } else {
+            newProperties = null;
+        }
         return get(identity.name, newProperties);
     }
 
@@ -1728,6 +1758,7 @@ public final class Material implements Serializable {
     public static final Property<String>    SHAPE       = new Property<>(MC_SHAPE,       String.class);
     public static final Property<String>    HINGE       = new Property<>(MC_HINGE,       String.class);
     public static final Property<Boolean>   BERRIES     = new Property<>(MC_BERRIES,     Boolean.class);
+    public static final Property<Integer>   DISTANCE    = new Property<>(MC_DISTANCE,    Integer.class);
 
     // Modern materials (based on MC 1.13+ block names and properties)
 
