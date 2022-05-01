@@ -165,7 +165,7 @@ public abstract class JavaPlatformProvider extends AbstractPlatformProvider impl
 
     @Override
     public ExportSettingsEditor getExportSettingsEditor() {
-        return new JavaExportSettingsEditor();
+        return new JavaExportSettingsEditor(getPlatform());
     }
 
     @SuppressWarnings("ConstantConditions") // Yes, we just checked that

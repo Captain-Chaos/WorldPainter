@@ -790,7 +790,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
 
             // Third pass. Calculate lighting
             long t5 = System.currentTimeMillis();
-            lightingPass(minecraftWorld, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.75f, 0.25f) : null);
+            blockPropertiesPass(minecraftWorld, regionCoords, (BlockBasedExportSettings) dimension.getExportSettings(), (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.75f, 0.25f) : null);
             long t6 = System.currentTimeMillis();
             if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode"))) {
                 String timingMessage = (t2 - t1) + ", " + (t3 - t2) + ", " + (t4 - t3) + ", " + (t5 - t4) + ", " + (t6 - t5) + ", " + (t6 - t1);

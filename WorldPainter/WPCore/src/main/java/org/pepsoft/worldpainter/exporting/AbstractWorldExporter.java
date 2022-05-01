@@ -537,14 +537,28 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         return fixups;
     }
 
-    protected void lightingPass(MinecraftWorld minecraftWorld, Point regionCoords, ProgressReceiver progressReceiver) throws OperationCancelled {
-        if (progressReceiver != null) {
-            progressReceiver.setMessage("Calculating primary light");
+    protected void blockPropertiesPass(MinecraftWorld minecraftWorld, Point regionCoords, BlockBasedExportSettings exportSettings, ProgressReceiver progressReceiver) throws OperationCancelled {
+        float maxIterations = 0;
+        final StringBuilder nounsBuilder = new StringBuilder();
+        if (exportSettings.isCalculateSkyLight() || exportSettings.isCalculateBlockLight()) {
+            nounsBuilder.append("block lighting");
+            maxIterations = 15;
         }
-        LightingCalculator lightingVolume = new LightingCalculator(minecraftWorld, platform);
+        if (exportSettings.isCalculateLeafDistance()) {
+            if (nounsBuilder.length() > 0) {
+                nounsBuilder.append(" and ");
+            }
+            nounsBuilder.append("leaf distances");
+            maxIterations = Math.max(maxIterations, 7);
+        }
+        final String nouns = nounsBuilder.toString();
+        if (progressReceiver != null) {
+            progressReceiver.setMessage("Calculating initial " + nouns);
+        }
+        BlockPropertiesCalculator calculator = new BlockPropertiesCalculator(minecraftWorld, platform, exportSettings);
 
         // Calculate primary light
-        int lightingLowMark = Integer.MAX_VALUE, lightingHighMark = Integer.MIN_VALUE;
+        int lowMark = Integer.MAX_VALUE, highMark = Integer.MIN_VALUE;
         int lowestChunkX = (regionCoords.x << 5) - 1;
         int highestChunkX = (regionCoords.x << 5) + 32;
         int lowestChunkY = (regionCoords.y << 5) - 1;
@@ -554,12 +568,12 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             for (int chunkY = lowestChunkY; chunkY <= highestChunkY; chunkY++) {
                 Chunk chunk = minecraftWorld.getChunk(chunkX, chunkY);
                 if (chunk != null) {
-                    int[] levels = lightingVolume.calculatePrimaryLight(chunk);
-                    if (levels[0] < lightingLowMark) {
-                        lightingLowMark = levels[0];
+                    int[] levels = calculator.firstPass(chunk);
+                    if (levels[0] < lowMark) {
+                        lowMark = levels[0];
                     }
-                    if (levels[1] > lightingHighMark) {
-                        lightingHighMark = levels[1];
+                    if (levels[1] > highMark) {
+                        highMark = levels[1];
                     }
                 }
             }
@@ -568,21 +582,20 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             }
         }
 
-        if (lightingLowMark != Integer.MAX_VALUE) {
+        if (lowMark != Integer.MAX_VALUE) {
             if (progressReceiver != null) {
-                progressReceiver.setMessage("Propagating light");
+                progressReceiver.setMessage("Propagating " + nouns);
             }
 
             // Calculate secondary light
-            Box originalDirtyArea = new Box((regionCoords.x << 9) - 16, ((regionCoords.x + 1) << 9) + 16, lightingLowMark, lightingHighMark + 1, (regionCoords.y << 9) - 16, ((regionCoords.y + 1) << 9) + 16);
-            Box dirtyArea = originalDirtyArea.clone();
-            lightingVolume.setDirtyArea(dirtyArea);
+            calculator.setDirtyArea(new Box((regionCoords.x << 9) - 16, ((regionCoords.x + 1) << 9) + 16, lowMark, highMark + 1, (regionCoords.y << 9) - 16, ((regionCoords.y + 1) << 9) + 16));
             int iteration = 1;
-            while (lightingVolume.calculateSecondaryLight()) {
+            while (calculator.secondPass()) {
                 if (progressReceiver != null) {
-                    progressReceiver.setProgress(0.2f + 0.8f * (iteration++ / 15f));
+                    progressReceiver.setProgress(0.2f + 0.8f * (iteration++ / maxIterations));
                 }
             }
+            calculator.finalise();
         }
 
         if (progressReceiver != null) {
@@ -674,7 +687,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 // changes to neighbouring chunks
                 long t2 = System.currentTimeMillis();
                 List<Fixup> myFixups = secondPass(secondaryPassLayers, dimension, minecraftWorld, exporters, tiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.45f, (ceiling != null) ? 0.05f : 0.1f) : null);
-                if ((myFixups != null) && (!myFixups.isEmpty())) {
+                if ((myFixups != null) && (! myFixups.isEmpty())) {
                     exportResults.fixups = myFixups;
                 }
 
@@ -687,11 +700,15 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
                 // Post processing. Fix covered grass blocks, things like that
                 long t3 = System.currentTimeMillis();
-                PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), dimension.getExportSettings(), (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.55f, 0.1f) : null);
+                final BlockBasedExportSettings exportSettings = (BlockBasedExportSettings) dimension.getExportSettings();
+                PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.55f, 0.1f) : null);
 
-                // Third pass. Calculate lighting
+                // Third pass. Calculate lighting and/or leaf distances (if requested)
                 long t4 = System.currentTimeMillis();
-                lightingPass(minecraftWorld, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.35f) : null);
+                final boolean blockPropertiesPassNeeded = exportSettings.isCalculateBlockLight() || exportSettings.isCalculateSkyLight() || exportSettings.isCalculateLeafDistance();
+                if (blockPropertiesPassNeeded) {
+                    blockPropertiesPass(minecraftWorld, regionCoords, exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.35f) : null);
+                }
                 long t5 = System.currentTimeMillis();
                 if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode"))) {
                     String timingMessage = (t2 - t1) + ", " + (t3 - t2) + ", " + (t4 - t3) + ", " + (t5 - t4) + ", " + (t5 - t1);
@@ -702,6 +719,10 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                         }
                     }
                 }
+            }
+
+            if (progressReceiver != null) {
+                progressReceiver.setProgress(1.0f);
             }
 
             return exportResults;
