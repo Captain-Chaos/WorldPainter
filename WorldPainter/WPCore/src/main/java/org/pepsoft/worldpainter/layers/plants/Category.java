@@ -36,7 +36,7 @@ public enum Category {
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
             final Material material = world.getMaterialAt(x, y, z);
             // If it's dark enough mushrooms can be placed on pretty much anything
-            return material.solid && material.opaque && (! isFlooded(world, x, y, z));
+            return material.solid && material.opaque && material.natural && (! isFlooded(world, x, y, z));
         }
     },
 
@@ -109,7 +109,24 @@ public enum Category {
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
             // TODOMC13 it's not clear on what blocks water plants can be
             //  planted so for now allow all solid blocks
-            return world.getMaterialAt(x, y, z).solid && world.getMaterialAt(x, y, z + 1).containsWater();
+            final Material material = world.getMaterialAt(x, y, z);
+            return material.solid && material.opaque && material.natural && world.getMaterialAt(x, y, z + 1).containsWater();
+        }
+    },
+
+    HANGING_DRY_PLANTS {
+        @Override
+        boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
+            final Material material = world.getMaterialAt(x, y, z);
+            return material.solid && material.opaque && material.natural && (! isFlooded(world, x, y, z));
+        }
+    },
+
+    HANGING_WATER_PLANTS {
+        @Override
+        boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
+            final Material material = world.getMaterialAt(x, y, z);
+            return material.solid && material.opaque && material.natural && isFlooded(world, x, y, z);
         }
     };
 

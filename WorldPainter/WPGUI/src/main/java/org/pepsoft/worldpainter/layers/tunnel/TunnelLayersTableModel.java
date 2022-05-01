@@ -6,29 +6,34 @@
 
 package org.pepsoft.worldpainter.layers.tunnel;
 
+import org.pepsoft.util.MathUtils;
+import org.pepsoft.worldpainter.NoiseSettings;
+import org.pepsoft.worldpainter.layers.Layer;
+
+import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableModel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.JLabel;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.TableModel;
-import org.pepsoft.util.MathUtils;
-import org.pepsoft.worldpainter.NoiseSettings;
-import org.pepsoft.worldpainter.layers.Layer;
 
 /**
  *
  * @author SchmitzP
  */
-public class TunnelFloorLayersTableModel implements TableModel {
-    public TunnelFloorLayersTableModel(Map<Layer, TunnelLayer.LayerSettings> settings, int maxHeight) {
+public class TunnelLayersTableModel implements TableModel {
+    public TunnelLayersTableModel(List<TunnelLayer.LayerSettings> settings, int minHeight, int maxHeight) {
+        this.minHeight = minHeight;
         this.maxHeight = maxHeight;
         if (settings != null) {
-            for (Map.Entry<Layer, TunnelLayer.LayerSettings> entry: settings.entrySet()) {
-                layers.add(entry.getKey());
-                this.settings.put(entry.getKey(), entry.getValue().clone());
+            for (TunnelLayer.LayerSettings layerSettings: settings) {
+                // Clone the custom layers and all layer settings, so we can still cancel out of any changes if the user
+                // presses Cancel
+                final TunnelLayer.LayerSettings clonedSettings = layerSettings.clone();
+                layers.add(clonedSettings.getLayer());
+                this.settings.put(clonedSettings.getLayer(), clonedSettings);
             }
         }
     }
@@ -36,7 +41,9 @@ public class TunnelFloorLayersTableModel implements TableModel {
     public void addLayer(Layer layer) {
         if (! layers.contains(layer)) {
             layers.add(layer);
-            settings.put(layer, new TunnelLayer.LayerSettings());
+            final TunnelLayer.LayerSettings layerSettings = new TunnelLayer.LayerSettings();
+            layerSettings.setLayer(layer);
+            settings.put(layer, layerSettings);
             int row = layers.size() - 1;
             TableModelEvent event = new TableModelEvent(this, row, row, TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT);
             for (TableModelListener listener: listeners) {
@@ -65,8 +72,12 @@ public class TunnelFloorLayersTableModel implements TableModel {
         }
     }
 
-    public Map<Layer, TunnelLayer.LayerSettings> getLayers() {
-        return settings;
+    public List<TunnelLayer.LayerSettings> getLayers() {
+        final List<TunnelLayer.LayerSettings> layerSettings = new ArrayList<>(layers.size());
+        for (Layer layer: layers) {
+            layerSettings.add(settings.get(layer));
+        }
+        return layerSettings;
     }
     
     // TableModel
@@ -131,7 +142,7 @@ public class TunnelFloorLayersTableModel implements TableModel {
                 layerSettings.setVariation((NoiseSettings) value);
                 break;
             case COLUMN_MIN_LEVEL:
-                layerSettings.setMinLevel(MathUtils.clamp(0, (Integer) value, layerSettings.getMaxLevel()));
+                layerSettings.setMinLevel(MathUtils.clamp(minHeight, (Integer) value, layerSettings.getMaxLevel()));
                 break;
             case COLUMN_MAX_LEVEL:
                 layerSettings.setMaxLevel(MathUtils.clamp(layerSettings.getMinLevel(), (Integer) value, maxHeight - 1));
@@ -156,7 +167,7 @@ public class TunnelFloorLayersTableModel implements TableModel {
     private final List<Layer> layers = new ArrayList<>();
     private final Map<Layer, TunnelLayer.LayerSettings> settings = new HashMap<>();
     private final List<TableModelListener> listeners = new ArrayList<>();
-    private final int maxHeight;
+    private final int minHeight, maxHeight;
     
     public static final int COLUMN_NAME      = 0;
     public static final int COLUMN_INTENSITY = 1;
@@ -164,6 +175,6 @@ public class TunnelFloorLayersTableModel implements TableModel {
     public static final int COLUMN_MIN_LEVEL = 3;
     public static final int COLUMN_MAX_LEVEL = 4;
     
-    private static final String[] COLUMN_NAMES = {"Layer",      "Intensity",   "Variation",         "Minimum level", "Maximum level"};
-    private static final Class[] COLUMN_TYPES =  {JLabel.class, Integer.class, NoiseSettings.class, Integer.class,   Integer.class};
+    private static final String[] COLUMN_NAMES = {"Layer",      "Base intensity (%)", "Variation (%-points)", "Minimum level", "Maximum level"};
+    private static final Class[] COLUMN_TYPES =  {JLabel.class, Integer.class,        NoiseSettings.class,    Integer.class,   Integer.class};
 }

@@ -21,11 +21,14 @@ import javax.vecmath.Point3i;
 import java.awt.*;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 import static org.pepsoft.worldpainter.layers.plants.Category.*;
 
 /**
@@ -38,7 +41,12 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
     }
 
     @Override
-    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    public Set<Stage> getStages() {
+        return singleton(ADD_FEATURES);
+    }
+
+    @Override
+    public List<Fixup> addFeatures(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         final long seed = dimension.getSeed();
         final int tileX1 = exportedArea.x >> TILE_SIZE_BITS, tileX2 = (exportedArea.x + exportedArea.width - 1) >> TILE_SIZE_BITS;
         final int tileY1 = exportedArea.y >> TILE_SIZE_BITS, tileY2 = (exportedArea.y + exportedArea.height - 1) >> TILE_SIZE_BITS;
@@ -73,7 +81,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                                 }
                                 if (category == FLOATING_PLANTS) {
                                     possiblyRenderFloatingPlant(minecraftWorld, dimension, plant, worldX, worldY, height + 1);
-                                } else if (category == WATER_PLANTS) {
+                                } else if ((category == WATER_PLANTS) || (category == HANGING_WATER_PLANTS)){
                                     int waterLevel = tile.getWaterLevel(x, y);
                                     if (waterLevel > height) {
                                         // Constrain the height to ensure the plant does not stick out of the water:
@@ -99,6 +107,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                                         renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
                                     }
                                 } else {
+                                    // TODO shrink the plant to fit if necessary
                                     renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
                                 }
                             }
@@ -122,7 +131,8 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
             final Plant plant = (Plant) objectProvider.getObject();
             final Material existingMaterial = minecraftWorld.getMaterialAt(location.x, location.y, location.z);
             Category category = plant.isValidFoundation(minecraftWorld, location.x, location.y, location.z - 1);
-            if ((location.z < (minecraftWorld.getMaxHeight() - 1))
+            if ((category != null)
+                    && (location.z < (minecraftWorld.getMaxHeight() - 1))
                     && ((category == FLOATING_PLANTS) ? existingMaterial.isNamed(MC_WATER) : (existingMaterial == AIR))) {
                 // TODOMC13 support water plants
                 if (category == FLOATING_PLANTS) {
@@ -134,7 +144,8 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                         minecraftWorld.setMaterialAt(location.x, location.y, location.z - 1, TILLED_DIRT);
                         renderObject(minecraftWorld, dimension, plant, location.x, location.y, location.z, false);
                     }
-                } else if (category != null) {
+                } else {
+                    // TODO shrink the plant to fit if necessary
                     renderObject(minecraftWorld, dimension, plant, location.x, location.y, location.z, false);
                 }
             }

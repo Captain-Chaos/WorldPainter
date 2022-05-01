@@ -21,12 +21,15 @@ import org.pepsoft.worldpainter.util.GeometryUtil;
 
 import java.awt.*;
 import java.util.List;
+import java.util.Set;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.MC_ICE;
 import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.TINY_BLOBS;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.BIOME_RIVER;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 
 /**
  *
@@ -36,9 +39,14 @@ public class RiverExporter extends AbstractLayerExporter<River> implements Secon
     public RiverExporter() {
         super(River.INSTANCE, new RiverSettings());
     }
-    
+
     @Override
-    public List<Fixup> render(final Dimension dimension, final Rectangle area, final Rectangle exportedArea, final MinecraftWorld minecraftWorld, Platform platform) {
+    public Set<Stage> getStages() {
+        return singleton(ADD_FEATURES);
+    }
+
+    @Override
+    public List<Fixup> addFeatures(final Dimension dimension, final Rectangle area, final Rectangle exportedArea, final MinecraftWorld minecraftWorld, Platform platform) {
         final RiverSettings settings = new RiverSettings();
         final int shoreHeight = settings.getShoreHeight();
         final boolean shore = shoreHeight > 0;

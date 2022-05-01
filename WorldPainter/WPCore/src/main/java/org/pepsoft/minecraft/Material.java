@@ -428,6 +428,16 @@ public final class Material implements Serializable {
     }
 
     /**
+     * Indicates whether a specific property is currently set on this material.
+     *
+     * @param name The name of the property to check for presence.
+     * @return {@code true} if the specified property is currently set on this material.
+     */
+    public boolean isPropertySet(String name) {
+        return (identity.properties != null) && identity.properties.containsKey(name);
+    }
+
+    /**
      * Get the value of a property as a string.
      *
      * @param name The name of the property of which to get the value.
@@ -452,6 +462,26 @@ public final class Material implements Serializable {
             newProperties.putAll(identity.properties);
         }
         newProperties.put(name, value);
+        return get(identity.name, newProperties);
+    }
+
+    /**
+     * Returns a material identical to this one, except with the specified property removed.
+     *
+     * @param name The name of the property that should be removed.
+     * @return A material identical to this one, except with the specified property removed.
+     */
+    public Material withoutProperty(String name) {
+        Map<String, String> newProperties;
+        if (identity.properties != null) {
+            newProperties = new HashMap<>(identity.properties);
+            newProperties.remove(name);
+            if (newProperties.isEmpty()) {
+                newProperties = null;
+            }
+        } else {
+            newProperties = null;
+        }
         return get(identity.name, newProperties);
     }
 
@@ -632,6 +662,8 @@ public final class Material implements Serializable {
                         return withProperty(TYPE, getProperty(TYPE).equals("top") ? "bottom" : "top");
                     case UP:
                         return withProperty(UP, !getProperty(UP));
+                    case UP_DOWN:
+                        return withProperty(UP, getProperty(DOWN)).withProperty(DOWN, getProperty(UP));
                     default:
                         throw new InternalError();
                 }
@@ -901,10 +933,13 @@ public final class Material implements Serializable {
                     invertedMaterial = withProperty(HALF, getProperty(HALF).equals("top") ? "bottom" : "top");
                     break;
                 case TYPE:
-                    invertedMaterial =  withProperty(TYPE, getProperty(TYPE).equals("top") ? "bottom" : "top");
+                    invertedMaterial = withProperty(TYPE, getProperty(TYPE).equals("top") ? "bottom" : "top");
                     break;
                 case UP:
-                    invertedMaterial =  withProperty(UP, !getProperty(UP));
+                    invertedMaterial = withProperty(UP, !getProperty(UP));
+                    break;
+                case UP_DOWN:
+                    invertedMaterial = withProperty(UP, getProperty(DOWN)).withProperty(DOWN, getProperty(UP));
                     break;
                 default:
                     throw new InternalError();
@@ -928,7 +963,11 @@ public final class Material implements Serializable {
         if (identity.containsPropertyWithValues("half", "top", "bottom")) {
             return VerticalOrientationScheme.HALF;
         } else if (identity.containsPropertyWithValues("up", "true", "false")) {
-            return VerticalOrientationScheme.UP;
+            if (identity.containsPropertyWithValues("down", "true", "false")) {
+                return VerticalOrientationScheme.UP_DOWN;
+            } else {
+                return VerticalOrientationScheme.UP;
+            }
         } else if (identity.containsPropertyWithValues("type", "top", "bottom")) {
             return VerticalOrientationScheme.TYPE;
         } else {
@@ -1703,6 +1742,7 @@ public final class Material implements Serializable {
     public static final Property<Boolean>   SOUTH       = new Property<>(MC_SOUTH,       Boolean.class);
     public static final Property<Boolean>   WEST        = new Property<>(MC_WEST,        Boolean.class);
     public static final Property<Boolean>   UP          = new Property<>(MC_UP,          Boolean.class);
+    public static final Property<Boolean>   DOWN        = new Property<>(MC_DOWN,       Boolean.class);
     public static final Property<Integer>   LAYERS      = new Property<>(MC_LAYERS,      Integer.class);
     public static final Property<String>    HALF        = new Property<>(MC_HALF,        String.class);
     public static final Property<Integer>   LEVEL       = new Property<>(MC_LEVEL,       Integer.class);
@@ -1717,6 +1757,8 @@ public final class Material implements Serializable {
     public static final Property<Integer>   ROTATION    = new Property<>(MC_ROTATION,    Integer.class);
     public static final Property<String>    SHAPE       = new Property<>(MC_SHAPE,       String.class);
     public static final Property<String>    HINGE       = new Property<>(MC_HINGE,       String.class);
+    public static final Property<Boolean>   BERRIES     = new Property<>(MC_BERRIES,     Boolean.class);
+    public static final Property<Integer>   DISTANCE    = new Property<>(MC_DISTANCE,    Integer.class);
 
     // Modern materials (based on MC 1.13+ block names and properties)
 
@@ -1724,7 +1766,7 @@ public final class Material implements Serializable {
      * A vine with no directions turned on, which is not a valid block in
      * Minecraft, so you must set at least one direction.
      */
-    public static final Material VINE = get(MC_VINE, MC_NORTH, false, MC_EAST, false, MC_SOUTH, false, MC_WEST, false, MC_UP, false);
+    public static final Material VINE = get(MC_VINE, MC_NORTH, false, MC_EAST, false, MC_SOUTH, false, MC_WEST, false, MC_UP, false, MC_DOWN, false); // "down" is not a valid property, but without it we don't get the right vertical orientation scheme and Minecraft appears to ignore it
     public static final Material TERRACOTTA = get(MC_TERRACOTTA);
     public static final Material BLUE_ORCHID = get(MC_BLUE_ORCHID);
     public static final Material ALLIUM = get(MC_ALLIUM);
@@ -1860,11 +1902,17 @@ public final class Material implements Serializable {
     public static final Material NETHER_SPROUTS = get(MC_NETHER_SPROUTS);
     public static final Material TWISTING_VINES_PLANT = get(MC_TWISTING_VINES_PLANT);
     public static final Material TWISTING_VINES_25 = get(MC_TWISTING_VINES, MC_AGE, 25);
-    public static final Material GLOW_LICHEN_DOWN = get(MC_GLOW_LICHEN, MC_DOWN, true);
+    public static final Material GLOW_LICHEN_DOWN = get(MC_GLOW_LICHEN, MC_UP, false, MC_DOWN, true);
     public static final Material MOSS_CARPET = get(MC_MOSS_CARPET);
     public static final Material BIG_DRIPLEAF_STEM_SOUTH = get(MC_BIG_DRIPLEAF_STEM, MC_FACING, "south");
     public static final Material BIG_DRIPLEAF_SOUTH = get(MC_BIG_DRIPLEAF, MC_FACING, "south");
     public static final Material PUMPKIN = get(MC_PUMPKIN);
+    public static final Material SPORE_BLOSSOM = get(MC_SPORE_BLOSSOM);
+    public static final Material WEEPING_VINES = get(MC_WEEPING_VIVES);
+    public static final Material WEEPING_VINES_PLANT = get(MC_WEEPING_VIVES_PLANT);
+    public static final Material HANGING_ROOTS = get(MC_HANGING_ROOTS);
+    public static final Material CAVE_VINES = get(MC_CAVE_VINES);
+    public static final Material CAVE_VINES_PLANT = get(MC_CAVE_VINES_PLANT);
 
     // Namespaces
 

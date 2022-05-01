@@ -30,8 +30,8 @@ public class SwampLandExporter extends TreesExporter<TreeLayer> {
     }
 
     @Override
-    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld world, Platform platform) {
-        List<Fixup> fixups = super.render(dimension, area, exportedArea, world, platform);
+    public List<Fixup> addFeatures(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld world, Platform platform) {
+        List<Fixup> fixups = super.addFeatures(dimension, area, exportedArea, world, platform);
         
         // Render lily pads
         TreeLayerSettings<TreeLayer> settings = (TreeLayerSettings<TreeLayer>) getSettings();

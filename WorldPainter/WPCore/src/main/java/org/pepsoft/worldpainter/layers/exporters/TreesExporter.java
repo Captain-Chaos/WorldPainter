@@ -23,11 +23,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.MC_LAVA;
 import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.SMALL_BLOBS;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 
 /**
  *
@@ -37,10 +40,15 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
     public TreesExporter(T layer) {
         super(layer, new TreeLayerSettings<>(layer));
     }
-    
+
+    @Override
+    public Set<Stage> getStages() {
+        return singleton(ADD_FEATURES);
+    }
+
     @SuppressWarnings("unchecked") // Responsibility of caller
     @Override
-    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    public List<Fixup> addFeatures(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         TreeLayerSettings<T> settings = (TreeLayerSettings<T>) getSettings();
         int minimumLevel = settings.getMinimumLevel();
         int treeChance = settings.getTreeChance();

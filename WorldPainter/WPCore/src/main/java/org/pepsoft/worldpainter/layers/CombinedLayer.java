@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.*;
 
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.CARVE;
 import static org.pepsoft.worldpainter.layers.Layer.DataSize.*;
 
 /**
@@ -275,7 +277,17 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
         }
 
         @Override
-        public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+        public Set<Stage> getStages() {
+            return EnumSet.of(CARVE, ADD_FEATURES);
+        }
+
+        @Override
+        public List<Fixup> carve(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<Fixup> addFeatures(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
             throw new UnsupportedOperationException();
         }
     }

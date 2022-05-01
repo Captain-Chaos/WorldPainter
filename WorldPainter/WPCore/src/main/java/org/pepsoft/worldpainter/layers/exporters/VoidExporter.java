@@ -37,7 +37,7 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
     }
     
     @Override
-    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    public List<Fixup> carve(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         if (noise.getSeed() != (dimension.getSeed() + SEED_OFFSET)) {
             noise.setSeed(dimension.getSeed() + SEED_OFFSET);
         }

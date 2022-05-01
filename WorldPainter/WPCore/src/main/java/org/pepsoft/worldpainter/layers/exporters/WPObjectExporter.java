@@ -520,13 +520,13 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 Point3i offset = object.getOffset();
                 Point3i dim = object.getDimensions();
                 Rectangle area = new Rectangle(x + offset.x, y + offset.y, dim.x, dim.y);
-                frostExporter.render(dimension, area, null, world, platform);
+                frostExporter.addFeatures(dimension, area, null, world, platform);
 
                 // Fixups are done *after* post processing, so post process
                 // again
                 Box bounds = getBounds(object, x, y, z);
                 // Include the layer below and above the object for post
-                // processing, as those blocks may also haev been affected
+                // processing, as those blocks may also have been affected
                 bounds.setZ1(Math.max(bounds.getZ1() - 1, world.getMinHeight()));
                 bounds.setZ2(Math.min(bounds.getZ2() + 1, world.getMaxHeight() - 1));
                 try {
@@ -536,16 +536,17 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                     throw new InternalError();
                 }
                 
-                // Fixups are done *after* lighting, so we have to relight the
-                // area
-                recalculateLight(world, bounds, platform);
+                // Fixups are done *after* calculating the block properties, so we have to do that again (if requested)
+                if (((BlockBasedExportSettings) exportSettings).isCalculateSkyLight() || ((BlockBasedExportSettings) exportSettings).isCalculateBlockLight() || ((BlockBasedExportSettings) exportSettings).isCalculateLeafDistance()) {
+                    recalculateBlockProperties(world, bounds, platform, (BlockBasedExportSettings) exportSettings);
+                }
             } else if (logger.isTraceEnabled()) {
                 logger.trace("No room for custom object " + object.getName() + " @ " + x + "," + y + "," + z + " in fixup");
             }
         }
 
-        private void recalculateLight(final MinecraftWorld world, final Box lightBox, final Platform platform) {
-            LightingCalculator lightingCalculator = new LightingCalculator(world, platform);
+        private void recalculateBlockProperties(final MinecraftWorld world, final Box lightBox, final Platform platform, final BlockBasedExportSettings exportSettings) {
+            BlockPropertiesCalculator blockPropertiesCalculator = new BlockPropertiesCalculator(world, platform, exportSettings);
             // Transpose coordinates from WP to MC coordinate system. Also
             // expand the box to light around it and try to account for uneven
             // terrain underneath the object
@@ -556,12 +557,13 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 }
                 return;
             }
-            lightingCalculator.setDirtyArea(dirtyArea);
+            blockPropertiesCalculator.setDirtyArea(dirtyArea);
             if (logger.isTraceEnabled()) {
-                logger.trace("Recalculating light in " + lightingCalculator.getDirtyArea());
+                logger.trace("Recalculating light in " + blockPropertiesCalculator.getDirtyArea());
             }
-            lightingCalculator.recalculatePrimaryLight();
-            while (lightingCalculator.calculateSecondaryLight());
+            blockPropertiesCalculator.firstPass();
+            while (blockPropertiesCalculator.secondPass());
+            blockPropertiesCalculator.finalise();
         }
 
         private final WPObject object;
