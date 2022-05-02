@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.*;
 
 import static com.google.common.primitives.Ints.asList;
+import static java.awt.image.DataBuffer.TYPE_DOUBLE;
+import static java.awt.image.DataBuffer.TYPE_FLOAT;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
@@ -263,6 +265,10 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             } else if (image.isAlphaPremultiplied()) {
                 labelImageDimensions.setForeground(Color.RED);
                 labelImageDimensions.setText("Premultiplied alpha not supported! Please convert to non-premultiplied.");
+                selectedFile = null;
+            } else if ((image.getSampleModel().getTransferType() == TYPE_FLOAT) || (image.getSampleModel().getTransferType() == TYPE_DOUBLE)) {
+                labelImageDimensions.setForeground(Color.RED);
+                labelImageDimensions.setText("Floating point height maps not yet supported! Please convert to 32-bit integer.");
                 selectedFile = null;
             } else {
                 final int width = image.getWidth(), height = image.getHeight();
