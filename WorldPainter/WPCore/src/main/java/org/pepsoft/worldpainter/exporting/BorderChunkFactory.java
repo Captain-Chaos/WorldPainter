@@ -151,7 +151,7 @@ public class BorderChunkFactory {
             }
         }
 
-        result.chunk.setTerrainPopulated(platform.capabilities.contains(POPULATE) && (dimension.isPopulate()));
+        result.chunk.setTerrainPopulated(! (platform.capabilities.contains(POPULATE) && (dimension.isPopulate())));
         result.stats.surfaceArea = 256;
         if ((border == Border.WATER) || (border == Border.LAVA)) {
             result.stats.waterArea = 256;

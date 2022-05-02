@@ -455,7 +455,7 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
         if (terrainPopulated) {
             status = STATUS_FULL;
         } else {
-            throw new UnsupportedOperationException("Terrain population not supported for Minecraft 1.15+");
+            throw new UnsupportedOperationException("Terrain population not supported for Minecraft 1.15 - 1.17");
         }
     }
 
