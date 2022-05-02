@@ -3268,38 +3268,39 @@ public final class App extends JFrame implements RadiusControl,
             terrainPanel.add(checkBoxSoloTerrain, constraints);
         }
 
-        JPanel buttonPanel = new JPanel(new GridLayout(0, 4));
+        JPanel buttonPanel = new JPanel(new GridLayout(0, 5));
         // Surface
         buttonPanel.add(createTerrainButton(GRASS));
         buttonPanel.add(createTerrainButton(PERMADIRT));
         buttonPanel.add(createTerrainButton(SAND));
         buttonPanel.add(createTerrainButton(GRASS_PATH));
+        buttonPanel.add(createTerrainButton(PODZOL));
 
         buttonPanel.add(createTerrainButton(BARE_GRASS));
         buttonPanel.add(createTerrainButton(STONE));
-        buttonPanel.add(createTerrainButton(ROCK));
         buttonPanel.add(createTerrainButton(SANDSTONE));
+        buttonPanel.add(createTerrainButton(GRAVEL));
+        buttonPanel.add(createTerrainButton(CLAY));
 
         buttonPanel.add(createTerrainButton(STONE_MIX));
         buttonPanel.add(createTerrainButton(GRANITE));
         buttonPanel.add(createTerrainButton(DIORITE));
         buttonPanel.add(createTerrainButton(ANDESITE));
+        buttonPanel.add(createTerrainButton(CALCITE));
 
-        buttonPanel.add(createTerrainButton(PODZOL));
         buttonPanel.add(createTerrainButton(COBBLESTONE));
         buttonPanel.add(createTerrainButton(MOSSY_COBBLESTONE));
-        buttonPanel.add(createTerrainButton(GRAVEL));
-        
         buttonPanel.add(createTerrainButton(OBSIDIAN));
         buttonPanel.add(createTerrainButton(DEEPSLATE));
+        buttonPanel.add(createTerrainButton(ROCK));
+
         buttonPanel.add(createTerrainButton(TUFF));
         buttonPanel.add(createTerrainButton(MAGMA));
-
-        buttonPanel.add(createTerrainButton(MYCELIUM));
+        buttonPanel.add(createTerrainButton(LAVA));
         buttonPanel.add(createTerrainButton(BEDROCK));
-        buttonPanel.add(createTerrainButton(CLAY));
-        buttonPanel.add(createTerrainButton(DESERT));
+        buttonPanel.add(createTerrainButton(MYCELIUM));
 
+        buttonPanel.add(createTerrainButton(DESERT));
         buttonPanel.add(createTerrainButton(RED_SAND));
         buttonPanel.add(createTerrainButton(RED_SANDSTONE));
         buttonPanel.add(createTerrainButton(RED_DESERT));
@@ -3309,40 +3310,42 @@ public final class App extends JFrame implements RadiusControl,
         buttonPanel.add(createTerrainButton(ORANGE_STAINED_CLAY));
         buttonPanel.add(createTerrainButton(MAGENTA_STAINED_CLAY));
         buttonPanel.add(createTerrainButton(LIGHT_BLUE_STAINED_CLAY));
-
         buttonPanel.add(createTerrainButton(YELLOW_STAINED_CLAY));
+
         buttonPanel.add(createTerrainButton(LIME_STAINED_CLAY));
         buttonPanel.add(createTerrainButton(PINK_STAINED_CLAY));
         buttonPanel.add(createTerrainButton(GREY_STAINED_CLAY));
-
         buttonPanel.add(createTerrainButton(LIGHT_GREY_STAINED_CLAY));
         buttonPanel.add(createTerrainButton(CYAN_STAINED_CLAY));
+
         buttonPanel.add(createTerrainButton(PURPLE_STAINED_CLAY));
         buttonPanel.add(createTerrainButton(BLUE_STAINED_CLAY));
-
         buttonPanel.add(createTerrainButton(BROWN_STAINED_CLAY));
         buttonPanel.add(createTerrainButton(GREEN_STAINED_CLAY));
         buttonPanel.add(createTerrainButton(RED_STAINED_CLAY));
-        buttonPanel.add(createTerrainButton(BLACK_STAINED_CLAY));
 
+        buttonPanel.add(createTerrainButton(BLACK_STAINED_CLAY));
         buttonPanel.add(createTerrainButton(HARDENED_CLAY));
         buttonPanel.add(createTerrainButton(BEACHES));
+        buttonPanel.add(createTerrainButton(WATER));
         buttonPanel.add(createTerrainButton(DEEP_SNOW));
-        buttonPanel.add(Box.createGlue());
 
         // Nether
         buttonPanel.add(createTerrainButton(NETHERRACK));
         buttonPanel.add(createTerrainButton(BASALT));
         buttonPanel.add(createTerrainButton(BLACKSTONE));
         buttonPanel.add(createTerrainButton(NETHERLIKE));
+        buttonPanel.add(Box.createGlue());
 
         buttonPanel.add(createTerrainButton(SOUL_SAND));
         buttonPanel.add(createTerrainButton(SOUL_SOIL));
         buttonPanel.add(createTerrainButton(WARPED_NYLIUM));
         buttonPanel.add(createTerrainButton(CRIMSON_NYLIUM));
+        buttonPanel.add(Box.createGlue());
 
         // End
         buttonPanel.add(createTerrainButton(END_STONE));
+        buttonPanel.add(Box.createGlue());
         buttonPanel.add(Box.createGlue());
         buttonPanel.add(Box.createGlue());
         buttonPanel.add(Box.createGlue());

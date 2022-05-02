@@ -599,6 +599,7 @@ public class JavaMapImporter extends MapImporter {
         TERRAIN_MAPPING.put(MC_SOUL_SOIL, Terrain.SOUL_SOIL);
         TERRAIN_MAPPING.put(MC_WARPED_NYLIUM, Terrain.WARPED_NYLIUM);
         TERRAIN_MAPPING.put(MC_CRIMSON_NYLIUM, Terrain.CRIMSON_NYLIUM);
+        TERRAIN_MAPPING.put(MC_CALCITE, Terrain.CALCITE);
     }
 
     static {

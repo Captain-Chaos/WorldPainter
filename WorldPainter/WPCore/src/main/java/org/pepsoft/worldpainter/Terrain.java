@@ -2825,7 +2825,8 @@ public enum Terrain {
     BLACKSTONE("Blackstone", Material.BLACKSTONE, Material.BLACKSTONE, "blackstone", BIOME_HELL),
     SOUL_SOIL("Soul Soil", Material.SOUL_SOIL, Material.SOUL_SOIL, "soul soil", BIOME_HELL),
     WARPED_NYLIUM("Warped Nylium", Material.WARPED_NYLIUM, Material.NETHERRACK, "warped nylium", BIOME_HELL),
-    CRIMSON_NYLIUM("Crimson Nylium", Material.CRIMSON_NYLIUM, Material.NETHERRACK, "crimson nylium", BIOME_HELL);
+    CRIMSON_NYLIUM("Crimson Nylium", Material.CRIMSON_NYLIUM, Material.NETHERRACK, "crimson nylium", BIOME_HELL),
+    CALCITE("Calcite", Material.CALCITE, Material.CALCITE, "calcite", BIOME_PLAINS);
 
     Terrain(String name, String description, int defaultBiome) {
         this(name, Material.STONE, Material.STONE, description, defaultBiome, 0);
@@ -3261,7 +3262,8 @@ public enum Terrain {
         BLACKSTONE,
         SOUL_SOIL,
         WARPED_NYLIUM,
-        CRIMSON_NYLIUM
+        CRIMSON_NYLIUM,
+        CALCITE
     };
 
     /**
@@ -3290,8 +3292,9 @@ public enum Terrain {
         GRANITE,
         DIORITE,
         ANDESITE,
-        ROCK,
+        CALCITE,
 
+        ROCK,
         COBBLESTONE,
         MOSSY_COBBLESTONE,
         OBSIDIAN,
@@ -3301,8 +3304,8 @@ public enum Terrain {
         GRAVEL,
         CLAY,
         BEACHES,
-        WATER,
 
+        WATER,
         LAVA,
         MAGMA,
         DEEP_SNOW,
@@ -3312,8 +3315,8 @@ public enum Terrain {
         SOUL_SAND,
         SOUL_SOIL,
         NETHERLIKE,
-        WARPED_NYLIUM,
 
+        WARPED_NYLIUM,
         CRIMSON_NYLIUM,
         MYCELIUM,
         END_STONE,
@@ -3323,8 +3326,8 @@ public enum Terrain {
         LIGHT_BLUE_STAINED_CLAY,
         YELLOW_STAINED_CLAY,
         LIME_STAINED_CLAY,
-        PINK_STAINED_CLAY,
 
+        PINK_STAINED_CLAY,
         GREY_STAINED_CLAY,
         LIGHT_GREY_STAINED_CLAY,
         CYAN_STAINED_CLAY,
@@ -3340,40 +3343,40 @@ public enum Terrain {
      * A helper method for generating additional custom terrain types. Should be
      * edited before use.
      */
-    public static void main(String[] args) {
-        String[] tens = {"forty", "fifty", "sixty", "seventy", "eighty", "ninety"};
-        String[] ones = {"", "-one", "-two", "-three", "-four", "-five", "-six", "-seven", "-eight", "-nine"};
-        for (int i = 49; i <= 96; i++) {
-            System.out.printf("    CUSTOM_%1$d(\"Custom %1$d\", \"custom material %3$s%4$s\", BIOME_PLAINS) {%n" +
-                            "        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}%n" +
-                            "%n" +
-                            "        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}%n" +
-                            "%n" +
-                            "        @Override public String getName() {return helper.getName();}%n" +
-                            "%n" +
-                            "        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}%n" +
-                            "%n" +
-                            "        @Override public boolean isCustom() {return true;}%n" +
-                            "%n" +
-                            "        @Override public boolean isConfigured() {return helper.isConfigured();}%n" +
-                            "%n" +
-                            "        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}%n" +
-                            "%n" +
-                            "        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}%n" +
-                            "%n" +
-                            "        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}%n" +
-                            "%n" +
-                            "        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}%n" +
-                            "%n" +
-                            "        private final CustomTerrainHelper helper = new CustomTerrainHelper(%2$d);%n" +
-                            "    },%n",
-                    i,
-                    i - 1,
-                    tens[(i / 10) - 4],
-                    ones[i % 10]);
-        }
-        for (int i = 49; i <= 96; i++) {
-            System.out.println("       Terrain.CUSTOM_" + i);
-        }
-    }
+//    public static void main(String[] args) {
+//        String[] tens = {"forty", "fifty", "sixty", "seventy", "eighty", "ninety"};
+//        String[] ones = {"", "-one", "-two", "-three", "-four", "-five", "-six", "-seven", "-eight", "-nine"};
+//        for (int i = 49; i <= 96; i++) {
+//            System.out.printf("    CUSTOM_%1$d(\"Custom %1$d\", \"custom material %3$s%4$s\", BIOME_PLAINS) {%n" +
+//                            "        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}%n" +
+//                            "%n" +
+//                            "        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}%n" +
+//                            "%n" +
+//                            "        @Override public String getName() {return helper.getName();}%n" +
+//                            "%n" +
+//                            "        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}%n" +
+//                            "%n" +
+//                            "        @Override public boolean isCustom() {return true;}%n" +
+//                            "%n" +
+//                            "        @Override public boolean isConfigured() {return helper.isConfigured();}%n" +
+//                            "%n" +
+//                            "        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}%n" +
+//                            "%n" +
+//                            "        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}%n" +
+//                            "%n" +
+//                            "        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}%n" +
+//                            "%n" +
+//                            "        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}%n" +
+//                            "%n" +
+//                            "        private final CustomTerrainHelper helper = new CustomTerrainHelper(%2$d);%n" +
+//                            "    },%n",
+//                    i,
+//                    i - 1,
+//                    tens[(i / 10) - 4],
+//                    ones[i % 10]);
+//        }
+//        for (int i = 49; i <= 96; i++) {
+//            System.out.println("       Terrain.CUSTOM_" + i);
+//        }
+//    }
 }
