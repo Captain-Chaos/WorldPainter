@@ -1,29 +1,23 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.pepsoft.worldpainter.biomeschemes;
 
-import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
- * An abstract base class for {@link BiomeScheme}s which provide the biomes as
- * used in Minecraft 1.13 and later.
- *
- * @author pepijn
+ * This is a non functional biome scheme, intended only for providing
+ * information about supported biomes but without the ability to actually
+ * calculate biomes. The {@link #getBiomes(int, int, int, int, int[])} method
+ * always throws an {@link UnsupportedOperationException}.
  */
-public abstract class AbstractMinecraft1_18BiomeScheme extends AbstractBiomeScheme implements Minecraft1_18Biomes {
-    @Override
-    public final int getBiomeCount() {
-        return HIGHEST_BIOME_ID + 1;
+public final class Minecraft1_17BiomeInfo extends AbstractBiomeInfo implements Minecraft1_17Biomes {
+    private Minecraft1_17BiomeInfo() {
+        super(BIOME_NAMES, BIOME_PATTERNS);
     }
 
     @Override
-    public final int getColour(int biome, ColourScheme colourScheme) {
+    public int getColour(int biome, ColourScheme colourScheme) {
         switch (biome) {
             case BIOME_OCEAN:
             case BIOME_RIVER:
@@ -44,7 +38,6 @@ public abstract class AbstractMinecraft1_18BiomeScheme extends AbstractBiomeSche
             case BIOME_SUNFLOWER_PLAINS:
             case BIOME_DRIPSTONE_CAVES:
             case BIOME_LUSH_CAVES:
-            case BIOME_MEADOW:
                 return colourScheme.getColour(BLK_GRASS);
             case BIOME_DESERT:
             case BIOME_BEACH:
@@ -74,10 +67,6 @@ public abstract class AbstractMinecraft1_18BiomeScheme extends AbstractBiomeSche
             case BIOME_COLD_TAIGA_M:
             case BIOME_ICE_PLAINS_SPIKES:
             case BIOME_COLD_BEACH:
-            case BIOME_FROZEN_PEAKS:
-            case BIOME_GROVE:
-            case BIOME_JAGGED_PEAKS:
-            case BIOME_SNOWY_SLOPES:
                 return colourScheme.getColour(BLK_SNOW);
             case BIOME_HELL:
             case BIOME_SOUL_SAND_VALLEY:
@@ -99,7 +88,6 @@ public abstract class AbstractMinecraft1_18BiomeScheme extends AbstractBiomeSche
             case BIOME_MUSHROOM_ISLAND_SHORE:
                 return colourScheme.getColour(BLK_MYCELIUM);
             case BIOME_STONE_BEACH:
-            case BIOME_STONY_PEAKS:
                 return colourScheme.getColour(BLK_STONE);
             case BIOME_BIRCH_FOREST:
             case BIOME_BIRCH_FOREST_HILLS:
@@ -133,18 +121,5 @@ public abstract class AbstractMinecraft1_18BiomeScheme extends AbstractBiomeSche
         }
     }
 
-    @Override
-    public final boolean[][] getPattern(int biome) {
-        return BIOME_PATTERNS[biome];
-    }
-    
-    @Override
-    public boolean isBiomePresent(int biome) {
-        return (biome <= HIGHEST_BIOME_ID) && (BIOME_NAMES[biome] != null);
-    }
-
-    @Override
-    public String getBiomeName(int biome) {
-        return BIOME_NAMES[biome];
-    }
+    public static final Minecraft1_17BiomeInfo INSTANCE = new Minecraft1_17BiomeInfo();
 }

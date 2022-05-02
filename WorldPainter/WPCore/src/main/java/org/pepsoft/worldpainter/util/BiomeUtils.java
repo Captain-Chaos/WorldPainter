@@ -1,6 +1,7 @@
 package org.pepsoft.worldpainter.util;
 
 import org.pepsoft.minecraft.Chunk;
+import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.biomeschemes.*;
@@ -70,34 +71,32 @@ public final class BiomeUtils {
 
     public static List<Integer> getAllBiomes(Platform platform, CustomBiomeManager customBiomeManager) {
         final List<Integer> allBiomes = new ArrayList<>();
-        final String[] biomeNames;
-        final boolean sortByName;
-        if (platform == JAVA_ANVIL_1_18) { // TODO Make this dynamic
-            biomeNames = Minecraft1_18Biomes.BIOME_NAMES;
-            sortByName = true;
-        } else if ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17)) {
-            biomeNames = Minecraft1_17Biomes.BIOME_NAMES;
-            sortByName = false;
-        } else if (platform == JAVA_MCREGION) {
-            biomeNames = Minecraft1_1BiomeScheme.BIOME_NAMES;
-            sortByName = false;
-        } else {
-            biomeNames = Minecraft1_12BiomeScheme.BIOME_NAMES;
-            sortByName = false;
-        }
-        for (int i = 0; i < Minecraft1_17Biomes.BIOME_NAMES.length; i++) {
-            if (biomeNames[i] != null) {
+        final BiomeScheme biomeScheme = getBiomeScheme(platform);
+        for (int i = 0; i < biomeScheme.getBiomeCount(); i++) {
+            if (biomeScheme.isBiomePresent(i)) {
                 allBiomes.add(i);
             }
         }
-        if (sortByName) {
-            allBiomes.sort(comparing(b -> biomeNames[b]));
+        if (platform == JAVA_ANVIL_1_18) {
+            allBiomes.sort(comparing(biomeScheme::getBiomeName));
         }
         List<CustomBiome> customBiomes = customBiomeManager.getCustomBiomes();
         if (customBiomes != null) {
             allBiomes.addAll(customBiomes.stream().map(CustomBiome::getId).collect(Collectors.toList()));
         }
         return allBiomes;
+    }
+
+    public static BiomeScheme getBiomeScheme(Platform platform) {
+        if (platform == JAVA_ANVIL_1_18) { // TODO Make this dynamic
+            return StaticBiomeInfo.INSTANCE;
+        } else if ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17)) {
+            return Minecraft1_17BiomeInfo.INSTANCE;
+        } else if (platform == JAVA_MCREGION) {
+            return Minecraft1_1BiomeInfo.INSTANCE;
+        } else {
+            return Minecraft1_12BiomeInfo.INSTANCE;
+        }
     }
 
     private String findBiomeName(int biome) {

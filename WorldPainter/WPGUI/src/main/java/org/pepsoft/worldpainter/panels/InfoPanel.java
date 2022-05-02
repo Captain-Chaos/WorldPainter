@@ -7,9 +7,7 @@ package org.pepsoft.worldpainter.panels;
 
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.WorldPainter;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.*;
@@ -43,8 +41,8 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
      */
     public InfoPanel(WorldPainter view, CustomBiomeManager customBiomeManager) {
         this.view = view;
+        this.customBiomeManager = customBiomeManager;
         tableModel = new LayerTableModel();
-        biomeHelper = new BiomeHelper(view.getColourScheme(), customBiomeManager);
         heightFormatter = NumberFormat.getInstance();
         heightFormatter.setMaximumFractionDigits(3);
 
@@ -64,7 +62,15 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
         });
     }
 
+    public void setPlatform(Platform platform) {
+        biomeHelper = new BiomeHelper(view.getColourScheme(), customBiomeManager, platform);
+        updateInfo();
+    }
+
     void updateInfo() {
+        if (worldCoords == null) {
+            return;
+        }
         setTextIfDifferent(labelCoords, worldCoords.x + "," + worldCoords.y);
         Dimension dim = view.getDimension();
         if (dim == null) {
@@ -115,8 +121,10 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
             biome = BIOME_PLAINS;
         }
         if ((automaticBiome != currentAutomaticBiome) || (biome != currentBiome)) {
-            labelBiome.setText(biomeHelper.getBiomeName(biome) + " (" + biome + ")");
-            labelBiome.setIcon(biomeHelper.getBiomeIcon(biome));
+            if (biomeHelper != null) {
+                labelBiome.setText(biomeHelper.getBiomeName(biome));
+                labelBiome.setIcon(biomeHelper.getBiomeIcon(biome));
+            }
             checkBoxAutomaticBiome.setSelected(automaticBiome);
             currentAutomaticBiome = automaticBiome;
             currentBiome = biome;
@@ -446,10 +454,11 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
     // End of variables declaration//GEN-END:variables
 
     private final WorldPainter view;
+    private final CustomBiomeManager customBiomeManager;
     private final LayerTableModel tableModel;
 //    private final Timer updateTimer;
-    private final BiomeHelper biomeHelper;
     private final NumberFormat heightFormatter;
+    private BiomeHelper biomeHelper;
     private Point worldCoords;
     private boolean fieldsClear = true, currentAutomaticBiome, active;
     private Terrain currentTerrain;
