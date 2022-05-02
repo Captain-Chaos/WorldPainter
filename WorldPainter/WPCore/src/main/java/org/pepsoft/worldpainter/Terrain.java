@@ -213,8 +213,8 @@ public enum Terrain {
 
         private static final int STONE_SEED_OFFSET = 188434540;
     },
-    WATER("Water", STATIONARY_WATER, STATIONARY_WATER, "[DEPRECATED] water instead of terrain", BIOME_RIVER),
-    LAVA("Lava", STATIONARY_LAVA, STATIONARY_LAVA, "[DEPRECATED] lava instead of terrain", BIOME_PLAINS),
+    WATER("Water", STATIONARY_WATER, STATIONARY_WATER, "⚠ water instead of terrain (NOTE: you may want the Flood tool instead!)", BIOME_RIVER),
+    LAVA("Lava", STATIONARY_LAVA, STATIONARY_LAVA, "⚠ lava instead of terrain (NOTE: you may want the Lava tool instead!)", BIOME_PLAINS),
     @Deprecated
     SNOW("Snow on Rock", "[DEPRECATED] a thin layer of snow on a mix of stone and cobblestone", BIOME_ICE_PLAINS, 1) {
         @Override
@@ -245,7 +245,7 @@ public enum Terrain {
 
         private static final int STONE_SEED_OFFSET = 188434540;
     },
-    DEEP_SNOW("Deep Snow", BLK_SNOW_BLOCK, BLK_SNOW_BLOCK, "a thick layer of snow", BIOME_ICE_PLAINS),
+    DEEP_SNOW("Deep Snow", BLK_SNOW_BLOCK, BLK_SNOW_BLOCK, "⚠ snow blocks instead of terrain (NOTE: you may want the Frost layer instead!)", BIOME_ICE_PLAINS),
     GRAVEL("Gravel", BLK_GRAVEL, BLK_GRAVEL, "gravel", BIOME_PLAINS),
     CLAY("Clay", BLK_CLAY, BLK_CLAY, "clay", BIOME_PLAINS),
     COBBLESTONE("Cobblestone", BLK_COBBLESTONE, BLK_COBBLESTONE, "cobblestone", BIOME_PLAINS),
