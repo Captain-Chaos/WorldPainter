@@ -1,3 +1,8 @@
+-- Version 2.9.2, released ...
+
+ * The status bar, info panel, brush settings and Global Operations tool now all show the correct biome names according to the map format
+ * Floating point height maps are not yet supported; this is now made clearer with an error message when trying to select one
+
 -- Version 2.9.1, released 2-5-2022
 
  * Added Calcite as terrain type
