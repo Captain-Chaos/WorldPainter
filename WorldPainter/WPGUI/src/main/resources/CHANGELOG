@@ -1,3 +1,11 @@
+-- Version 2.9.1, released 2-5-2022
+
+ * Added Calcite as terrain type
+ * Reinstated Water and Lava terrain types, with clearer tool tips. Don't use these (especially Water); you probably want the Flood or Lava tool
+ * Bug fix: exporting border chunks no longer causes an error about Populate not being supported
+ * Bug fix: calculating the lighting of a Void chunk no longer causes an error
+ * Bug fix: when creating a Custom Terrain Type, properly save the custom name and update the terrain name when pressing Enter or OK without leaving the custom name field
+
 -- Version 2.9.0, released 1-5-2022
 
  * The Minecraft 1.18 map format is now supported
