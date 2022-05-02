@@ -86,6 +86,7 @@ public class MaterialSelector extends javax.swing.JPanel {
     }
     
     public Material getMaterial() {
+        updateMaterial();
         return material;
     }
 
@@ -401,17 +402,27 @@ public class MaterialSelector extends javax.swing.JPanel {
     }
     
     private void updateMaterial() {
-        if ((namespace != null) && (! namespace.trim().isEmpty()) && (simpleName != null) && (! simpleName.trim().isEmpty())) {
-            programmaticChange = true;
-            try {
-                material = Material.get(namespace.trim() + ':' + simpleName.trim(), properties);
-                if (namespace.equals(Material.MINECRAFT)) {
-                    updateLegacyIds();
-                }
-                firePropertyChange("material", null, material);
-            } finally {
-                programmaticChange = false;
+        final Material oldMaterial = material;
+        programmaticChange = true;
+        try {
+            if (radioButtonCustom.isSelected()) {
+                // Make sure to finish editing the custom name, even if the field still has the keyboard focus
+                simpleName = fieldCustomName.getText();
             }
+            if ((simpleName != null) && (! simpleName.trim().isEmpty())) {
+                if ((namespace == null) || namespace.trim().isEmpty()) {
+                    namespace = Material.MINECRAFT;
+                }
+                material = Material.get(namespace.trim() + ':' + simpleName.trim(), properties);
+                if (material != oldMaterial) {
+                    if (namespace.equals(Material.MINECRAFT)) {
+                        updateLegacyIds();
+                    }
+                    firePropertyChange("material", null, material);
+                }
+            }
+        } finally {
+            programmaticChange = false;
         }
     }
 

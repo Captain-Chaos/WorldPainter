@@ -161,9 +161,13 @@ public class CustomMaterialDialog extends WorldPainterDialog implements Property
         switch (jTabbedPane1.getSelectedIndex()) {
             case 0:
                 // Simple
+                final Material selectedMaterial = materialEditor1.getMaterial();
+                final String name = fieldName.getText().equals(previousCalculatedName)
+                        ? createName(selectedMaterial)
+                        : fieldName.getText();
                 material.edit(
-                    fieldName.getText(),
-                    new Row[] {new Row(materialEditor1.getMaterial(), 1000, 1.0f)},
+                    name,
+                    new Row[] {new Row(selectedMaterial, 1000, 1.0f)},
                     biome,
                     MixedMaterial.Mode.SIMPLE,
                     1.0f,
