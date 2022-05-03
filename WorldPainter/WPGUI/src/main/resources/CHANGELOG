@@ -1,7 +1,11 @@
--- Version 2.9.2, released ...
+-- Version 2.9.2, released 3-5-2022
 
+ * The Preferences screen now allows to configure the default map format, and the default post processing settings
  * The status bar, info panel, brush settings and Global Operations tool now all show the correct biome names according to the map format
- * Floating point height maps are not yet supported; this is now made clearer with an error message when trying to select one
+ * Floating point height maps are not yet supported; this is now made clearer with an error message when trying to load one
+ * The view distance for the view distance indicator circle is now set to 12 chunks (the default render distance of Minecraft 1.18.2)
+ * Bug fix: prevent an error while importing height maps if the default theme has previously been saved with values which are now invalid
+ * Bug fix: show only valid build limits for the map format on the Preferences screen to prevent a crash on startup if it is set to an invalid value
 
 -- Version 2.9.1, released 2-5-2022
 
