@@ -72,6 +72,9 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
     public void setTheme(SimpleTheme theme) {
         this.theme = theme;
         if (theme != null) {
+            final int minHeight = theme.getMinHeight();
+            final int maxHeight = theme.getMaxHeight();
+
             terrainTableModel = new TerrainRangesTableModel(theme.getTerrainRanges());
             terrainTableModel.setChangeListener(this);
             tableTerrain.setModel(terrainTableModel);
@@ -80,25 +83,25 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
             tableTerrain.setDefaultRenderer(Terrain.class, new TerrainTableCellRenderer(colourScheme));
             tableTerrain.setDefaultRenderer(JButton.class, new JButtonTableCellRenderer());
             
-            tableTerrain.setDefaultEditor(Integer.class, new JSpinnerTableCellEditor(new SpinnerNumberModel(1, 1, theme.getMaxHeight() - 1, 1)));
+            tableTerrain.setDefaultEditor(Integer.class, new JSpinnerTableCellEditor(new SpinnerNumberModel(minHeight + 1, minHeight + 1, maxHeight - 1, 1)));
             JComboBox terrainEditor = new JComboBox(Terrain.getConfiguredValues());
             terrainEditor.setRenderer(new TerrainListCellRenderer(colourScheme));
             tableTerrain.setDefaultEditor(Terrain.class, new DefaultCellEditor(terrainEditor));
             tableTerrain.setDefaultEditor(JButton.class, new JButtonTableCellEditor(this));
             
             checkBoxBeaches.setSelected(theme.isBeaches());
-            spinnerWaterLevel.setModel(new SpinnerNumberModel(theme.getWaterHeight(), 0, theme.getMaxHeight() - 1, 1));
+            spinnerWaterLevel.setModel(new SpinnerNumberModel(theme.getWaterHeight(), minHeight, maxHeight - 1, 1));
             spinnerWaterLevel.setEnabled(checkBoxBeaches.isSelected());
             
             checkBoxRandomise.setSelected(theme.isRandomise());
             
-            layerTableModel = new LayerRangesTableModel(theme.getMinHeight(), theme.getMaxHeight(), theme.getLayerMap());
+            layerTableModel = new LayerRangesTableModel(minHeight, maxHeight, theme.getLayerMap());
             tableLayers.setModel(layerTableModel);
 
             tableLayers.setDefaultRenderer(Layer.class, new LayerTableCellRenderer());
             tableLayers.setDefaultRenderer(JButton.class, new JButtonTableCellRenderer());
             
-            tableLayers.setDefaultEditor(Integer.class, new JSpinnerTableCellEditor(new SpinnerNumberModel(1, 1, theme.getMaxHeight() - 1, 1)));
+            tableLayers.setDefaultEditor(Integer.class, new JSpinnerTableCellEditor(new SpinnerNumberModel(minHeight + 1, minHeight + 1, maxHeight - 1, 1)));
             tableLayers.setDefaultEditor(JButton.class, new JButtonTableCellEditor(this));
         }
     }
@@ -346,7 +349,7 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
     private ChangeListener changeListener;
     private LayerRangesTableModel layerTableModel;
     private boolean programmaticChange;
-    
+
     private static final long serialVersionUID = 1L;
     
     public interface ChangeListener {

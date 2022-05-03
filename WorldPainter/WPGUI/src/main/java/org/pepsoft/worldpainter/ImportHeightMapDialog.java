@@ -44,7 +44,8 @@ import java.util.*;
 import static com.google.common.primitives.Ints.asList;
 import static java.awt.image.DataBuffer.TYPE_DOUBLE;
 import static java.awt.image.DataBuffer.TYPE_FLOAT;
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.SpinnerUtils.setMaximum;
@@ -112,7 +113,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             platform = JAVA_ANVIL_1_15;
             themeEditor.setTheme(SimpleTheme.createDefault(GRASS, platform.minZ, platform.standardMaxHeight, DEFAULT_WATER_LEVEL, true, true));
             themeEditor.setChangeListener(this);
-            comboBoxPlatform.setSelectedItem(JAVA_ANVIL_1_15);
+            comboBoxPlatform.setSelectedItem(platform);
             labelNoUndo.setText(" ");
             checkBoxCreateTiles.setEnabled(false);
             checkBoxOnlyRaise.setEnabled(false);
@@ -126,6 +127,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
         programmaticChange = false;
         platformChanged();
+        updateImageLevelLabels();
         setControlStates();
     }
 
@@ -409,19 +411,24 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     }
 
     private void loadDefaults() {
+        loadDefaultTheme();
+        updateImageLevelLabels();
+        updatePreview();
+    }
+
+    private void loadDefaultTheme() {
+        final int maxHeight = comboBoxHeight.getSelectedItem() != null ? (Integer) comboBoxHeight.getSelectedItem() : platform.standardMaxHeight;
         Theme defaultTheme = Configuration.getInstance().getHeightMapDefaultTheme();
         if (defaultTheme == null) {
-            HeightMapTileFactory tmpTileFactory = TileFactoryFactory.createNoiseTileFactory(seed, GRASS, 0, DEFAULT_MAX_HEIGHT_ANVIL, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0);
-            defaultTheme = tmpTileFactory.getTheme();
+            defaultTheme = SimpleTheme.createDefault(GRASS, platform.minZ, maxHeight, DEFAULT_WATER_LEVEL, true, true);
             if (currentDimension == null) {
                 buttonResetDefaults.setEnabled(false);
             }
         } else {
             buttonResetDefaults.setEnabled(true);
         }
+        defaultTheme.setMinMaxHeight(platform.minZ, maxHeight, IDENTITY);
         spinnerWorldMiddle.setValue(defaultTheme.getWaterHeight());
-        updateImageLevelLabels();
-        updatePreview();
         themeEditor.setTheme((SimpleTheme) defaultTheme);
         buttonLoadDefaults.setEnabled(false);
         buttonSaveAsDefaults.setEnabled(false);
@@ -516,6 +523,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             labelMinHeight.setText(String.valueOf(platform.minZ));
             maxHeightChanged();
             spinnerWorldHigh.setValue((int) Math.min(maxHeight - 1, (long) Math.pow(2, bitDepth) - 1)); // TODO overflow
+            loadDefaultTheme();
         } finally {
             programmaticChange = false;
         }
