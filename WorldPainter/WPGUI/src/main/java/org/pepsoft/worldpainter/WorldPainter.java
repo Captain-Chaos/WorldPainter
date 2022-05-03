@@ -893,7 +893,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private WPTileProvider tileProvider;
     private Shape customBrushShape;
 
-    private static final int VIEW_DISTANCE_RADIUS = 256;
+    private static final int VIEW_DISTANCE_RADIUS = 192; // 12 chunks (default of Minecraft 1.18.2)
     private static final int VIEW_DISTANCE_DIAMETER = 2 * VIEW_DISTANCE_RADIUS;
     private static final int FIVE_MINUTE_WALK_DISTANCE_RADIUS = 1280;
     private static final int FIVE_MINUTE_WALK_DISTANCE_DIAMETER = 2 * FIVE_MINUTE_WALK_DISTANCE_RADIUS;
