@@ -175,6 +175,12 @@ public class Java118Level extends JavaLevel {
                     biomeSourceType = MC_MULTI_NOISE;
                     biomeSourcePreset = MC_OVERWORLD;
                     break;
+                case AMPLIFIED:
+                    generatorType = MC_NOISE;
+                    settingsTag = new StringTag(TAG_SETTINGS_, MC_AMPLIFIED);
+                    biomeSourceType = MC_MULTI_NOISE;
+                    biomeSourcePreset = MC_OVERWORLD;
+                    break;
                 case FLAT:
                     generatorType = MC_FLAT;
                     // TODO make this configurable:

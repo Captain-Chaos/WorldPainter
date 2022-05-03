@@ -7,7 +7,6 @@
 package org.pepsoft.worldpainter.importing;
 
 import org.pepsoft.minecraft.MapGenerator;
-import org.pepsoft.minecraft.SeededGenerator;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.util.ProgressReceiver;
@@ -30,10 +29,6 @@ import java.util.Map;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
-import static org.pepsoft.worldpainter.Generator.DEFAULT;
-import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 
 /**
  *
@@ -82,11 +77,6 @@ public class HeightMapImporter {
         importToDimension(dimension, true, progressReceiver);
 
         MapGenerator generator = config.getDefaultGenerator();
-        if ((platform == JAVA_MCREGION) && (generator.getType() == Generator.LARGE_BIOMES)) {
-            generator = new SeededGenerator(DEFAULT, minecraftSeed);
-        } else if ((platform != JAVA_MCREGION) && (generator.getType() == DEFAULT)) {
-            generator = new SeededGenerator(LARGE_BIOMES, minecraftSeed);
-        }
         dimension.setGenerator(generator);
         Dimension defaults = config.getDefaultTerrainAndLayerSettings();
         dimension.setBorder(defaults.getBorder());
@@ -395,7 +385,7 @@ public class HeightMapImporter {
         }
     }
 
-    private Platform platform = JAVA_ANVIL_1_15; // TODOMC118 make dynamic/upgrade to 1.18 when finished
+    private Platform platform = Configuration.getInstance().getDefaultPlatform();
     private HeightMap heightMap;
     private int worldLowLevel, worldWaterLevel = DEFAULT_WATER_LEVEL, worldHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, maxHeight = DEFAULT_MAX_HEIGHT_ANVIL, voidBelowLevel, maxZ;
     private long imageLowLevel, imageHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1;

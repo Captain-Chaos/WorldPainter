@@ -51,7 +51,6 @@ import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.SpinnerUtils.setMaximum;
 import static org.pepsoft.util.swing.SpinnerUtils.setMinimum;
 import static org.pepsoft.worldpainter.Constants.MAX_HEIGHT;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.HeightTransform.IDENTITY;
 import static org.pepsoft.worldpainter.Terrain.GRASS;
@@ -110,7 +109,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             checkBoxOnlyRaise.setSelected(true);
             comboBoxSingleTerrain.setModel(new DefaultComboBoxModel<>(Terrain.getConfiguredValues()));
         } else {
-            platform = JAVA_ANVIL_1_15;
+            platform = Configuration.getInstance().getDefaultPlatform();
             themeEditor.setTheme(SimpleTheme.createDefault(GRASS, platform.minZ, platform.standardMaxHeight, DEFAULT_WATER_LEVEL, true, true));
             themeEditor.setChangeListener(this);
             comboBoxPlatform.setSelectedItem(platform);

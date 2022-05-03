@@ -41,6 +41,7 @@ public class Tile3DRenderer {
         waterColour = colourScheme.getColour(WATER);
         lavaColour = colourScheme.getColour(LAVA);
         iceColour = colourScheme.getColour(ICE);
+        platform = tileRenderer.getPlatform();
     }
     
     public BufferedImage render(Tile tile) {
@@ -154,11 +155,11 @@ public class Tile3DRenderer {
                         }
                         g2.fill(new Rectangle2D.Float(imgX, imgY - terrainHeight + minHeight + 1, 2, terrainHeight - minHeight - subsurfaceHeight - 1));
                     } else {
-                        Material nextMaterial = terrain.getMaterial(seed, blockX, blockY, subsurfaceHeight + minHeight + 1, terrainHeight);
+                        Material nextMaterial = terrain.getMaterial(platform, seed, blockX, blockY, subsurfaceHeight + minHeight + 1, terrainHeight);
                         for (int z = subsurfaceHeight + minHeight + 1; z <= terrainHeight - 1; z++) {
                             Material material = nextMaterial;
                             if (z < maxZ) {
-                                nextMaterial = terrain.getMaterial(seed, blockX, blockY, z + 1, terrainHeight);
+                                nextMaterial = terrain.getMaterial(platform, seed, blockX, blockY, z + 1, terrainHeight);
                                 if (! nextMaterial.veryInsubstantial) {
                                     // Block above is solid
                                     if ((material == Material.GRASS_BLOCK) || (material == Material.MYCELIUM) || (material == Material.FARMLAND)) {
@@ -218,6 +219,7 @@ public class Tile3DRenderer {
     private final ColourScheme colourScheme;
     private final TileRenderer tileRenderer;
     private final int minHeight, maxHeight, rotation, stoneColour, waterColour, lavaColour, iceColour;
+    private final Platform platform;
 
     private final BufferedImage tileImgBuffer = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_RGB);
 

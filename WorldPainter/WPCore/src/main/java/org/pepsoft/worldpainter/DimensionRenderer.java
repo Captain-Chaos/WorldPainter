@@ -5,6 +5,7 @@
 
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Layer;
 
 import java.awt.*;
@@ -17,9 +18,12 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
  * @author pepijn
  */
 public class DimensionRenderer {
-    public DimensionRenderer(Dimension dimension, TileRenderer tileRenderer) {
-        setDimension(dimension);
-        setTileRenderer(tileRenderer);
+    public DimensionRenderer(Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int zoom) {
+        if ((dimension == null) || (colourScheme == null) || (customBiomeManager == null)) {
+            throw new NullPointerException();
+        }
+        this.dimension = dimension;
+        tileRenderer = new TileRenderer(dimension, colourScheme, customBiomeManager, zoom);
     }
 
     public void addHiddenLayer(Layer hiddenLayer) {
@@ -49,28 +53,10 @@ public class DimensionRenderer {
         return dimension;
     }
 
-    public final void setDimension(Dimension dimension) {
-        if (dimension == null) {
-            throw new NullPointerException();
-        }
-        this.dimension = dimension;
-        if (tileRenderer != null) {
-            tileRenderer.setTileProvider(dimension);
-        }
-    }
-
     public final TileRenderer getTileRenderer() {
         return tileRenderer;
     }
 
-    public final void setTileRenderer(TileRenderer tileRenderer) {
-        if (tileRenderer == null) {
-            throw new NullPointerException();
-        }
-        this.tileRenderer = tileRenderer;
-        tileRenderer.setTileProvider(dimension);
-    }
-
-    private Dimension dimension;
-    private TileRenderer tileRenderer;
+    private final Dimension dimension;
+    private final TileRenderer tileRenderer;
 }

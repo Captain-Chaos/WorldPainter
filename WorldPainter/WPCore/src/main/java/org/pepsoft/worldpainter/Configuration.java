@@ -14,6 +14,7 @@ import org.pepsoft.util.SystemUtils;
 import org.pepsoft.util.swing.TiledImageViewer;
 import org.pepsoft.worldpainter.Dimension.Border;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
+import org.pepsoft.worldpainter.exporting.ExportSettings;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -38,6 +39,7 @@ import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
+import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 import static org.pepsoft.worldpainter.Terrain.ROCK;
 import static org.pepsoft.worldpainter.Terrain.STONE_MIX;
 import static org.pepsoft.worldpainter.World2.DEFAULT_OCEAN_SEED;
@@ -308,8 +310,8 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
 
     public synchronized void setDefaultHeight(int defaultHeight) {
         if (this.defaultHeight != CIRCULAR_WORLD) {
-        this.defaultHeight = defaultHeight;
-    }
+            this.defaultHeight = defaultHeight;
+        }
     }
 
     public synchronized int getDefaultMaxHeight() {
@@ -704,6 +706,14 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.autoDeleteBackups = autoDeleteBackups;
     }
 
+    public synchronized ExportSettings getDefaultExportSettings() {
+        return defaultExportSettings;
+    }
+
+    public synchronized void setDefaultExportSettings(ExportSettings defaultExportSettings) {
+        this.defaultExportSettings = defaultExportSettings;
+    }
+
     // Transient settings which aren't stored on disk
 
     public boolean isAutosaveInhibited() {
@@ -1000,17 +1010,22 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
                 }
             }
         }
-        if (minimumFreeSpaceForMaps == 0) {
-            minimumFreeSpaceForMaps = 5;
-            autoDeleteBackups = true;
-        }
-        if (defaultGeneratorObj == null) {
-            defaultGeneratorObj = MapGenerator.fromLegacySettings(defaultGenerator, DEFAULT_OCEAN_SEED, null, defaultGeneratorOptions, Platform.getById(defaultPlatformId));
-            defaultGenerator = null;
-            defaultGeneratorOptions = null;
-        }
-        if (defaultTerrainAndLayerSettings.getLayerSettings(Resources.INSTANCE) != null) {
-            defaultTerrainAndLayerSettings.setLayerSettings(Resources.INSTANCE, null);
+        if (version < 21) {
+            if (minimumFreeSpaceForMaps == 0) {
+                minimumFreeSpaceForMaps = 5;
+                autoDeleteBackups = true;
+            }
+            if (defaultGeneratorObj == null) {
+                defaultGeneratorObj = MapGenerator.fromLegacySettings(defaultGenerator, DEFAULT_OCEAN_SEED, null, defaultGeneratorOptions, Platform.getById(defaultPlatformId));
+                defaultGenerator = null;
+                defaultGeneratorOptions = null;
+            }
+            if (defaultTerrainAndLayerSettings.getLayerSettings(Resources.INSTANCE) != null) {
+                defaultTerrainAndLayerSettings.setLayerSettings(Resources.INSTANCE, null);
+            }
+            if ((defaultGeneratorObj.getType() == DEFAULT) && (getDefaultPlatform().supportedGenerators.contains(LARGE_BIOMES))){
+                defaultGeneratorObj = new SeededGenerator(LARGE_BIOMES, DEFAULT_OCEAN_SEED);
+            }
         }
         version = CURRENT_VERSION;
         
@@ -1156,7 +1171,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     // Default view and world settings
     private boolean checkForUpdates = true, undoEnabled = true, defaultGridEnabled, defaultContoursEnabled = true, defaultViewDistanceEnabled, defaultWalkingDistanceEnabled;
     private int undoLevels = 100, defaultGridSize = 128, defaultContourSeparation = 10, defaultWidth = 5, defaultHeight = 5, defaultMaxHeight = World2.DEFAULT_MAX_HEIGHT;
-    private Dimension defaultTerrainAndLayerSettings = new World2(DefaultPlugin.JAVA_ANVIL_1_15, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), surface, JAVA_ANVIL_1_15.minZ, defaultMaxHeight, level, waterLevel, lava, beaches, 20, 1.0), defaultMaxHeight).getDimension(DIM_NORMAL);
+    private Dimension defaultTerrainAndLayerSettings = new World2(DEFAULT_PLATFORM, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), surface, DEFAULT_PLATFORM.minZ, defaultMaxHeight, level, waterLevel, lava, beaches, 20, 1.0), defaultMaxHeight).getDimension(DIM_NORMAL);
     private boolean toolbarsLocked;
     private int version = CURRENT_VERSION, worldFileBackups = 3;
     private float defaultRange = 20, uiScale;
@@ -1194,13 +1209,14 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private Map<Platform, File> exportDirectories;
     private boolean autosaveEnabled = true;
     private int autosaveDelay = 10000, autosaveInterval = 300000; // Ten seconds delay; five minutes interval
-    private String defaultPlatformId = DefaultPlugin.JAVA_ANVIL_1_15.id;
+    private String defaultPlatformId = DEFAULT_PLATFORM.id;
     private Map<String, File> exportDirectoriesById = new HashMap<>();
     private boolean snapshotWarningDisplayed;
     private boolean beta118WarningDisplayed;
     private int minimumFreeSpaceForMaps = 1;
     private boolean autoDeleteBackups = true;
-    private MapGenerator defaultGeneratorObj = new SeededGenerator(DEFAULT, DEFAULT_OCEAN_SEED);
+    private MapGenerator defaultGeneratorObj = new SeededGenerator(LARGE_BIOMES, DEFAULT_OCEAN_SEED);
+    private ExportSettings defaultExportSettings;
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk
@@ -1216,8 +1232,10 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Configuration.class);
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
-    private static final int CURRENT_VERSION = 20;
+    private static final int CURRENT_VERSION = 21;
+
     public static final String ADVANCED_SETTING_PREFIX = "org.pepsoft.worldpainter";
+    public static final Platform DEFAULT_PLATFORM = JAVA_ANVIL_1_15;
 
     public enum DonationStatus {DONATED, NO_THANK_YOU}
     

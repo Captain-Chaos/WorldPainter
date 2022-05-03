@@ -47,11 +47,8 @@ import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_NETHER;
 import static org.pepsoft.util.swing.SpinnerUtils.setMinimum;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
-import static org.pepsoft.worldpainter.Generator.DEFAULT;
-import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 import static org.pepsoft.worldpainter.HeightTransform.IDENTITY;
-import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
-import static org.pepsoft.worldpainter.Platform.Capability.SEED;
+import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.Terrain.*;
 import static org.pepsoft.worldpainter.util.MinecraftUtil.blocksToWalkingTime;
 
@@ -523,11 +520,6 @@ public class NewWorldDialog extends WorldPainterDialog {
                 if (generator instanceof SeededGenerator) {
                     ((SeededGenerator) generator).setSeed(dimension.getMinecraftSeed());
                 }
-                if ((platform == JAVA_MCREGION) && (generator.getType() == Generator.LARGE_BIOMES)) {
-                    generator = new SeededGenerator(DEFAULT, dimension.getMinecraftSeed());
-                } else if ((platform != JAVA_MCREGION) && ((dimension.getMinecraftSeed() == World2.DEFAULT_OCEAN_SEED) || (dimension.getMinecraftSeed() == World2.DEFAULT_LAND_SEED)) && (generator.getType() == Generator.DEFAULT)) {
-                    generator = new SeededGenerator(LARGE_BIOMES, dimension.getMinecraftSeed());
-                }
                 dimension.setGenerator(generator);
             }
             dimension.setBorderLevel(waterHeight);
@@ -537,6 +529,8 @@ public class NewWorldDialog extends WorldPainterDialog {
             dimension.setGridSize(config.getDefaultGridSize());
             dimension.setContoursEnabled(config.isDefaultContoursEnabled());
             dimension.setContourSeparation(config.getDefaultContourSeparation());
+
+            dimension.setExportSettings(config.getDefaultExportSettings());
         } finally {
             dimension.setEventsInhibited(false);
         }
@@ -546,7 +540,7 @@ public class NewWorldDialog extends WorldPainterDialog {
 
     private void setControlStates() {
         boolean surfaceDimension = dim == DIM_NORMAL;
-        checkBoxExtendedBlockIds.setEnabled((! platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION));
+        checkBoxExtendedBlockIds.setEnabled(platform.capabilities.contains(BLOCK_BASED) && (! platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION));
         boolean hilly = radioButtonHilly.isSelected();
         spinnerRange.setEnabled(hilly);
         spinnerScale.setEnabled(hilly);
