@@ -1,8 +1,8 @@
--- Version 2.9.3, released ...
+-- Version 2.9.3, released 4-5-2022
 
  * World types are now properly supported for Minecraft 1.17, making endless borders work among other things
  * A "Resources everywhere" checkbox has been added to the Preferences screen, in order to be able to turn off "Resources everywhere" by default
- * The GraalVM JavaScript engine has been switched out for Nashorn, which is much faster. This does mean that if you want to run scripts you need to run WorldPainter on Java 11 or higher
+ * The GraalVM JavaScript engine has been switched out for Nashorn, which is faster. This does mean that if you want to run scripts you need to run WorldPainter on Java 11 or higher
  * Various small bug fixes
 
 -- Version 2.9.2, released 3-5-2022
