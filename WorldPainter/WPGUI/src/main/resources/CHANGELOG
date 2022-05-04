@@ -1,3 +1,7 @@
+-- Version 2.9.3, released ...
+
+ * The GraalVM JavaScript engine has been switched out for Nashorn, which is much faster. This does mean that if you want to run scripts you need to run WorldPainter on Java 11 or higher
+
 -- Version 2.9.2, released 3-5-2022
 
  * The Preferences screen now allows to configure the default map format, and the default post processing settings
