@@ -481,13 +481,14 @@ public abstract class JavaLevel extends AbstractNBTItem {
                                 DataPack datapack = DataPack.load(worldDir, name);
                                 for (Map.Entry<String, Descriptor> entry: datapack.getDescriptors().entrySet()) {
                                     if ((entry.getValue() instanceof org.pepsoft.minecraft.datapack.Dimension) && entry.getKey().endsWith("overworld.json")) {
+                                        int minY = ((org.pepsoft.minecraft.datapack.Dimension) entry.getValue()).getMinY();
                                         int height = ((org.pepsoft.minecraft.datapack.Dimension) entry.getValue()).getHeight();
                                         if (height != 0) {
-                                            if (maxHeightEncountered && (height != maxHeight)) {
-                                                throw new IllegalArgumentException(String.format("Multiple different maxHeights (%d and %d) encountered in data packs", maxHeight, height));
+                                            if (maxHeightEncountered && ((minY + height) != maxHeight)) {
+                                                throw new IllegalArgumentException(String.format("Multiple different maxHeights (%d and %d) encountered in data packs", maxHeight, minY + height));
                                             } else {
-                                                logger.debug("Map height {} detected from data pack {} while loading {}", height, entry.getKey(), levelDatFile);
-                                                maxHeight = height;
+                                                logger.debug("Map height {} detected from data pack {} while loading {}", minY + height, entry.getKey(), levelDatFile);
+                                                maxHeight = minY + height;
                                                 maxHeightEncountered = true;
                                             }
                                         }
