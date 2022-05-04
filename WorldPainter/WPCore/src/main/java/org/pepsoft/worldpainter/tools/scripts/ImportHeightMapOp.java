@@ -122,6 +122,7 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
         if (maxHeight == Integer.MIN_VALUE) {
             throw new ScriptException("Map format " + platform + " not high enough to accommodate maximum terrain height of " + importer.getWorldHighLevel() + " or water level of " + importer.getWorldWaterLevel());
         }
+        importer.setMaxHeight(maxHeight);
 
         HeightMapTileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, platform.minZ, maxHeight, 58, waterLevel, false, true, 20, 1.0);
         Theme defaults = Configuration.getInstance().getHeightMapDefaultTheme();
