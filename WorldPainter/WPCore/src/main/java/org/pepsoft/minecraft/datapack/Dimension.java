@@ -40,7 +40,7 @@ public class Dimension extends Descriptor {
             case DIM_NORMAL:
                 return builder()
                         .infiniburn((platform == JAVA_ANVIL_1_17) ? "minecraft:infiniburn_overworld" : "#minecraft:infiniburn_overworld")
-                        .logicalHeight(maxHeight)
+                        .logicalHeight(maxHeight - platform.minZ)
                         .minY(platform.minZ)
                         .height(maxHeight - platform.minZ)
                         .build();
