@@ -497,28 +497,28 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             return;
         }
         platform = (Platform) comboBoxPlatform.getSelectedItem();
-        int maxMaxHeight = Math.min(platform.maxMaxHeight, MAX_HEIGHT);
-        int maxHeight;
+        final int maxHeight;
         programmaticChange = true;
         try {
             if (currentDimension != null) {
                 maxHeight = currentDimension.getMaxHeight();
-                comboBoxHeight.setModel(new DefaultComboBoxModel<>(new Integer[] {maxMaxHeight}));
-                comboBoxHeight.setEnabled(false);
-            } else if ((platform.minMaxHeight == maxMaxHeight) || (maxMaxHeight == MAX_HEIGHT)) {
-                maxHeight = maxMaxHeight;
-                comboBoxHeight.setModel(new DefaultComboBoxModel<>(new Integer[] {maxMaxHeight}));
+                comboBoxHeight.setModel(new DefaultComboBoxModel<>(new Integer[] { maxHeight }));
+                comboBoxHeight.setSelectedItem(maxHeight);
                 comboBoxHeight.setEnabled(false);
             } else {
                 maxHeight = platform.standardMaxHeight;
-                List<Integer> maxHeights = asList(platform.maxHeights);
+                final List<Integer> maxHeights = new ArrayList<>(asList(platform.maxHeights));
+                maxHeights.removeIf(height -> height > MAX_HEIGHT);
+                if (maxHeights.isEmpty()) {
+                    maxHeights.add(MAX_HEIGHT);
+                }
                 comboBoxHeight.setModel(new DefaultComboBoxModel<>(maxHeights.toArray(new Integer[maxHeights.size()])));
-                comboBoxHeight.setEnabled(true);
+                comboBoxHeight.setSelectedItem(Math.min(platform.standardMaxHeight, MAX_HEIGHT));
+                comboBoxHeight.setEnabled(maxHeights.size() > 1);
             }
             setMinimum(spinnerWorldLow, platform.minZ);
             setMinimum(spinnerWorldMiddle, platform.minZ);
             setMinimum(spinnerWorldHigh, platform.minZ);
-            comboBoxHeight.setSelectedItem(platform.standardMaxHeight);
             labelMinHeight.setText(String.valueOf(platform.minZ));
             maxHeightChanged();
             spinnerWorldHigh.setValue((int) Math.min(maxHeight - 1, (long) Math.pow(2, bitDepth) - 1)); // TODO overflow
