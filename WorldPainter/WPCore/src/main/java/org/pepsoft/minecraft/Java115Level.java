@@ -13,14 +13,14 @@ import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Generator.*;
 
 /**
- * The {@code level.dat} file for a Minecraft 1.17 or earlier map.
+ * The {@code level.dat} file for a Minecraft 1.15 or earlier map.
  */
-public class Java117Level extends JavaLevel {
-    Java117Level(int mapHeight, Platform platform) {
+public class Java115Level extends JavaLevel {
+    Java115Level(int mapHeight, Platform platform) {
         super(mapHeight, platform);
     }
 
-    Java117Level(CompoundTag tag, int mapHeight) {
+    Java115Level(CompoundTag tag, int mapHeight) {
         super(tag, mapHeight);
     }
 

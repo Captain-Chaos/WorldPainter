@@ -276,7 +276,7 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
 
         CompoundTag tag = new CompoundTag("", Collections.emptyMap());
         tag.setTag(TAG_LEVEL, super.toNBT());
-        tag.setTag(TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, DATA_VERSION_MC_1_15));
+        tag.setTag(TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, DATA_VERSION_MC_1_15_2));
         return tag;
     }
 

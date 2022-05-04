@@ -58,7 +58,7 @@ public abstract class JavaLevel extends AbstractNBTItem {
             if (platform == JAVA_ANVIL) {
                 dataVersion = DATA_VERSION_MC_1_12_2;
             } else if (platform == JAVA_ANVIL_1_15) {
-                dataVersion = DATA_VERSION_MC_1_15;
+                dataVersion = DATA_VERSION_MC_1_15_2;
             } else if (platform == JAVA_ANVIL_1_17) {
                 dataVersion = DATA_VERSION_MC_1_17;
             } else if (platform == JAVA_ANVIL_1_18) {
@@ -423,8 +423,10 @@ public abstract class JavaLevel extends AbstractNBTItem {
     public static JavaLevel create(Platform platform, int mapHeight) {
         if (platform == JAVA_ANVIL_1_18) {
             return new Java118Level(mapHeight, platform);
+        } else if (platform == JAVA_ANVIL_1_17) {
+            return new Java116Level(mapHeight, platform);
         } else {
-            return new Java117Level(mapHeight, platform);
+            return new Java115Level(mapHeight, platform);
         }
     }
 
@@ -509,8 +511,14 @@ public abstract class JavaLevel extends AbstractNBTItem {
             // TODO refactor map importing
             throw new UnsupportedOperationException("Don't know how to determine height of this map");
         }
-        
-        return (dataVersion <= DATA_VERSION_MC_1_17_1) ? new Java117Level((CompoundTag) tag, maxHeight) : new Java118Level((CompoundTag) tag, maxHeight);
+
+        if (dataVersion <= DATA_VERSION_MC_1_15_2) {
+            return new Java115Level((CompoundTag) tag, maxHeight);
+        } else if (dataVersion <= DATA_VERSION_MC_1_17_1) {
+            return new Java116Level((CompoundTag) tag, maxHeight);
+        } else {
+            return new Java118Level((CompoundTag) tag, maxHeight);
+        }
     }
 
     private void createWorldPainterDataPack(File worldDir) {

@@ -4,7 +4,7 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import org.pepsoft.minecraft.Java117Level;
+import org.pepsoft.minecraft.Java115Level;
 import org.pepsoft.minecraft.JavaLevel;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.RegionFile;
@@ -134,8 +134,8 @@ public class Mapper {
         System.out.println("Mapping " + worldDir);
         System.out.println("Name: " + level.getName());
         System.out.println("Seed: " + level.getSeed());
-        if ((level instanceof Java117Level) && (((Java117Level) level).getGeneratorName() != null)) {
-            System.out.println("Generator: " + ((Java117Level) level).getGeneratorName() + " (version " + ((Java117Level) level).getGeneratorVersion() + ")");
+        if ((level instanceof Java115Level) && (((Java115Level) level).getGeneratorName() != null)) {
+            System.out.println("Generator: " + ((Java115Level) level).getGeneratorName() + " (version " + ((Java115Level) level).getGeneratorVersion() + ")");
         }
         System.out.println("Map height: " + maxHeight);
         System.out.println("Storage format: " + ((platform == DefaultPlugin.JAVA_MCREGION) ? "McRegion (Minecraft 1.1 or earlier)" : "Anvil (Minecraft 1.2 or later)"));
