@@ -13,8 +13,10 @@ import org.pepsoft.worldpainter.biomeschemes.Minecraft1_2BiomeScheme;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.Resources;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter;
+import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,6 +157,7 @@ public final class WorldFactory {
             for (Map.Entry<Layer, ExporterSettings> entry: defaults.getAllLayerSettings().entrySet()) {
                 dim0.setLayerSettings(entry.getKey(), entry.getValue().clone());
             }
+            ((ResourcesExporter.ResourcesExporterSettings) dim0.getLayerSettings(Resources.INSTANCE)).setMinimumLevel(config.getDefaultResourcesMinimumLevel());
             dim0.setGridEnabled(config.isDefaultGridEnabled());
             dim0.setGridSize(config.getDefaultGridSize());
             dim0.setContoursEnabled(config.isDefaultContoursEnabled());
@@ -244,6 +247,7 @@ public final class WorldFactory {
             for (Map.Entry<Layer, ExporterSettings> entry: defaults.getAllLayerSettings().entrySet()) {
                 dim0.setLayerSettings(entry.getKey(), entry.getValue().clone());
             }
+            ((ResourcesExporter.ResourcesExporterSettings) dim0.getLayerSettings(Resources.INSTANCE)).setMinimumLevel(config.getDefaultResourcesMinimumLevel());
             FrostExporter.FrostSettings frostSettings = (FrostExporter.FrostSettings) dim0.getLayerSettings(Frost.INSTANCE);
             if (frostSettings == null) {
                 frostSettings = new FrostExporter.FrostSettings();

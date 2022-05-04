@@ -740,6 +740,14 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.uiScale = uiScale;
     }
 
+    public int getDefaultResourcesMinimumLevel() {
+        return defaultResourcesMinimumLevel;
+    }
+
+    public void setDefaultResourcesMinimumLevel(int defaultResourcesMinimumLevel) {
+        this.defaultResourcesMinimumLevel = defaultResourcesMinimumLevel;
+    }
+
     public <T> T getAdvancedSetting(AttributeKey<T> key) {
         String value = System.getProperty(ADVANCED_SETTING_PREFIX + '.' + key.key);
         if (value != null) {
@@ -1020,12 +1028,15 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
                 defaultGenerator = null;
                 defaultGeneratorOptions = null;
             }
-            if (defaultTerrainAndLayerSettings.getLayerSettings(Resources.INSTANCE) != null) {
-                defaultTerrainAndLayerSettings.setLayerSettings(Resources.INSTANCE, null);
-            }
             if ((defaultGeneratorObj.getType() == DEFAULT) && (getDefaultPlatform().supportedGenerators.contains(LARGE_BIOMES))){
                 defaultGeneratorObj = new SeededGenerator(LARGE_BIOMES, DEFAULT_OCEAN_SEED);
             }
+        }
+        if (version < 22) {
+            defaultResourcesMinimumLevel = 8;
+        }
+        if (defaultTerrainAndLayerSettings.getLayerSettings(Resources.INSTANCE) != null) {
+            defaultTerrainAndLayerSettings.setLayerSettings(Resources.INSTANCE, null);
         }
         version = CURRENT_VERSION;
         
@@ -1217,6 +1228,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private boolean autoDeleteBackups = true;
     private MapGenerator defaultGeneratorObj = new SeededGenerator(LARGE_BIOMES, DEFAULT_OCEAN_SEED);
     private ExportSettings defaultExportSettings;
+    private int defaultResourcesMinimumLevel = 8;
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk
@@ -1232,7 +1244,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Configuration.class);
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
-    private static final int CURRENT_VERSION = 21;
+    private static final int CURRENT_VERSION = 22;
 
     public static final String ADVANCED_SETTING_PREFIX = "org.pepsoft.worldpainter";
     public static final Platform DEFAULT_PLATFORM = JAVA_ANVIL_1_15;

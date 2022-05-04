@@ -18,8 +18,10 @@ import org.pepsoft.worldpainter.heightMaps.TransformingHeightMap;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.Resources;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter;
+import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter;
 import org.pepsoft.worldpainter.themes.Theme;
 
 import java.awt.*;
@@ -91,6 +93,7 @@ public class HeightMapImporter {
         for (Map.Entry<Layer, ExporterSettings> entry: defaults.getAllLayerSettings().entrySet()) {
             dimension.setLayerSettings(entry.getKey(), entry.getValue().clone());
         }
+        ((ResourcesExporter.ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE)).setMinimumLevel(config.getDefaultResourcesMinimumLevel());
 
         dimension.setGridEnabled(config.isDefaultGridEnabled());
         dimension.setGridSize(config.getDefaultGridSize());

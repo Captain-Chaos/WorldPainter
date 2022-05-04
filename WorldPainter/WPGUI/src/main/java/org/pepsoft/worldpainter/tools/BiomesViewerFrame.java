@@ -271,6 +271,7 @@ public class BiomesViewerFrame extends JFrame {
             ((Integer) schemeChooser.getSelectedItem() == BIOME_ALGORITHM_1_1) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL,
             DIM_NORMAL,
             Configuration.getInstance().getDefaultMaxHeight(),
+            null,
             imageViewer.getSelectedTiles());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {

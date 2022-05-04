@@ -58,17 +58,18 @@ import static org.pepsoft.worldpainter.util.MinecraftUtil.blocksToWalkingTime;
  */
 public class NewWorldDialog extends WorldPainterDialog {
     /** Creates new form NewWorldDialog */
-    public NewWorldDialog(App app, ColourScheme colourScheme, String name, long seed, Platform platform, int dim, int defaultMaxHeight) {
-        this(app, colourScheme, name, seed, platform, dim, defaultMaxHeight, null);
+    public NewWorldDialog(App app, ColourScheme colourScheme, String name, long seed, Platform platform, int dim, int defaultMaxHeight, Dimension baseDimension) {
+        this(app, colourScheme, name, seed, platform, dim, defaultMaxHeight, baseDimension, null);
     }
     
     /** Creates new form NewWorldDialog */
-    public NewWorldDialog(App app, ColourScheme colourScheme, String name, long seed, Platform platform, int dim, int defaultMaxHeight, Set<Point> tiles) {
+    public NewWorldDialog(App app, ColourScheme colourScheme, String name, long seed, Platform platform, int dim, int defaultMaxHeight, Dimension baseDimension, Set<Point> tiles) {
         super(app);
         this.app = app;
         this.colourScheme = colourScheme;
         this.dim = dim;
         this.tiles = tiles;
+        this.baseDimension = baseDimension;
         
         initComponents();
 
@@ -375,9 +376,9 @@ public class NewWorldDialog extends WorldPainterDialog {
                 }
             } else if (checkBoxCircular.isSelected()) {
                 final int radius = (Integer) spinnerWidth.getValue() / 2;
-                int diameter = radius * 2;
+                final int diameter = radius * 2;
                 logger.info("Creating new circular dimension with diameter " + diameter + " blocks");
-                int tileRadius = (radius + 127) / 128;
+                final int tileRadius = (radius + 127) / 128;
                 final int[] tileCount = new int[1];
                 final int approximateTotalTiles = (int) Math.ceil(Math.PI * tileRadius * tileRadius);
                 for (int x = -tileRadius; x < tileRadius; x++) {
@@ -403,7 +404,7 @@ public class NewWorldDialog extends WorldPainterDialog {
                                     // the edge
                                     for (int xx = 0; xx < TILE_SIZE; xx++) {
                                         for (int yy = 0; yy < TILE_SIZE; yy++) {
-                                            float distance = MathUtils.getDistance(tileX * TILE_SIZE + xx + 0.5f, tileY * TILE_SIZE + yy + 0.5f);
+                                            final float distance = MathUtils.getDistance(tileX * TILE_SIZE + xx + 0.5f, tileY * TILE_SIZE + yy + 0.5f);
                                             if (distance > radius) {
                                                 tile.setBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, xx, yy, true);
                                             }
@@ -430,13 +431,13 @@ public class NewWorldDialog extends WorldPainterDialog {
                 // override the preferences
                 dimension.setBorder(Border.ENDLESS_VOID);
             } else {
-                int width = ((Integer) spinnerWidth.getValue()) / 128;
-                int height = ((Integer) spinnerLength.getValue()) / 128;
+                final int width = ((Integer) spinnerWidth.getValue()) / 128;
+                final int height = ((Integer) spinnerLength.getValue()) / 128;
                 logger.info("Creating new dimension of size " + width + "x" + height + " for a total of " + width * height + " tiles");
                 final int[] tileCount = new int[1];
                 final int totalTiles = width * height;
-                int startX = -width / 2;
-                int startY = -height / 2;
+                final int startX = -width / 2;
+                final int startY = -height / 2;
                 for (int x = startX; x < startX + width; x++) {
                     for (int y = startY; y < startY + height; y++) {
                         final int tileX = x, tileY = y;
@@ -445,7 +446,7 @@ public class NewWorldDialog extends WorldPainterDialog {
                                 // Operation cancelled by user
                                 return;
                             }
-                            Tile tile = tileFactory.createTile(tileX, tileY);
+                            final Tile tile = tileFactory.createTile(tileX, tileY);
                             dimension.addTile(tile);
                             if (progressReceiver != null) {
                                 synchronized (tileCount) {
@@ -488,7 +489,7 @@ public class NewWorldDialog extends WorldPainterDialog {
             if (dim == DIM_NETHER) {
                 dimension.setSubsurfaceMaterial(NETHERLIKE);
 
-                CavernsSettings cavernsSettings = new CavernsSettings();
+                final CavernsSettings cavernsSettings = new CavernsSettings();
                 cavernsSettings.setCavernsEverywhereLevel(16);
                 cavernsSettings.setSurfaceBreaking(true);
                 cavernsSettings.setFloodWithLava(true);
@@ -500,8 +501,8 @@ public class NewWorldDialog extends WorldPainterDialog {
                 dimension.setSubsurfaceMaterial(END_STONE);
             }
 
-            Configuration config = Configuration.getInstance();
-            Dimension defaults = config.getDefaultTerrainAndLayerSettings();
+            final Configuration config = Configuration.getInstance();
+            final Dimension defaults = config.getDefaultTerrainAndLayerSettings();
             if (dim == DIM_NORMAL) {
                 if (! checkBoxCircular.isSelected()) {
                     dimension.setBorder(defaults.getBorder());
@@ -521,6 +522,11 @@ public class NewWorldDialog extends WorldPainterDialog {
                     ((SeededGenerator) generator).setSeed(dimension.getMinecraftSeed());
                 }
                 dimension.setGenerator(generator);
+            }
+            if (baseDimension != null) {
+                resourcesSettings.setMinimumLevel(((ResourcesExporterSettings) baseDimension.getLayerSettings(Resources.INSTANCE)).getMinimumLevel());
+            } else {
+                resourcesSettings.setMinimumLevel(config.getDefaultResourcesMinimumLevel());
             }
             dimension.setBorderLevel(waterHeight);
             dimension.setCoverSteepTerrain(defaults.isCoverSteepTerrain());
@@ -1527,6 +1533,7 @@ public class NewWorldDialog extends WorldPainterDialog {
     private final App app;
     private final Set<Point> tiles;
     private final ColourScheme colourScheme;
+    private final Dimension baseDimension;
     private Platform platform;
     private int previousExp = -1, dim, savedTerrainLevel;
     private long worldpainterSeed;

@@ -12,6 +12,7 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.GUIUtils;
+import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
 import org.pepsoft.worldpainter.exporting.ExportSettings;
 import org.pepsoft.worldpainter.exporting.ExportSettingsEditor;
@@ -41,6 +42,7 @@ import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
+import static org.pepsoft.worldpainter.ChangeHeightDialog.resizeDimension;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Generator.*;
@@ -120,7 +122,7 @@ public class PreferencesDialog extends WorldPainterDialog {
             checkBoxUndo.setSelected(config.isUndoEnabled());
             spinnerUndoLevels.setValue(config.getUndoLevels());
         }
-        
+
         checkBoxGrid.setSelected(config.isDefaultGridEnabled());
         spinnerGrid.setValue(config.getDefaultGridSize());
         checkBoxContours.setSelected(config.isDefaultContoursEnabled());
@@ -130,7 +132,11 @@ public class PreferencesDialog extends WorldPainterDialog {
         comboBoxLightDirection.setSelectedItem(config.getDefaultLightOrigin());
         checkBoxCircular.setSelected(config.isDefaultCircularWorld());
         spinnerBrushSize.setValue(config.getMaximumBrushSize());
-        
+
+        defaultTerrainAndLayerSettings = config.getDefaultTerrainAndLayerSettings(); // TODO this should be cloned too
+        defaultExportSettings = (config.getDefaultExportSettings() != null) ? config.getDefaultExportSettings().clone() : null;
+        checkBoxResourcesEverywhere.setSelected(config.getDefaultResourcesMinimumLevel() > 0);
+
         spinnerWidth.setValue(config.getDefaultWidth() * 128);
         spinnerHeight.setValue(config.getDefaultHeight() * 128);
         comboBoxPlatform.setSelectedItem(config.getDefaultPlatform());
@@ -210,9 +216,6 @@ public class PreferencesDialog extends WorldPainterDialog {
         spinnerAutoSaveInterval.setValue(config.getAutosaveInterval() / 1000);
         spinnerFreeSpaceForMaps.setValue(config.getMinimumFreeSpaceForMaps());
         checkBoxAutoDeleteBackups.setSelected(config.isAutoDeleteBackups());
-
-        defaultTerrainAndLayerSettings = config.getDefaultTerrainAndLayerSettings(); // TODO this should be cloned too
-        defaultExportSettings = (config.getDefaultExportSettings() != null) ? config.getDefaultExportSettings().clone() : null;
 
         setControlStates();
     }
@@ -313,7 +316,9 @@ public class PreferencesDialog extends WorldPainterDialog {
         config.setAutosaveInterval(((Integer) spinnerAutoSaveInterval.getValue()) * 1000);
         config.setMinimumFreeSpaceForMaps((Integer) spinnerFreeSpaceForMaps.getValue());
         config.setAutoDeleteBackups(checkBoxAutoDeleteBackups.isSelected());
+
         config.setDefaultExportSettings(defaultExportSettings);
+        config.setDefaultResourcesMinimumLevel(checkBoxResourcesEverywhere.isSelected() ? 8 : 0);
 
         try {
             config.save();
@@ -349,10 +354,9 @@ public class PreferencesDialog extends WorldPainterDialog {
     
     private void editTerrainAndLayerSettings() {
         Configuration config = Configuration.getInstance();
-        Dimension defaultSettings = config.getDefaultTerrainAndLayerSettings();
-        DimensionPropertiesDialog dialog = new DimensionPropertiesDialog(this, defaultSettings, colourScheme, true);
+        DimensionPropertiesDialog dialog = new DimensionPropertiesDialog(this, defaultTerrainAndLayerSettings, colourScheme, true);
         dialog.setVisible(true);
-        TileFactory tileFactory = defaultSettings.getTileFactory();
+        TileFactory tileFactory = defaultTerrainAndLayerSettings.getTileFactory();
         if ((tileFactory instanceof HeightMapTileFactory)
                 && (((HeightMapTileFactory) tileFactory).getTheme() instanceof SimpleTheme)) {
             HeightMapTileFactory heightMapTileFactory = (HeightMapTileFactory) tileFactory;
@@ -360,7 +364,7 @@ public class PreferencesDialog extends WorldPainterDialog {
             checkBoxBeaches.setSelected(theme.isBeaches());
             int waterLevel = heightMapTileFactory.getWaterHeight();
             spinnerWaterLevel.setValue(waterLevel);
-            defaultSettings.setBorderLevel(heightMapTileFactory.getWaterHeight());
+            defaultTerrainAndLayerSettings.setBorderLevel(heightMapTileFactory.getWaterHeight());
             SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
             comboBoxSurfaceMaterial.setSelectedItem(terrainRanges.get(terrainRanges.headMap(waterLevel + 3).lastKey()));
         }
@@ -587,6 +591,7 @@ public class PreferencesDialog extends WorldPainterDialog {
         jLabel52 = new javax.swing.JLabel();
         comboBoxPlatform = new javax.swing.JComboBox<>();
         labelEditExportSettingsLink = new javax.swing.JLabel();
+        checkBoxResourcesEverywhere = new javax.swing.JCheckBox();
         jPanel2 = new javax.swing.JPanel();
         jPanel3 = new javax.swing.JPanel();
         jLabel31 = new javax.swing.JLabel();
@@ -1041,7 +1046,7 @@ public class PreferencesDialog extends WorldPainterDialog {
 
         labelTerrainAndLayerSettings.setForeground(java.awt.Color.blue);
         labelTerrainAndLayerSettings.setText("<html><u>Configure default border, terrain and layer settings</u></html>");
-        labelTerrainAndLayerSettings.setCursor(new java.awt.Cursor(HAND_CURSOR));
+        labelTerrainAndLayerSettings.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         labelTerrainAndLayerSettings.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 labelTerrainAndLayerSettingsMouseClicked(evt);
@@ -1090,12 +1095,15 @@ public class PreferencesDialog extends WorldPainterDialog {
 
         labelEditExportSettingsLink.setForeground(new java.awt.Color(0, 0, 255));
         labelEditExportSettingsLink.setText("<html><u>Configure default post processing settings</u></html>");
-        labelEditExportSettingsLink.setCursor(new java.awt.Cursor(HAND_CURSOR));
+        labelEditExportSettingsLink.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         labelEditExportSettingsLink.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 labelEditExportSettingsLinkMouseClicked(evt);
             }
         });
+
+        checkBoxResourcesEverywhere.setSelected(true);
+        checkBoxResourcesEverywhere.setText("Resources everywhere");
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -1205,7 +1213,9 @@ public class PreferencesDialog extends WorldPainterDialog {
                                 .addGap(18, 18, 18)
                                 .addComponent(checkBoxLava)
                                 .addGap(18, 18, 18)
-                                .addComponent(checkBoxBeaches))
+                                .addComponent(checkBoxBeaches)
+                                .addGap(18, 18, 18)
+                                .addComponent(checkBoxResourcesEverywhere))
                             .addGroup(jPanel5Layout.createSequentialGroup()
                                 .addComponent(jLabel16)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1294,7 +1304,8 @@ public class PreferencesDialog extends WorldPainterDialog {
                     .addComponent(spinnerWaterLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(checkBoxLava)
                     .addComponent(checkBoxBeaches)
-                    .addComponent(checkBoxCircular))
+                    .addComponent(checkBoxCircular)
+                    .addComponent(checkBoxResourcesEverywhere))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel16)
@@ -1592,16 +1603,15 @@ public class PreferencesDialog extends WorldPainterDialog {
 
     private void spinnerWaterLevelStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerWaterLevelStateChanged
         int waterLevel = ((Number) spinnerWaterLevel.getValue()).intValue();
-        Dimension defaults = Configuration.getInstance().getDefaultTerrainAndLayerSettings();
-        defaults.setBorderLevel(waterLevel);
-        TileFactory tileFactory = defaults.getTileFactory();
+        defaultTerrainAndLayerSettings.setBorderLevel(waterLevel);
+        TileFactory tileFactory = defaultTerrainAndLayerSettings.getTileFactory();
         if (tileFactory instanceof HeightMapTileFactory) {
             ((HeightMapTileFactory) tileFactory).setWaterHeight(waterLevel);
         }
     }//GEN-LAST:event_spinnerWaterLevelStateChanged
 
     private void checkBoxBeachesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxBeachesActionPerformed
-        TileFactory tileFactory = Configuration.getInstance().getDefaultTerrainAndLayerSettings().getTileFactory();
+        TileFactory tileFactory = defaultTerrainAndLayerSettings.getTileFactory();
         if (tileFactory instanceof HeightMapTileFactory) {
             ((HeightMapTileFactory) tileFactory).setBeaches(checkBoxBeaches.isSelected());
         }
@@ -1611,8 +1621,7 @@ public class PreferencesDialog extends WorldPainterDialog {
         // Update the terrain ranges map to conform to the surface material
         // setting
         Configuration config = Configuration.getInstance();
-        Dimension defaultSettings = config.getDefaultTerrainAndLayerSettings();
-        TileFactory tileFactory = defaultSettings.getTileFactory();
+        TileFactory tileFactory = defaultTerrainAndLayerSettings.getTileFactory();
         if ((tileFactory instanceof HeightMapTileFactory)
                 && (((HeightMapTileFactory) tileFactory).getTheme() instanceof SimpleTheme)) {
             SortedMap<Integer, Terrain> defaultTerrainRanges = ((SimpleTheme) ((HeightMapTileFactory) tileFactory).getTheme()).getTerrainRanges();
@@ -1638,7 +1647,10 @@ public class PreferencesDialog extends WorldPainterDialog {
             checkBoxLava.setSelected(false);
             checkBoxBeaches.setSelected(true);
             comboBoxSurfaceMaterial.setSelectedItem(GRASS);
-            config.setDefaultTerrainAndLayerSettings(new World2(defaultPlatform, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), GRASS, defaultPlatform.minZ, defaultPlatform.standardMaxHeight, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0), defaultPlatform.standardMaxHeight).getDimension(DIM_NORMAL));
+            checkBoxResourcesEverywhere.setSelected(true);
+            defaultTerrainAndLayerSettings = new World2(defaultPlatform, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), GRASS, defaultPlatform.minZ, defaultPlatform.standardMaxHeight, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0), defaultPlatform.standardMaxHeight).getDimension(DIM_NORMAL);
+            config.setDefaultTerrainAndLayerSettings(defaultTerrainAndLayerSettings);
+            defaultExportSettings = null;
         }
     }//GEN-LAST:event_buttonResetActionPerformed
 
@@ -1754,6 +1766,7 @@ public class PreferencesDialog extends WorldPainterDialog {
     private javax.swing.JCheckBox checkBoxGrid;
     private javax.swing.JCheckBox checkBoxLava;
     private javax.swing.JCheckBox checkBoxPing;
+    private javax.swing.JCheckBox checkBoxResourcesEverywhere;
     private javax.swing.JCheckBox checkBoxStructures;
     private javax.swing.JCheckBox checkBoxUndo;
     private javax.swing.JCheckBox checkBoxViewDistance;
