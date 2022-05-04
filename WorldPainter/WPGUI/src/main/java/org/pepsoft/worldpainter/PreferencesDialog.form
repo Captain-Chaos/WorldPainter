@@ -625,6 +625,8 @@
                                       <Component id="checkBoxLava" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace type="separate" max="-2" attributes="0"/>
                                       <Component id="checkBoxBeaches" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                                      <Component id="checkBoxResourcesEverywhere" min="-2" max="-2" attributes="0"/>
                                   </Group>
                                   <Group type="102" alignment="0" attributes="0">
                                       <Component id="jLabel16" min="-2" max="-2" attributes="0"/>
@@ -728,6 +730,7 @@
                           <Component id="checkBoxLava" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="checkBoxBeaches" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="checkBoxCircular" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="checkBoxResourcesEverywhere" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
@@ -1185,6 +1188,12 @@
               <Events>
                 <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="labelEditExportSettingsLinkMouseClicked"/>
               </Events>
+            </Component>
+            <Component class="javax.swing.JCheckBox" name="checkBoxResourcesEverywhere">
+              <Properties>
+                <Property name="selected" type="boolean" value="true"/>
+                <Property name="text" type="java.lang.String" value="Resources everywhere"/>
+              </Properties>
             </Component>
           </SubComponents>
         </Container>

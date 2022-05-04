@@ -406,10 +406,11 @@ public class PreferencesDialog extends WorldPainterDialog {
         }
         checkBoxChestOfGoodies.setEnabled((platform != JAVA_ANVIL_1_15) && (platform != JAVA_ANVIL_1_17));
         checkBoxExtendedBlockIds.setEnabled(platform.capabilities.contains(BLOCK_BASED) && (! platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION));
-        final Dimension defaultTerrainAndLayerSettings = Configuration.getInstance().getDefaultTerrainAndLayerSettings();
-        defaultTerrainAndLayerSettings.setMinHeight(platform.minZ);
-        defaultTerrainAndLayerSettings.setMaxHeight(newMaxHeight);
-        defaultTerrainAndLayerSettings.getTileFactory().setMinMaxHeight(platform.minZ, newMaxHeight, IDENTITY);
+        try {
+            resizeDimension(defaultTerrainAndLayerSettings, platform.minZ, newMaxHeight, IDENTITY, true, null);
+        } catch (ProgressReceiver.OperationCancelled e) {
+            throw new InternalError(); // Can't happen since we don't pass in a ProgressReceiver
+        }
 
         // Check whether this platform supports the current default export settings (or any export settings)
         final PlatformProvider platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);

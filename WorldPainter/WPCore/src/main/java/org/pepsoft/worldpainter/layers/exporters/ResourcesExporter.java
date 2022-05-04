@@ -9,6 +9,7 @@ import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.HeightTransform;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
@@ -23,6 +24,7 @@ import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
+import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings.defaultSettings;
@@ -224,6 +226,20 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
         @Override
         public Resources getLayer() {
             return Resources.INSTANCE;
+        }
+
+        @Override
+        public void setMinMaxHeight(int oldMinHeight, int newMinHeight, int oldMaxHeight, int newMaxHeight, HeightTransform transform) {
+            for (Material material: settings.keySet()) {
+                int maxLevel = settings.get(material).maxLevel;
+                if (maxLevel == (oldMaxHeight - 1)) {
+                    maxLevel = newMaxHeight - 1;
+                } else if (maxLevel > 1) {
+                    maxLevel = clamp(newMinHeight, transform.transformHeight(maxLevel), newMaxHeight - 1);
+                }
+                // TODO: do the same for minLevels? Or do we WANT those to stay put?
+                settings.get(material).maxLevel = maxLevel;
+            }
         }
 
         @Override
