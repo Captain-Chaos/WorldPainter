@@ -4,6 +4,7 @@
  */
 package org.pepsoft.worldpainter.importing;
 
+import com.google.common.collect.ImmutableSet;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.minecraft.ChunkStore.ChunkVisitor;
 import org.pepsoft.util.LongAttributeKey;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.util.Collections.singleton;
 import static java.util.Collections.synchronizedMap;
 import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Constants.*;
@@ -253,9 +255,9 @@ public class JavaMapImporter extends MapImporter {
                         if (skipChunk(chunk)) {
                             return true;
                         }
-                        Platform chunkNativePlatform = determineNativePlatform(chunk);
-                        if ((chunkNativePlatform != null) && (chunkNativePlatform != platform)) {
-                            nonNativePlatformsEncountered.computeIfAbsent(chunkNativePlatform, p -> new AtomicInteger()).incrementAndGet();
+                        final Set<Platform> chunkNativePlatforms = determineNativePlatforms(chunk);
+                        if ((chunkNativePlatforms != null) && (! chunkNativePlatforms.contains(platform))) {
+                            chunkNativePlatforms.forEach(chunkNativePlatform -> nonNativePlatformsEncountered.computeIfAbsent(chunkNativePlatform, p -> new AtomicInteger()).incrementAndGet());
                         }
 
                         final int chunkX = chunkCoords.x;
@@ -437,19 +439,20 @@ public class JavaMapImporter extends MapImporter {
                 }
 
                 // TODO make this dynamic
-                private Platform determineNativePlatform(Chunk chunk) {
+                private Set<Platform> determineNativePlatforms(Chunk chunk) {
                     if (chunk instanceof MCRegionChunk) {
-                        return JAVA_MCREGION;
+                        return singleton(JAVA_MCREGION);
                     } else if (chunk instanceof MC12AnvilChunk) {
-                        return JAVA_ANVIL;
+                        return singleton(JAVA_ANVIL);
                     } else if (chunk instanceof MC115AnvilChunk) {
                         if (((MC115AnvilChunk) chunk).getInputDataVersion() > DATA_VERSION_MC_1_16_5) {
-                            return JAVA_ANVIL_1_17;
+                            return singleton(JAVA_ANVIL_1_17);
                         } else {
-                            return JAVA_ANVIL_1_15;
+                            // These chunks could have been created by WorldPainter with platform 1.17, so return both
+                            return ImmutableSet.of(JAVA_ANVIL_1_15, JAVA_ANVIL_1_17);
                         }
                     } else if (chunk instanceof MC118AnvilChunk) {
-                        return JAVA_ANVIL_1_18;
+                        return singleton(JAVA_ANVIL_1_18);
                     } else {
                         return null;
                     }
