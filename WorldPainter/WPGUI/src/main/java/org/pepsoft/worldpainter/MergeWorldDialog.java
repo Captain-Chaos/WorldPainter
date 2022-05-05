@@ -305,7 +305,8 @@ public class MergeWorldDialog extends WorldPainterDialog {
         File mapDir = new File(fieldSelectedMapDir.getText().trim());
         if (mapDir.isDirectory()) {
             this.mapDir = mapDir;
-            platform = PlatformManager.getInstance().identifyPlatform(mapDir);
+            final PlatformProvider.MapInfo mapInfo = PlatformManager.getInstance().identifyMap(mapDir);
+            platform = (mapInfo != null) ? mapInfo.platform : null;
             if (platform != null) {
                 if (! platform.supportsBiomes()) {
                     if (radioButtonBiomes.isSelected()) {
@@ -316,8 +317,10 @@ public class MergeWorldDialog extends WorldPainterDialog {
                     radioButtonBiomes.setEnabled(true);
                 }
                 labelPlatform.setText(platform.displayName);
+                labelPlatform.setIcon(mapInfo.icon);
             } else {
                 labelPlatform.setText("no supported format detected");
+                labelPlatform.setIcon(null);
             }
         } else {
             this.mapDir = null;
