@@ -4,3 +4,7 @@ logs
 exporttimings.csv
 target
 *.code-workspace
+deployment/
+JIDE Docking Framework/
+WorldPainter/AppleJavaExtensions.jar
+.project
