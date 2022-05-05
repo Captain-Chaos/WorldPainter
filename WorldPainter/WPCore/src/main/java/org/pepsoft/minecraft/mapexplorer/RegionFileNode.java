@@ -20,9 +20,9 @@ import java.util.StringTokenizer;
  *
  * @author pepijn
  */
-public class RegionFileNode extends Node {
+public class RegionFileNode extends FileSystemNode {
     RegionFileNode(File file) {
-        this.file = file;
+        super(file);
         StringTokenizer tokenizer = new StringTokenizer(file.getName(), ".");
         tokenizer.nextToken();
         x = Integer.parseInt(tokenizer.nextToken());
@@ -70,7 +70,6 @@ public class RegionFileNode extends Node {
         }
     }
 
-    private final File file;
     private final int x, z;
 
     private static final Icon ICON = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/plugin.png");

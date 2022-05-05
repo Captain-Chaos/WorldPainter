@@ -2,7 +2,7 @@ package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.minecraft.Material;
-import org.pepsoft.worldpainter.AbstractMain;
+import org.pepsoft.worldpainter.AbstractTool;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
@@ -12,18 +12,20 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static java.util.Collections.synchronizedMap;
+import static java.util.Collections.synchronizedSet;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
-public class DumpBlockData extends AbstractMain {
+public class DumpBlockData extends AbstractTool {
     public static void main(String[] args) {
         initialisePlatform();
 
-        Set<Material> allMaterials = new HashSet<>();
-        Map<String, Map<String, Set<String>>> allProperties = new HashMap<>();
+        Set<Material> allMaterials = synchronizedSet(new HashSet<>());
+        Map<String, Map<String, Set<String>>> allProperties = synchronizedMap(new HashMap<>());
         File worldDir = new File(args[0]);
         PlatformManager platformManager = PlatformManager.getInstance();
-        Platform platform = platformManager.identifyMap(worldDir);
+        Platform platform = platformManager.identifyPlatform(worldDir);
         ChunkStore chunkStore = platformManager.getChunkStore(platform, worldDir, DIM_NORMAL);
         chunkStore.visitChunks(chunk -> {
             for (int y = 0; y < DEFAULT_MAX_HEIGHT_ANVIL; y++) {
@@ -34,7 +36,9 @@ public class DumpBlockData extends AbstractMain {
                         Map<String, Set<String>> matProps = allProperties.computeIfAbsent(material.name, key -> new HashMap<>());
                         if (material.getProperties() != null) {
                             for (Map.Entry<String, String> entry: material.getProperties().entrySet()) {
-                                matProps.computeIfAbsent(entry.getKey(), key -> new HashSet<>()).add(entry.getValue());
+                                synchronized (matProps) {
+                                    matProps.computeIfAbsent(entry.getKey(), key -> new HashSet<>()).add(entry.getValue());
+                                }
                             }
                         }
                     }

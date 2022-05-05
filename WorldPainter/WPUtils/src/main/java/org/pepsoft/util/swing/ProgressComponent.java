@@ -19,7 +19,6 @@ import org.slf4j.MDC;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -27,7 +26,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import static org.pepsoft.util.AwtUtils.doOnEventThread;
+import static org.pepsoft.util.AwtUtils.doOnEventThreadAndWait;
 
 /**
  * A component which can execute a task in the background, reporting its
@@ -75,8 +74,8 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
         }
         jButton1.setEnabled(cancelable);
         jProgressBar1.setIndeterminate(true);
-        Map<String, String> mdcContextMap = MDC.getCopyOfContextMap();
-        thread = new Thread(task.getName()) {
+        final Map<String, String> mdcContextMap = MDC.getCopyOfContextMap();
+        final Thread thread = new Thread(task.getName()) {
             @Override
             public void run() {
                 if (mdcContextMap != null) {
@@ -107,9 +106,9 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
     // ProgressReceiver
     
     @Override
-    public synchronized void setProgress(final float progress) throws OperationCancelled {
+    public void setProgress(final float progress) throws OperationCancelled {
         checkForCancellation();
-        doOnEventThread(() -> {
+        doOnEventThreadAndWait(() -> {
             progressReports++;
             long now = System.currentTimeMillis();
             long elapsed = now - start;
@@ -122,14 +121,14 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
             if (jProgressBar1.isIndeterminate()) {
                 jProgressBar1.setIndeterminate(false);
             }
-            jProgressBar1.setValue((int) (progress * 100f + 0.5f));
+            jProgressBar1.setValue(Math.round(progress * 100f));
         });
     }
 
     @Override
-    public synchronized void exceptionThrown(final Throwable exception) {
+    public void exceptionThrown(final Throwable exception) {
         if (! exceptionReported) {
-            doOnEventThread(() -> {
+            doOnEventThreadAndWait(() -> {
                 timer.stop();
                 if (jProgressBar1.isIndeterminate()) {
                     jProgressBar1.setIndeterminate(false);
@@ -153,8 +152,8 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
     }
 
     @Override
-    public synchronized void done() {
-        doOnEventThread(() -> {
+    public void done() {
+        doOnEventThreadAndWait(() -> {
             timer.stop();
             if (jProgressBar1.isIndeterminate()) {
                 jProgressBar1.setIndeterminate(false);
@@ -163,7 +162,7 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
             jButton1.setEnabled(false);
             jLabel2.setText("Done");
             if (stats != null) {
-                try (PrintWriter out = new PrintWriter(new File("logs/" + FileUtils.sanitiseName(task.getName() + "-" + new Date() + ".csv")))) {
+                try (PrintWriter out = new PrintWriter("logs/" + FileUtils.sanitiseName(task.getName() + "-" + new Date() + ".csv"))) {
                     int second = 1;
                     out.println("second,calculated,displayed");
                     for (int[] statsRow : stats) {
@@ -180,25 +179,25 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
     }
     
     @Override
-    public synchronized void setMessage(final String message) throws OperationCancelled {
+    public void setMessage(final String message) throws OperationCancelled {
         checkForCancellation();
-        doOnEventThread(() -> jLabel1.setText(task.getName() + ((message != null) ? (", " + message) : "")));
+        doOnEventThreadAndWait(() -> jLabel1.setText(task.getName() + ((message != null) ? (", " + message) : "")));
     }
 
     @Override
-    public synchronized void checkForCancellation() throws OperationCancelled {
+    public void checkForCancellation() throws OperationCancelled {
         if (cancelRequested) {
             throw new OperationCancelledByUser();
         }
     }
 
     @Override
-    public synchronized void reset() throws OperationCancelled {
+    public void reset() throws OperationCancelled {
         checkForCancellation();
-        doOnEventThread(() -> {
+        doOnEventThreadAndWait(() -> {
             if (stats != null) {
                 try {
-                    try (PrintWriter out = new PrintWriter(new File("logs/" + FileUtils.sanitiseName(task.getName() + "-" + new Date() + ".csv")))) {
+                    try (PrintWriter out = new PrintWriter("logs/" + FileUtils.sanitiseName(task.getName() + "-" + new Date() + ".csv"))) {
                         int second = 1;
                         out.println("second,calculated,displayed");
                         for (int[] statsRow : stats) {
@@ -257,7 +256,6 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
      * WARNING: Do NOT modify this code. The content of this method is
      * always regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -313,7 +311,6 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
     private ProgressTask<T> task;
     private volatile boolean cancelRequested;
     private volatile T result;
-    private Thread thread;
     private long start, remaining, lastUpdate;
     private int progressReports, lastReportedMinutes = Integer.MAX_VALUE;
     private Timer timer;

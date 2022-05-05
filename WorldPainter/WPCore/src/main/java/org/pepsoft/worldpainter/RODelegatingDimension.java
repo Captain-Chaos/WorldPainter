@@ -15,8 +15,8 @@ import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * A read-only implementation of {@link Dimension} which wraps another
@@ -33,7 +33,7 @@ import java.util.List;
  */
 public abstract class RODelegatingDimension extends Dimension {
     public RODelegatingDimension(Dimension dimension) {
-        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getDim(), dimension.getMaxHeight());
+        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getDim(), dimension.getMinHeight(), dimension.getMaxHeight());
         this.dimension = dimension;
     }
 
@@ -119,7 +119,7 @@ public abstract class RODelegatingDimension extends Dimension {
 
     @Override
     public int getIntHeightAt(int x, int y) {
-        return getIntHeightAt(x, y, -1);
+        return getIntHeightAt(x, y, Integer.MIN_VALUE);
     }
 
     @Override
@@ -129,7 +129,7 @@ public abstract class RODelegatingDimension extends Dimension {
     
     @Override
     public int getIntHeightAt(Point coords) {
-        return getIntHeightAt(coords.x, coords.y, -1);
+        return getIntHeightAt(coords.x, coords.y, Integer.MIN_VALUE);
     }
 
     @Override

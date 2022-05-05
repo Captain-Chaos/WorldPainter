@@ -1,7 +1,5 @@
 package org.pepsoft.worldpainter.biomeschemes;
 
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +9,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
+
+import static org.pepsoft.util.ObjectMapperHolder.OBJECT_MAPPER;
 
 class MinecraftRuntimeUtils {
     /**
@@ -36,7 +36,7 @@ class MinecraftRuntimeUtils {
             String jsonFileName = minecraftJarName.substring(0, minecraftJarName.length() - 4) + ".json";
             File jsonFile = new File(minecraftJarDir, jsonFileName);
             try (FileReader in = new FileReader(jsonFile)) {
-                Map<?, ?> rootNode = (Map<?, ?>) new JSONParser().parse(in);
+                Map<?, ?> rootNode = (Map<?, ?>) OBJECT_MAPPER.readValue(in, Map.class);
                 List<Map<?, ?>> librariesNode = (List<Map<?, ?>>) rootNode.get("libraries");
                 for (Map<?, ?> libraryNode : librariesNode) {
                     if (libraryNode.containsKey("rules")) {
@@ -64,8 +64,6 @@ class MinecraftRuntimeUtils {
             }
         } catch (IOException e) {
             throw new RuntimeException("I/O error while trying to load Minecraft jar descriptor json file", e);
-        } catch (ParseException e) {
-            throw new RuntimeException("Parsing error while trying to load Minecraft jar descriptor json file", e);
         }
 
         // Create the class loader and return it

@@ -64,7 +64,7 @@ public class CompareChunks {
     }
 
     public static Chunk loadChunk(File levelDatFile, int chunkX, int chunkZ) throws IOException {
-        Level level = Level.load(levelDatFile);
+        JavaLevel level = JavaLevel.load(levelDatFile);
         CompoundTag chunkTag;
         try (InputStream chunkIn = RegionFileCache.getChunkDataInputStream(levelDatFile.getParentFile(), chunkX, chunkZ, level.getVersion())) {
             if (chunkIn != null) {

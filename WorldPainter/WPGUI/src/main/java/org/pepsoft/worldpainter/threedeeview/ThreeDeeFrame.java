@@ -14,6 +14,7 @@ import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.util.BetterAction;
 
@@ -196,11 +197,11 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
             if (rotation < 0) {
                 rotation = 3;
             }
-            Point centreMostTile = threeDeeView.getCentreMostTile();
+            Tile centreMostTile = threeDeeView.getCentreMostTile();
             threeDeeView = new ThreeDeeView(dimension, colourScheme, customBiomeManager, rotation, zoom);
             scrollPane.setViewportView(threeDeeView);
 //            scrollPane.getViewport().setViewPosition(new Point((threeDeeView.getWidth() - scrollPane.getWidth()) / 2, (threeDeeView.getHeight() - scrollPane.getHeight()) / 2));
-            threeDeeView.moveToTile(centreMostTile.x, centreMostTile.y);
+            threeDeeView.moveToTile(centreMostTile);
             glassPane.setRotation(DIRECTIONS[rotation], dimension.getDim() < 0);
         }
         
@@ -218,11 +219,11 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
             if (rotation > 3) {
                 rotation = 0;
             }
-            Point centreMostTile = threeDeeView.getCentreMostTile();
+            Tile centreMostTile = threeDeeView.getCentreMostTile();
             threeDeeView = new ThreeDeeView(dimension, colourScheme, customBiomeManager, rotation, zoom);
             scrollPane.setViewportView(threeDeeView);
 //            scrollPane.getViewport().setViewPosition(new Point((threeDeeView.getWidth() - scrollPane.getWidth()) / 2, (threeDeeView.getHeight() - scrollPane.getHeight()) / 2));
-            threeDeeView.moveToTile(centreMostTile.x, centreMostTile.y);
+            threeDeeView.moveToTile(centreMostTile);
             glassPane.setRotation(DIRECTIONS[rotation], dimension.getDim() < 0);
         }
         

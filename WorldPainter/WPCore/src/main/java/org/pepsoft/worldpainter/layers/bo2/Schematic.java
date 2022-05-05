@@ -5,6 +5,8 @@
 package org.pepsoft.worldpainter.layers.bo2;
 
 import org.jnbt.CompoundTag;
+import org.jnbt.DoubleTag;
+import org.jnbt.ListTag;
 import org.jnbt.NBTInputStream;
 import org.pepsoft.minecraft.AbstractNBTItem;
 import org.pepsoft.minecraft.Entity;
@@ -21,12 +23,14 @@ import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 import static org.pepsoft.minecraft.Constants.BLK_AIR;
+import static org.pepsoft.minecraft.Constants.TAG_POS;
 
 /**
  *
  * @author pepijn
  */
 public final class Schematic extends AbstractNBTItem implements WPObject, Bo2ObjectProvider {
+    @SuppressWarnings("unchecked") // Responsibility of creator of schematic
     public Schematic(String name, CompoundTag tag, Map<String, Serializable> attributes) {
         super(tag);
         this.name = name;
@@ -42,7 +46,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
             entities = null;
         } else {
             entities = new ArrayList<>(entityTags.size());
-            entities.addAll(entityTags.stream().map(Entity::fromNBT).collect(Collectors.toList()));
+            entities.addAll(entityTags.stream().map((CompoundTag entityTag) -> Entity.fromNBT(entityTag, ((ListTag<DoubleTag>) entityTag.getTag(TAG_POS)).getValue().stream().mapToDouble(DoubleTag::getValue).toArray())).collect(Collectors.toList()));
         }
         List<CompoundTag> tileEntityTags = getList("TileEntities");
         if (tileEntityTags.isEmpty()) {
@@ -292,12 +296,19 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
             attributes.put(ATTRIBUTE_OFFSET.key, new Point3i(-origin.x, -origin.y, -origin.z));
             origin = null;
         }
-        if (version == 0) {
+        if (version < 1) {
             if (! attributes.containsKey(ATTRIBUTE_LEAF_DECAY_MODE.key)) {
                 attributes.put(ATTRIBUTE_LEAF_DECAY_MODE.key, LEAF_DECAY_ON);
             }
-            version = 1;
         }
+        if (version < 2) {
+            if (entities != null) {
+                for (Entity entity: entities) {
+                    entity.setRelPos(entity.getPos());
+                }
+            }
+        }
+        version = 2;
     }
     
     private String name;
@@ -312,7 +323,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
     @Deprecated
     private Point3i origin;
     private Map<String, Serializable> attributes;
-    private int version = 1;
+    private int version = 2;
     
     private static final long serialVersionUID = 1L;
 }

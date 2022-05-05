@@ -5,45 +5,28 @@
 package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.MinecraftMapTileProvider;
-import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.swing.TileProvider;
 import org.pepsoft.util.swing.TiledImageViewer;
-import org.pepsoft.worldpainter.AbstractMain;
-import org.pepsoft.worldpainter.util.MinecraftUtil;
+import org.pepsoft.worldpainter.AbstractTool;
+import org.pepsoft.worldpainter.plugins.PlatformProvider;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
+
+import static org.pepsoft.worldpainter.util.MapUtils.selectMap;
 
 /**
  *
  * @author pepijn
  */
-public class MapViewer extends AbstractMain {
+public class MapViewer extends AbstractTool {
     public static void main(String[] args) throws IOException {
         initialisePlatform();
 
-        File mySavesDir = null;
-        File minecraftDir = MinecraftUtil.findMinecraftDir();
-        if (minecraftDir != null) {
-            mySavesDir = new File(minecraftDir, "saves");
-        }
-        File levelDatFile = FileUtils.selectFileForOpen(null, "Select Minecraft map level.dat file", mySavesDir, new FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory() || f.getName().equalsIgnoreCase("level.dat");
-            }
-
-            @Override
-            public String getDescription() {
-                return "Minecraft levels (level.dat)";
-            }
-        });
-        if (levelDatFile != null) {
-            final File worldDir = levelDatFile.getParentFile();
-            TileProvider tileProvider = new MinecraftMapTileProvider(worldDir);
+        PlatformProvider.MapInfo map = selectMap(null, null);
+        if (map != null) {
+            TileProvider tileProvider = new MinecraftMapTileProvider(map.dir);
 
             JFrame frame = new JFrame("Map Viewer");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

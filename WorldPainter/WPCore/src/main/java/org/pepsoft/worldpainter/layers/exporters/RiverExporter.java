@@ -21,12 +21,15 @@ import org.pepsoft.worldpainter.util.GeometryUtil;
 
 import java.awt.*;
 import java.util.List;
+import java.util.Set;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.MC_ICE;
 import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.TINY_BLOBS;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.BIOME_RIVER;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.BIOME_RIVER;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 
 /**
  *
@@ -36,9 +39,14 @@ public class RiverExporter extends AbstractLayerExporter<River> implements Secon
     public RiverExporter() {
         super(River.INSTANCE, new RiverSettings());
     }
-    
+
     @Override
-    public List<Fixup> render(final Dimension dimension, final Rectangle area, final Rectangle exportedArea, final MinecraftWorld minecraftWorld, Platform platform) {
+    public Set<Stage> getStages() {
+        return singleton(ADD_FEATURES);
+    }
+
+    @Override
+    public List<Fixup> addFeatures(final Dimension dimension, final Rectangle area, final Rectangle exportedArea, final MinecraftWorld minecraftWorld, Platform platform) {
         final RiverSettings settings = new RiverSettings();
         final int shoreHeight = settings.getShoreHeight();
         final boolean shore = shoreHeight > 0;
@@ -56,7 +64,7 @@ public class RiverExporter extends AbstractLayerExporter<River> implements Secon
             for (int y = area.y; y < area.y + area.height; y++) {
                 if (dimension.getBitLayerValueAt(River.INSTANCE, x, y)) {
                     final float distanceToShore = dimension.getDistanceToEdge(River.INSTANCE, x, y, maxDepth);
-                    final int depth = (int) Math.min(distanceToShore, maxDepth - (int) ((floorNoise.getPerlinNoise(x / TINY_BLOBS, y / TINY_BLOBS) + 0.5f) * depthVariation + 0.5f));
+                    final int depth = (int) Math.min(distanceToShore, maxDepth - Math.round((floorNoise.getPerlinNoise(x / TINY_BLOBS, y / TINY_BLOBS) + 0.5f) * depthVariation));
                     final int terrainHeight = dimension.getIntHeightAt(x, y);
                     final int waterLevel = dimension.getWaterLevelAt(x, y);
                     if ((waterLevel > terrainHeight) && (! dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, x, y))) {
@@ -212,7 +220,7 @@ public class RiverExporter extends AbstractLayerExporter<River> implements Secon
             return;
         }
         int waterLevel = -1;
-        for (int z = dimension.getIntHeightAt(x, y); z > 0; z--) {
+        for (int z = dimension.getIntHeightAt(x, y); z > dimension.getMinHeight(); z--) {
             Material existingMaterial = world.getMaterialAt(x, y, z);
             if (existingMaterial == AIR) {
                 continue;

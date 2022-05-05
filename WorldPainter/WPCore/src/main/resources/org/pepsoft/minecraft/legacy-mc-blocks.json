@@ -278,7 +278,7 @@
     "dataValue": 9,
     "name": "minecraft:water",
     "properties": {
-      "level": "9"
+      "level": "8"
     }
   },
   {
@@ -286,7 +286,7 @@
     "dataValue": 10,
     "name": "minecraft:water",
     "properties": {
-      "level": "10"
+      "level": "8"
     }
   },
   {
@@ -294,7 +294,7 @@
     "dataValue": 11,
     "name": "minecraft:water",
     "properties": {
-      "level": "11"
+      "level": "8"
     }
   },
   {
@@ -302,7 +302,7 @@
     "dataValue": 12,
     "name": "minecraft:water",
     "properties": {
-      "level": "12"
+      "level": "8"
     }
   },
   {
@@ -310,7 +310,7 @@
     "dataValue": 13,
     "name": "minecraft:water",
     "properties": {
-      "level": "13"
+      "level": "8"
     }
   },
   {
@@ -318,7 +318,7 @@
     "dataValue": 14,
     "name": "minecraft:water",
     "properties": {
-      "level": "14"
+      "level": "8"
     }
   },
   {
@@ -326,7 +326,7 @@
     "dataValue": 15,
     "name": "minecraft:water",
     "properties": {
-      "level": "15"
+      "level": "8"
     }
   },
   {
@@ -406,7 +406,7 @@
     "dataValue": 9,
     "name": "minecraft:water",
     "properties": {
-      "level": "9"
+      "level": "8"
     }
   },
   {
@@ -414,7 +414,7 @@
     "dataValue": 10,
     "name": "minecraft:water",
     "properties": {
-      "level": "10"
+      "level": "8"
     }
   },
   {
@@ -422,7 +422,7 @@
     "dataValue": 11,
     "name": "minecraft:water",
     "properties": {
-      "level": "11"
+      "level": "8"
     }
   },
   {
@@ -430,7 +430,7 @@
     "dataValue": 12,
     "name": "minecraft:water",
     "properties": {
-      "level": "12"
+      "level": "8"
     }
   },
   {
@@ -438,7 +438,7 @@
     "dataValue": 13,
     "name": "minecraft:water",
     "properties": {
-      "level": "13"
+      "level": "8"
     }
   },
   {
@@ -446,7 +446,7 @@
     "dataValue": 14,
     "name": "minecraft:water",
     "properties": {
-      "level": "14"
+      "level": "8"
     }
   },
   {
@@ -454,7 +454,7 @@
     "dataValue": 15,
     "name": "minecraft:water",
     "properties": {
-      "level": "15"
+      "level": "8"
     }
   },
   {
@@ -534,7 +534,7 @@
     "dataValue": 9,
     "name": "minecraft:lava",
     "properties": {
-      "level": "9"
+      "level": "8"
     }
   },
   {
@@ -542,7 +542,7 @@
     "dataValue": 10,
     "name": "minecraft:lava",
     "properties": {
-      "level": "10"
+      "level": "8"
     }
   },
   {
@@ -550,7 +550,7 @@
     "dataValue": 11,
     "name": "minecraft:lava",
     "properties": {
-      "level": "11"
+      "level": "8"
     }
   },
   {
@@ -558,7 +558,7 @@
     "dataValue": 12,
     "name": "minecraft:lava",
     "properties": {
-      "level": "12"
+      "level": "8"
     }
   },
   {
@@ -566,7 +566,7 @@
     "dataValue": 13,
     "name": "minecraft:lava",
     "properties": {
-      "level": "13"
+      "level": "8"
     }
   },
   {
@@ -574,7 +574,7 @@
     "dataValue": 14,
     "name": "minecraft:lava",
     "properties": {
-      "level": "14"
+      "level": "8"
     }
   },
   {
@@ -582,7 +582,7 @@
     "dataValue": 15,
     "name": "minecraft:lava",
     "properties": {
-      "level": "15"
+      "level": "8"
     }
   },
   {
@@ -662,7 +662,7 @@
     "dataValue": 9,
     "name": "minecraft:lava",
     "properties": {
-      "level": "9"
+      "level": "8"
     }
   },
   {
@@ -670,7 +670,7 @@
     "dataValue": 10,
     "name": "minecraft:lava",
     "properties": {
-      "level": "10"
+      "level": "8"
     }
   },
   {
@@ -678,7 +678,7 @@
     "dataValue": 11,
     "name": "minecraft:lava",
     "properties": {
-      "level": "11"
+      "level": "8"
     }
   },
   {
@@ -686,7 +686,7 @@
     "dataValue": 12,
     "name": "minecraft:lava",
     "properties": {
-      "level": "12"
+      "level": "8"
     }
   },
   {
@@ -694,7 +694,7 @@
     "dataValue": 13,
     "name": "minecraft:lava",
     "properties": {
-      "level": "13"
+      "level": "8"
     }
   },
   {
@@ -702,7 +702,7 @@
     "dataValue": 14,
     "name": "minecraft:lava",
     "properties": {
-      "level": "14"
+      "level": "8"
     }
   },
   {
@@ -710,7 +710,7 @@
     "dataValue": 15,
     "name": "minecraft:lava",
     "properties": {
-      "level": "15"
+      "level": "8"
     }
   },
   {

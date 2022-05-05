@@ -3,8 +3,6 @@ package org.pepsoft.minecraft.mapexplorer;
 import org.pepsoft.worldpainter.mapexplorer.Node;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -49,18 +47,6 @@ public class JavaMinecraftDirectoryNode extends DirectoryNode {
         }
         children.sort((node1, node2) -> DirectoryNode.COLLATOR.compare(node1.getName(), node2.getName()));
         return children.toArray(new Node[children.size()]);
-    }
-
-    private boolean isGzip(File file) {
-        if (file.length() >= 18) {
-            try (FileInputStream in = new FileInputStream(file)) {
-                return (in.read() == 0x1f) && (in.read() == 0x8b);
-            } catch (IOException e) {
-                throw new RuntimeException("I/O error while trying to determine whether " + file + " is a gzip file");
-            }
-        } else {
-            return false;
-        }
     }
 
     private final Pattern regionFilenamePatternVersion1 = Pattern.compile("r\\.-?\\d+\\.-?\\d+\\.mcr");

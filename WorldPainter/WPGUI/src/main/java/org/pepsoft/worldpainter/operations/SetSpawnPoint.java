@@ -4,13 +4,13 @@
  */
 package org.pepsoft.worldpainter.operations;
 
-import java.awt.Point;
-import javax.swing.JOptionPane;
-
 import org.pepsoft.worldpainter.Constants;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.WorldPainter;
+
+import javax.swing.*;
+import java.awt.*;
 
 /**
  *
@@ -30,7 +30,7 @@ public class SetSpawnPoint extends MouseOrTabletOperation {
             }
             World2 world = dimension.getWorld();
             int spawnHeight = dimension.getIntHeightAt(centreX, centreY);
-            if (spawnHeight == -1) {
+            if (spawnHeight == Integer.MIN_VALUE) {
                 // No tile
                 if (JOptionPane.showConfirmDialog(getView(), "<html>Are you sure you want to set the spawn <em>outside</em> the boundary of the world?</html>") != JOptionPane.OK_OPTION) {
                     return;

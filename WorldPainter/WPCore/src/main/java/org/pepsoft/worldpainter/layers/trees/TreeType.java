@@ -59,8 +59,8 @@ public abstract class TreeType implements Serializable {
     }
     
     protected void renderVines(int x, int y, int z, int size, MinecraftWorld world, Random random, int vineIncidence, int vineLengthBase, int vineLengthVariation) {
-        int r = Math.max(1, Math.min(size / 2 + 1, 4));
-        int maxZ = world.getMaxHeight() - 1;
+        final int r = Math.max(1, Math.min(size / 2 + 1, 4));
+        final int minZ = world.getMinHeight(), maxZ = world.getMaxHeight() - 1;
         for (int dz = 0; dz <= size + r; dz++) {
             if (z + dz > maxZ) {
                 break;
@@ -68,16 +68,16 @@ public abstract class TreeType implements Serializable {
             for (int dx = -r; dx <= r; dx++) {
                 for (int dy = -r; dy <= r; dy++) {
                     if (random.nextInt(vineIncidence) == 0) {
-                        Cursor cursor = new Cursor(world, x + dx, y + dy, z + dz, Direction.NORTH);
+                        final Cursor cursor = new Cursor(world, x + dx, y + dy, z + dz, Direction.NORTH);
                         if (cursor.isFreeOrInsubstantial()) {
-                            int turns = random.nextInt(4);
+                            final int turns = random.nextInt(4);
                             for (int i = 0; i < turns; i++) {
                                 cursor.turnRight();
                             }
                             if (isTreeBlock(cursor.getBlockInFront())) {
-                                int vineLength = random.nextInt(vineLengthVariation) + vineLengthBase;
+                                final int vineLength = random.nextInt(vineLengthVariation) + vineLengthBase;
                                 for (int i = 0; i < vineLength; i++) {
-                                    if (((z + dz - i) <= 0) || (! addVine(world, x + dx, y + dy, z + dz - i, cursor.getDirection()))) {
+                                    if (((z + dz - i) <= minZ) || (! addVine(world, x + dx, y + dy, z + dz - i, cursor.getDirection()))) {
                                         break;
                                     }
                                 }
@@ -94,7 +94,8 @@ public abstract class TreeType implements Serializable {
             final String simpleName = material.simpleName;
             return simpleName.endsWith("_log")
                     || simpleName.endsWith("_bark")
-                    || simpleName.endsWith("_leaves");
+                    || simpleName.endsWith("_leaves")
+                    || simpleName.endsWith("_wood");
         } else {
             return false;
         }

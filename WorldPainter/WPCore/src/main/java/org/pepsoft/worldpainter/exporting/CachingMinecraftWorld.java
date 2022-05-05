@@ -22,10 +22,16 @@ public class CachingMinecraftWorld implements MinecraftWorld {
         this.maxHeight = maxHeight;
         this.cacheSize = cacheSize;
         this.readOnly = readOnly;
+        minHeight = platform.minZ;
         cache = new HashMap<>(cacheSize);
         lruList = new HashList<>(cacheSize);
         dirtyChunks = new HashSet<>(cacheSize);
         chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension);
+    }
+
+    @Override
+    public int getMinHeight() {
+        return minHeight;
     }
 
     @Override
@@ -193,7 +199,7 @@ public class CachingMinecraftWorld implements MinecraftWorld {
         if (chunk != null) {
             return chunk.getHighestNonAirBlock(x & 0xf, y & 0xf);
         } else {
-            return -1;
+            return Integer.MIN_VALUE;
         }
     }
 
@@ -332,7 +338,7 @@ public class CachingMinecraftWorld implements MinecraftWorld {
     private final Map<Point, Chunk> cache;
     private final HashList<Point> lruList;
     private final Set<Point> dirtyChunks;
-    private final int maxHeight, cacheSize;
+    private final int minHeight, maxHeight, cacheSize;
     private final ChunkStore chunkStore;
     private Chunk cachedChunk;
     private int cachedX = Integer.MIN_VALUE, cachedZ = Integer.MIN_VALUE;
@@ -361,9 +367,6 @@ public class CachingMinecraftWorld implements MinecraftWorld {
         @Override public java.util.List<TileEntity> getTileEntities() {return null;}
         @Override public int getMaxHeight() {return 0;}
         @Override public void setTerrainPopulated(boolean terrainPopulated) {}
-        @Override public boolean isBiomesAvailable() {return false;}
-        @Override public int getBiome(int x, int z) {return 0;}
-        @Override public void setBiome(int x, int z, int biome) {}
         @Override public boolean isReadOnly() {return false;}
         @Override public boolean isLightPopulated() {return false;}
         @Override public void setLightPopulated(boolean lightPopulated) {}

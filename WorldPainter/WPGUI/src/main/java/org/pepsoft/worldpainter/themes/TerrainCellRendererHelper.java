@@ -4,13 +4,13 @@
  */
 package org.pepsoft.worldpainter.themes;
 
+import org.pepsoft.worldpainter.ColourScheme;
+import org.pepsoft.worldpainter.Terrain;
+
+import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.Terrain;
 
 /**
  *
@@ -23,7 +23,7 @@ class TerrainCellRendererHelper {
     
     void configure(JLabel label, Terrain terrain) {
         if (terrain != null) {
-            BufferedImage image = terrain.getIcon(colourScheme);
+            BufferedImage image = terrain.getScaledIcon(16, colourScheme);
             ImageIcon icon = iconCache.get(image);
             if (icon == null) {
                 icon = new ImageIcon(image);

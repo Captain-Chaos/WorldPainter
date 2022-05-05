@@ -9,8 +9,8 @@ import static org.pepsoft.minecraft.Material.AGE;
  * A simple one-block plant with an {@code age} property.
  */
 class AgingPlant extends SimplePlant {
-    AgingPlant(String name, Material material, Category category, String iconName, int maxGrowth) {
-        super(name, material, category, iconName);
+    AgingPlant(String name, Material material, String iconName, int maxGrowth, Category... category) {
+        super(name, material, iconName, category);
         this.maxGrowth = maxGrowth;
     }
 
@@ -20,8 +20,8 @@ class AgingPlant extends SimplePlant {
     }
 
     @Override
-    public AgingPlant realise(int growth, Platform platform) {
-        return new AgingPlant(name, material.withProperty(AGE, growth - 1), category, iconName, maxGrowth);
+    public Plant realise(int growth, Platform platform) {
+        return new SimplePlant(name, material.withProperty(AGE, growth - 1), iconName, categories);
     }
 
     protected final int maxGrowth;

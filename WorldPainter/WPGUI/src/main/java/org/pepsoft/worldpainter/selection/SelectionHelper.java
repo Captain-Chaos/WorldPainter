@@ -456,13 +456,13 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
 
     private void copyColumn(Tile srcTile, int srcXInTile, int srcYInTile, int dstX, int dstY, float blend) {
         if (options.copyHeights) {
-            dimension.setRawHeightAt(dstX, dstY, (int) (blend * srcTile.getRawHeight(srcXInTile, srcYInTile) + (1 - blend) * dimension.getRawHeightAt(dstX, dstY) + 0.5f));
+            dimension.setRawHeightAt(dstX, dstY, Math.round(blend * srcTile.getRawHeight(srcXInTile, srcYInTile) + (1 - blend) * dimension.getRawHeightAt(dstX, dstY)));
         }
         if (options.copyTerrain && (RANDOM.nextFloat() <= blend)) {
             dimension.setTerrainAt(dstX, dstY, srcTile.getTerrain(srcXInTile, srcYInTile));
         }
         if (options.copyFluids) {
-            dimension.setWaterLevelAt(dstX, dstY, (int) (blend * srcTile.getWaterLevel(srcXInTile, srcYInTile) + (1 - blend) * dimension.getWaterLevelAt(dstX, dstY) + 0.5f));
+            dimension.setWaterLevelAt(dstX, dstY, Math.round(blend * srcTile.getWaterLevel(srcXInTile, srcYInTile) + (1 - blend) * dimension.getWaterLevelAt(dstX, dstY)));
             if (RANDOM.nextFloat() <= blend) {
                 dimension.setBitLayerValueAt(FloodWithLava.INSTANCE, dstX, dstY, srcTile.getBitLayerValue(FloodWithLava.INSTANCE, srcXInTile, srcYInTile));
             }
@@ -485,7 +485,7 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                         break;
                     case BYTE:
                     case NIBBLE:
-                        dimension.setLayerValueAt(layer, dstX, dstY, (int) (blend * value + (1 - blend) * dimension.getLayerValueAt(layer, dstX, dstY) + 0.5f));
+                        dimension.setLayerValueAt(layer, dstX, dstY, Math.round(blend * value + (1 - blend) * dimension.getLayerValueAt(layer, dstX, dstY)));
                         break;
                     case NONE:
                         throw new UnsupportedOperationException("Don't know how to copy layer " + layer);

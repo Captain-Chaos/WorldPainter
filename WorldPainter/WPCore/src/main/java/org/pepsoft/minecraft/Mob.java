@@ -6,6 +6,7 @@
 package org.pepsoft.minecraft;
 
 import org.jnbt.CompoundTag;
+
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
@@ -21,8 +22,8 @@ public class Mob extends Entity {
         setHurtTime((short) 0);
     }
 
-    public Mob(CompoundTag tag) {
-        super(tag);
+    public Mob(CompoundTag tag, double[] relPos) {
+        super(tag, relPos);
     }
 
     public final short getAttackTime() {

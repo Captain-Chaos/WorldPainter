@@ -3,7 +3,7 @@ package org.pepsoft.worldpainter;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.pepsoft.minecraft.ChunkStore;
-import org.pepsoft.minecraft.Level;
+import org.pepsoft.minecraft.JavaLevel;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
@@ -11,6 +11,7 @@ import org.pepsoft.worldpainter.exporting.JavaMinecraftWorld;
 import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.layers.NotPresent;
+import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.util.MinecraftWorldUtils;
@@ -96,7 +97,7 @@ public class RegressionIT {
     }
 
     protected void verifyJavaWorld(File worldDir, int expectedVersion) throws IOException {
-        Level level = Level.load(new File(worldDir, "level.dat"));
+        JavaLevel level = JavaLevel.load(new File(worldDir, "level.dat"));
         assertEquals(expectedVersion, level.getVersion());
     }
 
@@ -145,7 +146,7 @@ public class RegressionIT {
         }
 
         Platform platform = world.getPlatform();
-        DefaultPlatformProvider platformProvider = (DefaultPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
+        JavaPlatformProvider platformProvider = (JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         int maxHeight = dimension.getMaxHeight();
         int[] lowestChunkX = {Integer.MAX_VALUE}, highestChunkX = {Integer.MIN_VALUE};
         int[] lowestChunkZ = {Integer.MAX_VALUE}, highestChunkZ = {Integer.MIN_VALUE};

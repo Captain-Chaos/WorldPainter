@@ -1,3 +1,113 @@
+-- Version 2.10.0, released ...
+
+ * The Custom Caves/Tunnel layer now supports roof layers in addition to floor layers. Note that the roof layers are inverted. This includes Custom Objects. A future version will make this inversion optional for Custom Object layers
+ * The variation of Custom Caves/Tunnel floor and roof layers can now be configured, so that they are not applied with the same intensity everywhere but can vary randomly
+ * WorldPainter can now calculate the distance property of leaf blocks while Exporting. This helps with preventing leaf blocks that are attached to treet trunks from decaying in-game. This can be turned off on the Post Processing tab
+   + WorldPainter can also automatically remove leaf blocks that are too distant (and not persistent) and would decay in Minecraft. This is turned off by default but can be turned on on the Post Processing tab
+
+-- Version 2.9.0, released 1-5-2022
+
+ * The Minecraft 1.18 map format is now supported
+   + This includes negative heights down to y=-64
+   + The map format of worlds must now be explicitly set and changed (rather than implicitly on the Export screen). There is a new entry in the Edit menu for this: "Change Map Format...". It allows you to change the map format, and make any required height changes at the same time
+   + The Stone Mix material (the default underground material) now places deep slate and pockets of tuff under y=0
+   + Minecraft 1.18 (and earlier) plants have been added to the Custom Plants layer. Hanging plants are still missing, as it is not clear how WorldPainter would place those
+   + Minecraft 1.18 (and earlier) terrain types and biomes have been added to the various palettes
+   + The Populate layer (and the Allow Minecraft to Populate the Entire Terrain option on the Export screen) are once again supported by Minecraft from version 1.18, so those have been re-enabled. It allows you to tell Minecraft to populate the terrain with trees, vegetation, etc. according to the painted biome
+   + The "chest of goodies" is once again supported for Minecraft 1.18 (and all other Minecraft versions)
+ * Entities (mobs) and tile entities (block entities) from Custom Objects are once again correctly placed on the map
+   + NOTE: for entities (mobs), you may have to remove and re-add the Custom Object to the layer for this to work
+ * When Importing an existing map, or Merging with an existing map, the map directory should now be selected, rather than the level.dat file
+ * Nether and End dimension changes:
+   + The world type can now be configured for Nether and End dimensions
+   + The Nether and End dimensions can now have Endless Borders, which will have Nether and End biomes respectively
+   + The build heights of Nether and End dimensions are constrained to a low of 0 and high of 255, regardless of those of the Surface dimension, since those are the allowed build heights in those dimensions in Minecraft
+ * The Custom Cave/Tunnel layer now supports setting the biome inside the cave/tunnel to a different one than the surface. This works for Minecraft 1.17 and Minecraft 1.18+
+ * 32-bit height maps are now supported for both Import and Export
+   + Note that they *must* be TIFF files; PNG does not support 32-bit grey scale images
+   + The height map import screen has been improved to be easier to use; among other things it now offers presets to quickly set the mapping
+ * Merging biomes now takes the tile selection and the Read-Only layer into account, and the performance has been improved
+ * The default theme no longer uses the Rock terrain type. Rock includes cobblestone, which is not Imported and caused confusion as a result. Instead it uses Stone Mix (the default underground material), which makes more sense
+ * The Flood With Water, Flood With Lava and Bucket Fill tools now work on very large maps
+   + They will take a very long time to fill large areas (up to ten minutes or more)
+   + Undoing or redoing such large operations may also take a very long time and should not be interrupted
+   + There is a maximum size for the area that can be filled: a square with sides of 46340 blocks. The tools will only fill up to the edges of this square and warn you if they were hit
+ * Various improvements to Custom Brushes:
+   +  Custom brushes are now no longer all loaded at startup
+     - This prevents performance problems and WorldPainter hanging at startup due to the use of many and/or large custom brushes taking up too much memory
+     - The brushes are now loaded "lazily" (on-demand). This does mean that selecting a brush, or using one after it has not been used for a while, may take a small performance hit as it (re-)loads the brush from disk
+   + The tab icons by default are now the first letter of the folder the brushes are in
+   + You can override the icon for each folder by putting a file named "icon.png" in it
+ * Various small usability improvements and performance optimisations have been made
+ * Various measures to prevent data corruption and other problems due to lack of disk space were implemented:
+   + When Exporting or Merging maps:
+     - If there is less than a configurable amount of free space (5 GB by default), WorldPainter will offer to delete backups, oldest first, until the minimum amount of free space is reached
+     - WorldPainter tries to ensure that at least one backup remains of every map for as long as possible, but if there is not enough space for that it will delete backups of maps for which there is only one backup left
+     - This measure can be disabled, or the limit changed from the default of 5 GB, on the Preferences screen. It is also possible to manually trigger a backups clean up from there
+   + When Saving .world files:
+     - The file is saved to a temporary file first, so that if that fails (e.g. because the disk is full) the existing file, if any, is not corrupted
+ * Colour Schemes for the editor, that allowed for different colours for materials, are no longer supported and have been removed
+ * Scripting changes:
+   + The GraalVM JavaScript engine is now included, so that scripts implemented in JavaScript will always be supported, even on newer Oracle runtimes which lack JavaScript support
+   + When creating new worlds from height maps in scripts the platform (map format) can now be specified
+ * Mac OS X binaries are now universal binaries so that they will use the native M1 version of Java on M1 Macs for improved performance
+ * Various bugs have been fixed
+
+-- Version 2.8.10, released 11-12-2021
+
+ * Add support for data pack format 7 to prevent errors when importing maps using them
+ * Bug fix: allow selection of 320 blocks map height when importing height maps
+ * Bug fix: properly drop lava in post processing step
+
+-- Version 2.8.9, released 9-12-2021
+
+ * Bug fix: fix water and lava dropping to stop at existing water or lava (and not obliterate plants)
+ * Bug fix: also place water plants in one block deep water
+
+-- Version 2.8.8, released 9-12-2021
+
+ * Bug fix: attempt to fix an error Importing maps using data packs using an uncommon ZIP format
+ * Bug fix: make Custom Object Layer previews work again without errors
+ * Bug fix: fix various errors during Export caused by the new flowing water support
+
+-- Version 2.8.7, released 8-12-2021
+
+ * It is now possible to change the post processing settings to have WorldPainter handle floating fluids and other blocks in various ways. This is done from the new Post Processing tab on the Export screen:
+   + For both water and lava you can configure:
+     - Whether floating blocks should be extended downwards until they hit a solid block
+     - Whether uncontained blocks should be turned into flowing water or lava so that Minecraft will cause them to flow out upon loading
+   + For sand, gravel and cement (separately):
+     - Whether floating blocks should be left floating, supported by turning the lowermost block into stone or sandstone, or be dropped down on a solid block underneath
+
+-- Version 2.8.6, released 6-12-2021
+
+ * Bug fix: make custom layer previews work without errors by correctly filling the 3D biomes up to the level height
+
+-- Version 2.8.5, released 5-12-2021
+
+ * Bug fix: make the Preferences screen work again
+
+-- Version 2.8.4, released 5-12-2021
+
+ * The Minecraft 1.15+ format is now the default format for new worlds
+ * Add experimental support for Minecraft 1.17 with increased build heights up to 2032 (although higher than 320 is not recommended for performance reasons)
+   - Note that Minecraft 1.18 CANNOT load such maps! Minecraft 1.18 *can* load maps that were exported in Minecraft 1.15+ format. WorldPainter cannot yet Import maps from Minecraft 1.18
+   - If you set the build height to 320 (the default), you will later be able to export the map in Minecraft 1.18 format, once support is added to WorldPainter
+ * Bug fixes: a range of frequent errors has been fixed, including but not limited to:
+   - The Text tool now works with all layers
+   - The Flood tool no longer causes errors when invoked repeatedly
+   - Errors attempting to show a progress bar in the Windows task bar
+   - Importing and Exporting of maps with a non standard world type (it will be reset to the default world type), or Superflat presets without structures
+   - The Populate layer can now be obtained from scripts
+
+-- Version 2.8.3, released 6-11-2021
+
+ * Implement a workaround for Importing maps that had previously been Exported with incorrect biome IDs due to the bug fixed in version 2.8.2
+
+-- Version 2.8.2, released 5-11-2021
+
+ * Bug fix: correctly export biomes with ID's higher than 127 in Minecraft 1.15+ format
+
 -- Version 2.8.1, released 28-5-2021
 
  * Make it work on Java 16.

@@ -32,14 +32,35 @@ public class Entity extends AbstractNBTItem {
         setVel(new double[] {0, 0, 0});
     }
 
-    protected Entity(CompoundTag tag) {
+    protected Entity(CompoundTag tag, double[] relPos) {
         super(tag);
+        if ((relPos != null) && (relPos.length != 3)) {
+            throw new IllegalArgumentException("relPos.length != 3");
+        }
+        this.relPos = relPos;
     }
 
     public final String getId() {
         return getString(TAG_ID_);
     }
 
+    /**
+     * Get the position of this entity relative to the origin of the custom object in which it is contained.
+     */
+    public final double[] getRelPos() {
+        return (relPos != null) ? relPos : new double[] {0, 0, 0};
+    }
+
+    public final void setRelPos(double[] relPos) {
+        if (relPos.length != 3) {
+            throw new IllegalArgumentException();
+        }
+        this.relPos = relPos;
+    }
+
+    /**
+     * Get the absolute position of this entity in the world.
+     */
     public final double[] getPos() {
         double[] list = getDoubleList(TAG_POS);
         return (list != null) ? list : new double[3];
@@ -92,22 +113,24 @@ public class Entity extends AbstractNBTItem {
     }
 
     public static Entity fromNBT(CompoundTag entityTag) {
-        if (entityTag.getTag(TAG_NBT_) instanceof CompoundTag) {
-            // Pre-1.13 style entity from .nbt file
-            entityTag = (CompoundTag) entityTag.getTag(TAG_NBT_);
-        }
+        return fromNBT(entityTag, null);
+    }
+
+    public static Entity fromNBT(CompoundTag entityTag, double[] relPos) {
         String id = ((StringTag) entityTag.getTag(TAG_ID_)).getValue();
         switch (id) { // TODO add MC 1.15 support
             case LEGACY_ID_PLAYER:
-                return new Player(entityTag);
+                return new Player(entityTag, relPos);
             case LEGACY_ID_VILLAGER:
-                return new Villager(entityTag);
+                return new Villager(entityTag, relPos);
             case LEGACY_ID_PAINTING:
-                return new Painting(entityTag);
+                return new Painting(entityTag, relPos);
             default:
-                return new Entity(entityTag);
+                return new Entity(entityTag, relPos);
         }
     }
+
+    private double[] relPos;
 
     private static final long serialVersionUID = 1L;
 }

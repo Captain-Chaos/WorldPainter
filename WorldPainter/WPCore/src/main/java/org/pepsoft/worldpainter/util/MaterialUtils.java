@@ -4,12 +4,18 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.layers.Bo2Layer;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.Resources;
+import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
 import org.pepsoft.worldpainter.layers.plants.Plant;
 import org.pepsoft.worldpainter.layers.plants.PlantLayer;
 import org.pepsoft.worldpainter.objects.WPObject;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.pepsoft.minecraft.Material.GOLD_ORE;
+import static org.pepsoft.minecraft.Material.NETHER_GOLD_ORE;
+import static org.pepsoft.worldpainter.Constants.DIM_NETHER;
 
 /**
  * Utility methods for working with materials.
@@ -43,9 +49,11 @@ public class MaterialUtils {
                 }
             }
         });
-        // Check custom object layers
+        // Check layers
         for (Dimension dimension: world.getDimensions()) {
-            for (Layer layer: dimension.getAllLayers(true)) {
+            Set<Layer> allLayers = dimension.getAllLayers(true);
+            allLayers.addAll(dimension.getMinimumLayers());
+            for (Layer layer: allLayers) {
                 if (layer instanceof Bo2Layer) {
                     Map<String, List<WPObject>> nameOnlyMaterialsForLayer = new HashMap<>();
                     for (WPObject object: ((Bo2Layer) layer).getObjectProvider().getAllObjects()) {
@@ -82,6 +90,19 @@ public class MaterialUtils {
                             nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("plants " + plants.subList(0, 2).stream().map(WPObject::getName).collect(Collectors.joining(", ")) + " and " + (plants.size() - 2) + " more in layer " + layer.getName());
                         }
                     });
+                } else if (layer instanceof Resources) {
+                    Set<String> nameOnlyMaterialsForLayer = new HashSet<>();
+                    ResourcesExporterSettings settings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
+                    for (Material material: settings.getMaterials()) {
+                        if (settings.getChance(material) > 0) {
+                            if (material.blockType == -1) {
+                                nameOnlyMaterialsForLayer.add(material.name);
+                            } else if ((material == GOLD_ORE) && (dimension.getDim() == DIM_NETHER)) {
+                                nameOnlyMaterialsForLayer.add(NETHER_GOLD_ORE.name);
+                            }
+                        }
+                    }
+                    nameOnlyMaterialsForLayer.forEach(name -> nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("Resources layer"));
                 }
             }
         }

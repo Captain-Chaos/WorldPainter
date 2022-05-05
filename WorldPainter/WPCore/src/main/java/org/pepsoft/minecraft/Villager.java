@@ -18,8 +18,8 @@ public class Villager extends Mob {
         super(LEGACY_ID_VILLAGER); // TODO add MC 1.15 support
     }
     
-    public Villager(CompoundTag tag) {
-        super(tag);
+    public Villager(CompoundTag tag, double[] relPos) {
+        super(tag, relPos);
     }
     
     public Villager(int profession) {

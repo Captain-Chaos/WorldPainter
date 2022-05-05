@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import static org.pepsoft.util.FileUtils.sanitiseName;
+
 /**
  * A class which knows how to export a WorldPainter world in the map format of a
  * particular {@link org.pepsoft.worldpainter.Platform}.
@@ -23,15 +25,25 @@ public interface WorldExporter {
     World2 getWorld();
 
     /**
-     * Indicate into which directory the existing map, if any, will be backed up
-     * that is going to be exported into {@code worldDir}.
+     * Indicate into which directory the existing map, if any, would be backed up if the specified world would be
+     * exported into the specified base directory.
      *
-     * @param worldDir The directory into which the world is going to be
-     *                 exported.
-     * @return The directory to which the existing map at that location, if any,
-     * should be backed up.
-     * @throws IOException If an I/O error occurs while determining the backup
-     * directory.
+     * @param baseDir The base directory in which the map directory would be created into which the world would be
+     *                exported.
+     * @return The directory to which the existing map at that location, if any, should be backed up.
+     * @throws IOException If an I/O error occurs while determining the backup directory.
+     */
+    default File selectBackupDir(File baseDir, World2 world) throws IOException {
+        return selectBackupDir(new File(baseDir, sanitiseName(world.getName())));
+    }
+
+    /**
+     * Indicate into which directory the existing map, if any, will be backed up that is going to be exported into
+     * {@code worldDir}.
+     *
+     * @param worldDir The map directory into which the world would be exported.
+     * @return The directory to which the existing map at that location, if any, should be backed up.
+     * @throws IOException If an I/O error occurs while determining the backup directory.
      */
     File selectBackupDir(File worldDir) throws IOException;
 

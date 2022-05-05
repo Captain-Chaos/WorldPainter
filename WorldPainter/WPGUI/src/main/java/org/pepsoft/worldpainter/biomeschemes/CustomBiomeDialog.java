@@ -4,9 +4,13 @@
  */
 package org.pepsoft.worldpainter.biomeschemes;
 
-import java.awt.Window;
-import javax.swing.SpinnerNumberModel;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.WorldPainterDialog;
+
+import javax.swing.*;
+import java.awt.*;
+
+import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
 
 /**
  *
@@ -16,17 +20,27 @@ public class CustomBiomeDialog extends WorldPainterDialog {
     /**
      * Creates new form CustomBiomeDialog
      */
-    public CustomBiomeDialog(Window parent, CustomBiome customBiome, boolean _new) {
+    public CustomBiomeDialog(Window parent, CustomBiome customBiome, boolean _new, Platform platform) {
         super(parent);
         this.customBiome = customBiome;
         initComponents();
         spinnerID.setValue(customBiome.getId());
-        if (! _new) {
-            spinnerID.setEnabled(false);
-        } else {
-            ((SpinnerNumberModel) spinnerID.getModel()).setMinimum(customBiome.getId());
-        }
         fieldName.setText(customBiome.getName());
+        if (platform.capabilities.contains(NAMED_BIOMES)) {
+            remove(jLabel2);
+            remove(spinnerID);
+            jLabel3.setText("ID:");
+            if (_new) {
+                fieldName.requestFocusInWindow();
+                fieldName.selectAll();
+            }
+        } else {
+            if (!_new) {
+                spinnerID.setEnabled(false);
+            } else {
+                ((SpinnerNumberModel) spinnerID.getModel()).setMinimum(customBiome.getId());
+            }
+        }
         colourEditor2.setColour(customBiome.getColour());
 
         rootPane.setDefaultButton(buttonOK);
@@ -78,10 +92,18 @@ public class CustomBiomeDialog extends WorldPainterDialog {
         jLabel4.setText("Colour:");
 
         buttonCancel.setText("Cancel");
-        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
+        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCancelActionPerformed(evt);
+            }
+        });
 
         buttonOK.setText("OK");
-        buttonOK.addActionListener(this::buttonOKActionPerformed);
+        buttonOK.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonOKActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -100,13 +122,12 @@ public class CustomBiomeDialog extends WorldPainterDialog {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(spinnerID, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(colourEditor2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(buttonOK)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(buttonCancel)
+                            .addComponent(fieldName)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(buttonOK)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonCancel)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(

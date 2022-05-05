@@ -10,10 +10,12 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.minecraft.*;
 import org.pepsoft.util.GUIUtils;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
+import org.pepsoft.worldpainter.util.BackupUtils;
 import org.pepsoft.worldpainter.util.EnumListCellRenderer;
 
 import javax.swing.*;
@@ -22,9 +24,12 @@ import java.util.List;
 import java.util.Random;
 import java.util.SortedMap;
 
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
+import static org.pepsoft.worldpainter.Generator.*;
 import static org.pepsoft.worldpainter.Terrain.GRASS;
+import static org.pepsoft.worldpainter.World2.DEFAULT_OCEAN_SEED;
 
 /**
  *
@@ -37,16 +42,12 @@ public class PreferencesDialog extends WorldPainterDialog {
         this.colourScheme = colourScheme;
         
         initComponents();
-        if (GUIUtils.getUIScale() != 1.0f) {
-            comboBoxLookAndFeel.setEnabled(false);
-            jLabel32.setText("<html><em>Visual themes not available for high resolution displays</em></html>");
-        }
         
         comboBoxSurfaceMaterial.setModel(new DefaultComboBoxModel(Terrain.PICK_LIST));
         comboBoxSurfaceMaterial.setRenderer(new TerrainListCellRenderer(colourScheme));
         comboBoxMode.setModel(new DefaultComboBoxModel<>(GameType.values()));
         comboBoxMode.setRenderer(new EnumListCellRenderer());
-        comboBoxWorldType.setModel(new DefaultComboBoxModel<>(Generator.values()));
+        comboBoxWorldType.setModel(new DefaultComboBoxModel<>(new Generator[] { DEFAULT, LARGE_BIOMES, FLAT, CUSTOM }));
         comboBoxWorldType.setRenderer(new EnumListCellRenderer());
 
         List<AccelerationType> accelTypes = AccelerationType.getForThisOS();
@@ -119,8 +120,8 @@ public class PreferencesDialog extends WorldPainterDialog {
             spinnerRange.setEnabled(false);
             spinnerScale.setEnabled(false);
         }
-        spinnerRange.setValue((int) (config.getDefaultRange() + 0.5f));
-        spinnerScale.setValue((int) (config.getDefaultScale() * 100 + 0.5f));
+        spinnerRange.setValue(Math.round(config.getDefaultRange()));
+        spinnerScale.setValue((int) Math.round(config.getDefaultScale() * 100));
         spinnerGroundLevel.setValue(config.getLevel());
         spinnerWaterLevel.setValue(config.getWaterLevel());
         checkBoxLava.setSelected(config.isLava());
@@ -131,24 +132,23 @@ public class PreferencesDialog extends WorldPainterDialog {
         
         // Export settings
         checkBoxChestOfGoodies.setSelected(config.isDefaultCreateGoodiesChest());
-        comboBoxWorldType.setSelectedIndex(config.getDefaultGenerator().ordinal());
-        generatorOptions = config.getDefaultGeneratorOptions();
+        comboBoxWorldType.setSelectedIndex(config.getDefaultGenerator().getType().ordinal());
+        generatorOptions = (config.getDefaultGenerator() instanceof CustomGenerator) ? ((CustomGenerator) config.getDefaultGenerator()).getName() : null;
         checkBoxStructures.setSelected(config.isDefaultMapFeatures());
         comboBoxMode.setSelectedItem(config.getDefaultGameType());
         checkBoxCheats.setSelected(config.isDefaultAllowCheats());
 
         previousExp = (int) Math.round(Math.log(config.getDefaultMaxHeight()) / Math.log(2.0));
 
-        if (GUIUtils.getUIScale() == 1.0f) {
-            comboBoxLookAndFeel.setSelectedIndex(config.getLookAndFeel() != null ? config.getLookAndFeel().ordinal() : 0);
-        }
+        comboBoxLookAndFeel.setSelectedIndex(config.getLookAndFeel() != null ? config.getLookAndFeel().ordinal() : 0);
         if (config.getUiScale() == 0.0f) {
             radioButtonUIScaleAuto.setSelected(true);
+            sliderUIScale.setValue((int) (GUIUtils.SYSTEM_UI_SCALE_FLOAT * 100));
         } else {
             radioButtonUIScaleManual.setSelected(true);
             sliderUIScale.setValue((int) (config.getUiScale() * 100));
         }
-        updateUIScale();
+        updateLabelUIScale();
         
         switch (config.getAccelerationType()) {
             case DEFAULT:
@@ -186,6 +186,8 @@ public class PreferencesDialog extends WorldPainterDialog {
         checkBoxAutoSave.setSelected(config.isAutosaveEnabled());
         spinnerAutoSaveGuardTime.setValue(config.getAutosaveDelay() / 1000);
         spinnerAutoSaveInterval.setValue(config.getAutosaveInterval() / 1000);
+        spinnerFreeSpaceForMaps.setValue(config.getMinimumFreeSpaceForMaps());
+        checkBoxAutoDeleteBackups.setSelected(config.isAutoDeleteBackups());
         
         setControlStates();
     }
@@ -229,15 +231,25 @@ public class PreferencesDialog extends WorldPainterDialog {
         
         // Export settings
         config.setDefaultCreateGoodiesChest(checkBoxChestOfGoodies.isSelected());
-        config.setDefaultGenerator(Generator.values()[comboBoxWorldType.getSelectedIndex()]);
-        config.setDefaultGeneratorOptions(generatorOptions);
+        final MapGenerator defaultGenerator;
+        final Generator generatorType = (Generator) comboBoxWorldType.getSelectedItem();
+        switch (generatorType) {
+            case DEFAULT:
+            case LARGE_BIOMES:
+                defaultGenerator = new SeededGenerator(generatorType, DEFAULT_OCEAN_SEED);
+                break;
+            case FLAT:
+                defaultGenerator = new SuperflatGenerator(SuperflatPreset.defaultPreset(JAVA_ANVIL_1_15));
+                break;
+            default:
+                throw new InternalError("Generator type " + generatorType + " not supported");
+        }
+        config.setDefaultGenerator(defaultGenerator);
         config.setDefaultMapFeatures(checkBoxStructures.isSelected());
         config.setDefaultGameType((GameType) comboBoxMode.getSelectedItem());
         config.setDefaultAllowCheats(checkBoxCheats.isSelected());
 
-        if (GUIUtils.getUIScale() == 1.0f) {
-            config.setLookAndFeel(Configuration.LookAndFeel.values()[comboBoxLookAndFeel.getSelectedIndex()]);
-        }
+        config.setLookAndFeel(Configuration.LookAndFeel.values()[comboBoxLookAndFeel.getSelectedIndex()]);
         if (radioButtonUIScaleAuto.isSelected()) {
             config.setUiScale(0.0f);
         } else {
@@ -269,6 +281,8 @@ public class PreferencesDialog extends WorldPainterDialog {
         config.setAutosaveEnabled(checkBoxAutoSave.isSelected());
         config.setAutosaveDelay(((Integer) spinnerAutoSaveGuardTime.getValue()) * 1000);
         config.setAutosaveInterval(((Integer) spinnerAutoSaveInterval.getValue()) * 1000);
+        config.setMinimumFreeSpaceForMaps((Integer) spinnerFreeSpaceForMaps.getValue());
+        config.setAutoDeleteBackups(checkBoxAutoDeleteBackups.isSelected());
         
         try {
             config.save();
@@ -294,9 +308,8 @@ public class PreferencesDialog extends WorldPainterDialog {
         sliderUIScale.setEnabled(radioButtonUIScaleManual.isSelected());
     }
 
-    private void updateUIScale() {
+    private void updateLabelUIScale() {
         if (radioButtonUIScaleAuto.isSelected()) {
-            sliderUIScale.setValue((int) (GUIUtils.SYSTEM_UI_SCALE_FLOAT * 100));
             labelUIScale.setText((int) (GUIUtils.SYSTEM_UI_SCALE_FLOAT * 100) + "%");
         } else {
             labelUIScale.setText(sliderUIScale.getValue() + "%");
@@ -319,6 +332,19 @@ public class PreferencesDialog extends WorldPainterDialog {
             defaultSettings.setBorderLevel(heightMapTileFactory.getWaterHeight());
             SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
             comboBoxSurfaceMaterial.setSelectedItem(terrainRanges.get(terrainRanges.headMap(waterLevel + 3).lastKey()));
+        }
+    }
+    
+    private void cleanUpBackupsNow() {
+        Configuration config = Configuration.getInstance();
+        int oldMinimumFreeSpaceForMaps = config.getMinimumFreeSpaceForMaps();
+        config.setMinimumFreeSpaceForMaps((Integer) spinnerFreeSpaceForMaps.getValue());
+        try {
+            BackupUtils.cleanUpBackups(null, this);
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error while cleaning backups", e);
+        } finally {
+            config.setMinimumFreeSpaceForMaps(oldMinimumFreeSpaceForMaps);
         }
     }
     
@@ -361,6 +387,13 @@ public class PreferencesDialog extends WorldPainterDialog {
         labelUIScale = new javax.swing.JLabel();
         radioButtonUIScaleAuto = new javax.swing.JRadioButton();
         radioButtonUIScaleManual = new javax.swing.JRadioButton();
+        jSeparator1 = new javax.swing.JSeparator();
+        jLabel49 = new javax.swing.JLabel();
+        jLabel50 = new javax.swing.JLabel();
+        spinnerFreeSpaceForMaps = new javax.swing.JSpinner();
+        jLabel51 = new javax.swing.JLabel();
+        checkBoxAutoDeleteBackups = new javax.swing.JCheckBox();
+        buttonCleanUpBackupsNow = new javax.swing.JButton();
         jPanel5 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel18 = new javax.swing.JLabel();
@@ -548,6 +581,32 @@ public class PreferencesDialog extends WorldPainterDialog {
             }
         });
 
+        jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
+
+        jLabel49.setText("Backup settings");
+
+        jLabel50.setText("Minimum free space on drive:");
+
+        spinnerFreeSpaceForMaps.setModel(new javax.swing.SpinnerNumberModel(2, 1, 999, 1));
+
+        jLabel51.setText("GB");
+
+        checkBoxAutoDeleteBackups.setSelected(true);
+        checkBoxAutoDeleteBackups.setText("Offer to delete old map backups on Export and Merge as necessary");
+        checkBoxAutoDeleteBackups.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxAutoDeleteBackupsActionPerformed(evt);
+            }
+        });
+
+        buttonCleanUpBackupsNow.setText("Clean Up Backups Now");
+        buttonCleanUpBackupsNow.setToolTipText("Delete backups, oldest first, until there is at least the indicated amount of space free");
+        buttonCleanUpBackupsNow.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCleanUpBackupsNowActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -556,22 +615,45 @@ public class PreferencesDialog extends WorldPainterDialog {
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(checkBoxPing)
-                    .addComponent(checkBoxCheckForUpdates)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(checkBoxCheckForUpdates)
+                            .addComponent(checkBoxUndo)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel30)
+                                    .addComponent(jLabel2))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(comboBoxLookAndFeel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel32, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(jPanel1Layout.createSequentialGroup()
+                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(radioButtonUIScaleManual)
+                                            .addComponent(radioButtonUIScaleAuto))
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(labelUIScale)
+                                            .addComponent(sliderUIScale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(12, 12, 12)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel4)
+                                    .addComponent(jLabel3)
+                                    .addGroup(jPanel1Layout.createSequentialGroup()
+                                        .addComponent(jLabel5)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(spinnerUndoLevels, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                        .addGap(22, 22, 22)
+                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel49)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jLabel20)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(spinnerWorldBackups, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(checkBoxAutoSave)
-                    .addComponent(checkBoxUndo)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(12, 12, 12)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel4)
-                            .addComponent(jLabel3)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jLabel5)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerUndoLevels, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(19, 19, 19)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -588,73 +670,85 @@ public class PreferencesDialog extends WorldPainterDialog {
                                 .addGap(0, 0, 0)
                                 .addComponent(jLabel48))))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel30)
-                            .addComponent(jLabel2))
+                        .addComponent(jLabel50)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spinnerFreeSpaceForMaps, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel51))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(comboBoxLookAndFeel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel32, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(radioButtonUIScaleManual)
-                                    .addComponent(radioButtonUIScaleAuto))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(labelUIScale)
-                                    .addComponent(sliderUIScale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))))
-                .addContainerGap(438, Short.MAX_VALUE))
+                            .addComponent(buttonCleanUpBackupsNow)
+                            .addComponent(checkBoxAutoDeleteBackups))))
+                .addContainerGap(19, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(checkBoxPing)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel4)
-                .addGap(18, 18, 18)
-                .addComponent(checkBoxCheckForUpdates)
-                .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel20)
-                    .addComponent(spinnerWorldBackups, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addComponent(checkBoxAutoSave)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel45)
-                    .addComponent(spinnerAutoSaveGuardTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel47))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel46)
-                    .addComponent(spinnerAutoSaveInterval, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel48))
-                .addGap(18, 18, 18)
-                .addComponent(checkBoxUndo)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel5)
-                    .addComponent(spinnerUndoLevels, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel30)
-                    .addComponent(comboBoxLookAndFeel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(radioButtonUIScaleAuto)
-                    .addComponent(jLabel2)
-                    .addComponent(labelUIScale))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jSeparator1)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(radioButtonUIScaleManual)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel32, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(sliderUIScale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(18, Short.MAX_VALUE))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(checkBoxPing)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel3)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel4)
+                                .addGap(18, 18, 18)
+                                .addComponent(checkBoxCheckForUpdates)
+                                .addGap(18, 18, 18)
+                                .addComponent(checkBoxUndo)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(jLabel5)
+                                    .addComponent(spinnerUndoLevels, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(18, 18, 18)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(jLabel30)
+                                    .addComponent(comboBoxLookAndFeel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(radioButtonUIScaleAuto)
+                                    .addComponent(jLabel2)
+                                    .addComponent(labelUIScale))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(jPanel1Layout.createSequentialGroup()
+                                        .addComponent(radioButtonUIScaleManual)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jLabel32, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(sliderUIScale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel49)
+                                .addGap(18, 18, 18)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(jLabel20)
+                                    .addComponent(spinnerWorldBackups, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(18, 18, 18)
+                                .addComponent(checkBoxAutoSave)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(jLabel45)
+                                    .addComponent(spinnerAutoSaveGuardTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel47))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(jLabel46)
+                                    .addComponent(spinnerAutoSaveInterval, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel48))
+                                .addGap(18, 18, 18)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(jLabel50)
+                                    .addComponent(spinnerFreeSpaceForMaps, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel51))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(checkBoxAutoDeleteBackups)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(buttonCleanUpBackupsNow)))
+                        .addGap(0, 130, Short.MAX_VALUE)))
+                .addContainerGap())
         );
 
         jTabbedPane1.addTab("General", jPanel1);
@@ -1278,7 +1372,7 @@ public class PreferencesDialog extends WorldPainterDialog {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jTabbedPane1)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
                     .addComponent(buttonOK))
@@ -1373,11 +1467,11 @@ public class PreferencesDialog extends WorldPainterDialog {
             comboBoxHeight.setSelectedIndex(3);
             radioButtonHilly.setSelected(true);
             spinnerGroundLevel.setValue(58);
-            spinnerWaterLevel.setValue(62);
+            spinnerWaterLevel.setValue(DEFAULT_WATER_LEVEL);
             checkBoxLava.setSelected(false);
             checkBoxBeaches.setSelected(true);
             comboBoxSurfaceMaterial.setSelectedItem(GRASS);
-            Configuration.getInstance().setDefaultTerrainAndLayerSettings(new World2(DefaultPlugin.JAVA_ANVIL, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, 62, false, true, 20, 1.0), DEFAULT_MAX_HEIGHT_ANVIL).getDimension(DIM_NORMAL));
+            Configuration.getInstance().setDefaultTerrainAndLayerSettings(new World2(JAVA_ANVIL_1_15, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), GRASS, JAVA_ANVIL_1_15.minZ, JAVA_ANVIL_1_15.standardMaxHeight, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0), JAVA_ANVIL_1_15.standardMaxHeight).getDimension(DIM_NORMAL));
         }
     }//GEN-LAST:event_buttonResetActionPerformed
 
@@ -1438,24 +1532,34 @@ public class PreferencesDialog extends WorldPainterDialog {
 
     private void radioButtonUIScaleAutoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonUIScaleAutoActionPerformed
         setControlStates();
-        updateUIScale();
+        sliderUIScale.setValue((int) (GUIUtils.SYSTEM_UI_SCALE_FLOAT * 100));
+        updateLabelUIScale();
     }//GEN-LAST:event_radioButtonUIScaleAutoActionPerformed
 
     private void radioButtonUIScaleManualActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonUIScaleManualActionPerformed
         setControlStates();
-        updateUIScale();
+        updateLabelUIScale();
     }//GEN-LAST:event_radioButtonUIScaleManualActionPerformed
 
     private void sliderUIScaleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderUIScaleStateChanged
-        updateUIScale();
+        updateLabelUIScale();
     }//GEN-LAST:event_sliderUIScaleStateChanged
 
     private void comboBoxLookAndFeelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxLookAndFeelActionPerformed
         // Do nothing
     }//GEN-LAST:event_comboBoxLookAndFeelActionPerformed
 
+    private void checkBoxAutoDeleteBackupsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxAutoDeleteBackupsActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_checkBoxAutoDeleteBackupsActionPerformed
+
+    private void buttonCleanUpBackupsNowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCleanUpBackupsNowActionPerformed
+        cleanUpBackupsNow();
+    }//GEN-LAST:event_buttonCleanUpBackupsNowActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
+    private javax.swing.JButton buttonCleanUpBackupsNow;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.ButtonGroup buttonGroup3;
@@ -1463,6 +1567,7 @@ public class PreferencesDialog extends WorldPainterDialog {
     private javax.swing.JButton buttonModePreset;
     private javax.swing.JButton buttonOK;
     private javax.swing.JButton buttonReset;
+    private javax.swing.JCheckBox checkBoxAutoDeleteBackups;
     private javax.swing.JCheckBox checkBoxAutoSave;
     private javax.swing.JCheckBox checkBoxBeaches;
     private javax.swing.JCheckBox checkBoxCheats;
@@ -1527,7 +1632,10 @@ public class PreferencesDialog extends WorldPainterDialog {
     private javax.swing.JLabel jLabel46;
     private javax.swing.JLabel jLabel47;
     private javax.swing.JLabel jLabel48;
+    private javax.swing.JLabel jLabel49;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel50;
+    private javax.swing.JLabel jLabel51;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
@@ -1537,6 +1645,7 @@ public class PreferencesDialog extends WorldPainterDialog {
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
+    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JSeparator jSeparator5;
@@ -1561,6 +1670,7 @@ public class PreferencesDialog extends WorldPainterDialog {
     private javax.swing.JSpinner spinnerAutoSaveInterval;
     private javax.swing.JSpinner spinnerBrushSize;
     private javax.swing.JSpinner spinnerContours;
+    private javax.swing.JSpinner spinnerFreeSpaceForMaps;
     private javax.swing.JSpinner spinnerGrid;
     private javax.swing.JSpinner spinnerGroundLevel;
     private javax.swing.JSpinner spinnerHeight;
@@ -1575,7 +1685,7 @@ public class PreferencesDialog extends WorldPainterDialog {
     private final ColourScheme colourScheme;
     private boolean pingNotSet;
     private int previousExp;
-    private String generatorOptions;
+    private String generatorOptions; // TODOMC118 this needs to become a SuperflatPreset
     
     private static final long serialVersionUID = 1L;
 }

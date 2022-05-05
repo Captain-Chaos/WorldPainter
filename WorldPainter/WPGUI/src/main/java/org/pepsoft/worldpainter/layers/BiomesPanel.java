@@ -1,8 +1,10 @@
 package org.pepsoft.worldpainter.layers;
 
+import com.google.common.collect.ImmutableSet;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.ColourScheme;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.biomeschemes.*;
 
 import javax.swing.*;
@@ -12,8 +14,14 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.*;
 
+import static java.lang.Boolean.TRUE;
+import static java.util.Arrays.stream;
+import static java.util.Collections.emptySet;
+import static java.util.EnumSet.noneOf;
+import static java.util.stream.Collectors.joining;
 import static javax.swing.BoxLayout.PAGE_AXIS;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.*;
+import static org.pepsoft.worldpainter.Platform.Capability.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
 import static org.pepsoft.worldpainter.layers.BiomesPanel.BiomeOption.*;
 
 /**
@@ -26,9 +34,26 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         this.buttonGroup = buttonGroup;
         biomeHelper = new BiomeHelper(colourScheme, customBiomeManager);
 
-        initComponents(colourScheme);
+        initComponents();
 
         customBiomeManager.addListener(this);
+    }
+
+    public void loadBiomes(Platform platform, ColourScheme colourScheme) {
+        BiomesSet desiredSet;
+        // TODO move this stuff to BiomeScheme/PlatformProvider
+        if (platform.capabilities.contains(NAMED_BIOMES)) {
+            desiredSet = MINECRAFT_1_18_BIOMES;
+            showIds = false;
+        } else if (platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D)) {
+            desiredSet = MINECRAFT_1_17_BIOMES;
+            showIds = true;
+        } else {
+            desiredSet = null;
+        }
+        if (biomesSet != desiredSet) {
+            loadBiomes(desiredSet, colourScheme);
+        }
     }
 
     // CustomBiomeListener
@@ -67,7 +92,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         }
     }
 
-    private void initComponents(ColourScheme colourScheme) {
+    private void initComponents() {
         setLayout(new BoxLayout(this, PAGE_AXIS));
 
         label1.setHorizontalTextPosition(JLabel.LEADING);
@@ -76,35 +101,8 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         label2.setAlignmentX(0.0f);
         add(label2);
 
-        for (final int biome: BIOME_ORDER) {
-            final JToggleButton button = new JToggleButton(new ImageIcon(BiomeSchemeManager.createImage(StaticBiomeInfo.INSTANCE, biome, colourScheme)));
-            button.putClientProperty(KEY_BIOME, biome);
-            button.setMargin(App.BUTTON_INSETS);
-            StringBuilder tooltip = new StringBuilder();
-            tooltip.append(StaticBiomeInfo.BIOME_NAMES[biome]);
-            tooltip.append(" (");
-            List<Integer> variantIds = findVariants(biome);
-            boolean first = true;
-            for (Integer variantId : variantIds) {
-                if (first) {
-                    first = false;
-                } else {
-                    tooltip.append(", ");
-                }
-                tooltip.append(variantId);
-            }
-            tooltip.append(')');
-            button.setToolTipText(tooltip.toString());
-            buttonGroup.add(button);
-            button.addActionListener(e -> {
-                if (button.isSelected()) {
-                    selectBaseBiome(biome);
-                }
-            });
-            grid.add(button);
-        }
-
         JButton addCustomBiomeButton = new JButton(IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/plus.png"));
+        addCustomBiomeButton.putClientProperty(KEY_ADD_BUTTON, TRUE);
         addCustomBiomeButton.setMargin(App.BUTTON_INSETS);
         addCustomBiomeButton.setToolTipText("Add a custom biome");
         addCustomBiomeButton.addActionListener(e -> {
@@ -114,8 +112,9 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
                 JOptionPane.showMessageDialog(parent, "Maximum number of custom biomes reached", "Maximum Reached", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            CustomBiome customBiome = new CustomBiome("Custom", id, Color.ORANGE.getRGB());
-            CustomBiomeDialog dialog = new CustomBiomeDialog(parent, customBiome, true);
+            final Platform platform = App.getInstance().getWorld().getPlatform();
+            CustomBiome customBiome = new CustomBiome(platform.capabilities.contains(NAMED_BIOMES) ? "namespace:biome" : "Custom", id, Color.ORANGE.getRGB());
+            CustomBiomeDialog dialog = new CustomBiomeDialog(parent, customBiome, true, platform);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 customBiomeManager.addCustomBiome(parent, customBiome);
@@ -127,6 +126,57 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
 
         optionsPanel.setLayout(new BoxLayout(optionsPanel, PAGE_AXIS));
         add(optionsPanel);
+    }
+
+    private void loadBiomes(BiomesSet biomesSet, ColourScheme colourScheme) {
+        if (this.biomesSet != null) {
+            while ((((JComponent) grid.getComponent(0)).getClientProperty(KEY_ADD_BUTTON) == null)
+                    && (((JComponent) grid.getComponent(0)).getClientProperty(KEY_CUSTOM_BIOME) == null)) {
+                // The first component is not the "add custom biome" button or a custom biome; keep removing components until it is
+                grid.remove(0);
+            }
+        }
+        this.biomesSet = biomesSet;
+        if (biomesSet != null) {
+            int index = 0;
+            for (final int biome: biomesSet.biomeOrder) {
+                if (biome != -1) {
+                    final JToggleButton button = new JToggleButton(new ImageIcon(BiomeSchemeManager.createImage(StaticBiomeInfo.INSTANCE, biome, colourScheme)));
+                    button.putClientProperty(KEY_BIOME, biome);
+                    button.setMargin(App.BUTTON_INSETS);
+                    StringBuilder tooltip = new StringBuilder();
+                    tooltip.append(biomesSet.displayNames[biome]);
+                    if (showIds) {
+                        tooltip.append(" (");
+                        List<Integer> variantIds = findVariants(biome);
+                        tooltip.append(variantIds.stream().map(i -> Integer.toString(i)).collect(joining(", ")));
+                        tooltip.append(')');
+                    } else {
+                        Set<BiomeOption> options = findVariantOptions(biome);
+                        if (! options.isEmpty()) {
+                            tooltip.append(" (options: ");
+                            tooltip.append(options.stream().map(this::createOptionName).collect(joining(", ")));
+                            tooltip.append(')');
+                        }
+                    }
+                    button.setToolTipText(tooltip.toString());
+                    buttonGroup.add(button);
+                    if (biome == selectedBiome) {
+                        button.setSelected(true);
+                    }
+                    button.addActionListener(e -> {
+                        if (button.isSelected()) {
+                            selectBaseBiome(biome);
+                        }
+                    });
+                    grid.add(button, index++);
+                } else {
+                    grid.add(Box.createGlue(), index++);
+                }
+            }
+        }
+        resetOptions();
+        forceRepaint();
     }
 
     private void selectBaseBiome(int biome) {
@@ -141,21 +191,39 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         Set<BiomeOption> availableOptions = findAvailableOptions(selectedBaseBiome);
         optionsPanel.removeAll();
         for (BiomeOption option: availableOptions) {
-            JCheckBox checkBox = new JCheckBox(option.name().substring(0, 1) + option.name().substring(1).toLowerCase());
+            JCheckBox checkBox = new JCheckBox(createOptionName(option));
             checkBox.addActionListener(event -> updateOptions());
-            checkBox.putClientProperty(PROPERTY_BIOME_OPTION, option);
+            checkBox.putClientProperty(KEY_BIOME_OPTION, option);
             checkBox.setEnabled(findBiome(selectedBaseBiome, EnumSet.of(option)) != -1);
             optionsPanel.add(checkBox);
         }
     }
 
+    private String createOptionName(BiomeOption option) {
+        return stream(option.name().split("_"))
+                .map(s -> s.charAt(0) + s.substring(1).toLowerCase())
+                .collect(joining(" "));
+    }
+
     private void updateOptions() {
         Set<BiomeOption> selectedOptions = getSelectedOptions();
         selectedBiome = findBiome(selectedBaseBiome, selectedOptions);
+        if (selectedBiome == -1) {
+            // This means the new combination of selected options is no longer valid. This can happen when an option
+            // becomes available only after selecting another option and then the other option is deselected. Just
+            // deselect everything when this happens
+            for (Component component: optionsPanel.getComponents()) {
+                if (((JCheckBox) component).isSelected()) {
+                    ((JCheckBox) component).setSelected(false);
+                }
+            }
+            selectedOptions = noneOf(BiomeOption.class);
+            selectedBiome = selectedBaseBiome;
+        }
         notifyListener();
         for (Component component: optionsPanel.getComponents()) {
             JCheckBox checkBox = (JCheckBox) component;
-            BiomeOption biomeOption = (BiomeOption) checkBox.getClientProperty(PROPERTY_BIOME_OPTION);
+            BiomeOption biomeOption = (BiomeOption) checkBox.getClientProperty(KEY_BIOME_OPTION);
             if (selectedOptions.contains(biomeOption)) {
                 checkBox.setEnabled(true);
             } else {
@@ -168,11 +236,11 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     }
 
     private Set<BiomeOption> getSelectedOptions() {
-        Set<BiomeOption> selectedOptions = EnumSet.noneOf(BiomeOption.class);
+        Set<BiomeOption> selectedOptions = noneOf(BiomeOption.class);
         for (Component component: optionsPanel.getComponents()) {
             JCheckBox checkBox = (JCheckBox) component;
             if (checkBox.isSelected()) {
-                selectedOptions.add((BiomeOption) checkBox.getClientProperty(PROPERTY_BIOME_OPTION));
+                selectedOptions.add((BiomeOption) checkBox.getClientProperty(KEY_BIOME_OPTION));
             }
         }
         return selectedOptions;
@@ -189,7 +257,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
      * existing actual biome.
      */
     private int findBiome(int baseId, Set<BiomeOption> options) {
-        for (BiomeDescriptor descriptor: DESCRIPTORS) {
+        for (BiomeDescriptor descriptor: biomesSet.descriptors) {
             if ((descriptor.getBaseId() == baseId) && descriptor.getOptions().equals(options)) {
                 return descriptor.getId();
             }
@@ -198,7 +266,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     }
 
     private void updateLabels() {
-        label1.setText("Selected biome: " + selectedBiome);
+        label1.setText("Selected biome: " + (showIds ? selectedBiome : ""));
         label1.setIcon(biomeHelper.getBiomeIcon(selectedBiome));
         label2.setText(biomeHelper.getBiomeName(selectedBiome));
     }
@@ -207,6 +275,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         final int biome = customBiome.getId();
         final JToggleButton button = new JToggleButton(IconUtils.createScaledColourIcon(customBiome.getColour()));
         button.putClientProperty(KEY_BIOME, biome);
+        button.putClientProperty(KEY_CUSTOM_BIOME, TRUE);
         button.setMargin(App.BUTTON_INSETS);
         button.setToolTipText(customBiome.getName() + " (" + biome + "); right-click for options");
         button.addMouseListener(new MouseAdapter() {
@@ -236,7 +305,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
                     
                     JMenuItem item = new JMenuItem("Edit...");
                     item.addActionListener(actionEvent -> {
-                        CustomBiomeDialog dialog = new CustomBiomeDialog(SwingUtilities.getWindowAncestor(button), customBiome, false);
+                        CustomBiomeDialog dialog = new CustomBiomeDialog(SwingUtilities.getWindowAncestor(button), customBiome, false, App.getInstance().getWorld().getPlatform());
                         dialog.setVisible(true);
                         if (! dialog.isCancelled()) {
                             customBiomeManager.editCustomBiome(customBiome);
@@ -280,10 +349,10 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
      * @return The total available options for the specified base biome. May be
      * empty, but not {@code null}.
      */
-    private static Set<BiomeOption> findAvailableOptions(int baseId) {
-        if (StaticBiomeInfo.INSTANCE.isBiomePresent(baseId)) {
-            Set<BiomeOption> availableOptions = EnumSet.noneOf(BiomeOption.class);
-            for (BiomeDescriptor descriptor: DESCRIPTORS) {
+    private Set<BiomeOption> findAvailableOptions(int baseId) {
+        if ((biomesSet != null) && (biomesSet.displayNames[baseId] != null)) {
+            Set<BiomeOption> availableOptions = noneOf(BiomeOption.class);
+            for (BiomeDescriptor descriptor: biomesSet.descriptors) {
                 if (descriptor.getBaseId() == baseId) {
                     availableOptions.addAll(descriptor.getOptions());
                 }
@@ -291,7 +360,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
 
             return availableOptions;
         } else {
-            return Collections.emptySet();
+            return emptySet();
         }
     }
 
@@ -304,7 +373,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
      */
     private List<Integer> findVariants(int baseId) {
         List<Integer> variants = new ArrayList<>();
-        for (BiomeDescriptor descriptor: DESCRIPTORS) {
+        for (BiomeDescriptor descriptor: biomesSet.descriptors) {
             if (descriptor.getBaseId() == baseId) {
                 variants.add(descriptor.getId());
             }
@@ -312,132 +381,229 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         return variants;
     }
 
+    /**
+     * Find the options of all variants of the specified base biome.
+     *
+     * @param baseId The ID of the base biome.
+     * @return The options of all variants of the specified base biome (including the base biome itself).
+     */
+    private Set<BiomeOption> findVariantOptions(int baseId) {
+        Set<BiomeOption> options = noneOf(BiomeOption.class);
+        for (BiomeDescriptor descriptor: biomesSet.descriptors) {
+            if (descriptor.getBaseId() == baseId) {
+                options.addAll(descriptor.getOptions());
+            }
+        }
+        return options;
+    }
+
     private void notifyListener() {
         listener.biomeSelected(selectedBiome);
     }
 
-    private final JPanel grid = new JPanel(new GridLayout(0, 4)), optionsPanel = new JPanel();
+    private final JPanel grid = new JPanel(new GridLayout(0, 5)), optionsPanel = new JPanel();
     private final ButtonGroup buttonGroup;
     private final JLabel label1 = new JLabel("Selected biome: 1"), label2 = new JLabel("Plains");
 
     private final CustomBiomeManager customBiomeManager;
     private final BiomeHelper biomeHelper;
     private final Listener listener;
+    private BiomesSet biomesSet;
     private int selectedBiome = BIOME_PLAINS, selectedBaseBiome = BIOME_PLAINS;
+    private boolean showIds;
 
-    private static final int[] BIOME_ORDER = {
-        BIOME_PLAINS, BIOME_FOREST, BIOME_SWAMPLAND, BIOME_JUNGLE, BIOME_BAMBOO_JUNGLE,
-        BIOME_BIRCH_FOREST, BIOME_ROOFED_FOREST, BIOME_EXTREME_HILLS, BIOME_MUSHROOM_ISLAND,
-        BIOME_TAIGA, BIOME_MEGA_TAIGA, BIOME_MEGA_SPRUCE_TAIGA, BIOME_ICE_PLAINS,
-        BIOME_DESERT, BIOME_SAVANNA, BIOME_MESA, BIOME_ICE_PLAINS_SPIKES,
-        BIOME_OCEAN, BIOME_RIVER, BIOME_BEACH, BIOME_STONE_BEACH,
-        BIOME_HELL, BIOME_SKY, BIOME_VOID
+    // TODO move this stuff to BiomeScheme/PlatformProvider
+
+    private static final int[] MC_117_BIOME_ORDER = {
+            BIOME_PLAINS, BIOME_FOREST, BIOME_SWAMP, BIOME_JUNGLE, BIOME_BAMBOO_JUNGLE,
+            BIOME_BIRCH_FOREST, BIOME_DARK_FOREST, BIOME_TAIGA, BIOME_GIANT_TREE_TAIGA, BIOME_GIANT_SPRUCE_TAIGA,
+            BIOME_MOUNTAINS, BIOME_MUSHROOM_FIELDS, BIOME_DESERT, BIOME_SAVANNA, BIOME_BADLANDS,
+            BIOME_SNOWY_TUNDRA, BIOME_ICE_SPIKES, BIOME_OCEAN, BIOME_RIVER, BIOME_BEACH,
+            BIOME_STONE_SHORE, BIOME_DRIPSTONE_CAVES, BIOME_LUSH_CAVES, BIOME_THE_END, BIOME_THE_VOID,
+            BIOME_NETHER_WASTES, BIOME_SOUL_SAND_VALLEY, BIOME_CRIMSON_FOREST, BIOME_WARPED_FOREST, BIOME_BASALT_DELTAS,
     };
+
+    private static final int[] MC_118_BIOME_ORDER = {
+            BIOME_PLAINS, BIOME_FOREST, BIOME_SWAMP, BIOME_JUNGLE, BIOME_BAMBOO_JUNGLE,
+            BIOME_BIRCH_FOREST, BIOME_DARK_FOREST, BIOME_TAIGA, BIOME_OLD_GROWTH_PINE_TAIGA, BIOME_OLD_GROWTH_SPRUCE_TAIGA,
+            BIOME_WINDSWEPT_HILLS, BIOME_MUSHROOM_FIELDS, BIOME_DESERT, BIOME_SAVANNA, BIOME_BADLANDS,
+            BIOME_SNOWY_PLAINS, BIOME_ICE_SPIKES, BIOME_OCEAN, BIOME_RIVER, BIOME_BEACH,
+            BIOME_DRIPSTONE_CAVES, BIOME_MEADOW, BIOME_STONY_PEAKS, BIOME_JAGGED_PEAKS, BIOME_STONY_SHORE,
+            BIOME_LUSH_CAVES, BIOME_SNOWY_SLOPES, BIOME_GROVE, BIOME_FROZEN_PEAKS, -1,
+            BIOME_THE_END, BIOME_END_BARRENS, BIOME_END_HIGHLANDS, BIOME_END_MIDLANDS, BIOME_SMALL_END_ISLANDS,
+            BIOME_THE_VOID, -1, -1, -1, -1,
+            BIOME_NETHER_WASTES, BIOME_SOUL_SAND_VALLEY, BIOME_CRIMSON_FOREST, BIOME_WARPED_FOREST, BIOME_BASALT_DELTAS
+    };
+
     private static final String KEY_BIOME = BiomesPanel.class.getName() + ".biome";
-    private static final String PROPERTY_BIOME_OPTION = "org.pepsoft.worldpainter.layers.BiomesPanel.biomeOption";
+    private static final String KEY_BIOME_OPTION = BiomesPanel.class.getName() + ".biomeOption";
+    private static final String KEY_ADD_BUTTON = BiomesPanel.class.getName() + ".addButton";
+    private static final String KEY_CUSTOM_BIOME = BiomesPanel.class.getName() + ".customBiome";
 
-    private static final BiomeDescriptor[] DESCRIPTORS = {
-        new BiomeDescriptor("Ocean", 0, 0),
-        new BiomeDescriptor("Plains", 1, 1),
-        new BiomeDescriptor("Desert", 2, 2),
-        new BiomeDescriptor("Mountains", 3, 3),
-        new BiomeDescriptor("Forest", 4, 4),
-        new BiomeDescriptor("Taiga", 5, 5),
-        new BiomeDescriptor("Swamp", 6, 6),
-        new BiomeDescriptor("River", 7, 7),
-        new BiomeDescriptor("Nether", 8, 8),
-        new BiomeDescriptor("End", 9, 9),
+    private static final Set<BiomeDescriptor> MC_117_DESCRIPTORS = ImmutableSet.of(
+        new BiomeDescriptor(BIOME_OCEAN),
+        new BiomeDescriptor(BIOME_PLAINS),
+        new BiomeDescriptor(BIOME_DESERT),
+        new BiomeDescriptor(BIOME_MOUNTAINS),
+        new BiomeDescriptor(BIOME_FOREST),
+        new BiomeDescriptor(BIOME_TAIGA),
+        new BiomeDescriptor(BIOME_SWAMP),
+        new BiomeDescriptor(BIOME_RIVER),
+        new BiomeDescriptor(BIOME_NETHER_WASTES),
+        new BiomeDescriptor(BIOME_THE_END),
+        new BiomeDescriptor(BIOME_FROZEN_OCEAN, 0, FROZEN),
+        new BiomeDescriptor(BIOME_FROZEN_RIVER, 7, FROZEN),
+        new BiomeDescriptor(BIOME_SNOWY_TUNDRA),
+        new BiomeDescriptor(BIOME_SNOWY_MOUNTAINS, 3, SNOWY),
+        new BiomeDescriptor(BIOME_MUSHROOM_FIELDS),
+        new BiomeDescriptor(BIOME_MUSHROOM_FIELD_SHORE, 14, SHORE),
+        new BiomeDescriptor(BIOME_BEACH),
+        new BiomeDescriptor(BIOME_DESERT_HILLS, 2, HILLS),
+        new BiomeDescriptor(BIOME_WOODED_HILLS, 4, HILLS),
+        new BiomeDescriptor(BIOME_TAIGA_HILLS, 5, HILLS),
+        new BiomeDescriptor(BIOME_MOUNTAIN_EDGE, 3, EDGE),
+        new BiomeDescriptor(BIOME_JUNGLE),
+        new BiomeDescriptor(BIOME_JUNGLE_HILLS, 21, HILLS),
+        new BiomeDescriptor(BIOME_JUNGLE_EDGE, 21, EDGE),
+        new BiomeDescriptor(BIOME_DEEP_OCEAN, 0, DEEP),
+        new BiomeDescriptor(BIOME_STONE_SHORE),
+        new BiomeDescriptor(BIOME_SNOWY_BEACH, 16, SNOWY),
+        new BiomeDescriptor(BIOME_BIRCH_FOREST),
+        new BiomeDescriptor(BIOME_BIRCH_FOREST_HILLS, 27, HILLS),
+        new BiomeDescriptor(BIOME_DARK_FOREST),
+        new BiomeDescriptor(BIOME_SNOWY_TAIGA, 5, SNOWY),
+        new BiomeDescriptor(BIOME_SNOWY_TAIGA_HILLS, 5, SNOWY, HILLS),
+        new BiomeDescriptor(BIOME_GIANT_TREE_TAIGA),
+        new BiomeDescriptor(BIOME_GIANT_TREE_TAIGA_HILLS, 32, HILLS),
+        new BiomeDescriptor(BIOME_WOODED_MOUNTAINS, 3, WOODED),
+        new BiomeDescriptor(BIOME_SAVANNA),
+        new BiomeDescriptor(BIOME_SAVANNA_PLATEAU, 35, PLATEAU),
+        new BiomeDescriptor(BIOME_BADLANDS),
+        new BiomeDescriptor(BIOME_WOODED_BADLANDS_PLATEAU, 37, WOODED, PLATEAU),
+        new BiomeDescriptor(BIOME_BADLANDS_PLATEAU, 37, PLATEAU),
+        new BiomeDescriptor(BIOME_SMALL_END_ISLANDS, 9, SMALL_ISLANDS),
+        new BiomeDescriptor(BIOME_END_MIDLANDS, 9, MIDLANDS),
+        new BiomeDescriptor(BIOME_END_HIGHLANDS, 9, HIGHLANDS),
+        new BiomeDescriptor(BIOME_END_BARRENS, 9, BARRENS),
+        new BiomeDescriptor(BIOME_WARM_OCEAN, 0, WARM),
+        new BiomeDescriptor(BIOME_LUKEWARM_OCEAN, 0, LUKEWARM),
+        new BiomeDescriptor(BIOME_COLD_OCEAN, 0, COLD),
+        new BiomeDescriptor(BIOME_DEEP_WARM_OCEAN, 0, DEEP, WARM),
+        new BiomeDescriptor(BIOME_DEEP_LUKEWARM_OCEAN, 0, DEEP, LUKEWARM),
+        new BiomeDescriptor(BIOME_DEEP_COLD_OCEAN, 0, DEEP, COLD),
+        new BiomeDescriptor(BIOME_DEEP_FROZEN_OCEAN, 0, DEEP, FROZEN),
+        new BiomeDescriptor(BIOME_THE_VOID),
+        new BiomeDescriptor(BIOME_SUNFLOWER_PLAINS, 1, FLOWERS),
+        new BiomeDescriptor(BIOME_DESERT_LAKES, 2, LAKES),
+        new BiomeDescriptor(BIOME_GRAVELLY_MOUNTAINS, 3, GRAVELLY),
+        new BiomeDescriptor(BIOME_FLOWER_FOREST, 4, FLOWERS),
+        new BiomeDescriptor(BIOME_TAIGA_MOUNTAINS, 5, MOUNTAINOUS),
+        new BiomeDescriptor(BIOME_SWAMP_HILLS, 6, HILLS),
+        new BiomeDescriptor(BIOME_ICE_SPIKES),
+        new BiomeDescriptor(BIOME_MODIFIED_JUNGLE, 21, MODIFIED),
+        new BiomeDescriptor(BIOME_MODIFIED_JUNGLE_EDGE, 21, MODIFIED, EDGE),
+        new BiomeDescriptor(BIOME_TALL_BIRCH_FOREST, 27, TALL),
+        new BiomeDescriptor(BIOME_TALL_BIRCH_HILLS, 27, HILLS, TALL),
+        new BiomeDescriptor(BIOME_DARK_FOREST_HILLS, 29, HILLS),
+        new BiomeDescriptor(BIOME_SNOWY_TAIGA_MOUNTAINS, 5, SNOWY, MOUNTAINOUS),
+        new BiomeDescriptor(BIOME_GIANT_SPRUCE_TAIGA),
+        new BiomeDescriptor(BIOME_GIANT_SPRUCE_TAIGA_HILLS, 160, HILLS),
+        new BiomeDescriptor(BIOME_MODIFIED_GRAVELLY_MOUNTAINS, 3, GRAVELLY, VARIANT),
+        new BiomeDescriptor(BIOME_SHATTERED_SAVANNA, 35, SHATTERED),
+        new BiomeDescriptor(BIOME_SHATTERED_SAVANNA_PLATEAU, 35, SHATTERED, PLATEAU),
+        new BiomeDescriptor(BIOME_ERODED_BADLANDS, 37, ERODED),
+        new BiomeDescriptor(BIOME_MODIFIED_WOODED_BADLANDS_PLATEAU, 37, MODIFIED, WOODED, PLATEAU),
+        new BiomeDescriptor(BIOME_MODIFIED_BADLANDS_PLATEAU, 37, MODIFIED, PLATEAU),
+        new BiomeDescriptor(BIOME_BAMBOO_JUNGLE),
+        new BiomeDescriptor(BIOME_BAMBOO_JUNGLE_HILLS, 168, HILLS),
+        new BiomeDescriptor(BIOME_SOUL_SAND_VALLEY),
+        new BiomeDescriptor(BIOME_CRIMSON_FOREST),
+        new BiomeDescriptor(BIOME_WARPED_FOREST),
+        new BiomeDescriptor(BIOME_BASALT_DELTAS),
+        new BiomeDescriptor(BIOME_DRIPSTONE_CAVES),
+        new BiomeDescriptor(BIOME_LUSH_CAVES)
+    );
 
-        new BiomeDescriptor("Frozen Ocean", 10, 0, FROZEN),
-        new BiomeDescriptor("Frozen River", 11, 7, FROZEN),
-        new BiomeDescriptor("Snowy Tundra", 12, 12),
-        new BiomeDescriptor("Snowy Mountains", 13, 3, SNOWY),
-        new BiomeDescriptor("Mushroom Fields", 14, 14),
-        new BiomeDescriptor("Mushroom Fields Shore", 15, 14, SHORE),
-        new BiomeDescriptor("Beach", 16, 16),
-        new BiomeDescriptor("Desert Hills", 17, 2, HILLS),
-        new BiomeDescriptor("Wooded Hills", 18, 4, HILLS),
-        new BiomeDescriptor("Taiga Hills", 19, 5, HILLS),
+    private static final Set<BiomeDescriptor> MC_118_DESCRIPTORS = ImmutableSet.of(
+        new BiomeDescriptor(BIOME_PLAINS),
+        new BiomeDescriptor(BIOME_SUNFLOWER_PLAINS, BIOME_PLAINS, FLOWERS),
+        new BiomeDescriptor(BIOME_FOREST),
+        new BiomeDescriptor(BIOME_FLOWER_FOREST, BIOME_FOREST, FLOWERS),
+        new BiomeDescriptor(BIOME_WINDSWEPT_FOREST, BIOME_FOREST, WINDSWEPT),
+        new BiomeDescriptor(BIOME_SWAMP),
+        new BiomeDescriptor(BIOME_JUNGLE),
+        new BiomeDescriptor(BIOME_SPARSE_JUNGLE, BIOME_JUNGLE, SPARSE),
+        new BiomeDescriptor(BIOME_BAMBOO_JUNGLE),
+        new BiomeDescriptor(BIOME_BIRCH_FOREST),
+        new BiomeDescriptor(BIOME_OLD_GROWTH_BIRCH_FOREST, BIOME_BIRCH_FOREST, OLD_GROWTH),
+        new BiomeDescriptor(BIOME_DARK_FOREST),
+        new BiomeDescriptor(BIOME_TAIGA),
+        new BiomeDescriptor(BIOME_SNOWY_TAIGA, BIOME_TAIGA, SNOWY),
+        new BiomeDescriptor(BIOME_OLD_GROWTH_PINE_TAIGA),
+        new BiomeDescriptor(BIOME_OLD_GROWTH_SPRUCE_TAIGA),
+        new BiomeDescriptor(BIOME_WINDSWEPT_HILLS),
+        new BiomeDescriptor(BIOME_WINDSWEPT_GRAVELLY_HILLS, BIOME_WINDSWEPT_HILLS, GRAVELLY),
+        new BiomeDescriptor(BIOME_MUSHROOM_FIELDS),
+        new BiomeDescriptor(BIOME_DESERT),
+        new BiomeDescriptor(BIOME_SAVANNA),
+        new BiomeDescriptor(BIOME_SAVANNA_PLATEAU, BIOME_SAVANNA, PLATEAU),
+        new BiomeDescriptor(BIOME_WINDSWEPT_SAVANNA, BIOME_SAVANNA, WINDSWEPT),
+        new BiomeDescriptor(BIOME_BADLANDS),
+        new BiomeDescriptor(BIOME_ERODED_BADLANDS, BIOME_BADLANDS, ERODED),
+        new BiomeDescriptor(BIOME_WOODED_BADLANDS, BIOME_BADLANDS, WOODED),
+        new BiomeDescriptor(BIOME_SNOWY_PLAINS),
+        new BiomeDescriptor(BIOME_ICE_SPIKES),
+        new BiomeDescriptor(BIOME_OCEAN),
+        new BiomeDescriptor(BIOME_COLD_OCEAN, BIOME_OCEAN, COLD),
+        new BiomeDescriptor(BIOME_DEEP_COLD_OCEAN, BIOME_OCEAN, DEEP, COLD),
+        new BiomeDescriptor(BIOME_DEEP_FROZEN_OCEAN, BIOME_OCEAN, DEEP, FROZEN),
+        new BiomeDescriptor(BIOME_DEEP_LUKEWARM_OCEAN, BIOME_OCEAN, DEEP, LUKEWARM),
+        new BiomeDescriptor(BIOME_DEEP_OCEAN, BIOME_OCEAN, DEEP),
+        new BiomeDescriptor(BIOME_FROZEN_OCEAN, BIOME_OCEAN, FROZEN),
+        new BiomeDescriptor(BIOME_LUKEWARM_OCEAN, BIOME_OCEAN, LUKEWARM),
+        new BiomeDescriptor(BIOME_WARM_OCEAN, BIOME_OCEAN, WARM),
+        new BiomeDescriptor(BIOME_RIVER),
+        new BiomeDescriptor(BIOME_FROZEN_RIVER, BIOME_RIVER, FROZEN),
+        new BiomeDescriptor(BIOME_BEACH),
+        new BiomeDescriptor(BIOME_SNOWY_BEACH, BIOME_BEACH, SNOWY),
+        new BiomeDescriptor(BIOME_DRIPSTONE_CAVES),
+        new BiomeDescriptor(BIOME_MEADOW),
+        new BiomeDescriptor(BIOME_STONY_PEAKS),
+        new BiomeDescriptor(BIOME_JAGGED_PEAKS),
+        new BiomeDescriptor(BIOME_STONY_SHORE),
+        new BiomeDescriptor(BIOME_LUSH_CAVES),
+        new BiomeDescriptor(BIOME_SNOWY_SLOPES),
+        new BiomeDescriptor(BIOME_GROVE),
+        new BiomeDescriptor(BIOME_FROZEN_PEAKS),
+        new BiomeDescriptor(BIOME_THE_END),
+        new BiomeDescriptor(BIOME_END_BARRENS),
+        new BiomeDescriptor(BIOME_END_HIGHLANDS),
+        new BiomeDescriptor(BIOME_END_MIDLANDS),
+        new BiomeDescriptor(BIOME_SMALL_END_ISLANDS),
+        new BiomeDescriptor(BIOME_THE_VOID),
+        new BiomeDescriptor(BIOME_NETHER_WASTES),
+        new BiomeDescriptor(BIOME_SOUL_SAND_VALLEY),
+        new BiomeDescriptor(BIOME_CRIMSON_FOREST),
+        new BiomeDescriptor(BIOME_WARPED_FOREST),
+        new BiomeDescriptor(BIOME_BASALT_DELTAS)
+    );
 
-        new BiomeDescriptor("Mountain Edge", 20, 3, EDGE),
-        new BiomeDescriptor("Jungle", 21, 21),
-        new BiomeDescriptor("Jungle Hills", 22, 21, HILLS),
-        new BiomeDescriptor("Jungle Edge", 23, 21, EDGE),
-        new BiomeDescriptor("Deep Ocean", 24, 0, DEEP),
-        new BiomeDescriptor("Stone Shore", 25, 25),
-        new BiomeDescriptor("Snowy Beach", 26, 16, SNOWY),
-        new BiomeDescriptor("Birch Forest", 27, 27),
-        new BiomeDescriptor("Birch Forest Hills", 28, 27, HILLS),
-        new BiomeDescriptor("Dark Forest", 29, 29),
-
-        new BiomeDescriptor("Snowy Taiga", 30, 5, SNOWY),
-        new BiomeDescriptor("Snowy Taiga Hills", 31, 5, SNOWY, HILLS),
-        new BiomeDescriptor("Giant Tree Taiga", 32, 32),
-        new BiomeDescriptor("Giant Tree Taiga Hills", 33, 32, HILLS),
-        new BiomeDescriptor("Wooded Mountains", 34, 3, WOODED),
-        new BiomeDescriptor("Savanna", 35, 35),
-        new BiomeDescriptor("Savanna Plateau", 36, 35, PLATEAU),
-        new BiomeDescriptor("Badlands", 37, 37),
-        new BiomeDescriptor("Wooded Badlands Plateau", 38, 37, WOODED, PLATEAU),
-        new BiomeDescriptor("Badlands Plateau", 39, 37, PLATEAU),
-
-        new BiomeDescriptor("Small End Islands", 40, 9, SMALL_ISLANDS),
-        new BiomeDescriptor("End Midlands", 41, 9, MIDLANDS),
-        new BiomeDescriptor("End Highlands", 42, 9, HIGHLANDS),
-        new BiomeDescriptor("End Barrens", 43, 9, BARRENS),
-        new BiomeDescriptor("Warm Ocean", 44, 0, WARM),
-        new BiomeDescriptor("Lukewarm Ocean", 45, 0, LUKEWARM),
-        new BiomeDescriptor("Cold Ocean", 46, 0, COLD),
-        new BiomeDescriptor("Deep Warm Ocean", 47, 0, DEEP, WARM),
-        new BiomeDescriptor("Deep Lukewarm Ocean", 48, 0, DEEP, LUKEWARM),
-        new BiomeDescriptor("Deep Cold Ocean", 49, 0, DEEP, COLD),
-
-        new BiomeDescriptor("Deep Frozen Ocean", 50, 0, DEEP, FROZEN),
-
-        new BiomeDescriptor("Void", 127, 127),
-        new BiomeDescriptor("Sunflower Plains", 129, 1, FLOWERS),
-
-        new BiomeDescriptor("Desert Lakes", 130, 2, LAKES),
-        new BiomeDescriptor("Gravelly Mountains", 131, 3, GRAVELLY),
-        new BiomeDescriptor("Flower Forest", 132, 4, FLOWERS),
-        new BiomeDescriptor("Taiga Mountains", 133, 5, MOUNTAINOUS),
-        new BiomeDescriptor("Swamp Hills", 134, 6, HILLS),
-
-        new BiomeDescriptor("Ice Spikes", 140, 140),
-        new BiomeDescriptor("Modified Jungle", 149, 21, MODIFIED),
-
-        new BiomeDescriptor("Modified Jungle Edge", 151, 21, MODIFIED, EDGE),
-        new BiomeDescriptor("Tall Birch Forest", 155, 27, TALL),
-        new BiomeDescriptor("Tall Birch Hills", 156, 27, HILLS, TALL),
-        new BiomeDescriptor("Dark Forest Hills", 157, 29, HILLS),
-        new BiomeDescriptor("Snowy Taiga Mountains", 158, 5, SNOWY, MOUNTAINOUS),
-
-        new BiomeDescriptor("Giant Spruce Taiga", 160, 160),
-        new BiomeDescriptor("Giant Spruce Taiga Hills", 161, 160, HILLS),
-        new BiomeDescriptor("Gravelly Mountains+", 162, 3, GRAVELLY, VARIANT),
-        new BiomeDescriptor("Shattered Savanna", 163, 35, SHATTERED),
-        new BiomeDescriptor("Shattered Savanna Plateau", 164, 35, SHATTERED, PLATEAU),
-        new BiomeDescriptor("Eroded Badlands", 165, 37, ERODED),
-        new BiomeDescriptor("Modified Wooded Badlands Plateau", 166, 37, MODIFIED, WOODED, PLATEAU),
-        new BiomeDescriptor("Modified Badlands Plateau", 167, 37, MODIFIED, PLATEAU),
-        new BiomeDescriptor("Bamboo Jungle", 168, 168),
-        new BiomeDescriptor("Bamboo Jungle Hills", 169, 168, HILLS),
-    };
+    private static final BiomesSet MINECRAFT_1_17_BIOMES = new BiomesSet(MC_117_BIOME_ORDER, MC_117_DESCRIPTORS, Minecraft1_17Biomes.BIOME_NAMES);
+    private static final BiomesSet MINECRAFT_1_18_BIOMES = new BiomesSet(MC_118_BIOME_ORDER, MC_118_DESCRIPTORS, Minecraft1_18Biomes.BIOME_NAMES);
 
     public enum BiomeOption {HILLS, SHORE, EDGE, PLATEAU, MOUNTAINOUS, VARIANT, FROZEN, SNOWY, DEEP, WOODED, WARM,
         LUKEWARM, COLD, TALL, FLOWERS, LAKES, GRAVELLY, SHATTERED, SMALL_ISLANDS, MIDLANDS, HIGHLANDS, BARRENS,
-        MODIFIED, ERODED}
+        MODIFIED, ERODED, WINDSWEPT, SPARSE, OLD_GROWTH}
 
     public static class BiomeDescriptor {
-        public BiomeDescriptor(String name, int id, int baseId, BiomeOption... options) {
-            this.name = name;
-            this.id = id;
-            this.baseId = baseId;
-            this.options = ((options != null) && (options.length > 0)) ? EnumSet.copyOf(Arrays.asList(options)) : Collections.emptySet();
+        public BiomeDescriptor(int id) {
+            this(id, id);
         }
 
-        public String getName() {
-            return name;
+        public BiomeDescriptor(int id, int baseId, BiomeOption... options) {
+            this.id = id;
+            this.baseId = baseId;
+            this.options = ((options != null) && (options.length > 0)) ? EnumSet.copyOf(Arrays.asList(options)) : emptySet();
         }
 
         public int getId() {
@@ -452,12 +618,23 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
             return options;
         }
 
-        private final String name;
         private final int id, baseId;
         private final Set<BiomeOption> options;
     }
 
     public interface Listener {
         void biomeSelected(int biomeId);
+    }
+
+    static class BiomesSet {
+        BiomesSet(int[] biomeOrder, Set<BiomeDescriptor> descriptors, String[] displayNames) {
+            this.biomeOrder = biomeOrder;
+            this.descriptors = descriptors;
+            this.displayNames = displayNames;
+        }
+
+        final int[] biomeOrder;
+        final Set<BiomeDescriptor> descriptors;
+        final String[] displayNames;
     }
 }

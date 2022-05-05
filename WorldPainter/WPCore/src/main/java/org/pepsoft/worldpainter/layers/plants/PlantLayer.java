@@ -124,6 +124,11 @@ public class PlantLayer extends CustomLayer {
     // Cloneable
 
     @Override
+    public String getType() {
+        return "Plants";
+    }
+
+    @Override
     public PlantLayer clone() {
         PlantLayer clone = (PlantLayer) super.clone();
         clone.settings = new PlantSettings[settings.length];

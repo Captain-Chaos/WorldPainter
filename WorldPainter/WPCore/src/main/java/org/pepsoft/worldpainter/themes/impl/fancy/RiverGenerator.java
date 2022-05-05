@@ -4,14 +4,17 @@
  */
 package org.pepsoft.worldpainter.themes.impl.fancy;
 
-import java.util.HashSet;
-import java.util.Random;
-import javax.vecmath.Point3i;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
-import static org.pepsoft.worldpainter.Constants.*;
 import org.pepsoft.worldpainter.gardenofeden.Garden;
+
+import javax.vecmath.Point3i;
+import java.util.HashSet;
+import java.util.Random;
+
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 
 /**
  *
@@ -20,6 +23,7 @@ import org.pepsoft.worldpainter.gardenofeden.Garden;
 public class RiverGenerator {
     public RiverGenerator(Dimension dimension) {
         this.dimension = dimension;
+        this.minHeight = dimension.getMinHeight();
     }
     
 
@@ -66,7 +70,7 @@ public class RiverGenerator {
 //        System.out.println("Start coordinates: " + x + ", " + y);
         int waterLevel = snapshot.getWaterLevelAt(x, y);
         float height = snapshot.getHeightAt(x, y);
-        int intHeight = (int) (height + 0.5f);
+        int intHeight = Math.round(height);
         if (waterLevel > intHeight) {
             // Already flooded
         } else {
@@ -117,7 +121,7 @@ public class RiverGenerator {
 ////            System.out.println("Next coordinates: " + x + ", " + y);
 //            waterLevel = snapshot.getWaterLevelAt(x, y);
 //            height = snapshot.getHeightAt(x, y);
-//            intHeight = (int) (height + 0.5f);
+//            intHeight = Math.round(height);
 //        }
     }
     
@@ -128,8 +132,8 @@ public class RiverGenerator {
                 if ((dx != 0) || (dy != 0)) {
                     int height = snapshot.getIntHeightAt(x + dx, y + dy);
                     if ((height >= snapshot.getWaterLevelAt(x + dx, y + dy)) && (height < lowestSurroundingDryHeight)) {
-                        if (height == 0) {
-                            return 0;
+                        if (height == minHeight) {
+                            return minHeight;
                         } else {
                             lowestSurroundingDryHeight = height;
                         }
@@ -147,8 +151,8 @@ public class RiverGenerator {
                 if ((dx != 0) || (dy != 0)) {
                     int waterLevel = snapshot.getWaterLevelAt(x + dx, y + dy);
                     if ((waterLevel > snapshot.getIntHeightAt(x + dx, y + dy)) && (waterLevel < lowestSurroundingWaterLevel)) {
-                        if (waterLevel == 0) {
-                            return 0;
+                        if (waterLevel == minHeight) {
+                            return minHeight;
                         } else {
                             lowestSurroundingWaterLevel = waterLevel;
                         }
@@ -160,6 +164,7 @@ public class RiverGenerator {
     }
     
     private final Dimension dimension;
+    private final int minHeight;
     private Dimension snapshot;
     private Garden garden;
 }

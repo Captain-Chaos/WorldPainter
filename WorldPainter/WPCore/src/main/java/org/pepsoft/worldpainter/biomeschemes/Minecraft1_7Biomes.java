@@ -23,6 +23,7 @@ public interface Minecraft1_7Biomes {
     int BIOME_RIVER = 7;
     int BIOME_HELL = 8;
     int BIOME_SKY = 9;
+
     int BIOME_FROZEN_OCEAN = 10;
     int BIOME_FROZEN_RIVER = 11;
     int BIOME_ICE_PLAINS = 12;
@@ -33,6 +34,7 @@ public interface Minecraft1_7Biomes {
     int BIOME_DESERT_HILLS = 17;
     int BIOME_FOREST_HILLS = 18;
     int BIOME_TAIGA_HILLS = 19;
+
     int BIOME_EXTREME_HILLS_EDGE = 20;
     int BIOME_JUNGLE = 21;
     int BIOME_JUNGLE_HILLS = 22;
@@ -43,6 +45,7 @@ public interface Minecraft1_7Biomes {
     int BIOME_BIRCH_FOREST = 27;
     int BIOME_BIRCH_FOREST_HILLS = 28;
     int BIOME_ROOFED_FOREST = 29;
+
     int BIOME_COLD_TAIGA = 30;
     int BIOME_COLD_TAIGA_HILLS = 31;
     int BIOME_MEGA_TAIGA = 32;
@@ -63,11 +66,9 @@ public interface Minecraft1_7Biomes {
 
     int BIOME_ICE_PLAINS_SPIKES = 140;
     int BIOME_ICE_MOUNTAINS_SPIKES = 141;
-
     int BIOME_JUNGLE_M = 149;
 
     int BIOME_JUNGLE_EDGE_M = 151;
-
     int BIOME_BIRCH_FOREST_M = 155;
     int BIOME_BIRCH_FOREST_HILLS_M = 156;
     int BIOME_ROOFED_FOREST_M = 157;

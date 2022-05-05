@@ -22,5 +22,5 @@ public class VoidRenderer implements BitLayerRenderer {
         VoidRenderer.colour = colour;
     }
     
-    private static int colour = 0xC0FFFF;
+    private static int colour = 0xC0FFFF; // Light cyan
 }

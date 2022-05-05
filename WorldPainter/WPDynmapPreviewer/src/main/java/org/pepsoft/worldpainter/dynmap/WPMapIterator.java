@@ -97,7 +97,7 @@ class WPMapIterator implements MapIterator {
     public int getBlockTypeIDAt(BlockStep s) {
         int steppedHeight = height + s.yoff;
         if ((steppedHeight >= 0) && (steppedHeight < maxHeight)) {
-            int blockType = world.getBlockTypeAt(x + s.xoff, y + s.zoff, height + s.yoff);
+            int blockType = world.getMaterialAt(x + s.xoff, y + s.zoff, height + s.yoff).blockType;
             return (blockType >= 0) ? blockType : BLK_WOOL;
         } else {
             return 0;
@@ -141,7 +141,7 @@ class WPMapIterator implements MapIterator {
     }
 
     public int getBlockTypeID() {
-        int blockType = world.getBlockTypeAt(x, y ,height);
+        int blockType = world.getMaterialAt(x, y ,height).blockType;
         return (blockType >= 0) ? blockType : BLK_WOOL;
     }
 
@@ -157,7 +157,7 @@ class WPMapIterator implements MapIterator {
     public int getBlockTypeIDAt(int xoff, int yoff, int zoff) {
         int offsetHeight = height + yoff;
         if ((offsetHeight >= 0) && (offsetHeight < maxHeight)) {
-            int blockType = world.getBlockTypeAt(x + xoff, y + zoff, offsetHeight);
+            int blockType = world.getMaterialAt(x + xoff, y + zoff, offsetHeight).blockType;
             return (blockType >= 0) ? blockType : BLK_WOOL;
         } else {
             return 0;
@@ -167,7 +167,7 @@ class WPMapIterator implements MapIterator {
     public int getBlockDataAt(int xoff, int yoff, int zoff) {
         int offsetHeight = height + yoff;
         if ((offsetHeight >= 0) && (offsetHeight < maxHeight)) {
-            int data = world.getDataAt(x + xoff, y + zoff, offsetHeight);
+            int data = world.getMaterialAt(x + xoff, y + zoff, offsetHeight).data;
             return (data >= 0) ? data : DATA_MAGENTA;
         } else {
             return 0;

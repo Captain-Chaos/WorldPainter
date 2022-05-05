@@ -4,8 +4,9 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import org.pepsoft.util.plugins.PluginManager;
+import org.pepsoft.minecraft.SeededGenerator;
 import org.pepsoft.util.WPCustomObjectInputStream;
+import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -26,8 +27,10 @@ import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
 
 /**
@@ -36,7 +39,8 @@ import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
  */
 public class RecoverWorld {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-        int defaultMaxHeight = Integer.parseInt(args[1]);
+        int defaultMinHeight = Integer.parseInt(args[1]);
+        int defaultMaxHeight = Integer.parseInt(args[2]);
 
         // Load or initialise configuration
         Configuration config;
@@ -123,7 +127,12 @@ public class RecoverWorld {
             Dimension dimension = entry.getKey();
             List<Tile> tileList = entry.getValue();
             System.out.println(tileList.size() + " tiles read for dimension " + dimension.getName());
-            int maxHeight;
+            int minHeight, maxHeight;
+            if (dimension.getMinHeight() != 0) {
+                minHeight = dimension.getMinHeight();
+            } else {
+                minHeight = defaultMinHeight;
+            }
             if (dimension.getMaxHeight() != 0) {
                 maxHeight = dimension.getMaxHeight();
             } else {
@@ -151,11 +160,6 @@ public class RecoverWorld {
                         System.err.println("Custom material settings lost");
                     }
                     newWorld.setGameType(world.getGameType());
-                    if (world.getGenerator() != null) {
-                        newWorld.setGenerator(world.getGenerator());
-                    } else {
-                        System.err.println("Landscape generator setting lost");
-                    }
                     newWorld.setImportedFrom(world.getImportedFrom());
                     newWorld.setMapFeatures(world.isMapFeatures());
                     if (world.getSpawnPoint() != null) {
@@ -188,9 +192,9 @@ public class RecoverWorld {
             TileFactory tileFactory = dimension.getTileFactory();
             if (tileFactory == null) {
                 System.err.println("Dimension " + dimension.getName() + " tile factory lost; creating default tile factory");
-                tileFactory = TileFactoryFactory.createNoiseTileFactory(dimension.getSeed(), Terrain.GRASS, maxHeight, 58, 62, false, true, 20, 1.0);
+                tileFactory = TileFactoryFactory.createNoiseTileFactory(dimension.getSeed(), Terrain.GRASS, minHeight, maxHeight, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0);
             }
-            Dimension newDimension = new Dimension(newWorld, dimension.getMinecraftSeed(), tileFactory, dimension.getDim(), maxHeight);
+            Dimension newDimension = new Dimension(newWorld, dimension.getMinecraftSeed(), tileFactory, dimension.getDim(), minHeight, maxHeight);
             try {
                 for (Map.Entry<Layer, ExporterSettings> settingsEntry: dimension.getAllLayerSettings().entrySet()) {
                     if (settingsEntry.getValue() != null) {
@@ -237,9 +241,15 @@ public class RecoverWorld {
                 System.err.println("Sub surface material lost for dimension " + dimension.getName() + "; resetting to STONE_MIX");
                 newDimension.setSubsurfaceMaterial(Terrain.STONE_MIX);
             }
+            if (dimension.getGenerator() != null) {
+                newDimension.setGenerator(dimension.getGenerator());
+            } else {
+                System.err.println("Landscape generator setting lost for dimension " + dimension.getName() + "; resetting to DEFAULT");
+                newDimension.setGenerator(new SeededGenerator(DEFAULT, newDimension.getMinecraftSeed()));
+            }
             newWorld.addDimension(newDimension);
             for (Tile tile: tileList) {
-                tile.repair(maxHeight, System.err);
+                tile.repair(minHeight, maxHeight, System.err);
                 newDimension.addTile(tile);
             }
         }

@@ -5,9 +5,10 @@
 
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
 
 /**
  *
@@ -16,7 +17,7 @@ import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
 @Deprecated
 public class FlatTileFactory extends HeightMapTileFactory {
     private FlatTileFactory() {
-        super(0, null, 0, false, null);
+        super(0, null, 0, 0, false, null);
         height = 0;
         throw new UnsupportedOperationException("Only exists for deserialising old worlds");
     }

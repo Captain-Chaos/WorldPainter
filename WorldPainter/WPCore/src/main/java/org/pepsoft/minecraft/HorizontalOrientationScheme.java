@@ -194,7 +194,7 @@ enum HorizontalOrientationScheme {
                         case "south_west":
                             return material.withProperty(Material.SHAPE, "south_east");
                         case "north_west":
-                            return material.withProperty(Material.SHAPE, "northeast");
+                            return material.withProperty(Material.SHAPE, "north_east");
                         case "north_east":
                             return material.withProperty(Material.SHAPE, "north_west");
                         case "south_east":

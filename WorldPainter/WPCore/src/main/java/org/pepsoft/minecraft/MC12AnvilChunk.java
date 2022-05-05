@@ -21,7 +21,7 @@ import static org.pepsoft.minecraft.Constants.*;
  * 
  * @author pepijn
  */
-public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
+public final class MC12AnvilChunk extends MCNumberedBlocksChunk implements MinecraftWorld {
     public MC12AnvilChunk(int xPos, int zPos, int maxHeight) {
         super(new CompoundTag(TAG_LEVEL, new HashMap<>()));
         this.xPos = xPos;
@@ -73,7 +73,7 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
         List<CompoundTag> tileEntityTags = getList(TAG_TILE_ENTITIES);
         tileEntities = new ArrayList<>(tileEntityTags.size());
         tileEntities.addAll(tileEntityTags.stream().map(TileEntity::fromNBT).collect(toList()));
-        // TODO: last update is ignored, is that correct?
+        lastUpdate = getLong(TAG_LAST_UPDATE);
         xPos = getInt(TAG_X_POS_);
         zPos = getInt(TAG_Z_POS_);
         terrainPopulated = getBoolean(TAG_TERRAIN_POPULATED);
@@ -91,6 +91,7 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
 
     @Override
     public CompoundTag toNBT() {
+        normalise();
         List<CompoundTag> sectionTags = new ArrayList<>(maxHeight >> 4);
         for (Section section: sections) {
 //            if (section != null) {
@@ -120,14 +121,19 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
         List<CompoundTag> tileEntityTags = new ArrayList<>(entities.size());
         tileEntities.stream().map(TileEntity::toNBT).forEach(tileEntityTags::add);
         setList(TAG_TILE_ENTITIES, CompoundTag.class, tileEntityTags);
-        setLong(TAG_LAST_UPDATE, System.currentTimeMillis()); // TODO: is this correct?
+        setLong(TAG_LAST_UPDATE, lastUpdate);
         setInt(TAG_X_POS_, xPos);
         setInt(TAG_Z_POS_, zPos);
         setBoolean(TAG_TERRAIN_POPULATED, terrainPopulated);
         setBoolean(TAG_LIGHT_POPULATED, lightPopulated);
         setLong(TAG_INHABITED_TIME, inhabitedTime);
 
-        return new CompoundTag("", Collections.singletonMap("", super.toNBT()));
+        return new CompoundTag("", Collections.singletonMap("", super.toNBT())); // TODO this really should be setting the DataVersion, but Minecraft does not seem to mind if it's missing
+    }
+
+    @Override
+    public int getMinHeight() {
+        return 0;
     }
 
     @Override
@@ -299,7 +305,12 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
         }
         heightMap[x + z * 16] = height;
     }
-    
+
+    @Override
+    public boolean isBiomesSupported() {
+        return true;
+    }
+
     @Override
     public boolean isBiomesAvailable() {
         return biomes != null;
@@ -433,7 +444,7 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
                 }
             }
         }
-        return -1;
+        return Integer.MIN_VALUE;
     }
 
     @Override
@@ -448,7 +459,7 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
                 }
             }
         }
-        return -1;
+        return Integer.MIN_VALUE;
     }
 
     // MinecraftWorld
@@ -619,7 +630,7 @@ public final class MC12AnvilChunk extends NBTChunk implements MinecraftWorld {
     final List<Entity> entities;
     final List<TileEntity> tileEntities;
     final int maxHeight;
-    long inhabitedTime;
+    long inhabitedTime, lastUpdate;
 
     public static class Section extends AbstractNBTItem {
         Section(CompoundTag tag) {

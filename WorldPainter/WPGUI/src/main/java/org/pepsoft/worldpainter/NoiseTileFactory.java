@@ -5,12 +5,13 @@
 
 package org.pepsoft.worldpainter;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 import org.pepsoft.worldpainter.heightMaps.SumHeightMap;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
 
 /**
  *
@@ -19,7 +20,7 @@ import org.pepsoft.worldpainter.heightMaps.SumHeightMap;
 @Deprecated
 public class NoiseTileFactory extends HeightMapTileFactory {
     private NoiseTileFactory() {
-        super(0, null, 0, false, null);
+        super(0, null, 0, 0, false, null);
         throw new UnsupportedOperationException("Only exists for deserialising old worlds");
     }
 

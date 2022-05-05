@@ -17,10 +17,12 @@ import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.util.swing.TileProvider;
 import org.pepsoft.worldpainter.heightMaps.*;
+import org.pepsoft.worldpainter.heightMaps.gui.ImportPresetListCellRenderer;
 import org.pepsoft.worldpainter.importing.HeightMapImporter;
 import org.pepsoft.worldpainter.layers.Void;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
+import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 import org.pepsoft.worldpainter.themes.Theme;
 import org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor;
 
@@ -35,17 +37,22 @@ import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.List;
 import java.util.*;
 
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
+import static com.google.common.primitives.Ints.asList;
+import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.SpinnerUtils.setMaximum;
+import static org.pepsoft.util.swing.SpinnerUtils.setMinimum;
 import static org.pepsoft.worldpainter.Constants.MAX_HEIGHT;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.HeightTransform.IDENTITY;
+import static org.pepsoft.worldpainter.Terrain.GRASS;
+import static org.pepsoft.worldpainter.Terrain.PICK_LIST;
 import static org.pepsoft.worldpainter.util.LayoutUtils.setDefaultSizeAndLocation;
 import static org.pepsoft.worldpainter.util.MinecraftUtil.blocksToWalkingTime;
 
@@ -53,6 +60,8 @@ import static org.pepsoft.worldpainter.util.MinecraftUtil.blocksToWalkingTime;
  *
  * @author pepijn
  */
+@SuppressWarnings({"ConstantConditions", // Guaranteed by code
+        "FieldCanBeLocal", "unused", "Convert2Lambda", "Anonymous2MethodRef"}) // Managed by NetBeans
 public class ImportHeightMapDialog extends WorldPainterDialog implements DocumentListener, SimpleThemeEditor.ChangeListener {
     public ImportHeightMapDialog(Window parent, ColourScheme colourScheme, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
         this(parent, null, colourScheme, contourLines, contourSeparation, lightOrigin);
@@ -76,28 +85,36 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         checkBoxCreateTiles.setSelected(true);
         labelWarning.setVisible(false);
         comboBoxPlatform.setModel(new DefaultComboBoxModel<>(PlatformManager.getInstance().getAllPlatforms().toArray(new Platform[0])));
+        labelWarningCutOffBelow.setVisible(false);
+        labelWarningCutOffAbove.setVisible(false);
+        comboBoxSingleTerrain.setRenderer(new TerrainListCellRenderer(colourScheme));
+        comboBoxSingleTerrain.setSelectedItem(GRASS);
+        comboBoxPreset.setRenderer(new ImportPresetListCellRenderer());
 
         fieldFilename.getDocument().addDocumentListener(this);
         
         rootPane.setDefaultButton(buttonOk);
         
         if (currentDimension != null) {
+            platform = currentDimension.getWorld().getPlatform();
             jTabbedPane1.setEnabledAt(1, false);
-            comboBoxPlatform.setSelectedItem(currentDimension.getWorld().getPlatform());
+            comboBoxPlatform.setSelectedItem(platform);
             comboBoxPlatform.setEnabled(false);
-            comboBoxHeight.setSelectedItem(currentDimension.getMaxHeight());
-            comboBoxHeight.setEnabled(false);
             buttonResetDefaults.setEnabled(false);
             spinnerWorldMiddle.setValue(((HeightMapTileFactory) currentDimension.getTileFactory()).getTheme().clone().getWaterHeight());
             buttonLoadDefaults.setEnabled(true);
             buttonSaveAsDefaults.setEnabled(true);
+            checkBoxOnlyRaise.setSelected(true);
+            comboBoxSingleTerrain.setModel(new DefaultComboBoxModel<>(Terrain.getConfiguredValues()));
         } else {
-            themeEditor.setTheme((SimpleTheme) TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, 62, false, true, 20, 1.0).getTheme());
+            platform = JAVA_ANVIL_1_15;
+            themeEditor.setTheme(SimpleTheme.createDefault(GRASS, platform.minZ, platform.standardMaxHeight, DEFAULT_WATER_LEVEL, true, true));
             themeEditor.setChangeListener(this);
-            comboBoxPlatform.setSelectedItem(JAVA_ANVIL);
+            comboBoxPlatform.setSelectedItem(JAVA_ANVIL_1_15);
             labelNoUndo.setText(" ");
             checkBoxCreateTiles.setEnabled(false);
             checkBoxOnlyRaise.setEnabled(false);
+            comboBoxSingleTerrain.setModel(new DefaultComboBoxModel<>(PICK_LIST));
             loadDefaults();
         }
 
@@ -105,8 +122,9 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         pack();
         setDefaultSizeAndLocation(this, 60);
 
+        programmaticChange = false;
+        platformChanged();
         setControlStates();
-        initialising = false;
     }
 
     public World2 getImportedWorld() {
@@ -159,10 +177,10 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     }
 
     private HeightMapImporter createImporter() {
-        HeightMap heightMap = new BitmapHeightMap(selectedFile.getName(), image, 0, selectedFile, false, false);
-        int scale = (Integer) spinnerScale.getValue();
-        int offsetX = (Integer) spinnerOffsetX.getValue();
-        int offsetY = (Integer) spinnerOffsetY.getValue();
+        HeightMap heightMap = BitmapHeightMap.build().withName(selectedFile.getName()).withImage(image).withFile(selectedFile).now();
+        final int scale = (Integer) spinnerScale.getValue();
+        final int offsetX = (Integer) spinnerOffsetX.getValue();
+        final int offsetY = (Integer) spinnerOffsetY.getValue();
         if ((scale != 100) || (offsetX != 0) || (offsetY != 0)) {
             if (scale != 100) {
                 ((BitmapHeightMap) heightMap).setSmoothScaling(true);
@@ -170,38 +188,46 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             heightMap = new TransformingHeightMap(heightMap.getName() + " transformed", heightMap, scale, scale, offsetX, offsetY, 0);
         }
         if (checkBoxInvert.isSelected()) {
-            if (image.getSampleModel().getSampleSize(0) == 16) {
-                heightMap = new DifferenceHeightMap(new ConstantHeightMap(65535f), heightMap);
-            } else {
-                heightMap = new DifferenceHeightMap(new ConstantHeightMap(255f), heightMap);
-            }
+            heightMap = new DifferenceHeightMap(new ConstantHeightMap((float) (Math.pow(2, bitDepth) - 1)), heightMap);
         }
 
         String name = selectedFile.getName();
-        int p = name.lastIndexOf('.');
+        final int p = name.lastIndexOf('.');
         if (p != -1) {
             name = name.substring(0, p);
         }
 
-        int waterLevel = (int) spinnerWorldMiddle.getValue();
-        int maxHeight = (int) comboBoxHeight.getSelectedItem();
+        final int waterLevel = (int) spinnerWorldMiddle.getValue();
+        final int maxHeight = (int) comboBoxHeight.getSelectedItem();
 
-        HeightMapImporter importer = new HeightMapImporter();
-        importer.setPlatform((Platform) comboBoxPlatform.getSelectedItem());
+        final HeightMapImporter importer = new HeightMapImporter();
+        final Platform platform = (Platform) comboBoxPlatform.getSelectedItem();
+        importer.setPlatform(platform);
         importer.setHeightMap(heightMap);
         importer.setImageFile(selectedFile);
         importer.setName(name);
         if (currentDimension != null) {
             importer.setTileFactory(currentDimension.getTileFactory());
+            if (radioButtonSingleTerrain.isSelected()) {
+                final SimpleTheme theme = SimpleTheme.createSingleTerrain((Terrain) comboBoxSingleTerrain.getSelectedItem(), platform.minZ, maxHeight, waterLevel);
+                theme.setSeed(seed);
+                importer.setTheme(theme);
+            }
         } else {
             themeEditor.save();
-            SimpleTheme theme = themeEditor.getTheme();
-            theme.setMaxHeight(maxHeight);
-            importer.setTileFactory(new HeightMapTileFactory(seed, new SumHeightMap(new ConstantHeightMap(waterLevel - 4), new NoiseHeightMap((float) 20, 1.0, 1, 0)), maxHeight, false, theme));
+            final SimpleTheme theme;
+            if (radioButtonSingleTerrain.isSelected()) {
+                theme = SimpleTheme.createSingleTerrain((Terrain) comboBoxSingleTerrain.getSelectedItem(), platform.minZ, maxHeight, waterLevel);
+            } else {
+                theme = themeEditor.getTheme();
+                theme.setMinMaxHeight(platform.minZ, maxHeight, IDENTITY); // TODO add support for adjusting minHeight
+            }
+            theme.setSeed(seed);
+            importer.setTileFactory(new HeightMapTileFactory(seed, new SumHeightMap(new ConstantHeightMap(waterLevel - 4), new NoiseHeightMap((float) 20, 1.0, 1, 0)), platform.minZ, maxHeight, false, theme));
         }
         importer.setMaxHeight(maxHeight);
-        importer.setImageLowLevel((Integer) spinnerImageLow.getValue());
-        importer.setImageHighLevel((Integer) spinnerImageHigh.getValue());
+        importer.setImageLowLevel((Long) spinnerImageLow.getValue());
+        importer.setImageHighLevel((Long) spinnerImageHigh.getValue());
         importer.setWorldLowLevel((Integer) spinnerWorldLow.getValue());
         importer.setWorldWaterLevel(waterLevel);
         importer.setWorldHighLevel((Integer) spinnerWorldHigh.getValue());
@@ -216,7 +242,10 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             loadImage();
         }
         boolean fileSelected = (selectedFile != null) && selectedFile.isFile();
+        comboBoxPreset.setEnabled(fileSelected);
         buttonOk.setEnabled(fileSelected);
+        spinnerImageLow.setEnabled(fileSelected);
+        spinnerImageHigh.setEnabled(fileSelected);
     }
 
     private void loadImage() {
@@ -236,39 +265,47 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                 labelImageDimensions.setText("Premultiplied alpha not supported! Please convert to non-premultiplied.");
                 selectedFile = null;
             } else {
-                if (image.getType() == BufferedImage.TYPE_CUSTOM) {
-                    spinnerScale.setValue(100);
-                    spinnerScale.setEnabled(false);
-                    spinnerScale.setToolTipText("<html>Scaling not supported for grey scale images with an alpha channel!<br>To enable scaling, please remove the alpha channel.</html>");
-                } else {
-                    spinnerScale.setEnabled(true);
-                    spinnerScale.setToolTipText(null);
-                }
-                labelImageDimensions.setForeground(null);
-                int width = image.getWidth(), height = image.getHeight();
-                bitDepth = image.getSampleModel().getSampleSize(0);
-                WritableRaster raster = image.getRaster();
-                int imageLowValue = Integer.MAX_VALUE;
-                imageHighValue = Integer.MIN_VALUE;
-                int imageMaxHeight = (int) Math.pow(2, bitDepth) - 1;
-                boolean invert = checkBoxInvert.isSelected();
-outer:          for (int x = 0; x < width; x++) {
-                    for (int y = 0; y < height; y++) {
-                        int value = invert ? (imageMaxHeight - raster.getSample(x, y, 0)) : raster.getSample(x, y, 0);
-                        if (value < imageLowValue) {
-                            imageLowValue = value;
-                        }
-                        if (value > imageHighValue) {
-                            imageHighValue = value;
-                        }
-                        if ((imageLowValue == 0) && (imageHighValue == imageMaxHeight)) {
-                            // No point in looking any further!
-                            break outer;
+                final int width = image.getWidth(), height = image.getHeight();
+                programmaticChange = true;
+                try {
+                    if (image.getColorModel().hasAlpha()) {
+                        spinnerScale.setValue(100);
+                        spinnerScale.setEnabled(false);
+                        spinnerScale.setToolTipText("<html>Scaling not supported for grey scale images with an alpha channel!<br>To enable scaling, please remove the alpha channel.</html>");
+                    } else {
+                        spinnerScale.setEnabled(true);
+                        spinnerScale.setToolTipText(null);
+                    }
+                    labelImageDimensions.setForeground(null);
+                    bitDepth = image.getSampleModel().getSampleSize(0);
+                    final WritableRaster raster = image.getRaster();
+                    imageLowValue = Long.MAX_VALUE;
+                    imageHighValue = Long.MIN_VALUE;
+                    final long imageMaxHeight = (long) Math.pow(2, bitDepth) - 1;
+                    final boolean invert = checkBoxInvert.isSelected();
+                    outer:
+                    for (int x = 0; x < width; x++) {
+                        for (int y = 0; y < height; y++) {
+                            final long value = invert ? (imageMaxHeight - raster.getSample(x, y, 0) & 0xffffffffL) : raster.getSample(x, y, 0) & 0xffffffffL; // Convert to unsigned integers
+                            if (value < imageLowValue) {
+                                imageLowValue = value;
+                            }
+                            if (value > imageHighValue) {
+                                imageHighValue = value;
+                            }
+                            if ((imageLowValue == 0L) && (imageHighValue == imageMaxHeight)) {
+                                // No point in looking any further!
+                                break outer;
+                            }
                         }
                     }
+                    setMaximum(spinnerImageLow, imageMaxHeight);
+                    setMaximum(spinnerImageHigh, imageMaxHeight);
+                } finally {
+                    programmaticChange = false;
                 }
-                setMaximum(spinnerImageLow, imageMaxHeight);
-                setMaximum(spinnerImageHigh, imageMaxHeight);
+                labelImageLowestLevel.setText(NUMBER_FORMAT.format(imageLowValue));
+                labelImageHighestLevel.setText(NUMBER_FORMAT.format(imageHighValue));
 
                 // Set levels to reasonable defaults
                 selectDefaultVerticalScaling();
@@ -286,26 +323,26 @@ outer:          for (int x = 0; x < width; x++) {
     }
 
     private void selectDefaultVerticalScaling() {
-        int imageMaxHeight = (int) Math.pow(2, bitDepth) - 1;
-        int platformMaxHeight = (int) comboBoxHeight.getSelectedItem();
-        spinnerImageLow.setValue(0);
-        if (imageHighValue < platformMaxHeight) {
-            // The image fits beneath the maximum platform height
-            // unscaled; set default vertical scale to 1:1
-            spinnerImageHigh.setValue(Math.min(imageMaxHeight, platformMaxHeight - 1));
-        } else if ((bitDepth == 16) && (imageHighValue < (platformMaxHeight << 8))) {
-            // The image is 16-bit and fits beneath the maximum platform
-            // height when divided by 256; set default vertical scale
-            // to 256:1
-            spinnerImageHigh.setValue(Math.min(imageMaxHeight, (platformMaxHeight << 8) - 1));
-        } else {
-            // The image does not fit beneath the maximum platform
-            // height so just set the high mark to the maximum
-            spinnerImageHigh.setValue(imageMaxHeight);
+        if (image == null) {
+            return;
         }
-        spinnerWorldLow.setValue(0);
-        spinnerWorldHigh.setValue(Math.min(imageMaxHeight, platformMaxHeight - 1));
-        updateImageWaterLevel();
+        final ImportPreset currentPreset = (ImportPreset) comboBoxPreset.getSelectedItem();
+        final Vector<ImportPreset> presets = new Vector<>(ImportPreset.PRESETS.length + 1);
+        presets.add(null);
+        for (ImportPreset preset: ImportPreset.PRESETS) {
+            if (preset.isValid(bitDepth, imageLowValue, imageHighValue, platform, (Integer) comboBoxHeight.getSelectedItem())) {
+                presets.add(preset);
+            }
+        }
+        final DefaultComboBoxModel<ImportPreset> presetsModel = new DefaultComboBoxModel<>(presets);
+        comboBoxPreset.setModel(presetsModel);
+        comboBoxPreset.setEnabled(presets.size() > 1);
+        if ((currentPreset != null) && presets.contains(currentPreset)) {
+            comboBoxPreset.setSelectedItem(currentPreset);
+        } else {
+            comboBoxPreset.setSelectedItem(presets.lastElement());
+        }
+        applyPreset((ImportPreset) comboBoxPreset.getSelectedItem());
     }
 
     private void updateWorldDimensions() {
@@ -322,27 +359,53 @@ outer:          for (int x = 0; x < width; x++) {
         }
     }
     
-    private void updateImageWaterLevel() {
-        int imageLowLevel    = (Integer) spinnerImageLow.getValue();
-        int imageHighLevel   = (Integer) spinnerImageHigh.getValue();
-        int worldLowLevel    = (Integer) spinnerWorldLow.getValue();
-        int worldMiddleLevel = (Integer) spinnerWorldMiddle.getValue();
-        int worldHighLevel   = (Integer) spinnerWorldHigh.getValue();
-        float levelScale = (float) (worldHighLevel - worldLowLevel) / (imageHighLevel - imageLowLevel);
-        int imageMiddleLevel = (int) ((worldMiddleLevel - worldLowLevel) / levelScale + imageLowLevel);
-        if (imageMiddleLevel < 0) {
-            labelImageWaterLevel.setText("< 0");
-        } else if (imageMiddleLevel > ((bitDepth == 16) ? 65535 : 255)) {
-            labelImageWaterLevel.setText(((bitDepth == 16) ? "> 65535" : "> 255"));
+    private void updateImageLevelLabels() {
+        if (programmaticChange) {
+            return;
+        }
+        final int maxHeight        = (Integer) comboBoxHeight.getSelectedItem() - 1;
+        final long imageLowLevel   = (Long) spinnerImageLow.getValue();
+        final long imageHighLevel  = (Long) spinnerImageHigh.getValue();
+        final int worldLowLevel    = (Integer) spinnerWorldLow.getValue();
+        final int worldMiddleLevel = (Integer) spinnerWorldMiddle.getValue();
+        final int worldHighLevel   = (Integer) spinnerWorldHigh.getValue();
+        final float levelScale = (float) (worldHighLevel - worldLowLevel) / (imageHighLevel - imageLowLevel);
+        final long imageMiddleLevel = (long) ((worldMiddleLevel - worldLowLevel) / levelScale + imageLowLevel);
+        final int worldLowestLevel = (int) ((imageLowValue - imageLowLevel) * levelScale + worldLowLevel);
+        final int worldHighestLevel = (int) ((imageHighValue - imageLowLevel) * levelScale + worldLowLevel);
+        if (imageMiddleLevel < imageLowValue) {
+            labelImageWaterLevel.setText("-");
+        } else if (imageMiddleLevel > imageHighValue) {
+            labelImageWaterLevel.setText("> " + imageHighValue);
         } else {
-            labelImageWaterLevel.setText(Integer.toString(imageMiddleLevel));
+            labelImageWaterLevel.setText(NUMBER_FORMAT.format(imageMiddleLevel));
+        }
+        if (worldLowestLevel < platform.minZ) {
+            labelWorldLowestLevel.setText("<html><b>&lt; " + platform.minZ + "</b></html>");
+            labelWarningCutOffBelow.setVisible(true);
+        } else if (worldLowestLevel > maxHeight) {
+            labelWorldLowestLevel.setText("<html><b>&gt; " + NUMBER_FORMAT.format(maxHeight) + "</b></html>");
+            labelWarningCutOffBelow.setVisible(false);
+        } else {
+            labelWorldLowestLevel.setText(NUMBER_FORMAT.format(worldLowestLevel));
+            labelWarningCutOffBelow.setVisible(false);
+        }
+        if (worldHighestLevel < platform.minZ) {
+            labelWorldHighestLevel.setText("<html><b>&lt; " + platform.minZ + "</b></html>");
+            labelWarningCutOffAbove.setVisible(false);
+        } else if (worldHighestLevel > maxHeight) {
+            labelWorldHighestLevel.setText("<html><b>&gt; " + NUMBER_FORMAT.format(maxHeight) + "</b></html>");
+            labelWarningCutOffAbove.setVisible(true);
+        } else {
+            labelWorldHighestLevel.setText(NUMBER_FORMAT.format(worldHighestLevel));
+            labelWarningCutOffAbove.setVisible(false);
         }
     }
 
     private void loadDefaults() {
         Theme defaultTheme = Configuration.getInstance().getHeightMapDefaultTheme();
         if (defaultTheme == null) {
-            HeightMapTileFactory tmpTileFactory = TileFactoryFactory.createNoiseTileFactory(seed, Terrain.GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, 62, false, true, 20, 1.0);
+            HeightMapTileFactory tmpTileFactory = TileFactoryFactory.createNoiseTileFactory(seed, GRASS, 0, DEFAULT_MAX_HEIGHT_ANVIL, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0);
             defaultTheme = tmpTileFactory.getTheme();
             if (currentDimension == null) {
                 buttonResetDefaults.setEnabled(false);
@@ -351,7 +414,7 @@ outer:          for (int x = 0; x < width; x++) {
             buttonResetDefaults.setEnabled(true);
         }
         spinnerWorldMiddle.setValue(defaultTheme.getWaterHeight());
-        updateImageWaterLevel();
+        updateImageLevelLabels();
         updatePreview();
         themeEditor.setTheme((SimpleTheme) defaultTheme);
         buttonLoadDefaults.setEnabled(false);
@@ -373,7 +436,7 @@ outer:          for (int x = 0; x < width; x++) {
             Theme theme = ((HeightMapTileFactory) currentDimension.getTileFactory()).getTheme();
             buttonResetDefaults.setEnabled(false);
             spinnerWorldMiddle.setValue(theme.getWaterHeight());
-            updateImageWaterLevel();
+            updateImageLevelLabels();
             updatePreview();
             themeEditor.setTheme((SimpleTheme) theme);
             buttonLoadDefaults.setEnabled(true);
@@ -418,32 +481,51 @@ outer:          for (int x = 0; x < width; x++) {
     }
 
     private void platformChanged() {
-        Platform platform = (Platform) comboBoxPlatform.getSelectedItem();
+        if (programmaticChange) {
+            return;
+        }
+        platform = (Platform) comboBoxPlatform.getSelectedItem();
         int maxMaxHeight = Math.min(platform.maxMaxHeight, MAX_HEIGHT);
         int maxHeight;
-        if ((platform.minMaxHeight == maxMaxHeight) || (maxMaxHeight == MAX_HEIGHT)) {
-            maxHeight = maxMaxHeight;
-            comboBoxHeight.setModel(new DefaultComboBoxModel<>(new Integer[] {maxMaxHeight}));
-            comboBoxHeight.setEnabled(false);
-        } else {
-            maxHeight = platform.standardMaxHeight;
-            List<Integer> maxHeights = new ArrayList<>();
-            for (int height = platform.minMaxHeight; height <= platform.maxMaxHeight; height *= 2) {
-                maxHeights.add(height);
+        programmaticChange = true;
+        try {
+            if (currentDimension != null) {
+                maxHeight = currentDimension.getMaxHeight();
+                comboBoxHeight.setModel(new DefaultComboBoxModel<>(new Integer[] {maxMaxHeight}));
+                comboBoxHeight.setEnabled(false);
+            } else if ((platform.minMaxHeight == maxMaxHeight) || (maxMaxHeight == MAX_HEIGHT)) {
+                maxHeight = maxMaxHeight;
+                comboBoxHeight.setModel(new DefaultComboBoxModel<>(new Integer[] {maxMaxHeight}));
+                comboBoxHeight.setEnabled(false);
+            } else {
+                maxHeight = platform.standardMaxHeight;
+                List<Integer> maxHeights = asList(platform.maxHeights);
+                comboBoxHeight.setModel(new DefaultComboBoxModel<>(maxHeights.toArray(new Integer[maxHeights.size()])));
+                comboBoxHeight.setEnabled(true);
             }
-            comboBoxHeight.setModel(new DefaultComboBoxModel<>(maxHeights.toArray(new Integer[maxHeights.size()])));
-            comboBoxHeight.setEnabled(true);
+            setMinimum(spinnerWorldLow, platform.minZ);
+            setMinimum(spinnerWorldMiddle, platform.minZ);
+            setMinimum(spinnerWorldHigh, platform.minZ);
+            comboBoxHeight.setSelectedItem(platform.standardMaxHeight);
+            labelMinHeight.setText(String.valueOf(platform.minZ));
+            maxHeightChanged();
+            spinnerWorldHigh.setValue((int) Math.min(maxHeight - 1, (long) Math.pow(2, bitDepth) - 1)); // TODO overflow
+        } finally {
+            programmaticChange = false;
         }
-        comboBoxHeight.setSelectedItem(maxHeight);
-        maxHeightChanged();
-        spinnerWorldHigh.setValue(Math.min(maxHeight - 1, (int) Math.pow(2, bitDepth) - 1));
     }
 
     private void maxHeightChanged() {
         int platformMaxHeight = (int) comboBoxHeight.getSelectedItem();
-        setMaximum(spinnerWorldLow, platformMaxHeight - 1);
-        setMaximum(spinnerWorldMiddle, platformMaxHeight - 1);
-        setMaximum(spinnerWorldHigh, platformMaxHeight - 1);
+        programmaticChange = true;
+        try {
+            setMaximum(spinnerWorldLow, platformMaxHeight - 1);
+            setMaximum(spinnerWorldMiddle, platformMaxHeight - 1);
+            setMaximum(spinnerWorldHigh, platformMaxHeight - 1);
+            labelMaxHeight.setText(NUMBER_FORMAT.format(platformMaxHeight - 1));
+        } finally {
+            programmaticChange = false;
+        }
 
         // Set levels to reasonable defaults
         selectDefaultVerticalScaling();
@@ -467,18 +549,45 @@ outer:          for (int x = 0; x < width; x++) {
         });
     }
 
+    private void applyPreset(ImportPreset preset) {
+        if (preset != null) {
+            programmaticChange = true;
+            try {
+                final long[][] mappings = preset.getMapping(bitDepth, imageLowValue, imageHighValue, platform, (Integer) comboBoxHeight.getSelectedItem());
+                spinnerImageLow.setValue(mappings[0][0]);
+                spinnerWorldLow.setValue((int) mappings[1][0]);
+                spinnerImageHigh.setValue(mappings[0][1]);
+                spinnerWorldHigh.setValue((int) mappings[1][1]);
+            } finally {
+                programmaticChange = false;
+            }
+        }
+        updateImageLevelLabels();
+    }
+
+    private void resetPreset() {
+        if (programmaticChange) {
+            return;
+        }
+        programmaticChange = true;
+        try {
+            comboBoxPreset.setSelectedItem(null);
+        } finally {
+            programmaticChange = false;
+        }
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
      * always regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        buttonGroup1 = new javax.swing.ButtonGroup();
         tiledImageViewer2 = new org.pepsoft.util.swing.TiledImageViewer();
+        themeButtonGroup = new javax.swing.ButtonGroup();
         jLabel1 = new javax.swing.JLabel();
         fieldFilename = new javax.swing.JTextField();
         buttonSelectFile = new javax.swing.JButton();
@@ -505,6 +614,18 @@ outer:          for (int x = 0; x < width; x++) {
         jLabel9 = new javax.swing.JLabel();
         spinnerImageHigh = new javax.swing.JSpinner();
         spinnerWorldHigh = new javax.swing.JSpinner();
+        jLabel15 = new javax.swing.JLabel();
+        labelImageLowestLevel = new javax.swing.JLabel();
+        labelWorldLowestLevel = new javax.swing.JLabel();
+        jLabel18 = new javax.swing.JLabel();
+        labelImageHighestLevel = new javax.swing.JLabel();
+        labelWorldHighestLevel = new javax.swing.JLabel();
+        labelWarningCutOffAbove = new javax.swing.JLabel();
+        labelWarningCutOffBelow = new javax.swing.JLabel();
+        jLabel16 = new javax.swing.JLabel();
+        jLabel17 = new javax.swing.JLabel();
+        labelMinHeight = new javax.swing.JLabel();
+        labelMaxHeight = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
         checkBoxVoid = new javax.swing.JCheckBox();
@@ -516,6 +637,11 @@ outer:          for (int x = 0; x < width; x++) {
         spinnerOffsetY = new javax.swing.JSpinner();
         jLabel14 = new javax.swing.JLabel();
         labelWalkingTime = new javax.swing.JLabel();
+        radioButtonApplyTheme = new javax.swing.JRadioButton();
+        radioButtonSingleTerrain = new javax.swing.JRadioButton();
+        comboBoxSingleTerrain = new javax.swing.JComboBox<>();
+        jLabel19 = new javax.swing.JLabel();
+        comboBoxPreset = new javax.swing.JComboBox<>();
         jPanel3 = new javax.swing.JPanel();
         themeEditor = new org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor();
         buttonLoadDefaults = new javax.swing.JButton();
@@ -593,33 +719,39 @@ outer:          for (int x = 0; x < width; x++) {
 
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
-        jLabel5.setText("Image:");
+        jLabel5.setText("From image:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         jPanel1.add(jLabel5, gridBagConstraints);
 
-        jLabel6.setText("Minecraft:");
+        jLabel6.setText("To Minecraft:");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         jPanel1.add(jLabel6, gridBagConstraints);
 
-        jLabel7.setText("Bottom:");
+        jLabel7.setText("Low mapping:");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         jPanel1.add(jLabel7, gridBagConstraints);
 
-        spinnerImageLow.setModel(new javax.swing.SpinnerNumberModel(0, 0, 65535, 1));
+        spinnerImageLow.setModel(new javax.swing.SpinnerNumberModel(Long.valueOf(0L), Long.valueOf(0L), Long.valueOf(4294967295L), Long.valueOf(1L)));
         spinnerImageLow.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 spinnerImageLowStateChanged(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         jPanel1.add(spinnerImageLow, gridBagConstraints);
@@ -631,19 +763,25 @@ outer:          for (int x = 0; x < width; x++) {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.RELATIVE;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         jPanel1.add(spinnerWorldLow, gridBagConstraints);
 
         jLabel8.setText("Water level:");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         jPanel1.add(jLabel8, gridBagConstraints);
 
         labelImageWaterLevel.setText("62");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_END;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 19);
         jPanel1.add(labelImageWaterLevel, gridBagConstraints);
@@ -655,24 +793,30 @@ outer:          for (int x = 0; x < width; x++) {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         jPanel1.add(spinnerWorldMiddle, gridBagConstraints);
 
-        jLabel9.setText("Top:");
+        jLabel9.setText("High mapping:");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         jPanel1.add(jLabel9, gridBagConstraints);
 
-        spinnerImageHigh.setModel(new javax.swing.SpinnerNumberModel(255, 0, 65535, 1));
+        spinnerImageHigh.setModel(new javax.swing.SpinnerNumberModel(Long.valueOf(255L), Long.valueOf(0L), Long.valueOf(4294967295L), Long.valueOf(1L)));
         spinnerImageHigh.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 spinnerImageHighStateChanged(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         jPanel1.add(spinnerImageHigh, gridBagConstraints);
@@ -684,10 +828,116 @@ outer:          for (int x = 0; x < width; x++) {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         jPanel1.add(spinnerWorldHigh, gridBagConstraints);
+
+        jLabel15.setText("Lowest value:");
+        jLabel15.setToolTipText("The lowest value that actually occurs on the height map.");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        jPanel1.add(jLabel15, gridBagConstraints);
+
+        labelImageLowestLevel.setText("0");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_END;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 19);
+        jPanel1.add(labelImageLowestLevel, gridBagConstraints);
+
+        labelWorldLowestLevel.setText("0");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.RELATIVE;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_END;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 19);
+        jPanel1.add(labelWorldLowestLevel, gridBagConstraints);
+
+        jLabel18.setText("Highest value:");
+        jLabel18.setToolTipText("The highest value that actually occurs on the height map.");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        jPanel1.add(jLabel18, gridBagConstraints);
+
+        labelImageHighestLevel.setText("255");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_END;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 19);
+        jPanel1.add(labelImageHighestLevel, gridBagConstraints);
+
+        labelWorldHighestLevel.setText("255");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_END;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 19);
+        jPanel1.add(labelWorldHighestLevel, gridBagConstraints);
+
+        labelWarningCutOffAbove.setFont(labelWarningCutOffAbove.getFont().deriveFont(labelWarningCutOffAbove.getFont().getStyle() | java.awt.Font.BOLD));
+        labelWarningCutOffAbove.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/error.png"))); // NOI18N
+        labelWarningCutOffAbove.setText("Cut off above!");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        jPanel1.add(labelWarningCutOffAbove, gridBagConstraints);
+
+        labelWarningCutOffBelow.setFont(labelWarningCutOffBelow.getFont().deriveFont(labelWarningCutOffBelow.getFont().getStyle() | java.awt.Font.BOLD));
+        labelWarningCutOffBelow.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/error.png"))); // NOI18N
+        labelWarningCutOffBelow.setText("Cut off below!");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        jPanel1.add(labelWarningCutOffBelow, gridBagConstraints);
+
+        jLabel16.setText("Build limit:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        jPanel1.add(jLabel16, gridBagConstraints);
+
+        jLabel17.setText("Build limit:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        jPanel1.add(jLabel17, gridBagConstraints);
+
+        labelMinHeight.setText("-64");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_END;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 19);
+        jPanel1.add(labelMinHeight, gridBagConstraints);
+
+        labelMaxHeight.setText("319");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_END;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 19);
+        jPanel1.add(labelMaxHeight, gridBagConstraints);
 
         jLabel2.setText("Height:");
 
@@ -733,6 +983,38 @@ outer:          for (int x = 0; x < width; x++) {
 
         labelWalkingTime.setText("...");
 
+        themeButtonGroup.add(radioButtonApplyTheme);
+        radioButtonApplyTheme.setSelected(true);
+        radioButtonApplyTheme.setText("apply theme");
+        radioButtonApplyTheme.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonApplyThemeActionPerformed(evt);
+            }
+        });
+
+        themeButtonGroup.add(radioButtonSingleTerrain);
+        radioButtonSingleTerrain.setText("single terrain:");
+        radioButtonSingleTerrain.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonSingleTerrainActionPerformed(evt);
+            }
+        });
+
+        comboBoxSingleTerrain.setEnabled(false);
+        comboBoxSingleTerrain.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxSingleTerrainActionPerformed(evt);
+            }
+        });
+
+        jLabel19.setText("Preset:");
+
+        comboBoxPreset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxPresetActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -740,6 +1022,12 @@ outer:          for (int x = 0; x < width; x++) {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(radioButtonApplyTheme)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(radioButtonSingleTerrain)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxSingleTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -771,7 +1059,11 @@ outer:          for (int x = 0; x < width; x++) {
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jLabel14)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(labelWalkingTime)))
+                        .addComponent(labelWalkingTime))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jLabel19)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxPreset, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(71, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
@@ -802,8 +1094,17 @@ outer:          for (int x = 0; x < width; x++) {
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel19)
+                    .addComponent(comboBoxPreset, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(checkBoxVoid)
                     .addComponent(spinnerVoidBelow, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(radioButtonApplyTheme)
+                    .addComponent(radioButtonSingleTerrain)
+                    .addComponent(comboBoxSingleTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -851,7 +1152,7 @@ outer:          for (int x = 0; x < width; x++) {
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(themeEditor, javax.swing.GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE)
+                .addComponent(themeEditor, javax.swing.GroupLayout.DEFAULT_SIZE, 390, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonLoadDefaults)
@@ -941,7 +1242,7 @@ outer:          for (int x = 0; x < width; x++) {
                             .addComponent(labelNoUndo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(checkBoxOnlyRaise))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTabbedPane1))
+                        .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE))
                     .addComponent(tiledImageViewerContainer1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -954,13 +1255,15 @@ outer:          for (int x = 0; x < width; x++) {
     }// </editor-fold>//GEN-END:initComponents
 
     private void spinnerImageLowStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerImageLowStateChanged
-        int lowLevel    = (Integer) spinnerImageLow.getValue();
-        int highLevel   = (Integer) spinnerImageHigh.getValue();
+        long lowLevel  = (Long) spinnerImageLow.getValue();
+        long highLevel = (Long) spinnerImageHigh.getValue();
         if (lowLevel > highLevel) {
             spinnerImageHigh.setValue(lowLevel);
         }
-        updateImageWaterLevel();
+        resetPreset();
+        updateImageLevelLabels();
         updatePreview();
+        setControlStates();
     }//GEN-LAST:event_spinnerImageLowStateChanged
 
     private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelActionPerformed
@@ -968,55 +1271,44 @@ outer:          for (int x = 0; x < width; x++) {
     }//GEN-LAST:event_buttonCancelActionPerformed
 
     private void spinnerImageHighStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerImageHighStateChanged
-        int lowLevel    = (Integer) spinnerImageLow.getValue();
-        int highLevel   = (Integer) spinnerImageHigh.getValue();
+        long lowLevel  = (Long) spinnerImageLow.getValue();
+        long highLevel = (Long) spinnerImageHigh.getValue();
         if (highLevel < lowLevel) {
             spinnerImageLow.setValue(highLevel);
         }
-        updateImageWaterLevel();
+        resetPreset();
+        updateImageLevelLabels();
         updatePreview();
+        setControlStates();
     }//GEN-LAST:event_spinnerImageHighStateChanged
 
     private void spinnerWorldLowStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerWorldLowStateChanged
         int lowLevel    = (Integer) spinnerWorldLow.getValue();
-//        int middleLevel = (Integer) spinnerWorldMiddle.getValue();
         int highLevel   = (Integer) spinnerWorldHigh.getValue();
-//        if (lowLevel > middleLevel) {
-//            spinnerWorldMiddle.setValue(lowLevel);
-//        }
         if (lowLevel > highLevel) {
             spinnerWorldHigh.setValue(lowLevel);
         }
-        updateImageWaterLevel();
+        resetPreset();
+        updateImageLevelLabels();
         updatePreview();
+        setControlStates();
     }//GEN-LAST:event_spinnerWorldLowStateChanged
 
     private void spinnerWorldMiddleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerWorldMiddleStateChanged
-//        int lowLevel    = (Integer) spinnerWorldLow.getValue();
-//        int middleLevel = (Integer) spinnerWorldMiddle.getValue();
-//        int highLevel   = (Integer) spinnerWorldHigh.getValue();
-//        if (middleLevel < lowLevel) {
-//            spinnerWorldLow.setValue(middleLevel);
-//        }
-//        if (middleLevel > highLevel) {
-//            spinnerWorldHigh.setValue(middleLevel);
-//        }
-        updateImageWaterLevel();
+        updateImageLevelLabels();
         updatePreview();
     }//GEN-LAST:event_spinnerWorldMiddleStateChanged
 
     private void spinnerWorldHighStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerWorldHighStateChanged
         int lowLevel    = (Integer) spinnerWorldLow.getValue();
-//        int middleLevel = (Integer) spinnerWorldMiddle.getValue();
         int highLevel   = (Integer) spinnerWorldHigh.getValue();
         if (highLevel < lowLevel) {
             spinnerWorldLow.setValue(highLevel);
         }
-//        if (highLevel < middleLevel) {
-//            spinnerWorldMiddle.setValue(highLevel);
-//        }
-        updateImageWaterLevel();
+        resetPreset();
+        updateImageLevelLabels();
         updatePreview();
+        setControlStates();
     }//GEN-LAST:event_spinnerWorldHighStateChanged
 
     private void buttonSelectFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSelectFileActionPerformed
@@ -1094,7 +1386,7 @@ outer:          for (int x = 0; x < width; x++) {
     }//GEN-LAST:event_comboBoxHeightActionPerformed
 
     private void jTabbedPane1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jTabbedPane1StateChanged
-        if (! initialising) {
+        if (!programmaticChange) {
             switch (jTabbedPane1.getSelectedIndex()) {
                 case 0:
                     themeEditor.save();
@@ -1147,9 +1439,28 @@ outer:          for (int x = 0; x < width; x++) {
         }
     }//GEN-LAST:event_checkBoxInvertActionPerformed
 
+    private void radioButtonApplyThemeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonApplyThemeActionPerformed
+        comboBoxSingleTerrain.setEnabled(false);
+        jTabbedPane1.setEnabledAt(1, currentDimension == null);
+        updatePreview();
+    }//GEN-LAST:event_radioButtonApplyThemeActionPerformed
+
+    private void radioButtonSingleTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonSingleTerrainActionPerformed
+        comboBoxSingleTerrain.setEnabled(true);
+        jTabbedPane1.setEnabledAt(1, false);
+        updatePreview();
+    }//GEN-LAST:event_radioButtonSingleTerrainActionPerformed
+
+    private void comboBoxSingleTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxSingleTerrainActionPerformed
+        updatePreview();
+    }//GEN-LAST:event_comboBoxSingleTerrainActionPerformed
+
+    private void comboBoxPresetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxPresetActionPerformed
+        applyPreset((ImportPreset) comboBoxPreset.getSelectedItem());
+    }//GEN-LAST:event_comboBoxPresetActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
-    private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton buttonLoadDefaults;
     private javax.swing.JButton buttonOk;
     private javax.swing.JButton buttonResetDefaults;
@@ -1161,6 +1472,8 @@ outer:          for (int x = 0; x < width; x++) {
     private javax.swing.JCheckBox checkBoxVoid;
     private javax.swing.JComboBox<Integer> comboBoxHeight;
     private javax.swing.JComboBox<Platform> comboBoxPlatform;
+    private javax.swing.JComboBox<ImportPreset> comboBoxPreset;
+    private javax.swing.JComboBox<Terrain> comboBoxSingleTerrain;
     private javax.swing.JTextField fieldFilename;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
@@ -1168,6 +1481,11 @@ outer:          for (int x = 0; x < width; x++) {
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
+    private javax.swing.JLabel jLabel15;
+    private javax.swing.JLabel jLabel16;
+    private javax.swing.JLabel jLabel17;
+    private javax.swing.JLabel jLabel18;
+    private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -1181,11 +1499,21 @@ outer:          for (int x = 0; x < width; x++) {
     private javax.swing.JPanel jPanel3;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel labelImageDimensions;
+    private javax.swing.JLabel labelImageHighestLevel;
+    private javax.swing.JLabel labelImageLowestLevel;
     private javax.swing.JLabel labelImageWaterLevel;
+    private javax.swing.JLabel labelMaxHeight;
+    private javax.swing.JLabel labelMinHeight;
     private javax.swing.JLabel labelNoUndo;
     private javax.swing.JLabel labelWalkingTime;
     private javax.swing.JLabel labelWarning;
+    private javax.swing.JLabel labelWarningCutOffAbove;
+    private javax.swing.JLabel labelWarningCutOffBelow;
     private javax.swing.JLabel labelWorldDimensions;
+    private javax.swing.JLabel labelWorldHighestLevel;
+    private javax.swing.JLabel labelWorldLowestLevel;
+    private javax.swing.JRadioButton radioButtonApplyTheme;
+    private javax.swing.JRadioButton radioButtonSingleTerrain;
     private javax.swing.JSpinner spinnerImageHigh;
     private javax.swing.JSpinner spinnerImageLow;
     private javax.swing.JSpinner spinnerOffsetX;
@@ -1195,6 +1523,7 @@ outer:          for (int x = 0; x < width; x++) {
     private javax.swing.JSpinner spinnerWorldHigh;
     private javax.swing.JSpinner spinnerWorldLow;
     private javax.swing.JSpinner spinnerWorldMiddle;
+    private javax.swing.ButtonGroup themeButtonGroup;
     private org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor themeEditor;
     private org.pepsoft.util.swing.TiledImageViewer tiledImageViewer2;
     private org.pepsoft.util.swing.TiledImageViewerContainer tiledImageViewerContainer1;
@@ -1208,10 +1537,13 @@ outer:          for (int x = 0; x < width; x++) {
     private final TileRenderer.LightOrigin lightOrigin;
     private File selectedFile, heightMapDir;
     private volatile BufferedImage image;
-    private int bitDepth = 8, imageHighValue = 255;
-    private boolean initialising = true;
+    private int bitDepth = 8;
+    private long imageLowValue, imageHighValue = 255L;
+    private boolean programmaticChange = true;
+    private Platform platform;
 
     private static final String UPDATE_HEIGHT_MAP_PREVIEW = ImportHeightMapDialog.class.getName() + ".updateHeightMap";
+    private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ImportHeightMapDialog.class);
     private static final long serialVersionUID = 1L;
 }

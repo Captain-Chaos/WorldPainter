@@ -102,7 +102,7 @@ public class MinecraftUtil {
     }
 
     public static String blocksToWalkingTime(int blocks) {
-        int mins = (int) (blocks / 256f + 0.5f);
+        int mins = Math.round(blocks / 256f);
         if (mins < 60) {
             return mins + " min.";
         } else {

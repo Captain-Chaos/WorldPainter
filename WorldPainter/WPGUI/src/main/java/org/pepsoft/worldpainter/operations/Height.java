@@ -39,42 +39,36 @@ public class Height extends RadiusOperation {
 
     @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
-        float adjustment = (float) Math.pow(dynamicLevel * getLevel() * 2, 2.0);
-        Dimension dimension = getDimension();
-        int minHeight, maxHeight;
+        final float adjustment = (float) Math.pow(dynamicLevel * getLevel() * 2, 2.0);
+        final Dimension dimension = getDimension();
+        final float minZ, maxZ;
         if (getFilter() instanceof DefaultFilter) {
-            DefaultFilter filter = (DefaultFilter) getFilter();
-            if (filter.getAboveLevel() != -1) {
-                minHeight = filter.getAboveLevel();
+            final DefaultFilter filter = (DefaultFilter) getFilter();
+            if (filter.getAboveLevel() != Integer.MIN_VALUE) {
+                minZ = Math.max(filter.getAboveLevel(), dimension.getMinHeight());
             } else {
-                minHeight = Integer.MIN_VALUE;
+                minZ = dimension.getMinHeight();
             }
-            if (filter.getBelowLevel() != -1) {
-                maxHeight = filter.getBelowLevel();
+            if (filter.getBelowLevel() != Integer.MIN_VALUE) {
+                maxZ = Math.min(filter.getBelowLevel(), dimension.getMaxHeight());
             } else {
-                maxHeight = Integer.MAX_VALUE;
+                maxZ = dimension.getMaxHeight() - 1;
             }
         } else {
-            minHeight = Integer.MIN_VALUE;
-            maxHeight = Integer.MAX_VALUE;
+            minZ = dimension.getMinHeight();
+            maxZ = dimension.getMaxHeight() - 1;
         }
         boolean applyTheme = options.isApplyTheme();
         dimension.setEventsInhibited(true);
         try {
-            int radius = getEffectiveRadius();
-            float maxZ = dimension.getMaxHeight() - 1;
+            final int radius = getEffectiveRadius();
             for (int x = centreX - radius; x <= centreX + radius; x++) {
                 for (int y = centreY - radius; y <= centreY + radius; y++) {
-                    float currentHeight = dimension.getHeightAt(x, y);
-                    float targetHeight = inverse ? Math.max(currentHeight - adjustment, minHeight) : Math.min(currentHeight + adjustment, maxHeight);
-                    if (targetHeight < 0.0f) {
-                        targetHeight = 0.0f;
-                    } else if (targetHeight > maxZ) {
-                        targetHeight = maxZ;
-                    }
-                    float strength = getFullStrength(centreX, centreY, x, y);
+                    final float currentHeight = dimension.getHeightAt(x, y);
+                    final float targetHeight = inverse ? Math.max(currentHeight - adjustment, minZ) : Math.min(currentHeight + adjustment, maxZ);
+                    final float strength = getFullStrength(centreX, centreY, x, y);
                     if (strength > 0.0f) {
-                        float newHeight = strength * targetHeight + (1 - strength) * currentHeight;
+                        final float newHeight = strength * targetHeight + (1 - strength) * currentHeight;
                         if (inverse ? (newHeight < currentHeight) : (newHeight > currentHeight)) {
                             dimension.setHeightAt(x, y, newHeight);
                             if (applyTheme) {

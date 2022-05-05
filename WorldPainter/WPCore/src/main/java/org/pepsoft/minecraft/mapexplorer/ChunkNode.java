@@ -5,19 +5,20 @@
 
 package org.pepsoft.minecraft.mapexplorer;
 
-import java.io.IOException;
 import org.jnbt.NBTInputStream;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.RegionFile;
+import org.pepsoft.worldpainter.mapexplorer.AbstractNode;
 import org.pepsoft.worldpainter.mapexplorer.Node;
 
 import javax.swing.*;
+import java.io.IOException;
 
 /**
  *
  * @author pepijn
  */
-public class ChunkNode extends Node {
+public class ChunkNode extends AbstractNode {
     ChunkNode(RegionFile regionFile, int x, int z) {
         this.regionFile = regionFile;
         this.x = x;

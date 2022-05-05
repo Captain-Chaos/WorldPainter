@@ -17,7 +17,8 @@ import java.awt.*;
 import java.util.List;
 import java.util.Random;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Constants.MC_WATER;
+import static org.pepsoft.minecraft.Material.AIR;
 
 /**
  *
@@ -29,8 +30,8 @@ public class SwampLandExporter extends TreesExporter<TreeLayer> {
     }
 
     @Override
-    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld world, Platform platform) {
-        List<Fixup> fixups = super.render(dimension, area, exportedArea, world, platform);
+    public List<Fixup> addFeatures(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld world, Platform platform) {
+        List<Fixup> fixups = super.addFeatures(dimension, area, exportedArea, world, platform);
         
         // Render lily pads
         TreeLayerSettings<TreeLayer> settings = (TreeLayerSettings<TreeLayer>) getSettings();
@@ -46,17 +47,17 @@ public class SwampLandExporter extends TreesExporter<TreeLayer> {
                 for (int x = chunkX; x < chunkX + 16; x++) {
                     for (int y = chunkY; y < chunkY + 16; y++) {
                         int terrainLevel = dimension.getIntHeightAt(x, y);
-                        if (terrainLevel == -1) {
-                            // height == -1 means there is no tile there
+                        if (terrainLevel == Integer.MIN_VALUE) {
+                            // height == Integer.MIN_VALUE means there is no tile there
                             continue;
                         }
                         int waterLevel = dimension.getWaterLevelAt(x, y);
                         if ((waterLevel > terrainLevel) && (waterLevel < maxZ)) {
                             int strength = Math.max(minimumLevel, dimension.getLayerValueAt(layer, x, y));
                             if ((strength > 0) && (random.nextInt(3840) <= (strength * strength))) {
-                                int blockType = world.getBlockTypeAt(x, y, waterLevel);
-                                int blockTypeAbove = world.getBlockTypeAt(x, y, waterLevel + 1);
-                                if (((blockType == BLK_WATER) || (blockType == BLK_STATIONARY_WATER)) && (blockTypeAbove == BLK_AIR)) {
+                                Material material = world.getMaterialAt(x, y, waterLevel);
+                                Material materialAbove = world.getMaterialAt(x, y, waterLevel + 1);
+                                if (material.isNamed(MC_WATER) && (materialAbove == AIR)) {
                                     world.setMaterialAt(x, y, waterLevel + 1, Material.LILY_PAD);
                                 }
                             }

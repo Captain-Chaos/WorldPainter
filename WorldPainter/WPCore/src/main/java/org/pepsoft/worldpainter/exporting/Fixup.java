@@ -19,6 +19,7 @@ public interface Fixup extends Serializable {
      * @param world The world in which to perform the fixup.
      * @param dimension The dimension for which to perform the fixup.
      * @param platform The platform for which the export is being performed.
+     * @param exportSettings The export settings to apply, if any. May be {@code null}.
      */
-    void fixup(MinecraftWorld world, Dimension dimension, Platform platform);
+    void fixup(MinecraftWorld world, Dimension dimension, Platform platform, ExportSettings exportSettings);
 }

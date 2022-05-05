@@ -4,6 +4,19 @@
  */
 package org.pepsoft.worldpainter.tools;
 
+import org.pepsoft.minecraft.Java117Level;
+import org.pepsoft.minecraft.JavaLevel;
+import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.RegionFile;
+import org.pepsoft.util.ColourUtils;
+import org.pepsoft.worldpainter.ColourScheme;
+import org.pepsoft.worldpainter.DefaultPlugin;
+import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.Version;
+import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+import org.pepsoft.worldpainter.exporting.WorldRegion;
+
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -14,19 +27,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import javax.imageio.ImageIO;
+
 import static org.pepsoft.minecraft.Constants.*;
-import org.pepsoft.minecraft.Level;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.worldpainter.Platform;
-import org.pepsoft.minecraft.RegionFile;
-import org.pepsoft.util.ColourUtils;
-import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.DefaultPlugin;
-import org.pepsoft.worldpainter.Version;
-import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
-import org.pepsoft.worldpainter.exporting.MinecraftWorld;
-import org.pepsoft.worldpainter.exporting.WorldRegion;
 
 /**
  *
@@ -99,7 +101,7 @@ public class Mapper {
             error("Invalid dimension specified: " + dim);
         }
         System.out.println("WorldPainter Mapper tool - version " + Version.VERSION + " - © 2012 - 2014 pepsoft.org");
-        ColourScheme colourScheme = new DynMapColourScheme(colourSchemeName, true);
+        ColourScheme colourScheme = ColourScheme.DEFAULT;
         if (output == null) {
             output = new File(worldDir.getName().toLowerCase() + ".png");
         }
@@ -108,7 +110,7 @@ public class Mapper {
 
     private static void map(final File worldDir, final int dim, final ColourScheme colourScheme, File output) throws IOException, InterruptedException {
         File levelDatFile = new File(worldDir, "level.dat");
-        Level level = Level.load(levelDatFile);
+        JavaLevel level = JavaLevel.load(levelDatFile);
         final Platform platform = level.getVersion() == VERSION_MCREGION ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL;
         maxHeight = level.getMaxHeight();
         File dimensionDir;
@@ -132,8 +134,8 @@ public class Mapper {
         System.out.println("Mapping " + worldDir);
         System.out.println("Name: " + level.getName());
         System.out.println("Seed: " + level.getSeed());
-        if (level.getGeneratorName() != null) {
-            System.out.println("Generator: " + level.getGeneratorName() + " (version " + level.getGeneratorVersion() + ")");
+        if ((level instanceof Java117Level) && (((Java117Level) level).getGeneratorName() != null)) {
+            System.out.println("Generator: " + ((Java117Level) level).getGeneratorName() + " (version " + ((Java117Level) level).getGeneratorVersion() + ")");
         }
         System.out.println("Map height: " + maxHeight);
         System.out.println("Storage format: " + ((platform == DefaultPlugin.JAVA_MCREGION) ? "McRegion (Minecraft 1.1 or earlier)" : "Anvil (Minecraft 1.2 or later)"));
@@ -426,7 +428,7 @@ public class Mapper {
                     return height;
                 }
             }
-            heightCache[x][y] = 62;
+            heightCache[x][y] = DEFAULT_WATER_LEVEL;
         }
         return heightCache[x][y];
     }

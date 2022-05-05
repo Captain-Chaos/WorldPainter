@@ -8,7 +8,7 @@ import org.pepsoft.worldpainter.BiomeScheme;
  * calculate biomes. The {@link #getBiomes(int, int, int, int, int[])} method
  * always throws an {@link UnsupportedOperationException}.
  */
-public final class StaticBiomeInfo extends AbstractMinecraft1_15BiomeScheme {
+public final class StaticBiomeInfo extends AbstractMinecraft1_18BiomeScheme {
     private StaticBiomeInfo() {
         // Enforce singleton pattern
     }

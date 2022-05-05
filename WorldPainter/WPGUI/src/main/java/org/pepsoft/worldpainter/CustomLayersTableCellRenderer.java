@@ -6,6 +6,9 @@ import org.pepsoft.worldpainter.layers.LayerTableCellRenderer;
 import javax.swing.*;
 import java.awt.*;
 
+import static java.awt.Font.BOLD;
+import static java.awt.Font.ITALIC;
+
 /**
  * Created by pepijn on 6-2-16.
  */
@@ -15,15 +18,15 @@ public class CustomLayersTableCellRenderer extends LayerTableCellRenderer {
         if (((CustomLayersTableModel) table.getModel()).isHeader((CustomLayer) value)) {
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             setIcon(null);
-            if (italicFont == null) {
-                italicFont = getFont().deriveFont(Font.ITALIC);
+            if (headerFont == null) {
+                headerFont = getFont().deriveFont(BOLD | ITALIC);
             }
-            setFont(italicFont);
+            setFont(headerFont);
             return this;
         } else {
             return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         }
     }
 
-    private Font italicFont;
+    private Font headerFont;
 }

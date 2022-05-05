@@ -23,6 +23,7 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.*;
 
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 
 /**
@@ -38,11 +39,12 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         this.zoom = zoom;
         scale = (int) Math.pow(2.0, Math.abs(zoom - 1));
 //        System.out.println("Zoom " + zoom + " -> scale " + scale);
+        minHeight = dimension.getMinHeight();
         maxHeight = dimension.getMaxHeight();
         if (dimension.getTileFactory() instanceof HeightMapTileFactory) {
             waterLevel = ((HeightMapTileFactory) dimension.getTileFactory()).getWaterHeight();
         } else {
-            waterLevel = maxHeight / 2;
+            waterLevel = DEFAULT_WATER_LEVEL;
         }
         upsideDown = dimension.getDim() < 0; // Ceiling dimension
         switch (rotation) {
@@ -94,7 +96,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         }
 
         int width = dimension.getWidth() * TILE_SIZE + dimension.getHeight() * TILE_SIZE;
-        int height = width / 2 + maxHeight - 1;
+        int height = width / 2 + maxHeight - minHeight - 1;
 //        maxX = dimension.getHighestX();
 //        maxY = dimension.getHighestY();
         maxX = maxY = 0;
@@ -103,20 +105,20 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
 //        xOffset = yOffset = 0;
         switch (rotation) {
             case 0:
-                xOffset = -getTileBounds(dimension.getLowestX(), dimension.getHighestY()).x;
-                yOffset = -getTileBounds(dimension.getLowestX(), dimension.getLowestY()).y;
+                xOffset = -getTileBounds(dimension.getLowestX(), dimension.getHighestY(), maxHeight).x;
+                yOffset = -getTileBounds(dimension.getLowestX(), dimension.getLowestY(), maxHeight).y;
                 break;
             case 1:
-                xOffset = -getTileBounds(dimension.getHighestX(), dimension.getHighestY()).x;
-                yOffset = -getTileBounds(dimension.getLowestX(), dimension.getHighestY()).y;
+                xOffset = -getTileBounds(dimension.getHighestX(), dimension.getHighestY(), maxHeight).x;
+                yOffset = -getTileBounds(dimension.getLowestX(), dimension.getHighestY(), maxHeight).y;
                 break;
             case 2:
-                xOffset = -getTileBounds(dimension.getHighestX(), dimension.getLowestY()).x;
-                yOffset = -getTileBounds(dimension.getHighestX(), dimension.getHighestY()).y;
+                xOffset = -getTileBounds(dimension.getHighestX(), dimension.getLowestY(), maxHeight).x;
+                yOffset = -getTileBounds(dimension.getHighestX(), dimension.getHighestY(), maxHeight).y;
                 break;
             case 3:
-                xOffset = -getTileBounds(dimension.getLowestX(), dimension.getLowestY()).x;
-                yOffset = -getTileBounds(dimension.getHighestX(), dimension.getLowestY()).y;
+                xOffset = -getTileBounds(dimension.getLowestX(), dimension.getLowestY(), maxHeight).x;
+                yOffset = -getTileBounds(dimension.getHighestX(), dimension.getLowestY(), maxHeight).y;
                 break;
             default:
                 throw new IllegalArgumentException();
@@ -143,14 +145,21 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         Tile3DRenderer renderer = new Tile3DRenderer(dimension, colourScheme, customBiomeManager, rotation);
 
         // Paint the complete image
-        java.awt.Dimension preferredSize = unzoom(getPreferredSize());
-        BufferedImage image = new BufferedImage(preferredSize.width, preferredSize.height, BufferedImage.TYPE_INT_ARGB);
+        Rectangle imageBounds = null;
+        for (Tile tile: zSortedTiles) {
+            if (imageBounds == null) {
+                imageBounds = getTileBounds(tile);
+            } else {
+                imageBounds = imageBounds.union(getTileBounds(tile));
+            }
+        }
+        BufferedImage image = new BufferedImage(imageBounds.width, imageBounds.height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = image.createGraphics();
         try {
             int tileCount = zSortedTiles.size(), tileNo = 0;
             for (Tile tile : zSortedTiles) {
-                Rectangle tileBounds = getTileBounds(tile.getX(), tile.getY());
-                g2.drawImage(renderer.render(tile), tileBounds.x, tileBounds.y, null);
+                Rectangle tileBounds = getTileBounds(tile);
+                g2.drawImage(renderer.render(tile), tileBounds.x - imageBounds.x, tileBounds.y - imageBounds.y, null);
                 if (progressReceiver != null) {
                     tileNo++;
                     progressReceiver.setProgress((float) tileNo / tileCount);
@@ -166,19 +175,19 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
 //        highlightTile = new Point(x >> 7, y >> 7);
         switch (rotation) {
             case 0:
-                return zoom(new Point(xOffset + TILE_SIZE + x - y, yOffset + maxHeight - 1 - TILE_SIZE / 2 + (y + x) / 2));
+                return zoom(new Point(xOffset + TILE_SIZE + x - y, yOffset + maxHeight - minHeight - 1 - TILE_SIZE / 2 + (y + x) / 2));
             case 1:
-                return zoom(new Point(xOffset + TILE_SIZE * 2 - x - y, yOffset + maxHeight - 1 - (y - x) / 2));
+                return zoom(new Point(xOffset + TILE_SIZE * 2 - x - y, yOffset + maxHeight - minHeight - 1 - (y - x) / 2));
             case 2:
-                return zoom(new Point(xOffset + TILE_SIZE - x + y, yOffset + maxHeight - 1 + TILE_SIZE / 2 - (y + x) / 2));
+                return zoom(new Point(xOffset + TILE_SIZE - x + y, yOffset + maxHeight - minHeight - 1 + TILE_SIZE / 2 - (y + x) / 2));
             case 3:
-                return zoom(new Point(xOffset + x + y, yOffset + maxHeight - 1 + (y - x) / 2));
+                return zoom(new Point(xOffset + x + y, yOffset + maxHeight - minHeight - 1 + (y - x) / 2));
             default:
                 throw new IllegalArgumentException();
         }
     }
     
-    public Point getCentreMostTile() {
+    public Tile getCentreMostTile() {
         return centreTile;
     }
 
@@ -200,7 +209,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         scale = (int) Math.pow(2.0, Math.abs(zoom - 1));
 //        System.out.println("Zoom " + zoom + " -> scale " + scale);
         int width = dimension.getWidth() * TILE_SIZE + dimension.getHeight() * TILE_SIZE;
-        int height = width / 2 + maxHeight - 1;
+        int height = width / 2 + maxHeight - minHeight - 1;
         java.awt.Dimension preferredSize = zoom(new java.awt.Dimension(width, height));
         setPreferredSize(preferredSize);
         setMinimumSize(preferredSize);
@@ -213,11 +222,10 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
      * Centre the view on a particular tile. Specifically, centre the view on a
      * point <em>waterLevel</em> above the centre of the floor of the tile.
      * 
-     * @param tileX The X coordinate in tiles of the tile to centre the view on.
-     * @param tileY The Y coordinate in tiles of the tile to centre the view on. 
+     * @param tile The tile to centre the view on.
      */
-    public void moveToTile(int tileX, int tileY) {
-        Rectangle tileBounds = zoom(getTileBounds(tileX, tileY));
+    public void moveToTile(Tile tile) {
+        Rectangle tileBounds = zoom(getTileBounds(tile));
         moveTo(new Point(tileBounds.x + tileBounds.width / 2, tileBounds.y + tileBounds.height - TILE_SIZE / 2));
 //        highlightTile = new Point(tileX, tileY);
     }
@@ -347,7 +355,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
             Tile tile = renderResult.getTile();
             int x = tile.getX(), y = tile.getY();
             renderedTiles.put(tile, renderResult.getImage());
-            Rectangle tileBounds = zoom(getTileBounds(x, y));
+            Rectangle tileBounds = zoom(getTileBounds(tile));
             if (repaintArea == null) {
                 repaintArea = tileBounds;
             } else {
@@ -412,7 +420,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         int smallestDistance = Integer.MAX_VALUE;
         Rectangle clipBounds = g.getClipBounds();
         for (Tile tile : zSortedTiles) {
-            Rectangle tileBounds = getTileBounds(tile.getX(), tile.getY());
+            Rectangle tileBounds = getTileBounds(tile);
 //            System.out.print("Tile bounds: " + tileBounds);
             if (tileBounds.intersects(clipBounds)) {
 //                System.out.println(" intersects");
@@ -434,11 +442,11 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
             }
         }
         if (mostCentredTile != null) {
-            centreTile = new Point(mostCentredTile.getX(), mostCentredTile.getY());
+            centreTile = mostCentredTile;
         }
         if (highlightTile != null) {
             g.setColor(Color.RED);
-            Rectangle rect = getTileBounds(highlightTile.x, highlightTile.y);
+            Rectangle rect = getTileBounds(highlightTile.x, highlightTile.y, maxHeight);
             g.drawRect(rect.x, rect.y, rect.width, rect.height);
         }
         if (highlightPoint != null) {
@@ -462,7 +470,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
 //        System.out.println("Scheduling tile for rendering: " + tile.getX() + ", " + tile.getY());
         if (SwingUtilities.isEventDispatchThread()) {
             Rectangle visibleArea = ((JViewport) getParent()).getViewRect();
-            Rectangle tileBounds = zoom(getTileBounds(tile.getX(), tile.getY()));
+            Rectangle tileBounds = zoom(getTileBounds(tile));
             if (tileBounds.intersects(visibleArea)) {
                 // The tile is (partially) visible, so it should be repainted
                 // immediately
@@ -488,7 +496,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         } else {
             SwingUtilities.invokeLater(() -> {
                 Rectangle visibleArea = ((JViewport) getParent()).getViewRect();
-                Rectangle tileBounds = zoom(getTileBounds(tile.getX(), tile.getY()));
+                Rectangle tileBounds = zoom(getTileBounds(tile));
                 if (tileBounds.intersects(visibleArea)) {
                     // The tile is (partially) visible, so it should be repainted
                     // immediately
@@ -515,28 +523,32 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         }
     }
 
-    private Rectangle getTileBounds(int x, int y) {
+    private Rectangle getTileBounds(final Tile tile) {
+        return getTileBounds(tile.getX(), tile.getY(), tile.getHighestIntHeight() + 1);
+    }
+
+    private Rectangle getTileBounds(final int x, final int y, final int maxHeight) {
         switch (rotation) {
             case 0:
                 return new Rectangle(xOffset + (x - y) * TILE_SIZE,
-                        yOffset + (x + y) * TILE_SIZE / 2,
+                        yOffset + (x + y) * TILE_SIZE / 2 + (this.maxHeight - maxHeight),
                         2 * TILE_SIZE,
-                        TILE_SIZE + maxHeight - 1);
+                        TILE_SIZE + maxHeight - minHeight - 1);
             case 1:
                 return new Rectangle(xOffset + ((maxY - y) - x) * TILE_SIZE,
-                        yOffset + ((maxY - y) + x) * TILE_SIZE / 2,
+                        yOffset + ((maxY - y) + x) * TILE_SIZE / 2 + (this.maxHeight - maxHeight),
                         2 * TILE_SIZE,
-                        TILE_SIZE + maxHeight - 1);
+                        TILE_SIZE + maxHeight - minHeight - 1);
             case 2:
                 return new Rectangle(xOffset + ((maxX - x) - (maxY - y)) * TILE_SIZE,
-                        yOffset + ((maxX - x) + (maxY - y)) * TILE_SIZE / 2,
+                        yOffset + ((maxX - x) + (maxY - y)) * TILE_SIZE / 2 + (this.maxHeight - maxHeight),
                         2 * TILE_SIZE,
-                        TILE_SIZE + maxHeight - 1);
+                        TILE_SIZE + maxHeight - minHeight - 1);
             case 3:
                 return new Rectangle(xOffset + (y - (maxX - x)) * TILE_SIZE,
-                        yOffset + (y + (maxX - x)) * TILE_SIZE / 2,
+                        yOffset + (y + (maxX - x)) * TILE_SIZE / 2 + (this.maxHeight - maxHeight),
                         2 * TILE_SIZE,
-                        TILE_SIZE + maxHeight - 1);
+                        TILE_SIZE + maxHeight - minHeight - 1);
             default:
                 throw new IllegalArgumentException();
         }
@@ -620,7 +632,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
     private final ThreeDeeRenderManager threeDeeRenderManager;
     private final ColourScheme colourScheme;
     private final List<Tile> tilesWaitingToBeRendered = new LinkedList<>();
-    private final int maxHeight;
+    private final int minHeight, maxHeight;
     private final int xOffset, yOffset, maxX, maxY;
     private final int rotation;
     private final SortedSet<Tile> zSortedTiles;
@@ -629,7 +641,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
     private Timer timer;
     private long lastTileChange;
     private RefreshMode refreshMode = RefreshMode.DELAYED;
-    private Point centreTile;
+    private Tile centreTile;
     private int waterLevel, zoom = 1, scale = 1;
     private Point highlightTile, highlightPoint;
     

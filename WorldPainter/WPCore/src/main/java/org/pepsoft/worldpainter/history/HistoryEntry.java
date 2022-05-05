@@ -55,6 +55,8 @@ public class HistoryEntry implements Serializable {
                 return MessageFormat.format("Dimension {0} shifted {1} blocks up", args[0], args[1]);
             case WORLD_DIMENSION_ROTATED:
                 return MessageFormat.format("Dimension {0} rotated {1} degrees", args[0], args[1]);
+            case WORLD_MIN_HEIGHT_CHANGED:
+                return MessageFormat.format("Minimum height of world changed to {0}", args[0]);
             case WORLD_MAX_HEIGHT_CHANGED:
                 return MessageFormat.format("Maximum height of world changed to {0}", args[0]);
             case WORLD_HEIGHT_MAP_IMPORTED_TO_DIMENSION:
@@ -63,6 +65,8 @@ public class HistoryEntry implements Serializable {
                 return MessageFormat.format("Mask {1} imported into dimension {0} as layer {2}", args[0], args[1], args[2]);
             case WORLD_RECOVERED_FROM_AUTOSAVE:
                 return MessageFormat.format("World recovered from autosave with WorldPainter {0}", wpVersion);
+            case WORLD_RETARGETED:
+                return MessageFormat.format("World retargeted from map format {0} to {1}", args[0], args[1]);
             default:
                 return MessageFormat.format("Unknown event ID {0} by WorldPainter {0} ({1})", key, wpVersion, wpBuild);
         }
@@ -96,6 +100,8 @@ public class HistoryEntry implements Serializable {
     public static final int WORLD_HEIGHT_MAP_IMPORTED_TO_DIMENSION = 21; // arg 0: name of dimension as String, arg 1: height map file as File
     public static final int WORLD_MASK_IMPORTED_TO_DIMENSION       = 22; // arg 0: name of dimension as String, arg 1: mask file as File, arg 2: name of aspect to which the mask was applied
     public static final int WORLD_RECOVERED_FROM_AUTOSAVE          = 23;
+    public static final int WORLD_MIN_HEIGHT_CHANGED               = 24; // arg 0: new minHeight as Integer
+    public static final int WORLD_RETARGETED                       = 25; // arg 0: old platform as String, arg 1: new platform as String
 
     private static final long serialVersionUID = 1L;
 }

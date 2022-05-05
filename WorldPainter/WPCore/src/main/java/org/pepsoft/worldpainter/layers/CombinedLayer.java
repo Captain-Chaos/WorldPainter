@@ -5,8 +5,8 @@
 package org.pepsoft.worldpainter.layers;
 
 import org.pepsoft.minecraft.Chunk;
-import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
@@ -16,10 +16,12 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.CARVE;
 import static org.pepsoft.worldpainter.layers.Layer.DataSize.*;
 
 /**
@@ -64,7 +66,7 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
                     int maxValue = (dataSize == NIBBLE) ? 15 : 255;
                     for (int x = 0; x < TILE_SIZE; x++) {
                         for (int y = 0; y < TILE_SIZE; y++) {
-                            int value = Math.min((int) (tile.getLayerValue(this, x, y) * factor + 0.5f), maxValue);
+                            int value = Math.min(Math.round(tile.getLayerValue(this, x, y) * factor), maxValue);
                             if (value > 0) {
                                 tile.setLayerValue(layer, x, y, value);
                                 layerAdded = true;
@@ -86,6 +88,11 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
     @Override
     public void setName(String name) {
         super.setName(name);
+    }
+
+    @Override
+    public String getType() {
+        return "Combined Layer";
     }
 
     public Terrain getTerrain() {
@@ -270,7 +277,17 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
         }
 
         @Override
-        public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+        public Set<Stage> getStages() {
+            return EnumSet.of(CARVE, ADD_FEATURES);
+        }
+
+        @Override
+        public List<Fixup> carve(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<Fixup> addFeatures(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
             throw new UnsupportedOperationException();
         }
     }

@@ -4,13 +4,11 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.swing.TiledImageViewer;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.MixedMaterial.Row;
 import org.pepsoft.worldpainter.biomeschemes.Minecraft1_2BiomeScheme;
-import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 import org.pepsoft.worldpainter.layers.Biome;
 
 import javax.swing.*;
@@ -19,6 +17,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
+import static org.pepsoft.worldpainter.Terrain.GRASS;
 
 //import org.pepsoft.worldpainter.ExperimentalTileFactory;
 
@@ -35,7 +37,7 @@ public class TileFactoryPreviewer {
             seed = new Random().nextLong();
         }
 //        final ExperimentalTileFactory tileFactory = new ExperimentalTileFactory(DEFAULT_MAX_HEIGHT_ANVIL);
-//        final HeightMapTileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(Terrain.GRASS, World2.DEFAULT_MAX_HEIGHT, 58, 62, false, true, 20.0f, 1.0);
+//        final HeightMapTileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(Terrain.GRASS, World2.DEFAULT_MAX_HEIGHT, 58, DEFAULT_WATER_LEVEL, false, true, 20.0f, 1.0);
 //        HeightMap oceanFloor = new ConstantHeightMap(40f);
 //        HeightMap continent;
 ////        continent = new NinePatchHeightMap(200, 100, 50, 58f);
@@ -57,8 +59,8 @@ public class TileFactoryPreviewer {
 //                mountainsLimit),
 //            new NoiseHeightMap(256f, 5f, 4));
 //        HeightMap heightMap = new MaximisingHeightMap(continent, mountains);
-//        final HeightMapTileFactory tileFactory = new HeightMapTileFactory(seed, heightMap, 256, false, new FancyTheme(256, 62, heightMap));
-        final HeightMapTileFactory tileFactory = TileFactoryFactory.createFancyTileFactory(seed, Terrain.GRASS, Constants.DEFAULT_MAX_HEIGHT_ANVIL, 62, 58, false, 20f, 1.0);
+//        final HeightMapTileFactory tileFactory = new HeightMapTileFactory(seed, heightMap, 256, false, new FancyTheme(256, DEFAULT_WATER_LEVEL, heightMap));
+        final HeightMapTileFactory tileFactory = TileFactoryFactory.createFancyTileFactory(seed, GRASS, 0, DEFAULT_MAX_HEIGHT_ANVIL, 58, DEFAULT_WATER_LEVEL, false, 20f, 1.0);
 //        SortedMap<Integer, Terrain> terrainRanges = tileFactory.getTerrainRanges();
 //        terrainRanges.clear();
 //        terrainRanges.put( -1, Terrain.DIRT);
@@ -96,7 +98,7 @@ public class TileFactoryPreviewer {
         Terrain.setCustomMaterial(1, new MixedMaterial("Stone/Gravel", new Row[] {new Row(Material.STONE, 750, 1.0f), new Row(Material.GRAVEL, 250, 1.0f)}, Minecraft1_2BiomeScheme.BIOME_PLAINS, null, 1.0f));
         TiledImageViewer viewer = new TiledImageViewer();
         JFrame frame = new JFrame("TileFactory Previewer");
-        viewer.setTileProvider(new WPTileProvider(tileProvider, new DynMapColourScheme("default", true), null, Collections.singleton(Biome.INSTANCE), true, 10, TileRenderer.LightOrigin.NORTHWEST, false, null));
+        viewer.setTileProvider(new WPTileProvider(tileProvider, ColourScheme.DEFAULT, null, Collections.singleton(Biome.INSTANCE), true, 10, TileRenderer.LightOrigin.NORTHWEST, false, null));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(viewer, BorderLayout.CENTER);
         frame.setSize(1000, 800);

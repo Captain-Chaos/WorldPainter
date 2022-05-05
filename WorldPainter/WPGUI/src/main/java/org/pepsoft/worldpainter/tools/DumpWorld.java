@@ -24,10 +24,6 @@ public class DumpWorld {
         if (world.getPlatform() != null) {
             System.out.printf("Last exported for platform: %s%n", world.getPlatform().displayName);
         }
-        System.out.println("Generator: " + world.getGenerator());
-        if (world.getGeneratorOptions() != null) {
-            System.out.println("Generator options: " + world.getGeneratorOptions());
-        }
         System.out.println("Game type: " + world.getGameType());
         System.out.println("Difficulty: " + DIFFICULTIES[world.getDifficulty()]);
         if (world.getImportedFrom() != null) {
@@ -66,6 +62,7 @@ public class DumpWorld {
         System.out.println("    Westernmost tile: " + dimension.getLowestX() + "; easternmost tile: " + dimension.getHighestX());
         System.out.println("    Northernmost tile: " + dimension.getLowestY() + "; southernmost tile: " + dimension.getHighestY());
         System.out.println("    Total number of tiles: " + dimension.getTileCount());
+        System.out.println("    Generator: " + dimension.getGenerator());
         System.out.println("    WorldPainter seed: " + dimension.getSeed() + "; Minecraft seed: " + dimension.getMinecraftSeed());
         if (dimension.getBorder() != null) {
             switch (dimension.getBorder()) {

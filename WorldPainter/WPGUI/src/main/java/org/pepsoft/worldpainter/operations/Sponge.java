@@ -4,13 +4,7 @@
  */
 package org.pepsoft.worldpainter.operations;
 
-import org.pepsoft.minecraft.Constants;
-import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.HeightMapTileFactory;
-import org.pepsoft.worldpainter.MapDragControl;
-import org.pepsoft.worldpainter.RadiusControl;
-import org.pepsoft.worldpainter.TileFactory;
-import org.pepsoft.worldpainter.WorldPainterView;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
 
 /**
@@ -24,8 +18,8 @@ public class Sponge extends RadiusOperation {
 
     @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
-        final int waterHeight;
         final Dimension dimension = getDimension();
+        final int waterHeight, minHeight = dimension.getMinHeight();
         final TileFactory tileFactory = dimension.getTileFactory();
         if (tileFactory instanceof HeightMapTileFactory) {
             waterHeight = ((HeightMapTileFactory) tileFactory).getWaterHeight();
@@ -46,7 +40,7 @@ public class Sponge extends RadiusOperation {
                                 dimension.setBitLayerValueAt(FloodWithLava.INSTANCE, centreX + dx, centreY + dy, false);
                             }
                         } else {
-                            dimension.setWaterLevelAt(centreX + dx, centreY + dy, 0);
+                            dimension.setWaterLevelAt(centreX + dx, centreY + dy, minHeight);
                         }
                     }
                 }

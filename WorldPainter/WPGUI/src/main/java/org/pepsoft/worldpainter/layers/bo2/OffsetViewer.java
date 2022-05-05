@@ -4,18 +4,19 @@
  */
 package org.pepsoft.worldpainter.layers.bo2;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.image.RescaleOp;
-import java.io.IOException;
-import javax.imageio.ImageIO;
-import javax.swing.JComponent;
-import javax.vecmath.Point3i;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.ColourUtils;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.objects.WPObject;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import javax.vecmath.Point3i;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.RescaleOp;
+import java.io.IOException;
 
 /**
  *
@@ -151,7 +152,7 @@ public class OffsetViewer extends JComponent {
         } else {
             int colour = colourScheme.getColour(material);
             if (depth > 0) {
-                colour = ColourUtils.mix(colour, WHITE, (int) (Math.pow(0.5, depth) * 256 + 0.5));
+                colour = ColourUtils.mix(colour, WHITE, (int) Math.round(Math.pow(0.5, depth) * 256));
             }
             g2.setColor(new Color(colour));
             g2.fillRect(middle + x * 16 - 8, baseLine - y * 16 - 8, 16, 16);

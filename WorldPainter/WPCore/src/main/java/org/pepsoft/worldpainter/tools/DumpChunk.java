@@ -4,51 +4,40 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import org.jnbt.CompoundTag;
-import org.jnbt.NBTInputStream;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.DataUtils;
+import org.pepsoft.worldpainter.AbstractTool;
+import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 
-import static org.pepsoft.minecraft.Constants.DATA_VERSION_MC_1_12_2;
-import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
+import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
+import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 
 /**
  *
  * @author pepijn
  */
-public class DumpChunk {
-    public static void main(String[] args) throws IOException {
+public class DumpChunk extends AbstractTool {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+        initialisePlatform();
+
         File levelDatFile = new File(args[0]);
         int blockX = Integer.parseInt(args[1]);
         int blockZ = Integer.parseInt(args[2]);
         int chunkX = blockX >> 4;
         int chunkZ = blockZ >> 4;
-        Level level = Level.load(levelDatFile);
-        CompoundTag chunkTag;
-        try (InputStream chunkIn = RegionFileCache.getChunkDataInputStream(levelDatFile.getParentFile(), chunkX, chunkZ, level.getVersion())) {
-            if (chunkIn != null) {
-                try (NBTInputStream in = new NBTInputStream(chunkIn)) {
-                    chunkTag = (CompoundTag) in.readTag();
-                }
-            } else {
-                System.err.printf("Chunk %d,%d not present!%n", chunkX, chunkZ);
-                System.exit(1);
-                return;
-            }
-        }
-        Chunk chunk = (level.getVersion() == VERSION_MCREGION)
-                ? new MCRegionChunk(chunkTag, level.getMaxHeight())
-                : (((level.getDataVersion() <= DATA_VERSION_MC_1_12_2) || (level.getDataVersion() == 0))
-                    ? new MC12AnvilChunk(chunkTag, level.getMaxHeight())
-                    : new MC115AnvilChunk(chunkTag, level.getMaxHeight()));
+        JavaLevel level = JavaLevel.load(levelDatFile);
+        final File worldDir = levelDatFile.getParentFile();
+        Platform platform = PlatformManager.getInstance().identifyPlatform(worldDir);
+        Chunk chunk = PlatformManager.getInstance().getChunkStore(platform, worldDir, DIM_NORMAL).getChunk(chunkX, chunkZ);
 
-        if (! (chunk instanceof MCRegionChunk)) {
+        if (platform.capabilities.contains(BIOMES)) {
             System.out.println("Biomes");
             System.out.println("X-->");
             for (int z = 0; z < 16; z++) {
@@ -175,7 +164,7 @@ x:          for (int x = 0; x < 16; x++) {
                 }
                 System.out.println();
             }
-            materialsInSlice.forEach((tag, materials) -> System.out.println(tag + ": " + materials));
+            materialsInSlice.forEach((tag, materials) -> System.out.println(tag + ": " + materials.stream().map(Material::toFullString).collect(joining(", "))));
 
             for (Entity entity: entities) {
                 if ((entity.getPos()[1] >= y) && (entity.getPos()[1] < (y + 1))) {
