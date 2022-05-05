@@ -6,21 +6,22 @@
 package org.pepsoft.minecraft;
 
 import org.jnbt.CompoundTag;
+import org.pepsoft.worldpainter.Platform;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.pepsoft.minecraft.Constants.LEGACY_ID_CHEST;
-import static org.pepsoft.minecraft.Constants.TAG_ITEMS;
+import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 
 /**
  *
  * @author pepijn
  */
 public class Chest extends TileEntity implements ItemContainer {
-    public Chest() {
-        super(LEGACY_ID_CHEST); // TODO add MC 1.15 support
+    public Chest(Platform platform) {
+        super(platform.capabilities.contains(NAME_BASED) ? ID_CHEST : LEGACY_ID_CHEST);
     }
 
     public Chest(CompoundTag tag) {

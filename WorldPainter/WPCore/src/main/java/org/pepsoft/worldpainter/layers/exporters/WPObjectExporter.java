@@ -12,10 +12,7 @@ import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
-import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
-import org.pepsoft.worldpainter.exporting.Fixup;
-import org.pepsoft.worldpainter.exporting.LightingCalculator;
-import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.objects.WPObject;
@@ -99,7 +96,8 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             }
             final boolean replaceBlocks = replaceMaterial != null;
             final boolean extendFoundation = object.getAttribute(ATTRIBUTE_EXTEND_FOUNDATION);
-            if ((z + offset.z + dim.z - 1) >= world.getMaxHeight()) {
+            final int minHeight = world.getMinHeight(), maxHeight = world.getMaxHeight();
+            if ((z + offset.z + dim.z - 1) >= maxHeight) {
                 // Object doesn't fit in the world vertically
                 return;
             }
@@ -114,7 +112,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                             final Material objectMaterial = object.getMaterial(dx, dy, dz);
                             final Material finalMaterial = (replaceBlocks && (objectMaterial == replaceMaterial)) ? AIR : objectMaterial;
                             final int worldZ = z + dz + offset.z;
-                            if ((bottomless || obliterate) ? (worldZ < 0) : (worldZ < 1)) {
+                            if (worldZ < minHeight + (bottomless || obliterate ? 0 : 1)) {
                                 continue;
                             } else if (obliterate) {
                                 placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
@@ -146,9 +144,9 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                     }
                                 }
                             }
-                            if (extendFoundation && (dz == 0) && (terrainHeight != -1) && (worldZ > terrainHeight) && (!finalMaterial.veryInsubstantial)) {
+                            if (extendFoundation && (dz == 0) && (terrainHeight != Integer.MIN_VALUE) && (worldZ > terrainHeight) && (! finalMaterial.veryInsubstantial)) {
                                 int legZ = worldZ - 1;
-                                while ((legZ >= 0) && world.getMaterialAt(worldX, worldY, legZ).veryInsubstantial) {
+                                while ((legZ >= minHeight) && world.getMaterialAt(worldX, worldY, legZ).veryInsubstantial) {
                                     placeBlock(world, worldX, worldY, legZ, finalMaterial, leafDecayMode);
                                     legZ--;
                                 }
@@ -160,11 +158,11 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             List<Entity> entities = object.getEntities();
             if (entities != null) {
                 for (Entity entity: entities) {
-                    double[] pos = entity.getPos();
-                    double entityX = x + pos[0] + offset.x,
-                            entityY = y + pos[2] + offset.y,
-                            entityZ = z + pos[1] + offset.z;
-                    if ((entityZ < 0) || (entityY > (world.getMaxHeight() - 1))) {
+                    double[] relPos = entity.getRelPos();
+                    double entityX = x + relPos[0] + offset.x,
+                            entityY = y + relPos[2] + offset.y,
+                            entityZ = z + relPos[1] + offset.z;
+                    if ((entityZ < minHeight) || (entityZ >= maxHeight)) {
                         if (logger.isTraceEnabled()) {
                             logger.trace("NOT adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ + " because z coordinate is out of range!");
                         }
@@ -187,7 +185,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                             tileEntityY = y + tileEntity.getZ() + offset.y,
                             tileEntityZ = z + tileEntity.getY() + offset.z;
                     final String entityId = tileEntity.getId();
-                    if ((tileEntityZ < 0) || (tileEntityZ >= world.getMaxHeight())) {
+                    if ((tileEntityZ < minHeight) || (tileEntityZ >= maxHeight)) {
                         if (logger.isTraceEnabled()) {
                             logger.trace("NOT adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " because z coordinate is out of range!");
                         }
@@ -212,7 +210,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      * @return {@code true} if the object could potentially be placeable
      *     and the caller can proceed with further checks.
      */
-    public static boolean isSane(WPObject object, int x, int y, int z, int maxHeight) {
+    public static boolean isSane(WPObject object, int x, int y, int z, int minHeight, int maxHeight) {
         final Point3i dimensions = object.getDimensions();
         final Point3i offset = object.getOffset();
         if ((((long) x + offset.x) < Integer.MIN_VALUE) || (((long) x + dimensions.x - 1 + offset.x) > Integer.MAX_VALUE)) {
@@ -227,7 +225,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             // The object is entirely above maxHeight
             return false;
         }
-        if (((long) z + dimensions.z - 1 + offset.z) < 0) {
+        if (((long) z + dimensions.z - 1 + offset.z) < minHeight) {
             // The object is entirely below bedrock
             return false;
         }
@@ -238,7 +236,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      * Checks block by block and taking the object's collision mode attributes
      * and other rules into account whether it can be placed at a particular
      * location. This is a slow operation, so use
-     * {@link #isSane(WPObject, int, int, int, int)} first to weed out objects
+     * {@link #isSane(WPObject, int, int, int, int, int)} first to weed out objects
      * for which this check does not even apply.
      *
      * @return {@code true} if the object may be placed at the specified
@@ -247,16 +245,17 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
     public static boolean isRoom(final MinecraftWorld world, final Dimension dimension, final WPObject object, final int x, final int y, final int z, final Placement placement) {
         final Point3i dimensions = object.getDimensions();
         final Point3i offset = object.getOffset();
-        final int collisionMode = object.getAttribute(ATTRIBUTE_COLLISION_MODE), maxHeight = world.getMaxHeight();
+        final int collisionMode = object.getAttribute(ATTRIBUTE_COLLISION_MODE), minHeight = world.getMinHeight(), maxHeight = world.getMaxHeight();
         final boolean allowConnectingBlocks = false, bottomlessWorld = dimension.isBottomless();
+        final int minZ = minHeight + (bottomlessWorld ? 0 : 1);
         // Check if the object fits vertically
-        if (((long) z + dimensions.z - 1 + offset.z) >= world.getMaxHeight()) {
+        if (((long) z + dimensions.z - 1 + offset.z) >= maxHeight) {
             if (logger.isTraceEnabled()) {
-                logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it does not fit below the map height of " + world.getMaxHeight());
+                logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it does not fit below the map height of " + maxHeight);
             }
             return false;
         }
-        if (((long) z + dimensions.z - 1 + offset.z) < 0) {
+        if (((long) z + dimensions.z - 1 + offset.z) < minHeight) {
             if (logger.isTraceEnabled()) {
                 logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it is entirely below the bedrock");
             }
@@ -272,7 +271,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                             final Material objectBlock = object.getMaterial(dx, dy, dz);
                             if (! objectBlock.veryInsubstantial) {
                                 final int worldZ = z + dz + offset.z;
-                                if (worldZ < (bottomlessWorld ? 0 : 1)) {
+                                if (worldZ < minZ) {
                                     if (logger.isTraceEnabled()) {
                                         logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it extends below the bottom of the map");
                                     }
@@ -319,7 +318,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                             final Material objectBlock = object.getMaterial(dx, dy, dz);
                             if (! objectBlock.veryInsubstantial) {
                                 final int worldZ = z + dz + offset.z;
-                                if (worldZ < (bottomlessWorld ? 0 : 1)) {
+                                if (worldZ < minZ) {
                                     if (logger.isTraceEnabled()) {
                                         logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it extends below the bottom of the map");
                                     }
@@ -512,7 +511,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         }
 
         @Override
-        public void fixup(MinecraftWorld world, Dimension dimension, Platform platform) {
+        public void fixup(MinecraftWorld world, Dimension dimension, Platform platform, ExportSettings exportSettings) {
             // Recheck whether there is room
             if (isRoom(world, dimension, object, x, y, z, placement)) {
                 if (logger.isTraceEnabled()) {
@@ -525,48 +524,50 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 Point3i offset = object.getOffset();
                 Point3i dim = object.getDimensions();
                 Rectangle area = new Rectangle(x + offset.x, y + offset.y, dim.x, dim.y);
-                frostExporter.render(dimension, area, null, world, platform);
+                frostExporter.addFeatures(dimension, area, null, world, platform);
 
                 // Fixups are done *after* post processing, so post process
                 // again
                 Box bounds = getBounds(object, x, y, z);
                 // Include the layer below and above the object for post
-                // processing, as those blocks may also haev been affected
-                bounds.setZ1(Math.max(bounds.getZ1() - 1, 0));
+                // processing, as those blocks may also have been affected
+                bounds.setZ1(Math.max(bounds.getZ1() - 1, world.getMinHeight()));
                 bounds.setZ2(Math.min(bounds.getZ2() + 1, world.getMaxHeight() - 1));
                 try {
-                    PlatformManager.getInstance().getPostProcessor(platform).postProcess(world, bounds, null);
+                    PlatformManager.getInstance().getPostProcessor(platform).postProcess(world, bounds, exportSettings, null);
                 } catch (ProgressReceiver.OperationCancelled e) {
                     // Can't happen since we don't pass in a progress receiver
                     throw new InternalError();
                 }
                 
-                // Fixups are done *after* lighting, so we have to relight the
-                // area
-                recalculateLight(world, bounds, platform);
+                // Fixups are done *after* calculating the block properties, so we have to do that again (if requested)
+                if (((BlockBasedExportSettings) exportSettings).isCalculateSkyLight() || ((BlockBasedExportSettings) exportSettings).isCalculateBlockLight() || ((BlockBasedExportSettings) exportSettings).isCalculateLeafDistance()) {
+                    recalculateBlockProperties(world, bounds, platform, (BlockBasedExportSettings) exportSettings);
+                }
             } else if (logger.isTraceEnabled()) {
                 logger.trace("No room for custom object " + object.getName() + " @ " + x + "," + y + "," + z + " in fixup");
             }
         }
 
-        private void recalculateLight(final MinecraftWorld world, final Box lightBox, final Platform platform) {
-            LightingCalculator lightingCalculator = new LightingCalculator(world, platform);
+        private void recalculateBlockProperties(final MinecraftWorld world, final Box lightBox, final Platform platform, final BlockBasedExportSettings exportSettings) {
+            BlockPropertiesCalculator blockPropertiesCalculator = new BlockPropertiesCalculator(world, platform, exportSettings);
             // Transpose coordinates from WP to MC coordinate system. Also
             // expand the box to light around it and try to account for uneven
             // terrain underneath the object
-            Box dirtyArea = new Box(lightBox.getX1() - 1, lightBox.getX2() + 1, MathUtils.clamp(0, lightBox.getZ1() - 4, world.getMaxHeight() - 1), lightBox.getZ2(), lightBox.getY1() - 1, lightBox.getY2() + 1);
+            Box dirtyArea = new Box(lightBox.getX1() - 1, lightBox.getX2() + 1, MathUtils.clamp(world.getMinHeight(), lightBox.getZ1() - 4, world.getMaxHeight() - 1), lightBox.getZ2(), lightBox.getY1() - 1, lightBox.getY2() + 1);
             if (dirtyArea.getVolume() == 0) {
                 if (logger.isTraceEnabled()) {
                     logger.trace("Dirty area for lighting calculation is empty; skipping lighting calculation");
                 }
                 return;
             }
-            lightingCalculator.setDirtyArea(dirtyArea);
+            blockPropertiesCalculator.setDirtyArea(dirtyArea);
             if (logger.isTraceEnabled()) {
-                logger.trace("Recalculating light in " + lightingCalculator.getDirtyArea());
+                logger.trace("Recalculating light in " + blockPropertiesCalculator.getDirtyArea());
             }
-            lightingCalculator.recalculatePrimaryLight();
-            while (lightingCalculator.calculateSecondaryLight());
+            blockPropertiesCalculator.firstPass();
+            while (blockPropertiesCalculator.secondPass());
+            blockPropertiesCalculator.finalise();
         }
 
         private final WPObject object;

@@ -4,10 +4,9 @@ import org.dynmap.DynmapChunk;
 import org.dynmap.DynmapLocation;
 import org.dynmap.DynmapWorld;
 import org.dynmap.utils.MapChunkCache;
-import org.pepsoft.minecraft.*;
-import org.pepsoft.worldpainter.*;
-import org.pepsoft.worldpainter.Constants;
+import org.pepsoft.minecraft.JavaLevel;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.JavaMinecraftWorld;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
@@ -16,6 +15,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 
 /**
  * A {@link DynmapWorld} implementation which wraps a {@link MinecraftWorld} for
@@ -116,7 +117,7 @@ public class WPDynmapWorld extends DynmapWorld {
         if (tileFactory instanceof HeightMapTileFactory) {
             waterLevel = ((HeightMapTileFactory) tileFactory).getWaterHeight();
         } else {
-            waterLevel = 62;
+            waterLevel = DEFAULT_WATER_LEVEL;
         }
         World2 wpWorld = dimension.getWorld();
         Point spawnPoint = wpWorld.getSpawnPoint();
@@ -125,8 +126,8 @@ public class WPDynmapWorld extends DynmapWorld {
 
     public static WPDynmapWorld forMinecraftMap(File worldDir, int dim) throws IOException {
         File levelDatFile = new File(worldDir, "level.dat");
-        Level level = Level.load(levelDatFile);
-        return forMinecraftWorld(new JavaMinecraftWorld(worldDir, dim, level.getMaxHeight(), level.getVersion() == org.pepsoft.minecraft.Constants.VERSION_MCREGION ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL, true, 256), level.getName(), dim, 62, new Point3i(level.getSpawnX(), level.getSpawnZ(), level.getSpawnY()));
+        JavaLevel level = JavaLevel.load(levelDatFile);
+        return forMinecraftWorld(new JavaMinecraftWorld(worldDir, dim, level.getMaxHeight(), level.getVersion() == org.pepsoft.minecraft.Constants.VERSION_MCREGION ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL, true, 256), level.getName(), dim, DEFAULT_WATER_LEVEL, new Point3i(level.getSpawnX(), level.getSpawnZ(), level.getSpawnY()));
     }
 
     public static WPDynmapWorld forMinecraftWorld(MinecraftWorld minecraftWorld, String name, int dim, int waterLevel, Point3i spawnPoint) {

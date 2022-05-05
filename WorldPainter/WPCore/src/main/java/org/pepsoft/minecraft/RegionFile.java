@@ -297,6 +297,19 @@ public final class RegionFile implements AutoCloseable {
         return count;
     }
 
+    public synchronized void delete(int x, int z) throws IOException {
+        int offset = getOffset(x, z);
+        int sectorNumber = offset >> 8;
+        int sectorsAllocated = offset & 0xFF;
+
+        /* mark the sectors previously used for this chunk as free */
+        for (int i = 0; i < sectorsAllocated; ++i) {
+            sectorFree.set(sectorNumber + i, true);
+        }
+        setOffset(x, z, 0);
+        setTimestamp(x, z, (int) (System.currentTimeMillis() / 1000L));
+    }
+
     @Override
     public String toString() {
         return fileName.getPath();
@@ -311,7 +324,7 @@ public final class RegionFile implements AutoCloseable {
 
         // maximum chunk size is 1MB
         if (sectorsNeeded >= 256) {
-            return;
+            throw new IllegalArgumentException("Maximum chunk size is 1MB");
         }
 
         if (sectorNumber != 0 && sectorsAllocated == sectorsNeeded) {

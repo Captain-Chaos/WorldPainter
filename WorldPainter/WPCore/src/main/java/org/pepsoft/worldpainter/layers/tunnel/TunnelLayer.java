@@ -6,6 +6,7 @@
 package org.pepsoft.worldpainter.layers.tunnel;
 
 import org.pepsoft.minecraft.Constants;
+import org.pepsoft.worldpainter.HeightTransform;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.MixedMaterialManager;
 import org.pepsoft.worldpainter.NoiseSettings;
@@ -15,7 +16,8 @@ import org.pepsoft.worldpainter.layers.Layer;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -185,6 +187,17 @@ public class TunnelLayer extends CustomLayer {
         renderer = new TunnelLayerRenderer(this);
     }
 
+    @Override
+    public void setMinMaxHeight(int oldMinHeight, int newMinHeight, int oldMaxHeight, int newMaxHeight, HeightTransform transform) {
+        adjustLayers(orderedFloorLayers, oldMinHeight, newMinHeight, oldMaxHeight, newMaxHeight);
+        adjustLayers(orderedRoofLayers, oldMinHeight, newMinHeight, oldMaxHeight, newMaxHeight);
+    }
+
+    @Override
+    public String getType() {
+        return "Cave/Tunnel";
+    }
+
     public int getFloodLevel() {
         return floodLevel;
     }
@@ -201,12 +214,28 @@ public class TunnelLayer extends CustomLayer {
         this.floodWithLava = floodWithLava;
     }
 
-    public Map<Layer, LayerSettings> getFloorLayers() {
-        return floorLayers;
+    public List<LayerSettings> getFloorLayers() {
+        return orderedFloorLayers;
     }
 
-    public void setFloorLayers(Map<Layer, LayerSettings> floorLayers) {
-        this.floorLayers = floorLayers;
+    public void setFloorLayers(List<LayerSettings> floorLayers) {
+        orderedFloorLayers = floorLayers;
+    }
+
+    public List<LayerSettings> getRoofLayers() {
+        return orderedRoofLayers;
+    }
+
+    public void setRoofLayers(List<LayerSettings> roofLayers) {
+        orderedRoofLayers = roofLayers;
+    }
+
+    public Integer getTunnelBiome() {
+        return tunnelBiome;
+    }
+
+    public void setTunnelBiome(Integer biome) {
+        this.tunnelBiome = biome;
     }
 
     // CustomLayer
@@ -248,35 +277,89 @@ public class TunnelLayer extends CustomLayer {
         if (wallNoise != null) {
             clone.wallNoise = wallNoise.clone();
         }
-        if (floorLayers != null) {
-            clone.floorLayers = new HashMap<>();
-            for (Map.Entry<Layer, LayerSettings> entry: floorLayers.entrySet()) {
-                clone.floorLayers.put(entry.getKey(), entry.getValue().clone());
+        if (orderedFloorLayers != null) {
+            clone.orderedFloorLayers = new ArrayList<>(orderedFloorLayers.size());
+            for (LayerSettings layerSettings: orderedFloorLayers) {
+                clone.orderedFloorLayers.add(layerSettings.clone());
+            }
+        }
+        if (orderedRoofLayers != null) {
+            clone.orderedRoofLayers = new ArrayList<>(orderedRoofLayers.size());
+            for (LayerSettings layerSettings: orderedRoofLayers) {
+                clone.orderedRoofLayers.add(layerSettings.clone());
             }
         }
         clone.renderer = new TunnelLayerRenderer(clone);
         return clone;
     }
 
+    private void adjustLayers(List<LayerSettings> layers, int oldMinHeight, int newMinHeight, int oldMaxHeight, int newMaxHeight) {
+        if (layers != null) {
+            layers.forEach(layerSettings -> {
+                if ((layerSettings.getMinLevel() == oldMinHeight) || (layerSettings.getMinLevel() < newMinHeight)){
+                    layerSettings.setMinLevel(newMinHeight);
+                }
+                if ((layerSettings.getMaxLevel() == (oldMaxHeight - 1)) || (layerSettings.getMaxLevel() >= newMaxHeight)){
+                    layerSettings.setMaxLevel(newMaxHeight - 1);
+                }
+            });
+        }
+    }
+
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        
+
+        if (wpVersion < 1) {
+            if (roofMin == 0) {
+                roofMin = Integer.MIN_VALUE;
+            }
+            if (floorMin == 0) {
+                floorMin = Integer.MIN_VALUE;
+            }
+            if (floodLevel == 0) {
+                floodLevel = Integer.MIN_VALUE;
+            }
+        }
+        if (wpVersion < 2) {
+            if (floorLayers != null) {
+                orderedFloorLayers = new ArrayList<>(floorLayers.size());
+                for (Map.Entry<Layer, LayerSettings> entry: floorLayers.entrySet()) {
+                    entry.getValue().setLayer(entry.getKey());
+                    orderedFloorLayers.add(entry.getValue());
+                }
+                floorLayers = null;
+            }
+        }
+        wpVersion = CURRENT_WP_VERSION;
+
         renderer = new TunnelLayerRenderer(this);
     }
-    
+
     private Mode roofMode = Mode.FIXED_HEIGHT, floorMode = Mode.FIXED_HEIGHT;
-    private int roofLevel = 88, floorLevel = 80, floorWallDepth = 4, roofWallDepth = 4, roofMin = 0, roofMax = Integer.MAX_VALUE, floorMin = 0, floorMax = Integer.MAX_VALUE, floodLevel;
+    private int roofLevel = 88, floorLevel = 80, floorWallDepth = 4, roofWallDepth = 4, roofMin = Integer.MIN_VALUE, roofMax = Integer.MAX_VALUE, floorMin = Integer.MIN_VALUE, floorMax = Integer.MAX_VALUE, floodLevel = Integer.MIN_VALUE;
     private boolean stalactites, stalagmites, floodWithLava, removeWater;
     private MixedMaterial floorMaterial, wallMaterial, roofMaterial;
     private NoiseSettings floorNoise, roofNoise, wallNoise;
-    private Map<Layer, LayerSettings> floorLayers;
+    @Deprecated private Map<Layer, LayerSettings> floorLayers;
+    private Integer tunnelBiome;
+    private int wpVersion = CURRENT_WP_VERSION;
+    private List<LayerSettings> orderedFloorLayers, orderedRoofLayers;
     private transient TunnelLayerRenderer renderer = new TunnelLayerRenderer(this);
-    
+
+    private static final int CURRENT_WP_VERSION = 2;
     private static final long serialVersionUID = 1L;
     
-    public enum Mode {FIXED_HEIGHT, CONSTANT_DEPTH, INVERTED_DEPTH}
+    public enum Mode { FIXED_HEIGHT, CONSTANT_DEPTH, INVERTED_DEPTH }
     
     public static class LayerSettings implements Serializable, Cloneable {
+        public Layer getLayer() {
+            return layer;
+        }
+
+        public void setLayer(Layer layer) {
+            this.layer = layer;
+        }
+
         public int getIntensity() {
             return intensity;
         }
@@ -308,11 +391,22 @@ public class TunnelLayer extends CustomLayer {
         public void setMaxLevel(int maxLevel) {
             this.maxLevel = maxLevel;
         }
-        
+
+        public boolean isInvert() {
+            return invert;
+        }
+
+        public void setInvert(boolean invert) {
+            this.invert = invert;
+        }
+
         @Override
         public LayerSettings clone() {
             try {
                 LayerSettings clone = (LayerSettings) super.clone();
+                if (layer instanceof CustomLayer) {
+                    clone.layer = ((CustomLayer) layer).clone();
+                }
                 if (variation != null) {
                     clone.variation = variation.clone();
                 }
@@ -336,6 +430,13 @@ public class TunnelLayer extends CustomLayer {
          * The minimum and maximum heights at which the layer should be applied.
          */
         private int minLevel = 0, maxLevel = Constants.DEFAULT_MAX_HEIGHT_ANVIL - 1;
+
+        /**
+         * Whether this layer should be inverted on export. Only applies to roof layers.
+         */
+        private boolean invert;
+
+        private Layer layer;
         
         private static final long serialVersionUID = 1L;
     }

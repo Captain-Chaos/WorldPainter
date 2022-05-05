@@ -61,7 +61,7 @@ public class WorldPainterDialog extends JDialog {
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
 
         if (enableHelpKey) {
-            getRootPane().putClientProperty(App.HELP_KEY_KEY, "Dialog/" + getClass().getSimpleName());
+            getRootPane().putClientProperty(App.KEY_HELP_KEY, "Dialog/" + getClass().getSimpleName());
             actionMap.put("help", new AbstractAction("help") {
                 @Override
                 public void actionPerformed(ActionEvent e) {

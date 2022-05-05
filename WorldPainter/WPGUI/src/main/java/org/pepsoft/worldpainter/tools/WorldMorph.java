@@ -5,13 +5,13 @@
 
 package org.pepsoft.worldpainter.tools;
 
-import java.awt.BorderLayout;
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
-import javax.swing.Timer;
-import org.pepsoft.minecraft.Constants;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
-import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
+
+import javax.swing.*;
+import java.awt.*;
+
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 
 /**
  *
@@ -20,7 +20,7 @@ import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 public class WorldMorph {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            final WorldPainter view = new WorldPainter(createNewWorld().getDimension(0), new DynMapColourScheme("default", true), null);
+            final WorldPainter view = new WorldPainter(createNewWorld().getDimension(0), ColourScheme.DEFAULT, null);
             JFrame frame = new JFrame("WorldMorph");
             frame.getContentPane().add(view, BorderLayout.CENTER);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -34,8 +34,8 @@ public class WorldMorph {
 
     private static World2 createNewWorld() {
         long seed = System.currentTimeMillis();
-        TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(seed, Terrain.GRASS, Constants.DEFAULT_MAX_HEIGHT_MCREGION, 16, 24, false, true, 20, 1.0);
-        World2 world = new World2(DefaultPlugin.JAVA_MCREGION, seed, tileFactory, World2.DEFAULT_MAX_HEIGHT);
+        TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(seed, Terrain.GRASS, JAVA_MCREGION.minZ, JAVA_MCREGION.standardMaxHeight, 16, 24, false, true, 20, 1.0);
+        World2 world = new World2(JAVA_MCREGION, seed, tileFactory, JAVA_MCREGION.standardMaxHeight);
         Dimension dim0 = world.getDimension(0);
         for (int x = -2; x <= 2; x++) {
             for (int y = -2; y <= 2; y++) {

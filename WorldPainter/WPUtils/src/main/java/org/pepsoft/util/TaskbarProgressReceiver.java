@@ -13,7 +13,7 @@ public class TaskbarProgressReceiver implements ProgressReceiver {
 
     @Override
     public void setProgress(float progress) throws OperationCancelled {
-        DesktopUtils.setProgress(window, (int) (progress * 100 + 0.5f));
+        DesktopUtils.setProgress(window, Math.round(progress * 100));
         nestedReceiver.setProgress(progress);
     }
 

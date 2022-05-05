@@ -4,17 +4,13 @@
  */
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
-import org.pepsoft.worldpainter.heightMaps.DisplacementHeightMap;
-import org.pepsoft.worldpainter.heightMaps.MaximisingHeightMap;
-import org.pepsoft.worldpainter.heightMaps.NinePatchHeightMap;
-import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
-import org.pepsoft.worldpainter.heightMaps.ProductHeightMap;
-import org.pepsoft.worldpainter.heightMaps.SumHeightMap;
-import org.pepsoft.worldpainter.themes.impl.fancy.FancyTheme;
+import org.pepsoft.worldpainter.heightMaps.*;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
+import org.pepsoft.worldpainter.themes.impl.fancy.FancyTheme;
 
 import java.util.Random;
+
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 
 /**
  *
@@ -25,16 +21,16 @@ public final class TileFactoryFactory {
         // Prevent instantiation
     }
     
-    public static HeightMapTileFactory createNoiseTileFactory(long seed, Terrain terrain, int maxHeight, int baseHeight, int waterLevel, boolean floodWithLava, boolean beaches, float range, double scale) {
-        return new HeightMapTileFactory(seed, new SumHeightMap(new ConstantHeightMap(baseHeight), new NoiseHeightMap(range, scale, 1, 0)), maxHeight, floodWithLava, SimpleTheme.createDefault(terrain, maxHeight, waterLevel, true, beaches));
+    public static HeightMapTileFactory createNoiseTileFactory(long seed, Terrain terrain, int minHeight, int maxHeight, int baseHeight, int waterLevel, boolean floodWithLava, boolean beaches, float range, double scale) {
+        return new HeightMapTileFactory(seed, new SumHeightMap(new ConstantHeightMap(baseHeight), new NoiseHeightMap(range, scale, 1, 0)), minHeight, maxHeight, floodWithLava, SimpleTheme.createDefault(terrain, minHeight, maxHeight, waterLevel, true, beaches));
     }
     
-    public static HeightMapTileFactory createFlatTileFactory(long seed, Terrain terrain, int maxHeight, int height, int waterLevel, boolean floodWithLava, boolean beaches) {
-        return new HeightMapTileFactory(seed, new ConstantHeightMap(height), maxHeight, floodWithLava, SimpleTheme.createDefault(terrain, maxHeight, waterLevel, false, beaches));
+    public static HeightMapTileFactory createFlatTileFactory(long seed, Terrain terrain, int minHeight, int maxHeight, int height, int waterLevel, boolean floodWithLava, boolean beaches) {
+        return new HeightMapTileFactory(seed, new ConstantHeightMap(height), minHeight, maxHeight, floodWithLava, SimpleTheme.createDefault(terrain, minHeight, maxHeight, waterLevel, false, beaches));
     }
     
-    public static HeightMapTileFactory createFancyTileFactory(long seed, Terrain terrain, int maxHeight, int baseHeight, int waterLevel, boolean floodWithLava, float range, double scale) {
-//        final HeightMapTileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(Terrain.GRASS, World2.DEFAULT_MAX_HEIGHT, 58, 62, false, true, 20.0f, 1.0);
+    public static HeightMapTileFactory createFancyTileFactory(long seed, Terrain terrain, int minHeight, int maxHeight, int baseHeight, int waterLevel, boolean floodWithLava, float range, double scale) {
+//        final HeightMapTileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(Terrain.GRASS, World2.DEFAULT_MAX_HEIGHT, 58, DEFAULT_WATER_LEVEL, false, true, 20.0f, 1.0);
         HeightMap oceanFloor = new ConstantHeightMap("Ocean Floor", waterLevel - 22);
         HeightMap continent;
 //        continent = new NinePatchHeightMap(200, 100, 50, 58f);
@@ -62,6 +58,6 @@ public final class TileFactoryFactory {
         HeightMap mountainsDistanceMap = new NoiseHeightMap(25f, 2.5, 1, random.nextLong());
         HeightMap mountains = new DisplacementHeightMap("Mountains", mountainsHeight, mountainsAngleMap, mountainsDistanceMap);
         HeightMap heightMap = new MaximisingHeightMap(continent, mountains);
-        return new HeightMapTileFactory(seed, heightMap, 256, false, new FancyTheme(maxHeight, 62, heightMap, terrain));
+        return new HeightMapTileFactory(seed, heightMap, minHeight, maxHeight, false, new FancyTheme(minHeight, maxHeight, DEFAULT_WATER_LEVEL, heightMap, terrain));
     }
 }

@@ -5,6 +5,8 @@
 
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.minecraft.MapGenerator;
+import org.pepsoft.minecraft.SeededGenerator;
 import org.pepsoft.util.AttributeKey;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.PerlinNoise;
@@ -13,6 +15,7 @@ import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.brushes.Brush;
+import org.pepsoft.worldpainter.exporting.ExportSettings;
 import org.pepsoft.worldpainter.gardenofeden.Garden;
 import org.pepsoft.worldpainter.gardenofeden.Seed;
 import org.pepsoft.worldpainter.layers.*;
@@ -42,20 +45,23 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.Generator.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
 
 /**
  *
  * @author pepijn
  */
 public class Dimension extends InstanceKeeper implements TileProvider, Serializable, Tile.Listener, Cloneable {
-    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, int dim, int maxHeight) {
-        this(world, minecraftSeed, tileFactory, dim, maxHeight, true);
+    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, int dim, int minHeight, int maxHeight) {
+        this(world, minecraftSeed, tileFactory, dim, minHeight, maxHeight, true);
     }
 
-    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, int dim, int maxHeight, boolean init) {
+    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, int dim, int minHeight, int maxHeight, boolean init) {
         if (world == null) {
             throw new NullPointerException("world");
         }
@@ -64,14 +70,23 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         this.minecraftSeed = minecraftSeed;
         this.tileFactory = tileFactory;
         this.dim = dim;
+        this.minHeight = minHeight;
         this.maxHeight = maxHeight;
+        ceilingHeight = maxHeight;
         if (init) {
-            if (dim == DIM_NORMAL) {
-                layerSettings.put(Resources.INSTANCE, new ResourcesExporterSettings(maxHeight));
-            } else if (dim == DIM_NETHER) {
-                layerSettings.put(Resources.INSTANCE, new ResourcesExporterSettings(maxHeight, true));
-            }
+            layerSettings.put(Resources.INSTANCE, ResourcesExporterSettings.defaultSettings(world.getPlatform(), dim, maxHeight));
             topLayerDepthNoise = new PerlinNoise(seed + TOP_LAYER_DEPTH_SEED_OFFSET);
+            switch (dim) {
+                case DIM_NORMAL:
+                    generator = new SeededGenerator(DEFAULT, minecraftSeed);
+                    break;
+                case DIM_NETHER:
+                    generator = new SeededGenerator(NETHER, minecraftSeed);
+                    break;
+                case DIM_END:
+                    generator = new SeededGenerator(END, minecraftSeed);
+                    break;
+            }
         }
     }
 
@@ -459,7 +474,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public int getIntHeightAt(int x, int y) {
-        return getIntHeightAt(x, y, -1);
+        return getIntHeightAt(x, y, Integer.MIN_VALUE);
     }
 
     public int getIntHeightAt(int x, int y, int defaultHeight) {
@@ -472,7 +487,35 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public int getIntHeightAt(Point coords) {
-        return getIntHeightAt(coords.x, coords.y, -1);
+        return getIntHeightAt(coords.x, coords.y, Integer.MIN_VALUE);
+    }
+
+    public int getLowestIntHeight() {
+        int lowestHeight = Integer.MAX_VALUE;
+        for (Tile tile: tiles.values()) {
+            int tileLowestHeight = tile.getLowestIntHeight();
+            if (tileLowestHeight < lowestHeight) {
+                lowestHeight = tileLowestHeight;
+            }
+            if (lowestHeight <= minHeight) {
+                return minHeight;
+            }
+        }
+        return lowestHeight;
+    }
+
+    public int getHightestIntHeight() {
+        int highestHeight = Integer.MIN_VALUE;
+        for (Tile tile: tiles.values()) {
+            int tileHighestHeight = tile.getHighestIntHeight();
+            if (tileHighestHeight > highestHeight) {
+                highestHeight = tileHighestHeight;
+            }
+            if (highestHeight >= (maxHeight - 1)) {
+                return maxHeight - 1;
+            }
+        }
+        return highestHeight;
     }
 
     public float getHeightAt(int x, int y) {
@@ -499,6 +542,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         setHeightAt(coords.x, coords.y, height);
     }
 
+    /**
+     * Get the raw height value. This is the height times 256 (for added precision) and zero-based rather than adjusted
+     * for {@code minHeight}.
+     */
     public int getRawHeightAt(int x, int y) {
         Tile tile = getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         if (tile != null) {
@@ -508,10 +555,18 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
+    /**
+     * Get the raw height value. This is the height times 256 (for added precision) and zero-based rather than adjusted
+     * for {@code minHeight}.
+     */
     public int getRawHeightAt(Point coords) {
         return getRawHeightAt(coords.x, coords.y);
     }
 
+    /**
+     * Set the raw height value. This is the height times 256 (for added precision) and zero-based rather than adjusted
+     * for {@code minHeight}.
+     */
     public void setRawHeightAt(int x, int y, int rawHeight) {
         Tile tile = getTileForEditing(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         if (tile != null) {
@@ -519,6 +574,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
+    /**
+     * Set the raw height value. This is the height times 256 (for added precision) and zero-based rather than adjusted
+     * for {@code minHeight}.
+     */
     public void setRawHeightAt(Point coords, int rawHeight) {
         setRawHeightAt(coords.x, coords.y, rawHeight);
     }
@@ -626,17 +685,13 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
 
     /**
-     * Count the number of blocks where the specified bit layer is set in a
-     * square around a particular location
+     * Count the number of blocks where the specified bit layer is set in a square around a particular location
      *
      * @param layer The bit layer to count.
-     * @param x The global X coordinate of the location around which to count
-     *     the layer.
-     * @param y The global Y coordinate of the location around which to count
-     *     the layer.
-     * @param r The radius of the square.
-     * @return The number of blocks in the specified square where the specified
-     *     bit layer is set.
+     * @param x The global X coordinate of the location around which to count the layer.
+     * @param y The global Y coordinate of the location around which to count the layer.
+     * @param r The radius of the square. The side of the square is 2&middot;r+1
+     * @return The number of blocks in the specified square where the specified bit layer is set.
      */
     public synchronized int getBitLayerCount(final Layer layer, final int x, final int y, final int r) {
         final int tileX = x >> TILE_SIZE_BITS, tileY = y >> TILE_SIZE_BITS;
@@ -851,8 +906,12 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public void setLayerSettings(Layer layer, ExporterSettings settings) {
-        if ((! layerSettings.containsKey(layer)) || (! settings.equals(layerSettings.get(layer)))) {
-            layerSettings.put(layer, settings);
+        if ((settings != null) ? ((! layerSettings.containsKey(layer)) || (! settings.equals(layerSettings.get(layer)))) : layerSettings.containsKey(layer)) {
+            if (settings != null) {
+                layerSettings.put(layer, settings);
+            } else {
+                layerSettings.remove(layer);
+            }
             changeNo++;
         }
     }
@@ -969,6 +1028,19 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             this.overlayEnabled = overlayEnabled;
             changeNo++;
             propertyChangeSupport.firePropertyChange("overlayEnabled", ! overlayEnabled, overlayEnabled);
+        }
+    }
+
+    public int getMinHeight() {
+        return minHeight;
+    }
+
+    public void setMinHeight(int minHeight) {
+        if (minHeight != this.minHeight) {
+            int oldMinHeight = this.minHeight;
+            this.minHeight = minHeight;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("minHeight", oldMinHeight, minHeight);
         }
     }
 
@@ -1191,6 +1263,38 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
+    public ExportSettings getExportSettings() {
+        return exportSettings;
+    }
+
+    public void setExportSettings(ExportSettings exportSettings) {
+        if ((this.exportSettings == null) ? (exportSettings != null) : (! exportSettings.equals(this.exportSettings))) {
+            ExportSettings oldExportSettings = this.exportSettings;
+            this.exportSettings = exportSettings;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("exportSettings", oldExportSettings, exportSettings);
+        }
+    }
+
+    public MapGenerator getGenerator() {
+        return generator;
+    }
+
+    public void setGenerator(MapGenerator generator) {
+        if (propertyChangeSupport != null) {
+            if (! Objects.equals(this.generator, generator)) {
+                MapGenerator oldGenerator = this.generator;
+                this.generator = generator;
+                changeNo++;
+                propertyChangeSupport.firePropertyChange("generator", oldGenerator, generator);
+            }
+        } else {
+            // This is also called during deserialisation of Configuration, when property change support is not yet
+            // activated
+            this.generator = generator;
+        }
+    }
+
     public void applyTheme(Point coords) {
         applyTheme(coords.x, coords.y);
     }
@@ -1276,6 +1380,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public final int getAutoBiome(Tile tile, int x, int y) {
+        // TODO add platform support and Minecraft 1.18 biomes
         switch (dim) {
             case DIM_NETHER:
             case DIM_NETHER_CEILING:
@@ -1296,9 +1401,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                     } else if (tile.getTerrain(x, y) == Terrain.WATER) {
                         biome = BIOME_FROZEN_RIVER;
                     } else {
-                        int waterLevel = tile.getWaterLevel(x, y) - tile.getIntHeight(x, y);
-                        if ((waterLevel > 0) && (!tile.getBitLayerValue(FloodWithLava.INSTANCE, x, y))) {
-                            if (waterLevel <= 5) {
+                        int waterDepth = tile.getWaterLevel(x, y) - tile.getIntHeight(x, y);
+                        if ((waterDepth > 0) && (! tile.getBitLayerValue(FloodWithLava.INSTANCE, x, y))) {
+                            if (waterDepth <= 5) {
                                 biome = BIOME_FROZEN_RIVER;
                             } else {
                                 biome = BIOME_FROZEN_OCEAN;
@@ -1315,11 +1420,11 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                     } else if (tile.getLayerValue(Jungle.INSTANCE, x, y) > 0) {
                         biome = BIOME_JUNGLE;
                     } else {
-                        int waterLevel = tile.getWaterLevel(x, y) - tile.getIntHeight(x, y);
-                        if ((waterLevel > 0) && (!tile.getBitLayerValue(FloodWithLava.INSTANCE, x, y))) {
-                            if (waterLevel <= 5) {
+                        int waterDepth = tile.getWaterLevel(x, y) - tile.getIntHeight(x, y);
+                        if ((waterDepth > 0) && (!tile.getBitLayerValue(FloodWithLava.INSTANCE, x, y))) {
+                            if (waterDepth <= 5) {
                                 biome = BIOME_RIVER;
-                            } else if (waterLevel <= 20) {
+                            } else if (waterDepth <= 20) {
                                 biome = BIOME_OCEAN;
                             } else {
                                 biome = BIOME_DEEP_OCEAN;
@@ -1327,8 +1432,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                         } else {
                             final Terrain terrain = tile.getTerrain(x, y);
                             // TODO: we have reports from the wild of the custom terrain
-                            // returned here somehow not being configured, so check that
-                            // even though we don't understand how that could happen
+                            //  returned here somehow not being configured, so check that
+                            //  even though we don't understand how that could happen
                             final int defaultBiome = terrain.isConfigured() ? terrain.getDefaultBiome() : BIOME_PLAINS;
                             if (((tile.getLayerValue(DeciduousForest.INSTANCE, x, y) > 0)
                                     || (tile.getLayerValue(PineForest.INSTANCE, x, y) > 0))
@@ -1747,7 +1852,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 subsurfaceMaterial = Terrain.STONE;
 
                 // Load legacy settings
-                ResourcesExporterSettings settings = new ResourcesExporterSettings(maxHeight);
+                ResourcesExporterSettings settings = ResourcesExporterSettings.defaultSettings(JAVA_ANVIL, DIM_NORMAL, maxHeight);
                 settings.setChance(GOLD_ORE,         1);
                 settings.setChance(IRON_ORE,         5);
                 settings.setChance(COAL,             9);
@@ -1832,15 +1937,15 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private Terrain subsurfaceMaterial = Terrain.STONE_MIX;
     private boolean populate;
     private Border border;
-    private int borderLevel = 62, borderSize = 2;
+    private int borderLevel = DEFAULT_WATER_LEVEL, borderSize = 2;
     private boolean darkLevel, bedrockWall;
     private Map<Layer, ExporterSettings> layerSettings = new HashMap<>();
-    private long minecraftSeed = Long.MIN_VALUE;
+    private long minecraftSeed;
     private File overlay;
     private float overlayScale = 1.0f, overlayTransparency = 0.5f;
     private int overlayOffsetX, overlayOffsetY, gridSize = 128;
     private boolean overlayEnabled, gridEnabled, biomesConverted = true;
-    private int maxHeight = World2.DEFAULT_MAX_HEIGHT, contourSeparation = 10;
+    private int minHeight, maxHeight, contourSeparation = 10;
     private boolean contoursEnabled = true;
     private int topLayerMinDepth = 3, topLayerVariation = 4;
     private boolean bottomless;
@@ -1850,9 +1955,11 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private List<CustomLayer> customLayers = new ArrayList<>();
     private int wpVersion = CURRENT_WP_VERSION;
     private boolean fixOverlayCoords;
-    private int ceilingHeight = maxHeight;
+    private int ceilingHeight;
     private Map<String, Object> attributes;
     private LayerAnchor subsurfaceLayerAnchor = LayerAnchor.BEDROCK, topLayerAnchor = LayerAnchor.BEDROCK;
+    private ExportSettings exportSettings;
+    private MapGenerator generator;
     private transient List<Listener> listeners = new ArrayList<>();
     private transient boolean eventsInhibited;
     private transient Set<Tile> dirtyTiles = new HashSet<>();

@@ -63,19 +63,35 @@ public final class ByteArrayTag extends Tag {
     @Override
     public String toString() {
         StringBuilder hex = new StringBuilder();
-        for (byte b : value) {
-            String hexDigits = Integer.toHexString(b).toUpperCase();
-            if (hexDigits.length() == 1) {
-                hex.append("0");
+        if (value.length <= 32) {
+            for (byte b: value) {
+                String hexDigits = Integer.toHexString(b & 0xff).toUpperCase();
+                if (hexDigits.length() == 1) {
+                    hex.append("0");
+                }
+                hex.append(hexDigits).append(" ");
             }
-            hex.append(hexDigits).append(" ");
+        } else {
+            for (int i = 0; i < 32; i++) {
+                if (i != 30) {
+                    String hexDigits = Integer.toHexString((value[(i <= 30) ? i : (value.length - 1)]) & 0xff).toUpperCase();
+                    if (hexDigits.length() == 1) {
+                        hex.append("0");
+                    }
+                    hex.append(hexDigits).append(" ");
+                } else {
+                    hex.append("(");
+                    hex.append(value.length - 31);
+                    hex.append(" more) ");
+                }
+            }
         }
         String name = getName();
         String append = "";
-        if (name != null && !name.equals("")) {
+        if (name != null && (! name.equals(""))) {
             append = "(\"" + this.getName() + "\")";
         }
-        return "TAG_Byte_Array" + append + ": " + hex.toString();
+        return "TAG_Byte_Array" + append + ": " + ((hex.length() > 0) ? hex.substring(0, hex.length() - 1) : "empty");
     }
 
     @Override

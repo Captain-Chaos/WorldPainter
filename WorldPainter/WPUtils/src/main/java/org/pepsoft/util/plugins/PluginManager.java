@@ -5,10 +5,6 @@
 package org.pepsoft.util.plugins;
 
 import org.jetbrains.annotations.NotNull;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.pepsoft.util.StreamUtils;
 import org.pepsoft.util.Version;
 import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
@@ -31,6 +27,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.util.Collections.unmodifiableList;
 import static org.pepsoft.util.FileUtils.stripDirectory;
 import static org.pepsoft.util.FileUtils.stripExtension;
+import static org.pepsoft.util.ObjectMapperHolder.OBJECT_MAPPER;
 
 /**
  * A general purpose plugin manager.
@@ -128,7 +125,7 @@ public final class PluginManager {
             for (JarFile pluginJar: jarClassLoaders.keySet()) {
                 try {
                     findPlugins(type, descriptorPath, pluginJar, plugins);
-                } catch (ParseException | ClassNotFoundException | IllegalAccessException | InstantiationException | NoClassDefFoundError e) {
+                } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | NoClassDefFoundError e) {
                     errors.add(stripDirectory(pluginJar.getName()) + " could not be loaded; perhaps it is not compatible with this version of WorldPainter");
                     logger.error("{} while instantiating plugin {} (message: {}); skipping plugin", e.getClass().getSimpleName(), pluginJar.getName(), e.getMessage(), e);
                 }
@@ -207,7 +204,7 @@ public final class PluginManager {
     }
 
     @SuppressWarnings("unchecked") // Guaranteed by isAssignableFrom
-    private static <T> void findPlugins(Class<T> type, String descriptorPath, JarFile jarFile, List<T> plugins) throws IOException, ParseException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+    private static <T> void findPlugins(Class<T> type, String descriptorPath, JarFile jarFile, List<T> plugins) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
         Descriptor descriptor = loadDescriptor(jarFile, descriptorPath);
         for (String class_: descriptor.classes) {
             Class<?> pluginType = classLoader.loadClass(class_);
@@ -229,7 +226,7 @@ public final class PluginManager {
                         plugins.add(((Class<T>) pluginType).newInstance());
                     }
                 }
-            } catch (IOException | ClassNotFoundException | IllegalAccessException | InstantiationException | ParseException e) {
+            } catch (IOException | ClassNotFoundException | IllegalAccessException | InstantiationException e) {
                 errors.add("Could not load or initialise plugin from class path; internal WorldPainter error");
                 logger.error("{} while instantiating plugin (message: {}); skipping plugin", e.getClass().getSimpleName(), e.getMessage(), e);
             }
@@ -330,7 +327,7 @@ public final class PluginManager {
                 // circumstances
                 tempFile.delete();
             }
-        } catch (IOException | ParseException | ClassCastException e) {
+        } catch (IOException | ClassCastException e) {
             logger.error("{} while checking for updates for plugin {} (message: {})", e.getClass().getSimpleName(), originalFile, e.getMessage(), e);
         }
     }
@@ -344,7 +341,7 @@ public final class PluginManager {
      *                       descriptor.
      * @return The plugin descriptor read from the plugin jar.
      */
-    private static Descriptor loadDescriptor(JarFile jarFile, String descriptorPath) throws IOException, ParseException {
+    private static Descriptor loadDescriptor(JarFile jarFile, String descriptorPath) throws IOException {
         try (InputStream in = jarFile.getInputStream(new ZipEntry(descriptorPath))) {
             return loadDescriptor(in, stripExtension(stripDirectory(jarFile.getName())));
         }
@@ -361,7 +358,7 @@ public final class PluginManager {
      * @return The plugin descriptor read from the stream.
      */
     @SuppressWarnings("unchecked") // Responsibility of plugin author
-    public static Descriptor loadDescriptor(InputStream in, String name) throws IOException, ParseException {
+    public static Descriptor loadDescriptor(InputStream in, String name) throws IOException {
         try (BufferedInputStream in2 = new BufferedInputStream(in)) {
             // If the first character is not a { we just silently assume this is
             // an old style non-JSON descriptor
@@ -373,12 +370,11 @@ public final class PluginManager {
             }
 
             if (json) {
-                JSONParser parser = new JSONParser();
-                JSONObject descriptor = (JSONObject) parser.parse(new InputStreamReader(in2, UTF_8));
+                Map<String, Object> descriptor = OBJECT_MAPPER.readValue(in2, Map.class);
                 String myName = (String) descriptor.get("name");
                 Version version = Version.parse((String) descriptor.get("version"));
                 String minimumHostVersionStr = (String) descriptor.get("minimumHostVersion");
-                JSONArray classes = (JSONArray) descriptor.get("classes");
+                List<String> classes = (List<String>) descriptor.get("classes");
                 String descriptorUrl = (String) descriptor.get("descriptorUrl");
                 String pluginUrl = (String) descriptor.get("pluginUrl");
                 return new Descriptor((myName != null) ? myName : name, classes, descriptorUrl, pluginUrl, version,

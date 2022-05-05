@@ -4,14 +4,17 @@
  */
 package org.pepsoft.worldpainter.colourschemes;
 
+import org.jetbrains.annotations.NonNls;
+import org.pepsoft.minecraft.Material;
+import org.pepsoft.worldpainter.ColourScheme;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
-import org.jetbrains.annotations.NonNls;
-import org.pepsoft.minecraft.Material;
-import org.pepsoft.worldpainter.ColourScheme;
+
+import static org.pepsoft.worldpainter.Constants.UNKNOWN_MATERIAL_COLOUR;
 
 /**
  * An implementation of {@link ColourScheme} which can read
@@ -19,7 +22,9 @@ import org.pepsoft.worldpainter.ColourScheme;
  * "classic" colour scheme files, such as those included with Dynmap.
  *
  * @author pepijn
+ * @deprecated Use {@link HardcodedColourScheme}. Left here just in case we need it to complete that new implementation
  */
+@Deprecated
 public final class DynMapColourScheme implements ColourScheme {
     /**
      * Create a new Dynmap colour scheme, reading the Dynamp "classic" colour scheme-formatted colour map from an input
@@ -52,25 +57,25 @@ public final class DynMapColourScheme implements ColourScheme {
     @Override
     public int getColour(int blockType) {
         // TODO: migrate this information to Material
-        return (blockType >= 0) && (blockType < 256) ? COLOURS[blockType] : UNKNOWN_BLOCK_TYPE_COLOUR;
+        return (blockType >= 0) && (blockType < 256) ? COLOURS[blockType] : UNKNOWN_MATERIAL_COLOUR;
     }
 
     @Override
     public int getColour(int blockType, int dataValue) {
         // TODO: migrate this information to Material
-        return (blockType >= 0) && (blockType < 256) ? COLOURS[blockType + dataValue * 256] : UNKNOWN_BLOCK_TYPE_COLOUR;
+        return (blockType >= 0) && (blockType < 256) ? COLOURS[blockType + dataValue * 256] : UNKNOWN_MATERIAL_COLOUR;
     }
 
     @Override
     public int getColour(Material material) {
         // TODO: migrate this information to Material
         final int blockType = material.blockType;
-        return (blockType >= 0) && (blockType < 256) ? COLOURS[blockType + material.data * 256] : UNKNOWN_BLOCK_TYPE_COLOUR;
+        return (blockType >= 0) && (blockType < 256) ? COLOURS[blockType + material.data * 256] : UNKNOWN_MATERIAL_COLOUR;
     }
     
     private void loadColours(InputStream in, boolean bright) {
         // Make all unknown blocks magenta instead of black
-        Arrays.fill(COLOURS, UNKNOWN_BLOCK_TYPE_COLOUR);
+        Arrays.fill(COLOURS, UNKNOWN_MATERIAL_COLOUR);
         
         try {
             try {
@@ -144,6 +149,4 @@ public final class DynMapColourScheme implements ColourScheme {
     }
     
     private final int COLOURS[] = new int[256 * 16];
-    
-    private static final int UNKNOWN_BLOCK_TYPE_COLOUR = 0xff00ff; // Magenta
 }

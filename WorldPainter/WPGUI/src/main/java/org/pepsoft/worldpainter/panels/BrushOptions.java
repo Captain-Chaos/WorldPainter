@@ -61,8 +61,8 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
             return new DefaultFilter(App.getInstance().getDimension(),
                     checkBoxInSelection.isSelected(),
                     checkBoxOutsideSelection.isSelected(),
-                    checkBoxAbove.isSelected() ? (Integer) spinnerAbove.getValue() : -1,
-                    checkBoxBelow.isSelected() ? (Integer) spinnerBelow.getValue() : -1,
+                    checkBoxAbove.isSelected() ? (Integer) spinnerAbove.getValue() : Integer.MIN_VALUE,
+                    checkBoxBelow.isSelected() ? (Integer) spinnerBelow.getValue() : Integer.MIN_VALUE,
                     checkBoxFeather.isSelected(),
                     checkBoxReplace.isSelected() ? onlyOn : null,
                     checkBoxExceptOn.isSelected() ? exceptOn : null,
@@ -87,11 +87,11 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
             checkBoxInSelection.setSelected(filter.inSelection);
             checkBoxOutsideSelection.setSelected(filter.outsideSelection);
             checkBoxAbove.setSelected(filter.levelType == LevelType.ABOVE || filter.levelType == LevelType.BETWEEN || filter.levelType == LevelType.OUTSIDE);
-            if (filter.aboveLevel >= 0) {
+            if (filter.aboveLevel != Integer.MIN_VALUE) {
                 spinnerAbove.setValue(filter.aboveLevel);
             }
             checkBoxBelow.setSelected(filter.levelType == LevelType.BELOW || filter.levelType == LevelType.BETWEEN || filter.levelType == LevelType.OUTSIDE);
-            if (filter.belowLevel >= 0) {
+            if (filter.belowLevel != Integer.MIN_VALUE) {
                 spinnerBelow.setValue(filter.belowLevel);
             }
             checkBoxAboveSlope.setSelected(filter.checkSlope && filter.slopeIsAbove);
@@ -123,7 +123,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
                         ColourScheme colourScheme = app.getColourScheme();
                         onlyOn = terrain;
                         buttonReplace.setText(terrain.getName());
-                        buttonReplace.setIcon(new ImageIcon(terrain.getIcon(colourScheme)));
+                        buttonReplace.setIcon(new ImageIcon(terrain.getScaledIcon(16, colourScheme)));
                         break;
                     case WATER:
                         onlyOn = DefaultFilter.WATER;
@@ -169,7 +169,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
                         ColourScheme colourScheme = app.getColourScheme();
                         exceptOn = terrain;
                         buttonExceptOn.setText(terrain.getName());
-                        buttonExceptOn.setIcon(new ImageIcon(terrain.getIcon(colourScheme)));
+                        buttonExceptOn.setIcon(new ImageIcon(terrain.getScaledIcon(16, colourScheme)));
                         break;
                     case WATER:
                         exceptOn = DefaultFilter.WATER;
@@ -197,7 +197,24 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
         }
         setControlStates();
     }
-    
+
+    public void setMinHeight(int minHeight) {
+        boolean updateFilter = false;
+        ((SpinnerNumberModel) spinnerAbove.getModel()).setMinimum(minHeight);
+        if ((Integer) spinnerAbove.getValue() < minHeight) {
+            spinnerAbove.setValue(minHeight);
+            updateFilter = true;
+        }
+        ((SpinnerNumberModel) spinnerBelow.getModel()).setMinimum(minHeight);
+        if ((Integer) spinnerBelow.getValue() < minHeight) {
+            spinnerBelow.setValue(minHeight);
+            updateFilter = true;
+        }
+        if (updateFilter) {
+            filterChanged();
+        }
+    }
+
     public void setMaxHeight(int maxHeight) {
         boolean updateFilter = false;
         ((SpinnerNumberModel) spinnerAbove.getModel()).setMaximum(maxHeight - 1);
@@ -280,7 +297,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
         for (Terrain terrain: Terrain.getConfiguredValues()) {
             final Terrain selectedTerrain = terrain;
             final String name = terrain.getName();
-            final Icon icon = new ImageIcon(terrain.getIcon(colourScheme));
+            final Icon icon = new ImageIcon(terrain.getScaledIcon(16, colourScheme));
             JMenuItem menuItem = new JMenuItem(name, icon);
             menuItem.addActionListener(e -> listener.objectSelected(selectedTerrain, name, icon));
             if (terrain.isCustom()) {

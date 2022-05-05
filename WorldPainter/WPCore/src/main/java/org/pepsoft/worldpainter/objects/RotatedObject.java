@@ -113,34 +113,34 @@ public class RotatedObject extends AbstractObject {
         List<Entity> objectEntities = object.getEntities();
         if (objectEntities != null) {
             List<Entity> entities = new ArrayList<>(objectEntities.size());
-            for (Entity objectEntity: objectEntities) {
-                Entity entity = (Entity) objectEntity.clone();
+            for (Entity origEntity: objectEntities) {
+                Entity rotEntity = (Entity) origEntity.clone();
                 if (steps != 0) {
-                    double[] objectPos = objectEntity.getPos();
-                    double[] pos = entity.getPos();
+                    double[] origRelPos = origEntity.getRelPos();
+                    double[] rotRelPos = rotEntity.getRelPos();
                     switch (steps) {
                         case 1:
-                            pos[0] = dimensions.x - objectPos[2];
-                            pos[2] = objectPos[0];
+                            rotRelPos[0] = dimensions.x - origRelPos[2];
+                            rotRelPos[2] = origRelPos[0];
                             break;
                         case 2:
-                            pos[0] = dimensions.x - objectPos[0];
-                            pos[2] = dimensions.y - objectPos[2];
+                            rotRelPos[0] = dimensions.x - origRelPos[0];
+                            rotRelPos[2] = dimensions.y - origRelPos[2];
                             break;
                         case 3:
-                            pos[0] = objectPos[2];
-                            pos[2] = dimensions.y - objectPos[0];
+                            rotRelPos[0] = origRelPos[2];
+                            rotRelPos[2] = dimensions.y - origRelPos[0];
                             break;
                         default:
                             throw new InternalError();
                     }
-                    entity.setPos(pos);
-                    float[] rot = objectEntity.getRot();
+                    rotEntity.setRelPos(rotRelPos);
+                    float[] rot = origEntity.getRot();
                     rot[0] = MathUtils.mod(rot[0] + steps * 90.0f, 360.0f);
-                    entity.setRot(rot);
+                    rotEntity.setRot(rot);
                     // TODO: adjust velocity
                 }
-                entities.add(entity);
+                entities.add(rotEntity);
             }
             return entities;
         } else {

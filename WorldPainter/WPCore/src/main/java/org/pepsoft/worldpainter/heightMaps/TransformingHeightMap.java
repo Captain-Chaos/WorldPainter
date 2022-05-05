@@ -71,7 +71,7 @@ public class TransformingHeightMap extends DelegatingHeightMap {
     }
 
     public int getScaleX() {
-        return (int) (scaleX * 100 + 0.5f);
+        return Math.round(scaleX * 100);
     }
 
     public void setScaleX(int scaleX) {
@@ -80,7 +80,7 @@ public class TransformingHeightMap extends DelegatingHeightMap {
     }
 
     public int getScaleY() {
-        return (int) (scaleY * 100 + 0.5f);
+        return Math.round(scaleY * 100);
     }
 
     public void setScaleY(int scaleY) {
@@ -126,7 +126,7 @@ public class TransformingHeightMap extends DelegatingHeightMap {
         } else {
             Point2D.Float coords = new Point2D.Float(x, y);
             transform.transform(coords, coords);
-            return children[0].getColour((int) (coords.x + 0.5f), (int) (coords.y + 0.5f));
+            return children[0].getColour(Math.round(coords.x), Math.round(coords.y));
         }
     }
     

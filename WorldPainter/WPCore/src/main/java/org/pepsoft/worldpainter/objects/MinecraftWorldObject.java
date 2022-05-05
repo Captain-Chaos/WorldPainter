@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static org.pepsoft.minecraft.Constants.BLK_AIR;
 import static org.pepsoft.minecraft.Material.AIR;
 
 /**
@@ -128,12 +129,20 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     
     @Override
     public int getBlockTypeAt(int x, int y, int height) {
-        throw new UnsupportedOperationException();
+        if (volume.contains(x, y, height)) {
+            return blocks[x - dx][y - dy][height - dz].blockType;
+        } else {
+            return BLK_AIR;
+        }
     }
 
     @Override
     public int getDataAt(int x, int y, int height) {
-        throw new UnsupportedOperationException();
+        if (volume.contains(x, y, height)) {
+            return blocks[x - dx][y - dy][height - dz].data;
+        } else {
+            return 0;
+        }
     }
 
     @Override
@@ -160,6 +169,16 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
         if (volume.contains(x, y, height)) {
             blocks[x - dx][y - dy][height - dz] = material;
         }
+    }
+
+    @Override
+    public void markForUpdateWorld(int x, int y, int height) {
+        // Do nothing
+    }
+
+    @Override
+    public int getMinHeight() {
+        return 0;
     }
 
     @Override
@@ -234,9 +253,9 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
                     return z + dz;
                 }
             }
-            return -1;
+            return Integer.MIN_VALUE;
         } else {
-            return -1;
+            return Integer.MIN_VALUE;
         }
     }
 

@@ -12,11 +12,12 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.DesktopUtils;
-import org.pepsoft.util.FileUtils;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.merging.JavaWorldMerger;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
+import org.pepsoft.worldpainter.plugins.PlatformProvider;
+import org.pepsoft.worldpainter.util.MapUtils;
 import org.pepsoft.worldpainter.util.MaterialUtils;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
 import org.slf4j.Logger;
@@ -25,14 +26,15 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.Platform.Capability.*;
+import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
+import static org.pepsoft.worldpainter.util.BackupUtils.cleanUpBackups;
 
 /**
  *
@@ -58,17 +60,17 @@ public class MergeWorldDialog extends WorldPainterDialog {
 
         Configuration config = Configuration.getInstance();
         if (world.getMergedWith() != null) {
-            fieldLevelDatFile.setText(world.getMergedWith().getAbsolutePath());
+            fieldSelectedMapDir.setText(world.getMergedWith().getParentFile().getAbsolutePath());
         } else if (world.getImportedFrom() != null) {
-            fieldLevelDatFile.setText(world.getImportedFrom().getAbsolutePath());
+            fieldSelectedMapDir.setText(world.getImportedFrom().getParentFile().getAbsolutePath());
         } else if ((config != null) && (config.getSavesDirectory() != null)) {
-            fieldLevelDatFile.setText(config.getSavesDirectory().getAbsolutePath());
+            fieldSelectedMapDir.setText(config.getSavesDirectory().getAbsolutePath());
         } else {
             File minecraftDir = MinecraftUtil.findMinecraftDir();
             if (minecraftDir != null) {
-                fieldLevelDatFile.setText(new File(minecraftDir, "saves").getAbsolutePath());
+                fieldSelectedMapDir.setText(new File(minecraftDir, "saves").getAbsolutePath());
             } else {
-                fieldLevelDatFile.setText(DesktopUtils.getDocumentsFolder().getAbsolutePath());
+                fieldSelectedMapDir.setText(DesktopUtils.getDocumentsFolder().getAbsolutePath());
             }
         }
         ((SpinnerNumberModel) spinnerSurfaceThickness.getModel()).setMaximum(world.getMaxHeight());
@@ -104,7 +106,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
                 setControlStates();
             }
         };
-        fieldLevelDatFile.getDocument().addDocumentListener(documentListener);
+        fieldSelectedMapDir.getDocument().addDocumentListener(documentListener);
 
         setLocationRelativeTo(parent);
 
@@ -118,15 +120,15 @@ public class MergeWorldDialog extends WorldPainterDialog {
     private void merge() {
         // TODOMC13 elegantly prevent merging with incompatible platform, just like Export screen
         // Check for errors
-        if (levelDatFile == null) {
-            fieldLevelDatFile.requestFocusInWindow();
+        if (mapDir == null) {
+            fieldSelectedMapDir.requestFocusInWindow();
             DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, "No level.dat of an existing Minecraft map selected.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "No existing map selected.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         } else if (platform == null) {
-            fieldLevelDatFile.requestFocusInWindow();
+            fieldSelectedMapDir.requestFocusInWindow();
             DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, "Selected Minecraft map does not have a supported format.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Selected map does not have a supported format.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         if (! checkCompatibility(platform)) {
@@ -147,7 +149,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
                 return;
             }
         }
-        JavaWorldMerger merger = new JavaWorldMerger(world, levelDatFile, platform);
+        JavaWorldMerger merger = new JavaWorldMerger(world, mapDir, platform);
         try {
             merger.performSanityChecks(biomesOnly);
         } catch (IllegalArgumentException e) {
@@ -191,7 +193,16 @@ public class MergeWorldDialog extends WorldPainterDialog {
 
         final boolean replaceChunks = radioButtonReplaceChunks.isSelected();
 
-        fieldLevelDatFile.setEnabled(false);
+        // Make sure the minimum free disk space is met
+        try {
+            if (! cleanUpBackups(mapDir.getParentFile(), null)) {
+                return;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error while cleaning backups", e);
+        }
+
+        fieldSelectedMapDir.setEnabled(false);
         buttonSelectDirectory.setEnabled(false);
         buttonMerge.setEnabled(false);
         radioButtonAll.setEnabled(false);
@@ -214,9 +225,9 @@ public class MergeWorldDialog extends WorldPainterDialog {
         checkBoxIncludeUnderground.setEnabled(false);
 
         Configuration config = Configuration.getInstance();
-        config.setSavesDirectory(levelDatFile.getParentFile().getParentFile());
+        config.setSavesDirectory(mapDir.getParentFile());
         config.setMergeWarningDisplayed(true);
-        world.setImportedFrom(levelDatFile);
+        world.setImportedFrom(new File(mapDir, "level.dat"));
         if (radioButtonExportEverything.isSelected()) {
             Set<Integer> dimensionsToExport = new HashSet<>();
             if (checkBoxSurface.isSelected()) {
@@ -244,7 +255,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
 
         synchronized (merger) {
             try {
-                backupDir = merger.selectBackupDir(levelDatFile.getParentFile());
+                backupDir = merger.selectBackupDir(mapDir);
             } catch (IOException e) {
                 throw new RuntimeException("I/O error while creating backup directory", e);
             }
@@ -291,13 +302,12 @@ public class MergeWorldDialog extends WorldPainterDialog {
     }
 
     private void setControlStates() {
-        File file = new File(fieldLevelDatFile.getText().trim());
-        boolean levelDatSelected = file.isFile() && (file.getName().equalsIgnoreCase("level.dat"));
-        if (levelDatSelected) {
-            levelDatFile = file;
-            platform = PlatformManager.getInstance().identifyMap(file.getParentFile());
+        File mapDir = new File(fieldSelectedMapDir.getText().trim());
+        if (mapDir.isDirectory()) {
+            this.mapDir = mapDir;
+            platform = PlatformManager.getInstance().identifyPlatform(mapDir);
             if (platform != null) {
-                if (! (platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D))) {
+                if (! platform.supportsBiomes()) {
                     if (radioButtonBiomes.isSelected()) {
                         radioButtonAll.setSelected(true);
                     }
@@ -310,7 +320,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
                 labelPlatform.setText("no supported format detected");
             }
         } else {
-            levelDatFile = null;
+            this.mapDir = null;
             labelPlatform.setText(null);
         }
         boolean mergeAll = radioButtonAll.isSelected();
@@ -321,8 +331,6 @@ public class MergeWorldDialog extends WorldPainterDialog {
         boolean endPresent = world.getDimension(DIM_END) != null;
         boolean oneDimensionPresent = world.getDimensions().length == 1;
         checkBoxIncludeUnderground.setEnabled(mergeAll);
-        radioButtonExportEverything.setEnabled(! mergeBiomesOnly);
-        radioButtonExportSelection.setEnabled(! mergeBiomesOnly);
         checkBoxFillCaves.setEnabled(mergeAll);
         checkBoxRemoveManMadeAboveGround.setEnabled(mergeAll);
         checkBoxRemoveManMadeBelowGround.setEnabled(mergeAll);
@@ -342,26 +350,16 @@ public class MergeWorldDialog extends WorldPainterDialog {
         }
     }
 
-    private void selectLevelDatFile() {
-        File file = new File(fieldLevelDatFile.getText().trim());
-        file = FileUtils.selectFileForOpen(this, "Select Minecraft map level.dat file", file.exists() ? file : null, new FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory() || f.getName().equalsIgnoreCase("level.dat");
-            }
-
-            @Override
-            public String getDescription() {
-                return "Minecraft level.dat files";
-            }
-        });
-        if (file != null) {
-            fieldLevelDatFile.setText(file.getAbsolutePath());
+    private void selectMap() {
+        File file = new File(fieldSelectedMapDir.getText().trim());
+        PlatformProvider.MapInfo selectedMap = MapUtils.selectMap(this, file.isDirectory() ? ((platform != null) ? file.getParentFile() : file) : null);
+        if (selectedMap != null) {
+            fieldSelectedMapDir.setText(selectedMap.dir.getAbsolutePath());
         }
     }
 
     private void selectTiles() {
-        if (radioButtonExportSelection.isSelected() && (! radioButtonBiomes.isSelected())) {
+        if (radioButtonExportSelection.isSelected()) {
             ExportTileSelectionDialog dialog = new ExportTileSelectionDialog(this, world, selectedDimension, selectedTiles, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin);
             dialog.setVisible(true);
             selectedDimension = dialog.getSelectedDimension();
@@ -396,7 +394,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
             sb.append("</table>");
             DesktopUtils.beep();
             JOptionPane.showMessageDialog(this, sb.toString(), "Map Format Not Compatible", JOptionPane.ERROR_MESSAGE);
-            fieldLevelDatFile.requestFocusInWindow();
+            fieldSelectedMapDir.requestFocusInWindow();
             return false;
         }
         // TODO check maxHeight, but be smarter about checking dimensions
@@ -426,7 +424,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
         buttonGroup1 = new javax.swing.ButtonGroup();
         buttonGroup2 = new javax.swing.ButtonGroup();
         jLabel2 = new javax.swing.JLabel();
-        fieldLevelDatFile = new javax.swing.JTextField();
+        fieldSelectedMapDir = new javax.swing.JTextField();
         buttonSelectDirectory = new javax.swing.JButton();
         buttonMerge = new javax.swing.JButton();
         radioButtonAll = new javax.swing.JRadioButton();
@@ -460,9 +458,9 @@ public class MergeWorldDialog extends WorldPainterDialog {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Merging");
 
-        jLabel2.setText("Select the level.dat file of an existing Minecraft map:");
+        jLabel2.setText("Select the existing map to merge your changes with:");
 
-        fieldLevelDatFile.setText("jTextField1");
+        fieldSelectedMapDir.setText("jTextField1");
 
         buttonSelectDirectory.setText("...");
         buttonSelectDirectory.addActionListener(new java.awt.event.ActionListener() {
@@ -489,8 +487,8 @@ public class MergeWorldDialog extends WorldPainterDialog {
         });
 
         buttonGroup1.add(radioButtonBiomes);
-        radioButtonBiomes.setText("Only change the biomes (for the entire Surface dimension)");
-        radioButtonBiomes.setToolTipText("<html>Will merge <i>only</i> biome changes. Ignores the read-only layer. Much quicker than merging everything, and with no side effects.</html>");
+        radioButtonBiomes.setText("Only change the biomes (Surface dimension only)");
+        radioButtonBiomes.setToolTipText("<html>Will merge <i>only</i> biome changes. Much quicker than merging everything, and with no side effects.</html>");
         radioButtonBiomes.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonBiomesActionPerformed(evt);
@@ -532,7 +530,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
 
         jLabel1.setText("Choose which part of the map to merge:");
 
-        jLabel4.setText("Choose what kind of merge to perform:");
+        jLabel4.setText("Choose what kind of merge to perform (non-read-only chunks in selected tiles only):");
 
         jLabel5.setText("<html>Options for the existing map (<b>non-read-only</b> chunks in <b>selected tiles</b> only):</html>");
 
@@ -603,7 +601,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(fieldLevelDatFile)
+                                .addComponent(fieldSelectedMapDir)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(buttonSelectDirectory))
                             .addComponent(buttonMerge, javax.swing.GroupLayout.Alignment.TRAILING)
@@ -674,7 +672,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(fieldLevelDatFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(fieldSelectedMapDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(buttonSelectDirectory))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -739,7 +737,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
     }//GEN-LAST:event_buttonMergeActionPerformed
 
     private void buttonSelectDirectoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSelectDirectoryActionPerformed
-        selectLevelDatFile();
+        selectMap();
     }//GEN-LAST:event_buttonSelectDirectoryActionPerformed
 
     private void radioButtonExportEverythingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonExportEverythingActionPerformed
@@ -797,7 +795,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
     private javax.swing.JCheckBox checkBoxRemoveTrees;
     private javax.swing.JCheckBox checkBoxRemoveVegetation;
     private javax.swing.JCheckBox checkBoxSurface;
-    private javax.swing.JTextField fieldLevelDatFile;
+    private javax.swing.JTextField fieldSelectedMapDir;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
@@ -826,7 +824,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
     private final TileRenderer.LightOrigin lightOrigin;
     private final CustomBiomeManager customBiomeManager;
     private final WorldPainter view;
-    private File levelDatFile;
+    private File mapDir;
     private Platform platform;
     private volatile File backupDir;
     private int selectedDimension;

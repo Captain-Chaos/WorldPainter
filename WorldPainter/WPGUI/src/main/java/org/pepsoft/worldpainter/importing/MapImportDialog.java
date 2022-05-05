@@ -5,28 +5,31 @@
 package org.pepsoft.worldpainter.importing;
 
 import org.pepsoft.minecraft.ChunkStore;
-import org.pepsoft.minecraft.Level;
+import org.pepsoft.minecraft.JavaLevel;
 import org.pepsoft.minecraft.MinecraftCoords;
 import org.pepsoft.util.DesktopUtils;
-import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
+import org.pepsoft.worldpainter.plugins.MapImporterProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
-import org.pepsoft.worldpainter.util.MinecraftUtil;
+import org.pepsoft.worldpainter.plugins.PlatformProvider.MapInfo;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileFilter;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.HashSet;
+import java.util.ResourceBundle;
+import java.util.Set;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
@@ -34,11 +37,13 @@ import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.BLOCK_BASED;
+import static org.pepsoft.worldpainter.util.MapUtils.selectMap;
 
 /**
  *
  * @author SchmitzP
  */
+@SuppressWarnings({"Convert2Lambda", "Anonymous2MethodRef", "FieldCanBeLocal", "unused"}) // Managed by NetBeans
 public class MapImportDialog extends WorldPainterDialog {
     /**
      * Creates new form MapImportDialog
@@ -74,6 +79,13 @@ public class MapImportDialog extends WorldPainterDialog {
         getRootPane().setDefaultButton(buttonOK);
 
         setLocationRelativeTo(app);
+
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                selectDir();
+            }
+        });
     }
 
     public World2 getImportedWorld() {
@@ -82,71 +94,82 @@ public class MapImportDialog extends WorldPainterDialog {
 
     private void checkSelection() {
         String fileStr = fieldFilename.getText();
-        if (fileStr.endsWith("level.dat")) {
-            File file = new File(fileStr);
-            if (file.isFile() && (! file.equals(previouslySelectedFile))) {
-                previouslySelectedFile = file;
+        if (! fileStr.trim().isEmpty()) {
+            File dir = new File(fileStr.trim());
+            if (dir.isDirectory() && (! dir.equals(previouslySelectedDir))) {
+                previouslySelectedDir = dir;
                 analyseMap();
             }
         }
     }
     
     private void analyseMap() {
-        mapInfo = null;
+        mapStatistics = null;
         resetStats();
         
-        File levelDatFile = new File(fieldFilename.getText());
-        final File worldDir = levelDatFile.getParentFile();
-
-        // Check if it's a valid level.dat file before we commit
-        Level levelDat;
-        try {
-            levelDat = Level.load(levelDatFile);
-        } catch (IOException e) {
-            logger.error("IOException while analysing map " + levelDatFile, e);
-            JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), ERROR_MESSAGE);
-            return;
-        } catch (IllegalArgumentException e) {
-            logger.error("IllegalArgumentException while analysing map " + levelDatFile, e);
-            JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), ERROR_MESSAGE);
-            return;
-        } catch (NullPointerException e) {
-            logger.error("NullPointerException while analysing map " + levelDatFile, e);
-            JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), ERROR_MESSAGE);
-            return;
-        }
-
-        // Other sanity checks
-        int version = levelDat.getVersion();
-        if (version == VERSION_UNKNOWN) {
-            logger.error("Modded maps are not (yet) supported while analysing map " + levelDatFile);
-            JOptionPane.showMessageDialog(MapImportDialog.this, "Modded maps are not (yet) supported for Importing", "Modded Map", ERROR_MESSAGE);
-            return;
-        } else if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
-            logger.error("Unsupported Minecraft version while analysing map " + levelDatFile);
-            JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("unsupported.minecraft.version"), strings.getString("unsupported.version"), ERROR_MESSAGE);
-            return;
-        }
+        final File worldDir = new File(fieldFilename.getText());
 
         // Determine the platform
         PlatformManager platformManager = PlatformManager.getInstance();
-        Platform platform = platformManager.identifyMap(worldDir);
-        // TODO handle non-block based platform provider matching more gracefully
-        BlockBasedPlatformProvider platformProvider = (BlockBasedPlatformProvider) platformManager.getPlatformProvider(platform);
-        if (platform == null) {
-            logger.error("Could not determine platform for " + levelDatFile);
-            JOptionPane.showMessageDialog(MapImportDialog.this, "Could not determine map format for " + levelDatFile, "Unidentified Map Format", ERROR_MESSAGE);
-            return;
-        } else if (! platform.capabilities.contains(BLOCK_BASED)) {
-            logger.error("Non block based platform " + platform + " not supported for " + levelDatFile);
-            JOptionPane.showMessageDialog(MapImportDialog.this, "Non block based map format " + platform + " not (yet) supported", "Unsupported Map Format", ERROR_MESSAGE);
+        MapInfo mapInfo = platformManager.identifyMap(worldDir);
+        if (mapInfo == null) {
+            logger.error("Could not determine platform for " + worldDir);
+            JOptionPane.showMessageDialog(MapImportDialog.this, "Could not determine map format for " + worldDir.getName(), "Unidentified Map Format", ERROR_MESSAGE);
+            // TODO
             return;
         }
 
+        Platform platform = mapInfo.platform;
+        if (! mapInfo.platform.capabilities.contains(BLOCK_BASED)) {
+            logger.error("Non block based platform " + platform + " not supported for " + worldDir);
+            JOptionPane.showMessageDialog(MapImportDialog.this, "Non block based map format " + platform + " not (yet) supported", "Unsupported Map Format", ERROR_MESSAGE);
+            return;
+        } else if (! (platformManager.getPlatformProvider(platform) instanceof MapImporterProvider)) {
+            logger.error("Platform provider for platform " + platform + " does not support importing");
+            JOptionPane.showMessageDialog(MapImportDialog.this, "The plugin for map format " + platform + " does not support Importing existing maps", "Importing Not Supported", ERROR_MESSAGE);
+            return;
+        }
+
+        JavaLevel levelDat = null;
+        if (PlatformManager.DEFAULT_PLATFORMS.contains(platform)) {
+            // Extra sanity checks for default platforms
+            // Check if it's a valid level.dat file before we commit
+            File levelDatFile = new File(worldDir, "level.dat");
+            try {
+                levelDat = JavaLevel.load(levelDatFile);
+            } catch (IOException e) {
+                logger.error("IOException while analysing map " + levelDatFile, e);
+                JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), ERROR_MESSAGE);
+                return;
+            } catch (IllegalArgumentException e) {
+                logger.error("IllegalArgumentException while analysing map " + levelDatFile, e);
+                JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), ERROR_MESSAGE);
+                return;
+            } catch (NullPointerException e) {
+                logger.error("NullPointerException while analysing map " + levelDatFile, e);
+                JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("selected.file.is.not.a.valid.level.dat.file"), strings.getString("invalid.file"), ERROR_MESSAGE);
+                return;
+            }
+
+            // Other sanity checks
+            int version = levelDat.getVersion();
+            if (version == VERSION_UNKNOWN) {
+                logger.error("Modded maps are not (yet) supported while analysing map " + levelDatFile);
+                JOptionPane.showMessageDialog(MapImportDialog.this, "Modded maps are not (yet) supported for Importing", "Modded Map", ERROR_MESSAGE);
+                return;
+            } else if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
+                logger.error("Unsupported Minecraft version while analysing map " + levelDatFile);
+                JOptionPane.showMessageDialog(MapImportDialog.this, strings.getString("unsupported.minecraft.version"), strings.getString("unsupported.version"), ERROR_MESSAGE);
+                return;
+            }
+        }
+
         // Sanity checks for the surface dimension
+        // TODO handle non-block based platform provider matching more gracefully
+        BlockBasedPlatformProvider platformProvider = (BlockBasedPlatformProvider) platformManager.getPlatformProvider(platform);
         Set<Integer> dimensions = stream(platformProvider.getDimensions(platform, worldDir)).boxed().collect(toSet());
         if (! dimensions.contains(DIM_NORMAL)) {
-            logger.error("Map has no surface dimension: " + levelDatFile);
+            logger.error("Map has no surface dimension: " + worldDir);
             JOptionPane.showMessageDialog(MapImportDialog.this, "This map has no surface dimension; this is not supported by WorldPainter", "Missing Surface Dimension", ERROR_MESSAGE);
             return;
         }
@@ -158,20 +181,21 @@ public class MapImportDialog extends WorldPainterDialog {
         checkBoxImportEnd.setEnabled(endPresent);
         checkBoxImportEnd.setSelected(endPresent);
 
-        mapInfo = ProgressDialog.executeTask(this, new ProgressTask<MapInfo>() {
+        mapStatistics = ProgressDialog.executeTask(this, new ProgressTask<MapStatistics>() {
             @Override
             public String getName() {
                 return "Analyzing map...";
             }
             
             @Override
-            public MapInfo execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                final MapInfo stats = new MapInfo();
+            public MapStatistics execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                final MapStatistics stats = new MapStatistics();
 
                 // TODO do this for the other dimensions as well
-                final List<Integer> xValues = new ArrayList<>(), zValues = new ArrayList<>();
-                final ChunkStore chunkStore = platformProvider.getChunkStore(platform, worldDir, DIM_NORMAL);
-                final Set<MinecraftCoords> allChunkCoords = chunkStore.getChunkCoords();
+                final Set<MinecraftCoords> allChunkCoords;
+                try (ChunkStore chunkStore = platformProvider.getChunkStore(platform, worldDir, DIM_NORMAL)) {
+                    allChunkCoords = chunkStore.getChunkCoords();
+                }
                 stats.chunkCount = allChunkCoords.size();
                 for (MinecraftCoords chunkCoords: allChunkCoords) {
                     // TODO update the progress receiver
@@ -187,104 +211,31 @@ public class MapImportDialog extends WorldPainterDialog {
                     if (chunkCoords.z > stats.highestChunkZ) {
                         stats.highestChunkZ = chunkCoords.z;
                     }
-                    xValues.add(chunkCoords.x);
-                    zValues.add(chunkCoords.z);
                 }
 
-                Collections.sort(xValues);
-                int p1 = xValues.size() / 4;
-                float q1 = xValues.get(p1) * 0.75f + xValues.get(p1 + 1) * 0.25f;
-                int p2 = xValues.size() / 2;
-                float q2 = (xValues.get(p2) + xValues.get(p2 + 1)) / 2f;
-                int p3 = xValues.size() * 3 / 4;
-                float q3 = xValues.get(p3) * 0.25f + xValues.get(p3 + 1) * 0.75f;
-                float iqr = q3 - q1;
-                int lowerLimit = (int) (q2 - iqr * 1.5f);
-                int upperLimit = (int) (q2 + iqr * 1.5f);
-                for (MinecraftCoords chunkCoords: allChunkCoords) {
-                    if ((chunkCoords.x < lowerLimit) || (chunkCoords.x > upperLimit)) {
-                        stats.outlyingChunks.add(chunkCoords);
-                    }
-                }
-
-                Collections.sort(zValues);
-                p1 = zValues.size() / 4;
-                q1 = zValues.get(p1) * 0.75f + zValues.get(p1 + 1) * 0.25f;
-                p2 = zValues.size() / 2;
-                q2 = (zValues.get(p2) + zValues.get(p2 + 1)) / 2f;
-                p3 = zValues.size() * 3 / 4;
-                q3 = zValues.get(p3) * 0.25f + zValues.get(p3 + 1) * 0.75f;
-                iqr = q3 - q1;
-                lowerLimit = (int) (q2 - iqr * 1.5f);
-                upperLimit = (int) (q2 + iqr * 1.5f);
-                for (MinecraftCoords chunkCoords: allChunkCoords) {
-                    if ((chunkCoords.z < lowerLimit) || (chunkCoords.z > upperLimit)) {
-                        stats.outlyingChunks.add(chunkCoords);
-                    }
-                }
-                
-                if (! stats.outlyingChunks.isEmpty()) {
-                    allChunkCoords.stream().filter(chunk -> !stats.outlyingChunks.contains(chunk)).forEach(chunk -> {
-                        if (chunk.x < stats.lowestChunkXNoOutliers) {
-                            stats.lowestChunkXNoOutliers = chunk.x;
-                        }
-                        if (chunk.x > stats.highestChunkXNoOutliers) {
-                            stats.highestChunkXNoOutliers = chunk.x;
-                        }
-                        if (chunk.z < stats.lowestChunkZNoOutliers) {
-                            stats.lowestChunkZNoOutliers = chunk.z;
-                        }
-                        if (chunk.z > stats.highestChunkZNoOutliers) {
-                            stats.highestChunkZNoOutliers = chunk.z;
-                        }
-                    });
-                } else {
-                    stats.lowestChunkXNoOutliers = stats.lowestChunkX;
-                    stats.highestChunkXNoOutliers = stats.highestChunkX;
-                    stats.lowestChunkZNoOutliers = stats.lowestChunkZ;
-                    stats.highestChunkZNoOutliers = stats.highestChunkZ;
-                }
-                
                 progressReceiver.setProgress(1.0f);
                 return stats;
             }
         });
-        if ((mapInfo != null) && (mapInfo.chunkCount > 0)) {
-            mapInfo.platform = platform;
-            mapInfo.levelDat = levelDat;
+        if ((mapStatistics != null) && (mapStatistics.chunkCount > 0)) {
+            mapStatistics.dir = worldDir;
+            mapStatistics.platform = platform;
+            mapStatistics.levelDat = levelDat;
+            labelPlatform.setIcon(mapInfo.icon);
             labelPlatform.setText(platform.displayName);
-            int width = mapInfo.highestChunkXNoOutliers - mapInfo.lowestChunkXNoOutliers + 1;
-            int length = mapInfo.highestChunkZNoOutliers - mapInfo.lowestChunkZNoOutliers + 1;
-            int area = (mapInfo.chunkCount - mapInfo.outlyingChunks.size());
-            labelWidth.setText(FORMATTER.format(width * 16) + " blocks (from " + FORMATTER.format(mapInfo.lowestChunkXNoOutliers << 4) + " to " + FORMATTER.format((mapInfo.highestChunkXNoOutliers << 4) + 15) + "; " + FORMATTER.format(width) + " chunks)");
-            labelLength.setText(FORMATTER.format(length * 16) + " blocks (from " + FORMATTER.format(mapInfo.lowestChunkZNoOutliers << 4) + " to " + FORMATTER.format((mapInfo.highestChunkZNoOutliers << 4) + 15) + "; " + FORMATTER.format(length) + " chunks)");
+            int width = mapStatistics.highestChunkX - mapStatistics.lowestChunkX + 1;
+            int length = mapStatistics.highestChunkZ - mapStatistics.lowestChunkZ + 1;
+            int area = mapStatistics.chunkCount;
+            labelWidth.setText(FORMATTER.format(width * 16L) + " blocks (from " + FORMATTER.format((long) mapStatistics.lowestChunkX << 4) + " to " + FORMATTER.format(((long) mapStatistics.highestChunkX << 4) + 15) + "; " + FORMATTER.format(width) + " chunks)");
+            labelLength.setText(FORMATTER.format(length * 16L) + " blocks (from " + FORMATTER.format((long) mapStatistics.lowestChunkZ << 4) + " to " + FORMATTER.format(((long) mapStatistics.highestChunkZ << 4) + 15) + "; " + FORMATTER.format(length) + " chunks)");
             labelArea.setText(FORMATTER.format(area * 256L) + " blocks (" + FORMATTER.format(area) + " chunks)");
-            if (! mapInfo.outlyingChunks.isEmpty()) {
-                // There are outlying chunks
-                int widthWithOutliers = mapInfo.highestChunkX - mapInfo.lowestChunkX + 1;
-                int lengthWithOutliers = mapInfo.highestChunkZ - mapInfo.lowestChunkZ + 1;
-                int areaOfOutliers = mapInfo.outlyingChunks.size();
-                labelOutliers1.setVisible(true);
-                labelOutliers2.setVisible(true);
-                labelWidthWithOutliers.setText(FORMATTER.format(widthWithOutliers * 16) + " blocks (" + FORMATTER.format(widthWithOutliers) + " chunks)");
-                labelWidthWithOutliers.setVisible(true);
-                labelOutliers3.setVisible(true);
-                labelLengthWithOutliers.setText(FORMATTER.format(lengthWithOutliers * 16) + " blocks (" + FORMATTER.format(lengthWithOutliers) + " chunks)");
-                labelLengthWithOutliers.setVisible(true);
-                labelOutliers4.setVisible(true);
-                labelAreaOutliers.setText(FORMATTER.format(areaOfOutliers * 256L) + " blocks (" + FORMATTER.format(areaOfOutliers) + " chunks)");
-                labelAreaOutliers.setVisible(true);
-                checkBoxImportOutliers.setVisible(true);
-                // The dialog may need to become bigger:
-                pack();
-            }
         }
     }
     
     private void setControlStates() {
-        String fileStr = fieldFilename.getText().trim();
-        File file = (! fileStr.isEmpty()) ? new File(fileStr) : null;
-        if ((mapInfo == null) || (mapInfo.chunkCount == 0) || (file == null) || (! file.isFile())) {
+        String dirStr = fieldFilename.getText().trim();
+        File dir = (! dirStr.isEmpty()) ? new File(dirStr) : null;
+        if ((mapStatistics == null) || (mapStatistics.chunkCount == 0) || (dir == null) || (! dir.isDirectory())) {
             buttonOK.setEnabled(false);
         } else {
             buttonOK.setEnabled(true);
@@ -295,42 +246,17 @@ public class MapImportDialog extends WorldPainterDialog {
         labelWidth.setText("0 blocks (from ? to ?; 0 chunks)");
         labelLength.setText("0 blocks (from ? to ?; 0 chunks)");
         labelArea.setText("0 blocks² (0 chunks)");
-
-        labelOutliers1.setVisible(false);
-        labelOutliers2.setVisible(false);
-        labelWidthWithOutliers.setVisible(false);
-        labelOutliers3.setVisible(false);
-        labelLengthWithOutliers.setVisible(false);
-        labelOutliers4.setVisible(false);
-        labelAreaOutliers.setVisible(false);
-        checkBoxImportOutliers.setSelected(false);
-        checkBoxImportOutliers.setVisible(false);
     }
     
-    private void selectFile() {
-        File mySavesDir = Configuration.getInstance().getSavesDirectory();
-        if ((mySavesDir == null) && (MinecraftUtil.findMinecraftDir() != null)) {
-            mySavesDir = new File(MinecraftUtil.findMinecraftDir(), "saves");
-        }
-        File selectedFile = FileUtils.selectFileForOpen(this, "Select Minecraft map level.dat file", mySavesDir, new FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory() || f.getName().equalsIgnoreCase("level.dat");
-            }
-
-            @Override
-            public String getDescription() {
-                return strings.getString("minecraft.level.dat.file");
-            }
-        });
-        if (selectedFile != null) {
-            fieldFilename.setText(selectedFile.getAbsolutePath());
+    private void selectDir() {
+        MapInfo selectedMap = selectMap(this, (previouslySelectedDir != null) ? previouslySelectedDir.getParentFile() : null);
+        if (selectedMap != null) {
+            fieldFilename.setText(selectedMap.dir.getAbsolutePath());
         }        
     }
     
     private void importWorld() {
-        final File levelDatFile = new File(fieldFilename.getText());
-        final Set<MinecraftCoords> chunksToSkip = checkBoxImportOutliers.isSelected() ? null : mapInfo.outlyingChunks;
+        final File worldDir = new File(fieldFilename.getText());
         final MapImporter.ReadOnlyOption readOnlyOption;
         if (radioButtonReadOnlyAll.isSelected()) {
             readOnlyOption = MapImporter.ReadOnlyOption.ALL;
@@ -351,21 +277,22 @@ public class MapImportDialog extends WorldPainterDialog {
             @Override
             public World2 execute(ProgressReceiver progressReceiver) throws OperationCancelled {
                 try {
-                    int maxHeight, waterLevel;
-                    if (mapInfo.levelDat != null) {
-                        maxHeight = mapInfo.levelDat.getMaxHeight();
-                        if (mapInfo.levelDat.getVersion() == VERSION_MCREGION) {
+                    final int maxHeight, waterLevel;
+                    final Platform platform = mapStatistics.platform;
+                    if (mapStatistics.levelDat != null) {
+                        maxHeight = mapStatistics.levelDat.getMaxHeight();
+                        if (mapStatistics.levelDat.getVersion() == VERSION_MCREGION) {
                             waterLevel = maxHeight / 2 - 2;
                         } else {
-                            waterLevel = 62;
+                            waterLevel = DEFAULT_WATER_LEVEL;
                         }
                     } else {
-                        maxHeight = mapInfo.platform.maxMaxHeight;
-                        waterLevel = 62;
+                        maxHeight = platform.maxMaxHeight;
+                        waterLevel = DEFAULT_WATER_LEVEL;
                     }
-                    int terrainLevel = waterLevel - 4;
-                    TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0, Terrain.GRASS, maxHeight, terrainLevel, waterLevel, false, true, 20, 1.0);
-                    Set<Integer> dimensionsToImport = new HashSet<>(3);
+                    final int terrainLevel = waterLevel - 4;
+                    final TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0, Terrain.GRASS, platform.minZ, maxHeight, terrainLevel, waterLevel, false, true, 20, 1.0);
+                    final Set<Integer> dimensionsToImport = new HashSet<>(3);
                     dimensionsToImport.add(DIM_NORMAL);
                     if (checkBoxImportNether.isSelected()) {
                         dimensionsToImport.add(Constants.DIM_NETHER);
@@ -373,14 +300,14 @@ public class MapImportDialog extends WorldPainterDialog {
                     if (checkBoxImportEnd.isSelected()) {
                         dimensionsToImport.add(Constants.DIM_END);
                     }
-                    final MapImporter importer = new JavaMapImporter(mapInfo.platform, tileFactory, levelDatFile, false, chunksToSkip, readOnlyOption, dimensionsToImport);
-                    World2 world = importer.doImport(progressReceiver);
+                    final MapImporter importer = ((MapImporterProvider) PlatformManager.getInstance().getPlatformProvider(platform)).getImporter(mapStatistics.dir, tileFactory, null, readOnlyOption, dimensionsToImport);
+                    final World2 world = importer.doImport(progressReceiver);
                     if (importer.getWarnings() != null) {
                         try {
                             SwingUtilities.invokeAndWait(() -> {
-                                Icon warningIcon = UIManager.getIcon("OptionPane.warningIcon");
+                                final Icon warningIcon = UIManager.getIcon("OptionPane.warningIcon");
                                 DesktopUtils.beep();
-                                int selectedOption = JOptionPane.showOptionDialog(MapImportDialog.this, strings.getString("the.import.process.generated.warnings"), strings.getString("import.warnings"), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, warningIcon, new Object[] {strings.getString("review.warnings"), strings.getString("ok")}, null);
+                                final int selectedOption = JOptionPane.showOptionDialog(MapImportDialog.this, strings.getString("the.import.process.generated.warnings"), strings.getString("import.warnings"), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, warningIcon, new Object[] {strings.getString("review.warnings"), strings.getString("ok")}, null);
                                 if (selectedOption == 0) {
                                     ImportWarningsDialog warningsDialog = new ImportWarningsDialog(MapImportDialog.this, strings.getString("import.warnings"));
                                     warningsDialog.setWarnings(importer.getWarnings());
@@ -405,7 +332,7 @@ public class MapImportDialog extends WorldPainterDialog {
         }
         
         Configuration config = Configuration.getInstance();
-        config.setSavesDirectory(levelDatFile.getParentFile().getParentFile());
+        config.setSavesDirectory(worldDir.getParentFile());
         ok();
     }
     
@@ -414,7 +341,6 @@ public class MapImportDialog extends WorldPainterDialog {
      * WARNING: Do NOT modify this code. The content of this method is always
      * regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -429,16 +355,8 @@ public class MapImportDialog extends WorldPainterDialog {
         labelLength = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         labelArea = new javax.swing.JLabel();
-        labelOutliers3 = new javax.swing.JLabel();
-        labelOutliers2 = new javax.swing.JLabel();
-        labelOutliers1 = new javax.swing.JLabel();
-        labelWidthWithOutliers = new javax.swing.JLabel();
-        labelLengthWithOutliers = new javax.swing.JLabel();
-        labelOutliers4 = new javax.swing.JLabel();
-        labelAreaOutliers = new javax.swing.JLabel();
         buttonCancel = new javax.swing.JButton();
         buttonOK = new javax.swing.JButton();
-        checkBoxImportOutliers = new javax.swing.JCheckBox();
         jLabel5 = new javax.swing.JLabel();
         radioButtonReadOnlyNone = new javax.swing.JRadioButton();
         radioButtonReadOnlyManMade = new javax.swing.JRadioButton();
@@ -453,7 +371,7 @@ public class MapImportDialog extends WorldPainterDialog {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Import Existing Minecraft Map");
 
-        jLabel1.setText("Select the level.dat file of an existing Minecraft map:");
+        jLabel1.setText("Select an existing map:");
 
         buttonSelectFile.setText("...");
         buttonSelectFile.addActionListener(new java.awt.event.ActionListener() {
@@ -476,21 +394,6 @@ public class MapImportDialog extends WorldPainterDialog {
 
         labelArea.setText("0");
 
-        labelOutliers3.setText("Length including outliers:");
-
-        labelOutliers2.setText("Width including outliers:");
-
-        labelOutliers1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/error.png"))); // NOI18N
-        labelOutliers1.setText("This map has rogue outlying chunks!");
-
-        labelWidthWithOutliers.setText("0");
-
-        labelLengthWithOutliers.setText("0");
-
-        labelOutliers4.setText("Area of outlying chunks:");
-
-        labelAreaOutliers.setText("0");
-
         buttonCancel.setText("Cancel");
         buttonCancel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -505,8 +408,6 @@ public class MapImportDialog extends WorldPainterDialog {
                 buttonOKActionPerformed(evt);
             }
         });
-
-        checkBoxImportOutliers.setText("include outlying chunks in import");
 
         jLabel5.setText("Options:");
 
@@ -558,40 +459,21 @@ public class MapImportDialog extends WorldPainterDialog {
                             .addComponent(radioButtonReadOnlyManMade)
                             .addComponent(radioButtonReadOnlyNone)
                             .addComponent(jLabel1)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel4)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(labelLength))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel3)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(labelWidth))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel7)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(labelArea)))
-                                .addGap(18, 18, 18)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(labelOutliers4)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(labelAreaOutliers))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(labelOutliers2)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(labelWidthWithOutliers))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(labelOutliers3)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(labelLengthWithOutliers))
-                                    .addComponent(checkBoxImportOutliers)))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jLabel4)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(labelLength))
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jLabel3)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(labelWidth))
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jLabel7)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(labelArea)))
                             .addComponent(jLabel5)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addGap(18, 18, 18)
-                                .addComponent(labelOutliers1))
+                            .addComponent(jLabel2)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(checkBoxImportSurface)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -619,29 +501,19 @@ public class MapImportDialog extends WorldPainterDialog {
                     .addComponent(jLabel6)
                     .addComponent(labelPlatform))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(labelOutliers1))
+                .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
-                    .addComponent(labelWidth)
-                    .addComponent(labelOutliers2)
-                    .addComponent(labelWidthWithOutliers))
+                    .addComponent(labelWidth))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
-                    .addComponent(labelLength)
-                    .addComponent(labelOutliers3)
-                    .addComponent(labelLengthWithOutliers))
+                    .addComponent(labelLength))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
-                    .addComponent(labelArea)
-                    .addComponent(labelOutliers4)
-                    .addComponent(labelAreaOutliers))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(checkBoxImportOutliers)
+                    .addComponent(labelArea))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(checkBoxImportSurface)
@@ -668,7 +540,7 @@ public class MapImportDialog extends WorldPainterDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void buttonSelectFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSelectFileActionPerformed
-        selectFile();
+        selectDir();
     }//GEN-LAST:event_buttonSelectFileActionPerformed
 
     private void buttonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonOKActionPerformed
@@ -686,7 +558,6 @@ public class MapImportDialog extends WorldPainterDialog {
     private javax.swing.JButton buttonSelectFile;
     private javax.swing.JCheckBox checkBoxImportEnd;
     private javax.swing.JCheckBox checkBoxImportNether;
-    private javax.swing.JCheckBox checkBoxImportOutliers;
     private javax.swing.JCheckBox checkBoxImportSurface;
     private javax.swing.JTextField fieldFilename;
     private javax.swing.JLabel jLabel1;
@@ -697,16 +568,9 @@ public class MapImportDialog extends WorldPainterDialog {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel labelArea;
-    private javax.swing.JLabel labelAreaOutliers;
     private javax.swing.JLabel labelLength;
-    private javax.swing.JLabel labelLengthWithOutliers;
-    private javax.swing.JLabel labelOutliers1;
-    private javax.swing.JLabel labelOutliers2;
-    private javax.swing.JLabel labelOutliers3;
-    private javax.swing.JLabel labelOutliers4;
     private javax.swing.JLabel labelPlatform;
     private javax.swing.JLabel labelWidth;
-    private javax.swing.JLabel labelWidthWithOutliers;
     private javax.swing.JRadioButton radioButtonReadOnlyAll;
     private javax.swing.JRadioButton radioButtonReadOnlyManMade;
     private javax.swing.JRadioButton radioButtonReadOnlyManMadeAboveGround;
@@ -714,8 +578,8 @@ public class MapImportDialog extends WorldPainterDialog {
     // End of variables declaration//GEN-END:variables
 
     private final App app;
-    private File previouslySelectedFile;
-    private MapInfo mapInfo;
+    private File previouslySelectedDir;
+    private MapStatistics mapStatistics;
     private World2 importedWorld;
     
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MapImportDialog.class);
@@ -723,13 +587,12 @@ public class MapImportDialog extends WorldPainterDialog {
     private static final NumberFormat FORMATTER = NumberFormat.getIntegerInstance();
     private static final long serialVersionUID = 1L;
     
-    static class MapInfo {
+    static class MapStatistics {
+        File dir;
         Platform platform;
-        Level levelDat;
+        JavaLevel levelDat;
         int lowestChunkX = Integer.MAX_VALUE, lowestChunkZ = Integer.MAX_VALUE, highestChunkX = Integer.MIN_VALUE, highestChunkZ = Integer.MIN_VALUE;
-        int lowestChunkXNoOutliers = Integer.MAX_VALUE, lowestChunkZNoOutliers = Integer.MAX_VALUE, highestChunkXNoOutliers = Integer.MIN_VALUE, highestChunkZNoOutliers = Integer.MIN_VALUE;
         int chunkCount;
-        final Set<MinecraftCoords> outlyingChunks = new HashSet<>();
         String errorMessage;
     }
 }

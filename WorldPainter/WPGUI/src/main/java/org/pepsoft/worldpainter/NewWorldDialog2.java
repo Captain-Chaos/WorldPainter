@@ -14,6 +14,8 @@ import org.pepsoft.worldpainter.themes.Theme;
 import java.awt.*;
 import java.util.*;
 
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
+
 /**
  *
  * @author pepijn
@@ -57,7 +59,7 @@ public class NewWorldDialog2 extends javax.swing.JDialog {
             private final Map<Point, Tile> cache = new HashMap<>();
         };
         Configuration config = Configuration.getInstance();
-        tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, app.getColourScheme(config.getColourschemeIndex()), app.getCustomBiomeManager(), Collections.singleton(Biome.INSTANCE), config.isDefaultContoursEnabled(), config.getDefaultContourSeparation(), config.getDefaultLightOrigin(), false, null));
+        tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, ColourScheme.DEFAULT, app.getCustomBiomeManager(), Collections.singleton(Biome.INSTANCE), config.isDefaultContoursEnabled(), config.getDefaultContourSeparation(), config.getDefaultLightOrigin(), false, null));
     }
     
     private TileFactory createTileFactory() {
@@ -98,8 +100,8 @@ public class NewWorldDialog2 extends javax.swing.JDialog {
         SortedMap<Integer, Terrain> terrainRanges = new TreeMap<>();
         terrainRanges.put(-1, Terrain.BEACHES);
         terrainRanges.put(waterLevel - 4, Terrain.GRASS);
-        Theme theme = new SimpleTheme(seed, waterLevel, terrainRanges, null, org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL, true, true);
-        return new HeightMapTileFactory(seed, heightMap, org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL, false, theme);
+        Theme theme = new SimpleTheme(seed, waterLevel, terrainRanges, null, 0, DEFAULT_MAX_HEIGHT_ANVIL, true, true);
+        return new HeightMapTileFactory(seed, heightMap, 0, DEFAULT_MAX_HEIGHT_ANVIL, false, theme);
     }
 
     private void schedulePreviewUpdate() {

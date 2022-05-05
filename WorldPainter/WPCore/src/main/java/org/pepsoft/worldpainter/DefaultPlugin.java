@@ -62,27 +62,47 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
             32, DEFAULT_MAX_HEIGHT_MCREGION, 2048,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
             Arrays.asList(SURVIVAL, CREATIVE),
-            Arrays.asList(DEFAULT, FLAT),
+            Arrays.asList(DEFAULT, FLAT, NETHER, END),
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
             EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, SEED, POPULATE));
 
     public static final Platform JAVA_ANVIL = new Platform(
             "org.pepsoft.anvil",
-            "Minecraft 1.2 - 1.12 (Anvil)",
+            "Minecraft 1.2 - 1.12",
             DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
-            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM),
+            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, AMPLIFIED, CUSTOM, NETHER, END),
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
             EnumSet.of(BIOMES, PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, SEED, POPULATE));
 
     public static final Platform JAVA_ANVIL_1_15 = new Platform(
             "org.pepsoft.anvil.1.13",
-            "[BETA] Minecraft 1.15 or later (Anvil)",
+            "Minecraft 1.15 - 1.16",
             DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
-            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, CUSTOM),
+            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, AMPLIFIED, CUSTOM, NETHER, END),
+            Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
+            EnumSet.of(BIOMES, PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED));
+
+    public static final Platform JAVA_ANVIL_1_17 = new Platform(
+            "org.pepsoft.anvil.1.17",
+            "Minecraft 1.17",
+            new int[] { 256, 320, 512, 1024, 1536, 2032 }, 256,
+            Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, 0,
+            Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
+            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, AMPLIFIED, CUSTOM, NETHER, END),
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
             EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, BIOMES_3D));
+
+    public static final Platform JAVA_ANVIL_1_18 = new Platform(
+            "org.pepsoft.anvil.1.18",
+            "[BETA] Minecraft 1.18 or later",
+            new int[] { 256, 320, 512, 1024, 1536, 2032 }, 320,
+            Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, -64,
+            Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
+            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, AMPLIFIED, CUSTOM, NETHER, END),
+            Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
+            EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, NAMED_BIOMES, POPULATE, GENERATOR_PER_DIMENSION));
 }

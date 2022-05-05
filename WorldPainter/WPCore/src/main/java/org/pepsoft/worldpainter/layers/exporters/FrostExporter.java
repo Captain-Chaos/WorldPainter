@@ -17,10 +17,13 @@ import org.pepsoft.worldpainter.layers.Frost;
 import java.awt.*;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.MC_SNOW;
 import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.*;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 
 /**
  * @author pepijn
@@ -31,12 +34,17 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
     }
 
     @Override
-    public List<Fixup> render(final Dimension dimension, final Rectangle area, final Rectangle exportedArea, final MinecraftWorld minecraftWorld, Platform platform) {
+    public Set<Stage> getStages() {
+        return singleton(ADD_FEATURES);
+    }
+
+    @Override
+    public List<Fixup> addFeatures(final Dimension dimension, final Rectangle area, final Rectangle exportedArea, final MinecraftWorld minecraftWorld, Platform platform) {
         final FrostSettings settings = (FrostSettings) getSettings();
         final boolean frostEverywhere = settings.isFrostEverywhere();
         final int mode = settings.getMode();
         final boolean snowUnderTrees = settings.isSnowUnderTrees();
-        final int maxHeight = dimension.getMaxHeight();
+        final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
         final Random random = new Random(); // Only used for random snow height, so it's not a big deal if it's different every time
         String customNoSnowOnIds = System.getProperty("org.pepsoft.worldpainter.noSnowOn");
         if ((customNoSnowOnIds != null) && (! customNoSnowOnIds.trim().isEmpty())) {
@@ -46,9 +54,9 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
             for (int y = area.y; y < area.y + area.height; y++) {
                 if (frostEverywhere || dimension.getBitLayerValueAt(Frost.INSTANCE, x, y)) {
                     int highestNonAirBlock = minecraftWorld.getHighestNonAirBlock(x, y);
-                    Material previousMaterial = minecraftWorld.getMaterialAt(x, y, Math.min(minecraftWorld.getHighestNonAirBlock(x, y) + 1, maxHeight - 2));
+                    Material previousMaterial = (highestNonAirBlock == (maxHeight - 1)) ? minecraftWorld.getMaterialAt(x, y, maxHeight - 1) : AIR;
                     int leafBlocksEncountered = 0;
-                    for (int height = Math.min(highestNonAirBlock, maxHeight - 2); height >= 0; height--) {
+                    for (int height = Math.min(highestNonAirBlock, maxHeight - 2); height >= minHeight; height--) {
                         Material material = minecraftWorld.getMaterialAt(x, y, height);
                         if (material.isNamed(MC_WATER) && (material.getProperty(LAYERS, 0) == 0)) {
                             minecraftWorld.setMaterialAt(x, y, height, ICE);
@@ -56,24 +64,22 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                         } else if (material.canSupportSnow) {
                             if ((material.name.endsWith("_leaves"))
                                     || (material.name.endsWith("_log"))
-                                    || (material.name.endsWith("_bark"))) {
+                                    || (material.name.endsWith("_bark"))
+                                    || (material.name.endsWith("_wood"))) {
                                 if (previousMaterial == AIR) {
                                     minecraftWorld.setMaterialAt(x, y, height + 1, SNOW);
                                 }
                                 leafBlocksEncountered++;
-                                if ((!snowUnderTrees) && (leafBlocksEncountered > 1)) {
+                                if ((! snowUnderTrees) && (leafBlocksEncountered > 1)) {
                                     break;
                                 }
                             } else {
-                                // Obliterate tall grass, 'cause there is too
-                                // much of it, and leaving it in would look
-                                // strange. Also replace existing snow, as we
-                                // might want to place thicker snow
+                                // Obliterate tall grass, 'cause there is too much of it, and leaving it in would look
+                                // strange. Also replace existing snow, as we might want to place thicker snow
                                 if ((previousMaterial == AIR) || (previousMaterial == GRASS) || (previousMaterial == FERN) || (previousMaterial == SNOW)) {
                                     if ((mode == FrostSettings.MODE_SMOOTH_AT_ALL_ELEVATIONS)
                                             || (height == dimension.getIntHeightAt(x, y))) {
-                                        // Only vary the snow thickness if we're
-                                        // at surface height, otherwise it looks
+                                        // Only vary the snow thickness if we're at surface height, otherwise it looks
                                         // odd
                                         switch (mode) {
                                             case FrostSettings.MODE_FLAT:
@@ -84,8 +90,8 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                                                 break;
                                             case FrostSettings.MODE_SMOOTH:
                                             case FrostSettings.MODE_SMOOTH_AT_ALL_ELEVATIONS:
-                                                int layers = (int) ((dimension.getHeightAt(x, y) + 0.5f - dimension.getIntHeightAt(x, y)) / 0.125f) + 1;
-                                                if ((layers > 1) && (!frostEverywhere)) {
+                                                int layers = (int) Math.floor((dimension.getHeightAt(x, y) + 0.5f - dimension.getIntHeightAt(x, y)) / 0.125f) + 1;
+                                                if ((layers > 1) && (! frostEverywhere)) {
                                                     layers = Math.max(Math.min(layers, dimension.getBitLayerCount(Frost.INSTANCE, x, y, 1) - 1), 1);
                                                 }
                                                 placeSnow(minecraftWorld, x, y, height, layers);

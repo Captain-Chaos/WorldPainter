@@ -114,9 +114,9 @@ public class StreamUtils {
                         throw new IOException("Too many bytes in input stream (limit: " + byteCount + "; bytes read so far: " + (bytesReadTotal + bytesRead) + ")");
                     }
                     out.write(buffer, 0, bytesRead);
-                    if (progressReceiver != null) {
-                        bytesReadTotal += bytesRead;
-                        progressReceiver.setProgress((float) byteCount / bytesReadTotal);
+                    bytesReadTotal += bytesRead;
+                    if ((progressReceiver != null) && (byteCount > 0L)) {
+                        progressReceiver.setProgress((float) bytesReadTotal / byteCount);
                     }
                 }
                 in.close();

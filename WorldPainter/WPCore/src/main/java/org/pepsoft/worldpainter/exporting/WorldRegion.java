@@ -23,6 +23,7 @@ public class WorldRegion implements MinecraftWorld {
         this.regionZ = regionZ;
         this.maxHeight = maxHeight;
         this.platform = platform;
+        minHeight = platform.minZ;
         platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
     }
     
@@ -31,6 +32,7 @@ public class WorldRegion implements MinecraftWorld {
         this.regionZ = regionZ;
         this.maxHeight = maxHeight;
         this.platform = platform;
+        minHeight = platform.minZ;
         platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         int lowestX = (regionX << 5) - 1;
         int highestX = lowestX + 33;
@@ -117,6 +119,11 @@ public class WorldRegion implements MinecraftWorld {
         if (chunk != null) {
             chunk.setMaterial(x & 0xf, height, y & 0xf, material);
         }
+    }
+
+    @Override
+    public int getMinHeight() {
+        return minHeight;
     }
 
     @Override
@@ -257,7 +264,7 @@ public class WorldRegion implements MinecraftWorld {
         if (chunk != null) {
             return chunk.getHighestNonAirBlock(x & 0xf, y & 0xf);
         } else {
-            return -1;
+            return Integer.MIN_VALUE;
         }
     }
 
@@ -284,7 +291,7 @@ public class WorldRegion implements MinecraftWorld {
         this.chunkCreationMode = chunkCreationMode;
     }
  
-    private final int maxHeight;
+    private final int minHeight, maxHeight;
     private final Platform platform;
     private final Chunk[][] chunks = new Chunk[CHUNKS_PER_SIDE + 2][CHUNKS_PER_SIDE + 2];
     private final int regionX, regionZ;

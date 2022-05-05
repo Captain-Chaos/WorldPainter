@@ -5,25 +5,23 @@
  */
 package org.pepsoft.worldpainter.themes.impl.simple;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import javax.swing.JButton;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.TableModel;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.themes.Filter;
 import org.pepsoft.worldpainter.themes.HeightFilter;
+
+import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableModel;
+import java.util.*;
 
 /**
  *
  * @author pepijn
  */
 public class LayerRangesTableModel implements TableModel {
-    public LayerRangesTableModel(int maxHeight, Map<Filter, Layer> layerMap) {
+    public LayerRangesTableModel(int minHeight, int maxHeight, Map<Filter, Layer> layerMap) {
+        this.minHeight = minHeight;
         this.maxHeight = maxHeight;
         if (layerMap != null) {
             layerMap.forEach((key, value) -> {
@@ -112,15 +110,15 @@ public class LayerRangesTableModel implements TableModel {
         switch (columnIndex) {
             case COLUMN_FROM:
                 HeightFilter old = (HeightFilter) filters.get(rowIndex);
-                filters.set(rowIndex, new HeightFilter(maxHeight, (int) aValue, old.getStopHeight(), old.isFeather()));
+                filters.set(rowIndex, new HeightFilter(minHeight, maxHeight, (int) aValue, old.getStopHeight(), old.isFeather()));
                 break;
             case COLUMN_TO:
                 old = (HeightFilter) filters.get(rowIndex);
-                filters.set(rowIndex, new HeightFilter(maxHeight, old.getStartHeight(), (int) aValue, old.isFeather()));
+                filters.set(rowIndex, new HeightFilter(minHeight, maxHeight, old.getStartHeight(), (int) aValue, old.isFeather()));
                 break;
             case COLUMN_FEATHER:
                 old = (HeightFilter) filters.get(rowIndex);
-                filters.set(rowIndex, new HeightFilter(maxHeight, old.getStartHeight(), old.getStopHeight(), (boolean) aValue));
+                filters.set(rowIndex, new HeightFilter(minHeight, maxHeight, old.getStartHeight(), old.getStopHeight(), (boolean) aValue));
                 break;
             case COLUMN_LAYER:
                 throw new IllegalArgumentException("columnIndex " + columnIndex + " not editable");
@@ -144,7 +142,7 @@ public class LayerRangesTableModel implements TableModel {
     
     private final List<Filter> filters = new ArrayList<>();
     private final List<Layer> layers = new ArrayList<>();
-    private final int maxHeight;
+    private final int minHeight, maxHeight;
     private final List<TableModelListener> listeners = new ArrayList<>();
     private final JButton deleteButton = new JButton("Delete");
     

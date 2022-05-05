@@ -29,22 +29,22 @@ public class MemoryUtils {
      * @return The number of bytes of RAM used by the object, or -1 if the size
      * could not be determined.
      */
-    public static int getSize(Object object, Set<Class<?>> stopAt) {
+    public static long getSize(Object object, Set<Class<?>> stopAt) {
         if (object == null) {
-            return 0;
+            return 0L;
         } else if (JAVA_VERSION.isAtLeast(JAVA_9)) {
             // TODO: support Java 9
-            return -1;
+            return -1L;
         } else {
             IdentityHashMap<Object, Void> processedObjects = new IdentityHashMap<>();
             return getSize(object, processedObjects, stopAt/*, "root"*/);
         }
     }
 
-    private static int getSize(Object object, IdentityHashMap<Object, Void> processedObjects, Set<Class<?>> stopAt/*, String trail*/) {
+    private static long getSize(Object object, IdentityHashMap<Object, Void> processedObjects, Set<Class<?>> stopAt/*, String trail*/) {
         if (processedObjects.containsKey(object)) {
             // This object has already been counted
-            return 0;
+            return 0L;
         } else {
             // Record that this object has been counted
             processedObjects.put(object, null);
@@ -52,13 +52,13 @@ public class MemoryUtils {
             if ((stopAt != null) && (! stopAt.isEmpty())) {
                 for (Class<?> stopClass: stopAt) {
                     if (stopClass.isAssignableFrom(type)) {
-                        return 0;
+                        return 0L;
                     }
                 }
             }
-            int objectSize = 8; // Housekeeping
+            long objectSize = 8L; // Housekeeping
             if (type.isArray()) {
-                objectSize += 4; // Array length
+                objectSize += 4L; // Array length
                 Class<?> arrayType = type.getComponentType();
                 if (arrayType.isPrimitive()) {
                     if (arrayType == boolean.class) {
@@ -66,21 +66,21 @@ public class MemoryUtils {
                     } else if (arrayType == byte.class) {
                         objectSize += ((byte[]) object).length;
                     } else if (arrayType == char.class) {
-                        objectSize += ((char[]) object).length * 2;
+                        objectSize += ((char[]) object).length * 2L;
                     } else if (arrayType == short.class) {
-                        objectSize += ((short[]) object).length * 2;
+                        objectSize += ((short[]) object).length * 2L;
                     } else if (arrayType == int.class) {
-                        objectSize += ((int[]) object).length * 4;
+                        objectSize += ((int[]) object).length * 4L;
                     } else if (arrayType == float.class) {
-                        objectSize += ((float[]) object).length * 4;
+                        objectSize += ((float[]) object).length * 4L;
                     } else if (arrayType == long.class) {
-                        objectSize += ((long[]) object).length * 8;
+                        objectSize += ((long[]) object).length * 8L;
                     } else {
-                        objectSize += ((double[]) object).length * 8;
+                        objectSize += ((double[]) object).length * 8L;
                     }
                 } else {
                     Object[] array = (Object[]) object;
-                    objectSize = array.length * 4; // References
+                    objectSize = array.length * 4L; // References
                     for (Object anArray : array) {
                         if (anArray != null) {
                             objectSize += getSize(anArray, processedObjects, stopAt/*, trail + '[' + i + ']'*/);
@@ -101,7 +101,7 @@ public class MemoryUtils {
                         if (fieldType.isPrimitive()) {
                             objectSize += PRIMITIVE_TYPE_SIZES.get(fieldType);
                         } else {
-                            objectSize += 4; // Reference
+                            objectSize += 4L; // Reference
                             field.setAccessible(true); // Will fail if a security manager is installed!
                             try {
                                 Object value = field.get(object);
@@ -116,24 +116,24 @@ public class MemoryUtils {
                     myType = myType.getSuperclass();
                 }
             }
-            if ((objectSize % 8) != 0) {
-                objectSize = ((objectSize >> 3) + 1) << 3;
+            if ((objectSize % 8L) != 0L) {
+                objectSize = ((objectSize >> 3) + 1L) << 3;
             }
 //            System.out.println(trail + " (" + type.getSimpleName() + "): " + objectSize);
             return objectSize;
         }
     }
     
-    private static final Map<Class<?>, Integer> PRIMITIVE_TYPE_SIZES = new HashMap<>();
+    private static final Map<Class<?>, Long> PRIMITIVE_TYPE_SIZES = new HashMap<>();
     
     static {
-        PRIMITIVE_TYPE_SIZES.put(boolean.class, 1);
-        PRIMITIVE_TYPE_SIZES.put(byte.class,    1);
-        PRIMITIVE_TYPE_SIZES.put(char.class,    2);
-        PRIMITIVE_TYPE_SIZES.put(short.class,   2);
-        PRIMITIVE_TYPE_SIZES.put(int.class,     4);
-        PRIMITIVE_TYPE_SIZES.put(float.class,   4);
-        PRIMITIVE_TYPE_SIZES.put(long.class,    8);
-        PRIMITIVE_TYPE_SIZES.put(double.class,  8);
+        PRIMITIVE_TYPE_SIZES.put(boolean.class, 1L);
+        PRIMITIVE_TYPE_SIZES.put(byte.class,    1L);
+        PRIMITIVE_TYPE_SIZES.put(char.class,    2L);
+        PRIMITIVE_TYPE_SIZES.put(short.class,   2L);
+        PRIMITIVE_TYPE_SIZES.put(int.class,     4L);
+        PRIMITIVE_TYPE_SIZES.put(float.class,   4L);
+        PRIMITIVE_TYPE_SIZES.put(long.class,    8L);
+        PRIMITIVE_TYPE_SIZES.put(double.class,  8L);
     }
 }

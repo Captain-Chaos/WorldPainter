@@ -70,7 +70,7 @@ public final class MixedMaterialTableModel implements TableModel, Cloneable {
     }
 
     public int getAverageCount() {
-        return (int) (Arrays.stream(rows).mapToInt(row -> row.occurrence).average().orElse(0.0) + 0.5);
+        return (int) Math.round(Arrays.stream(rows).mapToInt(row -> row.occurrence).average().orElse(0.0));
     }
 
     // TableModel
@@ -109,7 +109,7 @@ public final class MixedMaterialTableModel implements TableModel, Cloneable {
             case COLUMN_COUNT:
                 return row.occurrence;
             case COLUMN_SCALE:
-                return (int) (row.scale * 100 + 0.5f);
+                return Math.round(row.scale * 100);
             default:
                 throw new IndexOutOfBoundsException("columnIndex " + columnIndex);
         }

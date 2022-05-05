@@ -23,8 +23,8 @@ public class Player extends Mob {
         setInt(TAG_DIMENSION, 0);
     }
 
-    public Player(CompoundTag tag) {
-        super(tag);
+    public Player(CompoundTag tag, double[] relPos) {
+        super(tag, relPos);
     }
 
     private static final long serialVersionUID = 1L;

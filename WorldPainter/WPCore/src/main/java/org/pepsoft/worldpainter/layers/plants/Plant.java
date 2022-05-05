@@ -26,39 +26,42 @@ import java.util.Map;
  * @author pepijn
  */
 public abstract class Plant implements WPObject {
-    protected Plant(String name, Material material, Category category, String iconName) {
+    protected Plant(String name, Material material, String iconName, Category... categories) {
         this.name = name;
         this.material = material;
-        this.category = category;
+        this.categories = categories;
         this.iconName = iconName;
     }
 
     /**
-     * Get the category of the plant.
+     * Get the categories of the plant. If there is more than one, the first one is considered the "main" category.
      *
-     * @return The category of the plant.
+     * @return The categories of the plant.
      */
-    public final Category getCategory() {
-        return category;
+    public final Category[] getCategories() {
+        return categories;
     }
 
     /**
-     * Determine whether the block at a particular location in a particular map
-     * is a valid foundation on which to place this plant. This will always be
-     * invoked by {@link PlantLayerExporter} before exporting a plant.
+     * Determine whether the block at a particular location in a particular map is a valid foundation on which to place
+     * this plant. This will always be invoked by {@link PlantLayerExporter} before exporting a plant.
      *
      * @param world The map in which to check the foundation.
-     * @param x The X coordinate (in the WorldPainter coordinate system) to
-     *          check.
-     * @param y The Y coordinate (in the WorldPainter coordinate system) to
-     *          check.
-     * @param height The Z coordinate (in the WorldPainter coordinate system) to
-     *               check.
-     * @return {@code true} if this plant may be placed on the block at the
-     * specified location; {@code false} otherwise.
+     * @param x The X coordinate (in the WorldPainter coordinate system) to check.
+     * @param y The Y coordinate (in the WorldPainter coordinate system) to check.
+     * @param height The Z coordinate (in the WorldPainter coordinate system) to check.
+     * @return The applicable category if this plant may be placed on the block at the specified location; {@code null}
+     * otherwise.
      */
-    public boolean isValidFoundation(MinecraftWorld world, int x, int y, int height) {
-        return category.isValidFoundation(world, x, y, height);
+    public Category isValidFoundation(MinecraftWorld world, int x, int y, int height) {
+        // TODO is water/not water actually being checked somewhere?
+        // TODO allow Nether plants on regular blocks too
+        for (Category category: categories) {
+            if (category.isValidFoundation(world, x, y, height)) {
+                return category;
+            }
+        }
+        return null;
     }
 
     /**
@@ -69,6 +72,16 @@ public abstract class Plant implements WPObject {
      */
     public int getMaxGrowth() {
         return 1;
+    }
+
+    /**
+     * The default growth stage to present to the user. The intent is for this to be the maximum height of plants that
+     * vanilla Minecraft will generate, with {@code maxGrowth} optionally being higher.
+     *
+     * @return The default growth stage to present to the user.
+     */
+    public int getDefaultGrowth() {
+        return getMaxGrowth();
     }
 
     /**
@@ -167,5 +180,5 @@ public abstract class Plant implements WPObject {
 
     protected final String name, iconName;
     protected final Material material;
-    protected final Category category;
+    protected final Category[] categories;
 }

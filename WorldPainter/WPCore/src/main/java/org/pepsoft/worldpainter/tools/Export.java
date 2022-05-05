@@ -6,65 +6,29 @@ package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.DesktopUtils;
-import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.TextProgressReceiver;
-import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
-import org.pepsoft.worldpainter.plugins.WPPluginManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-
-import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
 
 /**
  *
  * @author pepijn
  */
-public class Export {
+public class Export extends AbstractTool {
     public static void main(String[] args) throws IOException, ClassNotFoundException, OperationCancelled, CertificateException, UnloadableWorldException {
-//        Logger rootLogger = Logger.getLogger("");
-//        rootLogger.setLevel(Level.OFF);
-
-        // Load the default platform descriptors so that they don't get blocked
-        // by older versions of them which might be contained in the
-        // configuration. Do this by loading and initialising (but not
-        // instantiating) the DefaultPlugin class
-        try {
-            Class.forName("org.pepsoft.worldpainter.DefaultPlugin");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-
-        // Load or initialise configuration
-        Configuration config = Configuration.load(); // This will migrate the configuration directory if necessary
-        if (config == null) {
-            System.out.println("Creating new configuration");
-            config = new Configuration();
-        }
-        Configuration.setInstance(config);
-        System.out.println("Installation ID: " + config.getUuid());
-
-        // Load trusted WorldPainter root certificate
-        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-        X509Certificate trustedCert = (X509Certificate) certificateFactory.generateCertificate(ClassLoader.getSystemResourceAsStream("wproot.pem"));
-
-        // Load the plugins
-        File pluginsDir = new File(Configuration.getConfigDir(), "plugins");
-        if (pluginsDir.isDirectory()) {
-            PluginManager.loadPlugins(pluginsDir, trustedCert.getPublicKey(), DESCRIPTOR_PATH);
-        }
-        WPPluginManager.initialise(config.getUuid());
+        initialisePlatform();
 
         File worldFile = new File(args[0]);
-        System.out.println("Loading " + worldFile);
+        logger.info("Loading " + worldFile);
         World2 world;
         try (FileInputStream in = new FileInputStream(worldFile)) {
             WorldIO worldIO = new WorldIO();
@@ -95,11 +59,12 @@ public class Export {
                 exportDir = DesktopUtils.getDocumentsFolder();
             }
         }
-        System.out.println("Exporting to " + exportDir);
-        System.out.println("+---------+---------+---------+---------+---------+");
+        logger.info("Exporting to " + exportDir);
         WorldExporter exporter = platformManager.getExporter(world);
-        exporter.export(exportDir, world.getName(), exporter.selectBackupDir(new File(exportDir, FileUtils.sanitiseName(world.getName()))), new TextProgressReceiver());
+        exporter.export(exportDir, world.getName(), exporter.selectBackupDir(exportDir, world), new TextProgressReceiver());
         System.out.println();
-        System.out.println("World " + world.getName() + " exported successfully");
+        logger.info("World " + world.getName() + " exported successfully");
     }
+
+    private static final Logger logger = LoggerFactory.getLogger(Export.class);
 }

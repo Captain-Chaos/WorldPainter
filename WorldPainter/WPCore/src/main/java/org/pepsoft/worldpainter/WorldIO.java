@@ -1,15 +1,17 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.Direction;
-import org.pepsoft.util.plugins.PluginManager;
+import org.pepsoft.minecraft.SeededGenerator;
+import org.pepsoft.minecraft.SuperflatGenerator;
+import org.pepsoft.minecraft.SuperflatPreset;
 import org.pepsoft.util.WPCustomObjectInputStream;
+import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Resources;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter;
 import org.pepsoft.worldpainter.objects.AbstractObject;
-import org.pepsoft.worldpainter.plugins.Plugin;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.vo.EventVO;
 
@@ -21,6 +23,9 @@ import java.util.zip.ZipException;
 
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Generator.DEFAULT;
+
+// TODO why this design again? Just make these utility methods, surely?
 
 /**
  * A utility class for saving and loading WorldPainter {@link World2 worlds} in
@@ -62,16 +67,9 @@ public class WorldIO {
             metadata.put(World2.METADATA_KEY_TIMESTAMP, new Date());
             if (WPPluginManager.getInstance() != null) {
                 List<String[]> pluginArray = new ArrayList<>();
-                for (Plugin plugin : WPPluginManager.getInstance().getAllPlugins()) {
-                    if (plugin.getName().equals("Default")
-                            || plugin.getName().equals("DefaultPlatforms")
-                            || plugin.getName().equals("DefaultCustomObjects")
-                            || plugin.getName().equals("DefaultLayerEditorProvider")) {
-                        // Don't include the system plugins
-                        continue;
-                    }
-                    pluginArray.add(new String[]{plugin.getName(), plugin.getVersion()});
-                }
+                WPPluginManager.getInstance().getAllPlugins().stream()
+                    .filter(plugin -> ! plugin.getClass().getName().startsWith("org.pepsoft.worldpainter"))
+                    .forEach(plugin -> pluginArray.add(new String[]{plugin.getName(), plugin.getVersion()}));
                 if (! pluginArray.isEmpty()) {
                     metadata.put(World2.METADATA_KEY_PLUGINS, pluginArray.toArray(new String[pluginArray.size()][]));
                 }
@@ -134,15 +132,6 @@ public class WorldIO {
             newWorld.setName(oldWorld.getName());
             newWorld.setSpawnPoint(oldWorld.getSpawnPoint());
             Dimension dim0 = newWorld.getDimension(0);
-            Generator generator = Generator.DEFAULT;
-            TileFactory tileFactory = dim0.getTileFactory();
-            if ((tileFactory instanceof HeightMapTileFactory)
-                    && (((HeightMapTileFactory) tileFactory).getWaterHeight() < 32)
-                    && (((HeightMapTileFactory) tileFactory).getBaseHeight() < 32)) {
-                // Low level
-                generator = Generator.FLAT;
-            }
-            newWorld.setGenerator(generator);
             newWorld.setAskToConvertToAnvil(true);
             newWorld.setUpIs(Direction.WEST);
             newWorld.setAskToRotate(true);
@@ -165,6 +154,16 @@ public class WorldIO {
                 } else {
                     dim0.setSubsurfaceMaterial(subsurfaceMaterial);
                     resourcesSettings.setMinimumLevel(0);
+                }
+
+                TileFactory tileFactory = dim0.getTileFactory();
+                if ((tileFactory instanceof HeightMapTileFactory)
+                        && (((HeightMapTileFactory) tileFactory).getWaterHeight() < 32)
+                        && (((HeightMapTileFactory) tileFactory).getBaseHeight() < 32)) {
+                    // Low level
+                    dim0.setGenerator(new SuperflatGenerator(SuperflatPreset.defaultPreset(JAVA_MCREGION)));
+                } else {
+                    dim0.setGenerator(new SeededGenerator(DEFAULT, oldWorld.getMinecraftSeed()));
                 }
 
                 // Load legacy settings

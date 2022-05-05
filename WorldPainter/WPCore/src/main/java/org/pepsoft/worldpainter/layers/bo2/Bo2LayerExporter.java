@@ -26,9 +26,11 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.MC_LAVA;
 import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
@@ -42,12 +44,17 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
     public Bo2LayerExporter(Bo2Layer layer) {
         super(layer);
     }
-    
+
     @Override
-    public List<Fixup> render(final Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    public Set<Stage> getStages() {
+        return singleton(ADD_FEATURES);
+    }
+
+    @Override
+    public List<Fixup> addFeatures(final Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         try {
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider();
-            final int maxHeight = dimension.getMaxHeight();
+            final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
             final int maxZ = maxHeight - 1;
             final List<Fixup> fixups = new ArrayList<>();
             final int density = layer.getDensity() * 64;
@@ -56,14 +63,14 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                     // Set the seed and randomizer according to the chunk
                     // coordinates to make sure the chunk is always rendered the
                     // same, no matter how often it is rendered
-                    final long seed = dimension.getSeed() + (chunkX >> 4) * 65537 + (chunkY >> 4) * 4099;
+                    final long seed = dimension.getSeed() + (chunkX >> 4) * 65537L + (chunkY >> 4) * 4099L;
                     final Random random = new Random(seed);
                     objectProvider.setSeed(seed);
                     for (int x = chunkX; x < chunkX + 16; x++) {
                         for (int y = chunkY; y < chunkY + 16; y++) {
                             final int height = dimension.getIntHeightAt(x, y);
-                            if ((height == -1) || (height >= maxZ)) {
-                                // height == -1 means no tile present
+                            if ((height == Integer.MIN_VALUE) || (height >= maxZ)) {
+                                // height == Integer.MIN_VALUE means no tile present
                                 continue;
                             }
                             final int strength = dimension.getLayerValueAt(layer, x, y);
@@ -83,20 +90,18 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                                     }
                                 }
                                 final int z = (placement == Placement.ON_LAND) ? height + 1 : dimension.getWaterLevelAt(x, y) + 1;
-                                if (!isSane(object, x, y, z, maxHeight)) {
+                                if (! isSane(object, x, y, z, minHeight, maxHeight)) {
                                     continue;
                                 }
                                 prepareForExport(object, dimension);
-                                if (!isRoom(minecraftWorld, dimension, object, x, y, z, placement)) {
+                                if (! isRoom(minecraftWorld, dimension, object, x, y, z, placement)) {
                                     continue;
                                 }
-                                if (!fitsInExportedArea(exportedArea, object, x, y)) {
-                                    // There is room on our side of the border, but
-                                    // the object extends outside the exported area,
-                                    // so it might clash with an object from another
-                                    // area. Schedule a fixup to retest whether
-                                    // there is room after all the objects have been
-                                    // placed on both sides of the border
+                                if (! fitsInExportedArea(exportedArea, object, x, y)) {
+                                    // There is room on our side of the border, but the object extends outside the
+                                    // exported area, so it might clash with an object from another area. Schedule a
+                                    // fixup to retest whether there is room after all the objects have been placed on
+                                    // both sides of the border
                                     fixups.add(new WPObjectFixup(object, x, y, z, placement));
                                     continue;
                                 }
@@ -135,7 +140,7 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                         object = new RotatedObject(object, rotateSteps, platform);
                     }
                 }
-                if (! isSane(object, location.x, location.y, location.z, minecraftWorld.getMaxHeight())) {
+                if (! isSane(object, location.x, location.y, location.z, minecraftWorld.getMinHeight(), minecraftWorld.getMaxHeight())) {
                     return null;
                 }
                 prepareForExport(object, dimension);
@@ -205,7 +210,7 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                 return Placement.FLOATING;
             }
         } else if (! flooded) {
-            Material materialUnderCoords = (z > 0) ? minecraftWorld.getMaterialAt(x, y, z - 1) : AIR;
+            Material materialUnderCoords = (z > minecraftWorld.getMinHeight()) ? minecraftWorld.getMaterialAt(x, y, z - 1) : AIR;
             if (object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND) && (! materialUnderCoords.veryInsubstantial)) {
                 if (logger.isTraceEnabled()) {
                     logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable on land");

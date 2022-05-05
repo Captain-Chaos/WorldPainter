@@ -13,7 +13,7 @@ import static org.pepsoft.minecraft.Material.SNOW_BLOCK;
 
 public class FancyPostGenerationTheme extends FancyTheme {
     public FancyPostGenerationTheme(Dimension dimension, Terrain baseTerrain) {
-        super(dimension.getMaxHeight(), ((HeightMapTileFactory) dimension.getTileFactory()).getWaterHeight(), null, baseTerrain);
+        super(dimension.getMinHeight(), dimension.getMaxHeight(), ((HeightMapTileFactory) dimension.getTileFactory()).getWaterHeight(), null, baseTerrain);
         this.dimension = dimension;
     }
 

@@ -1,5 +1,7 @@
 package org.pepsoft.minecraft;
 
+import org.pepsoft.worldpainter.exception.WPRuntimeException;
+
 import java.util.Set;
 
 /**
@@ -27,24 +29,29 @@ public interface ChunkStore extends ChunkProvider {
     Set<MinecraftCoords> getChunkCoords();
 
     /**
-     * Visit all known chunks. Note that the order is undefined, allowing the
-     * provider to use as efficient an implementation as is possible. The
-     * provided chunks <em>may</em> be read-only.
+     * Visit all known chunks.
+     *
+     * <p><strong>Note</strong> that the order is undefined, allowing the provider to use as efficient an implementation
+     * as is possible. The provided chunks <em>may</em> be read-only.
+     *
+     * <p><strong>Also note</strong> that to improve performance the process may be parallelised. In other words the
+     * visitor may be invoked concurrently for different chunks and must therefore be thread-safe. It also means that if
+     * the visitor returns false, the iteration may not stop immediately.
      *
      * @param visitor The visitor to invoke for each chunk.
-     * @return {@code true} if all chunks were visited; {@code false} if not all
-     * chunks may have been visited because the visitor returned {@code false}.
+     * @return {@code true} if all chunks were visited; {@code false} if not all chunks may have been visited because
+     * the visitor returned {@code false}.
      */
     boolean visitChunks(ChunkVisitor visitor);
 
     /**
-     * Visit all known chunks for editing. Note that the order is undefined,
-     * allowing the provider to use as efficient an implementation as is
-     * possible. The provided chunks are guaranteed not to be read-only.
+     * Visit all known chunks for editing. Note that the order is undefined, allowing the provider to use as efficient
+     * an implementation as is possible. The provided chunks are guaranteed not to be read-only, and are saved to the
+     * chunk store after the visitor returns true (regardless of whether the visitor modified the chunk).
      *
      * @param visitor The visitor to invoke for each chunk.
-     * @return {@code true} if all chunks were visited; {@code false} if not all
-     * chunks may have been visited because the visitor returned {@code false}.
+     * @return {@code true} if all chunks were visited; {@code false} if not all chunks may have been visited because
+     * the visitor returned {@code false}.
      */
     boolean visitChunksForEditing(ChunkVisitor visitor);
 
@@ -80,11 +87,13 @@ public interface ChunkStore extends ChunkProvider {
         /**
          * Visit a chunk.
          *
+         * <p>For convenience, the visitor may throw checked exceptions. They will be wrapped in a
+         * {@link WPRuntimeException} if this happens.
+         *
          * @param chunk The chunk to be visited.
-         * @return {@code true} if more chunks should be visited, or
-         * {@code false} if no more chunks need to be visited.
+         * @return {@code true} if more chunks should be visited, or {@code false} if no more chunks need to be visited.
          */
-        boolean visitChunk(Chunk chunk);
+        boolean visitChunk(Chunk chunk) throws Exception;
 
         /**
          * This is called when a chunk is skipped due to a loading error, to

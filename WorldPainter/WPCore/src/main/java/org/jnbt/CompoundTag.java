@@ -89,7 +89,7 @@ public final class CompoundTag extends Tag {
         StringBuilder bldr = new StringBuilder();
         bldr.append("TAG_Compound").append(append).append(": ").append(value.size()).append(" entries\r\n{\r\n");
         for (Map.Entry<String, Tag> entry : value.entrySet()) {
-            bldr.append("   ").append(entry.getValue().toString().replaceAll("\r\n", "\r\n   ")).append("\r\n");
+            bldr.append("   \"").append(entry.getKey()).append("\": ").append(entry.getValue().toString().replaceAll("\r\n", "\r\n   ")).append("\r\n");
         }
         bldr.append("}");
         return bldr.toString();

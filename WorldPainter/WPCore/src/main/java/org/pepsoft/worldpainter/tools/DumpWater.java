@@ -4,10 +4,10 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import org.pepsoft.minecraft.Level;
+import org.pepsoft.minecraft.JavaLevel;
 import org.pepsoft.worldpainter.DefaultPlugin;
-import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.exporting.JavaMinecraftWorld;
+import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +26,7 @@ public class DumpWater {
         int x = Integer.parseInt(args[1]);
         int y = Integer.parseInt(args[2]);
         int z = Integer.parseInt(args[3]);
-        Level level = Level.load(levelDatFile);
+        JavaLevel level = JavaLevel.load(levelDatFile);
         MinecraftWorld world = new JavaMinecraftWorld(levelDatFile.getParentFile(), 0, level.getMaxHeight(), level.getVersion() == VERSION_MCREGION ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL, true, CACHE_SIZE);
         for (int dy = 16; dy >= -16; dy--) {
             for (int dx = -16; dx <= 16; dx++) {

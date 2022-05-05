@@ -57,6 +57,8 @@
           </Group>
           <Group type="102" alignment="1" attributes="0">
               <EmptySpace max="32767" attributes="0"/>
+              <Component id="checkBoxKeepOpen" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Component id="buttonFill" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="buttonCancel" min="-2" max="-2" attributes="0"/>
@@ -91,6 +93,7 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="buttonCancel" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="buttonFill" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="checkBoxKeepOpen" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -448,6 +451,12 @@
     <Component class="javax.swing.JLabel" name="jLabel2">
       <Properties>
         <Property name="text" type="java.lang.String" value="Other global tools:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="checkBoxKeepOpen">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="keep this window open"/>
+        <Property name="horizontalTextPosition" type="int" value="10"/>
       </Properties>
     </Component>
   </SubComponents>

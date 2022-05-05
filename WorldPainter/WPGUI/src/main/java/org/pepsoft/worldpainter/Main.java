@@ -335,10 +335,7 @@ public class Main {
                     StringBuilder sb = new StringBuilder();
                     List<Plugin> plugins = WPPluginManager.getInstance().getAllPlugins();
                     plugins.stream()
-                            .filter(plugin -> ! (plugin.getName().equals("Default")
-                                    || plugin.getName().equals("DefaultPlatforms")
-                                    || plugin.getName().equals("DefaultCustomObjects")
-                                    || plugin.getName().equals("DefaultLayerEditorProvider")))
+                            .filter(plugin -> ! plugin.getClass().getName().startsWith("org.pepsoft.worldpainter"))
                             .forEach(plugin -> {
                         if (sb.length() > 0) {
                             sb.append(',');
@@ -356,10 +353,13 @@ public class Main {
                     config.logEvent(sessionEvent);
                     config.save();
 
-                    // Store the acceleration type separately, because we need
-                    // it before we can load the config:
+                    // Store the acceleration type and manual GUI scale separately, because we need them before we can
+                    // load the config:
                     Preferences prefs = Preferences.userNodeForPackage(Main.class);
                     prefs.put("accelerationType", config.getAccelerationType().name());
+                    prefs.flush();
+                    prefs = Preferences.userNodeForPackage(GUIUtils.class);
+                    prefs.putFloat("manualUIScale", config.getUiScale());
                     prefs.flush();
                 } catch (IOException e) {
                     logger.error("I/O error saving configuration", e);
@@ -421,33 +421,29 @@ public class Main {
                 // Install configured look and feel
                 try {
                     String laf;
-                    if (getUIScale() != 1.0f) {
-                        laf = UIManager.getSystemLookAndFeelClassName();
-                    } else {
-                        switch (lookAndFeel) {
-                            case SYSTEM:
-                                laf = UIManager.getSystemLookAndFeelClassName();
-                                break;
-                            case METAL:
-                                laf = "javax.swing.plaf.metal.MetalLookAndFeel";
-                                break;
-                            case NIMBUS:
-                                laf = "javax.swing.plaf.nimbus.NimbusLookAndFeel";
-                                break;
-                            case DARK_METAL:
-                                laf = "org.netbeans.swing.laf.dark.DarkMetalLookAndFeel";
-                                break;
-                            case DARK_NIMBUS:
-                                laf = "org.netbeans.swing.laf.dark.DarkNimbusLookAndFeel";
-                                break;
-                            default:
-                                throw new InternalError();
-                        }
+                    switch (lookAndFeel) {
+                        case SYSTEM:
+                            laf = UIManager.getSystemLookAndFeelClassName();
+                            break;
+                        case METAL:
+                            laf = "javax.swing.plaf.metal.MetalLookAndFeel";
+                            break;
+                        case NIMBUS:
+                            laf = "javax.swing.plaf.nimbus.NimbusLookAndFeel";
+                            break;
+                        case DARK_METAL:
+                            laf = "org.netbeans.swing.laf.dark.DarkMetalLookAndFeel";
+                            break;
+                        case DARK_NIMBUS:
+                            laf = "org.netbeans.swing.laf.dark.DarkNimbusLookAndFeel";
+                            break;
+                        default:
+                            throw new InternalError();
                     }
                     logger.debug("Installing look and feel: " + laf);
                     UIManager.setLookAndFeel(laf);
                     LookAndFeelFactory.installJideExtension();
-                    if ((getUIScale() == 1.0f) && ((lookAndFeel == Configuration.LookAndFeel.DARK_METAL)
+                    if (((lookAndFeel == Configuration.LookAndFeel.DARK_METAL)
                             || (lookAndFeel == Configuration.LookAndFeel.DARK_NIMBUS))) {
                         // Patch some things to make dark themes look better
                         VoidRenderer.setColour(UIManager.getColor("Panel.background").getRGB());
@@ -460,9 +456,6 @@ public class Main {
                     logger.warn("Could not install selected look and feel", e);
                 }
 
-                if (myConfig.getUiScale() != 0.0f) {
-                    GUIUtils.setUIScale(myConfig.getUiScale());
-                }
                 if (getUIScale() != 1.0f) {
                     // Scale the look and feel to the UI
                     GUIUtils.scaleLookAndFeel(getUIScale());

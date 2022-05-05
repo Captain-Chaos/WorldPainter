@@ -61,9 +61,12 @@ public class UndergroundPocketsDialog extends AbstractEditLayerDialog<Undergroun
             spinnerScale.setValue(existingLayer.getScale());
         } else {
             mixedMaterialChooser.setMaterial(material);
+            spinnerMinLevel.setValue(platform.minZ);
             spinnerMaxLevel.setValue(maxHeight - 1);
         }
+        ((SpinnerNumberModel) spinnerMinLevel.getModel()).setMinimum(platform.minZ);
         ((SpinnerNumberModel) spinnerMinLevel.getModel()).setMaximum(maxHeight - 1);
+        ((SpinnerNumberModel) spinnerMaxLevel.getModel()).setMinimum(platform.minZ);
         ((SpinnerNumberModel) spinnerMaxLevel.getModel()).setMaximum(maxHeight - 1);
         spinnerOccurrence.setEditor(new JSpinner.NumberEditor(spinnerOccurrence, "0"));
         JSpinner.NumberEditor scaleEditor = new JSpinner.NumberEditor(spinnerScale, "0");

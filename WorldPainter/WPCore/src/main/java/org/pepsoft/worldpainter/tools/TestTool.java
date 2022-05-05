@@ -5,8 +5,8 @@
 package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
-import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
 import org.pepsoft.worldpainter.gardenofeden.Garden;
 
@@ -15,8 +15,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Random;
 
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 //import org.pepsoft.worldpainter.gardenofeden.Inn;
 
 /**
@@ -27,9 +27,9 @@ public class TestTool {
     public static void main(String[] args) throws IOException, OperationCancelled {
         Random random = new Random();
         long seed = random.nextLong();
-//        TileFactory tileFactory = new NoiseTileFactory(Terrain.GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, 62, false, false);
-        TileFactory tileFactory = TileFactoryFactory.createFlatTileFactory(seed, Terrain.GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 62, 0, false, false);
-        World2 world = new World2(JAVA_ANVIL, seed, tileFactory, DEFAULT_MAX_HEIGHT_ANVIL);
+//        TileFactory tileFactory = new NoiseTileFactory(Terrain.GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, DEFAULT_WATER_LEVEL, false, false);
+        TileFactory tileFactory = TileFactoryFactory.createFlatTileFactory(seed, Terrain.GRASS, JAVA_ANVIL_1_15.minZ, JAVA_ANVIL_1_15.standardMaxHeight, DEFAULT_WATER_LEVEL, 0, false, false);
+        World2 world = new World2(JAVA_ANVIL_1_15, seed, tileFactory, JAVA_ANVIL_1_15.standardMaxHeight);
         world.setName("TestWorld");
         world.setSpawnPoint(new Point(64, 64));
         world.setGameType(GameType.CREATIVE);
@@ -49,6 +49,6 @@ public class TestTool {
         while (! garden.tick());
         JavaWorldExporter worldExporter = new JavaWorldExporter(world);
         File exportDir = new File(args[0]);
-        worldExporter.export(exportDir, "TestWorld", worldExporter.selectBackupDir(new File(exportDir, "TestWorld")), null);
+        worldExporter.export(exportDir, "TestWorld", worldExporter.selectBackupDir(exportDir, world), null);
     }
 }

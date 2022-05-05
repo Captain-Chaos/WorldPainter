@@ -5,22 +5,24 @@
  */
 package org.pepsoft.worldpainter.themes.impl.fancy;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.TableModel;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.themes.Filter;
 import org.pepsoft.worldpainter.themes.HeightFilter;
+
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableModel;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
  * @author SchmitzP
  */
 public class LayerMapTableModel implements TableModel {
-    public LayerMapTableModel(int maxHeight, Map<Filter, Layer> layerMap) {
+    public LayerMapTableModel(int minHeight, int maxHeight, Map<Filter, Layer> layerMap) {
+        this.minHeight = minHeight;
         this.maxHeight = maxHeight;
         filters = new ArrayList<>(layerMap.size());
         layers = new ArrayList<>(layerMap.size());
@@ -79,15 +81,15 @@ public class LayerMapTableModel implements TableModel {
                 break;
             case COLUMN_FROM:
                 HeightFilter oldFilter = filters.get(rowIndex);
-                filters.set(rowIndex, new HeightFilter(maxHeight, (Integer) aValue, oldFilter.getStopHeight(), oldFilter.isFeather()));
+                filters.set(rowIndex, new HeightFilter(minHeight, maxHeight, (Integer) aValue, oldFilter.getStopHeight(), oldFilter.isFeather()));
                 break;
             case COLUMN_TO:
                 oldFilter = filters.get(rowIndex);
-                filters.set(rowIndex, new HeightFilter(maxHeight, oldFilter.getStartHeight(), (Integer) aValue, oldFilter.isFeather()));
+                filters.set(rowIndex, new HeightFilter(minHeight, maxHeight, oldFilter.getStartHeight(), (Integer) aValue, oldFilter.isFeather()));
                 break;
             case COLUMN_FEATHER:
                 oldFilter = filters.get(rowIndex);
-                filters.set(rowIndex, new HeightFilter(maxHeight, oldFilter.getStartHeight(), oldFilter.getStopHeight(), (Boolean) aValue));
+                filters.set(rowIndex, new HeightFilter(minHeight, maxHeight, oldFilter.getStartHeight(), oldFilter.getStopHeight(), (Boolean) aValue));
                 break;
             default:
                 throw new IndexOutOfBoundsException("columnIndex " + columnIndex);
@@ -108,7 +110,7 @@ public class LayerMapTableModel implements TableModel {
         listeners.add(l);
     }
     
-    private final int maxHeight;
+    private final int minHeight, maxHeight;
     private final List<HeightFilter> filters;
     private final List<Layer> layers;
     private final List<TableModelListener> listeners = new ArrayList<>();

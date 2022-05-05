@@ -37,7 +37,7 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
     }
     
     @Override
-    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    public List<Fixup> carve(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         if (noise.getSeed() != (dimension.getSeed() + SEED_OFFSET)) {
             noise.setSeed(dimension.getSeed() + SEED_OFFSET);
         }
@@ -54,7 +54,7 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
     }
 
     private void processEdgeColumn(final Dimension dimension, final int x, final int y, final MinecraftWorld minecraftWorld) {
-        final int maxHeight = minecraftWorld.getMaxHeight();
+        final int minHeight = minecraftWorld.getMinHeight();
         // Taper the world edges slightly inward
         final int r = 3;
         for (int dx = -r; dx <= r; dx++) {
@@ -65,10 +65,10 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
                         continue;
                     }
                     final float distance = MathUtils.getDistance(dx, dy);
-                    final float height = dimension.getHeightAt(x2, y2);
-                    final int depth = (int) (height / Math.pow(2, distance + noise.getPerlinNoise(x2 / SMALL_BLOBS, y2 / SMALL_BLOBS)) + 0.5f);
+                    final float height = dimension.getHeightAt(x2, y2) - minHeight;
+                    final int depth = (int) Math.round(height / Math.pow(2, distance + noise.getPerlinNoise(x2 / SMALL_BLOBS, y2 / SMALL_BLOBS)));
                     for (int z = 0; z < depth; z++) {
-                        minecraftWorld.setMaterialAt(x2, y2, z, AIR);
+                        minecraftWorld.setMaterialAt(x2, y2, z + minHeight, AIR);
                     }
                 }
             }
@@ -77,7 +77,16 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
         // column to avoid long pauses in Minecraft when the chunks are loaded
         // (but not for ceiling dimensions)
         if (dimension.getDim() >= 0) {
-            for (int z = maxHeight - 1; z >= 0; z--) {
+            int highestNonAirBlock = Integer.MIN_VALUE;
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    final int highestNonAirBlockForColumn = minecraftWorld.getHighestNonAirBlock(x + dx, y + dy);
+                    if (highestNonAirBlockForColumn > highestNonAirBlock) {
+                        highestNonAirBlock = highestNonAirBlockForColumn;
+                    }
+                }
+            }
+            for (int z = highestNonAirBlock; z >= minHeight; z--) {
                 if ((minecraftWorld.getMaterialAt(x, y, z).isNamed(MC_WATER))
                         || (minecraftWorld.getMaterialAt(x, y, z).isNamed(MC_LAVA))) {
                     // A previous iteration already placed fluid here
@@ -86,18 +95,18 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
                         || isWaterAndNotVoid(dimension, minecraftWorld, x, y - 1, z)
                         || isWaterAndNotVoid(dimension, minecraftWorld, x + 1, y, z)
                         || isWaterAndNotVoid(dimension, minecraftWorld, x, y + 1, z)) {
-                    minecraftWorld.setMaterialAt(x, y, z, WATER.withProperty(LEVEL, 1));
-                    for (z--; z >= 0; z--) {
-                        minecraftWorld.setMaterialAt( x, y, z, WATER.withProperty(LEVEL, 9));
+                    minecraftWorld.setMaterialAt(x, y, z, FLOWING_WATER);
+                    for (z--; z >= minHeight; z--) {
+                        minecraftWorld.setMaterialAt( x, y, z, FALLING_WATER);
                     }
                     break;
                 } else if (isLavaAndNotVoid(dimension, minecraftWorld, x - 1, y, z)
                         || isLavaAndNotVoid(dimension, minecraftWorld, x, y - 1, z)
                         || isLavaAndNotVoid(dimension, minecraftWorld, x + 1, y, z)
                         || isLavaAndNotVoid(dimension, minecraftWorld, x, y + 1, z)) {
-                    minecraftWorld.setMaterialAt(x, y, z, LAVA.withProperty(LEVEL, 2));
-                    for (z--; z >= 0; z--) {
-                        minecraftWorld.setMaterialAt(x, y, z, LAVA.withProperty(LEVEL, 10));
+                    minecraftWorld.setMaterialAt(x, y, z, FLOWING_LAVA);
+                    for (z--; z >= minHeight; z--) {
+                        minecraftWorld.setMaterialAt(x, y, z, FALLING_LAVA);
                     }
                     break;
                 }

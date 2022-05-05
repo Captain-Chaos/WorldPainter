@@ -16,6 +16,7 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 
 import static org.pepsoft.util.GUIUtils.getUIScaleInt;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
  * @author SchmitzP
@@ -200,8 +201,9 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                     if (layerYSlope != 0.0) {
                         z += layerYSlope * y;
                     }
-                    return materials[Math.floorMod(Math.round(z), materials.length)];
+                    return materials[Math.floorMod(Math.round(z), materials.length)]; // TODOMC118 does this work for z<0?
                 } else {
+                    // TODOMC118 does this work for z<0?
                     final int iZ = Math.round(z);
                     if (iZ < 0) {
                         return materials[0];
@@ -252,8 +254,9 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                     if (layerYSlope != 0.0) {
                         fZ += layerYSlope * y;
                     }
-                    return materials[Math.floorMod(Math.round(fZ), materials.length)];
+                    return materials[Math.floorMod(Math.round(fZ), materials.length)]; // TODOMC118 does this work for z<0?
                 } else {
+                    // TODOMC118 does this work for z<0?
                     final int iZ = Math.round(fZ);
                     if (iZ < 0) {
                         return materials[0];
@@ -367,7 +370,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
      *     appropriate name
      */
     public static MixedMaterial create(final Platform platform, final Material material) {
-        return create((platform == DefaultPlugin.JAVA_ANVIL_1_15) /* TODO make dynamic */ ? material.toString() : material.toLegacyString(), material);
+        return create((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */ ? material.toString() : material.toLegacyString(), material);
     }
 
     /**

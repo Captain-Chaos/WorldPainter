@@ -25,10 +25,17 @@ package org.pepsoft.minecraft;
 
 // A simple cache and wrapper for efficiently multiple RegionFiles simultaneously.
 
-import java.io.*;
-import java.lang.ref.*;
-import java.util.*;
-import static org.pepsoft.minecraft.Constants.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.pepsoft.minecraft.Constants.VERSION_ANVIL;
+import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
 
 public final class RegionFileCache {
 
@@ -90,7 +97,7 @@ public final class RegionFileCache {
             return regionFile;
         }
 
-        if (!regionDir.exists()) {
+        if (! regionDir.exists()) {
             regionDir.mkdirs();
         }
 

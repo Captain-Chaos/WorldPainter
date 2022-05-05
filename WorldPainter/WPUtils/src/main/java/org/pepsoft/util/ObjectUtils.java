@@ -5,19 +5,12 @@
  */
 package org.pepsoft.util;
 
-import org.pepsoft.util.undo.*;
 import org.pepsoft.util.undo.Cloneable;
 
 import java.awt.*;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferByte;
-import java.awt.image.DataBufferDouble;
-import java.awt.image.DataBufferFloat;
-import java.awt.image.DataBufferInt;
-import java.awt.image.DataBufferShort;
-import java.awt.image.DataBufferUShort;
-import java.util.*;
+import java.awt.image.*;
 import java.util.List;
+import java.util.*;
 
 /**
  *
@@ -51,7 +44,7 @@ public final class ObjectUtils {
             if (object instanceof BitSet) {
                 return (T) ((BitSet) object).clone();
             } else if (object instanceof EnumSet) {
-                return (T) ((EnumSet) object).clone();
+                return (T) ((EnumSet<?>) object).clone();
             } else if (object instanceof byte[]) {
                 return (T) ((byte[]) object).clone();
             } else if (object instanceof short[]) {
@@ -71,9 +64,9 @@ public final class ObjectUtils {
                 if (object instanceof SortedMap) {
                     copy = new TreeMap<>();
                 } else {
-                    copy = new HashMap<>(((Map) object).size());
+                    copy = new HashMap<>(((Map<?, ?>) object).size());
                 }
-                for (Map.Entry entry: ((Map<?, ?>) object).entrySet()) {
+                for (Map.Entry<?, ?> entry: ((Map<?, ?>) object).entrySet()) {
                     // TODO: map keys are never copied, should we document that?
                     copy.put(entry.getKey(), copyObject(entry.getValue()));
                 }
@@ -81,11 +74,11 @@ public final class ObjectUtils {
             } else if (object instanceof List) {
                 final List<Object> copy;
                 if (object instanceof RandomAccess) {
-                    copy = new ArrayList<>(((List) object).size());
+                    copy = new ArrayList<>(((List<?>) object).size());
                 } else {
                     copy = new LinkedList<>();
                 }
-                for (Object entry: (List) object) {
+                for (Object entry: (List<?>) object) {
                     copy.add(copyObject(entry));
                 }
                 return (T) copy;
@@ -94,9 +87,9 @@ public final class ObjectUtils {
                 if (object instanceof SortedSet) {
                     copy = new TreeSet<>();
                 } else {
-                    copy = new HashSet<>(((Set) object).size());
+                    copy = new HashSet<>(((Set<?>) object).size());
                 }
-                for (Object entry: (Set) object) {
+                for (Object entry: (Set<?>) object) {
                     copy.add(copyObject(entry));
                 }
                 return (T) copy;

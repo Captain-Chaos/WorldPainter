@@ -17,15 +17,15 @@ public class HeightFilterTest {
      */
     @Test
     public void testGetLevel() {
-        HeightFilter filter = new HeightFilter(32, 10, 20, true);
+        HeightFilter filter = new HeightFilter(0, 32, 10, 20, true);
         for (int z = 0; z < 32; z++) {
             System.out.printf("Level %3d: %2d%n", z, filter.getLevel(0, 0, z, 15));
         }
-        filter = new HeightFilter(32, 0, 31, false);
+        filter = new HeightFilter(0, 32, 0, 31, false);
         for (int z = 0; z < 32; z++) {
             System.out.printf("Level %3d: %2d%n", z, filter.getLevel(0, 0, z, 15));
         }
-        filter = new HeightFilter(32, 10, 20, false);
+        filter = new HeightFilter(0, 32, 10, 20, false);
         for (int z = 0; z < 32; z++) {
             System.out.printf("Level %3d: %2d%n", z, filter.getLevel(0, 0, z, 15));
         }

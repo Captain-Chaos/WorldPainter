@@ -84,7 +84,9 @@ public class ExportTester extends RegressionIT {
                 World2 world = loadWorld(file);
                 if ((! (world.getPlatform() == JAVA_ANVIL))
                         && (! (world.getPlatform() == JAVA_MCREGION))
-                        && (! (world.getPlatform() == JAVA_ANVIL_1_15))) {
+                        && (! (world.getPlatform() == JAVA_ANVIL_1_15))
+                        && (! (world.getPlatform() == JAVA_ANVIL_1_17))
+                        && (! (world.getPlatform() == JAVA_ANVIL_1_18))) {
                     logger.warn("Don't know how to export platform {}; skipping", world.getPlatform().displayName);
                     continue;
                 }
@@ -97,7 +99,7 @@ public class ExportTester extends RegressionIT {
                     logger.error(t.getClass().getSimpleName() + ": " + t.getMessage(), t);
                 }
 
-                if ((world.getPlatform() != JAVA_ANVIL_1_15) && (world.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL)) {
+                if ((world.getPlatform() != JAVA_ANVIL_1_15) && (world.getPlatform() != JAVA_ANVIL_1_17) && (world.getPlatform() != JAVA_ANVIL_1_18) /* TODO make dynamic */ && (world.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL)) {
                     // Also test the new Minecraft 1.15 support
                     world.setPlatform(JAVA_ANVIL_1_15);
                     try {

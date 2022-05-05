@@ -27,6 +27,7 @@ import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 
 import static org.pepsoft.minecraft.Constants.HIGHEST_KNOWN_BLOCK_ID;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.MixedMaterialTableModel.*;
 
 /**
@@ -306,7 +307,7 @@ public class CustomMaterialDialog extends WorldPainterDialog implements Property
                 case BLOBS:
                     jTabbedPane1.setSelectedIndex(1);
                     radioButtonBlobs.setSelected(true);
-                    spinnerScale.setValue((int) (mixedMaterial.getScale() * 100 + 0.5f));
+                    spinnerScale.setValue(Math.round(mixedMaterial.getScale() * 100));
                     break;
                 case LAYERED:
                     jTabbedPane1.setSelectedIndex(1);
@@ -418,7 +419,7 @@ public class CustomMaterialDialog extends WorldPainterDialog implements Property
     }
 
     private String createName(Material material) {
-        return (platform == DefaultPlugin.JAVA_ANVIL_1_15) /* TODO make dynamic */ ? material.toString() : material.toLegacyString();
+        return ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) /* TODO make dynamic */ ? material.toString() : material.toLegacyString();
     }
 
     private boolean isExtendedBlockIds() {

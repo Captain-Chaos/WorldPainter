@@ -6,8 +6,10 @@
 
 package org.pepsoft.worldpainter.layers;
 
-import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.App;
+import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.objects.MinecraftWorldObject;
@@ -44,6 +46,7 @@ public class EditLayerDialog<L extends Layer> extends AbstractEditLayerDialog<L>
      * @param parent The window relative to which to display the dialog.
      * @param layer The layer to edit..
      */
+    @SuppressWarnings("unchecked") // Guaranteed by Java
     public EditLayerDialog(Window parent, Platform platform, L layer) {
         this(parent, layer, LayerEditorManager.getInstance().createEditor(platform, (Class<L>) layer.getClass()));
     }
@@ -166,6 +169,7 @@ public class EditLayerDialog<L extends Layer> extends AbstractEditLayerDialog<L>
     }
     
     private void updatePreview() {
+        // TODO use Netherrack in addition to or instead of Grass, e.g. for Plants layer with Nether plants, etc.
         // Check again whether the current settings are valid, although the
         // chance is remote
         if (! editor.isCommitAvailable()) {
@@ -179,7 +183,8 @@ public class EditLayerDialog<L extends Layer> extends AbstractEditLayerDialog<L>
                     new Thread("Preview Creator for " + editor.getLayer().getName()) {
                         @Override
                         public void run() {
-renderLoop:                 do {
+                            renderLoop:
+                            do {
                                 synchronized (PREVIEW_RENDERER_LOCK) {
                                     previewCreator.setLayer(settings.getLayer());
                                     previewCreator.setSettings(settings);

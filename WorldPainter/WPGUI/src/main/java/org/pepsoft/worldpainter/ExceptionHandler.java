@@ -5,7 +5,10 @@
 
 package org.pepsoft.worldpainter;
 
-import javax.swing.SwingUtilities;
+import org.slf4j.LoggerFactory;
+
+import javax.swing.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
@@ -17,9 +20,18 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
         if (shouldIgnore(t)) {
             t.printStackTrace();
         } else {
-            ErrorDialog dialog = new ErrorDialog(App.getInstanceIfExists());
-            dialog.setException(t);
-            dialog.setVisible(true);
+            if (handlingException.compareAndSet(false, true)) {
+                try {
+                    ErrorDialog dialog = new ErrorDialog(App.getInstanceIfExists());
+                    dialog.setException(t);
+                    dialog.setVisible(true);
+                } finally {
+                    handlingException.set(false);
+                }
+            } else {
+                LoggerFactory.getLogger(ExceptionHandler.class)
+                        .error("{} occurred while exception dialog was open (message: {})", t.getClass().getSimpleName(), t.getMessage(), t);
+            }
         }
     }
 
@@ -43,12 +55,13 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
                         && rootCause.getStackTrace()[0].getMethodName().equals("getWindowAncestor"))
                     || (rootCause.getStackTrace()[0].getClassName().equals("javax.swing.plaf.basic.BasicProgressBarUI")
                         && rootCause.getStackTrace()[0].getMethodName().equals("sizeChanged"))) {
-                // This happens now and again with no WP code on the stack.
-                // Probably a bug in Java and most likely not something we can
-                // do anything about, so ignore it
+                // This happens now and again with no WP code on the stack. Probably a bug in Java and most likely not
+                // something we can do anything about, so ignore it
                 return true;
             }
         }
         return false;
     }
+
+    private static final AtomicBoolean handlingException = new AtomicBoolean();
 }

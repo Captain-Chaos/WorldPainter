@@ -10,7 +10,7 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes;
+import org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.Biome;
@@ -47,7 +47,7 @@ public class MaskImporter {
         this.allLayers = allLayers;
         int sampleSize = image.getSampleModel().getSampleSize(0);
         if (sampleSize == 1) {
-            inputType = InputType.ONE_BIT_GRAY_SCALE;
+            inputType = InputType.ONE_BIT_GREY_SCALE;
         } else if (image.getColorModel().getColorSpace().getType() == ColorSpace.TYPE_GRAY) {
             if (sampleSize == 8) {
                 inputType = InputType.EIGHT_BIT_GREY_SCALE;
@@ -61,7 +61,7 @@ public class MaskImporter {
         }
 
         switch (inputType) {
-            case ONE_BIT_GRAY_SCALE:
+            case ONE_BIT_GREY_SCALE:
                 imageLowValue = 0;
                 imageHighValue = 1;
                 break;
@@ -108,7 +108,7 @@ outer:          for (int x = 0; x < width; x++) {
         }
         final int maxValue;
         switch (inputType) {
-            case ONE_BIT_GRAY_SCALE:
+            case ONE_BIT_GREY_SCALE:
                 maxValue = 1;
                 break;
             case EIGHT_BIT_GREY_SCALE:
@@ -160,7 +160,7 @@ outer:          for (int x = 0; x < width; x++) {
         final Applicator applicator;
         final String aspect;
         switch (inputType) {
-            case ONE_BIT_GRAY_SCALE:
+            case ONE_BIT_GREY_SCALE:
                 if (removeExistingLayer) {
                     applicator = new Applicator() {
                         @Override
@@ -193,6 +193,7 @@ outer:          for (int x = 0; x < width; x++) {
                             };
                             aspect = "terrain";
                         } else {
+                            // TODOMC118 platforms with named biomes
                             final int defaultValue = applyToLayer.getDefaultValue();
                             if (removeExistingLayer) {
                                 applicator = new Applicator() {
@@ -402,7 +403,7 @@ outer:          for (int x = 0; x < width; x++) {
      * @return Whether this image type can be mapped to the terrain.
      */
     public boolean isTerrainPossible() {
-        // Only gray scale images with at least 8 bits can be mapped to the
+        // Only grey scale images with at least 8 bits can be mapped to the
         // terrain. Possible in the future we will support mapping colours to
         // the terrain, but not yet.
         return (inputType == InputType.EIGHT_BIT_GREY_SCALE || inputType == InputType.SIXTEEN_BIT_GREY_SCALE)
@@ -427,16 +428,16 @@ outer:          for (int x = 0; x < width; x++) {
                 }
             } else if (layer.equals(Biome.INSTANCE)) {
                 // Biomes are a discrete layer which can only be mapped one on one
-                if ((inputType == InputType.EIGHT_BIT_GREY_SCALE || inputType == InputType.SIXTEEN_BIT_GREY_SCALE) && (imageHighValue <= Minecraft1_15Biomes.HIGHEST_BIOME_ID )) {
+                if ((inputType == InputType.EIGHT_BIT_GREY_SCALE || inputType == InputType.SIXTEEN_BIT_GREY_SCALE) && (imageHighValue <= Minecraft1_17Biomes.HIGHEST_BIOME_ID )) {
                     possibleLayers.add(layer);
                 }
             } else if (layer.getDataSize() == Layer.DataSize.BIT || layer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK) {
                 // 8 or 16 bit masks can be applied by either dithering or applying a threshold
-                if (inputType == InputType.ONE_BIT_GRAY_SCALE || inputType == InputType.EIGHT_BIT_GREY_SCALE || inputType == InputType.SIXTEEN_BIT_GREY_SCALE) {
+                if (inputType == InputType.ONE_BIT_GREY_SCALE || inputType == InputType.EIGHT_BIT_GREY_SCALE || inputType == InputType.SIXTEEN_BIT_GREY_SCALE) {
                     possibleLayers.add(layer);
                 }
             } else {
-                // Continuous layers need a gray scale mask
+                // Continuous layers need a grey scale mask
                 if (inputType == InputType.EIGHT_BIT_GREY_SCALE || inputType == InputType.SIXTEEN_BIT_GREY_SCALE) {
                     possibleLayers.add(layer);
                 }
@@ -486,7 +487,7 @@ outer:          for (int x = 0; x < width; x++) {
             return EnumSet.of(Mapping.ONE_TO_ONE);
         } else if (applyToLayer.getDataSize() == Layer.DataSize.BIT || applyToLayer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK) {
             switch (inputType) {
-                case ONE_BIT_GRAY_SCALE:
+                case ONE_BIT_GREY_SCALE:
                     return EnumSet.of(Mapping.ONE_TO_ONE);
                 case EIGHT_BIT_GREY_SCALE:
                 case SIXTEEN_BIT_GREY_SCALE:
@@ -587,7 +588,7 @@ outer:          for (int x = 0; x < width; x++) {
     private Mapping mapping;
     private int scale, xOffset, yOffset, threshold = -1;
 
-    public enum InputType {UNSUPPORTED, ONE_BIT_GRAY_SCALE, EIGHT_BIT_GREY_SCALE, SIXTEEN_BIT_GREY_SCALE, COLOUR}
+    public enum InputType {UNSUPPORTED, ONE_BIT_GREY_SCALE, EIGHT_BIT_GREY_SCALE, SIXTEEN_BIT_GREY_SCALE, COLOUR}
     public enum Mapping {ONE_TO_ONE, DITHERING, THRESHOLD, FULL_RANGE}
 
     private static int[][] ANNOTATIONS_PALETTE = {

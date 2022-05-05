@@ -23,11 +23,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.MC_LAVA;
 import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.SMALL_BLOBS;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 
 /**
  *
@@ -37,9 +40,15 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
     public TreesExporter(T layer) {
         super(layer, new TreeLayerSettings<>(layer));
     }
-    
+
     @Override
-    public List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    public Set<Stage> getStages() {
+        return singleton(ADD_FEATURES);
+    }
+
+    @SuppressWarnings("unchecked") // Responsibility of caller
+    @Override
+    public List<Fixup> addFeatures(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         TreeLayerSettings<T> settings = (TreeLayerSettings<T>) getSettings();
         int minimumLevel = settings.getMinimumLevel();
         int treeChance = settings.getTreeChance();
@@ -51,13 +60,13 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
                 // Set the seed and randomizer according to the chunk
                 // coordinates to make sure the chunk is always rendered the
                 // same, no matter how often it is rendererd
-                long seed = dimension.getSeed() + (chunkX >> 4) * 65537 + (chunkY >> 4) * 4099 + layer.hashCode();
+                long seed = dimension.getSeed() + (chunkX >> 4) * 65537L + (chunkY >> 4) * 4099L + layer.hashCode();
                 Random random = new Random(seed);
                 for (int x = chunkX; x < chunkX + 16; x++) {
                     for (int y = chunkY; y < chunkY + 16; y++) {
                         int height = dimension.getIntHeightAt(x, y);
-                        if ((height == -1) || (height >= maxZ)) {
-                            // height == -1 means there is no tile there
+                        if ((height == Integer.MIN_VALUE) || (height >= maxZ)) {
+                            // height == Integer.MIN_VALUE means there is no tile there
                             continue;
                         }
                         int strength = Math.max(minimumLevel, dimension.getLayerValueAt(layer, x, y));
@@ -81,7 +90,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
                             // or extremely near
                             if (room(dimension, x, y, minecraftWorld)) {
                                 // Plant a tree
-                                renderTree(layer, x, y, height, strength, minecraftWorld, dimension, new Random(seed + x * 65537 + y), seed);
+                                renderTree(layer, x, y, height, strength, minecraftWorld, dimension, new Random(seed + x * 65537L + y), seed);
                             }
                         }
                     }
@@ -110,10 +119,11 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
     
     private boolean room(Dimension dimension, int x, int y, int dx, int dy, MinecraftWorld minecraftWorld) {
         final int height = dimension.getIntHeightAt(x + dx, y + dy);
-        return (height >= 0)
+        return (height >= dimension.getMinHeight())
             && (height < (dimension.getMaxHeight() - 1))
             && (! minecraftWorld.getMaterialAt(x + dx, y + dy, height + 1).simpleName.endsWith("_log"))
             && (! minecraftWorld.getMaterialAt(x + dx, y + dy, height + 1).simpleName.endsWith("_bark"))
+            && (! minecraftWorld.getMaterialAt(x + dx, y + dy, height + 1).simpleName.endsWith("_wood"))
             && (dimension.getLayerValueAt(GardenCategory.INSTANCE, x + dx, y + dy) == GardenCategory.CATEGORY_UNOCCUPIED);
     }
 
@@ -123,6 +133,7 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
         renderMushrooms(x, y, height, strength, minecraftWorld, random, seed);
     }
 
+    @SuppressWarnings("unchecked") // Responsibility of caller
     private void renderMushrooms(int blockInWorldX, int blockInWorldY, int height, int strength, MinecraftWorld minecraftWorld, Random random, long seed) {
         if (height > (minecraftWorld.getMaxHeight() - 2)) {
             return;

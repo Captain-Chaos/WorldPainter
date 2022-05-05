@@ -8,9 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 
-import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.minecraft.Constants.BLK_STATIONARY_LAVA;
 import static org.pepsoft.minecraft.Material.*;
 
 /**
@@ -26,13 +24,16 @@ public abstract class PostProcessor {
      *
      * @param minecraftWorld The {@code MinecraftWorld} to post process.
      * @param area The area of the world to post process from top to bottom.
+     * @param exportSettings The export settings to apply, if any. May be {@code null}, in which case the post processor
+     *                       should use default settings. If the settings are of an unsupported type and/or belong to a
+     *                       different platform, they must be silently ignored rather than cause an exception.
      * @param progressReceiver The optional progress receiver to which to report
      *                         progress. May be {@code null}.
      * @throws ProgressReceiver.OperationCancelled If the progress receiver
      * threw an {@code OperationCancelled} exception.
      */
-    public void postProcess(MinecraftWorld minecraftWorld, Rectangle area, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-        postProcess(minecraftWorld, new Box(area.x, area.x + area.width, area.y, area.y + area.height, 0, minecraftWorld.getMaxHeight()), progressReceiver);
+    public void postProcess(MinecraftWorld minecraftWorld, Rectangle area, ExportSettings exportSettings, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+        postProcess(minecraftWorld, new Box(area.x, area.x + area.width, area.y, area.y + area.height, minecraftWorld.getMinHeight(), minecraftWorld.getMaxHeight()), exportSettings, progressReceiver);
     }
 
     /**
@@ -41,26 +42,30 @@ public abstract class PostProcessor {
      *
      * @param minecraftWorld The {@code MinecraftWorld} to post process.
      * @param volume The three dimensional area of the world to post process.
+     * @param exportSettings The export settings to apply, if any. May be {@code null}, in which case the post processor
+     *                       should use default settings. If the settings are of an unsupported type and/or belong to a
+     *      *                different platform, they must be silently ignored rather than cause an exception.
      * @param progressReceiver The optional progress receiver to which to report
      *                         progress. May be {@code null}.
      * @throws ProgressReceiver.OperationCancelled If the progress receiver
      * threw an {@code OperationCancelled} exception.
      */
-    public abstract void postProcess(MinecraftWorld minecraftWorld, Box volume, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled;
+    public abstract void postProcess(MinecraftWorld minecraftWorld, Box volume, ExportSettings exportSettings, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled;
 
-    protected void dropBlock(MinecraftWorld world, int x, int y, int z) {
+    protected final void dropBlock(MinecraftWorld world, int x, int y, int z) {
+        final int minZ = world.getMinHeight();
         int solidFloor = z - 1;
-        for (; solidFloor > 0; solidFloor--) {
-            int blockType = world.getBlockTypeAt(x, y, solidFloor);
-            if (BLOCKS[blockType].insubstantial) {
+        for (; solidFloor > minZ; solidFloor--) {
+            Material material = world.getMaterialAt(x, y, solidFloor);
+            if (material.insubstantial) {
                 // Remove insubstantial blocks (as the falling block would have
                 // obliterated them) but keep looking for a solid floor
                 world.setMaterialAt(x, y, solidFloor, AIR);
-            } else if ((blockType != BLK_AIR) && (blockType != BLK_WATER) && (blockType != BLK_STATIONARY_WATER) && (blockType != BLK_LAVA) && (blockType != BLK_STATIONARY_LAVA)) {
+            } else if (material.isNotNamedOneOf(MC_AIR, MC_WATER, MC_LAVA)) {
                 break;
             }
         }
-        if (solidFloor < 0) {
+        if (solidFloor < minZ) {
             // The block would have fallen into the void, so just remove it
             world.setMaterialAt(x, y, z, AIR);
         } else if (solidFloor < z - 1) {
@@ -70,21 +75,65 @@ public abstract class PostProcessor {
         }
     }
 
-    protected void dropFluid(MinecraftWorld world, int x, int y, int z) {
-        boolean lava = world.getBlockTypeAt(x, y, z) == BLK_LAVA || world.getBlockTypeAt(x, y, z) == BLK_STATIONARY_LAVA;
+    protected final void dropFluid(MinecraftWorld world, int x, int y, int z) {
+        final int minZ = world.getMinHeight();
+        final boolean lava = world.getMaterialAt(x, y, z).isNamed(MC_LAVA);
         int solidFloor = z - 1;
-        for (; solidFloor > 0; solidFloor--) {
-            int blockType = world.getBlockTypeAt(x, y, solidFloor);
-            if (blockType == BLK_AIR || BLOCKS[blockType].insubstantial) {
-                world.setMaterialAt(x, y, solidFloor, lava ? STATIONARY_LAVA : STATIONARY_WATER);
+        for (; solidFloor > minZ; solidFloor--) {
+            Material material = world.getMaterialAt(x, y, solidFloor);
+            if (material == AIR || (material.insubstantial && material.isNotNamed(lava ? MC_LAVA : MC_WATER))) {
+                world.setMaterialAt(x, y, solidFloor, lava ? FALLING_LAVA : FALLING_WATER);
             } else {
                 break;
             }
         }
-        if ((solidFloor >= 0) && (solidFloor < (z - 1))){
-            // Make the lowest block flowing, so that Minecraft will continue it
-            // sideways
-            world.setMaterialAt(x, y, solidFloor + 1,lava ? LAVA : WATER);
+        if ((solidFloor >= minZ) && (solidFloor < (z - 1))) {
+            if (world.getMaterialAt(x, y, solidFloor).isNamedOneOf(MC_GRASS_BLOCK, MC_MYCELIUM, MC_FARMLAND)) {
+                world.setMaterialAt(x, y, solidFloor, DIRT);
+            }
+        }
+    }
+
+    protected final boolean isWaterContained(MinecraftWorld world, int x, int y, int z, Material materialBelow) {
+        if (containsAnyWater(materialBelow)) {
+            // There is already water below
+            return true;
+        } else if ((! materialBelow.containsWater()) && (! materialBelow.solid)) {
+            // The water can flow down
+            return false;
+        } else {
+            // Check whether the water can flow sideways
+            final Material materialNorth = world.getMaterialAt(x, y - 1, z), materialEast = world.getMaterialAt(x + 1, y, z),
+                    materialSouth = world.getMaterialAt(x, y + 1, z), materialWest = world.getMaterialAt(x - 1, y, z);
+            return (containsAnyWater(materialNorth) || materialNorth.solid)
+                    && (containsAnyWater(materialEast) || materialEast.solid)
+                    && (containsAnyWater(materialSouth) || materialSouth.solid)
+                    && (containsAnyWater(materialWest) || materialWest.solid);
+        }
+    }
+
+    /**
+     * Whether the material is any kind of water, including falling or flowing water (with a non zero level).
+     */
+    protected final boolean containsAnyWater(Material material) {
+        return material.containsWater() || material.isNamed(MC_WATER);
+    }
+
+    protected final boolean isLavaContained(MinecraftWorld world, int x, int y, int z, Material materialBelow) {
+        if (materialBelow.isNamed(MC_LAVA)) {
+            // There is already lava below
+            return true;
+        } else if ((! materialBelow.isNamed(MC_LAVA)) && (! materialBelow.solid)) {
+            // The lava can flow down
+            return false;
+        } else {
+            // Check whether the lava can flow sideways
+            final Material materialNorth = world.getMaterialAt(x, y - 1, z), materialEast = world.getMaterialAt(x + 1, y, z),
+                    materialSouth = world.getMaterialAt(x, y + 1, z), materialWest = world.getMaterialAt(x - 1, y, z);
+            return (materialNorth.isNamed(MC_LAVA) || materialNorth.solid)
+                    && (materialEast.isNamed(MC_LAVA) || materialEast.solid)
+                    && (materialSouth.isNamed(MC_LAVA) || materialSouth.solid)
+                    && (materialWest.isNamed(MC_LAVA) || materialWest.solid);
         }
     }
 
@@ -97,6 +146,4 @@ public abstract class PostProcessor {
             logger.warn("Block rule enforcement disabled");
         }
     }
-
-    public enum FloatMode {DROP, SUPPORT, LEAVE_FLOATING}
 }

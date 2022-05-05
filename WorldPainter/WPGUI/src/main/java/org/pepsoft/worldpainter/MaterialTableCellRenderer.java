@@ -6,6 +6,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
+
 public class MaterialTableCellRenderer extends DefaultTableCellRenderer {
     public MaterialTableCellRenderer(Platform platform) {
         this.platform = platform;
@@ -18,7 +20,7 @@ public class MaterialTableCellRenderer extends DefaultTableCellRenderer {
             if (! isSelected) {
                 setForeground(Color.BLUE);
             }
-            if ((platform == DefaultPlugin.JAVA_ANVIL_1_15) /* TODO make dynamic */) {
+            if ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) {
                 setText("<html><u>" + value + "</u></html>");
             } else {
                 setText("<html><u>" + ((Material) value).toLegacyString() + "</u></html>");

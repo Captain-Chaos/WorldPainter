@@ -20,9 +20,13 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import static java.lang.Math.max;
+import static java.util.Arrays.asList;
 import static org.pepsoft.worldpainter.layers.plants.Category.*;
 import static org.pepsoft.worldpainter.layers.plants.Plants.ALL_PLANTS;
 import static org.pepsoft.worldpainter.util.I18nHelper.m;
@@ -97,8 +101,8 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
             } else {
                 spinners[i].setValue(0);
                 if (growthFromSpinners[i] != null) {
-                    growthFromSpinners[i].setValue(ALL_PLANTS[i].getMaxGrowth());
-                    growthToSpinners[i].setValue(ALL_PLANTS[i].getMaxGrowth());
+                    growthFromSpinners[i].setValue(max(ALL_PLANTS[i].getDefaultGrowth() / 2, 1));
+                    growthToSpinners[i].setValue(ALL_PLANTS[i].getDefaultGrowth());
                 }
             }
         }
@@ -143,39 +147,37 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         panelPlantControls.add(panel);
         addCategory(panel, SAPLINGS);
         addCategory(panel, CROPS);
-        addCategory(panel, "Various", MUSHROOMS, CACTUS, SUGAR_CANE, FLOATING_PLANTS, NETHER, END);
+        addCategory(panel, "Various", MUSHROOMS, CACTUS, SUGAR_CANE, FLOATING_PLANTS, END);
         addFiller(panel);
         panel = new JPanel(new GridBagLayout());
         panelPlantControls.add(panel);
         addCategory(panel, WATER_PLANTS);
+        addCategory(panel, NETHER);
+        addCategory(panel, "Hanging Plants", "For ceilings and cave/tunnel roofs", HANGING_DRY_PLANTS, HANGING_WATER_PLANTS);
         addFiller(panel);
     }
 
     private void addCategory(JPanel panel, Category category) {
-        GridBagConstraints constraints = new GridBagConstraints();
-        constraints.gridwidth = GridBagConstraints.REMAINDER;
-        constraints.anchor = GridBagConstraints.BASELINE_LEADING;
-        constraints.insets = new Insets(4, 0, 4, 0);
-        panel.add(new JLabel("<html><b>" + m(category) + "</b></html>"), constraints);
-        for (int i = 0; i < ALL_PLANTS.length; i++) {
-            Plant plant = ALL_PLANTS[i];
-            if (plant.getCategory() == category) {
-                addPlantRow(panel, plant, i);
-            }
-        }
+        addCategory(panel, m(category), category);
     }
 
-
     private void addCategory(JPanel panel, String title, Category... categories) {
+        addCategory(panel, title, null, categories);
+    }
+
+    private void addCategory(JPanel panel, String title, String subTitle, Category... categories) {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.anchor = GridBagConstraints.BASELINE_LEADING;
         constraints.insets = new Insets(4, 0, 4, 0);
         panel.add(new JLabel("<html><b>" + title + "</b></html>"), constraints);
+        if (subTitle != null) {
+            panel.add(new JLabel(subTitle), constraints);
+        }
         for (Category category: categories) {
             for (int i = 0; i < ALL_PLANTS.length; i++) {
                 Plant plant = ALL_PLANTS[i];
-                if (plant.getCategory() == category) {
+                if (plant.getCategories()[0] == category) {
                     addPlantRow(panel, plant, i);
                 }
             }
@@ -186,11 +188,13 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.anchor = GridBagConstraints.BASELINE_LEADING;
         constraints.insets = new Insets(1, 0, 1, 4);
-        BufferedImage icon = findIcon(plant.getIconName());
-        if (icon != null) {
-            plantLabels[index] = new JLabel(plant.getName(), new ImageIcon(icon), JLabel.TRAILING);
-        } else {
-            plantLabels[index] = new JLabel(plant.getName());
+        synchronized (icons) {
+            BufferedImage icon = icons.get(plant.getIconName());
+            if (icon != null) {
+                plantLabels[index] = new JLabel(plant.getName(), new ImageIcon(icon), JLabel.TRAILING);
+            } else {
+                plantLabels[index] = new JLabel(plant.getName());
+            }
         }
         panel.add(plantLabels[index], constraints);
 
@@ -206,26 +210,28 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         if (plant.getMaxGrowth() > 1) {
             panel.add(new JLabel("Growth:"), constraints);
             
-            spinnerModel = new SpinnerNumberModel(plant.getMaxGrowth(), 1, plant.getMaxGrowth(), 1);
+            spinnerModel = new SpinnerNumberModel(max(plant.getDefaultGrowth() / 2, 1), 1, plant.getMaxGrowth(), 1);
             growthFromSpinners[index] = new JSpinner(spinnerModel);
             growthFromSpinners[index].addChangeListener(e -> {
                 int newValue = (Integer) growthFromSpinners[index].getValue();
                 if ((Integer) growthToSpinners[index].getValue() < newValue) {
                     growthToSpinners[index].setValue(newValue);
                 }
+                settingsChanged();
             });
             panel.add(growthFromSpinners[index], constraints);
             
             panel.add(new JLabel("-"));
 
             constraints.gridwidth = GridBagConstraints.REMAINDER;
-            spinnerModel = new SpinnerNumberModel(plant.getMaxGrowth(), 1, plant.getMaxGrowth(), 1);
+            spinnerModel = new SpinnerNumberModel(plant.getDefaultGrowth(), 1, plant.getMaxGrowth(), 1);
             growthToSpinners[index] = new JSpinner(spinnerModel);
             growthToSpinners[index].addChangeListener(e -> {
                 int newValue = (Integer) growthToSpinners[index].getValue();
                 if ((Integer) growthFromSpinners[index].getValue() > newValue) {
                     growthFromSpinners[index].setValue(newValue);
                 }
+                settingsChanged();
             });
             panel.add(growthToSpinners[index], constraints);
         } else {
@@ -240,45 +246,53 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         panel.add(new JPanel(), constraints);
     }
 
-    private static BufferedImage findIcon(String name) {
-        if (resourcesJar == RESOURCES_NOT_AVAILABLE) {
-            return null;
-        }
-        try {
-            if (resourcesJar == null) {
-                resourcesJar = BiomeSchemeManager.getLatestMinecraftJar();
-                if (resourcesJar == null) {
-                    logger.warn("Could not find Minecraft jar for loading plant icons");
-                    resourcesJar = RESOURCES_NOT_AVAILABLE;
-                    return null;
-                } else {
-                    logger.info("Loading plant icons from {}", resourcesJar);
+    public static void loadIconsInBackground() {
+        new Thread("Plant Icon Loader") {
+            @Override
+            public void run() {
+                synchronized (icons) {
+                    File resourcesJar = BiomeSchemeManager.getLatestMinecraftJar();
+                    if (resourcesJar == null) {
+                        logger.warn("Could not find Minecraft jar for loading plant icons");
+                        return;
+                    } else {
+                        logger.info("Loading plant icons from {}", resourcesJar);
+                    }
+                    try (JarFile jarFile = new JarFile(resourcesJar)) {
+                        for (Plant plant: ALL_PLANTS) {
+                            icons.put(plant.getIconName(), findIcon(jarFile, plant.getIconName()));
+                        }
+                    } catch (IOException e) {
+                        logger.error("I/O error while trying to load plant icons; not loading icons", e);
+                    }
                 }
             }
-            try (JarFile jarFile = new JarFile(resourcesJar)) {
-                JarEntry entry = jarFile.getJarEntry("assets/minecraft/textures/" + name);
-                if (entry != null) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Loading plant icon " + name + " from " + resourcesJar);
-                    }
-                    try (InputStream in = jarFile.getInputStream(entry)) {
-                        BufferedImage icon = ImageIO.read(in);
-                        if (icon.getHeight() > icon.getWidth()) {
-                            // Assume this is an animation strip; take the top square of it
-                            icon = icon.getSubimage(0, 0, icon.getWidth(), icon.getWidth());
-                        }
-                        return icon;
-                    }
-                } else {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Could not find plant icon " + name + " in Minecraft jar " + resourcesJar);
-                    }
-                    return null;
+        }.start();
+    }
+
+    private static BufferedImage findIcon(JarFile jarFile, String name) {
+        try {
+            JarEntry entry = jarFile.getJarEntry("assets/minecraft/textures/" + name);
+            if (entry != null) {
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Loading plant icon " + name + " from " + jarFile.getName());
                 }
+                try (InputStream in = jarFile.getInputStream(entry)) {
+                    BufferedImage icon = ImageIO.read(in);
+                    if (icon.getHeight() > icon.getWidth()) {
+                        // Assume this is an animation strip; take the top square of it
+                        icon = icon.getSubimage(0, 0, icon.getWidth(), icon.getWidth());
+                    }
+                    return icon;
+                }
+            } else {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Could not find plant icon " + name + " in Minecraft jar " + jarFile.getName());
+                }
+                return null;
             }
         } catch (IOException e) {
             logger.error("I/O error while trying to load plant icon " + name + "; continuing without icon", e);
-            resourcesJar = RESOURCES_NOT_AVAILABLE;
             return null;
         }
     }
@@ -308,7 +322,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
                     percentageLabels[i].setEnabled(true);
                     plantLabels[i].setFont(boldFont);
                 }
-                if (ALL_PLANTS[i].getCategory() == CROPS) {
+                if (asList(ALL_PLANTS[i].getCategories()).contains(CROPS)) {
                     cropsSelected = true;
                 }
                 int percentage = value * 100 / totalOccurrence;
@@ -375,13 +389,13 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         for (int i = 0; i < ALL_PLANTS.length; i++) {
             spinners[i].setValue(0);
             if (growthFromSpinners[i] != null) {
-                growthFromSpinners[i].setValue(ALL_PLANTS[i].getMaxGrowth());
-                growthToSpinners[i].setValue(ALL_PLANTS[i].getMaxGrowth());
+                growthFromSpinners[i].setValue(max(ALL_PLANTS[i].getDefaultGrowth() / 2, 1));
+                growthToSpinners[i].setValue(ALL_PLANTS[i].getDefaultGrowth());
             }
         }
         updatePercentages();
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -510,7 +524,6 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
 
     private final ChangeListener percentageListener = e -> updatePercentages();
 
-    private static File resourcesJar;
-    private static final File RESOURCES_NOT_AVAILABLE = new File("~~~RESOURCES_NOT_AVAILABLE~~~");
+    private static final Map<String, BufferedImage> icons = new HashMap<>();
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PlantLayerEditor.class);
 }

@@ -6,13 +6,8 @@
 
 package org.pepsoft.worldpainter.layers.combined;
 
-import org.pepsoft.worldpainter.BiomeListCellRenderer;
-import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.LayerListCellRenderer;
-import org.pepsoft.worldpainter.Terrain;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_15Biomes;
 import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
 import org.pepsoft.worldpainter.layers.CombinedLayer;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -24,21 +19,26 @@ import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singletonList;
+import static org.pepsoft.util.CollectionUtils.listOf;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.worldpainter.layers.combined.CombinedLayerTableModel.COLUMN_FACTOR;
 import static org.pepsoft.worldpainter.layers.combined.CombinedLayerTableModel.COLUMN_LAYER;
+import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
 
 /**
  *
  * @author Pepijn Schmitz
  */
-public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
+public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> implements ListSelectionListener {
     /**
      * Creates new form CombinedLayerEditor
      */
@@ -61,6 +61,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
                 settingsChanged();
             }
         });
+        tableLayers.getSelectionModel().addListSelectionListener(this);
         scaleToUI(tableLayers);
     }
 
@@ -130,22 +131,13 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
     public void setContext(LayerEditorContext context) {
         super.setContext(context);
         
-        CustomBiomeManager customBiomeManager = context.getCustomBiomeManager();
-        ColourScheme colourScheme = context.getColourScheme();
+        final CustomBiomeManager customBiomeManager = context.getCustomBiomeManager();
+        final ColourScheme colourScheme = context.getColourScheme();
+        final Platform platform = context.getDimension().getWorld().getPlatform();
         comboBoxTerrain.setRenderer(new TerrainListCellRenderer(colourScheme, "none"));
-        comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager, "none"));
-        
-        List<Integer> allBiomes = new ArrayList<>();
-        allBiomes.add(-1);
-        for (int i = 0; i < Minecraft1_15Biomes.BIOME_NAMES.length; i++) {
-            if (Minecraft1_15Biomes.BIOME_NAMES[i] != null) {
-                allBiomes.add(i);
-            }
-        }
-        List<CustomBiome> customBiomes = customBiomeManager.getCustomBiomes();
-        if (customBiomes != null) {
-            allBiomes.addAll(customBiomes.stream().map(CustomBiome::getId).collect(Collectors.toList()));
-        }
+        comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager, "none", platform));
+
+        List<Integer> allBiomes = listOf(singletonList(-1), getAllBiomes(platform, customBiomeManager));
         comboBoxBiome.setModel(new DefaultComboBoxModel(allBiomes.toArray()));
         
         allLayers = context.getAllLayers();
@@ -163,13 +155,34 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
                 || (layersSelected > 1));
     }
 
+    // ListSelectionListener
+
+    @Override
+    public void valueChanged(ListSelectionEvent e) {
+        setControlStates();
+    }
+
+    private void setControlStates() {
+        buttonRemoveLayer.setEnabled(tableLayers.getSelectedRowCount() > 0);
+    }
+
     private void addLayer() {
         List<Layer> availableLayers = new ArrayList<>(allLayers.size());
-        availableLayers.addAll(allLayers.stream().filter(availableLayer -> (!availableLayer.equals(layer)) && (!tableModel.contains(availableLayer))).collect(Collectors.toList()));
+        availableLayers.addAll(allLayers.stream().filter(availableLayer -> (! availableLayer.equals(layer)) && (! tableModel.contains(availableLayer))).collect(Collectors.toList()));
         AddLayerDialog dialog = new AddLayerDialog(SwingUtilities.getWindowAncestor(this), availableLayers);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             tableModel.addRow(new CombinedLayerTableModel.Row(dialog.getSelectedLayer(), dialog.getSelectedFactor(), dialog.isHiddenSelected()));
+        }
+    }
+
+    private void removeLayer() {
+        if (tableLayers.isEditing()) {
+            tableLayers.getCellEditor().stopCellEditing();
+        }
+        final int[] selectedRows = tableLayers.getSelectedRows();
+        for (int i = selectedRows.length - 1; i >= 0; i--) {
+            tableModel.deleteRow(selectedRows[i]);
         }
     }
     
@@ -211,7 +224,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
 
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        comboBoxTerrain = new javax.swing.JComboBox();
+        comboBoxTerrain = new javax.swing.JComboBox<>();
         jLabel3 = new javax.swing.JLabel();
         comboBoxBiome = new javax.swing.JComboBox();
         jLabel4 = new javax.swing.JLabel();
@@ -222,24 +235,37 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
         fieldName = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
         colourEditor1 = new org.pepsoft.worldpainter.ColourEditor();
+        buttonRemoveLayer = new javax.swing.JButton();
 
         jLabel1.setText("Configure your combined layer on this screen.");
 
         jLabel2.setText("Terrain:");
 
         comboBoxTerrain.setModel(new DefaultComboBoxModel(Terrain.getConfiguredValues()));
-        comboBoxTerrain.addActionListener(this::comboBoxTerrainActionPerformed);
+        comboBoxTerrain.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxTerrainActionPerformed(evt);
+            }
+        });
 
         jLabel3.setText("Biome:");
 
-        comboBoxBiome.addActionListener(this::comboBoxBiomeActionPerformed);
+        comboBoxBiome.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxBiomeActionPerformed(evt);
+            }
+        });
 
         jLabel4.setText("Layers:");
 
         jScrollPane1.setViewportView(tableLayers);
 
         buttonAddLayer.setText("Add");
-        buttonAddLayer.addActionListener(this::buttonAddLayerActionPerformed);
+        buttonAddLayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonAddLayerActionPerformed(evt);
+            }
+        });
 
         jLabel5.setText("Name:");
 
@@ -247,32 +273,45 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
 
         jLabel6.setText("Colour:");
 
+        buttonRemoveLayer.setText("Remove");
+        buttonRemoveLayer.setEnabled(false);
+        buttonRemoveLayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonRemoveLayerActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-            .addComponent(jLabel1)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(comboBoxBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addComponent(jLabel4)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel5)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel6)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(buttonRemoveLayer)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(buttonAddLayer))
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel1)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel4)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel5)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel6)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -289,9 +328,11 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
                 .addGap(18, 18, 18)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 26, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 26, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(buttonAddLayer)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(buttonAddLayer)
+                    .addComponent(buttonRemoveLayer))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
@@ -315,12 +356,17 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> {
         addLayer();
     }//GEN-LAST:event_buttonAddLayerActionPerformed
 
+    private void buttonRemoveLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonRemoveLayerActionPerformed
+        removeLayer();
+    }//GEN-LAST:event_buttonRemoveLayerActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonAddLayer;
+    private javax.swing.JButton buttonRemoveLayer;
     private org.pepsoft.worldpainter.ColourEditor colourEditor1;
     private javax.swing.JComboBox comboBoxBiome;
-    private javax.swing.JComboBox comboBoxTerrain;
+    private javax.swing.JComboBox<Terrain> comboBoxTerrain;
     private javax.swing.JTextField fieldName;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

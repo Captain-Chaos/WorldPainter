@@ -31,6 +31,11 @@ public class GroundCoverLayer extends CustomLayer {
         setDescription("a " + thickness + " block layer of " + name + " on top of the terrain");
     }
 
+    @Override
+    public String getType() {
+        return "Ground Cover";
+    }
+
     public MixedMaterial getMaterial() {
         return mixedMaterial;
     }

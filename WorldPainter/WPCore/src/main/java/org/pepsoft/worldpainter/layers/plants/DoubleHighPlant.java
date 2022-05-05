@@ -6,7 +6,7 @@ import org.pepsoft.worldpainter.Platform;
 import javax.vecmath.Point3i;
 
 import static org.pepsoft.minecraft.Constants.BLK_LARGE_FLOWERS;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
  * A simple double high plant without growth stages using vanilla Minecraft
@@ -23,7 +23,7 @@ final class DoubleHighPlant extends Plant {
      * @param category      The category of the plant.
      */
     DoubleHighPlant(String name, Material lowerMaterial, Category category) {
-        super(name, lowerMaterial, category, "block/" + lowerMaterial.simpleName + "_top.png");
+        super(name, lowerMaterial, "block/" + lowerMaterial.simpleName + "_top.png", category);
         platform = null;
     }
 
@@ -31,22 +31,21 @@ final class DoubleHighPlant extends Plant {
      * Create a new double high plant.
      *
      * @param name          The name of the plant.
-     * @param lowerMaterial The material of the lower block. The object will
-     *                      automatically provide the correct matching upper
-     *                      block for the type of plant and the platform.
-     * @param category      The category of the plant.
+     * @param lowerMaterial The material of the lower block. The object will automatically provide the correct matching
+     *                      upper block for the type of plant and the platform.
      * @param iconName      The name of the icon of the plant.
+     * @param category      The category of the plant.
      */
-    DoubleHighPlant(String name, Material lowerMaterial, Category category, String iconName) {
-        super(name, lowerMaterial, category, iconName);
+    DoubleHighPlant(String name, Material lowerMaterial, String iconName, Category category) {
+        super(name, lowerMaterial, iconName, category);
         platform = null;
     }
 
     /**
      * Copy constructor.
      */
-    private DoubleHighPlant(String name, Material lowerMaterial, Category category, String iconName, Platform platform) {
-        super(name, lowerMaterial, category, iconName);
+    private DoubleHighPlant(String name, Material lowerMaterial, Category[] categories, String iconName, Platform platform) {
+        super(name, lowerMaterial, iconName, categories);
         this.platform = platform;
     }
 
@@ -58,7 +57,7 @@ final class DoubleHighPlant extends Plant {
     @Override
     public Material getMaterial(int x, int y, int z) {
         if (z > 0) {
-            if (platform == JAVA_ANVIL_1_15) {
+            if ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) {
                 return material.withProperty("half", "upper");
             } else {
                 return UPPER_DOUBLE_HIGH_PLANT;
@@ -70,12 +69,11 @@ final class DoubleHighPlant extends Plant {
 
     @Override
     public DoubleHighPlant realise(int growth, Platform platform) {
-        return new DoubleHighPlant(name, material, category, iconName, platform);
+        return new DoubleHighPlant(name, material, categories, iconName, platform);
     }
 
-    protected final Platform platform;
+    private final Platform platform;
 
-    @SuppressWarnings("deprecation") // Legacy support
     private static final Material UPPER_DOUBLE_HIGH_PLANT = Material.get(BLK_LARGE_FLOWERS, 8);
     private static final Point3i DIMENSIONS = new Point3i(1, 1, 2);
 }

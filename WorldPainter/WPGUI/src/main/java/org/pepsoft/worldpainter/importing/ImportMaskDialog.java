@@ -14,8 +14,8 @@ import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
-import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Void;
 
@@ -146,7 +146,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
 
                 if (inputType == COLOUR) {
                     labelImageDimensions.setText(String.format("Image size: %d x %d, indexed colour, %d bits", width, height, image.getSampleModel().getSampleSize(0)));
-                } else if (inputType == ONE_BIT_GRAY_SCALE) {
+                } else if (inputType == ONE_BIT_GREY_SCALE) {
                     labelImageDimensions.setText(String.format("Image size: %d x %d, black and white", width, height));
                 } else {
                     labelImageDimensions.setText(String.format("Image size: %d x %d, grey scale, %d bits, lowest value: %d, highest value: %d", width, height, image.getSampleModel().getSampleSize(0), maskImporter.getImageLowValue(), maskImporter.getImageHighValue()));

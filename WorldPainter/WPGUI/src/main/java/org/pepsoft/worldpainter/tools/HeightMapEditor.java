@@ -6,11 +6,9 @@
 
 package org.pepsoft.worldpainter.tools;
 
-import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.worldpainter.MouseAdapter;
 import org.pepsoft.worldpainter.*;
-import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 import org.pepsoft.worldpainter.heightMaps.*;
 import org.pepsoft.worldpainter.heightMaps.gui.HeightMapPropertiesPanel;
 import org.pepsoft.worldpainter.heightMaps.gui.HeightMapTileProvider;
@@ -33,6 +31,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.worldpainter.Terrain.GRASS;
 
@@ -99,7 +98,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
     }
 
     private void createHeightMap() throws IOException {
-        rootHeightMap = TileFactoryFactory.createFancyTileFactory(new Random().nextLong(), GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 62, 58, false, 20f, 1.0).getHeightMap();
+        rootHeightMap = TileFactoryFactory.createFancyTileFactory(new Random().nextLong(), GRASS, 0, DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_WATER_LEVEL, 58, false, 20f, 1.0).getHeightMap();
 //        File bitmapFile = new File("/home/pepijn/Pictures/WorldPainter/test-image-8-bit-grayscale.png");
 //        BufferedImage bitmap = ImageIO.read(bitmapFile);
 //        BitmapHeightMap bitmapHeightMap = BitmapHeightMap.build().withImage(bitmap).withSmoothScaling(false).withRepeat(true).now();
@@ -250,7 +249,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                     if (file != null) {
                         try {
                             BufferedImage image = ImageIO.read(file);
-                            BitmapHeightMap bitmapHeightMap = new BitmapHeightMap(file.getName(), image, 0, file, false, false);
+                            BitmapHeightMap bitmapHeightMap = BitmapHeightMap.build().withName(file.getName()).withImage(image).withFile(file).now();
                             replace(parent, heightMap, bitmapHeightMap);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
@@ -357,7 +356,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                 tiledImageViewer1.setGridColour(Color.GRAY);
                 break;
             case TERRAIN:
-                TileFactory tileFactory = new HeightMapTileFactory(seed, focusHeightMap, Constants.DEFAULT_MAX_HEIGHT_ANVIL, false, theme);
+                TileFactory tileFactory = new HeightMapTileFactory(seed, focusHeightMap, 0, DEFAULT_MAX_HEIGHT_ANVIL, false, theme);
                 synchronized (tileCache) {
                     tileCache.clear();
                 }
@@ -403,9 +402,9 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                     }
                 };
                 if (tiledImageViewer1.getTileProviderCount() == 0) {
-                    tiledImageViewer1.setTileProvider(0, new WPTileProvider(tileProvider, new DynMapColourScheme("default", true), null, Collections.singleton(Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST, false, null));
+                    tiledImageViewer1.setTileProvider(0, new WPTileProvider(tileProvider, ColourScheme.DEFAULT, null, Collections.singleton(Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST, false, null));
                 } else {
-                    tiledImageViewer1.replaceTileProvider(0, new WPTileProvider(tileProvider, new DynMapColourScheme("default", true), null, Collections.singleton(Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST, false, null));
+                    tiledImageViewer1.replaceTileProvider(0, new WPTileProvider(tileProvider, ColourScheme.DEFAULT, null, Collections.singleton(Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST, false, null));
                 }
                 tiledImageViewer1.setGridColour(Color.BLACK);
                 break;
@@ -624,11 +623,11 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
     private final Map<Point, Tile> tileCache = Collections.synchronizedMap(new HashMap<>());
     private HeightMapTreeModel treeModel;
     private ViewMode viewMode = ViewMode.HEIGHT_MAP;
-    private SimpleTheme theme = SimpleTheme.createDefault(Terrain.GRASS, Constants.DEFAULT_MAX_HEIGHT_ANVIL, 62);
+    private SimpleTheme theme = SimpleTheme.createDefault(Terrain.GRASS, 0, DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_WATER_LEVEL);
     private long seed = new Random().nextLong();
     private HeightMapTreeCellRenderer cellRenderer;
 
-    private static final Tile RENDERING = new Tile(0, 0, 0, false) {};
+    private static final Tile RENDERING = new Tile(0, 0, 0, 0, false) {};
     private static final Logger logger = LoggerFactory.getLogger(HeightMapEditor.class);
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

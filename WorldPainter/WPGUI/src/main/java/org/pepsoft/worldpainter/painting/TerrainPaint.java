@@ -148,7 +148,7 @@ public final class TerrainPaint extends AbstractPaint {
 
     @Override
     public BufferedImage getIcon(ColourScheme colourScheme) {
-        return terrain.getIcon(colourScheme);
+        return terrain.getScaledIcon(16, colourScheme);
     }
 
     private final Terrain terrain;

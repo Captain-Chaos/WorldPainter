@@ -4,14 +4,15 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.util.BitSet;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Set;
 import org.pepsoft.util.undo.BufferKey;
 import org.pepsoft.util.undo.Snapshot;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.layers.Layer;
+
+import java.util.BitSet;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -19,7 +20,7 @@ import org.pepsoft.worldpainter.layers.Layer;
  */
 public final class TileSnapshot extends Tile {
     public TileSnapshot(Tile tile, Snapshot snapshot) {
-        super(tile.getX(), tile.getY(), tile.getMaxHeight());
+        super(tile.getX(), tile.getY(), tile.getMinHeight(), tile.getMaxHeight());
         this.snapshot = snapshot;
         HEIGHTMAP_BUFFER_KEY      = new TileUndoBufferKey<>(tile, TileBuffer.HEIGHTMAP);
         TERRAIN_BUFFER_KEY        = new TileUndoBufferKey<>(tile, TileBuffer.TERRAIN);

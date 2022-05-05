@@ -10,7 +10,12 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.jnbt.Tag;
+import org.pepsoft.minecraft.*;
+import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.Dimension.LayerAnchor;
+import org.pepsoft.worldpainter.exporting.ExportSettings;
+import org.pepsoft.worldpainter.exporting.ExportSettingsEditor;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.AnnotationsExporter.AnnotationsSettings;
 import org.pepsoft.worldpainter.layers.exporters.CavernsExporter.CavernsSettings;
@@ -19,24 +24,36 @@ import org.pepsoft.worldpainter.layers.exporters.ChasmsExporter.ChasmsSettings;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter.FrostSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.TreesExporter.TreeLayerSettings;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
+import org.pepsoft.worldpainter.plugins.PlatformProvider;
+import org.pepsoft.worldpainter.superflat.EditSuperflatPresetDialog;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.JSpinner.NumberEditor;
 import javax.swing.event.ListSelectionEvent;
+import java.awt.*;
+import java.util.List;
 import java.util.*;
 
+import static java.util.Objects.requireNonNull;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
+import static org.pepsoft.worldpainter.DimensionPropertiesEditor.Mode.DEFAULT_SETTINGS;
+import static org.pepsoft.worldpainter.Generator.CUSTOM;
+import static org.pepsoft.worldpainter.Platform.Capability.GENERATOR_PER_DIMENSION;
 import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
 
 /**
- *
  * @author pepijn
  */
 public class DimensionPropertiesEditor extends javax.swing.JPanel {
-    /** Creates new form DimensionPropertiesEditor */
+    /**
+     * Creates new form DimensionPropertiesEditor
+     */
     public DimensionPropertiesEditor() {
         initComponents();
 
@@ -60,64 +77,41 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             jLabel47.setVisible(false);
         }
 
-        spinnerQuartzChance.setEditor(new NumberEditor(spinnerQuartzChance, "0"));
-        spinnerGoldChance.setEditor(new NumberEditor(spinnerGoldChance, "0"));
-        spinnerGoldMaxLevel.setEditor(new NumberEditor(spinnerGoldMaxLevel, "0"));
-        spinnerIronChance.setEditor(new NumberEditor(spinnerIronChance, "0"));
-        spinnerIronMaxLevel.setEditor(new NumberEditor(spinnerIronMaxLevel, "0"));
-        spinnerCoalChance.setEditor(new NumberEditor(spinnerCoalChance, "0"));
-        spinnerCoalMaxLevel.setEditor(new NumberEditor(spinnerCoalMaxLevel, "0"));
-        spinnerLapisChance.setEditor(new NumberEditor(spinnerLapisChance, "0"));
-        spinnerLapisMaxLevel.setEditor(new NumberEditor(spinnerLapisMaxLevel, "0"));
-        spinnerDiamondChance.setEditor(new NumberEditor(spinnerDiamondChance, "0"));
-        spinnerDiamondMaxLevel.setEditor(new NumberEditor(spinnerDiamondMaxLevel, "0"));
-        spinnerRedstoneChance.setEditor(new NumberEditor(spinnerRedstoneChance, "0"));
-        spinnerRedstoneMaxLevel.setEditor(new NumberEditor(spinnerRedstoneMaxLevel, "0"));
-        spinnerWaterChance.setEditor(new NumberEditor(spinnerWaterChance, "0"));
-        spinnerWaterMaxLevel.setEditor(new NumberEditor(spinnerWaterMaxLevel, "0"));
-        spinnerLavaChance.setEditor(new NumberEditor(spinnerLavaChance, "0"));
-        spinnerDirtChance.setEditor(new NumberEditor(spinnerDirtChance, "0"));
-        spinnerLavaMaxLevel.setEditor(new NumberEditor(spinnerLavaMaxLevel, "0"));
-        spinnerDirtMaxLevel.setEditor(new NumberEditor(spinnerDirtMaxLevel, "0"));
-        spinnerGravelChance.setEditor(new NumberEditor(spinnerGravelChance, "0"));
-        spinnerGravelMaxLevel.setEditor(new NumberEditor(spinnerGravelMaxLevel, "0"));
-        spinnerEmeraldChance.setEditor(new NumberEditor(spinnerEmeraldChance, "0"));
-        spinnerEmeraldMaxLevel.setEditor(new NumberEditor(spinnerEmeraldMaxLevel, "0"));
-        spinnerGoldMinLevel.setEditor(new NumberEditor(spinnerGoldMinLevel, "0"));
-        spinnerIronMinLevel.setEditor(new NumberEditor(spinnerIronMinLevel, "0"));
-        spinnerCoalMinLevel.setEditor(new NumberEditor(spinnerCoalMinLevel, "0"));
-        spinnerLapisMinLevel.setEditor(new NumberEditor(spinnerLapisMinLevel, "0"));
-        spinnerDiamondMinLevel.setEditor(new NumberEditor(spinnerDiamondMinLevel, "0"));
-        spinnerEmeraldMinLevel.setEditor(new NumberEditor(spinnerEmeraldMinLevel, "0"));
-        spinnerWaterMinLevel.setEditor(new NumberEditor(spinnerWaterMinLevel, "0"));
-        spinnerLavaMinLevel.setEditor(new NumberEditor(spinnerLavaMinLevel, "0"));
-        spinnerDirtMinLevel.setEditor(new NumberEditor(spinnerDirtMinLevel, "0"));
-        spinnerGravelMinLevel.setEditor(new NumberEditor(spinnerGravelMinLevel, "0"));
-        spinnerRedstoneMinLevel.setEditor(new NumberEditor(spinnerRedstoneMinLevel, "0"));
-        spinnerQuartzMinLevel.setEditor(new NumberEditor(spinnerQuartzMinLevel, "0"));
-        spinnerQuartzMaxLevel.setEditor(new NumberEditor(spinnerQuartzMaxLevel, "0"));
-        spinnerCavernsMinLevel.setEditor(new NumberEditor(spinnerCavernsMinLevel, "0"));
-        spinnerCavernsMaxLevel.setEditor(new NumberEditor(spinnerCavernsMaxLevel, "0"));
-        spinnerChasmsMinLevel.setEditor(new NumberEditor(spinnerChasmsMinLevel, "0"));
-        spinnerChasmsMaxLevel.setEditor(new NumberEditor(spinnerChasmsMaxLevel, "0"));
-        
-        addListeners(spinnerGoldMinLevel,  spinnerGoldMaxLevel);
-        addListeners(spinnerIronMinLevel,  spinnerIronMaxLevel);
-        addListeners(spinnerCoalMinLevel,  spinnerCoalMaxLevel);
-        addListeners(spinnerLapisMinLevel,  spinnerLapisMaxLevel);
-        addListeners(spinnerDiamondMinLevel, spinnerDiamondMaxLevel);
-        addListeners(spinnerEmeraldMinLevel, spinnerEmeraldMaxLevel);
-        addListeners(spinnerWaterMinLevel, spinnerWaterMaxLevel);
-        addListeners(spinnerLavaMinLevel, spinnerLavaMaxLevel);
-        addListeners(spinnerDirtMinLevel, spinnerDirtMaxLevel);
-        addListeners(spinnerGravelMinLevel, spinnerGravelMaxLevel);
-        addListeners(spinnerRedstoneMinLevel, spinnerRedstoneMaxLevel);
-        addListeners(spinnerQuartzMinLevel, spinnerQuartzMaxLevel);
-        addListeners(spinnerCavernsMinLevel, spinnerCavernsMaxLevel);
-        addListeners(spinnerChasmsMinLevel, spinnerChasmsMaxLevel);
+        configureSpinners(spinnerGoldChance, spinnerGoldMinLevel, spinnerGoldMaxLevel);
+        configureSpinners(spinnerIronChance, spinnerIronMinLevel, spinnerIronMaxLevel);
+        configureSpinners(spinnerCoalChance, spinnerCoalMinLevel, spinnerCoalMaxLevel);
+        configureSpinners(spinnerLapisChance, spinnerLapisMinLevel, spinnerLapisMaxLevel);
+        configureSpinners(spinnerDiamondChance, spinnerDiamondMinLevel, spinnerDiamondMaxLevel);
+        configureSpinners(spinnerEmeraldChance, spinnerEmeraldMinLevel, spinnerEmeraldMaxLevel);
+        configureSpinners(spinnerWaterChance, spinnerWaterMinLevel, spinnerWaterMaxLevel);
+        configureSpinners(spinnerLavaChance, spinnerLavaMinLevel, spinnerLavaMaxLevel);
+        configureSpinners(spinnerDirtChance, spinnerDirtMinLevel, spinnerDirtMaxLevel);
+        configureSpinners(spinnerGravelChance, spinnerGravelMinLevel, spinnerGravelMaxLevel);
+        configureSpinners(spinnerRedstoneChance, spinnerRedstoneMinLevel, spinnerRedstoneMaxLevel);
+        configureSpinners(spinnerQuartzChance, spinnerQuartzMinLevel, spinnerQuartzMaxLevel);
+        configureSpinners(spinnerCopperChance, spinnerCopperMinLevel, spinnerCopperMaxLevel);
+        configureSpinners(spinnerAncientDebrisChance, spinnerAncientDebrisMinLevel, spinnerAncientDebrisMaxLevel);
+
+        configureSpinners(null, spinnerCavesMinLevel, spinnerCavesMaxLevel);
+        configureSpinners(null, spinnerCavernsMinLevel, spinnerCavernsMaxLevel);
+        configureSpinners(null, spinnerChasmsMinLevel, spinnerChasmsMaxLevel);
 
         tableCustomLayers.setDefaultRenderer(CustomLayer.class, new CustomLayersTableCellRenderer());
-        tableCustomLayers.getSelectionModel().addListSelectionListener((ListSelectionEvent e) -> setControlStates());
+        tableCustomLayers.getSelectionModel().addListSelectionListener((ListSelectionEvent e) -> {
+            if (! programmaticChange) {
+                setControlStates();
+            }
+        });
+        comboBoxGenerator.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value != null) {
+                    setText(((Generator) value).getDisplayName());
+                }
+                return this;
+            }
+        });
 
         scaleToUI(this);
     }
@@ -126,11 +120,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         comboBoxSubsurfaceMaterial.setRenderer(new TerrainListCellRenderer(colourScheme));
         themeEditor.setColourScheme(colourScheme);
     }
-    
+
     public ColourScheme getColourScheme() {
         return themeEditor.getColourScheme();
     }
-    
+
     public void setMode(Mode mode) {
         if (this.mode != null) {
             throw new IllegalStateException("Mode already set");
@@ -139,10 +133,12 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         switch (mode) {
             case EXPORT:
                 jTabbedPane1.remove(1);
+                initialisePostProcessingTab();
                 break;
             case DEFAULT_SETTINGS:
                 spinnerMinecraftSeed.setEnabled(false);
                 jTabbedPane1.remove(5);
+                jTabbedPane1.remove(3);
                 break;
             case EDITOR:
                 jTabbedPane1.remove(5);
@@ -151,15 +147,25 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 throw new IllegalArgumentException("mode " + mode);
         }
     }
-    
+
     public Dimension getDimension() {
         return dimension;
     }
 
     public void setDimension(Dimension dimension) {
+        if (this.dimension != null) {
+            // Remove the post-processing tab, if any
+            for (Component tab: jTabbedPane1.getComponents()) {
+                if (tab instanceof ExportSettingsEditor) {
+                    jTabbedPane1.remove(tab);
+                    break;
+                }
+            }
+        }
         this.dimension = dimension;
         if (dimension != null) {
             setPlatform(dimension.getWorld().getPlatform());
+            initialisePostProcessingTab();
             loadSettings();
         }
     }
@@ -169,15 +175,25 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     }
 
     public void setPlatform(Platform platform) {
+        requireNonNull(platform);
         if (platform != this.platform) {
             this.platform = platform;
-            if ((platform == null) || platform.capabilities.contains(POPULATE)) {
+            platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
+            if (platform.capabilities.contains(POPULATE)) {
                 checkBoxPopulate.setSelected(dimension.isPopulate());
                 checkBoxPopulate.setToolTipText(null);
             } else {
                 checkBoxPopulate.setSelected(false);
                 checkBoxPopulate.setToolTipText("Automatic population not support by format " + platform);
             }
+            Generator generator = (Generator) comboBoxGenerator.getSelectedItem();
+            comboBoxGenerator.setModel(new DefaultComboBoxModel<>(platform.supportedGenerators.toArray(new Generator[platform.supportedGenerators.size()])));
+            if (platform.supportedGenerators.contains(generator)) {
+                comboBoxGenerator.setSelectedItem(generator);
+            } else {
+                comboBoxGenerator.setSelectedItem(platform.supportedGenerators.get(0));
+            }
+            comboBoxGenerator.setEnabled(platform.supportedGenerators.size() > 1);
             setControlStates();
         }
     }
@@ -251,14 +267,22 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     }
     
     public boolean saveSettings() {
-        int maxHeight = dimension.getMaxHeight() - 1;
-        
+        final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight() - 1;
+
+        // sanity checks
+        if ((comboBoxGenerator.getSelectedItem() == CUSTOM) && ((generatorName == null) || generatorName.trim().isEmpty())) {
+            buttonGeneratorOptions.requestFocusInWindow();
+            DesktopUtils.beep();
+            JOptionPane.showMessageDialog(this, "The custom world generator name has not been set.\nUse the [...] button to set it.", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
         // terrain ranges
         if ((mode != Mode.EXPORT) && (! themeEditor.save())) {
             jTabbedPane1.setSelectedIndex(1);
             return false;
         }
-        
+
         // general
         int topLayerMinDepth = (Integer) spinnerMinSurfaceDepth.getValue();
         dimension.setTopLayerMinDepth(topLayerMinDepth);
@@ -274,6 +298,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         long newSeed = ((Number) spinnerMinecraftSeed.getValue()).longValue();
         if (newSeed != previousSeed) {
             dimension.setMinecraftSeed(newSeed);
+            if (dimension.getGenerator() instanceof SeededGenerator) {
+                ((SeededGenerator) dimension.getGenerator()).setSeed(newSeed);
+            }
         }
         dimension.setBottomless(checkBoxBottomless.isSelected());
         dimension.setCoverSteepTerrain(checkBoxCoverSteepTerrain.isSelected());
@@ -310,7 +337,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         if (checkBoxFloodCaverns.isSelected()) {
             cavesSettings.setWaterLevel((Integer) spinnerCavernsFloodLevel.getValue());
         } else {
-            cavesSettings.setWaterLevel(0);
+            cavesSettings.setWaterLevel(minHeight);
         }
         cavesSettings.setFloodWithLava(checkBoxCavernsFloodWithLava.isSelected());
         cavesSettings.setLeaveWater(! checkBoxCavernsRemoveWater.isSelected());
@@ -330,7 +357,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         if (checkBoxFloodCaverns.isSelected()) {
             cavernsSettings.setWaterLevel((Integer) spinnerCavernsFloodLevel.getValue());
         } else {
-            cavernsSettings.setWaterLevel(0);
+            cavernsSettings.setWaterLevel(minHeight);
         }
         cavernsSettings.setFloodWithLava(checkBoxCavernsFloodWithLava.isSelected());
         cavernsSettings.setSurfaceBreaking(checkBoxCavernsBreakSurface.isSelected());
@@ -358,7 +385,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         if (checkBoxFloodCaverns.isSelected()) {
             chasmsSettings.setWaterLevel((Integer) spinnerCavernsFloodLevel.getValue());
         } else {
-            chasmsSettings.setWaterLevel(0);
+            chasmsSettings.setWaterLevel(minHeight);
         }
         chasmsSettings.setFloodWithLava(checkBoxCavernsFloodWithLava.isSelected());
         chasmsSettings.setLeaveWater(! checkBoxCavernsRemoveWater.isSelected());
@@ -430,55 +457,63 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         }
         frostSettings.setSnowUnderTrees(checkBoxSnowUnderTrees.isSelected());
         dimension.setLayerSettings(Frost.INSTANCE, frostSettings);
-        
-        // resources
-        ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
-        if (resourcesSettings == null) {
-            resourcesSettings = new ResourcesExporterSettings(dimension.getMaxHeight());
+
+        if (mode != DEFAULT_SETTINGS) {
+            // resources
+            ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
+            if (resourcesSettings == null) {
+                resourcesSettings = ResourcesExporterSettings.defaultSettings(platform, dimension.getDim(), dimension.getMaxHeight());
+            }
+            if (jCheckBox8.isSelected()) {
+                int minimumLevel = jSlider4.getValue();
+                resourcesSettings.setMinimumLevel(minimumLevel);
+            } else {
+                resourcesSettings.setMinimumLevel(0);
+            }
+            resourcesSettings.setChance(GOLD_ORE, (Integer) spinnerGoldChance.getValue());
+            resourcesSettings.setMinLevel(GOLD_ORE, (Integer) spinnerGoldMinLevel.getValue());
+            resourcesSettings.setMaxLevel(GOLD_ORE, (Integer) spinnerGoldMaxLevel.getValue());
+            resourcesSettings.setChance(IRON_ORE, (Integer) spinnerIronChance.getValue());
+            resourcesSettings.setMinLevel(IRON_ORE, (Integer) spinnerIronMinLevel.getValue());
+            resourcesSettings.setMaxLevel(IRON_ORE, (Integer) spinnerIronMaxLevel.getValue());
+            resourcesSettings.setChance(COAL, (Integer) spinnerCoalChance.getValue());
+            resourcesSettings.setMinLevel(COAL, (Integer) spinnerCoalMinLevel.getValue());
+            resourcesSettings.setMaxLevel(COAL, (Integer) spinnerCoalMaxLevel.getValue());
+            resourcesSettings.setChance(LAPIS_LAZULI_ORE, (Integer) spinnerLapisChance.getValue());
+            resourcesSettings.setMinLevel(LAPIS_LAZULI_ORE, (Integer) spinnerLapisMinLevel.getValue());
+            resourcesSettings.setMaxLevel(LAPIS_LAZULI_ORE, (Integer) spinnerLapisMaxLevel.getValue());
+            resourcesSettings.setChance(DIAMOND_ORE, (Integer) spinnerDiamondChance.getValue());
+            resourcesSettings.setMinLevel(DIAMOND_ORE, (Integer) spinnerDiamondMinLevel.getValue());
+            resourcesSettings.setMaxLevel(DIAMOND_ORE, (Integer) spinnerDiamondMaxLevel.getValue());
+            resourcesSettings.setChance(REDSTONE_ORE, (Integer) spinnerRedstoneChance.getValue());
+            resourcesSettings.setMinLevel(REDSTONE_ORE, (Integer) spinnerRedstoneMinLevel.getValue());
+            resourcesSettings.setMaxLevel(REDSTONE_ORE, (Integer) spinnerRedstoneMaxLevel.getValue());
+            resourcesSettings.setChance(STATIONARY_WATER, (Integer) spinnerWaterChance.getValue());
+            resourcesSettings.setMinLevel(STATIONARY_WATER, (Integer) spinnerWaterMinLevel.getValue());
+            resourcesSettings.setMaxLevel(STATIONARY_WATER, (Integer) spinnerWaterMaxLevel.getValue());
+            resourcesSettings.setChance(STATIONARY_LAVA, (Integer) spinnerLavaChance.getValue());
+            resourcesSettings.setMinLevel(STATIONARY_LAVA, (Integer) spinnerLavaMinLevel.getValue());
+            resourcesSettings.setMaxLevel(STATIONARY_LAVA, (Integer) spinnerLavaMaxLevel.getValue());
+            resourcesSettings.setChance(DIRT, (Integer) spinnerDirtChance.getValue());
+            resourcesSettings.setMinLevel(DIRT, (Integer) spinnerDirtMinLevel.getValue());
+            resourcesSettings.setMaxLevel(DIRT, (Integer) spinnerDirtMaxLevel.getValue());
+            resourcesSettings.setChance(GRAVEL, (Integer) spinnerGravelChance.getValue());
+            resourcesSettings.setMinLevel(GRAVEL, (Integer) spinnerGravelMinLevel.getValue());
+            resourcesSettings.setMaxLevel(GRAVEL, (Integer) spinnerGravelMaxLevel.getValue());
+            resourcesSettings.setChance(EMERALD_ORE, (Integer) spinnerEmeraldChance.getValue());
+            resourcesSettings.setMinLevel(EMERALD_ORE, (Integer) spinnerEmeraldMinLevel.getValue());
+            resourcesSettings.setMaxLevel(EMERALD_ORE, (Integer) spinnerEmeraldMaxLevel.getValue());
+            resourcesSettings.setChance(QUARTZ_ORE, (Integer) spinnerQuartzChance.getValue());
+            resourcesSettings.setMinLevel(QUARTZ_ORE, (Integer) spinnerQuartzMinLevel.getValue());
+            resourcesSettings.setMaxLevel(QUARTZ_ORE, (Integer) spinnerQuartzMaxLevel.getValue());
+            resourcesSettings.setChance(COPPER_ORE, (Integer) spinnerCopperChance.getValue());
+            resourcesSettings.setMinLevel(COPPER_ORE, (Integer) spinnerCopperMinLevel.getValue());
+            resourcesSettings.setMaxLevel(COPPER_ORE, (Integer) spinnerCopperMaxLevel.getValue());
+            resourcesSettings.setChance(ANCIENT_DEBRIS, (Integer) spinnerAncientDebrisChance.getValue());
+            resourcesSettings.setMinLevel(ANCIENT_DEBRIS, (Integer) spinnerAncientDebrisMinLevel.getValue());
+            resourcesSettings.setMaxLevel(ANCIENT_DEBRIS, (Integer) spinnerAncientDebrisMaxLevel.getValue());
+            dimension.setLayerSettings(Resources.INSTANCE, resourcesSettings);
         }
-        if (jCheckBox8.isSelected()) {
-            int minimumLevel = jSlider4.getValue();
-            resourcesSettings.setMinimumLevel(minimumLevel);
-        } else {
-            resourcesSettings.setMinimumLevel(0);
-        }
-        resourcesSettings.setChance(GOLD_ORE, (Integer) spinnerGoldChance.getValue());
-        resourcesSettings.setMinLevel(GOLD_ORE, (Integer) spinnerGoldMinLevel.getValue());
-        resourcesSettings.setMaxLevel(GOLD_ORE, (Integer) spinnerGoldMaxLevel.getValue());
-        resourcesSettings.setChance(IRON_ORE, (Integer) spinnerIronChance.getValue());
-        resourcesSettings.setMinLevel(IRON_ORE, (Integer) spinnerIronMinLevel.getValue());
-        resourcesSettings.setMaxLevel(IRON_ORE, (Integer) spinnerIronMaxLevel.getValue());
-        resourcesSettings.setChance(COAL, (Integer) spinnerCoalChance.getValue());
-        resourcesSettings.setMinLevel(COAL, (Integer) spinnerCoalMinLevel.getValue());
-        resourcesSettings.setMaxLevel(COAL, (Integer) spinnerCoalMaxLevel.getValue());
-        resourcesSettings.setChance(LAPIS_LAZULI_ORE, (Integer) spinnerLapisChance.getValue());
-        resourcesSettings.setMinLevel(LAPIS_LAZULI_ORE, (Integer) spinnerLapisMinLevel.getValue());
-        resourcesSettings.setMaxLevel(LAPIS_LAZULI_ORE, (Integer) spinnerLapisMaxLevel.getValue());
-        resourcesSettings.setChance(DIAMOND_ORE, (Integer) spinnerDiamondChance.getValue());
-        resourcesSettings.setMinLevel(DIAMOND_ORE, (Integer) spinnerDiamondMinLevel.getValue());
-        resourcesSettings.setMaxLevel(DIAMOND_ORE, (Integer) spinnerDiamondMaxLevel.getValue());
-        resourcesSettings.setChance(REDSTONE_ORE, (Integer) spinnerRedstoneChance.getValue());
-        resourcesSettings.setMinLevel(REDSTONE_ORE, (Integer) spinnerRedstoneMinLevel.getValue());
-        resourcesSettings.setMaxLevel(REDSTONE_ORE, (Integer) spinnerRedstoneMaxLevel.getValue());
-        resourcesSettings.setChance(WATER, (Integer) spinnerWaterChance.getValue());
-        resourcesSettings.setMinLevel(WATER, (Integer) spinnerWaterMinLevel.getValue());
-        resourcesSettings.setMaxLevel(WATER, (Integer) spinnerWaterMaxLevel.getValue());
-        resourcesSettings.setChance(LAVA, (Integer) spinnerLavaChance.getValue());
-        resourcesSettings.setMinLevel(LAVA, (Integer) spinnerLavaMinLevel.getValue());
-        resourcesSettings.setMaxLevel(LAVA, (Integer) spinnerLavaMaxLevel.getValue());
-        resourcesSettings.setChance(DIRT, (Integer) spinnerDirtChance.getValue());
-        resourcesSettings.setMinLevel(DIRT, (Integer) spinnerDirtMinLevel.getValue());
-        resourcesSettings.setMaxLevel(DIRT, (Integer) spinnerDirtMaxLevel.getValue());
-        resourcesSettings.setChance(GRAVEL, (Integer) spinnerGravelChance.getValue());
-        resourcesSettings.setMinLevel(GRAVEL, (Integer) spinnerGravelMinLevel.getValue());
-        resourcesSettings.setMaxLevel(GRAVEL, (Integer) spinnerGravelMaxLevel.getValue());
-        resourcesSettings.setChance(EMERALD_ORE, (Integer) spinnerEmeraldChance.getValue());
-        resourcesSettings.setMinLevel(EMERALD_ORE, (Integer) spinnerEmeraldMinLevel.getValue());
-        resourcesSettings.setMaxLevel(EMERALD_ORE, (Integer) spinnerEmeraldMaxLevel.getValue());
-        resourcesSettings.setChance(QUARTZ_ORE, (Integer) spinnerQuartzChance.getValue());
-        resourcesSettings.setMinLevel(QUARTZ_ORE, (Integer) spinnerQuartzMinLevel.getValue());
-        resourcesSettings.setMaxLevel(QUARTZ_ORE, (Integer) spinnerQuartzMaxLevel.getValue());
-        dimension.setLayerSettings(Resources.INSTANCE, resourcesSettings);
         
         // annotations
         AnnotationsSettings annotationsSettings = (AnnotationsSettings) dimension.getLayerSettings(Annotations.INSTANCE);
@@ -493,20 +528,72 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             customLayersTableModel.save();
             dimension.changed();
         }
-        
+
+        // export settings
+        for (Component component: jTabbedPane1.getComponents()) {
+            if (component instanceof ExportSettingsEditor) {
+                ExportSettingsEditor editor = (ExportSettingsEditor) component;
+                dimension.setExportSettings(editor.getExportSettings());
+            }
+        }
+
+        // world generation settings
+        if (! endlessBorder) {
+            final Generator generatorType = (Generator) comboBoxGenerator.getSelectedItem();
+            if (generatorType != null) {
+                switch (generatorType) {
+                    case FLAT:
+                        dimension.setGenerator(new SuperflatGenerator(superflatPreset));
+                        break;
+                    case DEFAULT:
+                    case LARGE_BIOMES:
+                    case BUFFET:
+                    case CUSTOMIZED:
+                    case NETHER:
+                    case END:
+                        dimension.setGenerator(new SeededGenerator(generatorType, dimension.getMinecraftSeed()));
+                        break;
+                    case CUSTOM:
+                        dimension.setGenerator(new CustomGenerator(generatorName.trim(), customGeneratorSettings));
+                        break;
+                    case UNKNOWN:
+                        // Do nothing
+                        break;
+                }
+            }
+        }
+
         return true;
-    }
-
-    public void addBorderListener(BorderListener borderListener) {
-        borderListeners.add(borderListener);
-    }
-
-    public void removeBorderListener(BorderListener borderListener) {
-        borderListeners.remove(borderListener);
     }
 
     public boolean isPopulateSelected() {
         return checkBoxPopulate.isSelected();
+    }
+
+    Generator getSelectedGeneratorType() {
+        return (Generator) comboBoxGenerator.getSelectedItem();
+    }
+
+    void setSelectedGeneratorType(Generator generatorType) {
+        comboBoxGenerator.setSelectedItem(generatorType);
+    }
+
+    private void initialisePostProcessingTab() {
+        if ((mode == Mode.EXPORT) && (dimension != null)) {
+            ExportSettings exportSettings = dimension.getExportSettings();
+            if (exportSettings == null) {
+                exportSettings = platformProvider.getDefaultExportSettings();
+            }
+            if (exportSettings != null) {
+                try {
+                    ExportSettingsEditor editor = platformProvider.getExportSettingsEditor();
+                    editor.setExportSettings(exportSettings);
+                    jTabbedPane1.addTab("Post Processing", editor);
+                } catch (RuntimeException e) {
+                    logger.warn("Could not initialise post processing tab", e);
+                }
+            }
+        }
     }
 
     private Dimension.Border getSelectedBorder() {
@@ -522,7 +609,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     }
 
     private void loadSettings() {
-        int maxHeight = dimension.getMaxHeight() - 1;
+        final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight() - 1;
         
         // general
         ((SpinnerNumberModel) spinnerMinSurfaceDepth.getModel()).setMaximum(maxHeight);
@@ -575,6 +662,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         } else {
             radioButtonNoBorder.setSelected(true);
         }
+        ((SpinnerNumberModel) spinnerBorderLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerBorderLevel.getModel()).setMaximum(maxHeight);
         spinnerBorderLevel.setValue(dimension.getBorderLevel());
         spinnerBorderSize.setValue(dimension.getBorderSize() * 128);
@@ -582,6 +670,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         spinnerMinecraftSeed.setValue(dimension.getMinecraftSeed());
         checkBoxBottomless.setSelected(dimension.isBottomless());
         checkBoxCoverSteepTerrain.setSelected(dimension.isCoverSteepTerrain());
+        ((SpinnerNumberModel) spinnerCeilingHeight.getModel()).setMinimum(minHeight + 1);
         ((SpinnerNumberModel) spinnerCeilingHeight.getModel()).setMaximum(maxHeight + 1);
         spinnerCeilingHeight.setValue(dimension.getCeilingHeight());
 
@@ -629,8 +718,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             sliderCavesEverywhereLevel.setValue(8);
         }
         checkBoxCavesBreakSurface.setSelected(cavesSettings.isSurfaceBreaking());
+        ((SpinnerNumberModel) spinnerCavesMinLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerCavesMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerCavesMinLevel.setValue(cavesSettings.getMinimumLevel());
+        spinnerCavesMinLevel.setValue(Math.max(cavesSettings.getMinimumLevel(), minHeight));
+        ((SpinnerNumberModel) spinnerCavesMaxLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerCavesMaxLevel.getModel()).setMaximum(maxHeight);
         spinnerCavesMaxLevel.setValue(Math.min(cavesSettings.getMaximumLevel(), maxHeight));
 
@@ -646,8 +737,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             checkBoxCavernsEverywhere.setSelected(false);
             sliderCavernsEverywhereLevel.setValue(8);
         }
+        ((SpinnerNumberModel) spinnerCavernsFloodLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerCavernsFloodLevel.getModel()).setMaximum(maxHeight);
-        if (cavernsSettings.getWaterLevel() > 0) {
+        if (cavernsSettings.getWaterLevel() > minHeight) {
             checkBoxFloodCaverns.setSelected(true);
             spinnerCavernsFloodLevel.setValue(cavernsSettings.getWaterLevel());
         } else {
@@ -657,8 +749,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         checkBoxCavernsFloodWithLava.setSelected(cavernsSettings.isFloodWithLava());
         checkBoxCavernsBreakSurface.setSelected(cavernsSettings.isSurfaceBreaking());
         checkBoxCavernsRemoveWater.setSelected(! cavernsSettings.isLeaveWater());
+        ((SpinnerNumberModel) spinnerCavernsMinLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerCavernsMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerCavernsMinLevel.setValue(cavernsSettings.getMinimumLevel());
+        spinnerCavernsMinLevel.setValue(Math.max(cavernsSettings.getMinimumLevel(), minHeight));
+        ((SpinnerNumberModel) spinnerCavernsMaxLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerCavernsMaxLevel.getModel()).setMaximum(maxHeight);
         spinnerCavernsMaxLevel.setValue(Math.min(cavernsSettings.getMaximumLevel(), maxHeight));
         
@@ -675,8 +769,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             sliderChasmsEverywhereLevel.setValue(8);
         }
         checkBoxChasmsBreakSurface.setSelected(chasmsSettings.isSurfaceBreaking());
+        ((SpinnerNumberModel) spinnerChasmsMinLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerChasmsMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerChasmsMinLevel.setValue(chasmsSettings.getMinimumLevel());
+        spinnerChasmsMinLevel.setValue(Math.max(chasmsSettings.getMinimumLevel(), minHeight));
+        ((SpinnerNumberModel) spinnerChasmsMaxLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerChasmsMaxLevel.getModel()).setMaximum(maxHeight);
         spinnerChasmsMaxLevel.setValue(Math.min(chasmsSettings.getMaximumLevel(), maxHeight));
         
@@ -743,79 +839,123 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         checkBoxFrostEverywhere.setSelected(frostSettings.isFrostEverywhere());
         checkBoxSmoothSnow.setSelected((frostSettings.getMode() == 2) || (frostSettings.getMode() == 3));
         checkBoxSnowUnderTrees.setSelected(frostSettings.isSnowUnderTrees());
-        
-        // resources
-        ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
-        if (resourcesSettings == null) {
-            resourcesSettings = new ResourcesExporterSettings(dimension.getMaxHeight());
-            resourcesSettings.setMinimumLevel(0);
+
+        if (mode != DEFAULT_SETTINGS) {
+            // resources
+            ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
+            if (resourcesSettings == null) {
+                resourcesSettings = ResourcesExporterSettings.defaultSettings(platform, dimension.getDim(), dimension.getMaxHeight());
+                resourcesSettings.setMinimumLevel(0);
+            }
+            jCheckBox8.setSelected(resourcesSettings.isApplyEverywhere());
+            if (resourcesSettings.isApplyEverywhere()) {
+                jSlider4.setValue(resourcesSettings.getMinimumLevel());
+            } else {
+                jSlider4.setValue(8);
+            }
+
+            // TODOMC118: encode minHeight as Integer.MIN_VALUE and maxHeight as Integer.MAX_VALUE so they adjust automatically
+            //  (Or maybe only do this for maxHeight, otherwise _everything_ with minHeight 0 in 1.15 will be extended down for 1.18, which is not correct? Or just accept that?)
+
+            spinnerGoldChance.setValue(resourcesSettings.getChance(GOLD_ORE));
+            ((SpinnerNumberModel) spinnerGoldMinLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerGoldMinLevel.getModel()).setMaximum(maxHeight);
+            spinnerGoldMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(GOLD_ORE), maxHeight));
+            ((SpinnerNumberModel) spinnerGoldMaxLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerGoldMaxLevel.getModel()).setMaximum(maxHeight);
+            spinnerGoldMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(GOLD_ORE), maxHeight));
+            spinnerIronChance.setValue(resourcesSettings.getChance(IRON_ORE));
+            ((SpinnerNumberModel) spinnerIronMinLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerIronMinLevel.getModel()).setMaximum(maxHeight);
+            spinnerIronMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(IRON_ORE), maxHeight));
+            ((SpinnerNumberModel) spinnerIronMaxLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerIronMaxLevel.getModel()).setMaximum(maxHeight);
+            spinnerIronMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(IRON_ORE), maxHeight));
+            spinnerCoalChance.setValue(resourcesSettings.getChance(COAL));
+            ((SpinnerNumberModel) spinnerCoalMinLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerCoalMinLevel.getModel()).setMaximum(maxHeight);
+            spinnerCoalMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(COAL), maxHeight));
+            ((SpinnerNumberModel) spinnerCoalMaxLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerCoalMaxLevel.getModel()).setMaximum(maxHeight);
+            spinnerCoalMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(COAL), maxHeight));
+            spinnerLapisChance.setValue(resourcesSettings.getChance(LAPIS_LAZULI_ORE));
+            ((SpinnerNumberModel) spinnerLapisMinLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerLapisMinLevel.getModel()).setMaximum(maxHeight);
+            spinnerLapisMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(LAPIS_LAZULI_ORE), maxHeight));
+            ((SpinnerNumberModel) spinnerLapisMaxLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerLapisMaxLevel.getModel()).setMaximum(maxHeight);
+            spinnerLapisMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(LAPIS_LAZULI_ORE), maxHeight));
+            spinnerDiamondChance.setValue(resourcesSettings.getChance(DIAMOND_ORE));
+            ((SpinnerNumberModel) spinnerDiamondMinLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerDiamondMinLevel.getModel()).setMaximum(maxHeight);
+            spinnerDiamondMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(DIAMOND_ORE), maxHeight));
+            ((SpinnerNumberModel) spinnerDiamondMaxLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerDiamondMaxLevel.getModel()).setMaximum(maxHeight);
+            spinnerDiamondMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(DIAMOND_ORE), maxHeight));
+            spinnerRedstoneChance.setValue(resourcesSettings.getChance(REDSTONE_ORE));
+            ((SpinnerNumberModel) spinnerRedstoneMinLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerRedstoneMinLevel.getModel()).setMaximum(maxHeight);
+            spinnerRedstoneMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(REDSTONE_ORE), maxHeight));
+            ((SpinnerNumberModel) spinnerRedstoneMaxLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerRedstoneMaxLevel.getModel()).setMaximum(maxHeight);
+            spinnerRedstoneMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(REDSTONE_ORE), maxHeight));
+            spinnerWaterChance.setValue(resourcesSettings.getChance(STATIONARY_WATER));
+            ((SpinnerNumberModel) spinnerWaterMinLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerWaterMinLevel.getModel()).setMaximum(maxHeight);
+            spinnerWaterMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(STATIONARY_WATER), maxHeight));
+            ((SpinnerNumberModel) spinnerWaterMaxLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerWaterMaxLevel.getModel()).setMaximum(maxHeight);
+            spinnerWaterMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(STATIONARY_WATER), maxHeight));
+            spinnerLavaChance.setValue(resourcesSettings.getChance(STATIONARY_LAVA));
+            ((SpinnerNumberModel) spinnerLavaMinLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerLavaMinLevel.getModel()).setMaximum(maxHeight);
+            spinnerLavaMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(STATIONARY_LAVA), maxHeight));
+            ((SpinnerNumberModel) spinnerLavaMaxLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerLavaMaxLevel.getModel()).setMaximum(maxHeight);
+            spinnerLavaMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(STATIONARY_LAVA), maxHeight));
+            spinnerDirtChance.setValue(resourcesSettings.getChance(DIRT));
+            ((SpinnerNumberModel) spinnerDirtMinLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerDirtMinLevel.getModel()).setMaximum(maxHeight);
+            spinnerDirtMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(DIRT), maxHeight));
+            ((SpinnerNumberModel) spinnerDirtMaxLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerDirtMaxLevel.getModel()).setMaximum(maxHeight);
+            spinnerDirtMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(DIRT), maxHeight));
+            spinnerGravelChance.setValue(resourcesSettings.getChance(GRAVEL));
+            ((SpinnerNumberModel) spinnerGravelMinLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerGravelMinLevel.getModel()).setMaximum(maxHeight);
+            spinnerGravelMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(GRAVEL), maxHeight));
+            ((SpinnerNumberModel) spinnerGravelMaxLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerGravelMaxLevel.getModel()).setMaximum(maxHeight);
+            spinnerGravelMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(GRAVEL), maxHeight));
+            spinnerEmeraldChance.setValue(resourcesSettings.getChance(EMERALD_ORE));
+            ((SpinnerNumberModel) spinnerEmeraldMinLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerEmeraldMinLevel.getModel()).setMaximum(maxHeight);
+            spinnerEmeraldMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(EMERALD_ORE), maxHeight));
+            ((SpinnerNumberModel) spinnerEmeraldMaxLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerEmeraldMaxLevel.getModel()).setMaximum(maxHeight);
+            spinnerEmeraldMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(EMERALD_ORE), maxHeight));
+            spinnerQuartzChance.setValue(resourcesSettings.getChance(QUARTZ_ORE));
+            ((SpinnerNumberModel) spinnerQuartzMinLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerQuartzMinLevel.getModel()).setMaximum(maxHeight);
+            spinnerQuartzMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(QUARTZ_ORE), maxHeight));
+            ((SpinnerNumberModel) spinnerQuartzMaxLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerQuartzMaxLevel.getModel()).setMaximum(maxHeight);
+            spinnerQuartzMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(QUARTZ_ORE), maxHeight));
+            spinnerCopperChance.setValue(resourcesSettings.getChance(COPPER_ORE));
+            ((SpinnerNumberModel) spinnerCopperMinLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerCopperMinLevel.getModel()).setMaximum(maxHeight);
+            spinnerCopperMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(COPPER_ORE), maxHeight));
+            ((SpinnerNumberModel) spinnerCopperMaxLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerCopperMaxLevel.getModel()).setMaximum(maxHeight);
+            spinnerCopperMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(COPPER_ORE), maxHeight));
+            spinnerAncientDebrisChance.setValue(resourcesSettings.getChance(ANCIENT_DEBRIS));
+            ((SpinnerNumberModel) spinnerAncientDebrisMinLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerAncientDebrisMinLevel.getModel()).setMaximum(maxHeight);
+            spinnerAncientDebrisMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(ANCIENT_DEBRIS), maxHeight));
+            ((SpinnerNumberModel) spinnerAncientDebrisMaxLevel.getModel()).setMinimum(minHeight);
+            ((SpinnerNumberModel) spinnerAncientDebrisMaxLevel.getModel()).setMaximum(maxHeight);
+            spinnerAncientDebrisMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(ANCIENT_DEBRIS), maxHeight));
         }
-        jCheckBox8.setSelected(resourcesSettings.isApplyEverywhere());
-        if (resourcesSettings.isApplyEverywhere()) {
-            jSlider4.setValue(resourcesSettings.getMinimumLevel());
-        } else {
-            jSlider4.setValue(8);
-        }
-        spinnerGoldChance.setValue(resourcesSettings.getChance(GOLD_ORE));
-        ((SpinnerNumberModel) spinnerGoldMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerGoldMinLevel.setValue(clamp(resourcesSettings.getMinLevel(GOLD_ORE), maxHeight));
-        ((SpinnerNumberModel) spinnerGoldMaxLevel.getModel()).setMaximum(maxHeight);
-        spinnerGoldMaxLevel.setValue(clamp(resourcesSettings.getMaxLevel(GOLD_ORE), maxHeight));
-        spinnerIronChance.setValue(resourcesSettings.getChance(IRON_ORE));
-        ((SpinnerNumberModel) spinnerIronMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerIronMinLevel.setValue(clamp(resourcesSettings.getMinLevel(IRON_ORE), maxHeight));
-        ((SpinnerNumberModel) spinnerIronMaxLevel.getModel()).setMaximum(maxHeight);
-        spinnerIronMaxLevel.setValue(clamp(resourcesSettings.getMaxLevel(IRON_ORE), maxHeight));
-        spinnerCoalChance.setValue(resourcesSettings.getChance(COAL));
-        ((SpinnerNumberModel) spinnerCoalMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerCoalMinLevel.setValue(clamp(resourcesSettings.getMinLevel(COAL), maxHeight));
-        ((SpinnerNumberModel) spinnerCoalMaxLevel.getModel()).setMaximum(maxHeight);
-        spinnerCoalMaxLevel.setValue(clamp(resourcesSettings.getMaxLevel(COAL), maxHeight));
-        spinnerLapisChance.setValue(resourcesSettings.getChance(LAPIS_LAZULI_ORE));
-        ((SpinnerNumberModel) spinnerLapisMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerLapisMinLevel.setValue(clamp(resourcesSettings.getMinLevel(LAPIS_LAZULI_ORE), maxHeight));
-        ((SpinnerNumberModel) spinnerLapisMaxLevel.getModel()).setMaximum(maxHeight);
-        spinnerLapisMaxLevel.setValue(clamp(resourcesSettings.getMaxLevel(LAPIS_LAZULI_ORE), maxHeight));
-        spinnerDiamondChance.setValue(resourcesSettings.getChance(DIAMOND_ORE));
-        ((SpinnerNumberModel) spinnerDiamondMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerDiamondMinLevel.setValue(clamp(resourcesSettings.getMinLevel(DIAMOND_ORE), maxHeight));
-        ((SpinnerNumberModel) spinnerDiamondMaxLevel.getModel()).setMaximum(maxHeight);
-        spinnerDiamondMaxLevel.setValue(clamp(resourcesSettings.getMaxLevel(DIAMOND_ORE), maxHeight));
-        spinnerRedstoneChance.setValue(resourcesSettings.getChance(REDSTONE_ORE));
-        ((SpinnerNumberModel) spinnerRedstoneMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerRedstoneMinLevel.setValue(clamp(resourcesSettings.getMinLevel(REDSTONE_ORE), maxHeight));
-        ((SpinnerNumberModel) spinnerRedstoneMaxLevel.getModel()).setMaximum(maxHeight);
-        spinnerRedstoneMaxLevel.setValue(clamp(resourcesSettings.getMaxLevel(REDSTONE_ORE), maxHeight));
-        spinnerWaterChance.setValue(resourcesSettings.getChance(WATER));
-        ((SpinnerNumberModel) spinnerWaterMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerWaterMinLevel.setValue(clamp(resourcesSettings.getMinLevel(WATER), maxHeight));
-        ((SpinnerNumberModel) spinnerWaterMaxLevel.getModel()).setMaximum(maxHeight);
-        spinnerWaterMaxLevel.setValue(clamp(resourcesSettings.getMaxLevel(WATER), maxHeight));
-        spinnerLavaChance.setValue(resourcesSettings.getChance(LAVA));
-        ((SpinnerNumberModel) spinnerLavaMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerLavaMinLevel.setValue(clamp(resourcesSettings.getMinLevel(LAVA), maxHeight));
-        ((SpinnerNumberModel) spinnerLavaMaxLevel.getModel()).setMaximum(maxHeight);
-        spinnerLavaMaxLevel.setValue(clamp(resourcesSettings.getMaxLevel(LAVA), maxHeight));
-        spinnerDirtChance.setValue(resourcesSettings.getChance(DIRT));
-        ((SpinnerNumberModel) spinnerDirtMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerDirtMinLevel.setValue(clamp(resourcesSettings.getMinLevel(DIRT), maxHeight));
-        ((SpinnerNumberModel) spinnerDirtMaxLevel.getModel()).setMaximum(maxHeight);
-        spinnerDirtMaxLevel.setValue(clamp(resourcesSettings.getMaxLevel(DIRT), maxHeight));
-        spinnerGravelChance.setValue(resourcesSettings.getChance(GRAVEL));
-        ((SpinnerNumberModel) spinnerGravelMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerGravelMinLevel.setValue(clamp(resourcesSettings.getMinLevel(GRAVEL), maxHeight));
-        ((SpinnerNumberModel) spinnerGravelMaxLevel.getModel()).setMaximum(maxHeight);
-        spinnerGravelMaxLevel.setValue(clamp(resourcesSettings.getMaxLevel(GRAVEL), maxHeight));
-        spinnerEmeraldChance.setValue(resourcesSettings.getChance(EMERALD_ORE));
-        ((SpinnerNumberModel) spinnerEmeraldMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerEmeraldMinLevel.setValue(clamp(resourcesSettings.getMinLevel(EMERALD_ORE), maxHeight));
-        ((SpinnerNumberModel) spinnerEmeraldMaxLevel.getModel()).setMaximum(maxHeight);
-        spinnerEmeraldMaxLevel.setValue(clamp(resourcesSettings.getMaxLevel(EMERALD_ORE), maxHeight));
-        spinnerQuartzChance.setValue(resourcesSettings.getChance(QUARTZ_ORE));
-        ((SpinnerNumberModel) spinnerQuartzMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerQuartzMinLevel.setValue(clamp(resourcesSettings.getMinLevel(QUARTZ_ORE), maxHeight));
-        ((SpinnerNumberModel) spinnerQuartzMaxLevel.getModel()).setMaximum(maxHeight);
-        spinnerQuartzMaxLevel.setValue(clamp(resourcesSettings.getMaxLevel(QUARTZ_ORE), maxHeight));
         
         // terrain ranges
         if (mode != Mode.EXPORT) {
@@ -845,13 +985,21 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 //                jTabbedPane1.setEnabledAt(5, false);
 //            }
         }
-        
+
+        // world generation settings
+        final MapGenerator generator = dimension.getGenerator();
+        comboBoxGenerator.setSelectedItem((generator != null) ? generator.getType() : null);
+        generatorName = (generator instanceof CustomGenerator) ? ((CustomGenerator) generator).getName() : null;
+        customGeneratorSettings = (generator instanceof CustomGenerator) ? ((CustomGenerator) generator).getSettings() : null;
+        superflatPreset = (generator instanceof SuperflatGenerator) ? ((SuperflatGenerator) generator).getSettings() : null;
+
+        borderChanged();
         setControlStates();
     }
     
-    private int clamp(int value, int maxValue) {
-        if (value < 0) {
-            return 0;
+    private int clamp(int minValue, int value, int maxValue) {
+        if (value < minValue) {
+            return minValue;
         } else if (value > maxValue) {
             return maxValue;
         } else {
@@ -863,46 +1011,75 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         boolean enabled = isEnabled();
         boolean dim0 = (dimension != null) && (dimension.getDim() == Constants.DIM_NORMAL);
         boolean ceiling = (dimension != null) && (dimension.getDim() < 0);
-        radioButtonLavaBorder.setEnabled(enabled  && (! ceiling));
-        radioButtonNoBorder.setEnabled(enabled  && (! ceiling));
-        radioButtonVoidBorder.setEnabled(enabled  && (! ceiling));
-        radioButtonWaterBorder.setEnabled(enabled  && (! ceiling));
-        spinnerBorderLevel.setEnabled(enabled && (! ceiling) && (radioButtonLavaBorder.isSelected() || radioButtonWaterBorder.isSelected()));
-        radioButtonFixedBorder.setEnabled(enabled && (! ceiling) && (! radioButtonNoBorder.isSelected()));
-        radioButtonEndlessBorder.setEnabled(enabled && dim0 && (! ceiling) && (! radioButtonNoBorder.isSelected()));
-        spinnerBorderSize.setEnabled(enabled && (! ceiling) && (! radioButtonNoBorder.isSelected()) && radioButtonFixedBorder.isSelected());
-        checkBoxBedrockWall.setEnabled(enabled  && (! ceiling) && (radioButtonNoBorder.isSelected() || radioButtonFixedBorder.isSelected()));
-        sliderCavesEverywhereLevel.setEnabled(enabled && checkBoxCavesEverywhere.isSelected());
-        sliderCavernsEverywhereLevel.setEnabled(enabled && checkBoxCavernsEverywhere.isSelected());
-        sliderChasmsEverywhereLevel.setEnabled(enabled && checkBoxChasmsEverywhere.isSelected());
-        spinnerCavernsFloodLevel.setEnabled(enabled && checkBoxFloodCaverns.isSelected());
-        checkBoxCavernsFloodWithLava.setEnabled(enabled && checkBoxFloodCaverns.isSelected());
-        sliderDeciduousLevel.setEnabled(enabled && checkBoxDeciduousEverywhere.isSelected());
-        sliderPineLevel.setEnabled(enabled && checkBoxPineEverywhere.isSelected());
-        sliderJungleLevel.setEnabled(enabled && checkBoxJungleEverywhere.isSelected());
-        jSlider6.setEnabled(enabled && checkBoxSwamplandEverywhere.isSelected());
-        jSlider4.setEnabled(enabled && jCheckBox8.isSelected());
-        spinnerMinecraftSeed.setEnabled((mode != Mode.DEFAULT_SETTINGS) && enabled && dim0);
-        checkBoxPopulate.setEnabled(((platform == null) || platform.capabilities.contains(POPULATE)) && enabled && dim0);
-        checkBoxCavernsRemoveWater.setEnabled(enabled && (checkBoxCavesBreakSurface.isSelected() || checkBoxCavernsBreakSurface.isSelected() || checkBoxChasmsBreakSurface.isSelected()));
-        spinnerCeilingHeight.setEnabled(enabled && ceiling);
-        int selectedRow = tableCustomLayers.getSelectedRow();
-        buttonCustomLayerUp.setEnabled(enabled && (selectedRow != -1) && (! customLayersTableModel.isHeaderRow(selectedRow)) && (selectedRow > 0) && (! customLayersTableModel.isHeaderRow(selectedRow - 1)));
-        buttonCustomLayerDown.setEnabled(enabled && (selectedRow != -1) && (! customLayersTableModel.isHeaderRow(selectedRow)) && (selectedRow < (tableCustomLayers.getRowCount() - 1)) && (! customLayersTableModel.isHeaderRow(selectedRow + 1)));
+        setEnabled(radioButtonLavaBorder, enabled && (! ceiling));
+        setEnabled(radioButtonNoBorder, enabled && (! ceiling));
+        setEnabled(radioButtonVoidBorder, enabled && (! ceiling));
+        setEnabled(radioButtonWaterBorder, enabled && (! ceiling));
+        setEnabled(spinnerBorderLevel, enabled && (! ceiling) && (radioButtonLavaBorder.isSelected() || radioButtonWaterBorder.isSelected()));
+        setEnabled(radioButtonFixedBorder, enabled && (! ceiling) && (! radioButtonNoBorder.isSelected()));
+        setEnabled(radioButtonEndlessBorder, enabled && (platform.capabilities.contains(GENERATOR_PER_DIMENSION) || dim0) && (! ceiling) && (! radioButtonNoBorder.isSelected()));
+        setEnabled(spinnerBorderSize, enabled && (! ceiling) && (! radioButtonNoBorder.isSelected()) && radioButtonFixedBorder.isSelected());
+        setEnabled(checkBoxBedrockWall, enabled && (! ceiling) && (radioButtonNoBorder.isSelected() || radioButtonFixedBorder.isSelected()));
+        setEnabled(sliderCavesEverywhereLevel, enabled && checkBoxCavesEverywhere.isSelected());
+        setEnabled(sliderCavernsEverywhereLevel, enabled && checkBoxCavernsEverywhere.isSelected());
+        setEnabled(sliderChasmsEverywhereLevel, enabled && checkBoxChasmsEverywhere.isSelected());
+        setEnabled(spinnerCavernsFloodLevel, enabled && checkBoxFloodCaverns.isSelected());
+        setEnabled(checkBoxCavernsFloodWithLava, enabled && checkBoxFloodCaverns.isSelected());
+        setEnabled(sliderDeciduousLevel, enabled && checkBoxDeciduousEverywhere.isSelected());
+        setEnabled(sliderPineLevel, enabled && checkBoxPineEverywhere.isSelected());
+        setEnabled(sliderJungleLevel, enabled && checkBoxJungleEverywhere.isSelected());
+        setEnabled(jSlider6, enabled && checkBoxSwamplandEverywhere.isSelected());
+        setEnabled(jSlider4, enabled && jCheckBox8.isSelected());
+        setEnabled(spinnerMinecraftSeed, (mode != Mode.DEFAULT_SETTINGS) && enabled && dim0);
+        setEnabled(checkBoxPopulate, ((platform == null) || platform.capabilities.contains(POPULATE)) && enabled && dim0);
+        setEnabled(checkBoxCavernsRemoveWater, enabled && (checkBoxCavesBreakSurface.isSelected() || checkBoxCavernsBreakSurface.isSelected() || checkBoxChasmsBreakSurface.isSelected()));
+        setEnabled(spinnerCeilingHeight, enabled && ceiling);
+        final int[] selectedRows = tableCustomLayers.getSelectedRows();
+        boolean headerIncluded = false;
+        if (selectedRows.length > 0) {
+            for (int row = selectedRows[0]; row <= selectedRows[selectedRows.length - 1]; row++) {
+                if (customLayersTableModel.isHeaderRow(row)) {
+                    headerIncluded = true;
+                    break;
+                }
+            }
+        }
+        setEnabled(buttonCustomLayerUp, enabled && (selectedRows.length > 0) && (! headerIncluded) && (! customLayersTableModel.isHeaderRow(selectedRows[0])) && (selectedRows[0] > 0) && (! customLayersTableModel.isHeaderRow(selectedRows[0] - 1)));
+        setEnabled(buttonCustomLayerTop, buttonCustomLayerUp.isEnabled());
+        setEnabled(buttonCustomLayerDown, enabled && (selectedRows.length > 0) && (! headerIncluded) && (! customLayersTableModel.isHeaderRow(selectedRows[selectedRows.length - 1])) && (selectedRows[selectedRows.length - 1] < (tableCustomLayers.getRowCount() - 1)) && (! customLayersTableModel.isHeaderRow(selectedRows[selectedRows.length - 1] + 1)));
+        setEnabled(buttonCustomLayerBottom, buttonCustomLayerDown.isEnabled());
         if (! enabled) {
-            comboBoxUndergroundLayerAnchor.setEnabled(false);
+            setEnabled(comboBoxUndergroundLayerAnchor, false);
         } else {
             Terrain subsurfaceTerrain = (Terrain) comboBoxSubsurfaceMaterial.getSelectedItem();
             if ((subsurfaceTerrain != null) && subsurfaceTerrain.isCustom()) {
                 MixedMaterial material = Terrain.getCustomMaterial(subsurfaceTerrain.getCustomTerrainIndex());
-                comboBoxUndergroundLayerAnchor.setEnabled(material.getMode() == MixedMaterial.Mode.LAYERED);
+                setEnabled(comboBoxUndergroundLayerAnchor, material.getMode() == MixedMaterial.Mode.LAYERED);
             } else {
-                comboBoxUndergroundLayerAnchor.setEnabled(false);
+                setEnabled(comboBoxUndergroundLayerAnchor, false);
             }
+        }
+        setEnabled(comboBoxGenerator, enabled && (! endlessBorder));
+        setEnabled(buttonGeneratorOptions, enabled && (! endlessBorder) && ((comboBoxGenerator.getSelectedItem() == Generator.FLAT) || (comboBoxGenerator.getSelectedItem() == CUSTOM)));
+    }
+    
+    private void setEnabled(Component component, boolean enabled) {
+        if (component.isEnabled() != enabled) {
+            component.setEnabled(enabled);
         }
     }
 
-    private void addListeners(final JSpinner minSpinner, final JSpinner maxSpinner) {
+    private void configureSpinners(final JSpinner chanceSpinner, final JSpinner minSpinner, final JSpinner maxSpinner) {
+        if (chanceSpinner != null) {
+            chanceSpinner.setEditor(new NumberEditor(chanceSpinner, "0"));
+            minSpinner.setEnabled((int) chanceSpinner.getValue() != 0);
+            maxSpinner.setEnabled((int) chanceSpinner.getValue() != 0);
+            chanceSpinner.addChangeListener(e -> {
+                minSpinner.setEnabled((int) chanceSpinner.getValue() != 0);
+                maxSpinner.setEnabled((int) chanceSpinner.getValue() != 0);
+            });
+        }
+        minSpinner.setEditor(new NumberEditor(minSpinner, "0"));
         minSpinner.addChangeListener(e -> {
             int newMinValue = (Integer) minSpinner.getValue();
             int currentMaxValue = (Integer) maxSpinner.getValue();
@@ -910,6 +1087,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 maxSpinner.setValue(newMinValue);
             }
         });
+        maxSpinner.setEditor(new NumberEditor(maxSpinner, "0"));
         maxSpinner.addChangeListener(e -> {
             int newMaxValue = (Integer) maxSpinner.getValue();
             int currentMinValue = (Integer) minSpinner.getValue();
@@ -919,19 +1097,45 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         });
     }
 
-    private void notifyBorderListeners() {
-        Dimension.Border newBorder = getSelectedBorder();
-        for (BorderListener borderListener: borderListeners) {
-            borderListener.borderChanged(newBorder);
+    private void borderChanged() {
+        Dimension.Border border = getSelectedBorder();
+        endlessBorder = (border != null) && border.isEndless();
+        if (endlessBorder && comboBoxGenerator.isEnabled()) {
+            savedGenerator = comboBoxGenerator.getSelectedIndex();
+            comboBoxGenerator.setSelectedIndex(1);
+            comboBoxGenerator.setEnabled(false);
+//            setControlStates();
+        } else if ((! endlessBorder) && (! comboBoxGenerator.isEnabled())) {
+            comboBoxGenerator.setSelectedIndex(savedGenerator);
+            comboBoxGenerator.setEnabled(true);
+//            setControlStates();
         }
     }
 
-    /** This method is called from within the constructor to
+    private void updateGeneratorButtonTooltip() {
+        if (comboBoxGenerator.getSelectedItem() != null) {
+            switch ((Generator) comboBoxGenerator.getSelectedItem()) {
+                case FLAT:
+                    buttonGeneratorOptions.setToolTipText("Edit the Superflat mode preset");
+                    break;
+                case CUSTOM:
+                    buttonGeneratorOptions.setToolTipText("Set the custom world generator name");
+                    break;
+                default:
+                    buttonGeneratorOptions.setToolTipText(null);
+                    break;
+            }
+        } else {
+            buttonGeneratorOptions.setToolTipText(null);
+        }
+    }
+
+    /**
+     * This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
      * always regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
@@ -982,6 +1186,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jLabel83 = new javax.swing.JLabel();
         jLabel84 = new javax.swing.JLabel();
         comboBoxUndergroundLayerAnchor = new javax.swing.JComboBox<>();
+        comboBoxGenerator = new javax.swing.JComboBox<>();
+        jLabel94 = new javax.swing.JLabel();
+        jLabel95 = new javax.swing.JLabel();
+        buttonGeneratorOptions = new javax.swing.JButton();
         jPanel5 = new javax.swing.JPanel();
         themeEditor = new org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor();
         jLabel45 = new javax.swing.JLabel();
@@ -1032,95 +1240,113 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jSlider4 = new javax.swing.JSlider();
         jSeparator2 = new javax.swing.JSeparator();
         jLabel10 = new javax.swing.JLabel();
-        jLabel12 = new javax.swing.JLabel();
-        spinnerGoldChance = new javax.swing.JSpinner();
-        jLabel13 = new javax.swing.JLabel();
-        jLabel14 = new javax.swing.JLabel();
-        spinnerGoldMaxLevel = new javax.swing.JSpinner();
-        jLabel15 = new javax.swing.JLabel();
-        spinnerIronChance = new javax.swing.JSpinner();
-        spinnerIronMaxLevel = new javax.swing.JSpinner();
-        jLabel16 = new javax.swing.JLabel();
-        spinnerCoalChance = new javax.swing.JSpinner();
-        spinnerCoalMaxLevel = new javax.swing.JSpinner();
-        jLabel17 = new javax.swing.JLabel();
-        spinnerLapisChance = new javax.swing.JSpinner();
-        spinnerLapisMaxLevel = new javax.swing.JSpinner();
-        jLabel18 = new javax.swing.JLabel();
-        spinnerDiamondChance = new javax.swing.JSpinner();
-        spinnerDiamondMaxLevel = new javax.swing.JSpinner();
-        jLabel19 = new javax.swing.JLabel();
-        spinnerRedstoneChance = new javax.swing.JSpinner();
-        spinnerRedstoneMaxLevel = new javax.swing.JSpinner();
-        jLabel20 = new javax.swing.JLabel();
-        spinnerWaterChance = new javax.swing.JSpinner();
-        spinnerWaterMaxLevel = new javax.swing.JSpinner();
-        jLabel21 = new javax.swing.JLabel();
-        spinnerLavaChance = new javax.swing.JSpinner();
-        jLabel22 = new javax.swing.JLabel();
-        jLabel23 = new javax.swing.JLabel();
-        jLabel24 = new javax.swing.JLabel();
-        jLabel25 = new javax.swing.JLabel();
-        jLabel26 = new javax.swing.JLabel();
-        jLabel27 = new javax.swing.JLabel();
-        jLabel28 = new javax.swing.JLabel();
-        jLabel29 = new javax.swing.JLabel();
-        jLabel30 = new javax.swing.JLabel();
-        spinnerDirtChance = new javax.swing.JSpinner();
-        jLabel31 = new javax.swing.JLabel();
-        spinnerLavaMaxLevel = new javax.swing.JSpinner();
-        spinnerDirtMaxLevel = new javax.swing.JSpinner();
-        jLabel32 = new javax.swing.JLabel();
-        spinnerGravelChance = new javax.swing.JSpinner();
-        jLabel33 = new javax.swing.JLabel();
-        spinnerGravelMaxLevel = new javax.swing.JSpinner();
-        jLabel34 = new javax.swing.JLabel();
-        jLabel35 = new javax.swing.JLabel();
-        jLabel36 = new javax.swing.JLabel();
-        jLabel37 = new javax.swing.JLabel();
-        jLabel38 = new javax.swing.JLabel();
-        jLabel39 = new javax.swing.JLabel();
-        jLabel40 = new javax.swing.JLabel();
-        jLabel41 = new javax.swing.JLabel();
-        jLabel42 = new javax.swing.JLabel();
-        jLabel43 = new javax.swing.JLabel();
         jSeparator3 = new javax.swing.JSeparator();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel11 = new javax.swing.JLabel();
-        jLabel51 = new javax.swing.JLabel();
-        spinnerEmeraldChance = new javax.swing.JSpinner();
-        jLabel52 = new javax.swing.JLabel();
-        spinnerEmeraldMaxLevel = new javax.swing.JSpinner();
-        jLabel53 = new javax.swing.JLabel();
-        spinnerGoldMinLevel = new javax.swing.JSpinner();
-        spinnerIronMinLevel = new javax.swing.JSpinner();
-        spinnerCoalMinLevel = new javax.swing.JSpinner();
-        spinnerLapisMinLevel = new javax.swing.JSpinner();
-        spinnerDiamondMinLevel = new javax.swing.JSpinner();
-        spinnerEmeraldMinLevel = new javax.swing.JSpinner();
+        jSeparator4 = new javax.swing.JSeparator();
+        jPanel20 = new javax.swing.JPanel();
+        spinnerIronMaxLevel = new javax.swing.JSpinner();
+        jLabel35 = new javax.swing.JLabel();
+        spinnerWaterChance = new javax.swing.JSpinner();
+        jLabel29 = new javax.swing.JLabel();
         spinnerWaterMinLevel = new javax.swing.JSpinner();
-        spinnerLavaMinLevel = new javax.swing.JSpinner();
-        spinnerDirtMinLevel = new javax.swing.JSpinner();
-        spinnerGravelMinLevel = new javax.swing.JSpinner();
-        spinnerRedstoneMinLevel = new javax.swing.JSpinner();
+        jLabel14 = new javax.swing.JLabel();
+        spinnerEmeraldMinLevel = new javax.swing.JSpinner();
         jLabel54 = new javax.swing.JLabel();
+        spinnerCoalChance = new javax.swing.JSpinner();
+        jLabel20 = new javax.swing.JLabel();
+        jLabel53 = new javax.swing.JLabel();
+        spinnerCoalMaxLevel = new javax.swing.JSpinner();
+        spinnerCoalMinLevel = new javax.swing.JSpinner();
+        jLabel13 = new javax.swing.JLabel();
+        jLabel34 = new javax.swing.JLabel();
         jLabel55 = new javax.swing.JLabel();
+        jLabel37 = new javax.swing.JLabel();
+        spinnerEmeraldMaxLevel = new javax.swing.JSpinner();
+        spinnerLapisChance = new javax.swing.JSpinner();
+        jLabel25 = new javax.swing.JLabel();
+        spinnerIronChance = new javax.swing.JSpinner();
+        jLabel51 = new javax.swing.JLabel();
+        jLabel22 = new javax.swing.JLabel();
+        spinnerGoldChance = new javax.swing.JSpinner();
+        spinnerLapisMinLevel = new javax.swing.JSpinner();
+        spinnerGoldMaxLevel = new javax.swing.JSpinner();
+        spinnerDiamondMinLevel = new javax.swing.JSpinner();
         jLabel56 = new javax.swing.JLabel();
+        spinnerWaterMaxLevel = new javax.swing.JSpinner();
+        jLabel26 = new javax.swing.JLabel();
+        jLabel59 = new javax.swing.JLabel();
+        jLabel16 = new javax.swing.JLabel();
+        jLabel15 = new javax.swing.JLabel();
+        jLabel17 = new javax.swing.JLabel();
+        spinnerLapisMaxLevel = new javax.swing.JSpinner();
+        jLabel40 = new javax.swing.JLabel();
+        jLabel18 = new javax.swing.JLabel();
+        spinnerDiamondMaxLevel = new javax.swing.JSpinner();
+        jLabel21 = new javax.swing.JLabel();
+        jLabel36 = new javax.swing.JLabel();
+        spinnerLavaMinLevel = new javax.swing.JSpinner();
+        jLabel23 = new javax.swing.JLabel();
+        jLabel60 = new javax.swing.JLabel();
+        spinnerLavaMaxLevel = new javax.swing.JSpinner();
+        jLabel24 = new javax.swing.JLabel();
+        jLabel61 = new javax.swing.JLabel();
+        jLabel52 = new javax.swing.JLabel();
+        jLabel28 = new javax.swing.JLabel();
         jLabel57 = new javax.swing.JLabel();
         jLabel58 = new javax.swing.JLabel();
-        jLabel59 = new javax.swing.JLabel();
-        jLabel60 = new javax.swing.JLabel();
-        jLabel61 = new javax.swing.JLabel();
-        jLabel62 = new javax.swing.JLabel();
+        spinnerIronMinLevel = new javax.swing.JSpinner();
+        spinnerGoldMinLevel = new javax.swing.JSpinner();
+        jLabel38 = new javax.swing.JLabel();
+        spinnerLavaChance = new javax.swing.JSpinner();
+        jLabel41 = new javax.swing.JLabel();
+        spinnerEmeraldChance = new javax.swing.JSpinner();
+        jLabel12 = new javax.swing.JLabel();
+        spinnerDiamondChance = new javax.swing.JSpinner();
+        jPanel21 = new javax.swing.JPanel();
         jLabel63 = new javax.swing.JLabel();
+        jLabel92 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        spinnerCopperMinLevel = new javax.swing.JSpinner();
+        spinnerGravelChance = new javax.swing.JSpinner();
+        spinnerRedstoneMinLevel = new javax.swing.JSpinner();
+        jLabel62 = new javax.swing.JLabel();
+        jLabel39 = new javax.swing.JLabel();
         jLabel64 = new javax.swing.JLabel();
-        jLabel74 = new javax.swing.JLabel();
+        jLabel43 = new javax.swing.JLabel();
+        spinnerCopperChance = new javax.swing.JSpinner();
+        spinnerDirtChance = new javax.swing.JSpinner();
+        jLabel32 = new javax.swing.JLabel();
+        jLabel93 = new javax.swing.JLabel();
+        jLabel30 = new javax.swing.JLabel();
+        jLabel33 = new javax.swing.JLabel();
+        spinnerRedstoneChance = new javax.swing.JSpinner();
+        jLabel19 = new javax.swing.JLabel();
+        spinnerGravelMaxLevel = new javax.swing.JSpinner();
+        spinnerCopperMaxLevel = new javax.swing.JSpinner();
+        jLabel27 = new javax.swing.JLabel();
+        spinnerGravelMinLevel = new javax.swing.JSpinner();
+        jLabel31 = new javax.swing.JLabel();
+        spinnerDirtMinLevel = new javax.swing.JSpinner();
+        spinnerDirtMaxLevel = new javax.swing.JSpinner();
+        jLabel11 = new javax.swing.JLabel();
+        jLabel91 = new javax.swing.JLabel();
+        jLabel42 = new javax.swing.JLabel();
+        jLabel89 = new javax.swing.JLabel();
+        spinnerRedstoneMaxLevel = new javax.swing.JSpinner();
+        jPanel22 = new javax.swing.JPanel();
+        jLabel101 = new javax.swing.JLabel();
+        jLabel100 = new javax.swing.JLabel();
         spinnerQuartzChance = new javax.swing.JSpinner();
+        jLabel74 = new javax.swing.JLabel();
+        jLabel76 = new javax.swing.JLabel();
+        jLabel98 = new javax.swing.JLabel();
+        spinnerQuartzMaxLevel = new javax.swing.JSpinner();
+        spinnerAncientDebrisMaxLevel = new javax.swing.JSpinner();
+        spinnerAncientDebrisMinLevel = new javax.swing.JSpinner();
         jLabel75 = new javax.swing.JLabel();
+        jLabel99 = new javax.swing.JLabel();
+        spinnerAncientDebrisChance = new javax.swing.JSpinner();
         spinnerQuartzMinLevel = new javax.swing.JSpinner();
         jLabel77 = new javax.swing.JLabel();
-        spinnerQuartzMaxLevel = new javax.swing.JSpinner();
-        jLabel76 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
         checkBoxPopulate = new javax.swing.JCheckBox();
         checkBoxDeciduousEverywhere = new javax.swing.JCheckBox();
@@ -1147,6 +1373,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         tableCustomLayers = new javax.swing.JTable();
         buttonCustomLayerUp = new javax.swing.JButton();
         buttonCustomLayerDown = new javax.swing.JButton();
+        buttonCustomLayerTop = new javax.swing.JButton();
+        buttonCustomLayerBottom = new javax.swing.JButton();
 
         buttonGroup1.add(radioButtonWaterBorder);
         radioButtonWaterBorder.setText("Water");
@@ -1197,7 +1425,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             }
         });
 
-        jLabel7.setText("Minecraft seed:");
+        jLabel7.setText("Minecraft settings:");
 
         spinnerMinecraftSeed.setModel(new javax.swing.SpinnerNumberModel(-9223372036854775808L, null, null, 1L));
         spinnerMinecraftSeed.setEditor(new javax.swing.JSpinner.NumberEditor(spinnerMinecraftSeed, "0"));
@@ -1345,6 +1573,23 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             }
         });
 
+        comboBoxGenerator.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxGeneratorActionPerformed(evt);
+            }
+        });
+
+        jLabel94.setText("world type:");
+
+        jLabel95.setText("seed:");
+
+        buttonGeneratorOptions.setText("...");
+        buttonGeneratorOptions.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonGeneratorOptionsActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -1386,6 +1631,14 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(jLabel7)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel94)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(comboBoxGenerator, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(buttonGeneratorOptions)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel95)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(spinnerMinecraftSeed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jLabel4)
@@ -1472,8 +1725,12 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
-                    .addComponent(spinnerMinecraftSeed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(spinnerMinecraftSeed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(comboBoxGenerator, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel94)
+                    .addComponent(jLabel95)
+                    .addComponent(buttonGeneratorOptions))
+                .addContainerGap(21, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("General", jPanel1);
@@ -2007,183 +2264,835 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         jLabel10.setText("Settings for the Resources layer at 50% intensity. These also apply to hand-painted Resources:");
 
-        jLabel12.setText("Gold:");
-
-        spinnerGoldChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
-
-        jLabel13.setText("Occurrence:");
-
-        jLabel14.setText("Levels:");
-
-        spinnerGoldMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
-
-        jLabel15.setText("Iron:");
-
-        spinnerIronChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
-
-        spinnerIronMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
-
-        jLabel16.setText("Coal:");
-
-        spinnerCoalChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
-
-        spinnerCoalMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
-
-        jLabel17.setText("Lapis Lazuli:");
-
-        spinnerLapisChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
-
-        spinnerLapisMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
-
-        jLabel18.setText("Diamond:");
-
-        spinnerDiamondChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
-
-        spinnerDiamondMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
-
-        jLabel19.setText("Redstone:");
-
-        spinnerRedstoneChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
-
-        spinnerRedstoneMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
-
-        jLabel20.setText("Water:");
-
-        spinnerWaterChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
-
-        spinnerWaterMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
-
-        jLabel21.setText("Lava:");
-
-        spinnerLavaChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
-
-        jLabel22.setText("‰");
-
-        jLabel23.setText("‰");
-
-        jLabel24.setText("‰");
-
-        jLabel25.setText("‰");
-
-        jLabel26.setText("‰");
-
-        jLabel27.setText("‰");
-
-        jLabel28.setText("‰");
-
-        jLabel29.setText("‰");
-
-        jLabel30.setText("Dirt:");
-
-        spinnerDirtChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
-
-        jLabel31.setText("‰");
-
-        spinnerLavaMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
-
-        spinnerDirtMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
-
-        jLabel32.setText("Gravel:");
-
-        spinnerGravelChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
-
-        jLabel33.setText("‰");
-
-        spinnerGravelMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
-
-        jLabel34.setText("blocks");
-
-        jLabel35.setText("blocks");
-
-        jLabel36.setText("blocks");
-
-        jLabel37.setText("blocks");
-
-        jLabel38.setText("blocks");
-
-        jLabel39.setText("blocks");
-
-        jLabel40.setText("blocks");
-
-        jLabel41.setText("blocks");
-
-        jLabel42.setText("blocks");
-
-        jLabel43.setText("blocks");
-
         jSeparator3.setOrientation(javax.swing.SwingConstants.VERTICAL);
 
-        jLabel3.setText("Occurrence:");
+        jPanel20.setLayout(new java.awt.GridBagLayout());
 
-        jLabel11.setText("Levels:");
+        spinnerIronMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerIronMaxLevel, gridBagConstraints);
 
-        jLabel51.setText("Emerald:");
+        jLabel35.setText("blocks");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel35, gridBagConstraints);
 
-        spinnerEmeraldChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+        spinnerWaterChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerWaterChance, gridBagConstraints);
 
-        jLabel52.setText("‰");
-
-        spinnerEmeraldMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
-
-        jLabel53.setText("blocks");
-
-        spinnerGoldMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
-
-        spinnerIronMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
-
-        spinnerCoalMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
-
-        spinnerLapisMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
-
-        spinnerDiamondMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
-
-        spinnerEmeraldMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        jLabel29.setText("‰");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel29, gridBagConstraints);
 
         spinnerWaterMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerWaterMinLevel, gridBagConstraints);
 
-        spinnerLavaMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        jLabel14.setText("Levels:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel14, gridBagConstraints);
 
-        spinnerDirtMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
-
-        spinnerGravelMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
-
-        spinnerRedstoneMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        spinnerEmeraldMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerEmeraldMinLevel, gridBagConstraints);
 
         jLabel54.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel54, gridBagConstraints);
+
+        spinnerCoalChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerCoalChance, gridBagConstraints);
+
+        jLabel20.setText("Water:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel20, gridBagConstraints);
+
+        jLabel53.setText("blocks");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel53, gridBagConstraints);
+
+        spinnerCoalMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerCoalMaxLevel, gridBagConstraints);
+
+        spinnerCoalMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerCoalMinLevel, gridBagConstraints);
+
+        jLabel13.setText("Occurrence:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel13, gridBagConstraints);
+
+        jLabel34.setText("blocks");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel34, gridBagConstraints);
 
         jLabel55.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel55, gridBagConstraints);
+
+        jLabel37.setText("blocks");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel37, gridBagConstraints);
+
+        spinnerEmeraldMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerEmeraldMaxLevel, gridBagConstraints);
+
+        spinnerLapisChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerLapisChance, gridBagConstraints);
+
+        jLabel25.setText("‰");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel25, gridBagConstraints);
+
+        spinnerIronChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerIronChance, gridBagConstraints);
+
+        jLabel51.setText("Emerald:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel51, gridBagConstraints);
+
+        jLabel22.setText("‰");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel22, gridBagConstraints);
+
+        spinnerGoldChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerGoldChance, gridBagConstraints);
+
+        spinnerLapisMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerLapisMinLevel, gridBagConstraints);
+
+        spinnerGoldMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerGoldMaxLevel, gridBagConstraints);
+
+        spinnerDiamondMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerDiamondMinLevel, gridBagConstraints);
 
         jLabel56.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel56, gridBagConstraints);
 
-        jLabel57.setText("-");
+        spinnerWaterMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerWaterMaxLevel, gridBagConstraints);
 
-        jLabel58.setText("-");
+        jLabel26.setText("‰");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel26, gridBagConstraints);
 
         jLabel59.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel59, gridBagConstraints);
+
+        jLabel16.setText("Coal:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel16, gridBagConstraints);
+
+        jLabel15.setText("Iron:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel15, gridBagConstraints);
+
+        jLabel17.setText("Lapis Lazuli:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel17, gridBagConstraints);
+
+        spinnerLapisMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerLapisMaxLevel, gridBagConstraints);
+
+        jLabel40.setText("blocks");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel40, gridBagConstraints);
+
+        jLabel18.setText("Diamond:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel18, gridBagConstraints);
+
+        spinnerDiamondMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerDiamondMaxLevel, gridBagConstraints);
+
+        jLabel21.setText("Lava:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel21, gridBagConstraints);
+
+        jLabel36.setText("blocks");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel36, gridBagConstraints);
+
+        spinnerLavaMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerLavaMinLevel, gridBagConstraints);
+
+        jLabel23.setText("‰");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel23, gridBagConstraints);
 
         jLabel60.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel60, gridBagConstraints);
+
+        spinnerLavaMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerLavaMaxLevel, gridBagConstraints);
+
+        jLabel24.setText("‰");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel24, gridBagConstraints);
 
         jLabel61.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel61, gridBagConstraints);
 
-        jLabel62.setText("-");
+        jLabel52.setText("‰");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel52, gridBagConstraints);
+
+        jLabel28.setText("‰");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel28, gridBagConstraints);
+
+        jLabel57.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel57, gridBagConstraints);
+
+        jLabel58.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel58, gridBagConstraints);
+
+        spinnerIronMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerIronMinLevel, gridBagConstraints);
+
+        spinnerGoldMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerGoldMinLevel, gridBagConstraints);
+
+        jLabel38.setText("blocks");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel38, gridBagConstraints);
+
+        spinnerLavaChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerLavaChance, gridBagConstraints);
+
+        jLabel41.setText("blocks");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel41, gridBagConstraints);
+
+        spinnerEmeraldChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerEmeraldChance, gridBagConstraints);
+
+        jLabel12.setText("Gold:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(jLabel12, gridBagConstraints);
+
+        spinnerDiamondChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel20.add(spinnerDiamondChance, gridBagConstraints);
+
+        jPanel21.setLayout(new java.awt.GridBagLayout());
 
         jLabel63.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel63, gridBagConstraints);
+
+        jLabel92.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel92, gridBagConstraints);
+
+        jLabel3.setText("Occurrence:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel3, gridBagConstraints);
+
+        spinnerCopperMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(spinnerCopperMinLevel, gridBagConstraints);
+
+        spinnerGravelChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(spinnerGravelChance, gridBagConstraints);
+
+        spinnerRedstoneMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(spinnerRedstoneMinLevel, gridBagConstraints);
+
+        jLabel62.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel62, gridBagConstraints);
+
+        jLabel39.setText("blocks");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel39, gridBagConstraints);
 
         jLabel64.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel64, gridBagConstraints);
 
-        jLabel74.setText("Quartz:");
+        jLabel43.setText("blocks");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel43, gridBagConstraints);
+
+        spinnerCopperChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(spinnerCopperChance, gridBagConstraints);
+
+        spinnerDirtChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(spinnerDirtChance, gridBagConstraints);
+
+        jLabel32.setText("Gravel:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel32, gridBagConstraints);
+
+        jLabel93.setText("blocks");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel93, gridBagConstraints);
+
+        jLabel30.setText("Dirt:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel30, gridBagConstraints);
+
+        jLabel33.setText("‰");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel33, gridBagConstraints);
+
+        spinnerRedstoneChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(spinnerRedstoneChance, gridBagConstraints);
+
+        jLabel19.setText("Redstone:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel19, gridBagConstraints);
+
+        spinnerGravelMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(spinnerGravelMaxLevel, gridBagConstraints);
+
+        spinnerCopperMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(spinnerCopperMaxLevel, gridBagConstraints);
+
+        jLabel27.setText("‰");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel27, gridBagConstraints);
+
+        spinnerGravelMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(spinnerGravelMinLevel, gridBagConstraints);
+
+        jLabel31.setText("‰");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel31, gridBagConstraints);
+
+        spinnerDirtMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(spinnerDirtMinLevel, gridBagConstraints);
+
+        spinnerDirtMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(spinnerDirtMaxLevel, gridBagConstraints);
+
+        jLabel11.setText("Levels:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel11, gridBagConstraints);
+
+        jLabel91.setText("Copper:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel91, gridBagConstraints);
+
+        jLabel42.setText("blocks");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel42, gridBagConstraints);
+
+        jLabel89.setText("‰");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(jLabel89, gridBagConstraints);
+
+        spinnerRedstoneMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel21.add(spinnerRedstoneMaxLevel, gridBagConstraints);
+
+        jPanel22.setLayout(new java.awt.GridBagLayout());
+
+        jLabel101.setText("‰");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel22.add(jLabel101, gridBagConstraints);
+
+        jLabel100.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel22.add(jLabel100, gridBagConstraints);
 
         spinnerQuartzChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel22.add(spinnerQuartzChance, gridBagConstraints);
 
-        jLabel75.setText("‰");
-
-        spinnerQuartzMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
-
-        jLabel77.setText("-");
-
-        spinnerQuartzMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
+        jLabel74.setText("Nether Quartz:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel22.add(jLabel74, gridBagConstraints);
 
         jLabel76.setText("blocks");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel22.add(jLabel76, gridBagConstraints);
+
+        jLabel98.setText("blocks");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel22.add(jLabel98, gridBagConstraints);
+
+        spinnerQuartzMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel22.add(spinnerQuartzMaxLevel, gridBagConstraints);
+
+        spinnerAncientDebrisMaxLevel.setModel(new javax.swing.SpinnerNumberModel(1, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel22.add(spinnerAncientDebrisMaxLevel, gridBagConstraints);
+
+        spinnerAncientDebrisMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel22.add(spinnerAncientDebrisMinLevel, gridBagConstraints);
+
+        jLabel75.setText("‰");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel22.add(jLabel75, gridBagConstraints);
+
+        jLabel99.setText("Ancient Debris:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel22.add(jLabel99, gridBagConstraints);
+
+        spinnerAncientDebrisChance.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel22.add(spinnerAncientDebrisChance, gridBagConstraints);
+
+        spinnerQuartzMinLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 127, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel22.add(spinnerQuartzMinLevel, gridBagConstraints);
+
+        jLabel77.setText("-");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
+        jPanel22.add(jLabel77, gridBagConstraints);
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -2199,185 +3108,14 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                     .addComponent(jLabel10)
                     .addComponent(jSeparator2)
                     .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addComponent(jPanel20, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel4Layout.createSequentialGroup()
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel12)
-                                    .addComponent(jLabel15)
-                                    .addComponent(jLabel16)
-                                    .addComponent(jLabel17)
-                                    .addComponent(jLabel18))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel13)
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerGoldChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel22))
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerIronChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel23))
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerCoalChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel24))
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerLapisChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel25))
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerDiamondChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel26))
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerEmeraldChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel52))))
-                            .addComponent(jLabel51))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel14)
-                            .addGroup(jPanel4Layout.createSequentialGroup()
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerDiamondMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel58)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(spinnerDiamondMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel38))
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerLapisMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel57)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(spinnerLapisMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel37))
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerCoalMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel56)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(spinnerCoalMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel36))
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerIronMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel55)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(spinnerIronMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel35))
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerGoldMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel54)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(spinnerGoldMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel34))
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerEmeraldMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel59)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(spinnerEmeraldMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel53)))
-                                .addGap(18, 18, 18)
-                                .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, 6, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel20)
-                                    .addComponent(jLabel21)
-                                    .addComponent(jLabel30)
-                                    .addComponent(jLabel32)
-                                    .addComponent(jLabel19)
-                                    .addComponent(jLabel74))))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel4Layout.createSequentialGroup()
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerWaterChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel28))
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerLavaChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel29))
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerDirtChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel31))
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerGravelChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel33))
-                                    .addComponent(jLabel3))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel11)
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerGravelMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel63)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(spinnerGravelMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel43))
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerDirtMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel62)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(spinnerDirtMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel42))
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerLavaMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel61)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(spinnerLavaMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel41))
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(spinnerWaterMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel60)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(spinnerWaterMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(jLabel40))))
-                            .addGroup(jPanel4Layout.createSequentialGroup()
-                                .addComponent(spinnerRedstoneChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jLabel27)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerRedstoneMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jLabel64)
-                                .addGap(0, 0, 0)
-                                .addComponent(spinnerRedstoneMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jLabel39))
-                            .addGroup(jPanel4Layout.createSequentialGroup()
-                                .addComponent(spinnerQuartzChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jLabel75)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerQuartzMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jLabel77)
-                                .addGap(0, 0, 0)
-                                .addComponent(spinnerQuartzMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jLabel76)))))
+                            .addComponent(jSeparator4, javax.swing.GroupLayout.PREFERRED_SIZE, 333, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jPanel21, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jPanel22, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel4Layout.setVerticalGroup(
@@ -2391,125 +3129,16 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel10)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jSeparator3)
                     .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel13)
-                            .addComponent(jLabel14)
-                            .addComponent(jLabel3)
-                            .addComponent(jLabel11))
-                        .addGap(6, 6, 6)
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel4Layout.createSequentialGroup()
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel12)
-                                    .addComponent(spinnerGoldChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(spinnerGoldMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel22)
-                                    .addComponent(jLabel34)
-                                    .addComponent(spinnerGoldMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel54))
-                                .addGap(6, 6, 6)
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel15)
-                                    .addComponent(spinnerIronChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(spinnerIronMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel23)
-                                    .addComponent(jLabel35)
-                                    .addComponent(spinnerIronMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel55))
-                                .addGap(6, 6, 6)
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel16)
-                                    .addComponent(spinnerCoalChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(spinnerCoalMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel24)
-                                    .addComponent(jLabel36)
-                                    .addComponent(spinnerCoalMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel56))
-                                .addGap(6, 6, 6)
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel17)
-                                    .addComponent(spinnerLapisChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(spinnerLapisMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel25)
-                                    .addComponent(jLabel37)
-                                    .addComponent(spinnerLapisMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel57))
-                                .addGap(6, 6, 6)
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel18)
-                                    .addComponent(spinnerDiamondChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(spinnerDiamondMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel26)
-                                    .addComponent(jLabel38)
-                                    .addComponent(spinnerDiamondMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel58)))
-                            .addGroup(jPanel4Layout.createSequentialGroup()
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel20)
-                                    .addComponent(spinnerWaterChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(spinnerWaterMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel28)
-                                    .addComponent(jLabel40)
-                                    .addComponent(spinnerWaterMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel60))
-                                .addGap(6, 6, 6)
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel21)
-                                    .addComponent(spinnerLavaChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel29)
-                                    .addComponent(spinnerLavaMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel41)
-                                    .addComponent(spinnerLavaMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel61))
-                                .addGap(6, 6, 6)
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel30)
-                                    .addComponent(spinnerDirtChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel31)
-                                    .addComponent(spinnerDirtMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel42)
-                                    .addComponent(spinnerDirtMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel62))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel32)
-                                    .addComponent(spinnerGravelChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel33)
-                                    .addComponent(spinnerGravelMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel43)
-                                    .addComponent(spinnerGravelMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel63))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel19)
-                                    .addComponent(spinnerRedstoneMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel27)
-                                    .addComponent(jLabel39)
-                                    .addComponent(spinnerRedstoneChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(spinnerRedstoneMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel64))))
+                        .addComponent(jPanel21, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jSeparator4, javax.swing.GroupLayout.PREFERRED_SIZE, 11, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(jLabel51)
-                                .addComponent(spinnerEmeraldChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel52)
-                                .addComponent(spinnerEmeraldMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel53)
-                                .addComponent(spinnerEmeraldMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel59))
-                            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(spinnerQuartzChance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel74)
-                                .addComponent(jLabel75)
-                                .addComponent(spinnerQuartzMinLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel77)
-                                .addComponent(spinnerQuartzMaxLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel76))))
-                    .addComponent(jSeparator3))
+                        .addComponent(jPanel22, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jPanel20, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -2707,22 +3336,44 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         jTabbedPane1.addTab("Other Layers", jPanel2);
 
-        jLabel82.setText("<html>On this page you can configure the export order of your custom layers,<br>as well as prevent certain layers from being exported.</html>");
+        jLabel82.setText("<html>On this page you can configure the export order of your custom layers, as well as prevent certain layers from being exported.<br>Higher layers in the list are exported <em>before</em> lower layers. Layers cannot be moved between first or second pass.</html>");
 
-        tableCustomLayers.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        tableCustomLayers.setSelectionMode(javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         jScrollPane1.setViewportView(tableCustomLayers);
 
+        buttonCustomLayerUp.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/up.png"))); // NOI18N
         buttonCustomLayerUp.setText("Up");
+        buttonCustomLayerUp.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
         buttonCustomLayerUp.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 buttonCustomLayerUpActionPerformed(evt);
             }
         });
 
+        buttonCustomLayerDown.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/down.png"))); // NOI18N
         buttonCustomLayerDown.setText("Down");
+        buttonCustomLayerDown.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
         buttonCustomLayerDown.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 buttonCustomLayerDownActionPerformed(evt);
+            }
+        });
+
+        buttonCustomLayerTop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/top.png"))); // NOI18N
+        buttonCustomLayerTop.setText("To Top");
+        buttonCustomLayerTop.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
+        buttonCustomLayerTop.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCustomLayerTopActionPerformed(evt);
+            }
+        });
+
+        buttonCustomLayerBottom.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/bottom.png"))); // NOI18N
+        buttonCustomLayerBottom.setText("To Bottom");
+        buttonCustomLayerBottom.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
+        buttonCustomLayerBottom.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCustomLayerBottomActionPerformed(evt);
             }
         });
 
@@ -2740,8 +3391,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addComponent(jScrollPane1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(buttonCustomLayerBottom, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(buttonCustomLayerDown, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(buttonCustomLayerUp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addComponent(buttonCustomLayerUp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(buttonCustomLayerTop, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         jPanel7Layout.setVerticalGroup(
@@ -2751,11 +3404,15 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 316, Short.MAX_VALUE)
                     .addGroup(jPanel7Layout.createSequentialGroup()
+                        .addComponent(buttonCustomLayerTop)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCustomLayerUp)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCustomLayerDown)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonCustomLayerBottom)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -2781,13 +3438,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         if ((Integer) spinnerBorderLevel.getValue() == (dimension.getMaxHeight() - 1)) {
             spinnerBorderLevel.setValue(dimension.getBorderLevel());
         }
-        notifyBorderListeners();
-}//GEN-LAST:event_radioButtonWaterBorderActionPerformed
+        borderChanged();
+    }//GEN-LAST:event_radioButtonWaterBorderActionPerformed
 
     private void radioButtonNoBorderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonNoBorderActionPerformed
         setControlStates();
-        notifyBorderListeners();
-}//GEN-LAST:event_radioButtonNoBorderActionPerformed
+        borderChanged();
+    }//GEN-LAST:event_radioButtonNoBorderActionPerformed
 
     private void checkBoxPopulateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxPopulateActionPerformed
         if (checkBoxPopulate.isSelected() && jCheckBox8.isSelected()) {
@@ -2795,20 +3452,20 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             setControlStates();
             JOptionPane.showMessageDialog(this, "\"Resources everywhere\" disabled on the Resources tab,\nto avoid duplicate resources. You may enable it again manually.", "Resources Everywhere Disabled", JOptionPane.INFORMATION_MESSAGE);
         }
-}//GEN-LAST:event_checkBoxPopulateActionPerformed
+    }//GEN-LAST:event_checkBoxPopulateActionPerformed
 
     private void radioButtonVoidBorderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonVoidBorderActionPerformed
         setControlStates();
-        notifyBorderListeners();
-}//GEN-LAST:event_radioButtonVoidBorderActionPerformed
+        borderChanged();
+    }//GEN-LAST:event_radioButtonVoidBorderActionPerformed
 
     private void radioButtonLavaBorderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonLavaBorderActionPerformed
         setControlStates();
         if ((Integer) spinnerBorderLevel.getValue() == (dimension.getMaxHeight() - 1)) {
             spinnerBorderLevel.setValue(dimension.getBorderLevel());
         }
-        notifyBorderListeners();
-}//GEN-LAST:event_radioButtonLavaBorderActionPerformed
+        borderChanged();
+    }//GEN-LAST:event_radioButtonLavaBorderActionPerformed
 
     private void comboBoxSubsurfaceMaterialActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxSubsurfaceMaterialActionPerformed
         Terrain terrain = (Terrain) comboBoxSubsurfaceMaterial.getSelectedItem();
@@ -2875,29 +3532,57 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     }//GEN-LAST:event_checkBoxExportAnnotationsActionPerformed
 
     private void buttonCustomLayerUpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCustomLayerUpActionPerformed
-        int rowIndex = tableCustomLayers.getSelectedRow();
-        customLayersTableModel.swap(rowIndex - 1, rowIndex);
-        tableCustomLayers.getSelectionModel().setSelectionInterval(rowIndex - 1, rowIndex - 1);
-        tableCustomLayers.scrollRectToVisible(tableCustomLayers.getCellRect(rowIndex - 1, 0, true));
-        setControlStates();
+        moveSelectedRowsUp(1);
     }//GEN-LAST:event_buttonCustomLayerUpActionPerformed
 
-    private void buttonCustomLayerDownActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCustomLayerDownActionPerformed
-        int rowIndex = tableCustomLayers.getSelectedRow();
-        customLayersTableModel.swap(rowIndex, rowIndex + 1);
-        tableCustomLayers.getSelectionModel().setSelectionInterval(rowIndex + 1, rowIndex + 1);
-        tableCustomLayers.scrollRectToVisible(tableCustomLayers.getCellRect(rowIndex + 1, 0, true));
+    private void moveSelectedRowsUp(int noOfRows) {
+        programmaticChange = true;
+        try {
+            for (int i = 0; i < noOfRows; i++) {
+                int[] rowIndices = tableCustomLayers.getSelectedRows();
+                tableCustomLayers.clearSelection();
+                for (int rowIndex: rowIndices) {
+                    customLayersTableModel.swap(rowIndex - 1, rowIndex);
+                    tableCustomLayers.getSelectionModel().addSelectionInterval(rowIndex - 1, rowIndex - 1);
+                }
+            }
+        } finally {
+            programmaticChange = false;
+        }
+        tableCustomLayers.scrollRectToVisible(tableCustomLayers.getCellRect(tableCustomLayers.getSelectedRows()[0], 0, true));
         setControlStates();
+    }
+
+    private void buttonCustomLayerDownActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCustomLayerDownActionPerformed
+        moveSelectedRowsDown(1);
     }//GEN-LAST:event_buttonCustomLayerDownActionPerformed
+
+    private void moveSelectedRowsDown(int noOfRows) {
+        programmaticChange = true;
+        try {
+            for (int i = 0; i < noOfRows; i++) {
+                int[] rowIndices = tableCustomLayers.getSelectedRows();
+                tableCustomLayers.clearSelection();
+                for (int j = rowIndices.length - 1; j >= 0; j--) {
+                    customLayersTableModel.swap(rowIndices[j] + 1, rowIndices[j]);
+                    tableCustomLayers.getSelectionModel().addSelectionInterval(rowIndices[j] + 1, rowIndices[j] + 1);
+                }
+            }
+        } finally {
+            programmaticChange = false;
+        }
+        tableCustomLayers.scrollRectToVisible(tableCustomLayers.getCellRect(tableCustomLayers.getSelectedRows()[tableCustomLayers.getSelectedRowCount() - 1], 0, true));
+        setControlStates();
+    }
 
     private void radioButtonFixedBorderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonFixedBorderActionPerformed
         setControlStates();
-        notifyBorderListeners();
+        borderChanged();
     }//GEN-LAST:event_radioButtonFixedBorderActionPerformed
 
     private void radioButtonEndlessBorderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonEndlessBorderActionPerformed
         setControlStates();
-        notifyBorderListeners();
+        borderChanged();
     }//GEN-LAST:event_radioButtonEndlessBorderActionPerformed
 
     private void comboBoxUndergroundLayerAnchorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxUndergroundLayerAnchorActionPerformed
@@ -2935,9 +3620,76 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setControlStates();
     }//GEN-LAST:event_checkBoxCavesBreakSurfaceActionPerformed
 
+    private void buttonGeneratorOptionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonGeneratorOptionsActionPerformed
+        if (comboBoxGenerator.getSelectedItem() == CUSTOM) {
+            String editedGeneratorOptions = JOptionPane.showInputDialog(this, "Edit the custom world generator name:", generatorName);
+            if (editedGeneratorOptions != null) {
+                generatorName = editedGeneratorOptions;
+            }
+        } else {
+            if (generatorName != null) {
+                String editedGeneratorOptions = JOptionPane.showInputDialog(this, "Edit the Superflat mode preset:", generatorName);
+                if (editedGeneratorOptions != null) {
+                    generatorName = editedGeneratorOptions;
+                }
+            } else {
+                SuperflatPreset mySuperflatPreset = (superflatPreset != null)
+                        ? superflatPreset
+                        : SuperflatPreset.defaultPreset(platform);
+                EditSuperflatPresetDialog dialog = new EditSuperflatPresetDialog(SwingUtilities.windowForComponent(this), platform, mySuperflatPreset);
+                dialog.setVisible(true);
+                if (! dialog.isCancelled()) {
+                    superflatPreset = mySuperflatPreset;
+                }
+            }
+        }
+    }//GEN-LAST:event_buttonGeneratorOptionsActionPerformed
+
+    private void comboBoxGeneratorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxGeneratorActionPerformed
+        updateGeneratorButtonTooltip();
+        setControlStates();
+    }//GEN-LAST:event_comboBoxGeneratorActionPerformed
+
+    private void buttonCustomLayerTopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCustomLayerTopActionPerformed
+        int[] selectedRows = tableCustomLayers.getSelectedRows();
+        int topSelectedRow = selectedRows[0];
+        int headerRow = -1;
+        for (int row = topSelectedRow - 1; row >= 0; row--) {
+            if (customLayersTableModel.isHeaderRow(row)) {
+                headerRow = row;
+                break;
+            }
+        }
+        if (headerRow == -1) {
+            throw new IllegalStateException("No header row found above selected rows");
+        }
+        moveSelectedRowsUp(topSelectedRow - headerRow - 1);
+    }//GEN-LAST:event_buttonCustomLayerTopActionPerformed
+
+    private void buttonCustomLayerBottomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCustomLayerBottomActionPerformed
+        final int[] selectedRows = tableCustomLayers.getSelectedRows();
+        final int bottomSelectedRow = selectedRows[selectedRows.length - 1];
+        final int rowCount = tableCustomLayers.getRowCount();
+        int headerRow = -1;
+        for (int row = bottomSelectedRow + 1; row < rowCount; row++) {
+            if (customLayersTableModel.isHeaderRow(row)) {
+                headerRow = row;
+                break;
+            }
+        }
+        if (headerRow == -1) {
+            // "Virtual" header at the end of the table
+            headerRow = rowCount;
+        }
+        moveSelectedRowsDown(headerRow - bottomSelectedRow - 1);
+    }//GEN-LAST:event_buttonCustomLayerBottomActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton buttonCustomLayerBottom;
     private javax.swing.JButton buttonCustomLayerDown;
+    private javax.swing.JButton buttonCustomLayerTop;
     private javax.swing.JButton buttonCustomLayerUp;
+    private javax.swing.JButton buttonGeneratorOptions;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.ButtonGroup buttonGroup3;
@@ -2962,12 +3714,15 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JCheckBox checkBoxSmoothSnow;
     private javax.swing.JCheckBox checkBoxSnowUnderTrees;
     private javax.swing.JCheckBox checkBoxSwamplandEverywhere;
+    private javax.swing.JComboBox<Generator> comboBoxGenerator;
     private javax.swing.JComboBox comboBoxSubsurfaceMaterial;
     private javax.swing.JComboBox<String> comboBoxSurfaceLayerAnchor;
     private javax.swing.JComboBox<String> comboBoxUndergroundLayerAnchor;
     private javax.swing.JCheckBox jCheckBox8;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel100;
+    private javax.swing.JLabel jLabel101;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
@@ -3053,8 +3808,16 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel86;
     private javax.swing.JLabel jLabel87;
     private javax.swing.JLabel jLabel88;
+    private javax.swing.JLabel jLabel89;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JLabel jLabel90;
+    private javax.swing.JLabel jLabel91;
+    private javax.swing.JLabel jLabel92;
+    private javax.swing.JLabel jLabel93;
+    private javax.swing.JLabel jLabel94;
+    private javax.swing.JLabel jLabel95;
+    private javax.swing.JLabel jLabel98;
+    private javax.swing.JLabel jLabel99;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel10;
     private javax.swing.JPanel jPanel11;
@@ -3067,6 +3830,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JPanel jPanel18;
     private javax.swing.JPanel jPanel19;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel20;
+    private javax.swing.JPanel jPanel21;
+    private javax.swing.JPanel jPanel22;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
@@ -3078,6 +3844,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
+    private javax.swing.JSeparator jSeparator4;
     private javax.swing.JSlider jSlider4;
     private javax.swing.JSlider jSlider6;
     private javax.swing.JTabbedPane jTabbedPane1;
@@ -3093,6 +3860,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JSlider sliderDeciduousLevel;
     private javax.swing.JSlider sliderJungleLevel;
     private javax.swing.JSlider sliderPineLevel;
+    private javax.swing.JSpinner spinnerAncientDebrisChance;
+    private javax.swing.JSpinner spinnerAncientDebrisMaxLevel;
+    private javax.swing.JSpinner spinnerAncientDebrisMinLevel;
     private javax.swing.JSpinner spinnerBorderLevel;
     private javax.swing.JSpinner spinnerBorderSize;
     private javax.swing.JSpinner spinnerCavernsFloodLevel;
@@ -3106,6 +3876,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JSpinner spinnerCoalChance;
     private javax.swing.JSpinner spinnerCoalMaxLevel;
     private javax.swing.JSpinner spinnerCoalMinLevel;
+    private javax.swing.JSpinner spinnerCopperChance;
+    private javax.swing.JSpinner spinnerCopperMaxLevel;
+    private javax.swing.JSpinner spinnerCopperMinLevel;
     private javax.swing.JSpinner spinnerDiamondChance;
     private javax.swing.JSpinner spinnerDiamondMaxLevel;
     private javax.swing.JSpinner spinnerDiamondMinLevel;
@@ -3151,16 +3924,18 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
     private Dimension dimension;
     private Platform platform;
+    private PlatformProvider platformProvider;
     private CustomLayersTableModel customLayersTableModel;
     private Mode mode;
-    private List<BorderListener> borderListeners = new ArrayList<>();
     private Dimension.LayerAnchor subsurfaceLayerAnchor;
-    
-    private static final long serialVersionUID = 1L;
-    
-    public enum Mode {EXPORT, DEFAULT_SETTINGS, EDITOR}
+    private String generatorName;
+    private SuperflatPreset superflatPreset;
+    private boolean endlessBorder, programmaticChange;
+    private int savedGenerator;
+    private Tag customGeneratorSettings;
 
-    public interface BorderListener {
-        void borderChanged(Dimension.Border newBorder);
-    }
+    private static final Logger logger = LoggerFactory.getLogger(DimensionPropertiesEditor.class);
+    private static final long serialVersionUID = 1L;
+
+    public enum Mode {EXPORT, DEFAULT_SETTINGS, EDITOR}
 }

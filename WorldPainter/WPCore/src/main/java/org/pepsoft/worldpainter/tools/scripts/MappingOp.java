@@ -205,7 +205,7 @@ public class MappingOp extends AbstractOperation<Void> {
         } else {
             float factor = (float) (upper - lower) / (storedUpperFrom - storedLowerFrom);
             for (int i = storedLowerFrom; i <= storedUpperFrom; i++) {
-                mapping[i] = lower + (int) ((i - storedLowerFrom) * factor + 0.5f);
+                mapping[i] = lower + Math.round((i - storedLowerFrom) * factor);
             }
         }
         return this;
@@ -366,7 +366,7 @@ public class MappingOp extends AbstractOperation<Void> {
                             continue;
                         }
                     } else {
-                        int valueIn = (int) (scaledHeightMap.getHeight(x, y) + 0.5f);
+                        int valueIn = Math.round(scaledHeightMap.getHeight(x, y));
                         if ((valueIn < 0) || (valueIn > 65535)) {
                             continue;
                         }
@@ -385,7 +385,7 @@ public class MappingOp extends AbstractOperation<Void> {
                     if (filterValue == 0.0f) {
                         continue;
                     } else if (smoothScalingAllowed && (filterValue != 1.0f)) {
-                        valueOut = (int) (filterValue * valueOut + 0.5f);
+                        valueOut = Math.round(filterValue * valueOut);
                     }
                 }
                 switch (mode) {

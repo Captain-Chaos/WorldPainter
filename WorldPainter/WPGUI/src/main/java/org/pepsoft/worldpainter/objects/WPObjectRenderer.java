@@ -4,22 +4,17 @@
  */
 package org.pepsoft.worldpainter.objects;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.vecmath.Point3i;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.ColourScheme;
-import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
 import org.pepsoft.worldpainter.layers.bo2.Bo2Object;
+
+import javax.swing.*;
+import javax.vecmath.Point3i;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 /**
  *
@@ -123,7 +118,7 @@ public class WPObjectRenderer {
 //                return true;
 //            }
 //        };
-        ColourScheme colourScheme = new DynMapColourScheme("default", true);
+        ColourScheme colourScheme = ColourScheme.DEFAULT;
         WPObjectRenderer renderer = new WPObjectRenderer(object, colourScheme, 10);
         BufferedImage image = renderer.render();
         ImageIcon icon = new ImageIcon(image);

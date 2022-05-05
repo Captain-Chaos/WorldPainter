@@ -1,12 +1,8 @@
 package org.pepsoft.worldpainter.tools;
 
-import org.json.simple.JSONValue;
-import org.pepsoft.minecraft.Level;
-import org.pepsoft.minecraft.MC12AnvilChunk;
-import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.*;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.worldpainter.Configuration;
-import org.pepsoft.worldpainter.Generator;
 import org.pepsoft.worldpainter.exporting.JavaMinecraftWorld;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
@@ -17,9 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
+import static org.pepsoft.util.ObjectMapperHolder.OBJECT_MAPPER;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
@@ -60,7 +58,7 @@ public class BlockNameHarvester {
             if (worldDir.isDirectory()) {
                 FileUtils.deleteDir(worldDir);
             }
-            Level level = new Level(DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL);
+            JavaLevel level = JavaLevel.create(JAVA_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL);
             level.setSeed(0L);
             level.setName("BlockNames");
             level.setGameType(GAME_TYPE_CREATIVE);
@@ -68,7 +66,7 @@ public class BlockNameHarvester {
             level.setDifficulty(DIFFICULTY_PEACEFUL);
             level.setAllowCommands(true);
             level.setMapFeatures(false);
-            level.setGenerator(Generator.FLAT);
+            level.setGenerator(DIM_NORMAL, new SuperflatGenerator(SuperflatPreset.defaultPreset(JAVA_ANVIL)));
             level.setSpawnX(0);
             level.setSpawnY(5);
             level.setSpawnZ(0);
@@ -134,8 +132,8 @@ public class BlockNameHarvester {
                     blockSpecs.add(blockSpec);
                 }
             }
-            try (Writer out = new OutputStreamWriter(new FileOutputStream("legacy-mc-blocks.json"), "UTF-8")) {
-                out.write(JSONValue.toJSONString(blockSpecs));
+            try (Writer out = new OutputStreamWriter(new FileOutputStream("legacy-mc-blocks.json"), UTF_8)) {
+                OBJECT_MAPPER.writeValue(out, blockSpecs);
             }
         }
     }

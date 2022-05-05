@@ -5,6 +5,7 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.worldpainter.colourschemes.HardcodedColourScheme;
 
 /**
  * A provider of colours of Minecraft blocks. The colours are specified as {@code int}s in packed RGB format, that
@@ -21,6 +22,7 @@ public interface ColourScheme {
      * @param blockType The block type ID for which to get the colour.
      * @return The colour of the specified block type in packed RGB format.
      */
+    @Deprecated
     int getColour(int blockType);
 
     /**
@@ -31,6 +33,7 @@ public interface ColourScheme {
      * @param dataValue The data value for which to get the colour.
      * @return The colour of the specified block type in packed RGB format.
      */
+    @Deprecated
     int getColour(int blockType, int dataValue);
 
     /**
@@ -40,4 +43,6 @@ public interface ColourScheme {
      * @return The colour of the specified material in packed RGB format.
      */
     int getColour(Material material);
+    
+    ColourScheme DEFAULT = new HardcodedColourScheme();
 }

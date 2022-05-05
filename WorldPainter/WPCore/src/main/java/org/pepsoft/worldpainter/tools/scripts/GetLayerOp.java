@@ -29,6 +29,7 @@ import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.Populate;
 import org.pepsoft.worldpainter.plugins.LayerProvider;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 
@@ -102,6 +103,8 @@ public class GetLayerOp extends AbstractOperation<Layer> {
                 return Biome.INSTANCE;
             } else if (name.equals("Annotations")) {
                 return Annotations.INSTANCE;
+            } else if (name.equals("Populate")) {
+                return Populate.INSTANCE;
             }
             
             List<LayerProvider> layerProviders = WPPluginManager.getInstance().getPlugins(LayerProvider.class);

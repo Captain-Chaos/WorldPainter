@@ -1,33 +1,20 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.pepsoft.worldpainter.mapexplorer;
 
 import javax.swing.*;
+import java.awt.*;
 
-/**
- *
- * @author pepijn
- */
-public abstract class Node {
-    public abstract String getName();
-    public abstract Icon getIcon();
-    public abstract boolean isLeaf();
+public interface Node {
+    String getName();
+    Icon getIcon();
+    boolean isLeaf();
+    Node[] getChildren();
+    void doubleClicked();
+    void showPopupMenu(Component invoker, int x, int y, ActionListener actionListener);
+    void refresh();
 
-    public final Node[] getChildren() {
-        if (children == null) {
-            children = loadChildren();
-        }
-        return children;
+    enum Action { REFRESH }
+
+    interface ActionListener {
+        void performAction(Action action);
     }
-
-    public void doubleClicked() {
-        // Do nothing
-    }
-
-    protected abstract Node[] loadChildren();
-
-    private Node[] children;
 }
