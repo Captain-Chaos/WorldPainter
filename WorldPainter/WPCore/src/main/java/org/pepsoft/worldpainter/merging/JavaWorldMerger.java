@@ -192,9 +192,11 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             }
         } else {
             // TODO support different map heights; just give a warning
-            int existingMaxHeight = level.getMaxHeight();
-            if (existingMaxHeight != world.getMaxHeight()) {
-                throw new IllegalArgumentException("Existing map has different max height (" + existingMaxHeight + ") than WorldPainter world (" + world.getMaxHeight() + ")");
+            if (platform.minZ != world.getPlatform().minZ) {
+                throw new IllegalArgumentException("Existing map has different min height (" + platform.minZ + ") than WorldPainter world (" + world.getPlatform().minZ + ")");
+            }
+            if (level.getMaxHeight() != world.getMaxHeight()) {
+                throw new IllegalArgumentException("Existing map has different max height (" + level.getMaxHeight() + ") than WorldPainter world (" + world.getMaxHeight() + ")");
             }
             int version = level.getVersion();
             if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
@@ -203,8 +205,32 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
 
             // Dimension sanity checks
             for (Dimension dimension: world.getDimensions()) {
-                if (existingMaxHeight != dimension.getMaxHeight()) {
-                    throw new IllegalArgumentException("Dimension " + dimension.getName() + " has different max height (" + dimension.getMaxHeight() + ") than existing map (" + existingMaxHeight + ")");
+                final int dim = dimension.getDim();
+                if ((dim < 0) || ((world.getDimensionsToExport() != null) && (! world.getDimensionsToExport().contains(dim)))) {
+                    // Skip ceiling dimensions, or dimensions that are not going to be merged
+                }
+                final int mapDimMinHeight, mapDimMaxHeight;
+                switch (dim) {
+                    case DIM_NORMAL:
+                        mapDimMinHeight = platform.minZ;
+                        mapDimMaxHeight = level.getMaxHeight();
+                        break;
+                    case DIM_NETHER:
+                        mapDimMinHeight = 0;
+                        mapDimMaxHeight = DEFAULT_MAX_HEIGHT_NETHER;
+                        break;
+                    case DIM_END:
+                        mapDimMinHeight = 0;
+                        mapDimMaxHeight = DEFAULT_MAX_HEIGHT_END;
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Dimension " + dimension.getName() + " not supported for Merging");
+                }
+                if (mapDimMinHeight != dimension.getMinHeight()) {
+                    throw new IllegalArgumentException("Dimension " + dimension.getName() + " has different min height (" + dimension.getMinHeight() + ") than existing map (" + mapDimMinHeight + ")");
+                }
+                if (mapDimMaxHeight != dimension.getMaxHeight()) {
+                    throw new IllegalArgumentException("Dimension " + dimension.getName() + " has different max height (" + dimension.getMaxHeight() + ") than existing map (" + mapDimMaxHeight + ")");
                 }
             }
         }
