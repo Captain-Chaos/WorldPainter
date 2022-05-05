@@ -74,6 +74,7 @@ public final class Constants {
     public static final AttributeKeyVO<Long> ATTRIBUTE_KEY_FREE_MEMORY = new AttributeKeyVO<>("memory.free");
     public static final AttributeKeyVO<Long> ATTRIBUTE_KEY_TOTAL_MEMORY = new AttributeKeyVO<>("memory.total");
     public static final AttributeKeyVO<Long> ATTRIBUTE_KEY_MAX_MEMORY = new AttributeKeyVO<>("memory.max");
+    public static final AttributeKeyVO<String> ATTRIBUTE_KEY_PLATFORM_ID = new AttributeKeyVO<>("platform.id");
 
     public static final String ATTRIBUTE_KEY_MDC_ENTRY = "mdc";
     public static final String ATTRIBUTE_KEY_SYSTEM_PROPERTY = "systemProperty";
