@@ -1,7 +1,8 @@
--- Version 2.9.4, released ...
+-- Version 2.9.4, released 5-5-2022
 
  * Bug fix: fix a startup problem related to the UI scale setting
  * Bug fix: make Safe Mode disable UI scaling, as should already have been the case
+ * Bug fix: make importing a height map into an existing dimension work again
 
 -- Version 2.9.3, released 4-5-2022
 
