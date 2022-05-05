@@ -266,13 +266,13 @@ public class GUIUtils {
             logger.info("[SAFE MODE] Not scaling GUI");
             UI_SCALE_FLOAT = 1.0f;
         } else {
-            float manualUIScale = Preferences.userNodeForPackage(GUIUtils.class).getFloat("manualUIScale", -1f);
-            if (manualUIScale > 0) {
+            float manualUIScale = Preferences.userNodeForPackage(GUIUtils.class).getFloat("manualUIScale", -1.0f);
+            if (manualUIScale > 0.0f) {
                 UI_SCALE_FLOAT = manualUIScale;
             } else {
                 UI_SCALE_FLOAT = SYSTEM_UI_SCALE_FLOAT;
             }
         }
-        UI_SCALE = round(UI_SCALE_FLOAT);
+        UI_SCALE = Math.min(round(UI_SCALE_FLOAT), 1);
     }
 }
