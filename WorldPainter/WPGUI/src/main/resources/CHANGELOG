@@ -5,6 +5,37 @@
  * WorldPainter can now calculate the distance property of leaf blocks while Exporting. This helps with preventing leaf blocks that are attached to treet trunks from decaying in-game. This can be turned off on the Post Processing tab
    + WorldPainter can also automatically remove leaf blocks that are too distant (and not persistent) and would decay in Minecraft. This is turned off by default but can be turned on on the Post Processing tab
 
+
+-- Version 2.9.4, released 5-5-2022
+
+ * Bug fix: fix a startup problem related to the UI scale setting
+ * Bug fix: make Safe Mode disable UI scaling, as should already have been the case
+ * Bug fix: make importing a height map into an existing dimension work again
+
+-- Version 2.9.3, released 4-5-2022
+
+ * World types are now properly supported for Minecraft 1.17, making endless borders work among other things
+ * A "Resources everywhere" checkbox has been added to the Preferences screen, in order to be able to turn off "Resources everywhere" by default
+ * The GraalVM JavaScript engine has been switched out for Nashorn, which is faster. This does mean that if you want to run scripts you need to run WorldPainter on Java 11 or higher
+ * Various small bug fixes
+
+-- Version 2.9.2, released 3-5-2022
+
+ * The Preferences screen now allows to configure the default map format, and the default post processing settings
+ * The status bar, info panel, brush settings and Global Operations tool now all show the correct biome names according to the map format
+ * Floating point height maps are not yet supported; this is now made clearer with an error message when trying to load one
+ * The view distance for the view distance indicator circle is now set to 12 chunks (the default render distance of Minecraft 1.18.2)
+ * Bug fix: prevent an error while importing height maps if the default theme has previously been saved with values which are now invalid
+ * Bug fix: show only valid build limits for the map format on the Preferences screen to prevent a crash on startup if it is set to an invalid value
+
+-- Version 2.9.1, released 2-5-2022
+
+ * Added Calcite as terrain type
+ * Reinstated Water and Lava terrain types, with clearer tool tips. Don't use these (especially Water); you probably want the Flood or Lava tool
+ * Bug fix: exporting border chunks no longer causes an error about Populate not being supported
+ * Bug fix: calculating the lighting of a Void chunk no longer causes an error
+ * Bug fix: when creating a Custom Terrain Type, properly save the custom name and update the terrain name when pressing Enter or OK without leaving the custom name field
+
 -- Version 2.9.0, released 1-5-2022
 
  * The Minecraft 1.18 map format is now supported

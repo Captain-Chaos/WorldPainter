@@ -13,6 +13,7 @@ import ch.qos.logback.core.util.StatusPrinter;
 import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.Version;
+import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.tools.scripts.ScriptingContext;
 import org.slf4j.LoggerFactory;
@@ -172,7 +173,12 @@ public class ScriptingTool {
         System.arraycopy(argArray, 1, scriptArgs, 0, scriptArgs.length);
         bindings.put("arguments", scriptArgs);
         bindings.put("params", paramMap);
-        
+        final Map<String, Layer.DataSize> dataSizes = new HashMap<>();
+        for (Layer.DataSize dataSize: Layer.DataSize.values()) {
+            dataSizes.put(dataSize.name(), dataSize);
+        }
+        bindings.put("DataSize", dataSizes);
+
         // Execute script
         try {
             scriptEngine.eval(new FileReader(scriptFile));

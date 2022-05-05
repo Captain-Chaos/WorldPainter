@@ -45,15 +45,16 @@ public class FillDialog extends WorldPainterDialog implements Listener {
         this.dimension = dimension;
         this.colourScheme = colourScheme;
         this.view = view;
-        biomeHelper = new BiomeHelper(colourScheme, customBiomeManager);
+        final Platform platform = dimension.getWorld().getPlatform();
+        biomeHelper = new BiomeHelper(colourScheme, customBiomeManager, platform);
         
         initComponents();
-        brushOptions1.setMinHeight(dimension.getMinHeight());
+        brushOptions1.setPlatform(platform);
         brushOptions1.setMaxHeight(dimension.getMaxHeight());
         brushOptions1.setSelectionState(selectionState);
-        
+
         comboBoxBiome.setModel(new DefaultComboBoxModel(biomes));
-        comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager, dimension.getWorld().getPlatform()));
+        comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager, platform));
         
         comboBoxSetLayer.setModel(new DefaultComboBoxModel(layers));
         comboBoxSetLayer.setRenderer(new LayerListCellRenderer());

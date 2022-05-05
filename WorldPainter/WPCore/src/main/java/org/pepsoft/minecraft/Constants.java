@@ -543,6 +543,8 @@ public final class Constants {
     public static final String MC_BIG_DRIPLEAF_STEM = "minecraft:big_dripleaf_stem";
     public static final String MC_BIG_DRIPLEAF = "minecraft:big_dripleaf";
     public static final String MC_POWDER_SNOW = "minecraft:powder_snow";
+    public static final String MC_CALCITE = "minecraft:calcite";
+
     public static final String MC_SPORE_BLOSSOM = "minecraft:spore_blossom";
     public static final String MC_WEEPING_VIVES = "minecraft:weeping_vines";
     public static final String MC_WEEPING_VIVES_PLANT = "minecraft:weeping_vines_plant";
@@ -716,6 +718,7 @@ public final class Constants {
     public static final String TAG_IS_LIGHT_ON_            = "isLightOn";
     public static final String TAG_POSITION                = "Position";
     public static final String TAG_TAG_                    = "tag";
+    public static final String TAG_LARGE_BIOMES_           = "large_biomes";
 
     /**
      * Possibly unofficial, SpoutCraft-specific
@@ -728,7 +731,7 @@ public final class Constants {
 
     public static final int DATA_VERSION_MC_1_12_2 = 1343;
     public static final int DATA_VERSION_MC_1_14_4 = 1976;
-    public static final int DATA_VERSION_MC_1_15   = 2230;
+    public static final int DATA_VERSION_MC_1_15_2 = 2230;
     public static final int DATA_VERSION_MC_1_16_5 = 2586;
     public static final int DATA_VERSION_MC_1_17   = 2724;
     public static final int DATA_VERSION_MC_1_17_1 = 2730;
@@ -1235,9 +1238,10 @@ public final class Constants {
     public static final String MC_END = "minecraft:end";
     public static final String MC_AMPLIFIED = "minecraft:amplified";
 
-    // Minecraft 1.18 biome source types
+    // Minecraft 1.17 - 1.18 biome source types
 
     public static final String MC_MULTI_NOISE = "minecraft:multi_noise";
+    public static final String MC_VANILLA_LAYERED = "minecraft:vanilla_layered";
 
     // Datapack names
 

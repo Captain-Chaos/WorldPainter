@@ -1907,6 +1907,7 @@ public final class Material implements Serializable {
     public static final Material BIG_DRIPLEAF_STEM_SOUTH = get(MC_BIG_DRIPLEAF_STEM, MC_FACING, "south");
     public static final Material BIG_DRIPLEAF_SOUTH = get(MC_BIG_DRIPLEAF, MC_FACING, "south");
     public static final Material PUMPKIN = get(MC_PUMPKIN);
+    public static final Material CALCITE = get(MC_CALCITE);
     public static final Material SPORE_BLOSSOM = get(MC_SPORE_BLOSSOM);
     public static final Material WEEPING_VINES = get(MC_WEEPING_VIVES);
     public static final Material WEEPING_VINES_PLANT = get(MC_WEEPING_VIVES_PLANT);

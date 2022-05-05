@@ -22,7 +22,7 @@ public class BiomeListCellRenderer extends DefaultListCellRenderer {
     public BiomeListCellRenderer(ColourScheme colourScheme, CustomBiomeManager customBiomeManager, String nullLabel, Platform platform) {
         this.nullLabel = nullLabel;
         this.showIds = (platform != DefaultPlugin.JAVA_ANVIL_1_18); // TODO make this dynamic
-        biomeHelper = new BiomeHelper(colourScheme, customBiomeManager);
+        biomeHelper = new BiomeHelper(colourScheme, customBiomeManager, platform);
     }
     
     @Override
@@ -35,7 +35,7 @@ public class BiomeListCellRenderer extends DefaultListCellRenderer {
             if (biome == -1) {
                 setText(nullLabel);
             } else {
-                setText(showIds ? value + " " + biomeHelper.getBiomeName(biome) : biomeHelper.getBiomeName(biome));
+                setText(showIds ? value + " " + biomeHelper.getBiomeNameWithoutId(biome) : biomeHelper.getBiomeNameWithoutId(biome));
                 setIcon(biomeHelper.getBiomeIcon(biome));
             }
         }

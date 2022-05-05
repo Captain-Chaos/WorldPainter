@@ -7,14 +7,11 @@ package org.pepsoft.worldpainter.panels;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.ObservableBoolean;
-import org.pepsoft.worldpainter.App;
-import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.Terrain;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.biomeschemes.StaticBiomeInfo;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.operations.Filter;
 import org.pepsoft.worldpainter.panels.DefaultFilter.LevelType;
@@ -27,6 +24,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.*;
+
+import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
+import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
 
 /**
  *
@@ -106,7 +106,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
                 switch (filter.onlyOnObjectType) {
                     case BIOME:
                         int biome = filter.onlyOnValue;
-                        BiomeHelper biomeHelper = new BiomeHelper(app.getColourScheme(), app.getCustomBiomeManager());
+                        BiomeHelper biomeHelper = new BiomeHelper(app.getColourScheme(), app.getCustomBiomeManager(), platform);
                         onlyOn = biome;
                         buttonReplace.setText(biomeHelper.getBiomeName(biome));
                         buttonReplace.setIcon(biomeHelper.getBiomeIcon(biome));
@@ -152,7 +152,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
                 switch (filter.exceptOnObjectType) {
                     case BIOME:
                         int biome = filter.exceptOnValue;
-                        BiomeHelper biomeHelper = new BiomeHelper(app.getColourScheme(), app.getCustomBiomeManager());
+                        BiomeHelper biomeHelper = new BiomeHelper(app.getColourScheme(), app.getCustomBiomeManager(), platform);
                         exceptOn = biome;
                         buttonExceptOn.setText(biomeHelper.getBiomeName(biome));
                         buttonExceptOn.setIcon(biomeHelper.getBiomeIcon(biome));
@@ -198,7 +198,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
         setControlStates();
     }
 
-    public void setMinHeight(int minHeight) {
+    private void setMinHeight(int minHeight) {
         boolean updateFilter = false;
         ((SpinnerNumberModel) spinnerAbove.getModel()).setMinimum(minHeight);
         if ((Integer) spinnerAbove.getValue() < minHeight) {
@@ -238,6 +238,11 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
 
     public void setListener(Listener listener) {
         this.listener = listener;
+    }
+
+    public void setPlatform(Platform platform) {
+        this.platform = platform;
+        setMinHeight(platform.minZ);
     }
 
     // Observer
@@ -349,13 +354,13 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
 
         final JMenu biomeMenu = new JMenu("Biome");
         final CustomBiomeManager customBiomeManager = app.getCustomBiomeManager();
-        final BiomeHelper biomeHelper = new BiomeHelper(colourScheme, customBiomeManager);
+        final BiomeHelper biomeHelper = new BiomeHelper(colourScheme, customBiomeManager, platform);
         List<CustomBiome> customBiomes = customBiomeManager.getCustomBiomes();
         if ((customBiomes != null) && (! customBiomes.isEmpty())) {
             JMenu customBiomeMenu = new JMenu("Custom");
             for (CustomBiome customBiome: customBiomes) {
                 final int selectedBiome = customBiome.getId();
-                final String name = biomeHelper.getBiomeName(selectedBiome) + " (" + selectedBiome + ")";
+                final String name = biomeHelper.getBiomeName(selectedBiome);
                 final Icon icon = biomeHelper.getBiomeIcon(selectedBiome);
                 final JMenuItem menuItem = new JMenuItem(name, icon);
                 menuItem.addActionListener(e -> listener.objectSelected(new DefaultFilter.LayerValue(Biome.INSTANCE, selectedBiome), name, icon));
@@ -363,14 +368,30 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
             }
             biomeMenu.add(customBiomeMenu);
         }
-        for (int i = 0; i < StaticBiomeInfo.INSTANCE.getBiomeCount(); i++) {
-            if (StaticBiomeInfo.INSTANCE.isBiomePresent(i)) {
-                final int selectedBiome = i;
-                final String name = biomeHelper.getBiomeName(i) + " (" + selectedBiome + ")";
-                final Icon icon = biomeHelper.getBiomeIcon(i);
+        final BiomeScheme biomeScheme = getBiomeScheme(platform);
+        if (platform.capabilities.contains(NAMED_BIOMES)) {
+            final Map<String, Integer> biomes = new TreeMap<>();
+            for (int i = 0; i < biomeScheme.getBiomeCount(); i++) {
+                if (biomeScheme.isBiomePresent(i)) {
+                    biomes.put(biomeHelper.getBiomeName(i), i);
+                }
+            }
+            biomes.forEach((name, id) -> {
+                final Icon icon = biomeHelper.getBiomeIcon(id);
                 final JMenuItem menuItem = new JMenuItem(name, icon);
-                menuItem.addActionListener(e -> listener.objectSelected(new DefaultFilter.LayerValue(Biome.INSTANCE, selectedBiome), name, icon));
+                menuItem.addActionListener(e -> listener.objectSelected(new DefaultFilter.LayerValue(Biome.INSTANCE, id), name, icon));
                 biomeMenu.add(menuItem);
+            });
+        } else {
+            for (int i = 0; i < biomeScheme.getBiomeCount(); i++) {
+                if (biomeScheme.isBiomePresent(i)) {
+                    final int selectedBiome = i;
+                    final String name = biomeHelper.getBiomeName(i);
+                    final Icon icon = biomeHelper.getBiomeIcon(i);
+                    final JMenuItem menuItem = new JMenuItem(name, icon);
+                    menuItem.addActionListener(e -> listener.objectSelected(new DefaultFilter.LayerValue(Biome.INSTANCE, selectedBiome), name, icon));
+                    biomeMenu.add(menuItem);
+                }
             }
         }
         JMenu autoBiomeSubMenu = new JMenu("Auto Biomes");
@@ -832,6 +853,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
     private Listener listener;
     private boolean initialised;
     private ObservableBoolean selectionState;
+    private Platform platform;
 
     private static final Logger logger = LoggerFactory.getLogger(BrushOptions.class);
     private static final long serialVersionUID = 1L;

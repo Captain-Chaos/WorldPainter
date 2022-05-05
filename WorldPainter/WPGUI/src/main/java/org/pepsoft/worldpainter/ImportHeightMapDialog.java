@@ -42,13 +42,15 @@ import java.util.List;
 import java.util.*;
 
 import static com.google.common.primitives.Ints.asList;
-import static org.pepsoft.minecraft.Constants.*;
+import static java.awt.image.DataBuffer.TYPE_DOUBLE;
+import static java.awt.image.DataBuffer.TYPE_FLOAT;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.SpinnerUtils.setMaximum;
 import static org.pepsoft.util.swing.SpinnerUtils.setMinimum;
 import static org.pepsoft.worldpainter.Constants.MAX_HEIGHT;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.HeightTransform.IDENTITY;
 import static org.pepsoft.worldpainter.Terrain.GRASS;
@@ -107,10 +109,10 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             checkBoxOnlyRaise.setSelected(true);
             comboBoxSingleTerrain.setModel(new DefaultComboBoxModel<>(Terrain.getConfiguredValues()));
         } else {
-            platform = JAVA_ANVIL_1_15;
+            platform = Configuration.getInstance().getDefaultPlatform();
             themeEditor.setTheme(SimpleTheme.createDefault(GRASS, platform.minZ, platform.standardMaxHeight, DEFAULT_WATER_LEVEL, true, true));
             themeEditor.setChangeListener(this);
-            comboBoxPlatform.setSelectedItem(JAVA_ANVIL_1_15);
+            comboBoxPlatform.setSelectedItem(platform);
             labelNoUndo.setText(" ");
             checkBoxCreateTiles.setEnabled(false);
             checkBoxOnlyRaise.setEnabled(false);
@@ -124,6 +126,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
         programmaticChange = false;
         platformChanged();
+        updateImageLevelLabels();
         setControlStates();
     }
 
@@ -231,7 +234,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         importer.setWorldLowLevel((Integer) spinnerWorldLow.getValue());
         importer.setWorldWaterLevel(waterLevel);
         importer.setWorldHighLevel((Integer) spinnerWorldHigh.getValue());
-        importer.setVoidBelowLevel(checkBoxVoid.isSelected() ? ((Integer) spinnerVoidBelow.getValue()) : 0);
+        importer.setVoidBelowLevel(checkBoxVoid.isSelected() ? ((Long) spinnerVoidBelow.getValue()) : 0L);
         return importer;
     }
 
@@ -263,6 +266,10 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             } else if (image.isAlphaPremultiplied()) {
                 labelImageDimensions.setForeground(Color.RED);
                 labelImageDimensions.setText("Premultiplied alpha not supported! Please convert to non-premultiplied.");
+                selectedFile = null;
+            } else if ((image.getSampleModel().getTransferType() == TYPE_FLOAT) || (image.getSampleModel().getTransferType() == TYPE_DOUBLE)) {
+                labelImageDimensions.setForeground(Color.RED);
+                labelImageDimensions.setText("Floating point height maps not yet supported! Please convert to 32-bit integer.");
                 selectedFile = null;
             } else {
                 final int width = image.getWidth(), height = image.getHeight();
@@ -301,6 +308,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                     }
                     setMaximum(spinnerImageLow, imageMaxHeight);
                     setMaximum(spinnerImageHigh, imageMaxHeight);
+                    setMaximum(spinnerVoidBelow, imageMaxHeight);
                 } finally {
                     programmaticChange = false;
                 }
@@ -403,19 +411,24 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     }
 
     private void loadDefaults() {
+        loadDefaultTheme();
+        updateImageLevelLabels();
+        updatePreview();
+    }
+
+    private void loadDefaultTheme() {
+        final int maxHeight = comboBoxHeight.getSelectedItem() != null ? (Integer) comboBoxHeight.getSelectedItem() : platform.standardMaxHeight;
         Theme defaultTheme = Configuration.getInstance().getHeightMapDefaultTheme();
         if (defaultTheme == null) {
-            HeightMapTileFactory tmpTileFactory = TileFactoryFactory.createNoiseTileFactory(seed, GRASS, 0, DEFAULT_MAX_HEIGHT_ANVIL, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0);
-            defaultTheme = tmpTileFactory.getTheme();
+            defaultTheme = SimpleTheme.createDefault(GRASS, platform.minZ, maxHeight, DEFAULT_WATER_LEVEL, true, true);
             if (currentDimension == null) {
                 buttonResetDefaults.setEnabled(false);
             }
         } else {
             buttonResetDefaults.setEnabled(true);
         }
+        defaultTheme.setMinMaxHeight(platform.minZ, maxHeight, IDENTITY);
         spinnerWorldMiddle.setValue(defaultTheme.getWaterHeight());
-        updateImageLevelLabels();
-        updatePreview();
         themeEditor.setTheme((SimpleTheme) defaultTheme);
         buttonLoadDefaults.setEnabled(false);
         buttonSaveAsDefaults.setEnabled(false);
@@ -485,31 +498,32 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             return;
         }
         platform = (Platform) comboBoxPlatform.getSelectedItem();
-        int maxMaxHeight = Math.min(platform.maxMaxHeight, MAX_HEIGHT);
-        int maxHeight;
+        final int maxHeight;
         programmaticChange = true;
         try {
             if (currentDimension != null) {
                 maxHeight = currentDimension.getMaxHeight();
-                comboBoxHeight.setModel(new DefaultComboBoxModel<>(new Integer[] {maxMaxHeight}));
-                comboBoxHeight.setEnabled(false);
-            } else if ((platform.minMaxHeight == maxMaxHeight) || (maxMaxHeight == MAX_HEIGHT)) {
-                maxHeight = maxMaxHeight;
-                comboBoxHeight.setModel(new DefaultComboBoxModel<>(new Integer[] {maxMaxHeight}));
+                comboBoxHeight.setModel(new DefaultComboBoxModel<>(new Integer[] { maxHeight }));
+                comboBoxHeight.setSelectedItem(maxHeight);
                 comboBoxHeight.setEnabled(false);
             } else {
                 maxHeight = platform.standardMaxHeight;
-                List<Integer> maxHeights = asList(platform.maxHeights);
+                final List<Integer> maxHeights = new ArrayList<>(asList(platform.maxHeights));
+                maxHeights.removeIf(height -> height > MAX_HEIGHT);
+                if (maxHeights.isEmpty()) {
+                    maxHeights.add(MAX_HEIGHT);
+                }
                 comboBoxHeight.setModel(new DefaultComboBoxModel<>(maxHeights.toArray(new Integer[maxHeights.size()])));
-                comboBoxHeight.setEnabled(true);
+                comboBoxHeight.setSelectedItem(Math.min(platform.standardMaxHeight, MAX_HEIGHT));
+                comboBoxHeight.setEnabled(maxHeights.size() > 1);
             }
             setMinimum(spinnerWorldLow, platform.minZ);
             setMinimum(spinnerWorldMiddle, platform.minZ);
             setMinimum(spinnerWorldHigh, platform.minZ);
-            comboBoxHeight.setSelectedItem(platform.standardMaxHeight);
             labelMinHeight.setText(String.valueOf(platform.minZ));
             maxHeightChanged();
             spinnerWorldHigh.setValue((int) Math.min(maxHeight - 1, (long) Math.pow(2, bitDepth) - 1)); // TODO overflow
+            loadDefaultTheme();
         } finally {
             programmaticChange = false;
         }
@@ -950,8 +964,13 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             }
         });
 
-        spinnerVoidBelow.setModel(new javax.swing.SpinnerNumberModel(1, 1, 255, 1));
+        spinnerVoidBelow.setModel(new javax.swing.SpinnerNumberModel(Long.valueOf(1L), Long.valueOf(1L), Long.valueOf(4294967295L), Long.valueOf(1L)));
         spinnerVoidBelow.setEnabled(false);
+        spinnerVoidBelow.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerVoidBelowStateChanged(evt);
+            }
+        });
 
         labelWarning.setFont(labelWarning.getFont().deriveFont(labelWarning.getFont().getStyle() | java.awt.Font.BOLD));
         labelWarning.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/error.png"))); // NOI18N
@@ -1242,7 +1261,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                             .addComponent(labelNoUndo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(checkBoxOnlyRaise))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE))
+                        .addComponent(jTabbedPane1))
                     .addComponent(tiledImageViewerContainer1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -1401,6 +1420,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
     private void checkBoxVoidActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxVoidActionPerformed
         spinnerVoidBelow.setEnabled(checkBoxVoid.isSelected());
+        updatePreview();
     }//GEN-LAST:event_checkBoxVoidActionPerformed
 
     private void spinnerOffsetXStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerOffsetXStateChanged
@@ -1458,6 +1478,10 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     private void comboBoxPresetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxPresetActionPerformed
         applyPreset((ImportPreset) comboBoxPreset.getSelectedItem());
     }//GEN-LAST:event_comboBoxPresetActionPerformed
+
+    private void spinnerVoidBelowStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerVoidBelowStateChanged
+        updatePreview();
+    }//GEN-LAST:event_spinnerVoidBelowStateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;

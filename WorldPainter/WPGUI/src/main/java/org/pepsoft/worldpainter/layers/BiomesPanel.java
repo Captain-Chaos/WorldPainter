@@ -28,11 +28,10 @@ import static org.pepsoft.worldpainter.layers.BiomesPanel.BiomeOption.*;
  * Created by pepijn on 27-05-15.
  */
 public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiomeListener {
-    public BiomesPanel(ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Listener listener, ButtonGroup buttonGroup) {
+    public BiomesPanel(CustomBiomeManager customBiomeManager, Listener listener, ButtonGroup buttonGroup) {
         this.customBiomeManager = customBiomeManager;
         this.listener = listener;
         this.buttonGroup = buttonGroup;
-        biomeHelper = new BiomeHelper(colourScheme, customBiomeManager);
 
         initComponents();
 
@@ -40,6 +39,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     }
 
     public void loadBiomes(Platform platform, ColourScheme colourScheme) {
+        biomeHelper = new BiomeHelper(colourScheme, customBiomeManager, platform);
         BiomesSet desiredSet;
         // TODO move this stuff to BiomeScheme/PlatformProvider
         if (platform.capabilities.contains(NAMED_BIOMES)) {
@@ -268,7 +268,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     private void updateLabels() {
         label1.setText("Selected biome: " + (showIds ? selectedBiome : ""));
         label1.setIcon(biomeHelper.getBiomeIcon(selectedBiome));
-        label2.setText(biomeHelper.getBiomeName(selectedBiome));
+        label2.setText(biomeHelper.getBiomeNameWithoutId(selectedBiome));
     }
 
     private void addButton(CustomBiome customBiome) {
@@ -406,8 +406,8 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     private final JLabel label1 = new JLabel("Selected biome: 1"), label2 = new JLabel("Plains");
 
     private final CustomBiomeManager customBiomeManager;
-    private final BiomeHelper biomeHelper;
     private final Listener listener;
+    private BiomeHelper biomeHelper;
     private BiomesSet biomesSet;
     private int selectedBiome = BIOME_PLAINS, selectedBaseBiome = BIOME_PLAINS;
     private boolean showIds;

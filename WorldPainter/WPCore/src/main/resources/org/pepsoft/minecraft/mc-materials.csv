@@ -129,7 +129,7 @@ minecraft:bubble_coral_wall_fan,,"waterlogged,facing",0,false,true,true,false,fa
 minecraft:budding_amethyst,,,15,false,false,false,false,false,,false,false,0,true,false,ff8460ba,budding_amethyst.png
 minecraft:cactus,,age,0,false,true,true,false,false,,false,true,0,true,false,ff0d6318,old default
 minecraft:cake,,bites,0,false,false,false,false,false,,false,false,0,false,false,ffe4cdce,old default
-minecraft:calcite,,,15,false,false,false,false,false,,false,false,0,true,false,ffdfe0dc,calcite.png
+minecraft:calcite,,,15,true,false,false,false,false,,false,false,0,true,false,ffdfe0dc,calcite.png
 minecraft:campfire,,"waterlogged,signal_fire,lit,facing",0,false,false,false,false,true,minecraft:campfire,false,false,15,false,false,,
 minecraft:candle,,"waterlogged,lit,candles",0,false,false,false,false,false,,false,false,0,false,false,ffe8c899,candle.png
 minecraft:candle_cake,,lit,0,false,false,false,false,false,,false,false,0,false,false,ffe8c899,candle.png

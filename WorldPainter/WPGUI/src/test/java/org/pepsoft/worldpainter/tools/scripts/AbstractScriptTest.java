@@ -46,9 +46,4 @@ abstract class AbstractScriptTest {
         }
         ScriptingTool.main(mainArgs);
     }
-
-    static {
-        System.setProperty("polyglot.js.nashorn-compat", "true");
-        System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
-    }
 }

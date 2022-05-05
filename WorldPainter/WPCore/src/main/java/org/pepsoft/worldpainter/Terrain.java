@@ -213,8 +213,8 @@ public enum Terrain {
 
         private static final int STONE_SEED_OFFSET = 188434540;
     },
-    WATER("Water", STATIONARY_WATER, STATIONARY_WATER, "[DEPRECATED] water instead of terrain", BIOME_RIVER),
-    LAVA("Lava", STATIONARY_LAVA, STATIONARY_LAVA, "[DEPRECATED] lava instead of terrain", BIOME_PLAINS),
+    WATER("Water", STATIONARY_WATER, STATIONARY_WATER, "⚠ water instead of terrain (NOTE: you may want the Flood tool instead!)", BIOME_RIVER),
+    LAVA("Lava", STATIONARY_LAVA, STATIONARY_LAVA, "⚠ lava instead of terrain (NOTE: you may want the Lava tool instead!)", BIOME_PLAINS),
     @Deprecated
     SNOW("Snow on Rock", "[DEPRECATED] a thin layer of snow on a mix of stone and cobblestone", BIOME_ICE_PLAINS, 1) {
         @Override
@@ -237,7 +237,7 @@ public enum Terrain {
         }
 
         @Override
-        public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {
+        public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {
             return colourScheme.getColour(BLK_SNOW);
         }
 
@@ -245,7 +245,7 @@ public enum Terrain {
 
         private static final int STONE_SEED_OFFSET = 188434540;
     },
-    DEEP_SNOW("Deep Snow", BLK_SNOW_BLOCK, BLK_SNOW_BLOCK, "a thick layer of snow", BIOME_ICE_PLAINS),
+    DEEP_SNOW("Deep Snow", BLK_SNOW_BLOCK, BLK_SNOW_BLOCK, "⚠ snow blocks instead of terrain (NOTE: you may want the Frost layer instead!)", BIOME_ICE_PLAINS),
     GRAVEL("Gravel", BLK_GRAVEL, BLK_GRAVEL, "gravel", BIOME_PLAINS),
     CLAY("Clay", BLK_CLAY, BLK_CLAY, "clay", BIOME_PLAINS),
     COBBLESTONE("Cobblestone", BLK_COBBLESTONE, BLK_COBBLESTONE, "cobblestone", BIOME_PLAINS),
@@ -455,9 +455,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(0);
     },
@@ -478,9 +478,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(1);
     },
@@ -501,9 +501,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(2);
     },
@@ -524,9 +524,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(3);
     },
@@ -547,9 +547,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(4);
     },
@@ -573,9 +573,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(5);
     },
@@ -596,9 +596,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(6);
     },
@@ -619,9 +619,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(7);
     },
@@ -642,9 +642,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(8);
     },
@@ -665,9 +665,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(9);
     },
@@ -688,9 +688,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(10);
     },
@@ -711,9 +711,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(11);
     },
@@ -734,9 +734,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(12);
     },
@@ -757,9 +757,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(13);
     },
@@ -780,9 +780,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(14);
     },
@@ -803,9 +803,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(15);
     },
@@ -826,9 +826,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(16);
     },
@@ -849,9 +849,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(17);
     },
@@ -872,9 +872,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(18);
     },
@@ -895,9 +895,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(19);
     },
@@ -918,9 +918,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(20);
     },
@@ -941,9 +941,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(21);
     },
@@ -964,9 +964,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(22);
     },
@@ -987,9 +987,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(23);
     },
@@ -1162,9 +1162,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(24);
     },
@@ -1185,9 +1185,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(25);
     },
@@ -1208,9 +1208,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(26);
     },
@@ -1231,9 +1231,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(27);
     },
@@ -1254,9 +1254,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(28);
     },
@@ -1277,9 +1277,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(29);
     },
@@ -1300,9 +1300,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(30);
     },
@@ -1323,9 +1323,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(31);
     },
@@ -1346,9 +1346,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(32);
     },
@@ -1369,9 +1369,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(33);
     },
@@ -1392,9 +1392,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(34);
     },
@@ -1415,9 +1415,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(35);
     },
@@ -1438,9 +1438,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(36);
     },
@@ -1461,9 +1461,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(37);
     },
@@ -1484,9 +1484,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(38);
     },
@@ -1507,9 +1507,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(39);
     },
@@ -1530,9 +1530,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(40);
     },
@@ -1553,9 +1553,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(41);
     },
@@ -1576,9 +1576,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(42);
     },
@@ -1599,9 +1599,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(43);
     },
@@ -1622,9 +1622,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(44);
     },
@@ -1645,9 +1645,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(45);
     },
@@ -1668,9 +1668,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(46);
     },
@@ -1691,9 +1691,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(47);
     },
@@ -1732,9 +1732,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(48);
     },
@@ -1755,9 +1755,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(49);
     },
@@ -1778,9 +1778,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(50);
     },
@@ -1801,9 +1801,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(51);
     },
@@ -1824,9 +1824,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(52);
     },
@@ -1847,9 +1847,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(53);
     },
@@ -1870,9 +1870,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(54);
     },
@@ -1893,9 +1893,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(55);
     },
@@ -1916,9 +1916,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(56);
     },
@@ -1939,9 +1939,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(57);
     },
@@ -1962,9 +1962,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(58);
     },
@@ -1985,9 +1985,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(59);
     },
@@ -2008,9 +2008,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(60);
     },
@@ -2031,9 +2031,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(61);
     },
@@ -2054,9 +2054,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(62);
     },
@@ -2077,9 +2077,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(63);
     },
@@ -2100,9 +2100,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(64);
     },
@@ -2123,9 +2123,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(65);
     },
@@ -2146,9 +2146,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(66);
     },
@@ -2169,9 +2169,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(67);
     },
@@ -2192,9 +2192,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(68);
     },
@@ -2215,9 +2215,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(69);
     },
@@ -2238,9 +2238,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(70);
     },
@@ -2261,9 +2261,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(71);
     },
@@ -2284,9 +2284,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(72);
     },
@@ -2307,9 +2307,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(73);
     },
@@ -2330,9 +2330,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(74);
     },
@@ -2353,9 +2353,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(75);
     },
@@ -2376,9 +2376,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(76);
     },
@@ -2399,9 +2399,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(77);
     },
@@ -2422,9 +2422,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(78);
     },
@@ -2445,9 +2445,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(79);
     },
@@ -2468,9 +2468,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(80);
     },
@@ -2491,9 +2491,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(81);
     },
@@ -2514,9 +2514,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(82);
     },
@@ -2537,9 +2537,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(83);
     },
@@ -2560,9 +2560,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(84);
     },
@@ -2583,9 +2583,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(85);
     },
@@ -2606,9 +2606,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(86);
     },
@@ -2629,9 +2629,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(87);
     },
@@ -2652,9 +2652,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(88);
     },
@@ -2675,9 +2675,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(89);
     },
@@ -2698,9 +2698,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(90);
     },
@@ -2721,9 +2721,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(91);
     },
@@ -2744,9 +2744,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(92);
     },
@@ -2767,9 +2767,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(93);
     },
@@ -2790,9 +2790,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(94);
     },
@@ -2813,9 +2813,9 @@ public enum Terrain {
 
         @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}
 
-        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
-        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
+        @Override public int getColour(long seed, int x, int y, float z, int height, Platform platform, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}
 
         private final CustomTerrainHelper helper = new CustomTerrainHelper(95);
     },
@@ -2825,7 +2825,8 @@ public enum Terrain {
     BLACKSTONE("Blackstone", Material.BLACKSTONE, Material.BLACKSTONE, "blackstone", BIOME_HELL),
     SOUL_SOIL("Soul Soil", Material.SOUL_SOIL, Material.SOUL_SOIL, "soul soil", BIOME_HELL),
     WARPED_NYLIUM("Warped Nylium", Material.WARPED_NYLIUM, Material.NETHERRACK, "warped nylium", BIOME_HELL),
-    CRIMSON_NYLIUM("Crimson Nylium", Material.CRIMSON_NYLIUM, Material.NETHERRACK, "crimson nylium", BIOME_HELL);
+    CRIMSON_NYLIUM("Crimson Nylium", Material.CRIMSON_NYLIUM, Material.NETHERRACK, "crimson nylium", BIOME_HELL),
+    CALCITE("Calcite", Material.CALCITE, Material.CALCITE, "calcite", BIOME_PLAINS);
 
     Terrain(String name, String description, int defaultBiome) {
         this(name, Material.STONE, Material.STONE, description, defaultBiome, 0);
@@ -2855,44 +2856,6 @@ public enum Terrain {
 
     public String getName() {
         return name;
-    }
-
-    /**
-     * Get the material to use for this terrain type at a specific location in
-     * the world, relative to the surface, for an unspecified platform.
-     *
-     * <p>The default implementation forwards to
-     * {@link #getMaterial(Platform, long, int, int, int, int)}.
-     *
-     * @param seed The world seed.
-     * @param x The absolute X position of the block in WorldPainter coordinates.
-     * @param y The absolute Y position of the block in WorldPainter coordinates.
-     * @param z The absolute Z position of the block in WorldPainter coordinates.
-     * @param height The height of the terrain at the specified X and Y
-     *     coordinates.
-     * @return The material at the specified location in the terrain.
-     */
-    public Material getMaterial(final long seed, final int x, final int y, final float z, final int height) {
-        return getMaterial(JAVA_ANVIL_1_15, seed, x, y, Math.round(z), height);
-    }
-
-    /**
-     * Get the material to use for this terrain type at a specific location in
-     * the world, relative to the surface, for an unspecified platform.
-     *
-     * <p>The default implementation forwards to
-     * {@link #getMaterial(Platform, long, int, int, int, int)}.
-     *
-     * @param seed The world seed.
-     * @param x The absolute X position of the block in WorldPainter coordinates.
-     * @param y The absolute Y position of the block in WorldPainter coordinates.
-     * @param z The absolute Z position of the block in WorldPainter coordinates.
-     * @param height The height of the terrain at the specified X and Y
-     *     coordinates.
-     * @return The material at the specified location in the terrain.
-     */
-    public Material getMaterial(final long seed, final int x, final int y, final int z, final int height) {
-        return getMaterial(JAVA_ANVIL_1_15, seed, x, y, z, height);
     }
 
     /**
@@ -2962,19 +2925,19 @@ public enum Terrain {
         return IconUtils.scaleIcon(getIcon(colourScheme), size);
     }
 
-    public int getColour(final long seed, final int x, final int y, final float z, final int height, final ColourScheme colourScheme) {
+    public int getColour(final long seed, final int x, final int y, final float z, final int height, final Platform platform, final ColourScheme colourScheme) {
         try {
-            return colourScheme.getColour(getMaterial(seed, x, y, z, height));
+            return colourScheme.getColour(getMaterial(platform, seed, x, y, z, height));
         } catch (RuntimeException e) {
-            throw new RuntimeException(e.getClass().getSimpleName() + " while getting colour of material " + getMaterial(seed, x, y, z, height) + " @ " + x + "," + y + "," + z + "," + height + " for terrain " + this, e);
+            throw new RuntimeException(e.getClass().getSimpleName() + " while getting colour of material " + getMaterial(platform, seed, x, y, z, height) + " @ " + x + "," + y + "," + z + "," + height + " for terrain " + this, e);
         }
     }
 
-    public int getColour(final long seed, final int x, final int y, final int z, final int height, final ColourScheme colourScheme) {
+    public int getColour(final long seed, final int x, final int y, final int z, final int height, final Platform platform, final ColourScheme colourScheme) {
         try {
-            return colourScheme.getColour(getMaterial(seed, x, y, z, height));
+            return colourScheme.getColour(getMaterial(platform, seed, x, y, z, height));
         } catch (RuntimeException e) {
-            throw new RuntimeException(e.getClass().getSimpleName() + " while getting colour of material " + getMaterial(seed, x, y, z, height) + " @ " + x + "," + y + "," + z + "," + height + " for terrain " + this, e);
+            throw new RuntimeException(e.getClass().getSimpleName() + " while getting colour of material " + getMaterial(platform, seed, x, y, z, height) + " @ " + x + "," + y + "," + z + "," + height + " for terrain " + this, e);
         }
     }
 
@@ -3261,7 +3224,8 @@ public enum Terrain {
         BLACKSTONE,
         SOUL_SOIL,
         WARPED_NYLIUM,
-        CRIMSON_NYLIUM
+        CRIMSON_NYLIUM,
+        CALCITE
     };
 
     /**
@@ -3290,8 +3254,9 @@ public enum Terrain {
         GRANITE,
         DIORITE,
         ANDESITE,
-        ROCK,
+        CALCITE,
 
+        ROCK,
         COBBLESTONE,
         MOSSY_COBBLESTONE,
         OBSIDIAN,
@@ -3301,8 +3266,8 @@ public enum Terrain {
         GRAVEL,
         CLAY,
         BEACHES,
-        WATER,
 
+        WATER,
         LAVA,
         MAGMA,
         DEEP_SNOW,
@@ -3312,8 +3277,8 @@ public enum Terrain {
         SOUL_SAND,
         SOUL_SOIL,
         NETHERLIKE,
-        WARPED_NYLIUM,
 
+        WARPED_NYLIUM,
         CRIMSON_NYLIUM,
         MYCELIUM,
         END_STONE,
@@ -3323,8 +3288,8 @@ public enum Terrain {
         LIGHT_BLUE_STAINED_CLAY,
         YELLOW_STAINED_CLAY,
         LIME_STAINED_CLAY,
-        PINK_STAINED_CLAY,
 
+        PINK_STAINED_CLAY,
         GREY_STAINED_CLAY,
         LIGHT_GREY_STAINED_CLAY,
         CYAN_STAINED_CLAY,
@@ -3340,40 +3305,40 @@ public enum Terrain {
      * A helper method for generating additional custom terrain types. Should be
      * edited before use.
      */
-    public static void main(String[] args) {
-        String[] tens = {"forty", "fifty", "sixty", "seventy", "eighty", "ninety"};
-        String[] ones = {"", "-one", "-two", "-three", "-four", "-five", "-six", "-seven", "-eight", "-nine"};
-        for (int i = 49; i <= 96; i++) {
-            System.out.printf("    CUSTOM_%1$d(\"Custom %1$d\", \"custom material %3$s%4$s\", BIOME_PLAINS) {%n" +
-                            "        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}%n" +
-                            "%n" +
-                            "        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}%n" +
-                            "%n" +
-                            "        @Override public String getName() {return helper.getName();}%n" +
-                            "%n" +
-                            "        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}%n" +
-                            "%n" +
-                            "        @Override public boolean isCustom() {return true;}%n" +
-                            "%n" +
-                            "        @Override public boolean isConfigured() {return helper.isConfigured();}%n" +
-                            "%n" +
-                            "        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}%n" +
-                            "%n" +
-                            "        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}%n" +
-                            "%n" +
-                            "        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}%n" +
-                            "%n" +
-                            "        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}%n" +
-                            "%n" +
-                            "        private final CustomTerrainHelper helper = new CustomTerrainHelper(%2$d);%n" +
-                            "    },%n",
-                    i,
-                    i - 1,
-                    tens[(i / 10) - 4],
-                    ones[i % 10]);
-        }
-        for (int i = 49; i <= 96; i++) {
-            System.out.println("       Terrain.CUSTOM_" + i);
-        }
-    }
+//    public static void main(String[] args) {
+//        String[] tens = {"forty", "fifty", "sixty", "seventy", "eighty", "ninety"};
+//        String[] ones = {"", "-one", "-two", "-three", "-four", "-five", "-six", "-seven", "-eight", "-nine"};
+//        for (int i = 49; i <= 96; i++) {
+//            System.out.printf("    CUSTOM_%1$d(\"Custom %1$d\", \"custom material %3$s%4$s\", BIOME_PLAINS) {%n" +
+//                            "        @Override public Material getMaterial(long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}%n" +
+//                            "%n" +
+//                            "        @Override public Material getMaterial(long seed, int x, int y, float z, int height) {return helper.getMaterial(seed, x, y, z, height);}%n" +
+//                            "%n" +
+//                            "        @Override public String getName() {return helper.getName();}%n" +
+//                            "%n" +
+//                            "        @Override public BufferedImage getIcon(ColourScheme colourScheme) {return helper.getIcon(colourScheme);}%n" +
+//                            "%n" +
+//                            "        @Override public boolean isCustom() {return true;}%n" +
+//                            "%n" +
+//                            "        @Override public boolean isConfigured() {return helper.isConfigured();}%n" +
+//                            "%n" +
+//                            "        @Override public int getDefaultBiome() {return helper.getDefaultBiome();}%n" +
+//                            "%n" +
+//                            "        @Override public int getCustomTerrainIndex() {return helper.getCustomTerrainIndex();}%n" +
+//                            "%n" +
+//                            "        @Override public int getColour(long seed, int x, int y, int z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}%n" +
+//                            "%n" +
+//                            "        @Override public int getColour(long seed, int x, int y, float z, int height, ColourScheme colourScheme) {return helper.getColour(seed, x, y, z, height, colourScheme);}%n" +
+//                            "%n" +
+//                            "        private final CustomTerrainHelper helper = new CustomTerrainHelper(%2$d);%n" +
+//                            "    },%n",
+//                    i,
+//                    i - 1,
+//                    tens[(i / 10) - 4],
+//                    ones[i % 10]);
+//        }
+//        for (int i = 49; i <= 96; i++) {
+//            System.out.println("       Terrain.CUSTOM_" + i);
+//        }
+//    }
 }

@@ -163,64 +163,68 @@ public class Main {
         final File file = myFile;
         if (safeMode) {
             logger.info("WorldPainter running in safe mode");
+            System.setProperty("org.pepsoft.worldpainter.safeMode", "true");
         }
 
-        // Set the acceleration mode. For some reason we don't fully understand,
-        // loading the Configuration from disk initialises Java2D, so we have to
-        // do this *before* then.
-        // But only do this if a config file exists. If it does not, someone may
-        // be trying to reset the configuration, so make sure that the
-        // acceleration type setting is reset too in that case.
-        AccelerationType accelerationType;
-        if (Configuration.getConfigFile().isFile()) {
-            String accelTypeName = Preferences.userNodeForPackage(Main.class).get("accelerationType", null);
-            if (accelTypeName != null) {
-                accelerationType = AccelerationType.valueOf(accelTypeName);
-            } else {
-                accelerationType = AccelerationType.DEFAULT;
-                // TODO: Experiment with which ones work well and use them by default!
-            }
-            if (! safeMode) {
-                switch (accelerationType) {
-                    case UNACCELERATED:
-                        // Try to disable all accelerated pipelines we know of:
-                        System.setProperty("sun.java2d.d3d", "false");
-                        System.setProperty("sun.java2d.opengl", "false");
-                        System.setProperty("sun.java2d.xrender", "false");
-                        System.setProperty("apple.awt.graphics.UseQuartz", "false");
-                        logger.info("Hardware acceleration method: unaccelerated");
-                        break;
-                    case DIRECT3D:
-                        // Direct3D should already be the default on Windows, but
-                        // enable a few things which are off by default:
-                        System.setProperty("sun.java2d.translaccel", "true");
-                        System.setProperty("sun.java2d.ddscale", "true");
-                        logger.info("Hardware acceleration method: Direct3D");
-                        break;
-                    case OPENGL:
-                        System.setProperty("sun.java2d.opengl", "True");
-                        logger.info("Hardware acceleration method: OpenGL");
-                        break;
-                    case XRENDER:
-                        System.setProperty("sun.java2d.xrender", "True");
-                        logger.info("Hardware acceleration method: XRender");
-                        break;
-                    case QUARTZ:
-                        System.setProperty("apple.awt.graphics.UseQuartz", "true");
-                        logger.info("Hardware acceleration method: Quartz");
-                        break;
-                    default:
-                        logger.info("Hardware acceleration method: default");
-                        break;
-                }
-            }
-        } else {
-            accelerationType = AccelerationType.DEFAULT;
-            if (! safeMode) {
-                logger.info("Hardware acceleration method: default");
+        // If the config file does not exist, also reset the persistent settings that are not stored in that, since the
+        // user may be trying to reset the configuration
+        if (! Configuration.getConfigFile().isFile()) {
+            try {
+                Preferences prefs = Preferences.userNodeForPackage(Main.class);
+                prefs.remove("accelerationType");
+                prefs.flush();
+                prefs = Preferences.userNodeForPackage(GUIUtils.class);
+                prefs.remove("manualUIScale");
+                prefs.flush();
+            } catch (BackingStoreException e) {
+                logger.error("Error resetting user preferences", e);
             }
         }
-        if (safeMode) {
+
+        // Set the acceleration mode. For some reason we don't fully understand, loading the Configuration from disk
+        // initialises Java2D, so we have to do this *before* then.
+        AccelerationType accelerationType;
+        String accelTypeName = Preferences.userNodeForPackage(Main.class).get("accelerationType", null);
+        if (accelTypeName != null) {
+            accelerationType = AccelerationType.valueOf(accelTypeName);
+        } else {
+            accelerationType = AccelerationType.DEFAULT;
+            // TODO: Experiment with which ones work well and use them by default!
+        }
+        if (! safeMode) {
+            switch (accelerationType) {
+                case UNACCELERATED:
+                    // Try to disable all accelerated pipelines we know of:
+                    System.setProperty("sun.java2d.d3d", "false");
+                    System.setProperty("sun.java2d.opengl", "false");
+                    System.setProperty("sun.java2d.xrender", "false");
+                    System.setProperty("apple.awt.graphics.UseQuartz", "false");
+                    logger.info("Hardware acceleration method: unaccelerated");
+                    break;
+                case DIRECT3D:
+                    // Direct3D should already be the default on Windows, but
+                    // enable a few things which are off by default:
+                    System.setProperty("sun.java2d.translaccel", "true");
+                    System.setProperty("sun.java2d.ddscale", "true");
+                    logger.info("Hardware acceleration method: Direct3D");
+                    break;
+                case OPENGL:
+                    System.setProperty("sun.java2d.opengl", "True");
+                    logger.info("Hardware acceleration method: OpenGL");
+                    break;
+                case XRENDER:
+                    System.setProperty("sun.java2d.xrender", "True");
+                    logger.info("Hardware acceleration method: XRender");
+                    break;
+                case QUARTZ:
+                    System.setProperty("apple.awt.graphics.UseQuartz", "true");
+                    logger.info("Hardware acceleration method: Quartz");
+                    break;
+                default:
+                    logger.info("Hardware acceleration method: default");
+                    break;
+            }
+        } else {
             logger.info("[SAFE MODE] Hardware acceleration method: default");
         }
 

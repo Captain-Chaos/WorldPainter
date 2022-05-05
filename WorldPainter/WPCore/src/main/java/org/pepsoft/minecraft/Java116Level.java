@@ -6,20 +6,22 @@ import org.pepsoft.worldpainter.Platform;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.SuperflatPreset.defaultPreset;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Generator.*;
 
 /**
- * The {@code level.dat} file for a Minecraft 1.18 or later map.
+ * The {@code level.dat} file for a Minecraft 1.16 or 1.17 map.
  */
-public class Java118Level extends JavaLevel {
-    Java118Level(int mapHeight, Platform platform) {
+public class Java116Level extends JavaLevel {
+    Java116Level(int mapHeight, Platform platform) {
         super(mapHeight, platform);
     }
 
-    Java118Level(CompoundTag tag, int mapHeight) {
+    Java116Level(CompoundTag tag, int mapHeight) {
         super(tag, mapHeight);
         loadWorldGenSettings();
     }
@@ -84,9 +86,15 @@ public class Java118Level extends JavaLevel {
             if (generatorType.equals(MC_NOISE)) {
                 final String noiseSettings = ((StringTag) generatorSettings).getValue();
                 if (noiseSettings.equals(MC_OVERWORLD)) {
-                    generator = new SeededGenerator(DEFAULT, generatorSeed);
-                } else if (noiseSettings.equals(MC_LARGE_BIOMES)) {
-                    generator = new SeededGenerator(LARGE_BIOMES, generatorSeed);
+                    final Tag biomeSourceTag = generatorTag.getTag(TAG_BIOME_SOURCE_);
+                    if ((biomeSourceTag instanceof CompoundTag)
+                            && (((CompoundTag) biomeSourceTag).containsTag(TAG_LARGE_BIOMES_))
+                            && ((((CompoundTag) biomeSourceTag).getTag(TAG_LARGE_BIOMES_) instanceof ByteTag))
+                            && (((ByteTag) ((CompoundTag) biomeSourceTag).getTag(TAG_LARGE_BIOMES_)).getValue() == (byte) 1)) {
+                        generator = new SeededGenerator(LARGE_BIOMES, generatorSeed);
+                    } else {
+                        generator = new SeededGenerator(DEFAULT, generatorSeed);
+                    }
                 } else if (noiseSettings.equals(MC_NETHER)) {
                     generator = new SeededGenerator(NETHER, generatorSeed);
                 } else if (noiseSettings.equals(MC_END)) {
@@ -94,7 +102,7 @@ public class Java118Level extends JavaLevel {
                 } else if (noiseSettings.equals(MC_AMPLIFIED)) {
                     generator = new SeededGenerator(AMPLIFIED, generatorSeed);
                 } else {
-                    throw new IllegalArgumentException("Settings string \"" + noiseSettings + "\" for minecraft:noise generator type not recognised"); // TODO: minecraft:amplified
+                    throw new IllegalArgumentException("Settings string \"" + noiseSettings + "\" for minecraft:noise generator type not recognised");
                 }
             } else if (generatorType.equals(MC_FLAT)) {
                 generator = new SuperflatGenerator(SuperflatPreset.fromMinecraft1_18_0((CompoundTag) generatorSettings));
@@ -162,24 +170,27 @@ public class Java118Level extends JavaLevel {
 
             final String generatorType, biomeSourceType, biomeSourcePreset;
             final Tag settingsTag;
+            Boolean biomeSourceLargeBiomes = null;
             switch (generator.getType()) {
                 case DEFAULT:
                     generatorType = MC_NOISE;
                     settingsTag = new StringTag(TAG_SETTINGS_, MC_OVERWORLD);
-                    biomeSourceType = MC_MULTI_NOISE;
-                    biomeSourcePreset = MC_OVERWORLD;
+                    biomeSourceType = MC_VANILLA_LAYERED;
+                    biomeSourcePreset = null;
+                    biomeSourceLargeBiomes = FALSE;
                     break;
                 case LARGE_BIOMES:
                     generatorType = MC_NOISE;
                     settingsTag = new StringTag(TAG_SETTINGS_, MC_LARGE_BIOMES);
-                    biomeSourceType = MC_MULTI_NOISE;
-                    biomeSourcePreset = MC_OVERWORLD;
+                    biomeSourceType = MC_VANILLA_LAYERED;
+                    biomeSourcePreset = null;
+                    biomeSourceLargeBiomes = TRUE;
                     break;
                 case AMPLIFIED:
                     generatorType = MC_NOISE;
                     settingsTag = new StringTag(TAG_SETTINGS_, MC_AMPLIFIED);
                     biomeSourceType = MC_MULTI_NOISE;
-                    biomeSourcePreset = MC_OVERWORLD;
+                    biomeSourcePreset = null;
                     break;
                 case FLAT:
                     generatorType = MC_FLAT;
@@ -206,7 +217,7 @@ public class Java118Level extends JavaLevel {
                     biomeSourceType = biomeSourcePreset = null;
                     break;
                 default:
-                    throw new IllegalArgumentException("Generator " + generator + " not supported for Minecraft 1.18+");
+                    throw new IllegalArgumentException("Generator " + generator + " not supported for Minecraft 1.16 - 1.17");
             }
             final long seed = (generator instanceof SeededGenerator) ? ((SeededGenerator) generator).getSeed() : 0L;
             CompoundTag generatorTag = ((generator.getType() == CUSTOM) && ((CustomGenerator) generator).getSettings() instanceof CompoundTag)
@@ -233,11 +244,16 @@ public class Java118Level extends JavaLevel {
                 biomeSourceTag.setTag(TAG_TYPE_, new StringTag(TAG_TYPE_, biomeSourceType));
                 switch (biomeSourceType) {
                     case MC_MULTI_NOISE:
-                        biomeSourceTag.setTag(TAG_PRESET_, new StringTag(TAG_PRESET_, biomeSourcePreset));
-                        break;
+                    case MC_VANILLA_LAYERED:
                     case MC_THE_END:
                         biomeSourceTag.setTag(TAG_SEED_, new LongTag(TAG_SEED_, seed));
                         break;
+                }
+                if (biomeSourcePreset != null) {
+                    biomeSourceTag.setTag(TAG_PRESET_, new StringTag(TAG_PRESET_, biomeSourcePreset));
+                }
+                if (biomeSourceLargeBiomes != null) {
+                    biomeSourceTag.setTag(TAG_LARGE_BIOMES_, new ByteTag(TAG_LARGE_BIOMES_, (byte) (biomeSourceLargeBiomes ? 1 : 0)));
                 }
             }
         }

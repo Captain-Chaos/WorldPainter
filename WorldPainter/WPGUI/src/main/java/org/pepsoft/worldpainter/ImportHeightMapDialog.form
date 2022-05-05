@@ -110,7 +110,7 @@
                           <Component id="checkBoxOnlyRaise" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="jTabbedPane1" pref="478" max="32767" attributes="0"/>
+                      <Component id="jTabbedPane1" max="32767" attributes="0"/>
                   </Group>
                   <Component id="tiledImageViewerContainer1" max="32767" attributes="0"/>
               </Group>
@@ -644,10 +644,13 @@
             <Component class="javax.swing.JSpinner" name="spinnerVoidBelow">
               <Properties>
                 <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
-                  <SpinnerModel initial="1" maximum="255" minimum="1" numberType="java.lang.Integer" stepSize="1" type="number"/>
+                  <SpinnerModel initial="1" maximum="4294967295" minimum="1" numberType="java.lang.Long" stepSize="1" type="number"/>
                 </Property>
                 <Property name="enabled" type="boolean" value="false"/>
               </Properties>
+              <Events>
+                <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinnerVoidBelowStateChanged"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JLabel" name="labelWarning">
               <Properties>

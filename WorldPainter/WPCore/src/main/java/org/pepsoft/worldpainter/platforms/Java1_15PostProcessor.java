@@ -114,13 +114,13 @@ public class Java1_15PostProcessor extends PostProcessor {
                         // The material below has a "snowy" property, so make sure it is set correctly
                         if (material.isNamed(MC_SNOW) || material.isNamed(MC_SNOW_BLOCK)) {
                             // It should be snowy, change it if it isn't
-                            if (! materialBelow.getProperty(SNOWY)) {
+                            if (! materialBelow.is(SNOWY)) {
                                 materialBelow = materialBelow.withProperty(SNOWY, true);
                                 minecraftWorld.setMaterialAt(x, y, z - 1, materialBelow);
                             }
                         } else {
                             // It should NOT be snowy, change it if it is
-                            if (materialBelow.getProperty(SNOWY)) {
+                            if (materialBelow.is(SNOWY)) {
                                 materialBelow = materialBelow.withProperty(SNOWY, false);
                                 minecraftWorld.setMaterialAt(x, y, z - 1, materialBelow);
                             }

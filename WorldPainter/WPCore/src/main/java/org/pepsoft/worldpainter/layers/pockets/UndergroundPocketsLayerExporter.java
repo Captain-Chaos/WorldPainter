@@ -121,7 +121,7 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
     /**
      * Create a coloured preview of the layer.
      */
-    public BufferedImage createPreview(int width, int height, ColourScheme colourScheme, Terrain subsurfaceMaterial) {
+    public BufferedImage createPreview(int width, int height, ColourScheme colourScheme, Terrain subsurfaceMaterial, Platform platform) {
         init();
         final BufferedImage preview = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         final MixedMaterial material = layer.getMaterial();
@@ -134,7 +134,7 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
                     if (useMaterial) {
                         preview.setRGB(x, height - z - 1, colourScheme.getColour(material.getMaterial(0L, x, 0, z)));
                     } else {
-                        preview.setRGB(x, height - z - 1, colourScheme.getColour(terrain.getMaterial(0L, x, 0, z, height - 1)));
+                        preview.setRGB(x, height - z - 1, colourScheme.getColour(terrain.getMaterial(platform, 0L, x, 0, z, height - 1)));
                     }
                 }
             }
@@ -146,10 +146,10 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
                         if (useMaterial) {
                             preview.setRGB(x, height - z - 1, colourScheme.getColour(material.getMaterial(0L, x, 0, z)));
                         } else {
-                            preview.setRGB(x, height - z - 1, colourScheme.getColour(terrain.getMaterial(0L, x, 0, z, height - 1)));
+                            preview.setRGB(x, height - z - 1, colourScheme.getColour(terrain.getMaterial(platform, 0L, x, 0, z, height - 1)));
                         }
                     } else {
-                        preview.setRGB(x, height - z - 1, colourScheme.getColour(subsurfaceMaterial.getMaterial(0L, x, 0, z, height - 1)));
+                        preview.setRGB(x, height - z - 1, colourScheme.getColour(subsurfaceMaterial.getMaterial(platform, 0L, x, 0, z, height - 1)));
                     }
                 }
             }

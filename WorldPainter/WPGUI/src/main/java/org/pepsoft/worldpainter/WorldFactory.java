@@ -5,7 +5,6 @@
  */
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.minecraft.MapGenerator;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.SeededGenerator;
 import org.pepsoft.util.MathUtils;
@@ -14,8 +13,10 @@ import org.pepsoft.worldpainter.biomeschemes.Minecraft1_2BiomeScheme;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.Resources;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter;
+import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +25,9 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.TreeMap;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
-import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 import static org.pepsoft.worldpainter.World2.DEFAULT_OCEAN_SEED;
 import static org.pepsoft.worldpainter.util.MathUtils.getLargestDistanceFromOrigin;
@@ -118,10 +118,11 @@ public final class WorldFactory {
     
     public static World2 createDefaultWorldWithoutTiles(final Configuration config, final long seed) {
         final HeightMapTileFactory tileFactory;
+        final Platform platform = config.getDefaultPlatform();
         if (config.isHilly()) {
-            tileFactory = TileFactoryFactory.createNoiseTileFactory(seed, config.getSurface(), config.getDefaultPlatform().minZ, config.getDefaultMaxHeight(), config.getLevel(), config.getWaterLevel(), config.isLava(), config.isBeaches(), config.getDefaultRange(), config.getDefaultScale());
+            tileFactory = TileFactoryFactory.createNoiseTileFactory(seed, config.getSurface(), platform.minZ, config.getDefaultMaxHeight(), config.getLevel(), config.getWaterLevel(), config.isLava(), config.isBeaches(), config.getDefaultRange(), config.getDefaultScale());
         } else {
-            tileFactory = TileFactoryFactory.createFlatTileFactory(seed, config.getSurface(), config.getDefaultPlatform().minZ, config.getDefaultMaxHeight(), config.getLevel(), config.getWaterLevel(), config.isLava(), config.isBeaches());
+            tileFactory = TileFactoryFactory.createFlatTileFactory(seed, config.getSurface(), platform.minZ, config.getDefaultMaxHeight(), config.getLevel(), config.getWaterLevel(), config.isLava(), config.isBeaches());
         }
         final Dimension defaults = config.getDefaultTerrainAndLayerSettings();
         if ((defaults.getTileFactory() instanceof HeightMapTileFactory)
@@ -133,7 +134,7 @@ public final class WorldFactory {
             theme.setTerrainRanges(new TreeMap<>(defaultTheme.getTerrainRanges()));
             theme.setRandomise(defaultTheme.isRandomise());
         }
-        final World2 world = new World2(config.getDefaultPlatform(), DEFAULT_OCEAN_SEED, tileFactory, tileFactory.getMaxHeight());
+        final World2 world = new World2(platform, DEFAULT_OCEAN_SEED, tileFactory, tileFactory.getMaxHeight());
         world.addHistoryEntry(HistoryEntry.WORLD_CREATED);
         final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings");
         world.setName(strings.getString("generated.world"));
@@ -156,6 +157,7 @@ public final class WorldFactory {
             for (Map.Entry<Layer, ExporterSettings> entry: defaults.getAllLayerSettings().entrySet()) {
                 dim0.setLayerSettings(entry.getKey(), entry.getValue().clone());
             }
+            ((ResourcesExporter.ResourcesExporterSettings) dim0.getLayerSettings(Resources.INSTANCE)).setMinimumLevel(config.getDefaultResourcesMinimumLevel());
             dim0.setGridEnabled(config.isDefaultGridEnabled());
             dim0.setGridSize(config.getDefaultGridSize());
             dim0.setContoursEnabled(config.isDefaultContoursEnabled());
@@ -164,15 +166,8 @@ public final class WorldFactory {
             dim0.setTopLayerVariation(defaults.getTopLayerVariation());
             dim0.setBottomless(defaults.isBottomless());
             dim0.setCoverSteepTerrain(defaults.isCoverSteepTerrain());
-
-            MapGenerator generator = config.getDefaultGenerator();
-            // TODO base this on platforms, and is this black magic even still necessary?
-            if ((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_MCREGION) && (generator.getType() == Generator.LARGE_BIOMES)) {
-                generator = new SeededGenerator(DEFAULT, DEFAULT_OCEAN_SEED);
-            } else if (((world.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL) || (world.getMaxHeight() == DEFAULT_MAX_HEIGHT_1_18)) && (generator.getType() == DEFAULT)) {
-                generator = new SeededGenerator(LARGE_BIOMES, DEFAULT_OCEAN_SEED);
-            }
-            dim0.setGenerator(generator); // TODOMC118 what about Nether and End?
+            dim0.setGenerator(config.getDefaultGenerator()); // TODOMC118 what about Nether and End?
+            dim0.setExportSettings(config.getDefaultExportSettings());
         } finally {
             dim0.setEventsInhibited(false);
         }
@@ -180,9 +175,10 @@ public final class WorldFactory {
     }
     
     public static World2 createFancyWorld(final Configuration config, final long seed) {
-        final HeightMapTileFactory tileFactory = TileFactoryFactory.createFancyTileFactory(seed, Terrain.GRASS, JAVA_ANVIL_1_15.minZ, JAVA_ANVIL_1_15.standardMaxHeight, 58, DEFAULT_WATER_LEVEL, false, 20f, 1.0);
+        final Platform platform = config.getDefaultPlatform();
+        final HeightMapTileFactory tileFactory = TileFactoryFactory.createFancyTileFactory(seed, Terrain.GRASS, platform.minZ, platform.standardMaxHeight, 58, DEFAULT_WATER_LEVEL, false, 20f, 1.0);
         final Dimension defaults = config.getDefaultTerrainAndLayerSettings();
-        final World2 world = new World2(JAVA_ANVIL_1_15, DEFAULT_OCEAN_SEED, tileFactory, tileFactory.getMaxHeight());
+        final World2 world = new World2(platform, DEFAULT_OCEAN_SEED, tileFactory, tileFactory.getMaxHeight());
         world.addHistoryEntry(HistoryEntry.WORLD_CREATED);
         world.setMixedMaterial(0, new MixedMaterial("Dirt/Gravel", new Row[] {new Row(Material.DIRT, 750, 1.0f), new Row(Material.GRAVEL, 250, 1.0f)}, Minecraft1_2BiomeScheme.BIOME_PLAINS, null, 1.0f));
         world.setMixedMaterial(1, new MixedMaterial("Stone/Gravel", new Row[] {new Row(Material.STONE, 750, 1.0f), new Row(Material.GRAVEL, 250, 1.0f)}, Minecraft1_2BiomeScheme.BIOME_PLAINS, null, 1.0f));
@@ -251,6 +247,7 @@ public final class WorldFactory {
             for (Map.Entry<Layer, ExporterSettings> entry: defaults.getAllLayerSettings().entrySet()) {
                 dim0.setLayerSettings(entry.getKey(), entry.getValue().clone());
             }
+            ((ResourcesExporter.ResourcesExporterSettings) dim0.getLayerSettings(Resources.INSTANCE)).setMinimumLevel(config.getDefaultResourcesMinimumLevel());
             FrostExporter.FrostSettings frostSettings = (FrostExporter.FrostSettings) dim0.getLayerSettings(Frost.INSTANCE);
             if (frostSettings == null) {
                 frostSettings = new FrostExporter.FrostSettings();

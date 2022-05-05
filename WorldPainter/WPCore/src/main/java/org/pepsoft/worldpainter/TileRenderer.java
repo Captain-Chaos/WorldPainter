@@ -30,32 +30,35 @@ import static org.pepsoft.worldpainter.Constants.*;
 public final class TileRenderer {
     public TileRenderer(TileProvider tileProvider, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int zoom) {
         biomeRenderer = new BiomeRenderer(customBiomeManager);
-        setTileProvider(tileProvider);
+        this.tileProvider = tileProvider;
         if ((tileProvider instanceof Dimension) && (((Dimension) tileProvider).getWorld() != null)) {
-            Dimension oppositeDimension = null;
+            platform = ((Dimension) tileProvider).getWorld().getPlatform();
             switch (((Dimension) tileProvider).getDim()) {
                 case DIM_NORMAL:
-                    oppositeDimension = ((Dimension) tileProvider).getWorld().getDimension(DIM_NORMAL_CEILING);
+                    oppositeTileProvider = ((Dimension) tileProvider).getWorld().getDimension(DIM_NORMAL_CEILING);
                     break;
                 case DIM_NORMAL_CEILING:
-                    oppositeDimension = ((Dimension) tileProvider).getWorld().getDimension(DIM_NORMAL);
+                    oppositeTileProvider = ((Dimension) tileProvider).getWorld().getDimension(DIM_NORMAL);
                     break;
                 case DIM_NETHER:
-                    oppositeDimension = ((Dimension) tileProvider).getWorld().getDimension(DIM_NETHER_CEILING);
+                    oppositeTileProvider = ((Dimension) tileProvider).getWorld().getDimension(DIM_NETHER_CEILING);
                     break;
                 case DIM_NETHER_CEILING:
-                    oppositeDimension = ((Dimension) tileProvider).getWorld().getDimension(DIM_NETHER);
+                    oppositeTileProvider = ((Dimension) tileProvider).getWorld().getDimension(DIM_NETHER);
                     break;
                 case DIM_END:
-                    oppositeDimension = ((Dimension) tileProvider).getWorld().getDimension(DIM_END_CEILING);
+                    oppositeTileProvider = ((Dimension) tileProvider).getWorld().getDimension(DIM_END_CEILING);
                     break;
                 case DIM_END_CEILING:
-                    oppositeDimension = ((Dimension) tileProvider).getWorld().getDimension(DIM_END);
+                    oppositeTileProvider = ((Dimension) tileProvider).getWorld().getDimension(DIM_END);
+                    break;
+                default:
+                    oppositeTileProvider = null;
                     break;
             }
-            if (oppositeDimension != null) {
-                setOppositeTileProvider(oppositeDimension);
-            }
+        } else {
+            platform = Configuration.DEFAULT_PLATFORM;
+            oppositeTileProvider = null;
         }
         setColourScheme(colourScheme);
         this.zoom = zoom;
@@ -67,16 +70,12 @@ public final class TileRenderer {
         return tileProvider;
     }
 
-    public void setTileProvider(TileProvider tileProvider) {
-        this.tileProvider = tileProvider;
-    }
-
     public TileProvider getOppositeTileProvider() {
         return oppositeTileProvider;
     }
 
-    public void setOppositeTileProvider(TileProvider oppositeTileProvider) {
-        this.oppositeTileProvider = oppositeTileProvider;
+    public Platform getPlatform() {
+        return platform;
     }
 
     public ColourScheme getColourScheme() {
@@ -375,12 +374,12 @@ public final class TileRenderer {
                         && terrain.isCustom()) {
                     MixedMaterial mixedMaterial = Terrain.getCustomMaterial(terrain.getCustomTerrainIndex());
                     if (mixedMaterial.getMode() == MixedMaterial.Mode.LAYERED){
-                        colour = terrain.getColour(seed, worldX, worldY, mixedMaterial.getPatternHeight() - 1, intHeight, colourScheme);
+                        colour = terrain.getColour(seed, worldX, worldY, mixedMaterial.getPatternHeight() - 1, intHeight, platform, colourScheme);
                     } else {
-                        colour = terrain.getColour(seed, worldX, worldY, height, intHeight, colourScheme);
+                        colour = terrain.getColour(seed, worldX, worldY, height, intHeight, platform, colourScheme);
                     }
                 } else {
-                    colour = terrain.getColour(seed, worldX, worldY, height, intHeight, colourScheme);
+                    colour = terrain.getColour(seed, worldX, worldY, height, intHeight, platform, colourScheme);
                 }
             }
         } else {
@@ -503,7 +502,8 @@ public final class TileRenderer {
     private final Set<Layer> missingRendererReportedFor = new HashSet<>(); // TODO remove when no longer necessary!
     private final boolean[] oppositesOverlap = new boolean[TILE_SIZE * TILE_SIZE];
     private final int zoom;
-    private TileProvider tileProvider, oppositeTileProvider;
+    private final Platform platform;
+    private final TileProvider tileProvider, oppositeTileProvider;
     private ColourScheme colourScheme;
     private boolean contourLines = true;
     private int contourSeparation = 10, waterColour, lavaColour, bedrockColour;

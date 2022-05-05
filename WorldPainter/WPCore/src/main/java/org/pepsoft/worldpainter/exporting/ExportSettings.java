@@ -13,6 +13,14 @@ import java.io.Serializable;
  *
  * @author Pepijn
  */
-public abstract class ExportSettings implements Serializable {
+public abstract class ExportSettings implements Cloneable, Serializable {
+    public ExportSettings clone() {
+        try {
+            return (ExportSettings) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static final long serialVersionUID = 1L;
 }
