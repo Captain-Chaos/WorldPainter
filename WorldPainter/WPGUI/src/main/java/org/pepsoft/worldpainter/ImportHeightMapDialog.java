@@ -234,7 +234,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         importer.setWorldLowLevel((Integer) spinnerWorldLow.getValue());
         importer.setWorldWaterLevel(waterLevel);
         importer.setWorldHighLevel((Integer) spinnerWorldHigh.getValue());
-        importer.setVoidBelowLevel(checkBoxVoid.isSelected() ? ((Integer) spinnerVoidBelow.getValue()) : 0);
+        importer.setVoidBelowLevel(checkBoxVoid.isSelected() ? ((Long) spinnerVoidBelow.getValue()) : 0L);
         return importer;
     }
 
@@ -308,6 +308,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                     }
                     setMaximum(spinnerImageLow, imageMaxHeight);
                     setMaximum(spinnerImageHigh, imageMaxHeight);
+                    setMaximum(spinnerVoidBelow, imageMaxHeight);
                 } finally {
                     programmaticChange = false;
                 }
@@ -963,8 +964,13 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             }
         });
 
-        spinnerVoidBelow.setModel(new javax.swing.SpinnerNumberModel(1, 1, 255, 1));
+        spinnerVoidBelow.setModel(new javax.swing.SpinnerNumberModel(Long.valueOf(1L), Long.valueOf(1L), Long.valueOf(4294967295L), Long.valueOf(1L)));
         spinnerVoidBelow.setEnabled(false);
+        spinnerVoidBelow.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spinnerVoidBelowStateChanged(evt);
+            }
+        });
 
         labelWarning.setFont(labelWarning.getFont().deriveFont(labelWarning.getFont().getStyle() | java.awt.Font.BOLD));
         labelWarning.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/error.png"))); // NOI18N
@@ -1255,7 +1261,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                             .addComponent(labelNoUndo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(checkBoxOnlyRaise))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE))
+                        .addComponent(jTabbedPane1))
                     .addComponent(tiledImageViewerContainer1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -1414,6 +1420,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
     private void checkBoxVoidActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxVoidActionPerformed
         spinnerVoidBelow.setEnabled(checkBoxVoid.isSelected());
+        updatePreview();
     }//GEN-LAST:event_checkBoxVoidActionPerformed
 
     private void spinnerOffsetXStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerOffsetXStateChanged
@@ -1471,6 +1478,10 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     private void comboBoxPresetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxPresetActionPerformed
         applyPreset((ImportPreset) comboBoxPreset.getSelectedItem());
     }//GEN-LAST:event_comboBoxPresetActionPerformed
+
+    private void spinnerVoidBelowStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerVoidBelowStateChanged
+        updatePreview();
+    }//GEN-LAST:event_spinnerVoidBelowStateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;

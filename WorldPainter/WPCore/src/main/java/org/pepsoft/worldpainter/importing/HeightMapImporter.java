@@ -19,6 +19,7 @@ import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Resources;
+import org.pepsoft.worldpainter.layers.Void;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.FrostExporter;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter;
@@ -217,7 +218,7 @@ public class HeightMapImporter {
             HeightMapTileFactory heightMapTileFactory = (HeightMapTileFactory) this.tileFactory;
             Theme theme = ((this.theme != null) ? this.theme : heightMapTileFactory.getTheme()).clone();
             theme.setWaterHeight(worldWaterLevel);
-            HeightMapTileFactory tileFactory = new HeightMapTileFactory(1L, previewHeightMap, platform.minZ, maxHeight, heightMapTileFactory.isFloodWithLava(), theme);
+            HeightMapTileFactory tileFactory = new PreviewTileFactory(1L, previewHeightMap, platform.minZ, maxHeight, heightMapTileFactory.isFloodWithLava(), theme, heightMap, voidBelowLevel);
             return new WPTileProvider(tileFactory, colourScheme, null, null, contourLines, contourSeparation, lightOrigin, false, null);
         } else {
             return null;
@@ -293,11 +294,11 @@ public class HeightMapImporter {
         this.maxHeight = maxHeight;
     }
 
-    public int getVoidBelowLevel() {
+    public long getVoidBelowLevel() {
         return voidBelowLevel;
     }
 
-    public void setVoidBelowLevel(int voidBelowLevel) {
+    public void setVoidBelowLevel(long voidBelowLevel) {
         this.voidBelowLevel = voidBelowLevel;
     }
 
@@ -386,8 +387,8 @@ public class HeightMapImporter {
 
     private Platform platform = Configuration.getInstance().getDefaultPlatform();
     private HeightMap heightMap;
-    private int worldLowLevel, worldWaterLevel = DEFAULT_WATER_LEVEL, worldHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, maxHeight = DEFAULT_MAX_HEIGHT_ANVIL, voidBelowLevel, maxZ;
-    private long imageLowLevel, imageHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1;
+    private int worldLowLevel, worldWaterLevel = DEFAULT_WATER_LEVEL, worldHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, maxHeight = DEFAULT_MAX_HEIGHT_ANVIL, maxZ;
+    private long imageLowLevel, imageHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, voidBelowLevel;
     private TileFactory tileFactory;
     private Theme theme;
     private String name;
@@ -398,4 +399,35 @@ public class HeightMapImporter {
     private Rectangle extentInTiles;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(HeightMapImporter.class);
+
+    private static class PreviewTileFactory extends HeightMapTileFactory {
+        private PreviewTileFactory(long seed, HeightMap heightMap, int minHeight, int maxHeight, boolean floodWithLava, Theme theme, HeightMap imageHeightMap, long voidBelow) {
+            super(seed, heightMap, minHeight, maxHeight, floodWithLava, theme);
+            this.imageHeightMap = imageHeightMap;
+            this.voidBelow = voidBelow;
+        }
+
+        @Override
+        public Tile createTile(int tileX, int tileY) {
+            final Tile tile = super.createTile(tileX, tileY);
+            tile.inhibitEvents();
+            final int worldTileX = tileX * TILE_SIZE, worldTileY = tileY * TILE_SIZE;
+            try {
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    for (int y = 0; y < TILE_SIZE; y++) {
+                        final int blockX = worldTileX + x, blockY = worldTileY + y;
+                        if (imageHeightMap.getHeight(blockX, blockY) < voidBelow) {
+                            tile.setBitLayerValue(Void.INSTANCE, x, y, true);
+                        }
+                    }
+                }
+                return tile;
+            } finally {
+                tile.releaseEvents();
+            }
+        }
+
+        private final HeightMap imageHeightMap;
+        private final long voidBelow;
+    }
 }
