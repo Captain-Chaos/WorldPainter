@@ -15,6 +15,7 @@ import java.util.Arrays;
 import static org.pepsoft.minecraft.Constants.MC_DISTANCE;
 import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.*;
+import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
@@ -196,13 +197,13 @@ public class BlockPropertiesCalculator {
     public int[] firstPass(Chunk chunk) {
         for (int x = 0; x < 16; x++) {
             Arrays.fill(DAYLIGHT[x], true);
-            Arrays.fill(HEIGHT[x], Math.min(chunk.getHighestNonAirBlock(), maxHeight - 1));
+            Arrays.fill(HEIGHT[x], clamp(minHeight, chunk.getHighestNonAirBlock(), maxHeight - 1));
         }
         // The point above which there are only transparent, non light source and non-leaf blocks
         int dirtyVolumeHighMark = minHeight;
         // The point below which there are only non-transparent, non light source and non-leaf blocks
         int dirtyVolumeLowMark = maxHeight - 1;
-        for (int y = Math.min(chunk.getHighestNonAirBlock(), maxHeight - 1); y >= minHeight; y--) { // TODO: will this leave dark areas above the starting level?
+        for (int y = clamp(minHeight - 1, chunk.getHighestNonAirBlock(), maxHeight - 1); y >= minHeight; y--) { // TODO: will this leave dark areas above the starting level? ANSWER: yes; we need to fix this
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
                     Material material = chunk.getMaterial(x, y, z);
@@ -294,7 +295,7 @@ public class BlockPropertiesCalculator {
                 if (chunk == null) {
                     continue;
                 }
-                int maxY = Math.min(chunk.getHighestNonAirBlock(), dirtyArea.getY2());
+                int maxY = clamp(minHeight - 1, chunk.getHighestNonAirBlock(), dirtyArea.getY2());
                 for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
                     for (int zInChunk = 0; zInChunk < 16; zInChunk++) {
                         final int x = (chunkX << 4) | xInChunk, z = (chunkZ << 4) | zInChunk;
