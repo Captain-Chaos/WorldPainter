@@ -163,6 +163,7 @@ public class Main {
         final File file = myFile;
         if (safeMode) {
             logger.info("WorldPainter running in safe mode");
+            System.setProperty("org.pepsoft.worldpainter.safeMode", "true");
         }
 
         // Set the acceleration mode. For some reason we don't fully understand,
