@@ -243,6 +243,8 @@ public final class IconUtils {
     }
 
     private static BufferedImage newBufferedImage(int size) {
-        return GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(size, size, TRANSLUCENT);
+        return GraphicsEnvironment.isHeadless()
+                ? new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB)
+                : GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(size, size, TRANSLUCENT);
     }
 }
