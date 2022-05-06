@@ -1929,8 +1929,8 @@ public final class Material implements Serializable {
     public static final Material WEEPING_VINES = get(MC_WEEPING_VIVES);
     public static final Material WEEPING_VINES_PLANT = get(MC_WEEPING_VIVES_PLANT);
     public static final Material HANGING_ROOTS = get(MC_HANGING_ROOTS);
-    public static final Material CAVE_VINES = get(MC_CAVE_VINES);
-    public static final Material CAVE_VINES_PLANT = get(MC_CAVE_VINES_PLANT);
+    public static final Material CAVE_VINES_NO_BERRIES = get(MC_CAVE_VINES, MC_BERRIES, false);
+    public static final Material CAVE_VINES_PLANT_NO_BERRIES = get(MC_CAVE_VINES_PLANT, MC_BERRIES, false);
 
     // Namespaces
 

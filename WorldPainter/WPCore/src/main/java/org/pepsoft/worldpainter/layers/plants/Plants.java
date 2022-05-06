@@ -183,12 +183,13 @@ public class Plants {
     public static final Plant SPORE_BLOSSOM = new SimplePlant("Spore Blossoms", Material.SPORE_BLOSSOM, HANGING_DRY_PLANTS);
     public static final Plant WEEPING_VINES = new VariableHeightPlant("Weeping Vines", Material.WEEPING_VINES_PLANT, Material.WEEPING_VINES, "block/weeping_vines_plant.png", 10, HANGING_DRY_PLANTS);
     public static final Plant HANGING_ROOTS = new SimplePlant("Hanging Roots", Material.HANGING_ROOTS, HANGING_DRY_PLANTS, HANGING_WATER_PLANTS);
-    public static final Plant GLOW_BERRIES = new VariableHeightPlant("Glow Berries", Material.CAVE_VINES_PLANT, Material.CAVE_VINES, "block/cave_vines_lit.png", 10, HANGING_DRY_PLANTS) {
+    public static final Plant GLOW_BERRIES = new VariableHeightPlant("Glow Berries", Material.CAVE_VINES_PLANT_NO_BERRIES, Material.CAVE_VINES_NO_BERRIES, "block/cave_vines_lit.png", 10, HANGING_DRY_PLANTS) {
         @Override
         public Plant realise(int growth, Platform platform) {
-            return new VariableHeightPlant("Glow Berries", Material.CAVE_VINES, Material.CAVE_VINES_PLANT, "block/cave_vines_lit.png", growth, categories) {
+            return new VariableHeightPlant("Glow Berries", Material.CAVE_VINES_NO_BERRIES, Material.CAVE_VINES_PLANT_NO_BERRIES, "block/cave_vines_lit.png", growth, categories) {
                 @Override
                 public Material getMaterial(int x, int y, int z) {
+                    // Randomly add berries to one in four blocks
                     return super.getMaterial(x, y, z).withProperty(BERRIES, RANDOM.nextInt(4) == 0);
                 }
             };
