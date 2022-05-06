@@ -7,12 +7,14 @@ package org.pepsoft.minecraft;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.pepsoft.util.CSVDataSource;
+import org.pepsoft.util.Pair;
 import org.pepsoft.worldpainter.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -408,12 +410,19 @@ public final class Material implements Serializable {
      * property set.
      */
     public <T> Material withProperty(Property<T> property, T value) {
-        Map<String, String> newProperties = new HashMap<>();
-        if (identity.properties != null) {
-            newProperties.putAll(identity.properties);
+        // Cache the variants here for quick access without synchronization, since WorldPainter is likely to request the
+        // same variants many times
+        if (variants == null) {
+            variants = new ConcurrentHashMap<>();
         }
-        newProperties.put(property.name, value.toString());
-        return get(identity.name, newProperties);
+        return variants.computeIfAbsent(new PropertyAndValue(property.name, value.toString()), key -> {
+            Map<String, String> newProperties = new HashMap<>();
+            if (identity.properties != null) {
+                newProperties.putAll(identity.properties);
+            }
+            newProperties.put(property.name, value.toString());
+            return get(identity.name, newProperties);
+        });
     }
 
     /**
@@ -457,12 +466,19 @@ public final class Material implements Serializable {
      * property set.
      */
     public Material withProperty(String name, String value) {
-        Map<String, String> newProperties = new HashMap<>();
-        if (identity.properties != null) {
-            newProperties.putAll(identity.properties);
+        // Cache the variants here for quick access without synchronization, since WorldPainter is likely to request the
+        // same variants many times
+        if (variants == null) {
+            variants = new ConcurrentHashMap<>();
         }
-        newProperties.put(name, value);
-        return get(identity.name, newProperties);
+        return variants.computeIfAbsent(new PropertyAndValue(name, value), key -> {
+            Map<String, String> newProperties = new HashMap<>();
+            if (identity.properties != null) {
+                newProperties.putAll(identity.properties);
+            }
+            newProperties.put(name, value);
+            return get(identity.name, newProperties);
+        });
     }
 
     /**
@@ -1435,6 +1451,7 @@ public final class Material implements Serializable {
 
     private final Identity identity;
     private final transient String stringRep, legacyStringRep;
+    private transient Map<PropertyAndValue, Material> variants;
 
     private transient HorizontalOrientationScheme[] legacyHorizontalOrientationSchemesForMirroring;
     private transient boolean legacyHorizontalOrientationSchemesForMirroringSet;
@@ -2018,5 +2035,11 @@ public final class Material implements Serializable {
         final Map<String, String> properties;
 
         private static final long serialVersionUID = 1L;
+    }
+
+    static final class PropertyAndValue extends Pair<String, String> {
+        PropertyAndValue(String property, String value) {
+            super(property, value);
+        }
     }
 }
