@@ -95,6 +95,12 @@
                         <target>1.8</target>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                        <argLine>-Duser.home=${project.build.directory}</argLine>
+                    </configuration>
+                </plugin>
                 <!-- Inhibit regular deploy -->
                 <!--<plugin>-->
                     <!--<artifactId>maven-deploy-plugin</artifactId>-->
@@ -229,6 +235,7 @@
                         </executions>
                         <configuration>
                             <argLine>-Djava.awt.headless=true</argLine>
+                            <argLine>-Duser.home=${project.build.directory}</argLine>
                         </configuration>
                     </plugin>
                 </plugins>
