@@ -822,19 +822,19 @@ public abstract class AbstractWorldExporter implements WorldExporter {
     }
 
     protected void performFixups(final File worldDir, final Dimension dimension, final ProgressReceiver progressReceiver, final Map<Point, List<Fixup>> fixups) throws OperationCancelled {
-        long start = System.currentTimeMillis();
+        final long start = System.currentTimeMillis();
         int count = 0, total = 0;
         for (Entry<Point, List<Fixup>> entry: fixups.entrySet()) {
             total += entry.getValue().size();
         }
         // Make sure to honour the read-only layer: TODO: this means nothing at the moment. Is it still relevant?
         try (CachingMinecraftWorld minecraftWorld = new CachingMinecraftWorld(worldDir, dimension.getDim(), dimension.getMaxHeight(), platform, false, 512)) {
-            ExportSettings exportSettings = dimension.getExportSettings();
+            final ExportSettings exportSettings = (dimension.getExportSettings() instanceof BlockBasedExportSettings) ? (BlockBasedExportSettings) dimension.getExportSettings() : new JavaExportSettings();
             for (Entry<Point, List<Fixup>> entry: fixups.entrySet()) {
                 if (progressReceiver != null) {
                     progressReceiver.setMessage("Performing fixups for region " + entry.getKey().x + "," + entry.getKey().y);
                 }
-                List<Fixup> regionFixups = entry.getValue();
+                final List<Fixup> regionFixups = entry.getValue();
                 if (logger.isDebugEnabled()) {
                     logger.debug("Performing " + regionFixups.size() + " fixups for region " + entry.getKey().x + "," + entry.getKey().y);
                 }
