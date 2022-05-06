@@ -5,6 +5,11 @@
  * WorldPainter can now calculate the distance property of leaf blocks while Exporting. This helps with preventing leaf blocks that are attached to treet trunks from decaying in-game. This can be turned off on the Post Processing tab
    + WorldPainter can also automatically remove leaf blocks that are too distant (and not persistent) and would decay in Minecraft. This is turned off by default but can be turned on on the Post Processing tab
 
+-- Version 2.9.5, released 6-5-2022
+
+ * The Moss Block material is now considered a solid block, rather than insubstantial vegetation
+ * Bug fix: fix an error that prevented the creation of Custom Underground Pockets layers
+
 -- Version 2.9.4, released 5-5-2022
 
  * Bug fix: fix a startup problem related to the UI scale setting

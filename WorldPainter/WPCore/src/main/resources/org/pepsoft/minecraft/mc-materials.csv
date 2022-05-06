@@ -492,7 +492,7 @@ minecraft:magma_block,,,15,true,false,false,false,false,,false,false,3,true,fals
 minecraft:medium_amethyst_bud,,"waterlogged,facing",0,false,false,false,false,false,,false,false,2,true,false,ff9e78c9,medium_amethyst_bud.png
 minecraft:melon,,,15,false,true,true,false,false,,false,true,0,false,false,ff979924,old default
 minecraft:melon_stem,,age,0,false,true,true,false,false,,false,true,0,false,false,ff487336,old default
-minecraft:moss_block,,,15,false,true,true,false,false,,false,true,0,true,false,ff596d2d,moss_block.png
+minecraft:moss_block,,,15,false,false,false,false,false,,false,false,0,true,false,ff596d2d,moss_block.png
 minecraft:moss_carpet,,,0,false,true,true,false,false,,false,true,0,true,false,ff596d2d,moss_block.png
 minecraft:mossy_cobblestone,,,15,false,false,false,false,false,,false,false,0,true,false,ff677967,old default
 minecraft:mossy_cobblestone_slab,,"waterlogged,type",15,false,false,false,false,false,,false,false,0,false,false,ff6e765e,mossy_cobblestone.png
