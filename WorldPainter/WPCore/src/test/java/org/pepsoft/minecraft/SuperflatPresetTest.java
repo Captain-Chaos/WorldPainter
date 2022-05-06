@@ -23,10 +23,8 @@ public class SuperflatPresetTest {
                 ImmutableList.of(new Layer(MC_BEDROCK, 1), new Layer(MC_STONE, 10), new Layer(MC_DIRT, 4), new Layer(MC_GRASS_BLOCK, 1)),
                 ImmutableMap.of(BIOME_1, emptyMap(), LAKE, emptyMap(), VILLAGE, emptyMap()));
         String mc112Representation = superflatPreset.toMinecraft1_12_2();
-        System.out.println(mc112Representation);
         SuperflatPreset superflatPreset2 = SuperflatPreset.fromMinecraft1_12_2(mc112Representation);
         CompoundTag mc113Representation = superflatPreset2.toMinecraft1_15_2();
-        System.out.println(mc113Representation);
         SuperflatPreset superflatPreset3 = SuperflatPreset.fromMinecraft1_15_2(mc113Representation);
         Assert.assertEquals(superflatPreset, superflatPreset2);
         Assert.assertEquals(superflatPreset2, superflatPreset3);

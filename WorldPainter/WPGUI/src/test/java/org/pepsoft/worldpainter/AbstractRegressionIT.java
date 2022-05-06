@@ -19,7 +19,6 @@ public abstract class AbstractRegressionIT {
             while ((fileName = in.readLine()) != null) {
                 WPObject object = loader.load(RegressionIT.class.getResourceAsStream(path + "/" + fileName));
                 tester.test(object);
-                System.out.println("Tested " + fileName);
             }
         }
     }

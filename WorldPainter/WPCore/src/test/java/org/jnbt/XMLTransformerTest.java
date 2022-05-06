@@ -47,8 +47,6 @@ public class XMLTransformerTest {
         XMLTransformer.toXML(compoundTag, sw);
         String xml = sw.toString();
 
-        System.out.println(xml);
-
         Tag tag = XMLTransformer.fromXML(new StringReader(xml));
 
         assertEquals("tag0", tag.getName());
