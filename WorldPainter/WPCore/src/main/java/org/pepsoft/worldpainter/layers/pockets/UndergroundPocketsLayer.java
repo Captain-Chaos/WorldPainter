@@ -22,16 +22,13 @@ public class UndergroundPocketsLayer extends CustomLayer {
     public UndergroundPocketsLayer(String name, MixedMaterial material, Terrain terrain, int frequency, int minLevel, int maxLevel, int scale, int colour) {
         super(name, "underground pockets of " + name, DataSize.NIBBLE, 15, colour);
         if ((frequency < 1) || (frequency > 1000)) {
-            throw new IllegalArgumentException("frequency");
+            throw new IllegalArgumentException("frequency < 1 or > 1000");
         }
         if (scale < 0) {
-            throw new IllegalArgumentException("scale");
-        }
-        if (minLevel < 0) {
-            throw new IllegalArgumentException("minLevel");
+            throw new IllegalArgumentException("scale < 0");
         }
         if (maxLevel < minLevel) {
-            throw new IllegalArgumentException("maxLevel");
+            throw new IllegalArgumentException("maxLevel < " + minLevel);
         }
         mixedMaterial = material;
         this.terrain = terrain;
