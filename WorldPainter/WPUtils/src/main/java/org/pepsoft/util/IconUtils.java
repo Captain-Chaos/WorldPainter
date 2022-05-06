@@ -232,7 +232,7 @@ public final class IconUtils {
             bufferedImage = newBufferedImage(icon.getIconWidth());
             final Graphics2D g2 = bufferedImage.createGraphics();
             try {
-                icon.paintIcon(ICON_PAINTING_COMPONENT, g2, 0, 0);
+                icon.paintIcon(null, g2, 0, 0);
             } finally {
                 g2.dispose();
             }
@@ -245,6 +245,4 @@ public final class IconUtils {
     private static BufferedImage newBufferedImage(int size) {
         return GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(size, size, TRANSLUCENT);
     }
-
-    private static final Component ICON_PAINTING_COMPONENT = new Label();
 }
