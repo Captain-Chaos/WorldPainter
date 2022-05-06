@@ -37,9 +37,6 @@ import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 public class RegressionIT {
     @BeforeClass
     public static void init() {
-        logger.info("user.dir: {}", System.getProperty("user.dir"));
-        logger.info("user.home: {}", System.getProperty("user.home"));
-        logger.info("$HOME: {}", System.getenv("HOME"));
         WPPluginManager.initialise(null);
     }
 
