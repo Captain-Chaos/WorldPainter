@@ -227,6 +227,9 @@
                                 </goals>
                             </execution>
                         </executions>
+                        <configuration>
+                            <argLine>-Djava.awt.headless=true</argLine>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
