@@ -17,6 +17,8 @@ import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Platform.Capability.LEAF_DISTANCES;
+import static org.pepsoft.worldpainter.Platform.Capability.PRECALCULATED_LIGHT;
 
 /**
  * A block properties calculator for MinecraftWorlds. This can calculate properties of blocks that are influenced by
@@ -45,13 +47,11 @@ public class BlockPropertiesCalculator {
     public BlockPropertiesCalculator(MinecraftWorld world, Platform platform, BlockBasedExportSettings exportSettings) {
         this.world = world;
         this.platform = platform;
-        skyLight = exportSettings.isCalculateSkyLight();
-        blockLight = exportSettings.isCalculateBlockLight();
-        leafDistance = exportSettings.isCalculateLeafDistance();
-        removeFloatingLeaves = exportSettings.isRemoveFloatingLeaves();
-        if (removeFloatingLeaves && (! leafDistance)) {
-            throw new IllegalArgumentException("removeFloatingLeaves requires calculateLeafDistance");
-        } else if ((! skyLight) && (! blockLight) && (! leafDistance)) {
+        skyLight = exportSettings.isCalculateSkyLight() && platform.capabilities.contains(PRECALCULATED_LIGHT);
+        blockLight = exportSettings.isCalculateBlockLight() && platform.capabilities.contains(PRECALCULATED_LIGHT);
+        leafDistance = exportSettings.isCalculateLeafDistance() && platform.capabilities.contains(LEAF_DISTANCES);
+        removeFloatingLeaves = leafDistance && exportSettings.isRemoveFloatingLeaves();
+        if ((! skyLight) && (! blockLight) && (! leafDistance)) {
             throw new IllegalArgumentException("Nothing to do");
         }
         minHeight = world.getMinHeight();

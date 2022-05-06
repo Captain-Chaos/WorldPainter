@@ -270,6 +270,12 @@ public final class Platform implements Serializable {
          * Supports generator settings per dimension. Platforms without this capability only support generator settings
          * for {@link Constants#DIM_NORMAL DIM_NORMAL}.
          */
-        GENERATOR_PER_DIMENSION
+        GENERATOR_PER_DIMENSION,
+
+        /**
+         * {@code *_leaves} blocks have a {@code distance} property from 1 to 7, indicating the distance from the tree
+         * trunk, where 7 means it is too far away and will decay.
+         */
+        LEAF_DISTANCES
     }
 }

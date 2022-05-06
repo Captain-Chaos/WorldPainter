@@ -19,6 +19,7 @@ import org.pepsoft.worldpainter.layers.CombinedLayer;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.GardenCategory;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.platforms.JavaExportSettings;
 import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
@@ -44,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
+import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
 
 /**
@@ -542,7 +543,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         final StringBuilder nounsBuilder = new StringBuilder();
         if (exportSettings.isCalculateSkyLight() || exportSettings.isCalculateBlockLight()) {
             nounsBuilder.append("block lighting");
-            maxIterations = 15;
+            maxIterations = 16;
         }
         if (exportSettings.isCalculateLeafDistance()) {
             if (nounsBuilder.length() > 0) {
@@ -700,13 +701,14 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
                 // Post processing. Fix covered grass blocks, things like that
                 long t3 = System.currentTimeMillis();
-                final BlockBasedExportSettings exportSettings = (BlockBasedExportSettings) dimension.getExportSettings();
+                final BlockBasedExportSettings exportSettings = (dimension.getExportSettings() instanceof BlockBasedExportSettings) ? (BlockBasedExportSettings) dimension.getExportSettings() : new JavaExportSettings();
                 PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.55f, 0.1f) : null);
 
-                // Third pass. Calculate lighting and/or leaf distances (if requested)
+                // Third pass. Calculate lighting and/or leaf distances (if requested, and supported by the platform)
                 long t4 = System.currentTimeMillis();
-                final boolean blockPropertiesPassNeeded = exportSettings.isCalculateBlockLight() || exportSettings.isCalculateSkyLight() || exportSettings.isCalculateLeafDistance();
-                if (blockPropertiesPassNeeded) {
+                final boolean lightingNeeded = (exportSettings.isCalculateBlockLight() || exportSettings.isCalculateSkyLight()) && platform.capabilities.contains(PRECALCULATED_LIGHT);
+                final boolean leafDistanceNeeded = exportSettings.isCalculateLeafDistance() && platform.capabilities.contains(LEAF_DISTANCES);
+                if (lightingNeeded || leafDistanceNeeded) {
                     blockPropertiesPass(minecraftWorld, regionCoords, exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.35f) : null);
                 }
                 long t5 = System.currentTimeMillis();
