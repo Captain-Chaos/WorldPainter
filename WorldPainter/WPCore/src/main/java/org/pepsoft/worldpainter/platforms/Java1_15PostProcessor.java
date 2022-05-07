@@ -49,14 +49,13 @@ public class Java1_15PostProcessor extends PostProcessor {
         }
         final int worldMinZ = minecraftWorld.getMinHeight(), worldMaxZ = minecraftWorld.getMaxHeight() - 1;
         final int x1, y1, x2, y2, minZ, maxZ;
-        // TODO: make these configurable:
         final JavaExportSettings settings = (exportSettings instanceof JavaExportSettings) ? (JavaExportSettings) exportSettings : new JavaExportSettings();
         final FloatMode sandMode = "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.supportSand")) ? FloatMode.LEAVE_FLOATING : settings.sandMode;
         final FloatMode gravelMode = settings.gravelMode;
         final FloatMode cementMode = settings.cementMode;
         final FloatMode waterMode = settings.waterMode;
         final FloatMode lavaMode = settings.lavaMode;
-        final boolean flowLava = settings.flowLava, flowWater = settings.flowWater;
+        final boolean flowLava = settings.flowLava, flowWater = settings.flowWater, makeAllLeavesPersistent = settings.makeAllLeavesPersistent;
         if (minecraftWorld instanceof MinecraftWorldObject) {
             // Special support for MinecraftWorldObjects to constrain the area
             // further
@@ -109,6 +108,9 @@ public class Java1_15PostProcessor extends PostProcessor {
                         // Covered nylium should be netherrack
                         minecraftWorld.setMaterialAt(x, y, z - 1, NETHERRACK);
                         materialBelow = NETHERRACK;
+                    } else if (makeAllLeavesPersistent && material.name.endsWith("_leaves") && (! material.is(PERSISTENT))) {
+                        material = material.withProperty(PERSISTENT, true);
+                        minecraftWorld.setMaterialAt(x, y, z, material);
                     }
                     if (materialBelow.hasPropertySnowy) {
                         // The material below has a "snowy" property, so make sure it is set correctly
