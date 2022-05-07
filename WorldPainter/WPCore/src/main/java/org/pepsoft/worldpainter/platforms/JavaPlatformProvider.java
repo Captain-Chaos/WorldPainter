@@ -1,10 +1,13 @@
 package org.pepsoft.worldpainter.platforms;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.minecraft.mapexplorer.JavaMapRootNode;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.TileFactory;
+import org.pepsoft.worldpainter.Version;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.importing.JavaMapImporter;
@@ -27,32 +30,35 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.primitives.Ints.toArray;
-import static java.util.Collections.singleton;
-import static org.pepsoft.minecraft.DataType.REGION;
 import static org.pepsoft.util.IconUtils.loadUnscaledImage;
 import static org.pepsoft.util.IconUtils.scaleIcon;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.util.MinecraftUtil.getRegionDir;
 
 /**
  * Created by Pepijn on 9-3-2017.
  */
-public abstract class JavaPlatformProvider extends AbstractPlatformProvider implements BlockBasedPlatformProvider, MapExplorerSupport, MapImporterProvider {
-    protected JavaPlatformProvider(String version, Platform platform) {
-        super(version, platform);
+public final class JavaPlatformProvider extends AbstractPlatformProvider implements BlockBasedPlatformProvider, MapExplorerSupport, MapImporterProvider {
+    public JavaPlatformProvider() {
+        super(Version.VERSION, PLATFORMS, "JavaPlatformProvider");
     }
 
-    public Set<DataType> getDataTypes() {
-        return DATA_TYPES;
+    public Set<DataType> getDataTypes(Platform platform) {
+        return implementations.get(platform).getDataTypes();
     }
 
     public NBTChunk createChunk(Platform platform, Map<DataType, Tag> tags, int maxHeight) {
         return createChunk(platform, tags, maxHeight, false);
     }
 
-    public abstract NBTChunk createChunk(Platform platform, Map<DataType, Tag> tags, int maxHeight, boolean readOnly);
+    public NBTChunk createChunk(Platform platform, Map<DataType, Tag> tags, int maxHeight, boolean readOnly) {
+        return implementations.get(platform).createChunk(tags, maxHeight, readOnly);
+    }
 
-    public abstract File[] getRegionFiles(Platform platform, File regionDir, DataType dataType);
+    public File[] getRegionFiles(Platform platform, File regionDir, DataType dataType) {
+        return implementations.get(platform).getRegionFiles(regionDir, dataType);
+    }
 
     /**
      * Get a region file. If {@code readOnly} is false, a region file will be created if it does not exist. Otherwise,
@@ -75,8 +81,6 @@ public abstract class JavaPlatformProvider extends AbstractPlatformProvider impl
         return file.isFile() ? new RegionFile(file, readOnly) : null;
     }
 
-    protected abstract File getRegionFileFile(Platform platform, File regionDir, DataType dataType, Point coords);
-
     // BlockBasedPlatformProvider
 
     @Override
@@ -92,6 +96,11 @@ public abstract class JavaPlatformProvider extends AbstractPlatformProvider impl
     }
 
     @Override
+    public Chunk createChunk(Platform platform, int x, int z, int maxHeight) {
+        return implementations.get(platform).createChunk(x, z, maxHeight);
+    }
+
+    @Override
     public JavaChunkStore getChunkStore(Platform platform, File worldDir, int dimension) {
         ensurePlatformSupported(platform);
         JavaLevel level;
@@ -101,7 +110,12 @@ public abstract class JavaPlatformProvider extends AbstractPlatformProvider impl
         } catch (IOException e) {
             throw new RuntimeException("I/O error while trying to read level.dat", e);
         }
-        return new JavaChunkStore(this, getRegionDir(worldDir, dimension), level.getMaxHeight());
+        return new JavaChunkStore(platform, getRegionDir(worldDir, dimension), level.getMaxHeight());
+    }
+
+    @Override
+    public PostProcessor getPostProcessor(Platform platform) {
+        return implementations.get(platform).getPostProcessor();
     }
 
     @Override
@@ -159,13 +173,17 @@ public abstract class JavaPlatformProvider extends AbstractPlatformProvider impl
     }
 
     @Override
-    public ExportSettings getDefaultExportSettings() {
+    public ExportSettings getDefaultExportSettings(Platform platform) {
         return new JavaExportSettings();
     }
 
     @Override
-    public ExportSettingsEditor getExportSettingsEditor() {
-        return new JavaExportSettingsEditor(getPlatform());
+    public ExportSettingsEditor getExportSettingsEditor(Platform platform) {
+        return new JavaExportSettingsEditor(platform);
+    }
+
+    private File getRegionFileFile(Platform platform, File regionDir, DataType dataType, Point coords) {
+        return implementations.get(platform).getRegionFileFile(regionDir, dataType, coords);
     }
 
     @SuppressWarnings("ConstantConditions") // Yes, we just checked that
@@ -173,8 +191,16 @@ public abstract class JavaPlatformProvider extends AbstractPlatformProvider impl
         return dir.isDirectory() && (dir.listFiles().length > 0);
     }
 
+    private final Map<Platform, AbstractJavaPlatformProviderImpl> implementations = ImmutableMap.of(
+            JAVA_MCREGION, new MCRegionPlatformProvider(),
+            JAVA_ANVIL, new Anvil1_2PlatformProvider(),
+            JAVA_ANVIL_1_15, new Anvil1_15PlatformProvider(),
+            JAVA_ANVIL_1_17, new Anvil1_17PlatformProvider(),
+            JAVA_ANVIL_1_18, new Anvil1_18PlatformProvider()
+    );
+
     public static final Icon ICON = new ImageIcon(scaleIcon(loadUnscaledImage("org/pepsoft/worldpainter/mapexplorer/maproot.png"), 16));
 
-    private static final Set<DataType> DATA_TYPES = singleton(REGION);
+    private static final Set<Platform> PLATFORMS = ImmutableSet.of(JAVA_MCREGION, JAVA_ANVIL, JAVA_ANVIL_1_15, JAVA_ANVIL_1_17, JAVA_ANVIL_1_18);
     private static final Logger logger = LoggerFactory.getLogger(JavaPlatformProvider.class);
 }

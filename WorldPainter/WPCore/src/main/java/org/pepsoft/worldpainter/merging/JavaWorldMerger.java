@@ -16,7 +16,6 @@ import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.*;
-import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.util.BiomeUtils;
 import org.pepsoft.worldpainter.util.FileInUseException;
@@ -386,7 +385,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             default:
                 throw new IllegalArgumentException("Dimension " + dimension.getDim() + " not supported");
         }
-        final Set<DataType> dataTypes = ((JavaPlatformProvider) platformProvider).getDataTypes();
+        final Set<DataType> dataTypes = platformProvider.getDataTypes(platform);
         for (DataType dataType: dataTypes) {
             File regionDir = new File(dimensionDir, dataType.name().toLowerCase());
             if (! regionDir.exists()) {
@@ -439,7 +438,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             // Read the region coordinates of the existing map
             final File backupRegionDir = new File(backupDimensionDir, "region");
             // TODO: support any platform
-            File[] existingRegionFiles = ((JavaPlatformProvider) platformProvider).getRegionFiles(platform, backupRegionDir, REGION);
+            File[] existingRegionFiles = platformProvider.getRegionFiles(platform, backupRegionDir, REGION);
             final Map<Point, File> existingRegions = new HashMap<>();
             for (File file: existingRegionFiles) {
                 if (file.length() == 0L) {
@@ -465,7 +464,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     // Already handled above
                     continue;
                 }
-                existingRegionFiles = ((JavaPlatformProvider) platformProvider).getRegionFiles(platform, backupRegionDir, dataType);
+                existingRegionFiles = platformProvider.getRegionFiles(platform, backupRegionDir, dataType);
                 for (File file: existingRegionFiles) {
                     if (file.length() == 0L) {
                         continue;
@@ -914,7 +913,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     } else {
                         progressReceiver1 = null;
                     }
-                    try (JavaChunkStore chunkStore = ((JavaPlatformProvider) platformProvider).getChunkStore(platform, worldDir, DIM_NORMAL)) {
+                    try (JavaChunkStore chunkStore = platformProvider.getChunkStore(platform, worldDir, DIM_NORMAL)) {
                         for (int chunkXInRegion = 0; chunkXInRegion < 32; chunkXInRegion++) {
                             for (int chunkZInRegion = 0; chunkZInRegion < 32; chunkZInRegion++) {
                                 if (progressReceiver1 != null) {
@@ -997,9 +996,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         //  Edit: was it to get accurate lighting around the edges? NOTE: if we change this back we also need to re-
         //  instate multiple region file (by coordinates) support!
         final Map<DataType, RegionFile> regionFiles = new HashMap<>();
-        final Set<DataType> dataTypes = ((JavaPlatformProvider) platformProvider).getDataTypes();
+        final Set<DataType> dataTypes = platformProvider.getDataTypes(platform);
         for (DataType dataType: dataTypes) {
-            RegionFile regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, dataType, regionCoords, true);
+            RegionFile regionFile = platformProvider.getRegionFile(platform, oldRegionDir, dataType, regionCoords, true);
             if (regionFile != null) {
                 regionFiles.put(dataType, regionFile);
             }
@@ -1075,7 +1074,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         if (! tags.containsKey(REGION)) {
                             continue;
                         }
-                        existingChunk = ((JavaPlatformProvider) platformProvider).createChunk(platform, tags, maxHeight);
+                        existingChunk = platformProvider.createChunk(platform, tags, maxHeight);
                     }
                     if (existingChunk != null) {
                         if (newChunk != null) {
@@ -1240,9 +1239,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         }
 
         final Map<DataType, RegionFile> regionFiles = new HashMap<>();
-        final Set<DataType> dataTypes = ((JavaPlatformProvider) platformProvider).getDataTypes();
+        final Set<DataType> dataTypes = platformProvider.getDataTypes(platform);
         for (DataType dataType: dataTypes) {
-            RegionFile regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, dataType, regionCoords, true);
+            RegionFile regionFile = platformProvider.getRegionFile(platform, oldRegionDir, dataType, regionCoords, true);
             if (regionFile != null) {
                 regionFiles.put(dataType, regionFile);
             }
@@ -1300,7 +1299,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             continue;
                         }
                         // TODO: support any platform
-                        minecraftWorld.addChunk(((JavaPlatformProvider) platformProvider).createChunk(platform, tags, maxHeight));
+                        minecraftWorld.addChunk(platformProvider.createChunk(platform, tags, maxHeight));
                     }
                 }
             }

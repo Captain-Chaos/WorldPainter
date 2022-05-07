@@ -37,6 +37,7 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
 public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this be made a BlockBasedPlatformProviderWorldExporter?
     public JavaWorldExporter(World2 world) {
         super(world, world.getPlatform());
+        this.platformProvider = (JavaPlatformProvider) super.platformProvider;
         if ((! (platform == JAVA_ANVIL))
                 && (! (platform == JAVA_MCREGION))
                 && (! (platform == JAVA_ANVIL_1_15))
@@ -48,6 +49,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
 
     protected JavaWorldExporter(World2 world, Platform platform) {
         super(world, platform);
+        this.platformProvider = (JavaPlatformProvider) super.platformProvider;
     }
 
     @SuppressWarnings("ConstantConditions") // Clarity
@@ -298,7 +300,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
             default:
                 throw new IllegalArgumentException("Dimension " + dimension.getDim() + " not supported");
         }
-        for (DataType dataType: ((JavaPlatformProvider) platformProvider).getDataTypes()) {
+        for (DataType dataType: platformProvider.getDataTypes(platform)) {
             File regionDir = new File(dimensionDir, dataType.name().toLowerCase());
             if (! regionDir.exists()) {
                 if (! regionDir.mkdirs()) {
@@ -345,6 +347,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
         return collectedStats;
     }
 
+    protected final JavaPlatformProvider platformProvider;
 
     private static final Logger logger = LoggerFactory.getLogger(JavaWorldExporter.class);
 }

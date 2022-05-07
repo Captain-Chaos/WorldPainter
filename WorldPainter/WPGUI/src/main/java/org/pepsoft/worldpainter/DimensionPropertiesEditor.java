@@ -582,11 +582,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         if ((mode == Mode.EXPORT) && (dimension != null)) {
             ExportSettings exportSettings = dimension.getExportSettings();
             if (exportSettings == null) {
-                exportSettings = platformProvider.getDefaultExportSettings();
+                exportSettings = platformProvider.getDefaultExportSettings(platform);
             }
             if (exportSettings != null) {
                 try {
-                    ExportSettingsEditor editor = platformProvider.getExportSettingsEditor();
+                    ExportSettingsEditor editor = platformProvider.getExportSettingsEditor(platform);
                     editor.setExportSettings(exportSettings);
                     jTabbedPane1.addTab("Post Processing", editor);
                 } catch (RuntimeException e) {

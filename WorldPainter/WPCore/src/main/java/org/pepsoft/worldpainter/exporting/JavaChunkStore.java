@@ -9,6 +9,7 @@ import org.pepsoft.util.mdc.MDCThreadPoolExecutor;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,15 +37,15 @@ import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
  * Created by Pepijn on 15-12-2016.
  */
 public class JavaChunkStore implements ChunkStore {
-    public JavaChunkStore(JavaPlatformProvider platformProvider, File regionDir, int maxHeight) {
-        this.platformProvider = platformProvider;
+    public JavaChunkStore(Platform platform, File regionDir, int maxHeight) {
+        this.platform = platform;
         this.regionDir = regionDir;
         this.maxHeight = maxHeight;
-        platform = platformProvider.getPlatform();
+        platformProvider = (JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         if (! ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18))) {
             throw new IllegalArgumentException("Unsupported platform " + platform);
         }
-        dataTypes = ImmutableSet.copyOf(platformProvider.getDataTypes());
+        dataTypes = ImmutableSet.copyOf(platformProvider.getDataTypes(platform));
     }
 
     @Override
@@ -96,7 +97,7 @@ public class JavaChunkStore implements ChunkStore {
     public void saveChunk(Chunk chunk) {
         final int x = chunk.getxPos(), z = chunk.getzPos();
         final Map<DataType, ? extends Tag> tags = ((NBTItem) chunk).toMultipleNBT();
-        platformProvider.getDataTypes().forEach(type -> {
+        platformProvider.getDataTypes(platform).forEach(type -> {
             try {
                 if (tags.containsKey(type)) {
                     final RegionFile regionFile = getOrCreateRegionFile(new Point(x >> 5, z >> 5), type);

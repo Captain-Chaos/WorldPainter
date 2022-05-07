@@ -418,7 +418,7 @@ public class PreferencesDialog extends WorldPainterDialog {
 
         // Check whether this platform supports the current default export settings (or any export settings)
         final PlatformProvider platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
-        final ExportSettings platformDefaultExportSettings = platformProvider.getDefaultExportSettings();
+        final ExportSettings platformDefaultExportSettings = platformProvider.getDefaultExportSettings(platform);
         if (platformDefaultExportSettings != null) {
             labelEditExportSettingsLink.setForeground(BLUE);
             labelEditExportSettingsLink.setCursor(new Cursor(HAND_CURSOR));
@@ -435,9 +435,9 @@ public class PreferencesDialog extends WorldPainterDialog {
     private void editDefaultExportSettings() {
         final Platform platform = (Platform) comboBoxPlatform.getSelectedItem();
         final PlatformProvider platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
-        final ExportSettings platformDefaultExportSettings = platformProvider.getDefaultExportSettings();
+        final ExportSettings platformDefaultExportSettings = platformProvider.getDefaultExportSettings(platform);
         if (platformDefaultExportSettings != null) {
-            final ExportSettingsEditor editor = platformProvider.getExportSettingsEditor();
+            final ExportSettingsEditor editor = platformProvider.getExportSettingsEditor(platform);
             if ((defaultExportSettings != null) && (defaultExportSettings.getClass() == platformDefaultExportSettings.getClass())) {
                 editor.setExportSettings(defaultExportSettings);
             } else {

@@ -1,27 +1,30 @@
 package org.pepsoft.worldpainter.platforms;
 
-import org.pepsoft.minecraft.Chunk;
+import com.google.common.collect.ImmutableSet;
+import org.pepsoft.minecraft.DataType;
 import org.pepsoft.minecraft.MC12AnvilChunk;
-import org.pepsoft.worldpainter.Platform;
-import org.pepsoft.worldpainter.Version;
+import org.pepsoft.minecraft.NBTChunk;
 import org.pepsoft.worldpainter.exporting.PostProcessor;
 
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import java.util.Set;
 
-public final class Anvil1_2PlatformProvider extends AnvilPlatformProvider {
-    public Anvil1_2PlatformProvider() {
-        super(Version.VERSION, JAVA_ANVIL);
-    }
+import static org.pepsoft.minecraft.DataType.REGION;
 
+final class Anvil1_2PlatformProvider extends AnvilPlatformProvider {
     @Override
-    public PostProcessor getPostProcessor(Platform platform) {
-        ensurePlatformSupported(platform);
+    PostProcessor getPostProcessor() {
         return new Java1_2PostProcessor();
     }
 
     @Override
-    public Chunk createChunk(Platform platform, int x, int z, int maxHeight) {
-        ensurePlatformSupported(platform);
+    Set<DataType> getDataTypes() {
+        return DATA_TYPES;
+    }
+
+    @Override
+    NBTChunk createChunk(int x, int z, int maxHeight) {
         return new MC12AnvilChunk(x, z, maxHeight);
     }
+
+    private static final Set<DataType> DATA_TYPES = ImmutableSet.of(REGION);
 }

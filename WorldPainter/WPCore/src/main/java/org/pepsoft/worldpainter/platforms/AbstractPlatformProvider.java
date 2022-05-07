@@ -1,33 +1,29 @@
 package org.pepsoft.worldpainter.platforms;
 
+import com.google.common.collect.ImmutableSet;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.plugins.AbstractPlugin;
 import org.pepsoft.worldpainter.plugins.PlatformProvider;
 
 import java.util.Collection;
-
-import static java.util.Collections.singleton;
+import java.util.Set;
 
 public abstract class AbstractPlatformProvider extends AbstractPlugin implements PlatformProvider {
-    protected AbstractPlatformProvider(String version, Platform platform) {
-        super(platform.displayName.replaceAll("\\s", "") + "PlatformProvider", version);
-        this.platform = platform;
+    protected AbstractPlatformProvider(String version, Set<Platform> platforms, String name) {
+        super(name, version);
+        this.platforms = ImmutableSet.copyOf(platforms);
     }
 
     @Override
     public final Collection<Platform> getKeys() {
-        return singleton(platform);
-    }
-
-    public final Platform getPlatform() {
-        return platform;
+        return platforms;
     }
 
     protected final void ensurePlatformSupported(Platform platform) {
-        if (platform != this.platform) {
+        if (! platforms.contains(platform)) {
             throw new IllegalArgumentException("Platform " + platform + " not supported");
         }
     }
 
-    private final Platform platform;
+    private final Set<Platform> platforms;
 }

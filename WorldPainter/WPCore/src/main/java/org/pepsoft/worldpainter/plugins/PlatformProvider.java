@@ -91,27 +91,30 @@ public interface PlatformProvider extends Provider<Platform> {
     }
     
     /**
-     * Get the default {@link ExportSettings} for this platform, or {@code null} if the platform has no export settings.
+     * Get the default {@link ExportSettings} for a supported platform, or {@code null} if the platform has no export
+     * settings.
      * 
      * <p>The default implementation returns {@code null}.
-     * 
-     * @return The default {@link ExportSettings} for this platform, or {@code null} if the platform has no export
-     * settings.
+     *
+     * @param platform The platform for which to provide the default export settings.
+     * @return The default {@link ExportSettings} for the specified platform, or {@code null} if the platform has no
+     * export settings.
      */
-    default ExportSettings getDefaultExportSettings() {
+    default ExportSettings getDefaultExportSettings(Platform platform) {
         return null;
     }
     
     /**
      * Get an instance of an {@link ExportSettingsEditor} suitable for editing an {@link ExportSettings} object as
-     * returned by {@link #getDefaultExportSettings()}. Will only be invoked if {@link #getDefaultExportSettings()} does
-     * not return {@code null}.
+     * returned by {@link #getDefaultExportSettings(Platform)}. Will only be invoked if
+     * {@link #getDefaultExportSettings(Platform)} does not return {@code null}.
      * 
      * <p>The default implementation throws an {@link UnsupportedOperationException}.
-     * 
+     *
+     * @param platform The platform for which to provide the export settings editor.
      * @return An instance of an {@link ExportSettingsEditor}.
      */
-    default ExportSettingsEditor getExportSettingsEditor() {
+    default ExportSettingsEditor getExportSettingsEditor(Platform platform) {
         throw new UnsupportedOperationException("This platform has no export settings");
     }
 }
