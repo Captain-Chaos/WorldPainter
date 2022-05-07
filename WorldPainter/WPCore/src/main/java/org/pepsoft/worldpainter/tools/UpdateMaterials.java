@@ -74,7 +74,7 @@ public class UpdateMaterials {
                         csvOut.setString("colourOrigin", csvIn.getString("colourOrigin"));
                     }
                 } else {
-                    Material material = Material.getDefault(name);
+                    Material material = Material.getPrototype(name);
                     if (material == null) {
                         material = Material.get(name);
                     }

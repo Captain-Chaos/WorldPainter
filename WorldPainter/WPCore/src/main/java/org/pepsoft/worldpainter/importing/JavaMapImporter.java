@@ -608,7 +608,7 @@ public class JavaMapImporter extends MapImporter {
 
     static {
         TERRAIN_MAPPING.forEach((name, terrain) -> {
-            if (! Material.getDefault(name).terrain) {
+            if (! Material.getPrototype(name).terrain) {
                 throw new IllegalStateException("Material named \"" + name + "\" not marked as terrain");
             }
         });

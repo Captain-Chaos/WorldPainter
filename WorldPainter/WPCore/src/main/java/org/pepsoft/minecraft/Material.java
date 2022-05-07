@@ -19,14 +19,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonMap;
-import static java.util.Collections.unmodifiableMap;
+import static java.util.Arrays.stream;
+import static java.util.Collections.*;
 import static java.util.Objects.requireNonNull;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.HorizontalOrientationScheme.CARDINAL_DIRECTIONS;
 import static org.pepsoft.minecraft.HorizontalOrientationScheme.STAIR_CORNER;
+import static org.pepsoft.minecraft.Material.PropertyType.*;
 import static org.pepsoft.util.ObjectMapperHolder.OBJECT_MAPPER;
 import static org.pepsoft.worldpainter.Constants.UNKNOWN_MATERIAL_COLOUR;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
@@ -112,7 +115,7 @@ public final class Material implements Serializable {
             watery = (boolean) spec.get("watery");
             colour = spec.containsKey("colour") ? ((int) spec.get("colour")) : UNKNOWN_MATERIAL_COLOUR;
             category = determineCategory();
-            possibleProperties = (Set<String>) spec.get("properties");
+            propertyDescriptors = (Map<String, PropertyDescriptor>) spec.get("properties");
         } else {
             if (logger.isTraceEnabled()) {
                 logger.trace("Legacy material " + blockType + ":" + data + " not found in materials database");
@@ -132,7 +135,7 @@ public final class Material implements Serializable {
             watery = false;
             colour = UNKNOWN_MATERIAL_COLOUR;
             category = CATEGORY_UNKNOWN;
-            possibleProperties = null;
+            propertyDescriptors = null;
         }
 
         lightSource = (blockLight > 0);
@@ -242,7 +245,7 @@ public final class Material implements Serializable {
             watery = (boolean) spec.get("watery");
             colour = spec.containsKey("colour") ? ((int) spec.get("colour")) : UNKNOWN_MATERIAL_COLOUR;
             category = determineCategory();
-            possibleProperties = (Set<String>) spec.get("properties");
+            propertyDescriptors = (Map<String, PropertyDescriptor>) spec.get("properties");
         } else {
             if (logger.isDebugEnabled()) {
                 if ((namespace != null) && namespace.equals(MINECRAFT)) {
@@ -266,7 +269,7 @@ public final class Material implements Serializable {
             watery = false;
             colour = UNKNOWN_MATERIAL_COLOUR;
             category = CATEGORY_UNKNOWN;
-            possibleProperties = null;
+            propertyDescriptors = null;
         }
 
         lightSource = (blockLight > 0);
@@ -348,7 +351,7 @@ public final class Material implements Serializable {
      * @return {@code true} if the specified property is present on this type of material.
      */
     public boolean hasProperty(Property<?> property) {
-        return (possibleProperties != null) && possibleProperties.contains(property.name);
+        return (propertyDescriptors != null) && propertyDescriptors.containsKey(property.name);
     }
 
     /**
@@ -433,7 +436,7 @@ public final class Material implements Serializable {
      * @return {@code true} if the specified property is present on this type of material.
      */
     public boolean hasProperty(String name) {
-        return (possibleProperties != null) && possibleProperties.contains(name);
+        return (propertyDescriptors != null) && propertyDescriptors.containsKey(name);
     }
 
     /**
@@ -1124,9 +1127,6 @@ public final class Material implements Serializable {
             if (material == null) {
                 material = new Material(identity);
                 ALL_MATERIALS.put(identity, material);
-                if (! DEFAULT_MATERIALS_BY_NAME.containsKey(identity.name)) {
-                    DEFAULT_MATERIALS_BY_NAME.put(identity.name, material);
-                }
             }
             return material;
         }
@@ -1169,22 +1169,45 @@ public final class Material implements Serializable {
     }
 
     /**
-     * Get a known material by name only, disregarding the properties.
+     * Get a prototype of a known material by name. If the material is known by name, its known properties will be set
+     * to arbitrary values.
      *
-     * @param name The name of the material to get.
-     * @return A material with the specified name and unspecified properties, or
-     * {@code null} if no material by that name is known.
+     * @param name The name of the material of which to get a prototype.
+     * @return A material with the specified name its known properties set to arbitrary values.
      */
-    public static Material getDefault(String name) {
-        return DEFAULT_MATERIALS_BY_NAME.get(name);
+    @SuppressWarnings("unchecked") // Guaranteed by the code
+    public static Material getPrototype(String name) {
+        final Set<Map<String, Object>> specs = MATERIAL_SPECS.get(name);
+        if (specs != null) {
+            final Map<String, Object> spec = specs.iterator().next();
+            if (spec.containsKey("properties")) {
+                final Map<String, PropertyDescriptor> propertyDescriptors = (Map<String, PropertyDescriptor>) spec.get("properties");
+                final Map<String, String> properties = propertyDescriptors.entrySet().stream()
+                        .collect(toMap(Map.Entry::getKey, entry -> {
+                            final PropertyDescriptor descriptor = entry.getValue();
+                            switch (descriptor.type) {
+                                case BOOLEAN:
+                                    return "false";
+                                case INTEGER:
+                                    return Integer.toString(descriptor.minValue);
+                                case ENUM:
+                                    return descriptor.enumValues[0];
+                                default:
+                                    throw new IllegalArgumentException("Unknown property type: " + descriptor.type);
+                            }
+                        }));
+                return get(name, properties);
+            }
+        }
+        return get(name, (Map<String, String>) null);
     }
 
     public static Set<String> getAllNamespaces() {
-        return Collections.unmodifiableSet(ALL_NAMESPACES);
+        return unmodifiableSet(ALL_NAMESPACES);
     }
 
     public static Set<String> getAllSimpleNamesForNamespace(String namespace) {
-        return SIMPLE_NAMES_BY_NAMESPACE.containsKey(namespace) ? Collections.unmodifiableSet(SIMPLE_NAMES_BY_NAMESPACE.get(namespace)) : Collections.emptySet();
+        return SIMPLE_NAMES_BY_NAMESPACE.containsKey(namespace) ? unmodifiableSet(SIMPLE_NAMES_BY_NAMESPACE.get(namespace)) : emptySet();
     }
 
     public static Set<String> getAllNames() {
@@ -1438,9 +1461,10 @@ public final class Material implements Serializable {
     public final transient int colour;
 
     /**
-     * The properties this type of material has, regardless of whether they are set on the current instance.
+     * Descriptors of all the properties this type of material has, regardless of whether they are set on the current
+     * instance.
      */
-    public final transient Set<String> possibleProperties;
+    public final transient Map<String, PropertyDescriptor> propertyDescriptors;
 
     // Optimised versions of hasProperty(...):
 
@@ -1463,6 +1487,21 @@ public final class Material implements Serializable {
     private static final Map<Integer, Map<String, Object>> LEGACY_BLOCK_SPECS_BY_COMBINED_ID = new HashMap<>();
     private static final Map<String, Set<Map<String, Object>>> LEGACY_BLOCK_SPECS_BY_NAME = new HashMap<>();
     private static final Map<String, Set<Map<String, Object>>> MATERIAL_SPECS = new HashMap<>();
+
+    /**
+     * To save space we only store the 256-ish vanilla blocks as pre-created
+     * legacy materials. 12-bit block ids above 255 are created on the fly.
+     */
+    private static final Material[] LEGACY_MATERIALS = new Material[4096];
+    private static final Map<Identity, Material> ALL_MATERIALS = new HashMap<>();
+    private static final Set<String> ALL_NAMESPACES = new HashSet<>();
+    private static final Map<String, Set<String>> SIMPLE_NAMES_BY_NAMESPACE = new HashMap<>();
+    private static final Map<String, Material> DEFAULT_MATERIALS_BY_NAME = new HashMap<>();
+
+    // Namespaces
+
+    public static final String MINECRAFT = "minecraft";
+    public static final String LEGACY = "legacy";
 
     static {
         // Read legacy MC block database
@@ -1489,6 +1528,7 @@ public final class Material implements Serializable {
         }
 
         // Read MC materials database
+        final Set<String> minecraftNames = SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(MINECRAFT, s -> new HashSet<>());
         try (Reader in = new InputStreamReader(requireNonNull(Material.class.getResourceAsStream("mc-materials.csv")), UTF_8)) {
             CSVDataSource csvDataSource = new CSVDataSource();
             csvDataSource.openForReading(in);
@@ -1502,7 +1542,7 @@ public final class Material implements Serializable {
                 }
                 str = csvDataSource.getString("properties");
                 if (! isNullOrEmpty(str)) {
-                    materialSpecs.put("properties", ImmutableSet.copyOf(str.split(",")));
+                    materialSpecs.put("properties", stream(str.split(",")).map(PropertyDescriptor::fromString).collect(toMap(d -> d.name, identity())));
                 }
                 materialSpecs.put("opacity", csvDataSource.getInt("opacity"));
                 materialSpecs.put("terrain", csvDataSource.getBoolean("terrain"));
@@ -1528,6 +1568,7 @@ public final class Material implements Serializable {
                     materialSpecs.put("colourOrigin", str);
                 }
                 MATERIAL_SPECS.computeIfAbsent(name, s -> new HashSet<>()).add(materialSpecs);
+                minecraftNames.add(name.substring(name.indexOf(':') + 1));
                 csvDataSource.next();
             } while (! csvDataSource.isEndOfFile());
         } catch (IOException e) {
@@ -1535,18 +1576,8 @@ public final class Material implements Serializable {
         }
     }
 
-    /**
-     * To save space we only store the 256-ish vanilla blocks as pre-created
-     * legacy materials. 12-bit block ids above 255 are created on the fly.
-     */
-    private static final Material[] LEGACY_MATERIALS = new Material[4096];
-    private static final Map<Identity, Material> ALL_MATERIALS = new HashMap<>();
-    private static final Set<String> ALL_NAMESPACES = new HashSet<>();
-    private static final Map<String, Set<String>> SIMPLE_NAMES_BY_NAMESPACE = new HashMap<>();
-    private static final Map<String, Material> DEFAULT_MATERIALS_BY_NAME = new HashMap<>();
-
     private static final Set<String> SNOW_ON = ImmutableSet.of(MC_SNOW_BLOCK, MC_POWDER_SNOW);
-    private static final Set<String> NO_SNOW_ON = ImmutableSet.of(MC_END_PORTAL_FRAME, MC_PACKED_ICE, MC_GRASS_PATH, MC_DIRT_PATH, MC_FARMLAND);
+    private static final Set<String> NO_SNOW_ON = ImmutableSet.of(MC_END_PORTAL_FRAME, MC_PACKED_ICE, MC_GRASS_PATH, MC_DIRT_PATH, MC_FARMLAND, MC_MAGMA_BLOCK);
 
     static {
         for (int i = 0; i < 4096; i++) {
@@ -1932,11 +1963,6 @@ public final class Material implements Serializable {
     public static final Material CAVE_VINES_NO_BERRIES = get(MC_CAVE_VINES, MC_BERRIES, false);
     public static final Material CAVE_VINES_PLANT_NO_BERRIES = get(MC_CAVE_VINES_PLANT, MC_BERRIES, false);
 
-    // Namespaces
-
-    public static final String MINECRAFT = "minecraft";
-    public static final String LEGACY = "legacy";
-
     // Material type categories
 
     public static final int CATEGORY_AIR           = 0;
@@ -2042,4 +2068,40 @@ public final class Material implements Serializable {
             super(property, value);
         }
     }
+
+    public static class PropertyDescriptor {
+        private PropertyDescriptor(String name, PropertyType type, int minValue, int maxValue, String[] enumValues) {
+            this.name = name;
+            this.type = type;
+            this.minValue = minValue;
+            this.maxValue = maxValue;
+            this.enumValues = enumValues;
+        }
+
+        static PropertyDescriptor fromString(String str) {
+            final int p = str.indexOf(':');
+            final String name = str.substring(0, p);
+            final String typeDescriptor = str.substring(p + 1);
+            if (typeDescriptor.equals("b")) {
+                return new PropertyDescriptor(name, BOOLEAN, 0, 0, null);
+            } else if (typeDescriptor.startsWith("i[")) {
+                final String[] parts = typeDescriptor.substring(2, typeDescriptor.length() - 1).split("-");
+                final int minValue = Integer.parseInt(parts[0]);
+                final int maxValue = Integer.parseInt(parts[1]);
+                return new PropertyDescriptor(name, INTEGER, minValue, maxValue, null);
+            } else if (typeDescriptor.startsWith("e[")) {
+                final String[] enumValues = typeDescriptor.substring(2, typeDescriptor.length() - 1).split(";");
+                return new PropertyDescriptor(name, ENUM, 0, 0, enumValues);
+            } else {
+                throw new IllegalArgumentException("Could not parse property descriptor \"" + str + '"');
+            }
+        }
+
+        public final String name;
+        public final PropertyType type;
+        public final int minValue, maxValue;
+        public final String[] enumValues;
+    }
+
+    public enum PropertyType { BOOLEAN, INTEGER, ENUM }
 }
