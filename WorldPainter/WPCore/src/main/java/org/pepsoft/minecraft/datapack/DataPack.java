@@ -47,7 +47,7 @@ public class DataPack {
                                 } else if (descName.startsWith("data/minecraft/dimension_type")) {
                                     dataPack.addDescriptor(descName, reader.readValue(in.getInputStream(entry), Dimension.class));
                                 } else {
-                                    logger.debug("Ignoring descriptor {} from data pack {}", descName, name);
+                                    logger.trace("Ignoring descriptor {} from data pack {}", descName, name);
                                 }
                             } catch (IOException e) {
                                 logger.error("{} while reading descriptor {} from data pack {} in map {} (message: {})", e.getClass().getSimpleName(), descName, name, dir, e.getMessage());
@@ -67,7 +67,7 @@ public class DataPack {
                             dataPack.addDescriptor(descName, reader.readValue(in, Dimension.class));
                         }
                     } else {
-                        logger.debug("Ignoring descriptor {} from data pack {}", descName, name);
+                        logger.trace("Ignoring descriptor {} from data pack {}", descName, name);
                     }
                 } catch (IOException e) {
                     logger.error("{} while reading descriptor {} from data pack {} in map {} (message: {})", e.getClass().getSimpleName(), descName, name, dir, e.getMessage());
