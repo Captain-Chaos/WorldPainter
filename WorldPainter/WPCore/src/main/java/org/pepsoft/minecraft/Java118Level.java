@@ -2,6 +2,8 @@ package org.pepsoft.minecraft;
 
 import org.jnbt.*;
 import org.pepsoft.worldpainter.Platform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -81,7 +83,7 @@ public class Java118Level extends JavaLevel {
             final Tag generatorSettings = generatorTag.getTag(TAG_SETTINGS_);
             final Long generatorSeed = generatorTag.containsTag(TAG_SEED_) ? ((LongTag) generatorTag.getTag(TAG_SEED_)).getValue() : null;
             final MapGenerator generator;
-            if (generatorType.equals(MC_NOISE)) {
+            if (generatorType.equals(MC_NOISE) && (generatorSettings instanceof StringTag)) {
                 final String noiseSettings = ((StringTag) generatorSettings).getValue();
                 if (noiseSettings.equals(MC_OVERWORLD)) {
                     generator = new SeededGenerator(DEFAULT, generatorSeed);
@@ -94,7 +96,7 @@ public class Java118Level extends JavaLevel {
                 } else if (noiseSettings.equals(MC_AMPLIFIED)) {
                     generator = new SeededGenerator(AMPLIFIED, generatorSeed);
                 } else {
-                    throw new IllegalArgumentException("Settings string \"" + noiseSettings + "\" for minecraft:noise generator type not recognised"); // TODO: minecraft:amplified
+                    generator = new CustomGenerator(generatorType, generatorTag);
                 }
             } else if (generatorType.equals(MC_FLAT)) {
                 generator = new SuperflatGenerator(SuperflatPreset.fromMinecraft1_18_0((CompoundTag) generatorSettings));
@@ -112,7 +114,8 @@ public class Java118Level extends JavaLevel {
                     generators.put(DIM_END, generator);
                     break;
                 default:
-                    throw new IllegalArgumentException("Dimension type \"" + type + "\" not recognised");
+                    logger.warn("Ignoring dimension of unknown type {}", type);
+                    break;
             }
         }
     }
@@ -160,84 +163,81 @@ public class Java118Level extends JavaLevel {
                 dimensionsTag.getValue().put(dimensionName, dimensionTag);
             }
 
-            final String generatorType, biomeSourceType, biomeSourcePreset;
-            final Tag settingsTag;
-            switch (generator.getType()) {
-                case DEFAULT:
-                    generatorType = MC_NOISE;
-                    settingsTag = new StringTag(TAG_SETTINGS_, MC_OVERWORLD);
-                    biomeSourceType = MC_MULTI_NOISE;
-                    biomeSourcePreset = MC_OVERWORLD;
-                    break;
-                case LARGE_BIOMES:
-                    generatorType = MC_NOISE;
-                    settingsTag = new StringTag(TAG_SETTINGS_, MC_LARGE_BIOMES);
-                    biomeSourceType = MC_MULTI_NOISE;
-                    biomeSourcePreset = MC_OVERWORLD;
-                    break;
-                case AMPLIFIED:
-                    generatorType = MC_NOISE;
-                    settingsTag = new StringTag(TAG_SETTINGS_, MC_AMPLIFIED);
-                    biomeSourceType = MC_MULTI_NOISE;
-                    biomeSourcePreset = MC_OVERWORLD;
-                    break;
-                case FLAT:
-                    generatorType = MC_FLAT;
-                    // TODO make this configurable:
-                    final SuperflatPreset settings = ((SuperflatGenerator) generator).getSettings();
-                    settingsTag = ((settings != null) ? settings : defaultPreset(platform)).toMinecraft1_18_0();
-                    biomeSourceType = biomeSourcePreset = null;
-                    break;
-                case NETHER:
-                    generatorType = MC_NOISE;
-                    settingsTag = new StringTag(TAG_SETTINGS_, MC_NETHER);
-                    biomeSourceType = MC_MULTI_NOISE;
-                    biomeSourcePreset = MC_NETHER;
-                    break;
-                case END:
-                    generatorType = MC_NOISE;
-                    settingsTag = new StringTag(TAG_SETTINGS_, MC_END);
-                    biomeSourceType = MC_THE_END;
-                    biomeSourcePreset = null;
-                    break;
-                case CUSTOM:
-                    generatorType = ((CustomGenerator) generator).getName();
-                    settingsTag = null;
-                    biomeSourceType = biomeSourcePreset = null;
-                    break;
-                default:
-                    throw new IllegalArgumentException("Generator " + generator + " not supported for Minecraft 1.18+");
-            }
-            final long seed = (generator instanceof SeededGenerator) ? ((SeededGenerator) generator).getSeed() : 0L;
-            CompoundTag generatorTag = ((generator.getType() == CUSTOM) && ((CustomGenerator) generator).getSettings() instanceof CompoundTag)
-                    ? (CompoundTag) ((CustomGenerator) generator).getSettings()
-                    : (CompoundTag) dimensionTag.getTag(TAG_GENERATOR_);
-            if (generatorTag == null) {
-                generatorTag = new CompoundTag(TAG_GENERATOR_, new HashMap<>());
-                dimensionTag.getValue().put(TAG_GENERATOR_, generatorTag);
-            }
-            if (biomeSourceType != null) {
-                generatorTag.setTag(TAG_SEED_, new LongTag(TAG_SEED_, seed));
-            }
-            generatorTag.setTag(TAG_TYPE_, new StringTag(TAG_TYPE_, generatorType));
-            if (settingsTag != null) {
-                generatorTag.setTag(TAG_SETTINGS_, settingsTag);
-            }
-
-            if (biomeSourceType != null) {
-                CompoundTag biomeSourceTag = (CompoundTag) generatorTag.getTag(TAG_BIOME_SOURCE_);
-                if (biomeSourceTag == null) {
-                    biomeSourceTag = new CompoundTag(TAG_BIOME_SOURCE_, new HashMap<>());
-                    generatorTag.getValue().put(TAG_BIOME_SOURCE_, biomeSourceTag);
+            if ((generator.getType() == CUSTOM) && (((CustomGenerator) generator).getSettings() instanceof CompoundTag)) {
+                dimensionTag.getValue().put(TAG_GENERATOR_, ((CustomGenerator) generator).getSettings());
+            } else {
+                final String generatorType, biomeSourceType, biomeSourcePreset;
+                final Tag settingsTag;
+                switch (generator.getType()) {
+                    case DEFAULT:
+                        generatorType = MC_NOISE;
+                        settingsTag = new StringTag(TAG_SETTINGS_, MC_OVERWORLD);
+                        biomeSourceType = MC_MULTI_NOISE;
+                        biomeSourcePreset = MC_OVERWORLD;
+                        break;
+                    case LARGE_BIOMES:
+                        generatorType = MC_NOISE;
+                        settingsTag = new StringTag(TAG_SETTINGS_, MC_LARGE_BIOMES);
+                        biomeSourceType = MC_MULTI_NOISE;
+                        biomeSourcePreset = MC_OVERWORLD;
+                        break;
+                    case AMPLIFIED:
+                        generatorType = MC_NOISE;
+                        settingsTag = new StringTag(TAG_SETTINGS_, MC_AMPLIFIED);
+                        biomeSourceType = MC_MULTI_NOISE;
+                        biomeSourcePreset = MC_OVERWORLD;
+                        break;
+                    case FLAT:
+                        generatorType = MC_FLAT;
+                        // TODO make this configurable:
+                        final SuperflatPreset settings = ((SuperflatGenerator) generator).getSettings();
+                        settingsTag = ((settings != null) ? settings : defaultPreset(platform)).toMinecraft1_18_0();
+                        biomeSourceType = biomeSourcePreset = null;
+                        break;
+                    case NETHER:
+                        generatorType = MC_NOISE;
+                        settingsTag = new StringTag(TAG_SETTINGS_, MC_NETHER);
+                        biomeSourceType = MC_MULTI_NOISE;
+                        biomeSourcePreset = MC_NETHER;
+                        break;
+                    case END:
+                        generatorType = MC_NOISE;
+                        settingsTag = new StringTag(TAG_SETTINGS_, MC_END);
+                        biomeSourceType = MC_THE_END;
+                        biomeSourcePreset = null;
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Generator " + generator + " not supported for Minecraft 1.18+");
                 }
-                biomeSourceTag.setTag(TAG_TYPE_, new StringTag(TAG_TYPE_, biomeSourceType));
-                switch (biomeSourceType) {
-                    case MC_MULTI_NOISE:
-                        biomeSourceTag.setTag(TAG_PRESET_, new StringTag(TAG_PRESET_, biomeSourcePreset));
-                        break;
-                    case MC_THE_END:
-                        biomeSourceTag.setTag(TAG_SEED_, new LongTag(TAG_SEED_, seed));
-                        break;
+                final long seed = (generator instanceof SeededGenerator) ? ((SeededGenerator) generator).getSeed() : 0L;
+                CompoundTag generatorTag = (CompoundTag) dimensionTag.getTag(TAG_GENERATOR_);
+                if (generatorTag == null) {
+                    generatorTag = new CompoundTag(TAG_GENERATOR_, new HashMap<>());
+                    dimensionTag.getValue().put(TAG_GENERATOR_, generatorTag);
+                }
+                if (biomeSourceType != null) {
+                    generatorTag.setTag(TAG_SEED_, new LongTag(TAG_SEED_, seed));
+                }
+                generatorTag.setTag(TAG_TYPE_, new StringTag(TAG_TYPE_, generatorType));
+                if (settingsTag != null) {
+                    generatorTag.setTag(TAG_SETTINGS_, settingsTag);
+                }
+
+                if (biomeSourceType != null) {
+                    CompoundTag biomeSourceTag = (CompoundTag) generatorTag.getTag(TAG_BIOME_SOURCE_);
+                    if (biomeSourceTag == null) {
+                        biomeSourceTag = new CompoundTag(TAG_BIOME_SOURCE_, new HashMap<>());
+                        generatorTag.getValue().put(TAG_BIOME_SOURCE_, biomeSourceTag);
+                    }
+                    biomeSourceTag.setTag(TAG_TYPE_, new StringTag(TAG_TYPE_, biomeSourceType));
+                    switch (biomeSourceType) {
+                        case MC_MULTI_NOISE:
+                            biomeSourceTag.setTag(TAG_PRESET_, new StringTag(TAG_PRESET_, biomeSourcePreset));
+                            break;
+                        case MC_THE_END:
+                            biomeSourceTag.setTag(TAG_SEED_, new LongTag(TAG_SEED_, seed));
+                            break;
+                    }
                 }
             }
         }
@@ -248,4 +248,6 @@ public class Java118Level extends JavaLevel {
     private final Map<Integer, MapGenerator> generators = new HashMap<>();
     private long seed;
     private boolean mapFeatures;
+
+    private static final Logger logger = LoggerFactory.getLogger(Java118Level.class);
 }

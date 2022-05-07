@@ -4,6 +4,7 @@
  * The variation of Custom Caves/Tunnel floor and roof layers can now be configured, so that they are not applied with the same intensity everywhere but can vary randomly
  * WorldPainter can now calculate the distance property of leaf blocks while Exporting. This helps with preventing leaf blocks that are attached to treet trunks from decaying in-game. This can be turned off on the Post Processing tab
    + WorldPainter can also automatically remove leaf blocks that are too distant (and not persistent) and would decay in Minecraft. This is turned off by default but can be turned on on the Post Processing tab
+ * Importing maps with custom dimension types or world types now works. Note that you can't edit these settings and WorldPainter will still only Import the vanilla Surface, Nether and End dimensions
 
 -- Version 2.9.5, released 6-5-2022
 

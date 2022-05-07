@@ -1060,7 +1060,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             }
         }
         setEnabled(comboBoxGenerator, enabled && (! endlessBorder));
-        setEnabled(buttonGeneratorOptions, enabled && (! endlessBorder) && ((comboBoxGenerator.getSelectedItem() == Generator.FLAT) || (comboBoxGenerator.getSelectedItem() == CUSTOM)));
+        setEnabled(buttonGeneratorOptions, enabled
+                && (! endlessBorder)
+                && ((comboBoxGenerator.getSelectedItem() == Generator.FLAT)
+                    || ((comboBoxGenerator.getSelectedItem() == CUSTOM) && (customGeneratorSettings == null))));
     }
     
     private void setEnabled(Component component, boolean enabled) {
