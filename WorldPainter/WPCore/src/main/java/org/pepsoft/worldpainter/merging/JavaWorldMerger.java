@@ -34,6 +34,8 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.DataType.REGION;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Platform.Capability.LEAF_DISTANCES;
+import static org.pepsoft.worldpainter.Platform.Capability.PRECALCULATED_LIGHT;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 
 /**
@@ -812,11 +814,18 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
 
             // Post processing. Fix covered grass blocks, things like that
             long t4 = System.currentTimeMillis();
-            PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), dimension.getExportSettings(), (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.1f) : null);
+            final BlockBasedExportSettings exportSettings = (BlockBasedExportSettings) ((dimension.getExportSettings() instanceof BlockBasedExportSettings)
+                    ? dimension.getExportSettings()
+                    : platformProvider.getDefaultExportSettings(platform));
+            PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.1f) : null);
 
             // Third pass. Calculate lighting
             long t5 = System.currentTimeMillis();
-            blockPropertiesPass(minecraftWorld, regionCoords, (BlockBasedExportSettings) dimension.getExportSettings(), (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.75f, 0.25f) : null);
+            final boolean lightingNeeded = (exportSettings.isCalculateBlockLight() || exportSettings.isCalculateSkyLight()) && platform.capabilities.contains(PRECALCULATED_LIGHT);
+            final boolean leafDistanceNeeded = exportSettings.isCalculateLeafDistance() && platform.capabilities.contains(LEAF_DISTANCES);
+            if (lightingNeeded || leafDistanceNeeded) {
+                blockPropertiesPass(minecraftWorld, regionCoords, exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.75f, 0.25f) : null);
+            }
             long t6 = System.currentTimeMillis();
             if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode"))) {
                 String timingMessage = (t2 - t1) + ", " + (t3 - t2) + ", " + (t4 - t3) + ", " + (t5 - t4) + ", " + (t6 - t5) + ", " + (t6 - t1);

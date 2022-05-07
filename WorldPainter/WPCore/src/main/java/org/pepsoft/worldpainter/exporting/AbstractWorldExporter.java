@@ -19,7 +19,6 @@ import org.pepsoft.worldpainter.layers.CombinedLayer;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.GardenCategory;
 import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.platforms.JavaExportSettings;
 import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
@@ -542,7 +541,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         float maxIterations = 0;
         final StringBuilder nounsBuilder = new StringBuilder();
         if (exportSettings.isCalculateSkyLight() || exportSettings.isCalculateBlockLight()) {
-            nounsBuilder.append("block lighting");
+            nounsBuilder.append("lighting");
             maxIterations = 16;
         }
         if (exportSettings.isCalculateLeafDistance()) {
@@ -701,7 +700,9 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
                 // Post processing. Fix covered grass blocks, things like that
                 long t3 = System.currentTimeMillis();
-                final BlockBasedExportSettings exportSettings = (dimension.getExportSettings() instanceof BlockBasedExportSettings) ? (BlockBasedExportSettings) dimension.getExportSettings() : new JavaExportSettings();
+                final BlockBasedExportSettings exportSettings = (BlockBasedExportSettings) ((dimension.getExportSettings() instanceof BlockBasedExportSettings)
+                        ? dimension.getExportSettings()
+                        : platformProvider.getDefaultExportSettings(platform));
                 PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.55f, 0.1f) : null);
 
                 // Third pass. Calculate lighting and/or leaf distances (if requested, and supported by the platform)
@@ -829,7 +830,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
         // Make sure to honour the read-only layer: TODO: this means nothing at the moment. Is it still relevant?
         try (CachingMinecraftWorld minecraftWorld = new CachingMinecraftWorld(worldDir, dimension.getDim(), dimension.getMaxHeight(), platform, false, 512)) {
-            final ExportSettings exportSettings = (dimension.getExportSettings() instanceof BlockBasedExportSettings) ? (BlockBasedExportSettings) dimension.getExportSettings() : new JavaExportSettings();
+            final ExportSettings exportSettings = (dimension.getExportSettings() != null) ? dimension.getExportSettings() : platformProvider.getDefaultExportSettings(platform);
             for (Entry<Point, List<Fixup>> entry: fixups.entrySet()) {
                 if (progressReceiver != null) {
                     progressReceiver.setMessage("Performing fixups for region " + entry.getKey().x + "," + entry.getKey().y);
