@@ -511,7 +511,9 @@ public class Main {
                 if (myConfig.isAutosaveEnabled() && autosaveInhibited) {
                     JOptionPane.showMessageDialog(app, "Another instance of WorldPainter is already running.\nAutosave will therefore be disabled in this instance of WorldPainter!", "Autosave Disabled", JOptionPane.WARNING_MESSAGE);
                 }
-                DonationDialog.maybeShowDonationDialog(app);
+                if (! DonationDialog.maybeShowDonationDialog(app)) {
+                    MerchDialog.maybeShowMerchDialog(app);
+                }
             });
         });
     }

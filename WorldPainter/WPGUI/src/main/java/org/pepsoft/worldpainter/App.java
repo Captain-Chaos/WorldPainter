@@ -4433,9 +4433,53 @@ public final class App extends JFrame implements RadiusControl,
 
 //        menu.add(ACTION_SHOW_HELP_PICKER);
 
-        if (! hideAbout) {
-//            menu.addSeparator();
+        menuItem = new JMenuItem("Frequently Asked Questions");
+        menuItem.setMnemonic('f');
+        menuItem.addActionListener(e -> {
+            try {
+                DesktopUtils.open(new URL("https://www.worldpainter.net/doc/faq"));
+            } catch (MalformedURLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        menu.add(menuItem);
 
+        menuItem = new JMenuItem("Troubleshooting");
+        menuItem.setMnemonic('t');
+        menuItem.addActionListener(e -> {
+            try {
+                DesktopUtils.open(new URL("https://www.worldpainter.net/trac/wiki/Troubleshooting"));
+            } catch (MalformedURLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        menu.add(menuItem);
+
+        menu.addSeparator();
+
+        menuItem = new JMenuItem("Donate");
+        menuItem.setMnemonic('d');
+        menuItem.addActionListener(e -> {
+            try {
+                DesktopUtils.open(new URL("https://www.worldpainter.net/donate/paypal"));
+            } catch (MalformedURLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        menu.add(menuItem);
+
+        menuItem = new JMenuItem("Merch store");
+        menuItem.setMnemonic('m');
+        menuItem.addActionListener(e -> {
+            try {
+                DesktopUtils.open(new URL("https://www.worldpainter.net/store/merch"));
+            } catch (MalformedURLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        menu.add(menuItem);
+
+        if (! hideAbout) {
             menuItem = new JMenuItem(strings.getString("about"));
             menuItem.setMnemonic('a');
             menuItem.addActionListener(e -> {

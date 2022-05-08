@@ -130,7 +130,7 @@ public final class DesktopUtils {
             logger.error("URI syntax exception while trying to open " + url, e);
             beep();
             return false;
-        } catch (IOException e) {
+        } catch (UnsupportedOperationException | IOException e) {
             if (SystemUtils.isLinux()) {
                 return ProcessUtils.runAndWait("xdg-open", url.toExternalForm()) == 0;
             } else if (SystemUtils.isMac()) {
@@ -138,7 +138,7 @@ public final class DesktopUtils {
             } else if (SystemUtils.isWindows()) {
                 return ProcessUtils.runAndWait("start", url.toExternalForm()) == 0;
             } else {
-                logger.error("I/O error while trying to open " + url, e);
+                logger.error("{} while trying to open {}", e.getClass().getSimpleName(), url, e);
                 beep();
                 return false;
             }

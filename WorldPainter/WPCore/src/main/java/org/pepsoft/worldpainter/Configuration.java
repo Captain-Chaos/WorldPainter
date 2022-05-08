@@ -35,6 +35,7 @@ import java.util.*;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.minecraft.Material.DIRT;
+import static org.pepsoft.worldpainter.Configuration.DonationStatus.DONATED;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
@@ -748,6 +749,22 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.defaultResourcesMinimumLevel = defaultResourcesMinimumLevel;
     }
 
+    public Integer getMerchStoreDialogDisplayed() {
+        return merchStoreDialogDisplayed;
+    }
+
+    public void setMerchStoreDialogDisplayed(Integer merchStoreDialogDisplayed) {
+        this.merchStoreDialogDisplayed = merchStoreDialogDisplayed;
+    }
+
+    public int getShowDonationDialogAfter() {
+        return showDonationDialogAfter;
+    }
+
+    public void setShowDonationDialogAfter(int showDonationDialogAfter) {
+        this.showDonationDialogAfter = showDonationDialogAfter;
+    }
+
     public <T> T getAdvancedSetting(AttributeKey<T> key) {
         String value = System.getProperty(ADVANCED_SETTING_PREFIX + '.' + key.key);
         if (value != null) {
@@ -1035,6 +1052,15 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         if (version < 22) {
             defaultResourcesMinimumLevel = 8;
         }
+        if (version < 23) {
+            if (launchCount < 5) {
+                showDonationDialogAfter = 5;
+            } else if (donationStatus == DONATED) {
+                showDonationDialogAfter = Math.max(launchCount + 5, 100);
+            } else {
+                showDonationDialogAfter = Math.max(launchCount + 5, 50);
+            }
+        }
         if (defaultTerrainAndLayerSettings.getLayerSettings(Resources.INSTANCE) != null) {
             defaultTerrainAndLayerSettings.setLayerSettings(Resources.INSTANCE, null);
         }
@@ -1228,7 +1254,8 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private boolean autoDeleteBackups = true;
     private MapGenerator defaultGeneratorObj = new SeededGenerator(LARGE_BIOMES, DEFAULT_OCEAN_SEED);
     private ExportSettings defaultExportSettings;
-    private int defaultResourcesMinimumLevel = 8;
+    private int defaultResourcesMinimumLevel = 8, showDonationDialogAfter = 5;
+    private Integer merchStoreDialogDisplayed = 0;
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk
@@ -1244,7 +1271,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Configuration.class);
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
-    private static final int CURRENT_VERSION = 22;
+    private static final int CURRENT_VERSION = 23;
 
     public static final String ADVANCED_SETTING_PREFIX = "org.pepsoft.worldpainter";
     public static final Platform DEFAULT_PLATFORM = JAVA_ANVIL_1_15;
