@@ -31,6 +31,7 @@ public class JavaExportSettings extends BlockBasedExportSettings {
         calculateBlockLight = true;
         calculateLeafDistance = true;
         removeFloatingLeaves = false;
+        makeAllLeavesPersistent = false;
     }
 
     public JavaExportSettings(FloatMode waterMode, FloatMode lavaMode, FloatMode sandMode, FloatMode gravelMode, FloatMode cementNode, boolean flowWater, boolean flowLava, boolean calculateSkyLight, boolean calculateBlockLight, boolean calculateLeafDistance, boolean removeFloatingLeaves, boolean makeAllLeavesPersistent) {
@@ -127,7 +128,8 @@ public class JavaExportSettings extends BlockBasedExportSettings {
 
     final FloatMode waterMode, lavaMode, sandMode, gravelMode, cementMode;
     final boolean flowWater, flowLava;
-    boolean calculateSkyLight, calculateBlockLight, calculateLeafDistance, removeFloatingLeaves, makeAllLeavesPersistent;
+    boolean calculateSkyLight, calculateBlockLight, calculateLeafDistance;
+    final boolean removeFloatingLeaves, makeAllLeavesPersistent;
     int version = CURRENT_VERSION;
 
     private static final int CURRENT_VERSION = 1;
