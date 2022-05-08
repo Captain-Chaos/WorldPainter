@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.*;
 
 import static java.util.stream.Collectors.toSet;
+import static org.pepsoft.util.CollectionUtils.unsignedMax;
 import static org.pepsoft.util.ObjectUtils.copyObject;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Tile.TileBuffer.*;
@@ -195,16 +196,16 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
             return Math.round(lowestHeight / 256f + minHeight);
         } else {
             ensureReadable(HEIGHTMAP);
-            short lowestHeight = Short.MAX_VALUE;
+            int lowestHeight = Integer.MAX_VALUE;
             for (short height: heightMap) {
-                if (height < lowestHeight) {
-                    lowestHeight = height;
+                if ((height & 0xFFFF) < lowestHeight) {
+                    lowestHeight = (height & 0xFFFF);
                 }
-                if (lowestHeight == (short) 0) {
+                if (lowestHeight == 0) {
                     return minHeight;
                 }
             }
-            return Math.round((lowestHeight & 0xFFFF) / 256f + minHeight);
+            return Math.round(lowestHeight / 256f + minHeight);
         }
     }
 
@@ -220,13 +221,13 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
             return Math.round(highestHeight / 256f + minHeight);
         } else {
             ensureReadable(HEIGHTMAP);
-            short highestHeight = Short.MIN_VALUE;
+            int highestHeight = Integer.MIN_VALUE;
             for (short height: heightMap) {
-                if (height > highestHeight) {
-                    highestHeight = height;
+                if ((height & 0xFFFF) > highestHeight) {
+                    highestHeight = (height & 0xFFFF);
                 }
             }
-            return Math.round((highestHeight & 0xFFFF) / 256f + minHeight);
+            return Math.round(highestHeight / 256f + minHeight);
         }
     }
 
@@ -322,7 +323,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
     public synchronized int getWaterLevel(int x, int y) {
         if (tall) {
             ensureReadable(TALL_WATERLEVEL);
-            return tallWaterLevel[x | (y << TILE_SIZE_BITS)] + minHeight;
+            return (tallWaterLevel[x | (y << TILE_SIZE_BITS)] & 0xFFFF) + minHeight;
         } else {
             ensureReadable(WATERLEVEL);
             return (waterLevel[x | (y << TILE_SIZE_BITS)] & 0xFF) + minHeight;
@@ -1627,7 +1628,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
     protected int[] tallHeightMap;
     protected byte[] terrain;
     protected byte[] waterLevel;
-    protected short[] tallWaterLevel;
+    protected short[] tallWaterLevel; // TODO this is too small, no?
     protected Map<Layer, byte[]> layerData;
     protected Map<Layer, BitSet> bitLayerData;
     private HashSet<Seed> seeds;

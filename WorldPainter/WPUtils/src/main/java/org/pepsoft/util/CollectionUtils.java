@@ -63,4 +63,45 @@ public final class CollectionUtils {
             }
         };
     }
+
+    /**
+     * Returns the highest value from an array of {@code int}s, or {@code Integer.MIN_VALUE} if the array is empty.
+     */
+    public static int max(int[] values) {
+        int max = Integer.MIN_VALUE;
+        for (int i = 0, valuesLength = values.length; i < valuesLength; i++) {
+            if (values[i] > max) {
+                max = values[i];
+            }
+        }
+        return max;
+    }
+
+    /**
+     * Returns the highest value from an array of {@code short}s, interpreted as unsigned values, or
+     * {@code Integer.MIN_VALUE} if the array is empty.
+     */
+    public static int unsignedMax(short[] values) {
+        int max = Integer.MIN_VALUE;
+        for (int i = 0, valuesLength = values.length; i < valuesLength; i++) {
+            if ((values[i] & 0xffff) > max) {
+                max = values[i] & 0xffff;
+            }
+        }
+        return max;
+    }
+
+    /**
+     * Returns the highest value from an array of {@code byte}s, interpreted as unsigned values, or
+     * {@code Integer.MIN_VALUE} if the array is empty.
+     */
+    public static int unsignedMax(byte[] values) {
+        int max = Integer.MIN_VALUE;
+        for (int i = 0, valuesLength = values.length; i < valuesLength; i++) {
+            if ((values[i] & 0xff) > max) {
+                max = values[i] & 0xff;
+            }
+        }
+        return max;
+    }
 }
