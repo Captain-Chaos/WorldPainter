@@ -7,6 +7,8 @@
    + WorldPainter can also automatically remove leaf blocks that are too distant (and not persistent) and would decay in Minecraft. This is turned off by default but can be turned on on the Post Processing tab
    + There is also an option to make all leaf blocks persistent (even those placed by the WorldPainter tree layers or in other ways which are normally not persistent)
  * Importing maps with custom dimension types or world types now works. Note that you can't edit these settings and WorldPainter will still only Import the vanilla Surface, Nether and End dimensions
+ * The performance of the 3D view has been significantly improved for very large worlds
+ * Bug fix: fixed a visual glitch in the 3D view
 
 -- Version 2.9.5, released 6-5-2022
 

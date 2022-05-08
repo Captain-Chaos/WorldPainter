@@ -330,6 +330,16 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         }
     }
 
+    public synchronized int getHighestWaterLevel() {
+        if (tall) {
+            ensureReadable(TALL_WATERLEVEL);
+            return unsignedMax(tallWaterLevel) + minHeight;
+        } else {
+            ensureReadable(WATERLEVEL);
+            return unsignedMax(waterLevel) + minHeight;
+        }
+    }
+
     public void setWaterLevel(int x, int y, int waterLevel) {
         synchronized (this) {
             if (tall) {

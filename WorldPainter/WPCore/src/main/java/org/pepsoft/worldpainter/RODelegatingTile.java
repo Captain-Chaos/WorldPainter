@@ -12,6 +12,7 @@ import org.pepsoft.worldpainter.layers.Layer;
 import java.io.PrintStream;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -66,6 +67,16 @@ public class RODelegatingTile extends Tile {
     }
 
     @Override
+    public int getLowestIntHeight() {
+        return tile.getLowestIntHeight();
+    }
+
+    @Override
+    public int getHighestIntHeight() {
+        return tile.getHighestIntHeight();
+    }
+
+    @Override
     public float getHeight(int x, int y) {
         return tile.getHeight(x, y); //To change body of generated methods, choose Tools | Templates.
     }
@@ -93,6 +104,11 @@ public class RODelegatingTile extends Tile {
     @Override
     public int getWaterLevel(int x, int y) {
         return tile.getWaterLevel(x, y); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int getHighestWaterLevel() {
+        return tile.getHighestWaterLevel();
     }
 
     @Override
@@ -126,6 +142,11 @@ public class RODelegatingTile extends Tile {
     }
 
     @Override
+    public Map<Layer, Integer> getLayersAt(int x, int y) {
+        return tile.getLayersAt(x, y);
+    }
+
+    @Override
     public float getDistanceToEdge(Layer layer, int x, int y, float maxDistance) {
         return tile.getDistanceToEdge(layer, x, y, maxDistance); //To change body of generated methods, choose Tools | Templates.
     }
@@ -137,6 +158,11 @@ public class RODelegatingTile extends Tile {
 
     @Override
     public void clearLayerData(Layer layer) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void clearLayerData(int x, int y, Set<Layer> excludedLayers) {
         throw new UnsupportedOperationException();
     }
 
@@ -197,6 +223,11 @@ public class RODelegatingTile extends Tile {
 
     @Override
     void ensureAllReadable() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    void convertBiomeData() {
         throw new UnsupportedOperationException();
     }
 
