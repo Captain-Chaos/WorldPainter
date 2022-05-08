@@ -46,6 +46,7 @@ import static org.pepsoft.worldpainter.util.MaterialUtils.gatherBlocksWithoutIds
  *
  * @author pepijn
  */
+@SuppressWarnings({"unused", "FieldCanBeLocal", "rawtypes", "Convert2Lambda", "Anonymous2MethodRef"}) // Managed by NetBeans
 public class ExportWorldDialog extends WorldPainterDialog {
     /** Creates new form ExportWorldDialog */
     public ExportWorldDialog(java.awt.Frame parent, World2 world, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, WorldPainter view) {
@@ -82,8 +83,6 @@ public class ExportWorldDialog extends WorldPainterDialog {
             }
         }
         fieldName.setText(world.getName());
-
-        nameOnlyMaterials = gatherBlocksWithoutIds(world, platform);
 
         surfacePropertiesEditor.setColourScheme(colourScheme);
         surfacePropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
@@ -191,9 +190,11 @@ public class ExportWorldDialog extends WorldPainterDialog {
      * @param platform The platform to check for compatibility.
      * @return {@code true} is the platform is compatible with the loaded world.
      */
+    @SuppressWarnings("HtmlRequiredLangAttribute") // Not real HTML
     private boolean checkCompatibility(Platform platform) {
+        final Map<String, Set<String>> nameOnlyMaterials = gatherBlocksWithoutIds(world, platform);
         if ((! nameOnlyMaterials.isEmpty()) && (! platform.capabilities.contains(NAME_BASED))) {
-            StringBuilder sb = new StringBuilder();
+            final StringBuilder sb = new StringBuilder();
             sb.append("<html>");
             sb.append("<p>The world cannot be exported in format ").append(platform.displayName).append(" because it contains the following incompatible block types:");
             sb.append("<table><tr><th align='left'>Block Type</th><th align='left'>Source</th></tr>");
@@ -238,10 +239,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
             JOptionPane.showMessageDialog(this, "No tiles have been selected for export.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        Platform platform = world.getPlatform();
-        if (! checkCompatibility(platform)) {
-            return;
-        }
+        final Platform platform = world.getPlatform();
 
         // Check for warnings
         StringBuilder sb = new StringBuilder("<html>Please confirm that you want to export the world<br>notwithstanding the following warnings:<br><ul>");
@@ -347,6 +345,9 @@ public class ExportWorldDialog extends WorldPainterDialog {
         }
 
         if (! saveDimensionSettings()) {
+            return;
+        }
+        if (! checkCompatibility(platform)) {
             return;
         }
 
@@ -768,14 +769,10 @@ public class ExportWorldDialog extends WorldPainterDialog {
             fieldDirectory.setText(exportDir.getAbsolutePath());
         }
 
-        nameOnlyMaterials = gatherBlocksWithoutIds(world, newPlatform);
-
         checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
 
         dimensionPropertiesEditors.forEach((dim, editor) -> editor.setPlatform(newPlatform));
 
-        // Otherwise the JComboBox malfunctions:
-        SwingUtilities.invokeLater(() -> buttonExport.setEnabled(checkCompatibility(newPlatform)));
         pack();
         setControlStates();
     }
@@ -838,7 +835,6 @@ public class ExportWorldDialog extends WorldPainterDialog {
     private int selectedDimension;
     private Set<Point> selectedTiles;
     private boolean disableTileSelectionWarning, disableDisabledLayersWarning;
-    private Map<String, Set<String>> nameOnlyMaterials;
 
     private static final long serialVersionUID = 1L;
 }
