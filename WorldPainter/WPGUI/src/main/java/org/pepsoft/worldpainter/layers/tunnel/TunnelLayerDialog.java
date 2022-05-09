@@ -12,6 +12,7 @@ import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 import org.pepsoft.worldpainter.layers.plants.PlantLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode;
+import org.pepsoft.worldpainter.themes.JSpinnerTableCellEditor;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -127,6 +128,9 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
 
     @Override
     protected void ok() {
+        if (tableFloorLayers.isEditing()) {
+            tableFloorLayers.getCellEditor().stopCellEditing();
+        }
         saveSettingsTo(layer, true);
         super.ok();
     }
@@ -215,7 +219,13 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             floorLayersTableModel = new TunnelLayersTableModel(floorLayers, minHeight, maxHeight);
             tableFloorLayers.setModel(floorLayersTableModel);
             tableFloorLayers.getColumnModel().getColumn(COLUMN_NAME).setCellRenderer(new LayerTableCellRenderer());
+            SpinnerModel tableFloorSpinnerModel = new SpinnerNumberModel(50, 0, 100, 1);
+            tableFloorLayers.getColumnModel().getColumn(COLUMN_INTENSITY).setCellEditor(new JSpinnerTableCellEditor(tableFloorSpinnerModel));
             tableFloorLayers.getColumnModel().getColumn(COLUMN_VARIATION).setCellRenderer(new NoiseSettingsTableCellRenderer());
+            tableFloorSpinnerModel = new SpinnerNumberModel(minHeight, minHeight, maxHeight - 1, 1);
+            tableFloorLayers.getColumnModel().getColumn(COLUMN_MIN_LEVEL).setCellEditor(new JSpinnerTableCellEditor(tableFloorSpinnerModel));
+            tableFloorSpinnerModel = new SpinnerNumberModel(maxHeight - 1, minHeight, maxHeight - 1, 1);
+            tableFloorLayers.getColumnModel().getColumn(COLUMN_MAX_LEVEL).setCellEditor(new JSpinnerTableCellEditor(tableFloorSpinnerModel));
 
             List<TunnelLayer.LayerSettings> roofLayers = layer.getRoofLayers();
             roofLayersTableModel = new TunnelLayersTableModel(roofLayers, minHeight, maxHeight);

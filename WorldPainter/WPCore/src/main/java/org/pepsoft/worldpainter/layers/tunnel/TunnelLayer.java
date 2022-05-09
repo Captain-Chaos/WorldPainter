@@ -5,7 +5,6 @@
  */
 package org.pepsoft.worldpainter.layers.tunnel;
 
-import org.pepsoft.minecraft.Constants;
 import org.pepsoft.worldpainter.HeightTransform;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.MixedMaterialManager;
@@ -352,6 +351,11 @@ public class TunnelLayer extends CustomLayer {
     public enum Mode { FIXED_HEIGHT, CONSTANT_DEPTH, INVERTED_DEPTH }
     
     public static class LayerSettings implements Serializable, Cloneable {
+        public LayerSettings(int minLevel, int maxLevel) {
+            this.minLevel = minLevel;
+            this.maxLevel = maxLevel;
+        }
+
         public Layer getLayer() {
             return layer;
         }
@@ -429,7 +433,7 @@ public class TunnelLayer extends CustomLayer {
         /**
          * The minimum and maximum heights at which the layer should be applied.
          */
-        private int minLevel = 0, maxLevel = Constants.DEFAULT_MAX_HEIGHT_ANVIL - 1;
+        private int minLevel, maxLevel;
 
         /**
          * Whether this layer should be inverted on export. Only applies to roof layers.
