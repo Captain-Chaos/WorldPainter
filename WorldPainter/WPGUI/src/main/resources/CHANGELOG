@@ -1,5 +1,6 @@
 -- Version 2.10.0, released ...
 
+ * WorldPainter now has a merch store! Go to https://www.worldpainter.net/store/merch to support WorldPainter development
  * The Custom Caves/Tunnel layer now supports roof layers in addition to floor layers. Note that the roof layers are inverted. This includes Custom Objects. A future version will make this inversion optional for Custom Object layers
  * The variation of Custom Caves/Tunnel floor and roof layers can now be configured, so that they are not applied with the same intensity everywhere but can vary randomly
  * All known Minecraft 1.18 materials and material properties have been added the the custom material selector, so they can be more easily used in Custom Terrains, Custom Materials, etc...
