@@ -24,7 +24,7 @@ import java.util.Map;
  * @author SchmitzP
  */
 public class TunnelLayersTableModel implements TableModel {
-    public TunnelLayersTableModel(List<TunnelLayer.LayerSettings> settings, int minHeight, int minHeight, int maxHeight) {
+    public TunnelLayersTableModel(List<TunnelLayer.LayerSettings> settings, int minHeight, int maxHeight) {
         this.minHeight = minHeight;
         this.maxHeight = maxHeight;
         if (settings != null) {
