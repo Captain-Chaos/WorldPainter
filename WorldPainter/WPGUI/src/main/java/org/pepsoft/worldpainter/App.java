@@ -98,6 +98,7 @@ import static com.jidesoft.docking.DockContext.DOCK_SIDE_WEST;
 import static com.jidesoft.docking.DockableFrame.*;
 import static java.awt.event.KeyEvent.*;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toSet;
 import static javax.swing.JOptionPane.*;
 import static org.pepsoft.minecraft.Constants.*;
@@ -164,7 +165,7 @@ public final class App extends JFrame implements RadiusControl,
         getRootPane().putClientProperty(KEY_HELP_KEY, "Main");
 
         hiddenLayers.add(Biome.INSTANCE);
-        view.addHiddenLayer(Biome.INSTANCE);
+        view.setHiddenLayers(singleton(Biome.INSTANCE));
         
         // Initialize various things
         customBiomeManager.addListener(this);
@@ -460,6 +461,7 @@ public final class App extends JFrame implements RadiusControl,
                 List<CustomLayer> customLayers = new ArrayList<>();
                 boolean visibleLayersChanged = false;
                 for (Palette palette: paletteManager.clear()) {
+                    palette.removePropertyChangeListener(this);
                     List<CustomLayer> paletteLayers = palette.getLayers();
                     customLayers.addAll(paletteLayers);
                     for (Layer layer: paletteLayers) {
@@ -1178,6 +1180,8 @@ public final class App extends JFrame implements RadiusControl,
             if (evt.getPropertyName().equals("platform")) {
                 doOnEventThread(this::configureForPlatform);
             }
+        } else if ((evt.getSource() instanceof Palette) && (evt.getPropertyName().equals("show") || evt.getPropertyName().equals("solo"))){
+            updateLayerVisibility();
         }
     }
 
@@ -3551,6 +3555,7 @@ public final class App extends JFrame implements RadiusControl,
             if (activate) {
                 dockingManager.activateFrame(palette.getDockableFrame().getKey());
             }
+            palette.addPropertyChangeListener(this);
         } else {
             validate();
         }
@@ -3569,6 +3574,7 @@ public final class App extends JFrame implements RadiusControl,
 
         // If the palette is now empty, remove it too
         if (palette.isEmpty()) {
+            palette.removePropertyChangeListener(this);
             paletteManager.delete(palette);
             dockingManager.removeFrame(palette.getDockableFrame().getKey());
         }
@@ -3818,6 +3824,7 @@ public final class App extends JFrame implements RadiusControl,
             dockingManager.dockFrame(destPalette.getDockableFrame().getKey(), DockContext.DOCK_SIDE_WEST, 3);
             moveLayerToPalette(layer, destPalette);
             dockingManager.activateFrame(destPalette.getDockableFrame().getKey());
+            destPalette.addPropertyChangeListener(this);
         }
     }
 
@@ -3825,6 +3832,7 @@ public final class App extends JFrame implements RadiusControl,
         Palette srcPalette = paletteManager.move(layer, destPalette);
         if (srcPalette.isEmpty()) {
             dockingManager.removeFrame(srcPalette.getDockableFrame().getKey());
+            srcPalette.removePropertyChangeListener(this);
             paletteManager.delete(srcPalette);
         }
         validate();
@@ -5125,9 +5133,6 @@ public final class App extends JFrame implements RadiusControl,
      * Configure the view to show the correct layers
      */
     private void updateLayerVisibility() {
-        // Get the currently hidden layers
-        Set<Layer> viewHiddenLayers = view.getHiddenLayers();
-        
         // Determine which layers should be hidden
         Set<Layer> targetHiddenLayers = new HashSet<>();
         // The FloodWithLava layer should *always* be hidden
@@ -5141,9 +5146,30 @@ public final class App extends JFrame implements RadiusControl,
             targetHiddenLayers.addAll(hiddenLayers);
             targetHiddenLayers.remove(soloLayer);
         } else {
-            // The layers marked as hidden should be invisible, except the
-            // currently active one, if any
-            targetHiddenLayers.addAll(hiddenLayers);
+            Palette soloPalette = null;
+            for (Palette palette: paletteManager.getPalettes()) {
+                if (palette.isSolo()) {
+                    soloPalette = palette;
+                    break;
+                }
+            }
+            if (soloPalette != null) {
+                // Only the layers on the solo palette and the active layer (if there is one and it is different than
+                // the solo layer) should be visible
+                targetHiddenLayers.addAll((dimension != null) ? dimension.getAllLayers(true) : new HashSet<>(layers));
+                soloPalette.getLayers().forEach(targetHiddenLayers::remove);
+                // Put in the currently hidden layers as well, as some of them might be on the solo palette and we still
+                // want to hide those
+                targetHiddenLayers.addAll(hiddenLayers);
+            } else {
+                // The layers marked as hidden should be invisible, except the currently active one, if any
+                targetHiddenLayers.addAll(hiddenLayers);
+                for (Palette palette: paletteManager.getPalettes()) {
+                    if (! palette.isShow()) {
+                        targetHiddenLayers.addAll(palette.getLayers());
+                    }
+                }
+            }
         }
         // The currently active layer, if any, should always be visible
         if (activeOperation instanceof PaintOperation) {
@@ -5160,13 +5186,8 @@ public final class App extends JFrame implements RadiusControl,
         targetHiddenLayers.remove(SelectionChunk.INSTANCE);
         
         // Hide the selected layers
-        targetHiddenLayers.stream()
-                .filter(hiddenLayer -> ! viewHiddenLayers.contains(hiddenLayer))
-                .forEach(view::addHiddenLayer);
-        viewHiddenLayers.stream()
-                .filter(hiddenLayer -> ! targetHiddenLayers.contains(hiddenLayer))
-                .forEach(view::removeHiddenLayer);
-        
+        view.setHiddenLayers(targetHiddenLayers);
+
         // Configure the glass pane to show the right icons
         glassPane.setHiddenLayers(hiddenLayers);
         glassPane.setSoloLayer(soloLayer);

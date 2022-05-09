@@ -260,11 +260,11 @@ public class TileSelector extends javax.swing.JPanel {
         viewer.refresh();
     }
 
-    public Collection<Layer> getHiddenLayers() {
+    public Set<Layer> getHiddenLayers() {
         return hiddenLayers;
     }
 
-    public void setHiddenLayers(Collection<Layer> hiddenLayers) {
+    public void setHiddenLayers(Set<Layer> hiddenLayers) {
         this.hiddenLayers = hiddenLayers;
     }
 
@@ -492,7 +492,7 @@ public class TileSelector extends javax.swing.JPanel {
     private final List<Listener> listeners = new ArrayList<>();
     private Dimension dimension;
     private ColourScheme colourScheme;
-    private Collection<Layer> hiddenLayers;
+    private Set<Layer> hiddenLayers;
     private int contourSeparation = 10;
     private boolean contourLines, allowNonExistentTileSelection = false;
     private TileRenderer.LightOrigin lightOrigin;

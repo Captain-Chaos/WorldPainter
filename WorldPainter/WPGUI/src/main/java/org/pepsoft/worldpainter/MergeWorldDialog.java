@@ -29,7 +29,10 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
@@ -43,7 +46,7 @@ import static org.pepsoft.worldpainter.util.BackupUtils.cleanUpBackups;
 // TODO: add support for multiple dimensions
 public class MergeWorldDialog extends WorldPainterDialog {
     /** Creates new form ExportWorldDialog */
-    public MergeWorldDialog(Window parent, World2 world, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, WorldPainter view) {
+    public MergeWorldDialog(Window parent, World2 world, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Set<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, WorldPainter view) {
         super(parent);
         this.world = world;
         this.colourScheme = colourScheme;
@@ -821,7 +824,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
 
     private final World2 world;
     private final ColourScheme colourScheme;
-    private final Collection<Layer> hiddenLayers;
+    private final Set<Layer> hiddenLayers;
     private final boolean contourLines;
     private final int contourSeparation;
     private final TileRenderer.LightOrigin lightOrigin;

@@ -1,9 +1,16 @@
 -- Version 2.10.0, released ...
 
  * WorldPainter now has a merch store! Go to https://www.worldpainter.net/store/merch to support WorldPainter development
- * The Custom Caves/Tunnel layer now supports roof layers in addition to floor layers. Note that the roof layers are inverted. This includes Custom Objects. A future version will make this inversion optional for Custom Object layers
- * The variation of Custom Caves/Tunnel floor and roof layers can now be configured, so that they are not applied with the same intensity everywhere but can vary randomly
+ * Custom Caves/Tunnel layer new functionality:
+   + The Custom Caves/Tunnel layer now supports roof layers in addition to floor layers. Note that the roof layers are inverted. This includes Custom Objects. A future version will make this inversion optional for Custom Object layers
+   + The variation of Custom Caves/Tunnel floor and roof layers can now be configured, so that they are not applied with the same intensity everywhere but can vary randomly
  * All known Minecraft 1.18 materials and material properties have been added the the custom material selector, so they can be more easily used in Custom Terrains, Custom Materials, etc...
+ * Custom Layer palettes now have a "show" and "solo" checkbox for the entire palette, making it a little easier to show or hide entire categories of layers:
+   + Unchecking "show" will hide all the layers from that palette from the editor view. It will be indicated by changing the palette icon to a red cross
+   + Checking "solo" will only show the layers from that palette in the editor view. If will be indicated by changing the palette icon to a green checkmark. Soloing takes precedence over turning off "show"
+   + Just like with showing or soloing individual layers, all the layers will still be Exported
+   + Soloing a single layer takes precedence over soloing a palette
+   + If you have a paint tool selected, the currently selected paint is always shown, regardless of the show and solo settings
  * WorldPainter now calculates the "distance" property of leaf blocks while Exporting. This may help prevent leaf blocks that should not decay from decaying in-game. This can be turned off on the Post Processing tab
    + WorldPainter can also automatically remove leaf blocks that are too distant (and not persistent) and would decay in Minecraft. This is turned off by default but can be turned on on the Post Processing tab
    + There is also an option to make all leaf blocks persistent (even those placed by the WorldPainter tree layers or in other ways which are normally not persistent)
