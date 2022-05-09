@@ -339,6 +339,9 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     }
 
     private void removeFloorLayers() {
+        if (tableFloorLayers.isEditing()) {
+            tableFloorLayers.getCellEditor().stopCellEditing();
+        }
         int[] selectedRows = tableFloorLayers.getSelectedRows();
         for (int i = selectedRows.length - 1; i >= 0; i--) {
             floorLayersTableModel.removeLayer(selectedRows[i]);
@@ -346,6 +349,9 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     }
 
     private void removeRoofLayers() {
+        if (tableRoofLayers.isEditing()) {
+            tableRoofLayers.getCellEditor().stopCellEditing();
+        }
         int[] selectedRows = tableRoofLayers.getSelectedRows();
         for (int i = selectedRows.length - 1; i >= 0; i--) {
             roofLayersTableModel.removeLayer(selectedRows[i]);
