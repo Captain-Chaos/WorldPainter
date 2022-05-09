@@ -131,6 +131,9 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         if (tableFloorLayers.isEditing()) {
             tableFloorLayers.getCellEditor().stopCellEditing();
         }
+        if (tableRoofLayers.isEditing()) {
+            tableRoofLayers.getCellEditor().stopCellEditing();
+        }
         saveSettingsTo(layer, true);
         super.ok();
     }
@@ -219,19 +222,25 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             floorLayersTableModel = new TunnelLayersTableModel(floorLayers, minHeight, maxHeight);
             tableFloorLayers.setModel(floorLayersTableModel);
             tableFloorLayers.getColumnModel().getColumn(COLUMN_NAME).setCellRenderer(new LayerTableCellRenderer());
-            SpinnerModel tableFloorSpinnerModel = new SpinnerNumberModel(50, 0, 100, 1);
-            tableFloorLayers.getColumnModel().getColumn(COLUMN_INTENSITY).setCellEditor(new JSpinnerTableCellEditor(tableFloorSpinnerModel));
+            SpinnerModel spinnerModel = new SpinnerNumberModel(50, 0, 100, 1);
+            tableFloorLayers.getColumnModel().getColumn(COLUMN_INTENSITY).setCellEditor(new JSpinnerTableCellEditor(spinnerModel));
             tableFloorLayers.getColumnModel().getColumn(COLUMN_VARIATION).setCellRenderer(new NoiseSettingsTableCellRenderer());
-            tableFloorSpinnerModel = new SpinnerNumberModel(minHeight, minHeight, maxHeight - 1, 1);
-            tableFloorLayers.getColumnModel().getColumn(COLUMN_MIN_LEVEL).setCellEditor(new JSpinnerTableCellEditor(tableFloorSpinnerModel));
-            tableFloorSpinnerModel = new SpinnerNumberModel(maxHeight - 1, minHeight, maxHeight - 1, 1);
-            tableFloorLayers.getColumnModel().getColumn(COLUMN_MAX_LEVEL).setCellEditor(new JSpinnerTableCellEditor(tableFloorSpinnerModel));
+            spinnerModel = new SpinnerNumberModel(minHeight, minHeight, maxHeight - 1, 1);
+            tableFloorLayers.getColumnModel().getColumn(COLUMN_MIN_LEVEL).setCellEditor(new JSpinnerTableCellEditor(spinnerModel));
+            spinnerModel = new SpinnerNumberModel(maxHeight - 1, minHeight, maxHeight - 1, 1);
+            tableFloorLayers.getColumnModel().getColumn(COLUMN_MAX_LEVEL).setCellEditor(new JSpinnerTableCellEditor(spinnerModel));
 
             List<TunnelLayer.LayerSettings> roofLayers = layer.getRoofLayers();
             roofLayersTableModel = new TunnelLayersTableModel(roofLayers, minHeight, maxHeight);
             tableRoofLayers.setModel(roofLayersTableModel);
             tableRoofLayers.getColumnModel().getColumn(COLUMN_NAME).setCellRenderer(new LayerTableCellRenderer());
+            spinnerModel = new SpinnerNumberModel(50, 0, 100, 1);
+            tableRoofLayers.getColumnModel().getColumn(COLUMN_INTENSITY).setCellEditor(new JSpinnerTableCellEditor(spinnerModel));
             tableRoofLayers.getColumnModel().getColumn(COLUMN_VARIATION).setCellRenderer(new NoiseSettingsTableCellRenderer());
+            spinnerModel = new SpinnerNumberModel(minHeight, minHeight, maxHeight - 1, 1);
+            tableRoofLayers.getColumnModel().getColumn(COLUMN_MIN_LEVEL).setCellEditor(new JSpinnerTableCellEditor(spinnerModel));
+            spinnerModel = new SpinnerNumberModel(maxHeight - 1, minHeight, maxHeight - 1, 1);
+            tableRoofLayers.getColumnModel().getColumn(COLUMN_MAX_LEVEL).setCellEditor(new JSpinnerTableCellEditor(spinnerModel));
 
             if (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) {
                 comboBoxBiome.setSelectedItem(layer.getTunnelBiome());
