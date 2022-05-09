@@ -1,3 +1,11 @@
+-- Version 2.9.7, released 9-5-2022
+
+ * Allow Custom Cave/Tunnel floor layer minimum levels to go below zero
+
+-- Version 2.9.6, released 9-5-2022
+
+ * Bug fix: fix a regression in the Minecraft 1.17 support that was generating invalid datapacks for deviating build heights
+
 -- Version 2.9.5, released 6-5-2022
 
  * The Moss Block material is now considered a solid block, rather than insubstantial vegetation
