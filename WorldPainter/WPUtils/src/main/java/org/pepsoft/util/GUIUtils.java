@@ -278,6 +278,6 @@ public class GUIUtils {
                 UI_SCALE_FLOAT = SYSTEM_UI_SCALE_FLOAT;
             }
         }
-        UI_SCALE = Math.min(round(UI_SCALE_FLOAT), 1);
+        UI_SCALE = Math.max(round(UI_SCALE_FLOAT), 1);
     }
 }
