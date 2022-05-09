@@ -1,5 +1,6 @@
 package org.pepsoft.util;
 
+import org.pepsoft.worldpainter.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -270,7 +271,7 @@ public class GUIUtils {
             logger.info("[SAFE MODE] Not scaling GUI");
             UI_SCALE_FLOAT = 1.0f;
         } else {
-            float manualUIScale = Preferences.userNodeForPackage(GUIUtils.class).getFloat("manualUIScale", -1.0f);
+            float manualUIScale = Preferences.userNodeForPackage(GUIUtils.class).getFloat((Version.isSnapshot() ? "snapshot." : "") + "manualUIScale", -1.0f);
             if (manualUIScale > 0.0f) {
                 UI_SCALE_FLOAT = manualUIScale;
             } else {

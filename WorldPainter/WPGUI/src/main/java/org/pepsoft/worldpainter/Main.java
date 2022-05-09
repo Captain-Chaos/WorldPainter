@@ -168,13 +168,14 @@ public class Main {
 
         // If the config file does not exist, also reset the persistent settings that are not stored in that, since the
         // user may be trying to reset the configuration
+        final boolean snapshot = Version.isSnapshot();
         if (! Configuration.getConfigFile().isFile()) {
             try {
                 Preferences prefs = Preferences.userNodeForPackage(Main.class);
-                prefs.remove("accelerationType");
+                prefs.remove((snapshot ? "snapshot." : "") + "accelerationType");
                 prefs.flush();
                 prefs = Preferences.userNodeForPackage(GUIUtils.class);
-                prefs.remove("manualUIScale");
+                prefs.remove((snapshot ? "snapshot." : "") + "manualUIScale");
                 prefs.flush();
             } catch (BackingStoreException e) {
                 logger.error("Error resetting user preferences", e);
@@ -184,7 +185,7 @@ public class Main {
         // Set the acceleration mode. For some reason we don't fully understand, loading the Configuration from disk
         // initialises Java2D, so we have to do this *before* then.
         AccelerationType accelerationType;
-        String accelTypeName = Preferences.userNodeForPackage(Main.class).get("accelerationType", null);
+        String accelTypeName = Preferences.userNodeForPackage(Main.class).get((snapshot ? "snapshot." : "") + "accelerationType", null);
         if (accelTypeName != null) {
             accelerationType = AccelerationType.valueOf(accelTypeName);
         } else {
@@ -360,10 +361,10 @@ public class Main {
                     // Store the acceleration type and manual GUI scale separately, because we need them before we can
                     // load the config:
                     Preferences prefs = Preferences.userNodeForPackage(Main.class);
-                    prefs.put("accelerationType", config.getAccelerationType().name());
+                    prefs.put((snapshot ? "snapshot." : "") + "accelerationType", config.getAccelerationType().name());
                     prefs.flush();
                     prefs = Preferences.userNodeForPackage(GUIUtils.class);
-                    prefs.putFloat("manualUIScale", config.getUiScale());
+                    prefs.putFloat((snapshot ? "snapshot." : "") + "manualUIScale", config.getUiScale());
                     prefs.flush();
                 } catch (IOException e) {
                     logger.error("I/O error saving configuration", e);
