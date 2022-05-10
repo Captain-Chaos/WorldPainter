@@ -19,7 +19,7 @@ class ProgressHelperJava9 extends ProgressHelper {
         if (! enabled) {
             return;
         }
-        if ((errorStates.get(window) != null) && errorStates.get(window)) {
+        if (errorStates.getOrDefault(window, false)) {
             return;
         }
         Taskbar.getTaskbar().setWindowProgressValue(window, percentage);
@@ -39,7 +39,7 @@ class ProgressHelperJava9 extends ProgressHelper {
         if (! enabled) {
             return;
         }
-        if ((errorStates.get(window) != null) && errorStates.get(window)) {
+        if (errorStates.getOrDefault(window, false)) {
             return;
         } else {
             errorStates.put(window, true);
