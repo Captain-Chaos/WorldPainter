@@ -4,7 +4,6 @@
  */
 package org.pepsoft.worldpainter.importing;
 
-import com.google.common.collect.ImmutableSet;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.minecraft.ChunkStore.ChunkVisitor;
 import org.pepsoft.util.LongAttributeKey;
@@ -29,16 +28,16 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.Collections.singleton;
 import static java.util.Collections.synchronizedMap;
 import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
 import static org.pepsoft.worldpainter.importing.MapImporter.ReadOnlyOption.*;
+import static org.pepsoft.worldpainter.platforms.PlatformUtils.determineNativePlatforms;
 import static org.pepsoft.worldpainter.util.ChunkUtils.skipChunk;
 
 /**
@@ -437,26 +436,6 @@ public class JavaMapImporter extends MapImporter {
                     }
 
                     return true;
-                }
-
-                // TODO make this dynamic
-                private Set<Platform> determineNativePlatforms(Chunk chunk) {
-                    if (chunk instanceof MCRegionChunk) {
-                        return singleton(JAVA_MCREGION);
-                    } else if (chunk instanceof MC12AnvilChunk) {
-                        return singleton(JAVA_ANVIL);
-                    } else if (chunk instanceof MC115AnvilChunk) {
-                        if (((MC115AnvilChunk) chunk).getInputDataVersion() > DATA_VERSION_MC_1_16_5) {
-                            return singleton(JAVA_ANVIL_1_17);
-                        } else {
-                            // These chunks could have been created by WorldPainter with platform 1.17, so return both
-                            return ImmutableSet.of(JAVA_ANVIL_1_15, JAVA_ANVIL_1_17);
-                        }
-                    } else if (chunk instanceof MC118AnvilChunk) {
-                        return singleton(JAVA_ANVIL_1_18);
-                    } else {
-                        return null;
-                    }
                 }
 
                 @Override

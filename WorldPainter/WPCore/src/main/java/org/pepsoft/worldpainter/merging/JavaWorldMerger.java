@@ -27,9 +27,9 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.DataType.REGION;
 import static org.pepsoft.minecraft.Material.*;
@@ -37,6 +37,7 @@ import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.LEAF_DISTANCES;
 import static org.pepsoft.worldpainter.Platform.Capability.PRECALCULATED_LIGHT;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
+import static org.pepsoft.worldpainter.platforms.PlatformUtils.determineNativePlatforms;
 
 /**
  *
@@ -329,7 +330,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         default:
                             return Integer.toString(dim);
                     }
-                }).collect(Collectors.joining(", "));
+                }).collect(joining(", "));
             world.addHistoryEntry(HistoryEntry.WORLD_MERGED_PARTIAL, level.getName(), worldDir, dimNames);
         }
         final File levelDatFile = new File(worldDir, "level.dat");
@@ -1088,11 +1089,17 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     if (existingChunk != null) {
                         if (newChunk != null) {
                             // Chunk exists in existing and new world; merge it
-                            // Do any necessary processing of the existing chunk
-                            // (clearing trees, etc.) No need to check for
-                            // read-only; if the chunk was read-only it
-                            // wouldn't exist in the new map and we wouldn't
-                            // be here
+                            final Set<Platform> chunkNativePlatforms = determineNativePlatforms(existingChunk);
+                            if ((chunkNativePlatforms != null) && (! chunkNativePlatforms.contains(platform))) {
+                                throw new InvalidMapException("At least one of the existing chunks to be merged is in a different format (" + chunkNativePlatforms.stream().map(p -> p.displayName).collect(joining(" or ")) + ").\n" +
+                                        "Please use the Optimize function in Minecraft to convert the map fully to the current format.\n" +
+                                        "\n" +
+                                        "The partially processed map is now probably corrupted.\n" +
+                                        "You should replace it from the backup at " + oldRegionDir.getParent() + ".");
+                            }
+                            // Do any necessary processing of the existing chunk (clearing trees, etc.) No need to check
+                            // for read-only; if the chunk was read-only it wouldn't exist in the new map and we
+                            // wouldn't be here
                             processExistingChunk(existingChunk);
                             try {
                                 mergeChunk(existingChunk, newChunk, dimension);
