@@ -1175,13 +1175,28 @@ public final class App extends JFrame implements RadiusControl,
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if (evt.getSource() == world) {
-            lastChangeTimestamp = System.currentTimeMillis();
-            if (evt.getPropertyName().equals("platform")) {
-                doOnEventThread(this::configureForPlatform);
+        if (programmaticChange) {
+            return;
+        }
+        programmaticChange = true;
+        try {
+            if (evt.getSource() == world) {
+                lastChangeTimestamp = System.currentTimeMillis();
+                if (evt.getPropertyName().equals("platform")) {
+                    doOnEventThread(this::configureForPlatform);
+                }
+            } else if ((evt.getSource() instanceof Palette) && (evt.getPropertyName().equals("show") || evt.getPropertyName().equals("solo"))) {
+                if (evt.getPropertyName().equals("solo") && evt.getNewValue() == Boolean.TRUE) {
+                    for (Palette palette: paletteManager.getPalettes()) {
+                        if ((palette != evt.getSource()) && palette.isSolo()) {
+                            palette.setSolo(false);
+                        }
+                    }
+                }
+                updateLayerVisibility();
             }
-        } else if ((evt.getSource() instanceof Palette) && (evt.getPropertyName().equals("show") || evt.getPropertyName().equals("solo"))){
-            updateLayerVisibility();
+        } finally {
+            programmaticChange = false;
         }
     }
 

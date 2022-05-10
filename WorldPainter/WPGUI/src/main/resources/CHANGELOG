@@ -7,7 +7,7 @@
  * All known Minecraft 1.18 materials and material properties have been added the the custom material selector, so they can be more easily used in Custom Terrains, Custom Materials, etc...
  * Custom Layer palettes now have a "show" and "solo" checkbox for the entire palette, making it a little easier to show or hide entire categories of layers:
    + Unchecking "show" will hide all the layers from that palette from the editor view. It will be indicated by changing the palette icon to a red cross
-   + Checking "solo" will only show the layers from that palette in the editor view. If will be indicated by changing the palette icon to a green checkmark. Soloing takes precedence over turning off "show"
+   + Checking "solo" will only show the layers from that palette in the editor view. If will be indicated by changing the palette icon to a green checkmark. Soloing takes precedence over turning off "show". Only one palette can be soloed at a time
    + Just like with showing or soloing individual layers, all the layers will still be Exported
    + Soloing a single layer takes precedence over soloing a palette
    + If you have a paint tool selected, the currently selected paint is always shown, regardless of the show and solo settings
