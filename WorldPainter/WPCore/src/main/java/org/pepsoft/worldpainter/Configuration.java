@@ -1245,7 +1245,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     @Deprecated
     private Map<Platform, File> exportDirectories;
     private boolean autosaveEnabled = true;
-    private int autosaveDelay = 10000, autosaveInterval = 300000; // Ten seconds delay; five minutes interval
+    private int autosaveDelay = 60000, autosaveInterval = 600000; // One minute delay; ten minutes interval
     private String defaultPlatformId = DEFAULT_PLATFORM.id;
     private Map<String, File> exportDirectoriesById = new HashMap<>();
     private boolean snapshotWarningDisplayed;
