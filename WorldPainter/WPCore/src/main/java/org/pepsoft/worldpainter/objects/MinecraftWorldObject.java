@@ -14,6 +14,7 @@ import org.pepsoft.util.AttributeKey;
 import org.pepsoft.util.Box;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+import org.pepsoft.worldpainter.exporting.VirtualChunk;
 
 import javax.vecmath.Point3i;
 import java.io.Serializable;
@@ -25,23 +26,17 @@ import static org.pepsoft.minecraft.Constants.BLK_AIR;
 import static org.pepsoft.minecraft.Material.AIR;
 
 /**
- * A memory only combination of {@link MinecraftWorld} and {@link WPObject},
- * allowing to render worlds and layers to it and then treat it as an object,
- * for instance for generating previews. As such it does not support entities,
- * tile entities, lighting information, etc., just basic block info. Trying to
- * use the unsupported features will fail silently, except for the chunk related
- * operations, which will throw an {@link UnsupportedOperationException}. The
- * exception is adding chunks, which works by copying the block data over.
+ * A memory only combination of {@link MinecraftWorld} and {@link WPObject}, allowing to render worlds and layers to it
+ * and then treat it as an object, for instance for generating previews. As such it does not support entities, tile
+ * entities, lighting information, etc., just basic block info. Trying to use the unsupported features will fail
+ * silently.
  * 
- * <p>For the {@code MinecraftWorld} interface the supported coordinates
- * are those specified by the {@code volume} parameter. For the
- * {@code WPObject} interface, the coordinates are translated so that the
- * lower north west corner is at 0,0,0. In other words, the
- * {@code WPObject} has no offset and all the coordinates are positive.
+ * <p>For the {@code MinecraftWorld} interface the supported coordinates are those specified by the {@code volume}
+ * parameter. For the {@code WPObject} interface, the coordinates are translated so that the lower north west corner is
+ * at 0,0,0. In other words, the {@code WPObject} has no offset and all the coordinates are positive.
  *
- * <p>An offset may in fact be specified but it has no effect on the coordinates
- * used by this object; it is purely meant to communicate to a consumer of the
- * {@code WPObject} that the object should be shifted when placed.
+ * <p>An offset may in fact be specified but it has no effect on the coordinates used by this object; it is purely meant
+ * to communicate to a consumer of the {@code WPObject} that the object should be shifted when placed.
  * 
  * @author SchmitzP
  */
@@ -261,12 +256,12 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
 
     @Override
     public Chunk getChunk(int x, int z) {
-        throw new UnsupportedOperationException("Not supported");
+        return new VirtualChunk(this, x, z);
     }
 
     @Override
     public Chunk getChunkForEditing(int x, int z) {
-        throw new UnsupportedOperationException("Not supported");
+        return getChunk(x, z);
     }
 
     @Override
