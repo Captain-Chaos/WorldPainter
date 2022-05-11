@@ -19,7 +19,8 @@ public enum Category {
                     || material.isNamed(MC_COARSE_DIRT)
                     || material.isNamed(MC_PODZOL)
                     || material.isNamed(MC_FARMLAND)
-                    || material.isNamed(MC_ROOTED_DIRT))
+                    || material.isNamed(MC_ROOTED_DIRT)
+                    || material.isNamed(MC_MOSS_BLOCK))
                 && (! isFlooded(world, x, y, z));
         }
     },
@@ -57,7 +58,8 @@ public enum Category {
                     || material.isNamed(MC_PODZOL)
                     || material.isNamed(MC_SAND)
                     || material.isNamed(MC_RED_SAND)
-                    || material.isNamed(MC_FARMLAND))
+                    || material.isNamed(MC_FARMLAND)
+                    || material.isNamed(MC_MOSS_BLOCK))
                 && (! isFlooded(world, x, y, z))
                 && (isWatery(world, x - 1, y, z)
                     || isWatery(world, x, y - 1, z)
