@@ -57,9 +57,8 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
         int maxZ = dimension.getMaxHeight() - 1;
         for (int chunkX = area.x; chunkX < area.x + area.width; chunkX += 16) {
             for (int chunkY = area.y; chunkY < area.y + area.height; chunkY += 16) {
-                // Set the seed and randomizer according to the chunk
-                // coordinates to make sure the chunk is always rendered the
-                // same, no matter how often it is rendererd
+                // Set the seed and randomizer according to the chunk coordinates to make sure the chunk is always
+                // rendered the same, no matter how often it is rendered
                 long seed = dimension.getSeed() + (chunkX >> 4) * 65537L + (chunkY >> 4) * 4099L + layer.hashCode();
                 Random random = new Random(seed);
                 for (int x = chunkX; x < chunkX + 16; x++) {
@@ -102,19 +101,51 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
 
     @Override
     public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        final TreeLayerSettings<T> settings = (TreeLayerSettings<T>) getSettings();
+        final int treeChance = settings.getTreeChance();
+        final int maxWaterDepth = settings.getMaxWaterDepth();
+        final int layerStrengthCap = settings.getLayerStrengthCap();
+        // Set the seed and randomizer according to the location coordinates to make sure the location is always
+        // rendered the same, no matter how often it is rendered
+        final long seed = dimension.getSeed() + location.x * 65537L + location.y * 4099L + location.z + layer.hashCode();
+        final Random random = new Random(seed);
+        final int strength = intensity * 15 / 100;
+        final int cappedStrength = Math.min(strength, layerStrengthCap);
+        if ((strength > 0) && (random.nextInt(treeChance) <= (cappedStrength * cappedStrength))) {
+            final int waterDepth = dimension.getWaterLevelAt(location.x, location.y) - (location.z - 1);
+            if (waterDepth > maxWaterDepth) {
+                return null;
+            }
+            // Don't build trees on air, or in lava or water, or where there is already a solid block (from another layer)
+            final Material blockTypeUnderTree = minecraftWorld.getMaterialAt(location.x, location.y, location.z - 1);
+            final Material blockTypeAtTree = minecraftWorld.getMaterialAt(location.x, location.y, location.z);
+            if ((blockTypeUnderTree == AIR)
+                    || (blockTypeUnderTree.isNamed(MC_WATER))
+                    || (blockTypeAtTree.isNamed(MC_LAVA))
+                    || (! blockTypeAtTree.veryInsubstantial)) {
+                return null;
+            }
+            // Don't build trees directly next to each other, or
+            // where there are structures blocking the location
+            // or extremely near
+            if (room(dimension, location.x, location.y, minecraftWorld)) {
+                // Plant a tree
+                renderTree(layer, location.x, location.y, location.z - 1, strength, minecraftWorld, dimension, random, seed);
+            }
+        }
+        return null;
     }
 
     private boolean room(Dimension dimension, int x, int y, MinecraftWorld minecraftWorld) {
         return room(dimension, x, y, -1, -1, minecraftWorld)
             && room(dimension, x, y, -1,  0, minecraftWorld)
             && room(dimension, x, y, -1,  1, minecraftWorld)
-            && room(dimension, x, y,  0,  1, minecraftWorld)
+            && room(dimension, x, y,  0, -1, minecraftWorld)
             && room(dimension, x, y,  0,  0, minecraftWorld)
-            && room(dimension, x, y,  1,  1, minecraftWorld)
-            && room(dimension, x, y,  1,  0, minecraftWorld)
+            && room(dimension, x, y,  0,  1, minecraftWorld)
             && room(dimension, x, y,  1, -1, minecraftWorld)
-            && room(dimension, x, y,  0, -1, minecraftWorld);
+            && room(dimension, x, y,  1,  0, minecraftWorld)
+            && room(dimension, x, y,  1,  1, minecraftWorld);
     }
     
     private boolean room(Dimension dimension, int x, int y, int dx, int dy, MinecraftWorld minecraftWorld) {
