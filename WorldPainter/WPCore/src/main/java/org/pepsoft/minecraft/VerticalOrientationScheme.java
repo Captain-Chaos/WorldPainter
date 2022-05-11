@@ -20,7 +20,12 @@ enum VerticalOrientationScheme {
     TYPE,
 
     /**
-     * Up <em>and</em> down property containing {@code true} or {@code false}.
+     * {@code up} <em>and</em> {@code down} property containing {@code true} or {@code false}.
      */
-    UP_DOWN
+    UP_DOWN,
+
+    /**
+     * {@code vertical_direction} property containing {@code up} or {@code down}.
+     */
+    VERTICAL_DIRECTION
 }

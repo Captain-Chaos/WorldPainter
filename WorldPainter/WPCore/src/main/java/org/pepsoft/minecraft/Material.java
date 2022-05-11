@@ -680,9 +680,11 @@ public final class Material implements Serializable {
                     case TYPE:
                         return withProperty(TYPE, getProperty(TYPE).equals("top") ? "bottom" : "top");
                     case UP:
-                        return withProperty(UP, !getProperty(UP));
+                        return withProperty(UP, ! getProperty(UP));
                     case UP_DOWN:
                         return withProperty(UP, getProperty(DOWN)).withProperty(DOWN, getProperty(UP));
+                    case VERTICAL_DIRECTION:
+                        return withProperty(VERTICAL_DIRECTION, getProperty(VERTICAL_DIRECTION).equals("up") ? "down" : "up");
                     default:
                         throw new InternalError();
                 }
@@ -989,6 +991,8 @@ public final class Material implements Serializable {
             }
         } else if (identity.containsPropertyWithValues("type", "top", "bottom")) {
             return VerticalOrientationScheme.TYPE;
+        } else if (identity.containsPropertyWithValues("vertical_direction", "up", "down")) {
+            return VerticalOrientationScheme.VERTICAL_DIRECTION;
         } else {
             return null;
         }
@@ -1786,29 +1790,30 @@ public final class Material implements Serializable {
 
     // MC 1.13+ block property access helpers
 
-    public static final Property<Boolean>   SNOWY       = new Property<>(MC_SNOWY,       Boolean.class);
-    public static final Property<Boolean>   NORTH       = new Property<>(MC_NORTH,       Boolean.class);
-    public static final Property<Boolean>   EAST        = new Property<>(MC_EAST,        Boolean.class);
-    public static final Property<Boolean>   SOUTH       = new Property<>(MC_SOUTH,       Boolean.class);
-    public static final Property<Boolean>   WEST        = new Property<>(MC_WEST,        Boolean.class);
-    public static final Property<Boolean>   UP          = new Property<>(MC_UP,          Boolean.class);
-    public static final Property<Boolean>   DOWN        = new Property<>(MC_DOWN,       Boolean.class);
-    public static final Property<Integer>   LAYERS      = new Property<>(MC_LAYERS,      Integer.class);
-    public static final Property<String>    HALF        = new Property<>(MC_HALF,        String.class);
-    public static final Property<Integer>   LEVEL       = new Property<>(MC_LEVEL,       Integer.class);
-    public static final Property<Boolean>   WATERLOGGED = new Property<>(MC_WATERLOGGED, Boolean.class);
-    public static final Property<Integer>   AGE         = new Property<>(MC_AGE,         Integer.class);
-    public static final Property<Boolean>   PERSISTENT  = new Property<>(MC_PERSISTENT,  Boolean.class);
-    public static final Property<Direction> FACING      = new Property<>(MC_FACING,      Direction.class);
-    public static final Property<String>    AXIS        = new Property<>(MC_AXIS,        String.class);
-    public static final Property<String>    TYPE        = new Property<>(MC_TYPE,        String.class);
-    public static final Property<Integer>   PICKLES     = new Property<>(MC_PICKLES,     Integer.class);
-    public static final Property<Integer>   MOISTURE    = new Property<>(MC_MOISTURE,    Integer.class);
-    public static final Property<Integer>   ROTATION    = new Property<>(MC_ROTATION,    Integer.class);
-    public static final Property<String>    SHAPE       = new Property<>(MC_SHAPE,       String.class);
-    public static final Property<String>    HINGE       = new Property<>(MC_HINGE,       String.class);
-    public static final Property<Boolean>   BERRIES     = new Property<>(MC_BERRIES,     Boolean.class);
-    public static final Property<Integer>   DISTANCE    = new Property<>(MC_DISTANCE,    Integer.class);
+    public static final Property<Boolean>   SNOWY              = new Property<>(MC_SNOWY,              Boolean.class);
+    public static final Property<Boolean>   NORTH              = new Property<>(MC_NORTH,              Boolean.class);
+    public static final Property<Boolean>   EAST               = new Property<>(MC_EAST,               Boolean.class);
+    public static final Property<Boolean>   SOUTH              = new Property<>(MC_SOUTH,              Boolean.class);
+    public static final Property<Boolean>   WEST               = new Property<>(MC_WEST,               Boolean.class);
+    public static final Property<Boolean>   UP                 = new Property<>(MC_UP,                 Boolean.class);
+    public static final Property<Boolean>   DOWN               = new Property<>(MC_DOWN,               Boolean.class);
+    public static final Property<Integer>   LAYERS             = new Property<>(MC_LAYERS,             Integer.class);
+    public static final Property<String>    HALF               = new Property<>(MC_HALF,               String.class);
+    public static final Property<Integer>   LEVEL              = new Property<>(MC_LEVEL,              Integer.class);
+    public static final Property<Boolean>   WATERLOGGED        = new Property<>(MC_WATERLOGGED,        Boolean.class);
+    public static final Property<Integer>   AGE                = new Property<>(MC_AGE,                Integer.class);
+    public static final Property<Boolean>   PERSISTENT         = new Property<>(MC_PERSISTENT,         Boolean.class);
+    public static final Property<Direction> FACING             = new Property<>(MC_FACING,             Direction.class);
+    public static final Property<String>    AXIS               = new Property<>(MC_AXIS,               String.class);
+    public static final Property<String>    TYPE               = new Property<>(MC_TYPE,               String.class);
+    public static final Property<Integer>   PICKLES            = new Property<>(MC_PICKLES,            Integer.class);
+    public static final Property<Integer>   MOISTURE           = new Property<>(MC_MOISTURE,           Integer.class);
+    public static final Property<Integer>   ROTATION           = new Property<>(MC_ROTATION,           Integer.class);
+    public static final Property<String>    SHAPE              = new Property<>(MC_SHAPE,              String.class);
+    public static final Property<String>    HINGE              = new Property<>(MC_HINGE,              String.class);
+    public static final Property<Boolean>   BERRIES            = new Property<>(MC_BERRIES,            Boolean.class);
+    public static final Property<Integer>   DISTANCE           = new Property<>(MC_DISTANCE,           Integer.class);
+    public static final Property<String>    VERTICAL_DIRECTION = new Property<>(MC_VERTICAL_DIRECTION, String.class);
 
     // Modern materials (based on MC 1.13+ block names and properties)
 

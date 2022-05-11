@@ -557,31 +557,32 @@ public final class Constants {
 
     // MC 1.15+ property names
 
-    public static final String MC_SNOWY       = "snowy";
-    public static final String MC_NORTH       = "north";
-    public static final String MC_EAST        = "east";
-    public static final String MC_SOUTH       = "south";
-    public static final String MC_WEST        = "west";
-    public static final String MC_UP          = "up";
-    public static final String MC_HALF        = "half";
-    public static final String MC_LAYERS      = "layers";
-    public static final String MC_LEVEL       = "level";
-    public static final String MC_WATERLOGGED = "waterlogged";
-    public static final String MC_AGE         = "age";
-    public static final String MC_STAGE       = "stage";
-    public static final String MC_PERSISTENT  = "persistent";
-    public static final String MC_FACING      = "facing";
-    public static final String MC_TYPE        = "type";
-    public static final String MC_AXIS        = "axis";
-    public static final String MC_PICKLES     = "pickles";
-    public static final String MC_MOISTURE    = "moisture";
-    public static final String MC_ROTATION    = "rotation";
-    public static final String MC_SHAPE       = "shape";
-    public static final String MC_HINGE       = "hinge";
-    public static final String MC_LEAVES      = "leaves";
-    public static final String MC_DOWN        = "down";
-    public static final String MC_BERRIES     = "berries";
-    public static final String MC_DISTANCE    = "distance";
+    public static final String MC_SNOWY              = "snowy";
+    public static final String MC_NORTH              = "north";
+    public static final String MC_EAST               = "east";
+    public static final String MC_SOUTH              = "south";
+    public static final String MC_WEST               = "west";
+    public static final String MC_UP                 = "up";
+    public static final String MC_HALF               = "half";
+    public static final String MC_LAYERS             = "layers";
+    public static final String MC_LEVEL              = "level";
+    public static final String MC_WATERLOGGED        = "waterlogged";
+    public static final String MC_AGE                = "age";
+    public static final String MC_STAGE              = "stage";
+    public static final String MC_PERSISTENT         = "persistent";
+    public static final String MC_FACING             = "facing";
+    public static final String MC_TYPE               = "type";
+    public static final String MC_AXIS               = "axis";
+    public static final String MC_PICKLES            = "pickles";
+    public static final String MC_MOISTURE           = "moisture";
+    public static final String MC_ROTATION           = "rotation";
+    public static final String MC_SHAPE              = "shape";
+    public static final String MC_HINGE              = "hinge";
+    public static final String MC_LEAVES             = "leaves";
+    public static final String MC_DOWN               = "down";
+    public static final String MC_BERRIES            = "berries";
+    public static final String MC_DISTANCE           = "distance";
+    public static final String MC_VERTICAL_DIRECTION = "vertical_direction";
 
     // Minecraft NBT tag names. An underscore at the end signifies a lower case
     // initial
