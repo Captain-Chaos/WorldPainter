@@ -139,9 +139,9 @@ minecraft:carved_pumpkin,,facing:e[north;south;west;east],0,false,true,true,fals
 minecraft:cauldron,,,0,false,false,false,false,false,,false,false,0,false,false,ff474747,old default
 minecraft:cave_air,,,0,false,true,true,false,false,,false,false,0,true,false,,
 minecraft:cave_vines,berries=false,"berries:b,age:i[0-25]",0,false,true,true,false,false,,false,true,0,true,false,ff5a6d28,cave_vines.png
-minecraft:cave_vines,berries=true,"berries:b,age:i[0-25]",0,false,true,true,false,false,,false,true,0,true,false,ff5a6d28,cave_vines.png
+minecraft:cave_vines,berries=true,"berries:b,age:i[0-25]",0,false,true,true,false,false,,false,true,14,true,false,ff5a6d28,cave_vines.png
 minecraft:cave_vines_plant,berries=false,berries:b,0,false,true,true,false,false,,false,true,0,true,false,ff586526,cave_vines_plant.png
-minecraft:cave_vines_plant,berries=true,berries:b,0,false,true,true,false,false,,false,true,0,true,false,ff586526,cave_vines_plant.png
+minecraft:cave_vines_plant,berries=true,berries:b,0,false,true,true,false,false,,false,true,14,true,false,ff586526,cave_vines_plant.png
 minecraft:chain,,"axis:e[x;y;z],waterlogged:b",0,false,false,false,false,false,,false,false,0,false,false,ff33394a,chain.png
 minecraft:chain_command_block,,"facing:e[north;east;south;west;up;down],conditional:b",15,false,false,false,false,true,minecraft:command_block,false,false,0,false,false,ff84a596,chain_command_block_front.png
 minecraft:chest,,"facing:e[north;south;west;east],waterlogged:b,type:e[single;left;right]",0,false,false,false,false,true,minecraft:chest,false,false,0,false,false,ff7f5c26,old default
