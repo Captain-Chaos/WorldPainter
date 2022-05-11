@@ -17,8 +17,13 @@ public class TunnelRoofDimension extends TunnelDimension {
     }
 
     @Override
-    protected float determineHeight(boolean inTunnel, int tunnelFloorLevel, int tunnelRoofLevel, float realHeight) {
-        return reflectionPoint - ((inTunnel && (tunnelFloorLevel >= tunnelRoofLevel)) ? tunnelFloorLevel : realHeight);
+    public int getWaterLevelAt(int x, int y) {
+        return getMinHeight();
+    }
+
+    @Override
+    protected float determineHeight(boolean inTunnelLayer, int tunnelFloorLevel, int tunnelRoofLevel, float realHeight) {
+        return reflectionPoint - ((inTunnelLayer && (tunnelRoofLevel > tunnelFloorLevel)) ? tunnelRoofLevel + 1 : realHeight);
     }
 
     private final int reflectionPoint;

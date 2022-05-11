@@ -191,24 +191,24 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
             }
             final TunnelFloorDimension floorDimension = new TunnelFloorDimension(dimension, layer);
             visitChunksForLayerInAreaForEditing(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) ->
-                    whereTunnelIsRealisedDo(dimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
-                        final int z = actualFloorLevel + 1;
-                        final Point3i location = new Point3i(x, y, z);
-                        for (int i = 0; i < floorExporters.length; i++) {
-                            if ((z >= floorLayerSettings[i].getMinLevel()) && (z <= floorLayerSettings[i].getMaxLevel())) {
-                                final int intensity = floorLayerNoise[i] != null
-                                        ? clamp(0, Math.round(floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z) - floorLayerNoise[i].getHeight() / 2), 100)
-                                        : floorLayerSettings[i].getIntensity();
-                                if (intensity > 0) {
-                                    Fixup fixup = floorExporters[i].apply(floorDimension, location, intensity, exportedArea, world, platform);
-                                    if (fixup != null) {
-                                        fixups.add(fixup);
-                                    }
+                whereTunnelIsRealisedDo(dimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
+                    final int z = actualFloorLevel + 1;
+                    final Point3i location = new Point3i(x, y, z);
+                    for (int i = 0; i < floorExporters.length; i++) {
+                        if ((z >= floorLayerSettings[i].getMinLevel()) && (z <= floorLayerSettings[i].getMaxLevel())) {
+                            final int intensity = floorLayerNoise[i] != null
+                                    ? clamp(0, Math.round(floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z) - floorLayerNoise[i].getHeight() / 2), 100)
+                                    : floorLayerSettings[i].getIntensity();
+                            if (intensity > 0) {
+                                Fixup fixup = floorExporters[i].apply(floorDimension, location, intensity, exportedArea, world, platform);
+                                if (fixup != null) {
+                                    fixups.add(fixup);
                                 }
                             }
                         }
-                        return true;
-                    }));
+                    }
+                    return true;
+                }));
         }
 
         // Render roof layers
