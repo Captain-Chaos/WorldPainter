@@ -11,6 +11,7 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.objects.WPObject;
 import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.util.BiomeUtils;
@@ -26,6 +27,7 @@ import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
+import static org.pepsoft.worldpainter.layers.plants.Plants.SUGAR_CANE;
 
 /**
  *
@@ -191,7 +193,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                             Math.min(dimension.getIntHeightAt(worldX, worldY - 1, Integer.MAX_VALUE),
                             dimension.getIntHeightAt(worldX, worldY + 1, Integer.MAX_VALUE))));
                     }
-                    int columnRenderHeight = Math.min(Math.max(intHeight + Math.max(terrain.getToppingHeight(), 3), waterLevel), maxY);
+                    int columnRenderHeight = Math.min(Math.max(intHeight, waterLevel), maxY);
                     for (int y = minY + (bedrock ? 1 : 0); y <= columnRenderHeight; y++) {
                         if (y <= subsurfaceMaxHeight) {
                             // Sub surface
@@ -223,23 +225,32 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                             } else {
                                 chunk.setMaterial(x, y, z, STATIONARY_WATER);
                             }
-                        } else if (! underWater) {
-                            // Above the surface on dry land
-                            if ((y > minY) && ((y - intHeight) <= 3) && ((terrain == Terrain.GRASS) || (terrain == Terrain.DESERT) || (terrain == Terrain.RED_DESERT) || (terrain == Terrain.BEACHES))
-                                    && ((sugarCaneNoise.getPerlinNoise(worldX / TINY_BLOBS, worldY / TINY_BLOBS, z / TINY_BLOBS) * sugarCaneNoise.getPerlinNoise(worldX / SMALL_BLOBS, worldY / SMALL_BLOBS, z / SMALL_BLOBS)) > SUGAR_CANE_CHANCE)
-                                    && (isAdjacentWater(tile, intHeight, xInTile - 1, yInTile)
-                                        || isAdjacentWater(tile, intHeight, xInTile + 1, yInTile)
-                                        || isAdjacentWater(tile, intHeight, xInTile, yInTile - 1)
-                                        || isAdjacentWater(tile, intHeight, xInTile, yInTile + 1))) {
-                                int blockTypeBelow = chunk.getBlockType(x, y - 1, z);
-                                if ((random.nextInt(5) > 0) && ((blockTypeBelow == BLK_GRASS) || (blockTypeBelow == BLK_DIRT) || (blockTypeBelow == BLK_SAND) || (blockTypeBelow == BLK_SUGAR_CANE))) {
-                                    chunk.setMaterial(x, y, z, Material.SUGAR_CANE);
-                                } else {
-                                    chunk.setMaterial(x, y, z, terrain.getMaterial(platform, seed, worldX, worldY, y, intHeight));
-                                }
-                            } else {
-                                chunk.setMaterial(x, y, z, terrain.getMaterial(platform, seed, worldX, worldY, y, intHeight));
+                        }
+                    }
+                    if (! underWater) {
+                        // Above the surface on dry land
+                        WPObject object = null;
+                        if (((terrain == Terrain.GRASS) || (terrain == Terrain.DESERT) || (terrain == Terrain.RED_DESERT) || (terrain == Terrain.BEACHES))
+                                && ((sugarCaneNoise.getPerlinNoise(worldX / TINY_BLOBS, worldY / TINY_BLOBS, z / TINY_BLOBS) * sugarCaneNoise.getPerlinNoise(worldX / SMALL_BLOBS, worldY / SMALL_BLOBS, z / SMALL_BLOBS)) > SUGAR_CANE_CHANCE)
+                                && (isAdjacentWater(tile, intHeight, xInTile - 1, yInTile)
+                                    || isAdjacentWater(tile, intHeight, xInTile + 1, yInTile)
+                                    || isAdjacentWater(tile, intHeight, xInTile, yInTile - 1)
+                                    || isAdjacentWater(tile, intHeight, xInTile, yInTile + 1))) {
+                            final int blockTypeBelow = chunk.getBlockType(x, intHeight, z);
+                            if ((random.nextInt(5) > 0) && ((blockTypeBelow == BLK_GRASS) || (blockTypeBelow == BLK_DIRT) || (blockTypeBelow == BLK_SAND) || (blockTypeBelow == BLK_SUGAR_CANE))) {
+                                object = SUGAR_CANE.realise(random.nextInt(3) + 1, platform);
                             }
+                        }
+                        if (object == null) {
+                            object = terrain.getSurfaceObject(platform, seed, worldX, worldY, 0);
+                        }
+                        if (object != null) {
+                            renderObject(chunk, object, x, intHeight + 1, z);
+                        }
+                    } else if (! floodWithLava) {
+                        final WPObject object = terrain.getSurfaceObject(platform, seed, worldX, worldY, waterLevel - intHeight);
+                        if (object != null) {
+                            renderObject(chunk, object, x, intHeight + 1, z);
                         }
                     }
                 }
@@ -267,6 +278,28 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         }
         result.stats.surfaceArea = 256;
         return result;
+    }
+
+    private void renderObject(Chunk chunk, WPObject object, int x, int y, int z) {
+        final int height = object.getDimensions().z;
+        if (z + height >= maxHeight) {
+            return;
+        }
+        for (int dz = 0; dz < height; dz++) {
+            if (object.getMask(0, 0, dz)) {
+                final Material objectMaterial = object.getMaterial(0, 0, dz);
+                final Material existingMaterial = chunk.getMaterial(x, y + dz, z);
+                if (existingMaterial.isNamed(MC_WATER)) {
+                    if (objectMaterial.containsWater()) {
+                        chunk.setMaterial(x, y + dz, z, objectMaterial);
+                    } else if (objectMaterial.hasProperty(WATERLOGGED)) {
+                        chunk.setMaterial(x, y + dz, z, objectMaterial.withProperty(WATERLOGGED, true));
+                    }
+                } else {
+                    chunk.setMaterial(x, y + dz, z, objectMaterial);
+                }
+            }
+        }
     }
 
     private boolean isAdjacentWater(Tile tile, int height, int x, int y) {
