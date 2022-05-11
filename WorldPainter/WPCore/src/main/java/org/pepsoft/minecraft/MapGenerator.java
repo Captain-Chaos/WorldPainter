@@ -5,6 +5,8 @@ import org.jnbt.StringTag;
 import org.jnbt.Tag;
 import org.pepsoft.worldpainter.Generator;
 import org.pepsoft.worldpainter.Platform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 
@@ -31,16 +33,22 @@ public abstract class MapGenerator implements Serializable {
             case DEFAULT:
                 return new SeededGenerator(DEFAULT, seed);
             case FLAT:
-                if ((options instanceof String) && (! ((String) options).trim().isEmpty())) {
-                    return new SuperflatGenerator(SuperflatPreset.fromMinecraft1_12_2((String) options));
-                } else if (options instanceof StringTag) {
-                    return new SuperflatGenerator(SuperflatPreset.fromMinecraft1_12_2(((StringTag) options).getValue()));
-                } else if (options instanceof CompoundTag) {
-                    return new SuperflatGenerator(SuperflatPreset.fromMinecraft1_15_2((CompoundTag) options));
-                } else if (options == null) {
-                    return new SuperflatGenerator(SuperflatPreset.defaultPreset(platform));
-                } else {
+                if (options != null) {
+                    try {
+                        if ((options instanceof String) && (!((String) options).trim().isEmpty())) {
+                            return new SuperflatGenerator(SuperflatPreset.fromMinecraft1_12_2((String) options));
+                        } else if (options instanceof StringTag) {
+                            return new SuperflatGenerator(SuperflatPreset.fromMinecraft1_12_2(((StringTag) options).getValue()));
+                        } else if (options instanceof CompoundTag) {
+                            return new SuperflatGenerator(SuperflatPreset.fromMinecraft1_15_2((CompoundTag) options));
+                        }
+                    } catch (IllegalArgumentException e) {
+                        logger.warn("Could not parse legacy Superflat preset \"{}\"; reverting to default settings", options, e);
+                        return new SuperflatGenerator(SuperflatPreset.defaultPreset(platform));
+                    }
                     throw new IllegalArgumentException("Don't know how to process options of type " + options.getClass());
+                } else {
+                    return new SuperflatGenerator(SuperflatPreset.defaultPreset(platform));
                 }
             case LARGE_BIOMES:
             case BUFFET:
@@ -59,5 +67,6 @@ public abstract class MapGenerator implements Serializable {
         private static final long serialVersionUID = 1L;
     };
 
+    private static final Logger logger = LoggerFactory.getLogger(MapGenerator.class);
     private static final long serialVersionUID = 1L;
 }
