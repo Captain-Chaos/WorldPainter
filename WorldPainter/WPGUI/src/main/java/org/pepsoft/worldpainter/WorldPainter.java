@@ -284,10 +284,11 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     }
 
     public void setCustomBrushShape(Shape customBrushShape) {
-        Shape oldCustomBrushShape = this.customBrushShape;
+        final Shape oldCustomBrushShape = this.customBrushShape;
+        final Rectangle oldBrushBounds = getBrushBounds();
         this.customBrushShape = customBrushShape;
         if ((drawBrush) && (brushShape == BrushShape.CUSTOM)) {
-            repaintWorld(customBrushShape.getBounds());
+            repaintWorld(getBrushBounds().union(oldBrushBounds));
         }
         firePropertyChange("customBrushShape", oldCustomBrushShape, customBrushShape);
     }
