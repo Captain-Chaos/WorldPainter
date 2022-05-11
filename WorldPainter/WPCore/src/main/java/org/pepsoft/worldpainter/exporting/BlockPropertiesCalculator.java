@@ -412,8 +412,8 @@ public class BlockPropertiesCalculator {
 
     private int getTransparency(Material material) {
         // TODOMC13: make this generic:
-        if (((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) && material.isNamed(MC_WATER)) {
-            return 1;
+        if (material.containsWater()) {
+            return ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) ? 1 : 3;
         } else {
             return material.opacity;
         }
