@@ -24,6 +24,7 @@ import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.MathUtils.mod;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
 
 /**
@@ -48,7 +49,7 @@ public enum Terrain {
         public WPObject getSurfaceObject(Platform platform, long seed, int x, int y, int waterBlocksAbove) {
             final Random rnd = new Random(seed + (x * 65537L) + (y * 4099L));
             final int rndNr = rnd.nextInt(FLOWER_INCIDENCE);
-            if (waterBlocksAbove > 0) {
+            if ((waterBlocksAbove > 0) && platform.capabilities.contains(NAME_BASED)) {
                 if (grassNoise.getSeed() != (seed + GRASS_SEED_OFFSET)) {
                     grassNoise.setSeed(seed + GRASS_SEED_OFFSET);
                     tallGrassNoise.setSeed(seed + DOUBLE_TALL_GRASS_SEED_OFFSET);
@@ -74,7 +75,7 @@ public enum Terrain {
                         }
                     }
                 }
-            } else {
+            } else if (waterBlocksAbove == 0) {
                 if (rndNr == 0) {
                     if (dandelionNoise.getSeed() != (seed + DANDELION_SEED_OFFSET)) {
                         dandelionNoise.setSeed(seed + DANDELION_SEED_OFFSET);
@@ -387,8 +388,8 @@ public enum Terrain {
 
         @Override
         public WPObject getSurfaceObject(Platform platform, long seed, int x, int y, int waterBlocksAbove) {
-            final Random rnd = new Random(seed + (x * 65537L) + (y * 4099L));
-            if (waterBlocksAbove > 0) {
+            if (platform.capabilities.contains(NAME_BASED) && (waterBlocksAbove > 0)) {
+                final Random rnd = new Random(seed + (x * 65537L) + (y * 4099L));
                 if (grassNoise.getSeed() != (seed + GRASS_SEED_OFFSET)) {
                     grassNoise.setSeed(seed + GRASS_SEED_OFFSET);
                     tallGrassNoise.setSeed(seed + DOUBLE_TALL_GRASS_SEED_OFFSET);
