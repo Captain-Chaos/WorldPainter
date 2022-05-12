@@ -58,8 +58,17 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                     int leafBlocksEncountered = 0;
                     for (int height = Math.min(highestNonAirBlock, maxHeight - 2); height >= minHeight; height--) {
                         Material material = minecraftWorld.getMaterialAt(x, y, height);
-                        if (material.isNamed(MC_WATER) && (material.getProperty(LAYERS, 0) == 0)) {
+                        if ((material.isNamed(MC_WATER) && (material.getProperty(LAYERS, 0) == 0))
+                                || (material.containsWater() && material.insubstantial)) {
                             minecraftWorld.setMaterialAt(x, y, height, ICE);
+                            // Remove insubstantial blocks above, assuming they are plants we cut in half
+                            for (int dz = height + 1; dz <= highestNonAirBlock; dz++) {
+                                if (minecraftWorld.getMaterialAt(x, y, dz).insubstantial) {
+                                    minecraftWorld.setMaterialAt(x, y, dz, AIR);
+                                } else {
+                                    break;
+                                }
+                            }
                             break;
                         } else if (material.canSupportSnow) {
                             if ((material.name.endsWith("_leaves"))
