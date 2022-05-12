@@ -1,5 +1,6 @@
 package org.pepsoft.worldpainter;
 
+import org.junit.Ignore;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.FileUtils;
@@ -26,6 +27,7 @@ import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
 
+@Ignore
 public class ExportTester extends RegressionIT {
     public static void main(String[] args) throws IOException, ClassNotFoundException, UnloadableWorldException, ProgressReceiver.OperationCancelled {
         // Load the default platform descriptors so that they don't get blocked
