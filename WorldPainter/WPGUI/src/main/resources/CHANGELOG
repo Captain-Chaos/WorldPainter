@@ -11,13 +11,16 @@
    + Just like with showing or soloing individual layers, all the layers will still be Exported
    + Soloing a single layer takes precedence over soloing a palette
    + If you have a paint tool selected, the currently selected paint is always shown, regardless of the show and solo settings
- * The Grass and Beaches terrain types now also place seagrass, tall seagrass and kelp under water
+ * The Grass and Beaches terrain types now also place seagrass seagrass and kelp under water
+ * The Small Dripleaf plant has been added to the Custom Plants layer
+ * The Frost layer now also turns water blocks with plants in them to ice, and removes the remains of the plant above, if any
  * Importing signed integer height maps is now supported
  * WorldPainter now calculates the "distance" property of leaf blocks while Exporting. This may help prevent leaf blocks that should not decay from decaying in-game. This can be turned off on the Post Processing tab
    + WorldPainter can also automatically remove leaf blocks that are too distant (and not persistent) and would decay in Minecraft. This is turned off by default but can be turned on on the Post Processing tab
    + There is also an option to make all leaf blocks persistent (even those placed by the WorldPainter tree layers or in other ways which are normally not persistent)
  * Importing maps with custom dimension types or world types now works. Note that you can't edit these settings and WorldPainter will still only Import the vanilla Surface, Nether and End dimensions
  * The performance of the 3D view has been significantly improved for very large worlds
+ * Various small bug fixes and improvements
  * Bug fix: fixed a visual glitch in the 3D view
 
 -- Version 2.9.7, released 9-5-2022

@@ -44,7 +44,7 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
 
 @SuppressWarnings("ConstantConditions") // Future-proofing
 public enum Terrain {
-    GRASS("Grass", GRASS_BLOCK, GRASS_BLOCK, "grass with flowers, tall grass and ferns here and there, and seagrass, tall seagrass and kelp under water", BIOME_PLAINS) {
+    GRASS("Grass", GRASS_BLOCK, GRASS_BLOCK, "grass with flowers, tall grass and ferns here and there, and seagrass and kelp under water", BIOME_PLAINS) {
         @Override
         public WPObject getSurfaceObject(Platform platform, long seed, int x, int y, int waterBlocksAbove) {
             final Random rnd = new Random(seed + (x * 65537L) + (y * 4099L));
