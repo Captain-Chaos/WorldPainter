@@ -737,7 +737,7 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
-        throw new IOException("MC114AnvilChunk is not serializable");
+        throw new IOException("MC115AnvilChunk is not serializable");
     }
 
     static int blockOffset(int x, int y, int z) {
@@ -979,7 +979,7 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
         }
 
         private void writeObject(ObjectOutputStream out) throws IOException {
-            throw new IOException("MC113AnvilChunk.Section is not serializable");
+            throw new IOException("MC115AnvilChunk.Section is not serializable");
         }
 
         private Material getMaterial(List<CompoundTag> palette, int index) {
