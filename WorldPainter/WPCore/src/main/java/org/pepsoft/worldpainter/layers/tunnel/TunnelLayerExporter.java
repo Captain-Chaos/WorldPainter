@@ -14,6 +14,7 @@ import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
+import org.pepsoft.worldpainter.layers.Void;
 import org.pepsoft.worldpainter.util.BiomeUtils;
 
 import javax.vecmath.Point3i;
@@ -86,6 +87,9 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
             // First pass:  place floor, wall and roof materials
             visitChunksForLayerInAreaForEditing(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) ->
                 whereTunnelIsRealisedDo(dimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
+                    if (dimension.getBitLayerValueAt(Void.INSTANCE, x, y)) {
+                        return true;
+                    }
                     int waterLevel = tile.getWaterLevel(xInTile, yInTile);
                     boolean flooded = waterLevel > terrainHeight;
                     final int startZ = Math.min(removeWater ? Math.max(terrainHeight, waterLevel) : terrainHeight, actualRoofLevel);
@@ -138,6 +142,9 @@ public class TunnelLayerExporter extends AbstractLayerExporter<TunnelLayer> impl
         // First/second pass: excavate interior
         visitChunksForLayerInAreaForEditing(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) ->
             whereTunnelIsRealisedDo(dimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
+                if (dimension.getBitLayerValueAt(Void.INSTANCE, x, y)) {
+                    return true;
+                }
                 final int waterLevel = tile.getWaterLevel(xInTile, yInTile);
                 for (int z = Math.min(removeWater ? Math.max(terrainHeight, waterLevel) : terrainHeight, actualRoofLevel); z > actualFloorLevel; z--) {
                     if (removeWater || (z <= terrainHeight) || (z > waterLevel)) {
