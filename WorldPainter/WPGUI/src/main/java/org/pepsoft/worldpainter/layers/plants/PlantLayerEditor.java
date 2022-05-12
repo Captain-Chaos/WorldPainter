@@ -151,7 +151,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         addFiller(panel);
         panel = new JPanel(new GridBagLayout());
         panelPlantControls.add(panel);
-        addCategory(panel, WATER_PLANTS);
+        addCategory(panel, "Water plants", WATER_PLANTS, DRIPLEAF);
         addCategory(panel, NETHER);
         addCategory(panel, "Hanging Plants", "For ceilings and cave/tunnel roofs", HANGING_DRY_PLANTS, HANGING_WATER_PLANTS);
         addFiller(panel);

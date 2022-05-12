@@ -551,6 +551,7 @@ public final class Constants {
     public static final String MC_CAVE_VINES = "minecraft:cave_vines";
     public static final String MC_CAVE_VINES_PLANT = "minecraft:cave_vines_plant";
     public static final String MC_MOSS_BLOCK = "minecraft:moss_block";
+    public static final String MC_SMALL_DRIPLEAF = "minecraft:small_dripleaf";
 
     // MC 1.18 biome names
 

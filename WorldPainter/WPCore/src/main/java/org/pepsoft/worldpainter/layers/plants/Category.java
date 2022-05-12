@@ -130,6 +130,16 @@ public enum Category {
             final Material material = world.getMaterialAt(x, y, z);
             return material.solid && material.opaque && material.natural && isFlooded(world, x, y, z);
         }
+    },
+
+    DRIPLEAF {
+        @Override
+        boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
+            Material material = world.getMaterialAt(x, y, z);
+            return world.getMaterialAt(x, y, z + 1).containsWater()
+                ? material.isNamedOneOf(MC_CLAY, MC_MOSS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_FARMLAND, MC_GRASS_BLOCK, MC_PODZOL, MC_ROOTED_DIRT, MC_MYCELIUM)
+                : material.isNamedOneOf(MC_CLAY, MC_MOSS_BLOCK);
+        }
     };
 
     abstract boolean isValidFoundation(MinecraftWorld world, int x, int y, int z);

@@ -1947,7 +1947,7 @@ public final class Material implements Serializable {
     public static final Material INFESTED_DEEPSLATE = get(MC_INFESTED_DEEPSLATE);
     public static final Material BAMBOO_NO_LEAVES = get(MC_BAMBOO, MC_STAGE, 0, MC_AGE, 0, MC_LEAVES, "none");
     public static final Material BAMBOO_SMALL_LEAVES = get(MC_BAMBOO, MC_STAGE, 0, MC_AGE, 0, MC_LEAVES, "small");
-    public static final Material BAMBOO_LARGE_LEAVES_STAGE_1 = get(MC_BAMBOO, MC_STAGE, 1, MC_AGE, 0, MC_LEAVES, "large");
+    public static final Material BAMBOO_LARGE_LEAVES = get(MC_BAMBOO, MC_STAGE, 0, MC_AGE, 0, MC_LEAVES, "large");
     public static final Material AZALEA = get(MC_AZALEA);
     public static final Material FLOWERING_AZALEA = get(MC_FLOWERING_AZALEA);
     public static final Material CRIMSON_FUNGUS = get(MC_CRIMSON_FUNGUS);
@@ -1969,6 +1969,7 @@ public final class Material implements Serializable {
     public static final Material HANGING_ROOTS = get(MC_HANGING_ROOTS);
     public static final Material CAVE_VINES_NO_BERRIES = get(MC_CAVE_VINES, MC_BERRIES, false);
     public static final Material CAVE_VINES_PLANT_NO_BERRIES = get(MC_CAVE_VINES_PLANT, MC_BERRIES, false);
+    public static final Material SMALL_DRIPLEAF_SOUTH_LOWER = get(MC_SMALL_DRIPLEAF, MC_HALF, "lower", MC_FACING, "south", MC_WATERLOGGED, false);
 
     // Material type categories
 

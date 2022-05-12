@@ -6,13 +6,14 @@ import org.pepsoft.worldpainter.Platform;
 import javax.vecmath.Point3i;
 
 import static org.pepsoft.minecraft.Constants.BLK_LARGE_FLOWERS;
+import static org.pepsoft.minecraft.Constants.MC_HALF;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
  * A simple double high plant without growth stages using vanilla Minecraft
  * upper block support.
  */
-final class DoubleHighPlant extends Plant {
+class DoubleHighPlant extends Plant {
     /**
      * Create a new double high plant.
      *
@@ -41,6 +42,11 @@ final class DoubleHighPlant extends Plant {
         platform = null;
     }
 
+    protected DoubleHighPlant(String name, Material lowerMaterial, Category category, Platform platform) {
+        super(name, lowerMaterial, "block/" + lowerMaterial.simpleName + "_top.png", category);
+        this.platform = platform;
+    }
+
     /**
      * Copy constructor.
      */
@@ -58,7 +64,7 @@ final class DoubleHighPlant extends Plant {
     public Material getMaterial(int x, int y, int z) {
         if (z > 0) {
             if ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) {
-                return material.withProperty("half", "upper");
+                return material.withProperty(MC_HALF, "upper");
             } else {
                 return UPPER_DOUBLE_HIGH_PLANT;
             }

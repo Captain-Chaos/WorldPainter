@@ -276,31 +276,12 @@ public class Java1_15PostProcessor extends PostProcessor {
                         case MC_ROSE_BUSH:
                         case MC_PEONY:
                             // TODOMC13 recognise legacy "top half" block and replace it with the proper block
-                            if (material.getProperty(HALF).equals("upper")) {
-                                // Top half of double high plant.
-                                if (materialBelow.isNotNamedSameAs(material)
-                                        || (! materialBelow.getProperty(HALF).equals("lower"))) {
-                                    // There is not a corresponding lower half
-                                    // below; remove this block
-                                    minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                    material = AIR;
-                                }
-                            } else {
-                                // Otherwise: lower half of double high plant;
-                                // check there's a corresponding top half above
-                                // and grass or dirt below
-                                if (materialAbove.isNamedSameAs(material) && materialAbove.getProperty(HALF).equals("upper")) {
-                                    if (materialBelow.isNotNamed(MC_GRASS_BLOCK) && (materialBelow != DIRT) && (materialBelow.isNotNamed(MC_PODZOL)) && (materialBelow != PERMADIRT)) {
-                                        // Double high plants can (presumably; TODO:
-                                        // check) only exist on grass or dirt
-                                        minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                        material = AIR;
-                                    }
-                                } else {
-                                    // There's a non-double high plant block above;
-                                    // replace this block with air
-                                    minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                    material = AIR;
+                            if (material.getProperty(HALF).equals("lower")) {
+                                // Lower half of double high plant; check there's grass or dirt below
+                                if (materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_FARMLAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK)) {
+                                    // Double high plants can (presumably; TODO: check) only exist on grass or dirt
+                                    // The upper block will be removed below in the next iteration
+                                    material = clearBlock(minecraftWorld, x, y, z);
                                 }
                             }
                             break;
@@ -347,6 +328,18 @@ public class Java1_15PostProcessor extends PostProcessor {
                                 material = AIR;
                             }
                             break;
+                    }
+                    if (material.isPropertySet(MC_HALF)) {
+                        // Check that all lower and upper halves have their corresponding opposite half
+                        if (material.getProperty(HALF).equals("upper")) {
+                            if (materialBelow.isNotNamedSameAs(material) || (! materialBelow.getProperty(HALF).equals("lower"))) {
+                                material = clearBlock(minecraftWorld, x, y, z);
+                            }
+                        } else {
+                            if (materialAbove.isNotNamedSameAs(material) || (! materialAbove.getProperty(HALF).equals("upper"))) {
+                                material = clearBlock(minecraftWorld, x, y, z);
+                            }
+                        }
                     }
                     if (material.containsWater() && materialBelow.veryInsubstantial && (! materialBelow.containsWater())) {
                         switch (waterMode) {
@@ -397,6 +390,16 @@ public class Java1_15PostProcessor extends PostProcessor {
             }
         } else if (progressReceiver != null) {
             progressReceiver.setProgress(1.0f);
+        }
+    }
+
+    private static Material clearBlock(MinecraftWorld minecraftWorld, int x, int y, int z) {
+        if (minecraftWorld.getMaterialAt(x, y, z).containsWater()) {
+            minecraftWorld.setMaterialAt(x, y, z, STATIONARY_WATER);
+            return STATIONARY_WATER;
+        } else {
+            minecraftWorld.setMaterialAt(x, y, z, AIR);
+            return AIR;
         }
     }
 }
