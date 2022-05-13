@@ -751,7 +751,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     DataType type = entry.getKey();
                     File file = entry.getValue();
                     FileUtils.copyFileToDir(file, new File(dimensionDir, type.name().toLowerCase()), (progressReceiver != null)
-                            ? ((fileCount == 1) ? progressReceiver : new SubProgressReceiver(progressReceiver, (float) fileNo / fileCount, 1.0f / fileCount))
+                            ? ((fileCount == 1) ? progressReceiver : new SubProgressReceiver(progressReceiver, "Copying region " + coords.x + "," + coords.y + " of type " + type + " unchanged", (float) fileNo / fileCount, 1.0f / fileCount))
                             : null);
                     fileNo++;
                 }
@@ -1546,21 +1546,31 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
     private void mergeAboveGroundBlock(final Chunk existingChunk, final Chunk newChunk, final int x, final int y, final int z, final int dy, final boolean frost) {
         // Three steps, to keep things simpler:
         // First, move the existing block to the new height if necessary
-        Material existingMaterial = existingChunk.getMaterial(x, y - dy, z);
-        if (dy != 0) {
-            existingChunk.setMaterial(x, y, z, existingMaterial);
-            existingChunk.setSkyLightLevel(x, y, z, existingChunk.getSkyLightLevel(x, y - dy, z));
-            existingChunk.setBlockLightLevel(x, y, z, existingChunk.getBlockLightLevel(x, y - dy, z));
-            if (existingMaterial.tileEntity) {
-                moveEntityTileData(existingChunk, existingChunk, x, y, z, dy);
+        Material existingMaterial;
+        if (((y - dy) < existingChunk.getMinHeight()) || ((y - dy) >= existingChunk.getMaxHeight())) {
+            existingMaterial = AIR;
+            if (dy != 0) {
+                existingChunk.setMaterial(x, y, z, existingMaterial);
+                existingChunk.setSkyLightLevel(x, y, z, 15);
+                existingChunk.setBlockLightLevel(x, y, z, 0);
             }
-            if (dy < 0) {
-                // Terrain is being lowered, make sure to replace the source block with air. When the terrain is being
-                // raised, that's not necessary because mergeChunk() will fill that part in with blocks from the new
-                // map
-                existingChunk.setMaterial(x, y - dy, z, AIR);
-                existingChunk.setSkyLightLevel(x, y - dy, z, ((y - dy + 1) < existingChunk.getMaxHeight()) ? existingChunk.getSkyLightLevel(x, y - dy + 1, z) : 15);
-                existingChunk.setBlockLightLevel(x, y - dy, z, 0);
+        } else {
+            existingMaterial = existingChunk.getMaterial(x, y - dy, z);
+            if (dy != 0) {
+                existingChunk.setMaterial(x, y, z, existingMaterial);
+                existingChunk.setSkyLightLevel(x, y, z, existingChunk.getSkyLightLevel(x, y - dy, z));
+                existingChunk.setBlockLightLevel(x, y, z, existingChunk.getBlockLightLevel(x, y - dy, z));
+                if (existingMaterial.tileEntity) {
+                    moveEntityTileData(existingChunk, existingChunk, x, y, z, dy);
+                }
+                if (dy < 0) {
+                    // Terrain is being lowered, make sure to replace the source block with air. When the terrain is being
+                    // raised, that's not necessary because mergeChunk() will fill that part in with blocks from the new
+                    // map
+                    existingChunk.setMaterial(x, y - dy, z, AIR);
+                    existingChunk.setSkyLightLevel(x, y - dy, z, ((y - dy + 1) < existingChunk.getMaxHeight()) ? existingChunk.getSkyLightLevel(x, y - dy + 1, z) : 15);
+                    existingChunk.setBlockLightLevel(x, y - dy, z, 0);
+                }
             }
         }
 
@@ -1606,8 +1616,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     moveEntityTileData(existingChunk, newChunk, x, y, z, 0);
                 }
             }
-            existingChunk.setSkyLightLevel(x, y, z, newChunk.getSkyLightLevel(x, y - dy, z));
-            existingChunk.setBlockLightLevel(x, y, z, newChunk.getBlockLightLevel(x, y - dy, z));
+            existingChunk.setSkyLightLevel(x, y, z, newChunk.getSkyLightLevel(x, y, z));
+            existingChunk.setBlockLightLevel(x, y, z, newChunk.getBlockLightLevel(x, y, z));
             existingMaterial = newMaterial;
             existingMaterialIsWatery = newMaterialIsWatery;
         }
