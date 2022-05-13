@@ -1,4 +1,4 @@
--- Version 2.10.1, released ...
+-- Version 2.10.1, released 13-5-2022
 
  * Bug fix: fix an error when opening Cave/Tunnel Layer settings that have a Plant layer as floor or roof layer that was saved with a different version
  * Bug fix: fix an error during Merging when the height difference between the world and the existing map is large
