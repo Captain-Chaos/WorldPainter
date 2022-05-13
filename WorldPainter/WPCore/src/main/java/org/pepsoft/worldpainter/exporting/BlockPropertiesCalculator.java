@@ -143,9 +143,8 @@ public class BlockPropertiesCalculator {
                                     // Opaque block
                                     newSkyLightLevel = 0;
                                 } else {
-                                    // Transparent block, or unknown block. We err on the
-                                    // side of transparency for unknown blocks to try and
-                                    // cause less visible lighting bugs
+                                    // Transparent block, or unknown block. We err on the side of transparency for
+                                    // unknown blocks to try and cause less visible lighting bugs
                                     newSkyLightLevel = (currentSkylightLevel < 15) ? calculateSkyLightLevel(chunk, x, y, z, material) : 15;
                                 }
                                 if (newSkyLightLevel != currentSkylightLevel) {
@@ -160,10 +159,9 @@ public class BlockPropertiesCalculator {
                                     // Opaque block
                                     newBlockLightLevel = (material.blockLight > 0) ? currentBlockLightLevel : 0;
                                 } else {
-                                    // Transparent block, or unknown block. We err on the
-                                    // side of transparency for unknown blocks to try and
-                                    // cause less visible lighting bugs
-                                    newBlockLightLevel = (material.blockLight > 0) ? currentBlockLightLevel : calculateBlockLightLevel(chunk, x, y, z);
+                                    // Transparent block, or unknown block. We err on the side of transparency for
+                                    // unknown blocks to try and cause less visible lighting bugs
+                                    newBlockLightLevel = Math.max(currentBlockLightLevel, calculateBlockLightLevel(chunk, x, y, z));
                                 }
                                 if (newBlockLightLevel != currentBlockLightLevel) {
                                     chunk.setBlockLightLevel(xInChunk, y, zInChunk, newBlockLightLevel);
@@ -332,12 +330,7 @@ public class BlockPropertiesCalculator {
                             }
                             if (blockLight) {
                                 final int blockLightLevel = chunk.getBlockLightLevel(xInChunk, y, zInChunk);
-                                final int newBlockLightLevel;
-                                if (material.blockLight > 0) {
-                                    newBlockLightLevel = material.blockLight;
-                                } else {
-                                    newBlockLightLevel = 0;
-                                }
+                                final int newBlockLightLevel = material.blockLight;
                                 if (newBlockLightLevel != blockLightLevel) {
                                     chunk.setBlockLightLevel(xInChunk, y, zInChunk, newBlockLightLevel);
                                 }
@@ -394,7 +387,7 @@ public class BlockPropertiesCalculator {
                                 }
                                 if (blockLight) {
                                     final int currentBlockLightLevel = chunk.getBlockLightLevel(xInChunk, y, zInChunk);
-                                    final int newBlockLightLevel = (material.blockLight > 0) ? currentBlockLightLevel : calculateBlockLightLevel(chunk, x, y, z);
+                                    final int newBlockLightLevel = calculateBlockLightLevel(chunk, x, y, z);
                                     if (newBlockLightLevel != currentBlockLightLevel) {
                                         chunk.setBlockLightLevel(xInChunk, y, zInChunk, newBlockLightLevel);
                                     }
