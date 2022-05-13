@@ -41,12 +41,12 @@ public final class TestData {
      * including {@code terrainHeight}, consisting of one layer of bedrock, up to 63 layers of deepslate, as many layers
      * of stone as required, three layers of dirt and one layer of grass block.
      */
-    public static MinecraftWorld createMinecraftWorld(Rectangle area, int terrainHeight) {
+    public static MinecraftWorld createMinecraftWorld(Rectangle area, int terrainHeight, Material terrainMaterial) {
         final Box volume = new Box(area.x, area.width, area.y, area.height, MIN_HEIGHT, MAX_HEIGHT);
         final Material[] lowestBlocks = new Material[terrainHeight - MIN_HEIGHT + 1];
         for (int z = 0; z <= terrainHeight - MIN_HEIGHT; z++) {
             if (z >= terrainHeight - MIN_HEIGHT) {
-                lowestBlocks[z] = GRASS_BLOCK;
+                lowestBlocks[z] = terrainMaterial;
             } else if (z == 0) {
                 lowestBlocks[z] = BEDROCK;
             } else if (z >= terrainHeight - MIN_HEIGHT - 3) {

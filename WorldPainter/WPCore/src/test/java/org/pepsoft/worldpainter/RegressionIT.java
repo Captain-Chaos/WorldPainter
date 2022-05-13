@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import static java.util.Collections.singleton;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
@@ -48,10 +49,6 @@ public class RegressionIT {
     @Test
     public void test2_3_6World() throws IOException, UnloadableWorldException, ProgressReceiver.OperationCancelled {
         World2 world = loadWorld("/testset/test-v2.3.6-1.world");
-        File tmpBaseDir = createTmpBaseDir();
-        File anvil12worldDir = exportJavaWorld(world, tmpBaseDir);
-        world.setPlatform(JAVA_ANVIL_1_15);
-        File anvil115worldDir = exportJavaWorld(world, tmpBaseDir);
 //        try (ZipInputStream in = new ZipInputStream(RegressionIT.class.getResourceAsStream("/testset/test-v2.3.6-1-result.zip"))) {
 //            ZipEntry zipEntry;
 //            byte[] buffer = new byte[32768];
@@ -69,14 +66,22 @@ public class RegressionIT {
 //            }
 //        }
         for (Dimension dimension: world.getDimensions()) {
-            logger.info("Comparing dimension " + dimension.getName());
-            Rectangle area = new Rectangle(dimension.getLowestX() << 5, dimension.getLowestY() << 5, dimension.getWidth() << 5, dimension.getHeight() << 5);
-            try (MinecraftWorld anvil12World = new JavaMinecraftWorld(anvil12worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL, true, 256);
-                    MinecraftWorld anvil115World = new JavaMinecraftWorld(anvil115worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL_1_15, true, 256)) {
-                MinecraftWorldUtils.assertEquals("Anvil 1.2", anvil12World, "Anvil 1.15", anvil115World, area);
+            File tmpBaseDir = createTmpBaseDir();
+            try {
+                world.setPlatform(JAVA_ANVIL);
+                File anvil12worldDir = exportDimension(dimension, tmpBaseDir);
+                world.setPlatform(JAVA_ANVIL_1_15);
+                File anvil115worldDir = exportDimension(dimension, tmpBaseDir);
+                logger.info("Comparing dimension " + dimension.getName());
+                Rectangle area = new Rectangle(dimension.getLowestX() << 5, dimension.getLowestY() << 5, dimension.getWidth() << 5, dimension.getHeight() << 5);
+                try (MinecraftWorld anvil12World = new JavaMinecraftWorld(anvil12worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL, true, 256);
+                     MinecraftWorld anvil115World = new JavaMinecraftWorld(anvil115worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL_1_15, true, 256)) {
+                    MinecraftWorldUtils.assertEquals("Anvil 1.2", anvil12World, "Anvil 1.15", anvil115World, area);
+                }
+            } finally {
+                FileUtils.deleteDir(tmpBaseDir);
             }
         }
-        FileUtils.deleteDir(tmpBaseDir);
     }
 
     protected File exportJavaWorld(World2 world, File baseDir) throws IOException, ProgressReceiver.OperationCancelled {
@@ -88,6 +93,25 @@ public class RegressionIT {
 
         // Export
         logger.info("Exporting world {}", world.getName());
+        JavaWorldExporter worldExporter = new JavaWorldExporter(world);
+        String name = world.getName() + "-" + world.getPlatform().id;
+        worldExporter.export(baseDir, name, null, null);
+
+        // Return the directory into which the world was exported
+        return new File(baseDir, FileUtils.sanitiseName(name));
+    }
+
+    protected File exportDimension(Dimension dimension, File baseDir) throws IOException, ProgressReceiver.OperationCancelled {
+        final World2 world = dimension.getWorld();
+        // Prepare for export
+        for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
+            MixedMaterial material = world.getMixedMaterial(i);
+            Terrain.setCustomMaterial(i, material);
+        }
+
+        // Export
+        logger.info("Exporting dimension {} of world {}", dimension.getName(), world.getName());
+        world.setDimensionsToExport(singleton(dimension.getDim()));
         JavaWorldExporter worldExporter = new JavaWorldExporter(world);
         String name = world.getName() + "-" + world.getPlatform().id;
         worldExporter.export(baseDir, name, null, null);
