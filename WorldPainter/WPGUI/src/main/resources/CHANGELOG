@@ -1,3 +1,7 @@
+-- Version 2.10.1, released ...
+
+ * Bug fix: fix an error when opening Cave/Tunnel Layer settings that have a Plant layer as floor or roof layer that was saved with a different version
+
 -- Version 2.10.0, released 13-5-2022
 
  * WorldPainter now has a merch store! Go to https://www.worldpainter.net/store/merch to support WorldPainter development
