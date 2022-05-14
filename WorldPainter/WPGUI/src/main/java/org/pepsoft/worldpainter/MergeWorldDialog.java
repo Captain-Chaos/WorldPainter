@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.pepsoft.worldpainter.App.MERGE_WARNING_KEY;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
@@ -229,7 +230,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
 
         Configuration config = Configuration.getInstance();
         config.setSavesDirectory(mapDir.getParentFile());
-        config.setMergeWarningDisplayed(true);
+        config.setMessageDisplayed(MERGE_WARNING_KEY);
         world.setImportedFrom(new File(mapDir, "level.dat"));
         if (radioButtonExportEverything.isSelected()) {
             Set<Integer> dimensionsToExport = new HashSet<>();

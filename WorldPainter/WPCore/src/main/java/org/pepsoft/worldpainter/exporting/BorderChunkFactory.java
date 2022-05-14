@@ -35,7 +35,7 @@ public class BorderChunkFactory {
         final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
         final Border border = dimension.getBorder();
         final int borderLevel = dimension.getBorderLevel();
-        final boolean dark = dimension.isDarkLevel();
+        final Dimension.WallType roofType = dimension.getRoofType();
         final boolean bottomless = dimension.isBottomless();
         final Terrain subsurfaceMaterial = dimension.getSubsurfaceMaterial();
         final PerlinNoise noiseGenerator;
@@ -114,8 +114,8 @@ public class BorderChunkFactory {
                         }
                     }
                 }
-                if (dark) {
-                    result.chunk.setMaterial(x, maxY, z, BEDROCK);
+                if (roofType != null) {
+                    result.chunk.setMaterial(x, maxY, z, (roofType == Dimension.WallType.BEDROCK) ? BEDROCK : BARRIER);
                     result.chunk.setHeight(x, z, maxY);
                 } else if (border == Border.VOID) {
                     result.chunk.setHeight(x, z, minHeight);

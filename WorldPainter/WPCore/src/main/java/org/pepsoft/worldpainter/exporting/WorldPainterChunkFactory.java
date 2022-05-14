@@ -55,7 +55,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
             sugarCaneNoise.setSeed(seed + SUGAR_CANE_SEED_OFFSET);
         }
         subsurfaceMaterial = dimension.getSubsurfaceMaterial();
-        dark = dimension.isDarkLevel();
+        roofType = dimension.getRoofType();
         bedrock = ! dimension.isBottomless();
         coverSteepTerrain = dimension.isCoverSteepTerrain();
         topLayersRelativeToTerrain = dimension.getTopLayerAnchor() == Dimension.LayerAnchor.TERRAIN;
@@ -254,8 +254,8 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                         }
                     }
                 }
-                if (dark) {
-                    chunk.setMaterial(x, maxY, z, BEDROCK);
+                if (roofType != null) {
+                    chunk.setMaterial(x, maxY, z, (roofType == Dimension.WallType.BEDROCK) ? BEDROCK : BARRIER);
                     chunk.setHeight(x, z, maxY);
                 } else if (_void) {
                     chunk.setHeight(x, z, minY);
@@ -321,7 +321,8 @@ public class WorldPainterChunkFactory implements ChunkFactory {
     private final Map<Layer, LayerExporter> exporters;
     private final long seed;
     private final Terrain subsurfaceMaterial;
-    private final boolean dark, bedrock, coverSteepTerrain, topLayersRelativeToTerrain, subSurfaceLayersRelativeToTerrain, biomesSupported2D, biomesSupported3D, biomesSupportedNamed, copyBiomes;
+    private final boolean bedrock, coverSteepTerrain, topLayersRelativeToTerrain, subSurfaceLayersRelativeToTerrain, biomesSupported2D, biomesSupported3D, biomesSupportedNamed, copyBiomes;
+    private final Dimension.WallType roofType;
 
     private static final long SUGAR_CANE_SEED_OFFSET = 127411424;
     private static final float SUGAR_CANE_CHANCE = PerlinNoise.getLevelForPromillage(325);

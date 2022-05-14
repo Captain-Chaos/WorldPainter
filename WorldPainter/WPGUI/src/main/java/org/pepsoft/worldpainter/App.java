@@ -2388,7 +2388,7 @@ public final class App extends JFrame implements RadiusControl,
         if (! saveIfNecessary()) {
             return;
         }
-        if (! Configuration.getInstance().isImportWarningDisplayed()) {
+        if (! Configuration.getInstance().isMessageDisplayed(IMPORT_WARNING_KEY)) {
             showMessageDialog(this, strings.getString("the.import.functionality.only.imports.the.i.landscape"), strings.getString("information"), INFORMATION_MESSAGE);
         }
         MapImportDialog dialog = new MapImportDialog(this);
@@ -2398,7 +2398,7 @@ public final class App extends JFrame implements RadiusControl,
             setWorld(importedWorld, true);
             lastSelectedFile = null;
             Configuration config = Configuration.getInstance();
-            config.setImportWarningDisplayed(true);
+            config.setMessageDisplayed(IMPORT_WARNING_KEY);
             enableImportedWorldOperation();
         }
     }
@@ -2445,7 +2445,7 @@ public final class App extends JFrame implements RadiusControl,
                 return;
             }
             Configuration config = Configuration.getInstance();
-            if (((config == null) || (!config.isMergeWarningDisplayed())) && (showConfirmDialog(this, strings.getString("this.is.experimental.and.unfinished.functionality"), strings.getString("experimental.functionality"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
+            if (((config == null) || (!config.isMessageDisplayed(MERGE_WARNING_KEY))) && (showConfirmDialog(this, strings.getString("this.is.experimental.and.unfinished.functionality"), strings.getString("experimental.functionality"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
                 return;
             }
             saveCustomBiomes();
@@ -6617,7 +6617,7 @@ public final class App extends JFrame implements RadiusControl,
             int previousBorderSize = dimension.getBorderSize();
             long previousMinecraftSeed = dimension.getMinecraftSeed();
             int previousCeilingHeight = dimension.getCeilingHeight();
-            boolean previousBedrockWall = dimension.isBedrockWall();
+            Dimension.WallType previousWallType = dimension.getWallType();
             BorderSettings previousBorderSettings = (dimension.getWorld() != null) ? dimension.getWorld().getBorderSettings().clone() : null;
             Dimension.LayerAnchor previousTopLayerAnchor = dimension.getTopLayerAnchor();
             DimensionPropertiesDialog dialog = new DimensionPropertiesDialog(App.this, dimension, selectedColourScheme);
@@ -6634,7 +6634,7 @@ public final class App extends JFrame implements RadiusControl,
                     || ((dimension.getBorder() != null) && (dimension.getBorderSize() != previousBorderSize))
                     || (dimension.getMinecraftSeed() != previousMinecraftSeed)
                     || (dimension.getCeilingHeight() != previousCeilingHeight)
-                    || (dimension.isBedrockWall() != previousBedrockWall)
+                    || (dimension.getWallType() != previousWallType)
                     || (dimension.getTopLayerAnchor() != previousTopLayerAnchor)) {
                 view.refreshTiles();
             }
@@ -7087,6 +7087,11 @@ public final class App extends JFrame implements RadiusControl,
     private static final String HELP_ROOT_URL = "https://www.worldpainter.net/help/";
 
     private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
+
+    private static final String IMPORT_WARNING_KEY = "org.pepsoft.worldpainter.importWarning";
+
+    static final String MERGE_WARNING_KEY = "org.pepsoft.worldpainter.mergeWarning";
+
     private static final long serialVersionUID = 1L;
     
     public class IntensityAction extends BetterAction {

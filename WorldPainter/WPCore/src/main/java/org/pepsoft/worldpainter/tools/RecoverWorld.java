@@ -206,7 +206,7 @@ public class RecoverWorld {
             } catch (NullPointerException e) {
                 System.err.println("Layer settings lost for dimension " + dimension.getName());
             }
-            newDimension.setBedrockWall(dimension.isBedrockWall());
+            newDimension.setWallType(dimension.getWallType());
             if ((dimension.getBorderLevel() > 0) && (dimension.getBorderSize() > 0)) {
                 newDimension.setBorder(dimension.getBorder());
                 newDimension.setBorderLevel(dimension.getBorderLevel());
@@ -220,7 +220,7 @@ public class RecoverWorld {
             } else {
                 System.err.println("Contour settings lost for dimension " + dimension.getName());
             }
-            newDimension.setDarkLevel(dimension.isDarkLevel());
+            newDimension.setRoofType(dimension.getRoofType());
             if (dimension.getGridSize() > 0) {
                 newDimension.setGridEnabled(dimension.isGridEnabled());
                 newDimension.setGridSize(dimension.getGridSize());

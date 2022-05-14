@@ -157,7 +157,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                     // Also add regions for any bedrock wall and/or border
                     // tiles, if present
                     int r = (((dimension.getBorder() != null) && (! dimension.getBorder().isEndless())) ? dimension.getBorderSize() : 0)
-                            + (((dimension.getBorder() == null) || (! dimension.getBorder().isEndless())) && dimension.isBedrockWall() ? 1 : 0);
+                            + (((dimension.getBorder() == null) || (! dimension.getBorder().isEndless())) && (dimension.getWallType() != null) ? 1 : 0);
                     for (int dx = -r; dx <= r; dx++) {
                         for (int dy = -r; dy <= r; dy++) {
                             int regionX = (tile.getX() + dx) >> 2;
@@ -752,26 +752,24 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             if (dimension.getTile(tileCoords) != null) {
                 return chunkFactory.createChunk(chunkX, chunkY);
             } else if ((! ceiling) && (! endlessBorder)) {
-                // Might be a border or bedrock wall chunk (but not if this is a
-                // ceiling dimension or the border is an endless border)
+                // Might be a border or wall chunk (but not if this is a ceiling dimension or the border is an endless
+                // border)
                 if (border && isBorderChunk(dimension, chunkX, chunkY)) {
                     return BorderChunkFactory.create(chunkX, chunkY, dimension, platform, exporters);
-                } else if (dimension.isBedrockWall()
+                } else if ((dimension.getWallType() != null)
                         && (border
                             ? (isBorderChunk(dimension, chunkX - 1, chunkY) || isBorderChunk(dimension, chunkX, chunkY - 1) || isBorderChunk(dimension, chunkX + 1, chunkY) || isBorderChunk(dimension, chunkX, chunkY + 1))
                             : (isWorldChunk(dimension, chunkX - 1, chunkY) || isWorldChunk(dimension, chunkX, chunkY - 1) || isWorldChunk(dimension, chunkX + 1, chunkY) || isWorldChunk(dimension, chunkX, chunkY + 1)))) {
-                    // Bedrock wall is turned on and a neighbouring chunk is a
-                    // border chunk (if there is a border), or a world chunk (if
-                    // there is no border)
-                    return BedrockWallChunk.create(chunkX, chunkY, dimension, platform);
+                    // Bedrock or barrier wall is turned on and a neighbouring chunk is a border chunk (if there is a
+                    // border), or a world chunk (if there is no border)
+                    return WallChunk.create(chunkX, chunkY, dimension, platform);
                 } else {
                     // Outside known space
                     return null;
                 }
             } else {
-                // Not a world tile, and we're a ceiling dimension, or the
-                // border is an endless border, so we don't export borders and
-                // bedrock walls
+                // Not a world tile, and we're a ceiling dimension, or the border is an endless border, so we don't
+                // export borders and bedrock walls
                 return null;
             }
         }

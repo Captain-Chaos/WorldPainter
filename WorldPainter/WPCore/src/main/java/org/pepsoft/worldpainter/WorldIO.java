@@ -138,9 +138,9 @@ public class WorldIO {
             newWorld.setAllowMerging(false);
             dim0.setEventsInhibited(true);
             try {
-                dim0.setBedrockWall(oldWorld.isBedrockWall());
+                dim0.setWallType(oldWorld.isBedrockWall() ? Dimension.WallType.BEDROCK : null);
                 dim0.setBorder((oldWorld.getBorder() != null) ? Dimension.Border.valueOf(oldWorld.getBorder().name()) : null);
-                dim0.setDarkLevel(oldWorld.isDarkLevel());
+                dim0.setRoofType(oldWorld.isDarkLevel() ? Dimension.WallType.BEDROCK : null);
                 for (Map.Entry<Layer, ExporterSettings> entry: oldWorld.getAllLayerSettings().entrySet()) {
                     dim0.setLayerSettings(entry.getKey(), entry.getValue());
                 }

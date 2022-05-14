@@ -508,7 +508,8 @@ public class NewWorldDialog extends WorldPainterDialog {
                     dimension.setBorder(defaults.getBorder());
                     dimension.setBorderSize(defaults.getBorderSize());
                 }
-                dimension.setBedrockWall(defaults.isBedrockWall());
+                dimension.setWallType(defaults.getWallType());
+                dimension.setRoofType(defaults.getRoofType());
                 dimension.setSubsurfaceMaterial(defaults.getSubsurfaceMaterial());
                 dimension.setPopulate(defaults.isPopulate());
                 dimension.setTopLayerMinDepth(defaults.getTopLayerMinDepth());

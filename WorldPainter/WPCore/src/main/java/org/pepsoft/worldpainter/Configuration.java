@@ -188,22 +188,6 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.beaches = beaches;
     }
 
-    public synchronized boolean isMergeWarningDisplayed() {
-        return mergeWarningDisplayed;
-    }
-
-    public synchronized void setMergeWarningDisplayed(boolean mergeWarningDisplayed) {
-        this.mergeWarningDisplayed = mergeWarningDisplayed;
-    }
-
-    public synchronized boolean isImportWarningDisplayed() {
-        return importWarningDisplayed;
-    }
-
-    public synchronized void setImportWarningDisplayed(boolean importWarningDisplayed) {
-        this.importWarningDisplayed = importWarningDisplayed;
-    }
-
     public synchronized Boolean getPingAllowed() {
         return pingAllowed;
     }
@@ -675,22 +659,6 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.autosaveInterval = autosaveInterval;
     }
 
-    public synchronized boolean isSnapshotWarningDisplayed() {
-        return snapshotWarningDisplayed;
-    }
-
-    public synchronized void setSnapshotWarningDisplayed(boolean snapshotWarningDisplayed) {
-        this.snapshotWarningDisplayed = snapshotWarningDisplayed;
-    }
-
-    public synchronized boolean isBeta118WarningDisplayed() {
-        return beta118WarningDisplayed;
-    }
-
-    public synchronized void setBeta118WarningDisplayed(boolean beta118WarningDisplayed) {
-        this.beta118WarningDisplayed = beta118WarningDisplayed;
-    }
-
     public synchronized int getMinimumFreeSpaceForMaps() {
         return minimumFreeSpaceForMaps;
     }
@@ -713,6 +681,14 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
 
     public synchronized void setDefaultExportSettings(ExportSettings defaultExportSettings) {
         this.defaultExportSettings = defaultExportSettings;
+    }
+
+    public synchronized boolean isMessageDisplayed(String messageKey) {
+        return displayedMessages.containsKey(messageKey);
+    }
+
+    public synchronized void setMessageDisplayed(String messageKey) {
+        displayedMessages.computeIfAbsent(messageKey, k -> new ArrayList<>()).add(new MessageDisplayed(launchCount));
     }
 
     // Transient settings which aren't stored on disk
@@ -1061,6 +1037,25 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
                 showDonationDialogAfter = Math.max(launchCount + 5, 50);
             }
         }
+        if (version < 24) {
+            displayedMessages = new HashMap<>();
+            if (mergeWarningDisplayed) {
+                displayedMessages.put("org.pepsoft.worldpainter.mergeWarning", new ArrayList<>(Collections.singletonList(new MessageDisplayed(0))));
+                mergeWarningDisplayed = false;
+            }
+            if (importWarningDisplayed) {
+                displayedMessages.put("org.pepsoft.worldpainter.importWarning", new ArrayList<>(Collections.singletonList(new MessageDisplayed(0))));
+                importWarningDisplayed = false;
+            }
+            if (snapshotWarningDisplayed) {
+                displayedMessages.put("org.pepsoft.worldpainter.snapshotWarning", new ArrayList<>(Collections.singletonList(new MessageDisplayed(0))));
+                snapshotWarningDisplayed = false;
+            }
+            if (beta118WarningDisplayed) {
+                displayedMessages.put("org.pepsoft.worldpainter.beta118Warning", new ArrayList<>(Collections.singletonList(new MessageDisplayed(0))));
+                beta118WarningDisplayed = false;
+            }
+        }
         if (defaultTerrainAndLayerSettings.getLayerSettings(Resources.INSTANCE) != null) {
             defaultTerrainAndLayerSettings.setLayerSettings(Resources.INSTANCE, null);
         }
@@ -1186,7 +1181,9 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     }
 
     private Rectangle windowBounds;
-    private boolean maximised, hilly = true, lava, goodies = true, populate, beaches = true, mergeWarningDisplayed, importWarningDisplayed;
+    private boolean maximised, hilly = true, lava, goodies = true, populate, beaches = true;
+    @Deprecated
+    private boolean mergeWarningDisplayed, importWarningDisplayed;
     private int level = 58, waterLevel = DEFAULT_WATER_LEVEL, borderLevel = DEFAULT_WATER_LEVEL;
     private Terrain surface = Terrain.GRASS, underground = Terrain.RESOURCES;
     private File worldDirectory;
@@ -1248,14 +1245,15 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private int autosaveDelay = 60000, autosaveInterval = 600000; // One minute delay; ten minutes interval
     private String defaultPlatformId = DEFAULT_PLATFORM.id;
     private Map<String, File> exportDirectoriesById = new HashMap<>();
-    private boolean snapshotWarningDisplayed;
-    private boolean beta118WarningDisplayed;
+    @Deprecated
+    private boolean snapshotWarningDisplayed, beta118WarningDisplayed;
     private int minimumFreeSpaceForMaps = 1;
     private boolean autoDeleteBackups = true;
     private MapGenerator defaultGeneratorObj = new SeededGenerator(LARGE_BIOMES, DEFAULT_OCEAN_SEED);
     private ExportSettings defaultExportSettings;
     private int defaultResourcesMinimumLevel = 8, showDonationDialogAfter = 5;
     private Integer merchStoreDialogDisplayed = 0;
+    private Map<String, List<MessageDisplayed>> displayedMessages = new HashMap<>();
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk
@@ -1271,7 +1269,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Configuration.class);
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
-    private static final int CURRENT_VERSION = 23;
+    private static final int CURRENT_VERSION = 24;
 
     public static final String ADVANCED_SETTING_PREFIX = "org.pepsoft.worldpainter";
     public static final Platform DEFAULT_PLATFORM = JAVA_ANVIL_1_15;
@@ -1281,4 +1279,14 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     public enum LookAndFeel {SYSTEM, METAL, NIMBUS, DARK_METAL, DARK_NIMBUS}
 
     public enum OverlayType {SCALE_ON_LOAD, OPTIMISE_ON_LOAD, SCALE_ON_PAINT}
+
+    public static class MessageDisplayed implements Serializable {
+        public MessageDisplayed(int launchCount) {
+            this.launchCount = launchCount;
+            timestamp = new Date();
+        }
+
+        public int launchCount;
+        public Date timestamp;
+    }
 }

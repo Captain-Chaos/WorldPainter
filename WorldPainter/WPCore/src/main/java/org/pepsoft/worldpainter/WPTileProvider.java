@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.awt.Color.WHITE;
 import static java.util.Collections.unmodifiableSet;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
@@ -101,7 +102,8 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                     switch (getUnzoomedTileType(x * scale + dx, y * scale + dy)) {
                         case WORLD:
                         case BORDER:
-                        case WALL:
+                        case BEDROCK_WALL:
+                        case BARRIER_WALL:
                             return true;
                         case SURROUNDS:
                             if ((surroundingTileProvider != null) && surroundingTileProvider.isTilePresent(x, y)) {
@@ -222,7 +224,8 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                                     }
                                     break;
                                 case SURROUNDS:
-                                case WALL:
+                                case BEDROCK_WALL:
+                                case BARRIER_WALL:
                                     if (surroundingTileProvider != null) {
                                         if (surroundingTileImageAvailable == null) {
                                             surroundingTileImage = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_ARGB);
@@ -239,8 +242,8 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                                         g2.setColor(voidColour);
                                         g2.fillRect(imageX + dx * subSize, imageY + dy * subSize, subSize, subSize);
                                     }
-                                    if (tileType == TileType.WALL) {
-                                        g2.setColor(bedrockColour);
+                                    if ((tileType == TileType.BEDROCK_WALL) || (tileType == TileType.BARRIER_WALL)){
+                                        g2.setColor((tileType == TileType.BEDROCK_WALL) ? bedrockColour : WHITE);
                                         TileType neighbourType = getUnzoomedTileType(x * scale + dx, y * scale + dy - 1);
                                         int wallWidth = Math.max(subSize / 8, 1);
                                         if ((neighbourType == TileType.WORLD) || (neighbourType == TileType.BORDER)) {
@@ -416,7 +419,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
             Dimension dimension = (Dimension) tileProvider;
             if (dimension.isBorderTile(x, y)) {
                 return TileType.BORDER;
-            } else if (dimension.isBedrockWall()
+            } else if ((dimension.getWallType() != null)
                     && ((dimension.getBorder() != null)
                         ? (dimension.isBorderTile(x - 1, y)
                             || dimension.isBorderTile(x, y - 1)
@@ -426,7 +429,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                             || tileProvider.isTilePresent(x, y - 1)
                             || tileProvider.isTilePresent(x + 1, y)
                             || tileProvider.isTilePresent(x, y + 1)))) {
-                return TileType.WALL;
+                return (dimension.getWallType() == Dimension.WallType.BEDROCK) ? TileType.BEDROCK_WALL : TileType.BARRIER_WALL;
             }
         }
         return TileType.SURROUNDS;
@@ -530,7 +533,8 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                     g2.dispose();
                 }
                 return true;
-            case WALL:
+            case BEDROCK_WALL:
+            case BARRIER_WALL:
                 boolean backgroundPainted = false;
                 if (surroundingTileProvider != null) {
                     backgroundPainted = surroundingTileProvider.paintTile(tileImage, x, y, dx, dy);
@@ -545,7 +549,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
                         g2.setComposite(AlphaComposite.Src);
                         g2.fillRect(dx, dy, TILE_SIZE, TILE_SIZE);
                     }
-                    g2.setColor(new Color(colourScheme.getColour(BLK_BEDROCK)));
+                    g2.setColor(tileType == TileType.BEDROCK_WALL ? new Color(colourScheme.getColour(BLK_BEDROCK)) : WHITE);
                     TileType neighbourType = getUnzoomedTileType(x, y - 1);
                     if ((neighbourType == TileType.WORLD) || (neighbourType == TileType.BORDER)) {
                         g2.fillRect(dx, dy, TILE_SIZE, 16);
@@ -691,9 +695,12 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
          */
         SURROUNDS,
         /**
-         * The tile is outside the WorldPainter world and border but does
-         * contain part of a wall.
+         * The tile is outside the WorldPainter world and border but does contain part of a bedrock wall.
          */
-        WALL
+        BEDROCK_WALL,
+        /**
+         * The tile is outside the WorldPainter world and border but does contain part of a barrier wall.
+         */
+        BARRIER_WALL
     }
 }

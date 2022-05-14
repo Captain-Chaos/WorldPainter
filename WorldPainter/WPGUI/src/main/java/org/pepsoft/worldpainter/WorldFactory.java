@@ -96,7 +96,7 @@ public final class WorldFactory {
                     dim0.setBorder(Dimension.Border.VOID);
                     dim0.setBorderSize(2);
                 }
-                dim0.setBedrockWall(false);
+                dim0.setWallType(null);
             } else {
                 final int width = config.getDefaultWidth(), height = config.getDefaultHeight();
                 final int startX = -width / 2;
@@ -150,7 +150,8 @@ public final class WorldFactory {
         try {
             dim0.setBorder(defaults.getBorder());
             dim0.setBorderSize(defaults.getBorderSize());
-            dim0.setBedrockWall(defaults.isBedrockWall());
+            dim0.setWallType(defaults.getWallType());
+            dim0.setRoofType(defaults.getRoofType());
             dim0.setBorderLevel(defaults.getBorderLevel());
             dim0.setSubsurfaceMaterial(defaults.getSubsurfaceMaterial());
             dim0.setPopulate(defaults.isPopulate());
@@ -239,7 +240,8 @@ public final class WorldFactory {
                 
                 dim0.setBorder(defaults.getBorder());
                 dim0.setBorderSize(defaults.getBorderSize());
-                dim0.setBedrockWall(defaults.isBedrockWall());
+                dim0.setWallType(defaults.getWallType());
+                dim0.setRoofType(defaults.getRoofType());
             }
             dim0.setBorderLevel(defaults.getBorderLevel());
             dim0.setSubsurfaceMaterial(defaults.getSubsurfaceMaterial());

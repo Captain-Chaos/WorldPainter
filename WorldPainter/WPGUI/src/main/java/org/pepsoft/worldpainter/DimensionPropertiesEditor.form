@@ -8,6 +8,10 @@
     </Component>
     <Component class="javax.swing.ButtonGroup" name="buttonGroup3">
     </Component>
+    <Component class="javax.swing.ButtonGroup" name="buttonGroup4">
+    </Component>
+    <Component class="javax.swing.ButtonGroup" name="buttonGroup5">
+    </Component>
   </NonVisualComponents>
   <AuxValues>
     <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
@@ -139,7 +143,19 @@
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="jPanel6" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <Component id="checkBoxBedrockWall" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Component id="checkBoxWall" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="radioButtonBedrockWall" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="radioButtonBarrierWall" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace type="separate" max="-2" attributes="0"/>
+                              <Component id="checkBoxRoof" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="radioButtonBedrockRoof" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="radioButtonBarrierRoof" min="-2" max="-2" attributes="0"/>
+                          </Group>
                       </Group>
                       <EmptySpace max="32767" attributes="0"/>
                   </Group>
@@ -204,7 +220,14 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="radioButtonEndlessBorder" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="checkBoxBedrockWall" min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="checkBoxWall" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="radioButtonBedrockWall" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="radioButtonBarrierWall" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="checkBoxRoof" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="radioButtonBedrockRoof" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="radioButtonBarrierRoof" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="jLabel7" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -282,10 +305,13 @@
                 <Property name="enabled" type="boolean" value="false"/>
               </Properties>
             </Component>
-            <Component class="javax.swing.JCheckBox" name="checkBoxBedrockWall">
+            <Component class="javax.swing.JCheckBox" name="checkBoxWall">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Bedrock wall"/>
+                <Property name="text" type="java.lang.String" value="Wall:"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxWallActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel6">
               <Properties>
@@ -394,7 +420,7 @@
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel78">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Ceiling height:"/>
+                <Property name="text" type="java.lang.String" value="Ceiling dimension height:"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JSpinner" name="spinnerCeilingHeight">
@@ -607,6 +633,64 @@
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonGeneratorOptionsActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JRadioButton" name="radioButtonBedrockWall">
+              <Properties>
+                <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+                  <ComponentRef name="buttonGroup4"/>
+                </Property>
+                <Property name="selected" type="boolean" value="true"/>
+                <Property name="text" type="java.lang.String" value="bedrock"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="radioButtonBedrockWallActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JRadioButton" name="radioButtonBarrierWall">
+              <Properties>
+                <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+                  <ComponentRef name="buttonGroup4"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="barrier"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="radioButtonBarrierWallActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JCheckBox" name="checkBoxRoof">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Roof:"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxRoofActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JRadioButton" name="radioButtonBedrockRoof">
+              <Properties>
+                <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+                  <ComponentRef name="buttonGroup5"/>
+                </Property>
+                <Property name="selected" type="boolean" value="true"/>
+                <Property name="text" type="java.lang.String" value="bedrock"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="radioButtonBedrockRoofActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JRadioButton" name="radioButtonBarrierRoof">
+              <Properties>
+                <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+                  <ComponentRef name="buttonGroup5"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="barrier"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="radioButtonBarrierRoofActionPerformed"/>
               </Events>
             </Component>
           </SubComponents>

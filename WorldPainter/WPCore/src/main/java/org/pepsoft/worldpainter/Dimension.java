@@ -49,6 +49,7 @@ import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.Dimension.WallType.BEDROCK;
 import static org.pepsoft.worldpainter.Generator.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
 
@@ -201,30 +202,6 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             this.borderSize = borderSize;
             changeNo++;
             propertyChangeSupport.firePropertyChange("borderSize", oldBorderSize, borderSize);
-        }
-    }
-
-    public boolean isDarkLevel() {
-        return darkLevel;
-    }
-
-    public void setDarkLevel(boolean darkLevel) {
-        if (darkLevel != this.darkLevel) {
-            this.darkLevel = darkLevel;
-            changeNo++;
-            propertyChangeSupport.firePropertyChange("darkLevel", ! darkLevel, darkLevel);
-        }
-    }
-
-    public boolean isBedrockWall() {
-        return bedrockWall;
-    }
-
-    public void setBedrockWall(boolean bedrockWall) {
-        if (bedrockWall != this.bedrockWall) {
-            this.bedrockWall = bedrockWall;
-            changeNo++;
-            propertyChangeSupport.firePropertyChange("bedrockWall", ! bedrockWall, bedrockWall);
         }
     }
 
@@ -1295,6 +1272,32 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
+    public WallType getWallType() {
+        return wallType;
+    }
+
+    public void setWallType(WallType wallType) {
+        if (wallType != this.wallType) {
+            WallType oldWallType = this.wallType;
+            this.wallType = wallType;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("wallType", oldWallType, wallType);
+        }
+    }
+
+    public WallType getRoofType() {
+        return roofType;
+    }
+
+    public void setRoofType(WallType roofType) {
+        if (roofType != this.roofType) {
+            WallType oldRoofType = this.roofType;
+            this.roofType = roofType;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("roofType", oldRoofType, roofType);
+        }
+    }
+
     public void applyTheme(Point coords) {
         applyTheme(coords.x, coords.y);
     }
@@ -1903,6 +1906,16 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             subsurfaceLayerAnchor = LayerAnchor.BEDROCK;
             topLayerAnchor = LayerAnchor.BEDROCK;
         }
+        if (wpVersion < 5) {
+            if (darkLevel) {
+                roofType = BEDROCK;
+                darkLevel = false;
+            }
+            if (bedrockWall) {
+                wallType = BEDROCK;
+                bedrockWall = false;
+            }
+        }
         wpVersion = CURRENT_WP_VERSION;
 
         // Make sure that any custom layers which somehow ended up in the world
@@ -1938,7 +1951,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private boolean populate;
     private Border border;
     private int borderLevel = DEFAULT_WATER_LEVEL, borderSize = 2;
-    private boolean darkLevel, bedrockWall;
+    @Deprecated private boolean darkLevel, bedrockWall;
     private Map<Layer, ExporterSettings> layerSettings = new HashMap<>();
     private long minecraftSeed;
     private File overlay;
@@ -1960,6 +1973,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private LayerAnchor subsurfaceLayerAnchor = LayerAnchor.BEDROCK, topLayerAnchor = LayerAnchor.BEDROCK;
     private ExportSettings exportSettings;
     private MapGenerator generator;
+    private WallType wallType, roofType;
     private transient List<Listener> listeners = new ArrayList<>();
     private transient boolean eventsInhibited;
     private transient Set<Tile> dirtyTiles = new HashSet<>();
@@ -1980,7 +1994,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     private static final long TOP_LAYER_DEPTH_SEED_OFFSET = 180728193;
     private static final float ROOT_EIGHT = (float) Math.sqrt(8.0);
-    private static final int CURRENT_WP_VERSION = 4;
+    private static final int CURRENT_WP_VERSION = 5;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Dimension.class);
     private static final long serialVersionUID = 2011062401L;
 
@@ -2008,6 +2022,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public enum LayerAnchor {BEDROCK, TERRAIN}
+
+    public enum WallType { BEDROCK, BARIER }
 
     public class TileVisitationBuilder {
         public TileVisitationBuilder forFilter(Filter filter) {

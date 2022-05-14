@@ -480,7 +480,7 @@ public class Main {
             // Do this later to give the app the chance to properly set
             // itself up
             SwingUtilities.invokeLater(() -> {
-                if (Version.isSnapshot() && ! myConfig.isSnapshotWarningDisplayed()) {
+                if (Version.isSnapshot() && ! myConfig.isMessageDisplayed(SNAPSHOT_MESSAGE_KEY)) {
                     String result = JOptionPane.showInputDialog(app, SNAPSHOT_MESSAGE, "Snapshot Release", JOptionPane.WARNING_MESSAGE);
                     if (result == null) {
                         // Cancel was pressed
@@ -494,7 +494,7 @@ public class Main {
                             System.exit(0);
                         }
                     }
-                    myConfig.setSnapshotWarningDisplayed(true);
+                    myConfig.setMessageDisplayed(SNAPSHOT_MESSAGE_KEY);
                 }
                 if (world != null) {
                     // On a Mac we may be doing this unnecessarily because we
@@ -544,6 +544,7 @@ public class Main {
             "<p>Any or all work you do with this test release may be lost, and if you don't create backups,<br>you may lose your current worlds." +
             "<p>Please report bugs on GitHub: https://github.com/Captain-Chaos/WorldPainter" +
             "<p>Type \"I understand\" below to proceed with testing the next release of WorldPainter:</p></html>";
+    private static final String SNAPSHOT_MESSAGE_KEY = "org.pepsoft.worldpainter.snapshotWarning";
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Main.class);
 

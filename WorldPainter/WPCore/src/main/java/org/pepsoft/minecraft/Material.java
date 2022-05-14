@@ -1970,6 +1970,7 @@ public final class Material implements Serializable {
     public static final Material CAVE_VINES_NO_BERRIES = get(MC_CAVE_VINES, MC_BERRIES, false);
     public static final Material CAVE_VINES_PLANT_NO_BERRIES = get(MC_CAVE_VINES_PLANT, MC_BERRIES, false);
     public static final Material SMALL_DRIPLEAF_SOUTH_LOWER = get(MC_SMALL_DRIPLEAF, MC_HALF, "lower", MC_FACING, "south", MC_WATERLOGGED, false);
+    public static final Material BARRIER = get(MC_BARRIER);
 
     // Material type categories
 

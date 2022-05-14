@@ -244,7 +244,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
         StringBuilder sb = new StringBuilder("<html>Please confirm that you want to export the world<br>notwithstanding the following warnings:<br><ul>");
         boolean showWarning = false;
         Configuration config = Configuration.getInstance();
-        if ((platform == JAVA_ANVIL_1_18) && (! config.isBeta118WarningDisplayed())) {
+        if ((platform == JAVA_ANVIL_1_18) && (! config.isMessageDisplayed(BETA_118_WARNING_KEY))) {
             sb.append("<li><strong>Minecraft 1.18 support is still in preview!</strong><br>" +
                     "Be careful and keep backups. If you encounter<br>" +
                     "problems, please report them on GitHub:<br>" +
@@ -383,7 +383,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
 
         config.setExportDirectory(world.getPlatform(), baseDir);
         if (platform == JAVA_ANVIL_1_18) {
-            config.setBeta118WarningDisplayed(true);
+            config.setMessageDisplayed(BETA_118_WARNING_KEY);
         }
 
         ExportProgressDialog dialog = new ExportProgressDialog(this, world, baseDir, name);
@@ -835,5 +835,6 @@ public class ExportWorldDialog extends WorldPainterDialog {
     private Set<Point> selectedTiles;
     private boolean disableTileSelectionWarning, disableDisabledLayersWarning;
 
+    private static final String BETA_118_WARNING_KEY = "org.pepsoft.worldpainter.beta118Warning";
     private static final long serialVersionUID = 1L;
 }

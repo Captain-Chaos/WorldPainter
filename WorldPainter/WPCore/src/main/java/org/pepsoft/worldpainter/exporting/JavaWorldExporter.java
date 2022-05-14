@@ -109,8 +109,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                 continue;
             }
             Dimension.Border dimensionBorder = dimension.getBorder();
-            boolean endlessBorder = (dimensionBorder != null) && dimensionBorder.isEndless();
-            if (endlessBorder) {
+            if (((dimensionBorder != null) && dimensionBorder.isEndless()) || (dimension.getWallType() == Dimension.WallType.BARIER)){
                 final SuperflatPreset.Builder superflatPresetBuilder;
                 final int biome;
                 final Structure[] structures;
@@ -124,54 +123,67 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                         structures = null; // TODO are there End structures we could put here?
                         break;
                     default:
-                        switch (dimensionBorder) {
-                            case ENDLESS_WATER:
-                                biome = BIOME_OCEAN;
-                                break;
-                            case ENDLESS_VOID:
-                                biome = ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) ? BIOME_THE_VOID : BIOME_PLAINS;
-                                break;
-                            default:
-                                biome = BIOME_PLAINS;
-                                break;
+                        if (dimension.getWallType() != Dimension.WallType.BARIER) {
+                            switch (dimensionBorder) {
+                                case ENDLESS_WATER:
+                                    biome = BIOME_OCEAN;
+                                    break;
+                                case ENDLESS_VOID:
+                                    biome = ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) ? BIOME_THE_VOID : BIOME_PLAINS;
+                                    break;
+                                default:
+                                    biome = BIOME_PLAINS;
+                                    break;
+                            }
+                        } else {
+                            biome = BIOME_PLAINS;
                         }
                         structures = new Structure[] {MINESHAFT, BIOME_1, DUNGEON, DECORATION, OCEANMONUMENT}; // TODO expand with Minecraft 1.14+ structures?
                         break;
                 }
-                switch (dimensionBorder) {
-                    case ENDLESS_LAVA:
-                    case ENDLESS_WATER:
-                        superflatPresetBuilder = SuperflatPreset.builder(biome, structures);
-                        final boolean bottomless = dimension.isBottomless();
-                        final int borderLevel = dimension.getBorderLevel() - dimension.getMinHeight() + 1;
-                        final int oceanDepth = Math.max(Math.min(borderLevel / 2, 20), 1);
-                        final int deepSlateDepth = (dimension.getMinHeight() < 0)
-                                ? Math.min(Math.max(borderLevel - oceanDepth - (bottomless ? 0 : 1) - 5, 0), bottomless ? 64 : 63)
-                                : 0;
-                        final int stoneDepth = Math.max(borderLevel - oceanDepth - deepSlateDepth - (bottomless ? 0 : 1) - 5, 0);
-                        final int dirtDepth = Math.max(borderLevel - oceanDepth - deepSlateDepth - stoneDepth - (bottomless ? 0 : 1), 0);
-                        if (! bottomless) {
-                            superflatPresetBuilder.addLayer(MC_BEDROCK, 1);
-                        }
-                        if (deepSlateDepth > 0) {
-                            superflatPresetBuilder.addLayer(MC_DEEPSLATE, deepSlateDepth);
-                        }
-                        if (stoneDepth > 0) {
-                            superflatPresetBuilder.addLayer(MC_STONE, stoneDepth);
-                        }
-                        if (dirtDepth > 0) {
-                            superflatPresetBuilder.addLayer(MC_DIRT, dirtDepth);
-                        }
-                        if (oceanDepth > 0) {
-                            superflatPresetBuilder.addLayer((dimensionBorder == ENDLESS_WATER) ? MC_WATER : MC_LAVA, oceanDepth);
-                        }
-                        break;
-                    case ENDLESS_VOID:
-                        superflatPresetBuilder = SuperflatPreset.builder(biome);
-                        superflatPresetBuilder.addLayer(MC_AIR, 1);
-                        break;
-                    default:
-                        throw new InternalError();
+                if (dimension.getWallType() == Dimension.WallType.BARIER) {
+                    superflatPresetBuilder = SuperflatPreset.builder(biome);
+                    superflatPresetBuilder.addLayer(MC_AIR, 1);
+                } else {
+                    switch (dimensionBorder) {
+                        case ENDLESS_LAVA:
+                        case ENDLESS_WATER:
+                            superflatPresetBuilder = SuperflatPreset.builder(biome, structures);
+                            final boolean bottomless = dimension.isBottomless();
+                            final int borderLevel = dimension.getBorderLevel() - dimension.getMinHeight() + 1;
+                            final int oceanDepth = Math.max(Math.min(borderLevel / 2, 20), 1);
+                            final int deepSlateDepth = (dimension.getMinHeight() < 0)
+                                    ? Math.min(Math.max(borderLevel - oceanDepth - (bottomless ? 0 : 1) - 5, 0), bottomless ? 64 : 63)
+                                    : 0;
+                            final int stoneDepth = Math.max(borderLevel - oceanDepth - deepSlateDepth - (bottomless ? 0 : 1) - 5, 0);
+                            final int dirtDepth = Math.max(borderLevel - oceanDepth - deepSlateDepth - stoneDepth - (bottomless ? 0 : 1), 0);
+                            if (!bottomless) {
+                                superflatPresetBuilder.addLayer(MC_BEDROCK, 1);
+                            }
+                            if (deepSlateDepth > 0) {
+                                superflatPresetBuilder.addLayer(MC_DEEPSLATE, deepSlateDepth);
+                            }
+                            if (stoneDepth > 0) {
+                                superflatPresetBuilder.addLayer(MC_STONE, stoneDepth);
+                            }
+                            if (dirtDepth > 0) {
+                                superflatPresetBuilder.addLayer(MC_DIRT, dirtDepth);
+                            }
+                            if (oceanDepth > 0) {
+                                superflatPresetBuilder.addLayer((dimensionBorder == ENDLESS_WATER) ? MC_WATER : MC_LAVA, oceanDepth);
+                            }
+                            if (dimension.getRoofType() != null) {
+                                superflatPresetBuilder.addLayer(MC_AIR, dimension.getMaxHeight() - dimension.getMinHeight() - borderLevel - 1);
+                                superflatPresetBuilder.addLayer((dimension.getRoofType() == Dimension.WallType.BEDROCK) ? MC_BEDROCK : MC_BARRIER, 1);
+                            }
+                            break;
+                        case ENDLESS_VOID:
+                            superflatPresetBuilder = SuperflatPreset.builder(biome);
+                            superflatPresetBuilder.addLayer(MC_AIR, 1);
+                            break;
+                        default:
+                            throw new InternalError();
+                    }
                 }
                 level.setGenerator(dimension.getDim(), new SuperflatGenerator(superflatPresetBuilder.build()));
             } else {
@@ -322,7 +334,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                 // Also add regions for any bedrock wall and/or border
                 // tiles, if present
                 int r = (((dimension.getBorder() != null) && (! dimension.getBorder().isEndless())) ? dimension.getBorderSize() : 0)
-                        + (((dimension.getBorder() == null) || (! dimension.getBorder().isEndless())) && dimension.isBedrockWall() ? 1 : 0);
+                        + (((dimension.getBorder() == null) || (! dimension.getBorder().isEndless())) && (dimension.getWallType() != null) ? 1 : 0);
                 for (int dx = -r; dx <= r; dx++) {
                     for (int dy = -r; dy <= r; dy++) {
                         regions.add(new Point((tile.getX() + dx) >> 2, (tile.getY() + dy) >> 2));
