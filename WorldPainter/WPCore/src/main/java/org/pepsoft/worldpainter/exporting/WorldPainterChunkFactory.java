@@ -282,21 +282,21 @@ public class WorldPainterChunkFactory implements ChunkFactory {
 
     private void renderObject(Chunk chunk, WPObject object, int x, int y, int z) {
         final int height = object.getDimensions().z;
-        if (z + height >= maxHeight) {
+        if (y + height >= maxHeight) {
             return;
         }
-        for (int dz = 0; dz < height; dz++) {
-            if (object.getMask(0, 0, dz)) {
-                final Material objectMaterial = object.getMaterial(0, 0, dz);
-                final Material existingMaterial = chunk.getMaterial(x, y + dz, z);
+        for (int dy = 0; dy < height; dy++) {
+            if (object.getMask(0, 0, dy)) {
+                final Material objectMaterial = object.getMaterial(0, 0, dy);
+                final Material existingMaterial = chunk.getMaterial(x, y + dy, z);
                 if (existingMaterial.isNamed(MC_WATER)) {
                     if (objectMaterial.containsWater()) {
-                        chunk.setMaterial(x, y + dz, z, objectMaterial);
+                        chunk.setMaterial(x, y + dy, z, objectMaterial);
                     } else if (objectMaterial.hasProperty(WATERLOGGED)) {
-                        chunk.setMaterial(x, y + dz, z, objectMaterial.withProperty(WATERLOGGED, true));
+                        chunk.setMaterial(x, y + dy, z, objectMaterial.withProperty(WATERLOGGED, true));
                     }
                 } else {
-                    chunk.setMaterial(x, y + dz, z, objectMaterial);
+                    chunk.setMaterial(x, y + dy, z, objectMaterial);
                 }
             }
         }
