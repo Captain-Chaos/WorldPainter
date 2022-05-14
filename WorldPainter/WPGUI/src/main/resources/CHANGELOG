@@ -2,9 +2,11 @@
 
  * In addition to the existing Bedrock wall option it is now also possible to create Barrier block walls
    + In addition, a "roof" option has been added, that will cover the map with a Bedrock or Barrier layer of blocks at the top. Together these options can completely box players in
-   + NOTE that Minecraft may spawn you on _top_ of the roof. WorldPainter has no control over that unfortunately
    + NOTE that a bedrock roof will make the map dark, but it won't darken the sky or hide the sun
    + When the Barrier wall is selected, outside the walls will be fixed to endless Void
+ * WorldPainter now tries harder to spawn you at the terrain level, rather than on top of the roof or the ceiling dimension
+   + This does mean that if your spawn location is blocked, you might suffocate
+   + It is not guaranteed to work for multiplayer
 
 -- Version 2.10.1, released 13-5-2022
 

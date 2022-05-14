@@ -23,6 +23,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
+import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
@@ -362,6 +363,25 @@ public abstract class JavaLevel extends AbstractNBTItem {
     
     public void setBorderDamagePerBlock(double borderDamagePerBlock) {
         setDouble(TAG_BORDER_DAMAGE_PER_BLOCK, borderDamagePerBlock);
+    }
+
+    /**
+     * Set the multiplayer and single player spawn point and the single player location.
+     */
+    public void setSpawn(int x, int y, int z) {
+        setSpawnX(x);
+        setSpawnY(y);
+        setSpawnZ(z);
+        Map<String, Tag> playerSettings = getMap(TAG_PLAYER);
+        if (playerSettings == null) {
+            playerSettings = new HashMap<>();
+        }
+        playerSettings.put(TAG_SPAWN_X, new IntTag(TAG_SPAWN_X, x));
+        playerSettings.put(TAG_SPAWN_Y, new IntTag(TAG_SPAWN_Y, y));
+        playerSettings.put(TAG_SPAWN_Z, new IntTag(TAG_SPAWN_Z, x));
+        playerSettings.put(TAG_SPAWN_FORCED, new ByteTag(TAG_SPAWN_FORCED, (byte) 1));
+        playerSettings.put(TAG_POS, new ListTag<>(TAG_POS, DoubleTag.class, asList(new DoubleTag("", x + 0.5), new DoubleTag("", y), new DoubleTag("", z + 0.5))));
+        setMap(TAG_PLAYER, playerSettings);
     }
 
     public Platform getPlatform() {

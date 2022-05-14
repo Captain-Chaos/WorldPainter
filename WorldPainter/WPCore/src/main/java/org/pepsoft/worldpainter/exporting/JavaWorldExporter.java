@@ -85,9 +85,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
         level.setSeed(dim0.getMinecraftSeed());
         level.setName(name);
         Point spawnPoint = world.getSpawnPoint();
-        level.setSpawnX(spawnPoint.x);
-        level.setSpawnY(Math.max(dim0.getIntHeightAt(spawnPoint), dim0.getWaterLevelAt(spawnPoint)));
-        level.setSpawnZ(spawnPoint.y);
+        level.setSpawn(spawnPoint.x, Math.max(dim0.getIntHeightAt(spawnPoint), dim0.getWaterLevelAt(spawnPoint)) + 1,spawnPoint.y);
         if (world.getGameType() == GameType.HARDCORE) {
             level.setGameType(GAME_TYPE_SURVIVAL);
             level.setHardcore(true);

@@ -3766,13 +3766,6 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
     private void checkBoxRoofActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxRoofActionPerformed
         setControlStates();
-        final Configuration config = Configuration.getInstance();
-        if (! config.isMessageDisplayed(ROOF_WARNING_MESSAGE_KEY)) {
-            JOptionPane.showMessageDialog(this, "<html>Note that adding roof blocks has some potential problems:" +
-                    "<ul><li>Minecraft may spawn you <em>on top</em> of the roof. There is nothing WorldPainter can do about this" +
-                    "<li>A bedrock roof will turn the world dark, but not make the sky dark or hide the sun</ul></html>", "Be Aware", JOptionPane.WARNING_MESSAGE);
-            config.setMessageDisplayed(ROOF_WARNING_MESSAGE_KEY);
-        }
     }//GEN-LAST:event_checkBoxRoofActionPerformed
 
     private void checkBoxWallActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxWallActionPerformed
@@ -4054,7 +4047,6 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private boolean endlessBorder, programmaticChange;
     private Tag customGeneratorSettings;
 
-    private static final String ROOF_WARNING_MESSAGE_KEY = "org.pepsoft.worldpainter.roofWarning";
     private static final Logger logger = LoggerFactory.getLogger(DimensionPropertiesEditor.class);
     private static final long serialVersionUID = 1L;
 
