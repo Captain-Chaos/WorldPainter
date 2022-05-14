@@ -316,8 +316,8 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
     @Override
     public int getSkyLightLevel(int x, int y, int z) {
         int level = y >> 4;
-        if (sections[level + UNDERGROUND_SECTIONS] == null) {
-            return 15;
+        if ((sections[level + UNDERGROUND_SECTIONS] == null) || (sections[level + UNDERGROUND_SECTIONS].skyLight == null)) {
+            return 0;
         } else {
             return getDataByte(sections[level + UNDERGROUND_SECTIONS].skyLight, x, y, z);
         }
@@ -331,11 +331,17 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
         int level = y >> 4;
         Section section = sections[level + UNDERGROUND_SECTIONS];
         if (section == null) {
-            if (skyLightLevel == 15) {
+            if (skyLightLevel == 0) {
                 return;
             }
             section = new Section((byte) level);
             sections[level + UNDERGROUND_SECTIONS] = section;
+        }
+        if (section.skyLight == null) {
+            if (skyLightLevel == 0) {
+                return;
+            }
+            section.skyLight = new byte[LIGHT_ARRAY_SIZE];
         }
         setDataByte(section.skyLight, x, y, z, skyLightLevel);
     }
@@ -343,7 +349,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
     @Override
     public int getBlockLightLevel(int x, int y, int z) {
         int level = y >> 4;
-        if (sections[level + UNDERGROUND_SECTIONS] == null) {
+        if ((sections[level + UNDERGROUND_SECTIONS] == null) || (sections[level + UNDERGROUND_SECTIONS].blockLight == null)) {
             return 0;
         } else {
             return getDataByte(sections[level + UNDERGROUND_SECTIONS].blockLight, x, y, z);
@@ -363,6 +369,12 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
             }
             section = new Section((byte) level);
             sections[level + UNDERGROUND_SECTIONS] = section;
+        }
+        if (section.blockLight == null) {
+            if (blockLightLevel == 0) {
+                return;
+            }
+            section.blockLight = new byte[LIGHT_ARRAY_SIZE];
         }
         setDataByte(section.blockLight, x, y, z, blockLightLevel);
     }
@@ -831,20 +843,8 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
                     }
                 }
 
-                // TODOMC118 optimise when data array not present
-                byte[] skyLightBytes = getByteArray(TAG_SKY_LIGHT);
-                if (skyLightBytes == null) {
-                    skyLightBytes = new byte[128 * 16];
-                    Arrays.fill(skyLightBytes, (byte) 0xff);
-                }
-                skyLight = skyLightBytes;
-
-                // TODOMC118 optimise when data array not present
-                byte[] blockLightBytes = getByteArray(TAG_BLOCK_LIGHT);
-                if (blockLightBytes == null) {
-                    blockLightBytes = new byte[128 * 16];
-                }
-                blockLight = blockLightBytes;
+                skyLight = getByteArray(TAG_SKY_LIGHT);
+                blockLight = getByteArray(TAG_BLOCK_LIGHT);
             } catch (IncompleteSectionException e) {
                 // Just propagate it
                 throw e;
@@ -858,10 +858,6 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
             super(new CompoundTag("", new HashMap<>()));
             this.level = level;
             singleMaterial = AIR;
-            // TODOMC118 same treatment for sky and block light
-            skyLight = new byte[128 * 16];
-            Arrays.fill(skyLight, (byte) 0xff);
-            blockLight = new byte[128 * 16];
         }
 
         @Override
@@ -890,14 +886,18 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
                 setMap(TAG_BIOMES_, ImmutableMap.of(TAG_PALETTE_, new ListTag<>(TAG_PALETTE_, StringTag.class, palette), TAG_DATA_, new LongArrayTag(TAG_DATA_, packedBiomes.data)));
             }
 
-            setByteArray(TAG_SKY_LIGHT, skyLight);
-            setByteArray(TAG_BLOCK_LIGHT, blockLight);
+            if (skyLight != null) {
+                setByteArray(TAG_SKY_LIGHT, skyLight);
+            }
+            if (blockLight != null) {
+                setByteArray(TAG_BLOCK_LIGHT, blockLight);
+            }
             return super.toNBT();
         }
 
         /**
-         * Indicates whether the section is empty, meaning all block ID's, data
-         * values and block light values are 0, and all sky light values are 15.
+         * Indicates whether the section is empty, meaning all material is air, and all block and sky light values are
+         * 0.
          * 
          * @return {@code true} if the section is empty
          */
@@ -908,17 +908,21 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
             } else if ((materials != null) && (! materials.isEmpty())) {
                 return false;
             }
-            for (int i = 0; i < LIGHT_ARRAY_SIZE; i++) {
-                if (skyLight[i] != (byte) -1) {
-                    return false;
+            if (skyLight != null) {
+                for (byte b: skyLight) {
+                    if (b != (byte) 0) {
+                        return false;
+                    }
                 }
             }
-            for (int i = 0; i < LIGHT_ARRAY_SIZE; i++) {
-                if (blockLight[i] != (byte) 0) {
-                    return false;
+            if (blockLight != null) {
+                for (byte b: blockLight) {
+                    if (b != (byte) 0) {
+                        return false;
+                    }
                 }
             }
-            return true;
+            return ! hasBiomes();
         }
 
         /**
@@ -971,8 +975,8 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
         }
 
         public final int level;
-        final byte[] skyLight;
-        final byte[] blockLight;
+        byte[] skyLight;
+        byte[] blockLight;
         // Exactly one of these should be set:
         PackedArrayCube<Material> materials;
         Material singleMaterial;
