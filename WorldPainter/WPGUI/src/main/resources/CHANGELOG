@@ -1,7 +1,8 @@
--- Version 2.10.3, released ...
+-- Version 2.10.3, released 15-5-2022
 
  * A new Barrier border type has been added, in addition to the previously added Barrier wall type
  * When the Barrier wall type is used the word type is no longer forced to Superflat and no endless Void is generated beyond the wall. This means the Minecraft-generated land beyond it will be visible; to prevent that the new Barrier border can be used instead, which can be made to be much wider (or endless)
+ * Bug fix: don't treat negative numbers on the wpscript command line as options
 
 -- Version 2.10.2, released 14-5-2022
 
