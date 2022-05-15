@@ -2008,7 +2008,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public enum Border {
-        VOID(false), WATER(false), LAVA(false), ENDLESS_VOID(true), ENDLESS_WATER(true), ENDLESS_LAVA(true);
+        VOID(false), WATER(false), LAVA(false), ENDLESS_VOID(true), ENDLESS_WATER(true), ENDLESS_LAVA(true), BARRIER(false), ENDLESS_BARRIER(true);
 
         Border(boolean endless) {
             this.endless = endless;
@@ -2023,7 +2023,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     public enum LayerAnchor {BEDROCK, TERRAIN}
 
-    public enum WallType { BEDROCK, BARIER }
+    public enum WallType { BEDROCK, BARIER /* typo, but it's in the wild, so we can't easily fix it anymore... 😔 */}
 
     public class TileVisitationBuilder {
         public TileVisitationBuilder forFilter(Filter filter) {

@@ -605,8 +605,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             return null;
         } else if (radioButtonVoidBorder.isSelected()) {
             return radioButtonEndlessBorder.isSelected() ? Dimension.Border.ENDLESS_VOID : Dimension.Border.VOID;
-        } else {
+        } else if (radioButtonWaterBorder.isSelected()){
             return radioButtonEndlessBorder.isSelected() ? Dimension.Border.ENDLESS_WATER : Dimension.Border.WATER;
+        } else {
+            return radioButtonEndlessBorder.isSelected() ? Dimension.Border.ENDLESS_BARRIER : Dimension.Border.BARRIER;
         }
     }
 
@@ -646,6 +648,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                     radioButtonVoidBorder.setSelected(true);
                     radioButtonFixedBorder.setSelected(true);
                     break;
+                case BARRIER:
+                    radioButtonBarrierBorder.setSelected(true);
+                    radioButtonFixedBorder.setSelected(true);
+                    break;
                 case ENDLESS_LAVA:
                     radioButtonLavaBorder.setSelected(true);
                     radioButtonEndlessBorder.setSelected(true);
@@ -656,6 +662,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                     break;
                 case ENDLESS_VOID:
                     radioButtonVoidBorder.setSelected(true);
+                    radioButtonEndlessBorder.setSelected(true);
+                    break;
+                case ENDLESS_BARRIER:
+                    radioButtonBarrierBorder.setSelected(true);
                     radioButtonEndlessBorder.setSelected(true);
                     break;
                 default:
@@ -1017,14 +1027,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         final boolean enabled = isEnabled();
         final boolean dim0 = (dimension != null) && (dimension.getDim() == Constants.DIM_NORMAL);
         final boolean ceiling = (dimension != null) && (dimension.getDim() < 0);
-        final boolean barrierWall = checkBoxWall.isSelected() && radioButtonBarrierWall.isSelected();
         setEnabled(radioButtonLavaBorder, enabled && (! ceiling));
         setEnabled(radioButtonNoBorder, enabled && (! ceiling));
         setEnabled(radioButtonVoidBorder, enabled && (! ceiling));
         setEnabled(radioButtonWaterBorder, enabled && (! ceiling));
         setEnabled(spinnerBorderLevel, enabled && (! ceiling) && (radioButtonLavaBorder.isSelected() || radioButtonWaterBorder.isSelected()));
-        setEnabled(radioButtonFixedBorder, enabled && (! ceiling) && (! radioButtonNoBorder.isSelected()) && (! barrierWall));
-        setEnabled(radioButtonEndlessBorder, enabled && (platform.capabilities.contains(GENERATOR_PER_DIMENSION) || dim0) && (! ceiling) && (! radioButtonNoBorder.isSelected()) && (! barrierWall));
+        setEnabled(radioButtonFixedBorder, enabled && (! ceiling) && (! radioButtonNoBorder.isSelected()));
+        setEnabled(radioButtonEndlessBorder, enabled && (platform.capabilities.contains(GENERATOR_PER_DIMENSION) || dim0) && (! ceiling) && (! radioButtonNoBorder.isSelected()));
         setEnabled(spinnerBorderSize, enabled && (! ceiling) && (! radioButtonNoBorder.isSelected()) && radioButtonFixedBorder.isSelected());
         setEnabled(checkBoxWall, enabled && (! ceiling) && (radioButtonNoBorder.isSelected() || radioButtonFixedBorder.isSelected()));
         setEnabled(sliderCavesEverywhereLevel, enabled && checkBoxCavesEverywhere.isSelected());
@@ -1066,9 +1075,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 setEnabled(comboBoxUndergroundLayerAnchor, false);
             }
         }
-        setEnabled(comboBoxGenerator, enabled && (! (endlessBorder || barrierWall)));
+        setEnabled(comboBoxGenerator, enabled && (! endlessBorder));
         setEnabled(buttonGeneratorOptions, enabled
-                && (! (endlessBorder || barrierWall))
+                && (! endlessBorder)
                 && ((comboBoxGenerator.getSelectedItem() == Generator.FLAT)
                     || ((comboBoxGenerator.getSelectedItem() == CUSTOM) && (customGeneratorSettings == null))));
         setEnabled(checkBoxWall, enabled && (! endlessBorder));
@@ -1147,10 +1156,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         java.awt.GridBagConstraints gridBagConstraints;
 
         buttonGroup1 = new javax.swing.ButtonGroup();
-        buttonGroup2 = new javax.swing.ButtonGroup();
         buttonGroup3 = new javax.swing.ButtonGroup();
-        buttonGroup4 = new javax.swing.ButtonGroup();
         buttonGroup5 = new javax.swing.ButtonGroup();
+        buttonGroup2 = new javax.swing.ButtonGroup();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
         radioButtonWaterBorder = new javax.swing.JRadioButton();
@@ -1198,11 +1206,12 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jLabel94 = new javax.swing.JLabel();
         jLabel95 = new javax.swing.JLabel();
         buttonGeneratorOptions = new javax.swing.JButton();
-        radioButtonBedrockWall = new javax.swing.JRadioButton();
-        radioButtonBarrierWall = new javax.swing.JRadioButton();
         checkBoxRoof = new javax.swing.JCheckBox();
         radioButtonBedrockRoof = new javax.swing.JRadioButton();
         radioButtonBarrierRoof = new javax.swing.JRadioButton();
+        radioButtonBarrierBorder = new javax.swing.JRadioButton();
+        radioButtonBarrierWall = new javax.swing.JRadioButton();
+        radioButtonBedrockWall = new javax.swing.JRadioButton();
         jPanel5 = new javax.swing.JPanel();
         themeEditor = new org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor();
         jLabel45 = new javax.swing.JLabel();
@@ -1608,25 +1617,6 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             }
         });
 
-        buttonGroup4.add(radioButtonBedrockWall);
-        radioButtonBedrockWall.setSelected(true);
-        radioButtonBedrockWall.setText("bedrock");
-        radioButtonBedrockWall.setEnabled(false);
-        radioButtonBedrockWall.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonBedrockWallActionPerformed(evt);
-            }
-        });
-
-        buttonGroup4.add(radioButtonBarrierWall);
-        radioButtonBarrierWall.setText("barrier");
-        radioButtonBarrierWall.setEnabled(false);
-        radioButtonBarrierWall.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonBarrierWallActionPerformed(evt);
-            }
-        });
-
         checkBoxRoof.setText("Roof:");
         checkBoxRoof.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1650,6 +1640,33 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         radioButtonBarrierRoof.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonBarrierRoofActionPerformed(evt);
+            }
+        });
+
+        buttonGroup1.add(radioButtonBarrierBorder);
+        radioButtonBarrierBorder.setText("Barrier");
+        radioButtonBarrierBorder.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonBarrierBorderActionPerformed(evt);
+            }
+        });
+
+        buttonGroup2.add(radioButtonBarrierWall);
+        radioButtonBarrierWall.setText("barrier");
+        radioButtonBarrierWall.setEnabled(false);
+        radioButtonBarrierWall.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonBarrierWallActionPerformed(evt);
+            }
+        });
+
+        buttonGroup2.add(radioButtonBedrockWall);
+        radioButtonBedrockWall.setSelected(true);
+        radioButtonBedrockWall.setText("bedrock");
+        radioButtonBedrockWall.setEnabled(false);
+        radioButtonBedrockWall.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonBedrockWallActionPerformed(evt);
             }
         });
 
@@ -1727,7 +1744,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                                                 .addComponent(jLabel5)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                                 .addComponent(spinnerBorderLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                            .addComponent(jLabel44))))))
+                                            .addComponent(jLabel44)))))
+                            .addComponent(radioButtonBarrierBorder))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
@@ -1736,7 +1754,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addComponent(radioButtonBedrockWall)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(radioButtonBarrierWall)
-                        .addGap(18, 18, 18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(checkBoxRoof)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(radioButtonBedrockRoof)
@@ -1786,6 +1804,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                             .addComponent(radioButtonLavaBorder)
                             .addComponent(jLabel44))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(radioButtonBarrierBorder)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel8)
                             .addComponent(spinnerBorderSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1797,11 +1817,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(checkBoxWall)
-                    .addComponent(radioButtonBedrockWall)
-                    .addComponent(radioButtonBarrierWall)
                     .addComponent(checkBoxRoof)
                     .addComponent(radioButtonBedrockRoof)
-                    .addComponent(radioButtonBarrierRoof))
+                    .addComponent(radioButtonBarrierRoof)
+                    .addComponent(radioButtonBarrierWall)
+                    .addComponent(radioButtonBedrockWall))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
@@ -1810,7 +1830,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                     .addComponent(jLabel94)
                     .addComponent(jLabel95)
                     .addComponent(buttonGeneratorOptions))
-                .addContainerGap(21, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("General", jPanel1);
@@ -3484,7 +3504,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 316, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 333, Short.MAX_VALUE)
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addComponent(buttonCustomLayerTop)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -3780,14 +3800,16 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setControlStates();
     }//GEN-LAST:event_radioButtonBarrierRoofActionPerformed
 
+    private void radioButtonBarrierBorderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonBarrierBorderActionPerformed
+        borderChanged();
+        setControlStates();
+    }//GEN-LAST:event_radioButtonBarrierBorderActionPerformed
+
     private void radioButtonBedrockWallActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonBedrockWallActionPerformed
         setControlStates();
     }//GEN-LAST:event_radioButtonBedrockWallActionPerformed
 
     private void radioButtonBarrierWallActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonBarrierWallActionPerformed
-        if (radioButtonBarrierWall.isSelected()) {
-            radioButtonFixedBorder.setSelected(true);
-        }
         setControlStates();
     }//GEN-LAST:event_radioButtonBarrierWallActionPerformed
 
@@ -3800,7 +3822,6 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.ButtonGroup buttonGroup3;
-    private javax.swing.ButtonGroup buttonGroup4;
     private javax.swing.ButtonGroup buttonGroup5;
     private javax.swing.JCheckBox checkBoxBottomless;
     private javax.swing.JCheckBox checkBoxCavernsBreakSurface;
@@ -3958,6 +3979,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JSlider jSlider4;
     private javax.swing.JSlider jSlider6;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JRadioButton radioButtonBarrierBorder;
     private javax.swing.JRadioButton radioButtonBarrierRoof;
     private javax.swing.JRadioButton radioButtonBarrierWall;
     private javax.swing.JRadioButton radioButtonBedrockRoof;
