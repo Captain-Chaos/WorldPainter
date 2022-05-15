@@ -1191,29 +1191,29 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         }
     }
 
-    private void setToAirOrWater(final Chunk chunk, final int x, final int y, final int z, final Material existingMaterial) {
+    private void setToAirOrWater(final Chunk chunk, final int x, final int y, final int height, final Material existingMaterial) {
         final int maxZ = world.getMaxHeight() - 1;
         if (existingMaterial.watery || existingMaterial.is(WATERLOGGED)) {
-            chunk.setMaterial(x, y, z, STATIONARY_WATER);
+            chunk.setMaterial(x, height, y, STATIONARY_WATER);
             // TODO skylight adjustment for under water
             // TODO also set to water if water to the side or above
         } else {
-            chunk.setMaterial(x, z, y, AIR);
+            chunk.setMaterial(x, height, y, AIR);
             // Note that these lighting calculations aren't strictly necessary since
             // the lighting will be fully recalculated later on, but it doesn't hurt
             // and it might improve performance and/or fill in gaps in the logic
-            final int skyLightLevelAbove = (z < maxZ) ? chunk.getSkyLightLevel(x, z + 1, y) : 15;
+            final int skyLightLevelAbove = (height < maxZ) ? chunk.getSkyLightLevel(x, height + 1, y) : 15;
             if (skyLightLevelAbove == 15) {
                 // Propagate full daylight down
-                chunk.setSkyLightLevel(x, z, y, 15);
+                chunk.setSkyLightLevel(x, height, y, 15);
             } else {
-                int skyLightLevelBelow = (z > platform.minZ) ? chunk.getSkyLightLevel(x, z - 1, y) : 0;
-                chunk.setSkyLightLevel(x, z, y, Math.max(Math.max(skyLightLevelAbove, skyLightLevelBelow) - 1, 0));
+                int skyLightLevelBelow = (height > platform.minZ) ? chunk.getSkyLightLevel(x, height - 1, y) : 0;
+                chunk.setSkyLightLevel(x, height, y, Math.max(Math.max(skyLightLevelAbove, skyLightLevelBelow) - 1, 0));
             }
         }
-        int blockLightLevelAbove = (z < maxZ) ? chunk.getSkyLightLevel(x, z + 1, y) : 0;
-        int blockLightLevelBelow = (z > platform.minZ) ? chunk.getBlockLightLevel(x, z - 1, y) : 0;
-        chunk.setBlockLightLevel(x, z, y, Math.max(Math.max(blockLightLevelAbove, blockLightLevelBelow) - 1, 0));
+        int blockLightLevelAbove = (height < maxZ) ? chunk.getSkyLightLevel(x, height + 1, y) : 0;
+        int blockLightLevelBelow = (height > platform.minZ) ? chunk.getBlockLightLevel(x, height - 1, y) : 0;
+        chunk.setBlockLightLevel(x, height, y, Math.max(Math.max(blockLightLevelAbove, blockLightLevelBelow) - 1, 0));
     }
 
     /**
