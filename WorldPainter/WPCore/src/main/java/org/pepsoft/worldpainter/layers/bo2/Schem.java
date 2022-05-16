@@ -35,7 +35,7 @@ public final class Schem extends AbstractNBTItem implements WPObject {
     public Schem(CompoundTag tag, String fallBackName) {
         super(tag);
         final int version = getInt(TAG_VERSION);
-        final StringTag nameTag = (StringTag) getMap(TAG_METADATA).get(TAG_NAME);
+        final StringTag nameTag = (getMap(TAG_METADATA) != null) ? (StringTag) getMap(TAG_METADATA).get(TAG_NAME) : null;
         this.name = (nameTag != null) ? nameTag.getValue() : fallBackName;
         width = getShort(TAG_WIDTH);
         height = getShort(TAG_HEIGHT);

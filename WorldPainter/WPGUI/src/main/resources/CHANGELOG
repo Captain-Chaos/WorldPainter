@@ -1,3 +1,7 @@
+-- Version 2.10.4, released ...
+
+ * Bug fix: support schem files that don't have metadata
+
 -- Version 2.10.3, released 15-5-2022
 
  * A new Barrier border type has been added, in addition to the previously added Barrier wall type
