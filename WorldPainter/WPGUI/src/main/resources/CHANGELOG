@@ -1,6 +1,9 @@
--- Version 2.10.4, released ...
+-- Version 2.10.4, released 17-5-2022
 
+ * Water plants are now supported for Custom Cave/Tunnel floor and roof layers
+ * Bug fix: more correct calulation and storage of sky light values
  * Bug fix: support schem files that don't have metadata
+ * Bug fix: correct the block light emited by glow lichen
 
 -- Version 2.10.3, released 15-5-2022
 
@@ -27,7 +30,7 @@
 
 -- Version 2.10.0, released 13-5-2022
 
- * WorldPainter now has a merch store! Go to https://www.worldpainter.net/store/merch to support WorldPainter development
+ * WorldPainter now has a merch store! Go to https://www.worldpainter.store/ to support WorldPainter development
  * Custom Caves/Tunnel layer new functionality:
    + The Custom Caves/Tunnel layer now supports roof layers in addition to floor layers
    + Note that the roof layers are inverted. This includes Custom Objects, so you will have to make any objects you want to place on the roof upside-down (unless you _want_ them to be upside-down of course). A future version will make this inversion optional for Custom Object layers
