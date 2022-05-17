@@ -56,7 +56,7 @@ public final class MerchDialog extends WorldPainterDialog {
     
     private void openMerchStore() {
         try {
-            DesktopUtils.open(new URL("https://www.worldpainter.net/store/merch"));
+            DesktopUtils.open(new URL("https://www.worldpainter.store/"));
             config.logEvent(new EventVO(Constants.EVENT_KEY_MERCH_STORE_OPENED).addTimestamp());
             ok();
         } catch (MalformedURLException e) {

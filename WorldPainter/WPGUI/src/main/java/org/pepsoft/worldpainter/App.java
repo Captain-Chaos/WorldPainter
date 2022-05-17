@@ -4495,7 +4495,7 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.setMnemonic('m');
         menuItem.addActionListener(e -> {
             try {
-                DesktopUtils.open(new URL("https://www.worldpainter.net/store/merch"));
+                DesktopUtils.open(new URL("https://www.worldpainter.store/"));
             } catch (MalformedURLException ex) {
                 throw new RuntimeException(ex);
             }
