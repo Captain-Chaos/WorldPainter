@@ -24,7 +24,8 @@ import java.util.Random;
 import java.util.Set;
 
 import static java.util.Collections.singleton;
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Constants.MC_FARMLAND;
+import static org.pepsoft.minecraft.Constants.MC_LAVA;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
@@ -145,12 +146,9 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider(platform);
             objectProvider.setSeed(seed);
             final Plant plant = (Plant) objectProvider.getObject();
-            final Material existingMaterial = minecraftWorld.getMaterialAt(location.x, location.y, location.z);
             Category category = plant.isValidFoundation(minecraftWorld, location.x, location.y, location.z - 1);
             if ((category != null)
-                    && (location.z < (minecraftWorld.getMaxHeight() - 1))
-                    && ((category == FLOATING_PLANTS) ? existingMaterial.isNamed(MC_WATER) : (existingMaterial == AIR))) {
-                // TODOMC13 support water plants
+                    && (location.z < (minecraftWorld.getMaxHeight() - 1))) {
                 if (category == FLOATING_PLANTS) {
                     possiblyRenderFloatingPlant(minecraftWorld, dimension, plant, location.x, location.y, location.z + 1);
                 } else if (category == CROPS) {
