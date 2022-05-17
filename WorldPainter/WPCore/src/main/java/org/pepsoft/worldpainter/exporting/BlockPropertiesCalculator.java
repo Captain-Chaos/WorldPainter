@@ -12,6 +12,7 @@ import org.pepsoft.worldpainter.Platform;
 
 import java.util.Arrays;
 
+import static java.lang.Math.max;
 import static org.pepsoft.minecraft.Constants.MC_DISTANCE;
 import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.*;
@@ -96,7 +97,7 @@ public class BlockPropertiesCalculator {
                         final int xInMaxHeightsMap = chunkX + dx - maxHeightsXOffset;
                         final int zInMaxHeightsMap = chunkZ + dz - maxHeightsZOffset;
                         if ((xInMaxHeightsMap >= 0) && (zInMaxHeightsMap >= 0) && (zInMaxHeightsMap < maxHeights.length) && (xInMaxHeightsMap < maxHeights[0].length)) {
-                            maxHeights[zInMaxHeightsMap][xInMaxHeightsMap] = Math.max(maxHeights[zInMaxHeightsMap][xInMaxHeightsMap], highestPossibleAffectedBlock);
+                            maxHeights[zInMaxHeightsMap][xInMaxHeightsMap] = max(maxHeights[zInMaxHeightsMap][xInMaxHeightsMap], highestPossibleAffectedBlock);
                         }
                     }
                 }
@@ -161,7 +162,7 @@ public class BlockPropertiesCalculator {
                                 } else {
                                     // Transparent block, or unknown block. We err on the side of transparency for
                                     // unknown blocks to try and cause less visible lighting bugs
-                                    newBlockLightLevel = Math.max(currentBlockLightLevel, calculateBlockLightLevel(chunk, x, y, z));
+                                    newBlockLightLevel = max(currentBlockLightLevel, calculateBlockLightLevel(chunk, x, y, z));
                                 }
                                 if (newBlockLightLevel != currentBlockLightLevel) {
                                     chunk.setBlockLightLevel(xInChunk, y, zInChunk, newBlockLightLevel);
@@ -183,7 +184,7 @@ public class BlockPropertiesCalculator {
             }
         }
         if (changed) {
-            dirtyArea.setY1(Math.max(lowestY, minHeight));
+            dirtyArea.setY1(max(lowestY, minHeight));
             dirtyArea.setY2(Math.min(highestY + 1, maxHeight));
         }
         return changed;
@@ -201,7 +202,10 @@ public class BlockPropertiesCalculator {
         int dirtyVolumeHighMark = minHeight;
         // The point below which there are only non-transparent, non light source and non-leaf blocks
         int dirtyVolumeLowMark = maxHeight - 1;
-        for (int y = clamp(minHeight - 1, chunk.getHighestNonAirBlock(), maxHeight - 1); y >= minHeight; y--) { // TODO: will this leave dark areas above the starting level? ANSWER: yes; we need to fix this
+        int maxY = clamp(minHeight - 1, chunk.getHighestNonAirBlock(), maxHeight - 1);
+        // Round to top of section:
+        maxY = (((maxY >> 4) + 1) << 4) - 1;
+        for (int y = maxY; y >= minHeight; y--) {
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
                     Material material = chunk.getMaterial(x, y, z);
@@ -225,13 +229,13 @@ public class BlockPropertiesCalculator {
                             if (y < dirtyVolumeLowMark) {
                                 dirtyVolumeLowMark = y;
                             }
-                            int transparency = getTransparency(material);
-                            if ((transparency == 0) && (DAYLIGHT[x][z])) {
+                            int opacity = getOpacity(material);
+                            if ((opacity == 0) && (DAYLIGHT[x][z])) {
                                 // Propagate daylight down
                                 newSkyLightLevel = 15;
                                 HEIGHT[x][z] = y;
                             } else {
-                                if ((transparency > 0) && (y > dirtyVolumeHighMark)) {
+                                if ((opacity > 0) && (y > dirtyVolumeHighMark)) {
                                     dirtyVolumeHighMark = y;
                                 }
                                 newSkyLightLevel = 0; // TODO adjust with transparency of block above and 1-per-block falloff rather than going straight to zero
@@ -313,12 +317,12 @@ public class BlockPropertiesCalculator {
                                     // Transparent block, or unknown block. We err on the
                                     // side of transparency for unknown blocks to try and
                                     // cause less visible lighting bugs
-                                    int transparency = getTransparency(material);
+                                    int transparency = getOpacity(material);
                                     if ((transparency == 0) && (skyLightLevelAbove == 15)) {
                                         // Propagate daylight down
                                         newSkyLightLevel = 15;
                                     } else {
-                                        newSkyLightLevel = Math.max(skyLightLevelAbove - Math.max(transparency, 1), 0);
+                                        newSkyLightLevel = max(skyLightLevelAbove - max(transparency, 1), 0);
                                     }
                                 } else {
                                     newSkyLightLevel = 0;
@@ -403,7 +407,7 @@ public class BlockPropertiesCalculator {
         }
     }
 
-    private int getTransparency(Material material) {
+    private int getOpacity(Material material) {
         // TODOMC13: make this generic:
         if (material.containsWater()) {
             return ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) ? 1 : 3;
@@ -454,7 +458,7 @@ public class BlockPropertiesCalculator {
                 }
             }
         }
-        return Math.max(highestSurroundingSkyLight - Math.max(getTransparency(material), 1), 0);
+        return max(highestSurroundingSkyLight - max(getOpacity(material), 1), 0);
     }
 
     // MC coordinate system
@@ -492,7 +496,7 @@ public class BlockPropertiesCalculator {
                 }
             }
         }
-        return Math.max(highestSurroundingBlockLight - Math.max(getTransparency(material), 1), 0);
+        return max(highestSurroundingBlockLight - max(getOpacity(material), 1), 0);
     }
 
     // MC coordinate system

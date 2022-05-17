@@ -69,6 +69,9 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
                         Section section = new Section(sectionTag);
                         if ((section.level >= 0) && (section.level < sections.length)) {
                             sections[section.level] = section;
+                            if ((section.skyLight != null) && (section.level > highestSectionWithSkylight)) {
+                                highestSectionWithSkylight = section.level;
+                            }
                         } else if (! section.isEmpty()) {
                             logger.warn("Ignoring non-empty out of bounds chunk section @ " + getxPos() + "," + section.level + "," + getzPos());
                         }
@@ -343,7 +346,7 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
     public int getSkyLightLevel(int x, int y, int z) {
         int level = y >> 4;
         if ((sections[level] == null) || (sections[level].skyLight == null)) {
-            return 0;
+            return (level > highestSectionWithSkylight) ? 15 : 0;
         } else {
             return getDataByte(sections[level].skyLight, x, y, z);
         }
@@ -357,17 +360,22 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
         int level = y >> 4;
         Section section = sections[level];
         if (section == null) {
-            if (skyLightLevel == 0) {
+            if (skyLightLevel == ((level > highestSectionWithSkylight) ? 15 : 0)) {
                 return;
             }
             section = new Section((byte) level);
             sections[level] = section;
         }
         if (section.skyLight == null) {
-            if (skyLightLevel == 0) {
+            if (skyLightLevel == ((level > highestSectionWithSkylight) ? 15 : 0)) {
                 return;
             }
             section.skyLight = new byte[128 * 16];
+            if (level > highestSectionWithSkylight) {
+                // This means we would have previously reported the light as all 0xf, so initialise it to that
+                Arrays.fill(section.skyLight, (byte) 0xff);
+                highestSectionWithSkylight = level;
+            }
         }
         setDataByte(section.skyLight, x, y, z, skyLightLevel);
     }
@@ -759,18 +767,18 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
     public final boolean readOnly;
 
     final Section[] sections;
-    final int xPos, zPos;
-    int[] biomes3d;
-    boolean lightOn;
+    final int xPos, zPos, maxHeight;
     final List<Entity> entities;
     final List<TileEntity> tileEntities;
-    final int maxHeight;
-    long inhabitedTime, lastUpdate;
-    String status;
     final Map<String, long[]> heightMaps;
     final List<CompoundTag> liquidTicks = new ArrayList<>();
 //    final boolean debugChunk;
     final Integer inputDataVersion;
+    int highestSectionWithSkylight = Integer.MIN_VALUE;
+    int[] biomes3d;
+    boolean lightOn;
+    long inhabitedTime, lastUpdate;
+    String status;
 
 //    private static long debugWorldX, debugWorldZ, debugXInChunk, debugZInChunk;
 

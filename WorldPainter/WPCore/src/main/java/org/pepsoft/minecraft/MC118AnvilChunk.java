@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.*;
 
-import static java.lang.Integer.MIN_VALUE;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
@@ -75,6 +74,9 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
                         Section section = new Section(sectionTag);
                         if ((section.level >= -UNDERGROUND_SECTIONS) && (section.level < (sections.length - UNDERGROUND_SECTIONS))) {
                             sections[section.level + UNDERGROUND_SECTIONS] = section;
+                            if ((section.skyLight != null) && (section.level > highestSectionWithSkylight)) {
+                                highestSectionWithSkylight = section.level;
+                            }
                         } else if (! section.isEmpty()) {
                             logger.warn("Ignoring non-empty out of bounds chunk section @ " + getxPos() + "," + section.level + "," + getzPos());
                         }
@@ -317,7 +319,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
     public int getSkyLightLevel(int x, int y, int z) {
         int level = y >> 4;
         if ((sections[level + UNDERGROUND_SECTIONS] == null) || (sections[level + UNDERGROUND_SECTIONS].skyLight == null)) {
-            return 0;
+            return (level > highestSectionWithSkylight) ? 15 : 0;
         } else {
             return getDataByte(sections[level + UNDERGROUND_SECTIONS].skyLight, x, y, z);
         }
@@ -331,17 +333,22 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
         int level = y >> 4;
         Section section = sections[level + UNDERGROUND_SECTIONS];
         if (section == null) {
-            if (skyLightLevel == 0) {
+            if (skyLightLevel == ((level > highestSectionWithSkylight) ? 15 : 0)) {
                 return;
             }
             section = new Section((byte) level);
             sections[level + UNDERGROUND_SECTIONS] = section;
         }
         if (section.skyLight == null) {
-            if (skyLightLevel == 0) {
+            if (skyLightLevel == ((level > highestSectionWithSkylight) ? 15 : 0)) {
                 return;
             }
             section.skyLight = new byte[LIGHT_ARRAY_SIZE];
+            if (level > highestSectionWithSkylight) {
+                // This means we would have previously reported the light as all 0xf, so initialise it to that
+                Arrays.fill(section.skyLight, (byte) 0xff);
+                highestSectionWithSkylight = level;
+            }
         }
         setDataByte(section.skyLight, x, y, z, skyLightLevel);
     }
@@ -552,7 +559,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
                 }
             }
         }
-        return MIN_VALUE;
+        return Integer.MIN_VALUE;
     }
 
     @Override
@@ -576,7 +583,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
                 }
             }
         }
-        return MIN_VALUE;
+        return Integer.MIN_VALUE;
     }
 
     // MinecraftWorld
@@ -769,18 +776,17 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
 
     public final boolean readOnly;
 
-    final int dataVersion;
+    final int dataVersion, xPos, zPos, maxHeight;
     final Section[] sections;
-    final int xPos, zPos;
-    boolean lightOn; // TODOMC118: is this still used by MC 1.15?
     final List<Entity> entities;
     final List<TileEntity> blockEntities;
-    final int maxHeight;
-    long inhabitedTime, lastUpdate;
-    String status;
     final Map<String, long[]> heightMaps;
     final List<CompoundTag> fluidTicks = new ArrayList<>();
     final Map<DataType, Map<String, Tag>> extraTags;
+    int highestSectionWithSkylight = Integer.MIN_VALUE;
+    boolean lightOn;
+    long inhabitedTime, lastUpdate;
+    String status;
 
     public static final int UNDERGROUND_SECTIONS = 4, LIGHT_ARRAY_SIZE = 2048;
     private static final Random RANDOM = new Random();
