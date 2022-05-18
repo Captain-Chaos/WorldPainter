@@ -139,12 +139,12 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
     @Override
     public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         final Random random = incidentalRandomRef.get();
-        final long seed = dimension.getSeed() ^ ((long) location.x << 40) ^ ((long) location.y << 20) ^ (location.z);
+        final long seed = dimension.getSeed() + location.x + location.y * 4099L + location.z * 65537L + layer.hashCode();
         random.setSeed(seed);
         if ((intensity >= 100) || ((intensity > 0) && (random.nextInt(100) < intensity))) {
             // Place plant
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider(platform);
-            objectProvider.setSeed(seed);
+            objectProvider.setSeed(seed + 1);
             final Plant plant = (Plant) objectProvider.getObject();
             Category category = plant.isValidFoundation(minecraftWorld, location.x, location.y, location.z - 1);
             if ((category != null)

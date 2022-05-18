@@ -119,11 +119,11 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
 
     @Override
     public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
-        final long seed = dimension.getSeed() ^ ((long) location.x << 40) ^ ((long) location.y << 20) ^ (location.z);
+        final long seed = dimension.getSeed() + location.x + location.y * 4099L + location.z * 65537L + layer.hashCode();
         applyRandom.setSeed(seed);
         if ((intensity > 0) && (applyRandom.nextInt(layer.getDensity() * 20) <= intensity * intensity / 225)) {
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider();
-            objectProvider.setSeed(seed);
+            objectProvider.setSeed(seed + 1);
             WPObject object = objectProvider.getObject();
             Material existingMaterial = minecraftWorld.getMaterialAt(location.x, location.y, location.z);
             Material materialBelow = minecraftWorld.getMaterialAt(location.x, location.y, location.z - 1);
