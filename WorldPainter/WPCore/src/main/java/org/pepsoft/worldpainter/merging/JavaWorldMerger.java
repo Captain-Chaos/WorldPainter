@@ -507,7 +507,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, dimension.getMaxHeight());
             final Map<Point, List<Fixup>> fixups = new HashMap<>();
             final Set<Point> exportedRegions = new HashSet<>();
-            final ExecutorService executor = createExecutorService("Merger", allRegionCoords.size() + additionalRegions.size());
+            final ExecutorService executor = createExecutorService("merging", allRegionCoords.size() + additionalRegions.size());
             final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, sortedRegions.size() + additionalRegions.size()) : null;
             try {
                 // Merge each individual region
@@ -906,7 +906,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         final Set<Point> regionsToMerge = getTilesByRegion(dimension).keySet();
 
         // Merge each individual region
-        final ExecutorService executor = createExecutorService("Merger", regionsToMerge.size());
+        final ExecutorService executor = createExecutorService("merging", regionsToMerge.size());
         final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, regionsToMerge.size()) : null;
         final StringBuffer reportBuilder = new StringBuffer();
         try {
@@ -1114,8 +1114,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                 continue;
                             }
                         } else {
-                            // Chunk exists in existing world, but not in new
-                            // one, copy old to new
+                            // Chunk exists in existing world, but not in new one, copy old to new
                             if (logger.isDebugEnabled()) {
                                 logger.debug("Using chunk from existing map at " + chunkX + "," + chunkY);
                             }

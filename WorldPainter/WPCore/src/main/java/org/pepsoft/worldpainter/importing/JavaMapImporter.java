@@ -29,6 +29,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Collections.synchronizedMap;
+import static java.util.Collections.synchronizedSet;
 import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
@@ -47,7 +48,7 @@ import static org.pepsoft.worldpainter.util.ChunkUtils.skipChunk;
  * @author pepijn
  */
 public class JavaMapImporter extends MapImporter {
-    public JavaMapImporter(Platform platform, TileFactory tileFactory, File levelDatFile, boolean populateNewChunks, Set<MinecraftCoords> chunksToSkip, ReadOnlyOption readOnlyOption, Set<Integer> dimensionsToImport) {
+    public JavaMapImporter(Platform platform, TileFactory tileFactory, File levelDatFile, Set<MinecraftCoords> chunksToSkip, ReadOnlyOption readOnlyOption, Set<Integer> dimensionsToImport) {
         if ((tileFactory == null) || (levelDatFile == null) || (readOnlyOption == null) || (dimensionsToImport == null)) {
             throw new NullPointerException();
         }
@@ -60,7 +61,6 @@ public class JavaMapImporter extends MapImporter {
         this.platform = platform;
         this.tileFactory = tileFactory;
         this.levelDatFile = levelDatFile;
-        this.populateNewChunks = populateNewChunks;
         this.chunksToSkip = chunksToSkip;
         this.readOnlyOption = readOnlyOption;
         this.dimensionsToImport = dimensionsToImport;
@@ -227,13 +227,13 @@ public class JavaMapImporter extends MapImporter {
         }
         final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
         final int maxY = maxHeight - 1;
-        final Set<Point> newChunks = new HashSet<>();
-        final Set<String> manMadeBlockTypes = new HashSet<>();
-        final Set<Integer> unknownBiomes = new HashSet<>();
+        final Set<Point> newChunks = synchronizedSet(new HashSet<>());
+        final Set<String> manMadeBlockTypes = synchronizedSet(new HashSet<>());
+        final Set<Integer> unknownBiomes = synchronizedSet(new HashSet<>());
         final boolean importBiomes = platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
-        final Map<String, Integer> customNamedBiomes = new HashMap<>();
+        final Map<String, Integer> customNamedBiomes = synchronizedMap(new HashMap<>());
         final AtomicInteger nextCustomBiomeId = new AtomicInteger(FIRST_UNALLOCATED_ID);
-        final Set<String> allBiomes = new HashSet<>();
+        final Set<String> allBiomes = synchronizedSet(new HashSet<>());
         try (ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension.getDim())) {
             final int total = chunkStore.getChunkCount();
             final AtomicInteger count = new AtomicInteger();
@@ -275,7 +275,6 @@ public class JavaMapImporter extends MapImporter {
                             }
                             dimension.addTile(tile);
                         }
-                        newChunks.remove(new Point(chunkX << 4, chunkZ << 4));
 
                         boolean manMadeStructuresBelowGround = false;
                         boolean manMadeStructuresAboveGround = false;
@@ -378,7 +377,9 @@ public class JavaMapImporter extends MapImporter {
                                             // TODOMC118 add way of editing 3D biomes
                                             String biomeStr = chunk.getNamedBiome(xx >> 2, dimension.getIntHeightAt(blockX, blockY) >> 2, zz >> 2);
                                             if (biomeStr != null) {
-                                                allBiomes.add(biomeStr);
+                                                if (collectDebugInfo) {
+                                                    allBiomes.add(biomeStr);
+                                                }
                                                 if (BIOMES_BY_MODERN_ID.containsKey(biomeStr)) {
                                                     biome = BIOMES_BY_MODERN_ID.get(biomeStr);
                                                 } else if (customNamedBiomes.containsKey(biomeStr)) {
@@ -416,6 +417,7 @@ public class JavaMapImporter extends MapImporter {
                                     }
                                 }
                             }
+                            newChunks.remove(new Point(chunkX << 4, chunkZ << 4));
                         } catch (NullPointerException e) {
                             reportBuilder.append("Null pointer exception while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk" + EOL);
                             logger.error("Null pointer exception while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk", e);
@@ -468,11 +470,16 @@ public class JavaMapImporter extends MapImporter {
                 dimension.setCustomBiomes(customBiomes);
             }
 
-            // Process chunks that were only added to fill out a tile
+            // Process chunks that were only added to fill out a tile. This includes chunks that were skipped during
+            // import due to an error
+            final Map<Point, AtomicInteger> notPresentChunksCountPerTile = new HashMap<>();
             for (Point newChunkCoords: newChunks) {
                 dimension.setBitLayerValueAt(NotPresent.INSTANCE, newChunkCoords.x, newChunkCoords.y, true);
-                if (populateNewChunks) {
-                    dimension.setBitLayerValueAt(Populate.INSTANCE, newChunkCoords.x, newChunkCoords.y, true);
+                final Point tileCoords = new Point(newChunkCoords.x >> 3, newChunkCoords.y >> 3);
+                if (notPresentChunksCountPerTile.computeIfAbsent(tileCoords, k -> new AtomicInteger()).incrementAndGet() == 64) {
+                    // All the chunks in this tile are "not present" (this might happen if chunks were skipped due to
+                    // errors)
+                    dimension.removeTile(tileCoords);
                 }
             }
 
@@ -499,7 +506,6 @@ public class JavaMapImporter extends MapImporter {
     private final Platform platform;
     private final TileFactory tileFactory;
     private final File levelDatFile;
-    private final boolean populateNewChunks;
     private final Set<MinecraftCoords> chunksToSkip;
     private final ReadOnlyOption readOnlyOption;
     private final Set<Integer> dimensionsToImport;

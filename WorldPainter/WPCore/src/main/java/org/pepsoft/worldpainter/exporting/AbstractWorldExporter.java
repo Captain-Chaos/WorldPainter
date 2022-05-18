@@ -228,7 +228,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             final WorldPainterChunkFactory ceilingChunkFactory = (ceiling != null) ? new WorldPainterChunkFactory(ceiling, ceilingExporters, platform, dimension.getMaxHeight()) : null;
 
             final Map<Point, List<Fixup>> fixups = new HashMap<>();
-            final ExecutorService executor = createExecutorService("Exporter", sortedRegions.size());
+            final ExecutorService executor = createExecutorService("exporting", sortedRegions.size());
             final RuntimeException[] exception = new RuntimeException[1];
             final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, regions.size()) : null;
             try {
@@ -888,16 +888,16 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         fromEntities.removeIf(entity -> (entity.getY() == (y - dy)) && ((entity.getX() - existingBlockDX) == x) && ((entity.getZ() - existingBlockDZ) == z));
     }
 
-    protected final ExecutorService createExecutorService(String noun, int jobCount) {
-        return MDCThreadPoolExecutor.newFixedThreadPool(chooseThreadCount(noun, jobCount), new ThreadFactory() {
+    protected final ExecutorService createExecutorService(String operation, int jobCount) {
+        return MDCThreadPoolExecutor.newFixedThreadPool(chooseThreadCount(operation, jobCount), new ThreadFactory() {
             @Override
             public synchronized Thread newThread(Runnable r) {
-                Thread thread = new Thread(threadGroup, r, noun + "-" + nextID++);
+                Thread thread = new Thread(threadGroup, r, operation.toLowerCase().replaceAll("\\s+", "-") + "-" + nextID++);
                 thread.setPriority(Thread.MIN_PRIORITY);
                 return thread;
             }
 
-            private final ThreadGroup threadGroup = new ThreadGroup(noun + 's');
+            private final ThreadGroup threadGroup = new ThreadGroup(operation);
             private int nextID = 1;
         });
     }

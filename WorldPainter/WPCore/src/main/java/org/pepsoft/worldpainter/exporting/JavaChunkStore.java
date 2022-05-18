@@ -424,7 +424,7 @@ public class JavaChunkStore implements ChunkStore {
                                     return false;
                                 }
                             }
-                        } catch (RuntimeException e) {
+                        } catch (RuntimeException | IOException e) {
                             // If it was the chunk visitor that threw the exception just propagate it; if it was the
                             // loading of the chunk that failed then log it and report it to the visitor
                             if (exceptionFromChunkVisitor) {

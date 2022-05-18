@@ -37,7 +37,9 @@ import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.util.MinecraftUtil.getRegionDir;
 
 /**
- * Created by Pepijn on 9-3-2017.
+ * A platform provider for Minecraft Java Edition chunk-based platforms.
+ *
+ * <p>Created by Pepijn on 9-3-2017.
  */
 public final class JavaPlatformProvider extends AbstractPlatformProvider implements BlockBasedPlatformProvider, MapExplorerSupport, MapImporterProvider {
     public JavaPlatformProvider() {
@@ -166,7 +168,7 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
         MapInfo mapInfo = identifyMap(dir);
         if (mapInfo != null) {
             ensurePlatformSupported(mapInfo.platform);
-            return new JavaMapImporter(mapInfo.platform, tileFactory, new File(dir, "level.dat"), false, chunksToSkip, readOnlyOption, dimensionsToImport);
+            return new JavaMapImporter(mapInfo.platform, tileFactory, new File(dir, "level.dat"), chunksToSkip, readOnlyOption, dimensionsToImport);
         } else {
             throw new IllegalArgumentException("Platform for map " + dir.getName() + " could not be identified");
         }

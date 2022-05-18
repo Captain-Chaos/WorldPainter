@@ -1,3 +1,7 @@
+-- Version 2.10.6, released ...
+
+ * The Import process now skips chunks when their data is corrupted, rather than aborting
+
 -- Version 2.10.5, released 18-5-2022
 
  * Bug fix: fix some over enthusiastic post processing that removed blocks with a "half: up" or "half: down" property

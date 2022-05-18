@@ -28,7 +28,7 @@ public class ImportTester extends AbstractTool {
                 Platform platform = PlatformManager.getInstance().identifyPlatform(mapDir);
                 TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), GRASS, platform.minZ, platform.standardMaxHeight, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0);
                 JavaMapImporter importer = new JavaMapImporter(platform, tileFactory, new File(mapDir, "level.dat"),
-                        false, null, MapImporter.ReadOnlyOption.NONE,
+                        null, MapImporter.ReadOnlyOption.NONE,
                         new HashSet<>(asList(((BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform)).getDimensions(platform, mapDir))));
                 System.out.println("+---------+---------+---------+---------+---------+");
                 World2 world = importer.doImport(new TextProgressReceiver());
