@@ -1,5 +1,6 @@
--- Version 2.10.5, released ...
+-- Version 2.10.5, released 18-5-2022
 
+ * Bug fix: fix some over enthusiastic post processing that removed blocks with a "half: up" or "half: down" property
  * Bug fix: correct a random number generation problem that was resulting in Custom Object and Custom Plants layers not being rendered with the correct distribution as Custom Cave/Tunnel floor and roof layers
 
 -- Version 2.10.4, released 17-5-2022
