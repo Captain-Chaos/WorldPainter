@@ -151,14 +151,13 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     }
 
     private void generatePreview() {
-        TunnelLayer layer = new TunnelLayer("tmp", 0);
+        final TunnelLayer layer = new TunnelLayer("tmp", 0);
         saveSettingsTo(layer, false);
-        TunnelLayerExporter exporter = new TunnelLayerExporter(layer);
-        Insets insets = labelPreview.getInsets();
-        int width = labelPreview.getWidth() - insets.left - insets.right;
-        int height = labelPreview.getHeight() - insets.top - insets.bottom;
+        final Insets insets = labelPreview.getInsets();
+        final int width = labelPreview.getWidth() - insets.left - insets.right;
+        final int height = labelPreview.getHeight() - insets.top - insets.bottom;
         if ((width > 0) && (height > 0)) {
-            BufferedImage preview = exporter.generatePreview(width, height, waterLevel, minHeight, baseHeight, Math.min(maxHeight - baseHeight, height - baseHeight + minHeight));
+            final BufferedImage preview = TunnelLayerExporter.generatePreview(layer, width, height, waterLevel, minHeight, baseHeight, Math.min(maxHeight - baseHeight, height - baseHeight + minHeight));
             labelPreview.setIcon(new ImageIcon(preview));
         } else {
             labelPreview.setIcon(null);
@@ -391,7 +390,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     private void addLayer(Component button, TunnelLayersTableModel tableModel) {
         JPopupMenu popupMenu = new JPopupMenu();
         LayerManager.getInstance().getLayers().stream()
-            .filter(l -> l.getExporter() instanceof IncidentalLayerExporter)
+            .filter(l -> IncidentalLayerExporter.class.isAssignableFrom(l.getExporterType()))
             .forEach(l -> {
                 JMenuItem menuItem = new JMenuItem(l.getName(), new ImageIcon(l.getIcon()));
                 menuItem.addActionListener(e -> tableModel.addLayer(l));
@@ -399,7 +398,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             });
         App app = App.getInstance();
         Set<CustomLayer> customLayers = app.getCustomLayers().stream()
-            .filter(l -> l.getExporter() instanceof IncidentalLayerExporter)
+            .filter(l -> IncidentalLayerExporter.class.isAssignableFrom(l.getExporterType()))
             .collect(Collectors.toSet());
         if (customLayers.size() > 15) {
             // If there are fifteen or more custom layers, split them by palette
@@ -410,7 +409,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                     String palette = entry.getKey();
                     JMenu paletteMenu = new JMenu(palette != null ? palette : "Hidden Layers");
                     entry.getValue().stream()
-                        .filter(l -> l.getExporter() instanceof IncidentalLayerExporter)
+                        .filter(l -> IncidentalLayerExporter.class.isAssignableFrom(l.getExporterType()))
                         .forEach(l -> {
                             JMenuItem menuItem = new JMenuItem(l.getName(), new ImageIcon(l.getIcon()));
                             menuItem.addActionListener(e -> tableModel.addLayer(l));

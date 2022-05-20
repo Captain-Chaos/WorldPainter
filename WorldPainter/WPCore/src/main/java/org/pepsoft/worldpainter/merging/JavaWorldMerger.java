@@ -428,9 +428,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
 
             // Load all layer settings into the exporters
             for (Layer layer: allLayers) {
-                LayerExporter exporter = layer.getExporter();
+                LayerExporter exporter = layer.getExporter(dimension, platform, dimension.getLayerSettings(layer));
                 if (exporter != null) {
-                    exporter.setSettings(dimension.getLayerSettings(layer));
                     exporters.put(layer, exporter);
                 }
             }
@@ -787,7 +786,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         
         List<Layer> secondaryPassLayers = new ArrayList<>();
         for (Layer layer: allLayers) {
-            LayerExporter exporter = layer.getExporter();
+            LayerExporter exporter = layer.getExporter(dimension, platform, dimension.getLayerSettings(layer));
             if (exporter instanceof SecondPassLayerExporter) {
                 secondaryPassLayers.add(layer);
             }

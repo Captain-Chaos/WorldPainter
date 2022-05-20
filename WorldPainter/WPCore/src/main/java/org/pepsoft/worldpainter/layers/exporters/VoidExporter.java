@@ -32,12 +32,12 @@ import static org.pepsoft.worldpainter.Constants.SMALL_BLOBS;
  * @author pepijn
  */
 public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter.layers.Void> implements SecondPassLayerExporter {
-    public VoidExporter() {
-        super(Void.INSTANCE);
+    public VoidExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        super(dimension, platform, settings, Void.INSTANCE);
     }
     
     @Override
-    public List<Fixup> carve(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    public List<Fixup> carve(Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
         if (noise.getSeed() != (dimension.getSeed() + SEED_OFFSET)) {
             noise.setSeed(dimension.getSeed() + SEED_OFFSET);
         }

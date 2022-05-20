@@ -36,8 +36,8 @@ import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.A
  * @author pepijn
  */
 public class RiverExporter extends AbstractLayerExporter<River> implements SecondPassLayerExporter {
-    public RiverExporter() {
-        super(River.INSTANCE, new RiverSettings());
+    public RiverExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        super(dimension, platform, (settings != null) ? settings : new RiverSettings(), River.INSTANCE);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class RiverExporter extends AbstractLayerExporter<River> implements Secon
     }
 
     @Override
-    public List<Fixup> addFeatures(final Dimension dimension, final Rectangle area, final Rectangle exportedArea, final MinecraftWorld minecraftWorld, Platform platform) {
+    public List<Fixup> addFeatures(final Rectangle area, final Rectangle exportedArea, final MinecraftWorld minecraftWorld) {
         final RiverSettings settings = new RiverSettings();
         final int shoreHeight = settings.getShoreHeight();
         final boolean shore = shoreHeight > 0;

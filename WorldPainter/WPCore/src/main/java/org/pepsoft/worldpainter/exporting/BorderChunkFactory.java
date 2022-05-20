@@ -162,7 +162,7 @@ public class BorderChunkFactory {
                 for (Layer layer: minimumLayers) {
                     LayerExporter layerExporter = exporters.get(layer);
                     if (layerExporter instanceof FirstPassLayerExporter) {
-                        ((FirstPassLayerExporter) layerExporter).render(dimension, virtualTile, result.chunk, platform);
+                        ((FirstPassLayerExporter) layerExporter).render(virtualTile, result.chunk);
                     }
                 }
             }

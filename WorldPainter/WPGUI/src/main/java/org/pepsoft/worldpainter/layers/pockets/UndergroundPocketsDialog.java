@@ -191,7 +191,7 @@ public class UndergroundPocketsDialog extends AbstractEditLayerDialog<Undergroun
         int minLevel = (Integer) spinnerMinLevel.getValue();
         int maxLevel = (Integer) spinnerMaxLevel.getValue();
         UndergroundPocketsLayer tmpLayer = new UndergroundPocketsLayer("tmp", material, terrain, occurrence, minLevel, maxLevel, scale, 0);
-        labelPreview.setIcon(new ImageIcon(((UndergroundPocketsLayerExporter) tmpLayer.getExporter()).createPreview(labelPreview.getWidth(), labelPreview.getHeight())));
+        labelPreview.setIcon(new ImageIcon(UndergroundPocketsLayerExporter.createPreview(tmpLayer, labelPreview.getWidth(), labelPreview.getHeight())));
     }
 
     /**

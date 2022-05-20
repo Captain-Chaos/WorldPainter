@@ -126,6 +126,11 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
         this.factors = factors;
     }
 
+    @Override
+    public Class<? extends LayerExporter> getExporterType() {
+        return CombinedLayerExporter.class;
+    }
+
     /**
      * Returns a dummy exporter, all methods of which throw an
      * {@link UnsupportedOperationException}, since combined layers must be
@@ -140,7 +145,7 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
      * {@code UnsupportedOperationException}.
      */
     @Override
-    public LayerExporter getExporter() {
+    public LayerExporter getExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
         return EXPORTER;
     }
 
@@ -267,12 +272,7 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
         }
 
         @Override
-        public void setSettings(ExporterSettings settings) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void render(Dimension dimension, Tile tile, Chunk chunk, Platform platform) {
+        public void render(Tile tile, Chunk chunk) {
             throw new UnsupportedOperationException();
         }
 
@@ -282,12 +282,12 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
         }
 
         @Override
-        public List<Fixup> carve(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+        public List<Fixup> carve(Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public List<Fixup> addFeatures(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+        public List<Fixup> addFeatures(Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
             throw new UnsupportedOperationException();
         }
     }

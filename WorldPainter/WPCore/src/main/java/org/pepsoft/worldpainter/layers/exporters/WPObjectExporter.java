@@ -34,14 +34,10 @@ import static org.pepsoft.worldpainter.objects.WPObject.*;
  * @author pepijn
  */
 public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExporter<L> {
-    public WPObjectExporter(L layer) {
-        super(layer);
+    public WPObjectExporter(Dimension dimension, Platform platform, ExporterSettings settings, L layer) {
+        super(dimension, platform, settings, layer);
     }
 
-    public WPObjectExporter(L layer, ExporterSettings defaultSettings) {
-        super(layer, defaultSettings);
-    }
-    
     /**
      * Export an object to the world, taking into account the blocks that are
      * already there.
@@ -516,11 +512,11 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 WPObjectExporter.renderObject(world, dimension, object, x, y, z);
                 
                 // Reapply the Frost layer to the area, if necessary
-                frostExporter.setSettings(dimension.getLayerSettings(Frost.INSTANCE));
+                final FrostExporter frostExporter = new FrostExporter(dimension, platform, dimension.getLayerSettings(Frost.INSTANCE));
                 Point3i offset = object.getOffset();
                 Point3i dim = object.getDimensions();
                 Rectangle area = new Rectangle(x + offset.x, y + offset.y, dim.x, dim.y);
-                frostExporter.addFeatures(dimension, area, null, world, platform);
+                frostExporter.addFeatures(area, null, world);
 
                 // Fixups are done *after* post processing, so post process
                 // again
@@ -570,7 +566,6 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         private final int x, y, z;
         private final Placement placement;
 
-        private static final FrostExporter frostExporter = new FrostExporter();
         private static final long serialVersionUID = 1L;
     }
 

@@ -35,8 +35,8 @@ import static org.pepsoft.minecraft.Material.LAYERS;
  * @author pepijn
  */
 public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverLayer> implements FirstPassLayerExporter, IncidentalLayerExporter {
-    public GroundCoverLayerExporter(GroundCoverLayer layer) {
-        super(layer);
+    public GroundCoverLayerExporter(Dimension dimension, Platform platform, GroundCoverLayer layer) {
+        super(dimension, platform, null, layer);
         NoiseSettings noiseSettings = layer.getNoiseSettings();
         if (noiseSettings != null) {
             noiseHeightMap = new NoiseHeightMap(noiseSettings, NOISE_SEED_OFFSET);
@@ -48,7 +48,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
     }
     
     @Override
-    public void render(Dimension dimension, Tile tile, Chunk chunk, Platform platform) {
+    public void render(Tile tile, Chunk chunk) {
         if (noiseHeightMap != null) {
             noiseHeightMap.setSeed(dimension.getSeed());
         }
@@ -223,7 +223,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
 
     // TODO: add smooth layer support here as well; will require refactoring the incidental layer framework
     @Override
-    public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    public Fixup apply(Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
         if (intensity > 0) {
             final Material blockBelow = minecraftWorld.getMaterialAt(location.x, location.y, location.z - 1);
             if ((blockBelow != AIR)

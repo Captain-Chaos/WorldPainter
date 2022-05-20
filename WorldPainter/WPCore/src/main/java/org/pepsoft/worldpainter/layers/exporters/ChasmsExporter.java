@@ -25,13 +25,13 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
  * @author pepijn
  */
 public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements FirstPassLayerExporter {
-    public ChasmsExporter() {
-        super(Chasms.INSTANCE, new ChasmsSettings());
+    public ChasmsExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        super(dimension, platform, (settings != null) ? settings : new ChasmsSettings(), Chasms.INSTANCE);
     }
 
     @Override
-    public void render(Dimension dimension, Tile tile, Chunk chunk, Platform platform) {
-        final ChasmsSettings settings = (ChasmsSettings) getSettings();
+    public void render(Tile tile, Chunk chunk) {
+        final ChasmsSettings settings = (ChasmsSettings) super.settings;
         final boolean surfaceBreaking = settings.isSurfaceBreaking();
         final boolean glassCeiling = settings.isGlassCeiling();
         final int minimumLevel = settings.getChasmsEverywhereLevel();

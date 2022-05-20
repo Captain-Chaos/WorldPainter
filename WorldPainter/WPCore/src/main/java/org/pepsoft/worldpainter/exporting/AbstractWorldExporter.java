@@ -391,9 +391,8 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
         // Load all layer settings into the exporters
         for (Layer layer: allLayers) {
-            LayerExporter exporter = layer.getExporter();
+            final LayerExporter exporter = layer.getExporter(dimension, platform, dimension.getLayerSettings(layer));
             if (exporter != null) {
-                exporter.setSettings(dimension.getLayerSettings(layer));
                 exporters.put(layer, exporter);
             }
         }
@@ -487,10 +486,10 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 final List<Fixup> layerFixups;
                 switch (stage) {
                     case CARVE:
-                        layerFixups = exporter.carve(dimension, area, exportedArea, minecraftWorld, platform);
+                        layerFixups = exporter.carve(area, exportedArea, minecraftWorld);
                         break;
                     case ADD_FEATURES:
-                        layerFixups = exporter.addFeatures(dimension, area, exportedArea, minecraftWorld, platform);
+                        layerFixups = exporter.addFeatures(area, exportedArea, minecraftWorld);
                         break;
                     default:
                         throw new InternalError();
@@ -643,7 +642,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
             List<Layer> secondaryPassLayers = new ArrayList<>(), ceilingSecondaryPassLayers = new ArrayList<>();
             for (Layer layer: allLayers) {
-                LayerExporter exporter = layer.getExporter();
+                LayerExporter exporter = layer.getExporter(dimension, platform, dimension.getLayerSettings(layer));
                 if (exporter instanceof SecondPassLayerExporter) {
                     secondaryPassLayers.add(layer);
                 }
@@ -662,7 +661,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 allCeilingLayers.removeIf(layer -> (layer instanceof CustomLayer) && (! ((CustomLayer) layer).isExport()));
 
                 for (Layer layer: allCeilingLayers) {
-                    LayerExporter exporter = layer.getExporter();
+                    LayerExporter exporter = layer.getExporter(ceiling, platform, ceiling.getLayerSettings(layer));
                     if (exporter instanceof SecondPassLayerExporter) {
                         ceilingSecondaryPassLayers.add(layer);
                     }

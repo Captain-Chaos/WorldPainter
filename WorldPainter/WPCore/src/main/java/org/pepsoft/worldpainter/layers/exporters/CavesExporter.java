@@ -5,7 +5,6 @@ import org.pepsoft.util.MathUtils;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.Fixup;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
@@ -30,14 +29,14 @@ import static org.pepsoft.worldpainter.util.GeometryUtil.visitFilledAbsoluteSphe
 /**
  * Created by Pepijn on 15-1-2017.
  */
-public class CavesExporter extends AbstractLayerExporter<Caves> implements SecondPassLayerExporter {
-    public CavesExporter() {
-        super(Caves.INSTANCE, new CavesSettings());
+public class CavesExporter extends AbstractCavesExporter<Caves> implements SecondPassLayerExporter {
+    public CavesExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        super(dimension, platform, (settings != null) ? settings : new CavesSettings(), Caves.INSTANCE);
     }
 
     @Override
-    public List<Fixup> carve(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
-        final CavesSettings settings = (CavesSettings) getSettings();
+    public List<Fixup> carve(Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+        final CavesSettings settings = (CavesSettings) super.settings;
         final int minZ = Math.max(settings.getMinimumLevel(), dimension.getMinHeight() + (dimension.isBottomless() ? 0 : 1)),
                 maxZForWorld = Math.min(settings.getMaximumLevel(), minecraftWorld.getMaxHeight() - 1),
                 minimumLevel = settings.getCavesEverywhereLevel();

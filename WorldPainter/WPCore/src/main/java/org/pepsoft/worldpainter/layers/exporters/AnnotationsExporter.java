@@ -29,8 +29,8 @@ import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.A
  * @author pepijn
  */
 public class AnnotationsExporter extends AbstractLayerExporter<Annotations> implements SecondPassLayerExporter {
-    public AnnotationsExporter() {
-        super(Annotations.INSTANCE);
+    public AnnotationsExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        super(dimension, platform, (settings != null) ? settings : new AnnotationsSettings(), Annotations.INSTANCE);
     }
 
     @Override
@@ -39,11 +39,8 @@ public class AnnotationsExporter extends AbstractLayerExporter<Annotations> impl
     }
 
     @Override
-    public List<Fixup> addFeatures(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
-        AnnotationsSettings settings = (AnnotationsSettings) getSettings();
-        if (settings == null) {
-            settings = new AnnotationsSettings();
-        }
+    public List<Fixup> addFeatures(Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+        final AnnotationsSettings settings = (AnnotationsSettings) super.settings;
         if (! settings.isExport()) {
             return null;
         }

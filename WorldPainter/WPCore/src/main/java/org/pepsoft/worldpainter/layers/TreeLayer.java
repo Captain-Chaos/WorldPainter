@@ -6,7 +6,10 @@
 package org.pepsoft.worldpainter.layers;
 
 import org.pepsoft.util.PerlinNoise;
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
+import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.TreesExporter;
 import org.pepsoft.worldpainter.layers.trees.TreeType;
 
@@ -28,8 +31,13 @@ public abstract class TreeLayer extends Layer {
     }
 
     @Override
-    public TreesExporter<? extends TreeLayer> getExporter() {
-        return new TreesExporter<>(this);
+    public Class<? extends LayerExporter> getExporterType() {
+        return TreesExporter.class;
+    }
+
+    @Override
+    public TreesExporter<? extends TreeLayer> getExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        return new TreesExporter<>(dimension, platform, settings, this);
     }
     
     public int getDefaultMaxWaterDepth() {

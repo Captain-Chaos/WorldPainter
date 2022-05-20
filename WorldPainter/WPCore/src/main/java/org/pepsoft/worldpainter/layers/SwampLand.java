@@ -4,13 +4,18 @@
  */
 package org.pepsoft.worldpainter.layers;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.Random;
 import org.pepsoft.util.PerlinNoise;
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.exporting.LayerExporter;
+import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.trees.SwampLandExporter;
 import org.pepsoft.worldpainter.layers.trees.SwampTree;
 import org.pepsoft.worldpainter.layers.trees.TreeType;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.Random;
 
 /**
  *
@@ -22,8 +27,13 @@ public class SwampLand extends TreeLayer {
     }
 
     @Override
-    public SwampLandExporter getExporter() {
-        return new SwampLandExporter(this);
+    public Class<? extends LayerExporter> getExporterType() {
+        return SwampLandExporter.class;
+    }
+
+    @Override
+    public SwampLandExporter getExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        return new SwampLandExporter(dimension, platform, settings, this);
     }
     
     @Override

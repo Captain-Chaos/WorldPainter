@@ -10,7 +10,6 @@ import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
-import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
 import java.awt.image.BufferedImage;
 
@@ -22,18 +21,17 @@ import static org.pepsoft.worldpainter.Constants.TINY_BLOBS;
  * @author pepijn
  */
 public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<UndergroundPocketsLayer> implements FirstPassLayerExporter {
-    public UndergroundPocketsLayerExporter(UndergroundPocketsLayer layer) {
-        super(layer);
+    public UndergroundPocketsLayerExporter(Dimension dimension, Platform platform, UndergroundPocketsLayer layer) {
+        super(dimension, platform, null, layer);
+        seedOffset = (layer.getMaterial() != null) ? layer.getMaterial().hashCode() : layer.getTerrain().hashCode();
+        for (int i = 1; i <= 15; i++) {
+            biasedThresholds[i - 1] = PerlinNoise.getLevelForPromillage(MathUtils.clamp(0f, (float) (layer.getFrequency() * Math.pow(0.9, 8 - i)), 1000f));
+        }
+        scale = TINY_BLOBS * (layer.getScale() / 100.0);
     }
 
     @Override
-    public void setSettings(ExporterSettings settings) {
-        super.setSettings(settings);
-        init();
-    }
-    
-    @Override
-    public void render(Dimension dimension, Tile tile, Chunk chunk, Platform platform) {
+    public void render(Tile tile, Chunk chunk) {
         final MixedMaterial material = layer.getMaterial();
         final Terrain terrain = layer.getTerrain();
         final boolean useMaterial = material != null;
@@ -99,8 +97,14 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
     /**
      * Create a black and white preview of the layer.
      */
-    public BufferedImage createPreview(int width, int height) {
-        init();
+    public static BufferedImage createPreview(UndergroundPocketsLayer layer, int width, int height) {
+        final PerlinNoise noiseGenerator = new PerlinNoise(0);
+        final float[] biasedThresholds = new float[15];
+        for (int i = 1; i <= 15; i++) {
+            biasedThresholds[i - 1] = PerlinNoise.getLevelForPromillage(MathUtils.clamp(0f, (float) (layer.getFrequency() * Math.pow(0.9, 8 - i)), 1000f));
+        }
+        final float threshold = biasedThresholds[8];
+        final double scale = TINY_BLOBS * (layer.getScale() / 100.0);
         final BufferedImage preview = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
         // For threshold <= -0.5 the image would be all-black, which it is by
         // default anyway
@@ -121,8 +125,14 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
     /**
      * Create a coloured preview of the layer.
      */
-    public BufferedImage createPreview(int width, int height, ColourScheme colourScheme, Terrain subsurfaceMaterial, Platform platform) {
-        init();
+    public static BufferedImage createPreview(UndergroundPocketsLayer layer, int width, int height, ColourScheme colourScheme, Terrain subsurfaceMaterial, Platform platform) {
+        final PerlinNoise noiseGenerator = new PerlinNoise(0);
+        final float[] biasedThresholds = new float[15];
+        for (int i = 1; i <= 15; i++) {
+            biasedThresholds[i - 1] = PerlinNoise.getLevelForPromillage(MathUtils.clamp(0f, (float) (layer.getFrequency() * Math.pow(0.9, 8 - i)), 1000f));
+        }
+        final float threshold = biasedThresholds[8];
+        final double scale = TINY_BLOBS * (layer.getScale() / 100.0);
         final BufferedImage preview = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         final MixedMaterial material = layer.getMaterial();
         final Terrain terrain = layer.getTerrain();
@@ -156,15 +166,6 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
         }
 //        drawLabels(preview, height);
         return preview;
-    }
-    
-    private void init() {
-        seedOffset = (layer.getMaterial() != null) ? layer.getMaterial().hashCode() : layer.getTerrain().hashCode();
-        for (int i = 1; i <= 15; i++) {
-            biasedThresholds[i - 1] = PerlinNoise.getLevelForPromillage(MathUtils.clamp(0f, (float) (layer.getFrequency() * Math.pow(0.9, 8 - i)), 1000f));
-        }
-        threshold = biasedThresholds[8];
-        scale = TINY_BLOBS * (layer.getScale() / 100.0);
     }
 
 //    private void drawLabels(final BufferedImage preview, final int height) {
@@ -201,10 +202,6 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
      * The thresholds for all possible layer values
      */
     private final float[] biasedThresholds = new float[15];
-    private long seedOffset;
-    /**
-     * The threshold for value 8 (50% intensity)
-     */
-    private float threshold;
-    private double scale;
+    private final long seedOffset;
+    private final double scale;
 }

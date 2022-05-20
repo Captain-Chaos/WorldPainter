@@ -37,8 +37,8 @@ import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.A
  * @author pepijn
  */
 public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T> implements SecondPassLayerExporter, IncidentalLayerExporter {
-    public TreesExporter(T layer) {
-        super(layer, new TreeLayerSettings<>(layer));
+    public TreesExporter(Dimension dimension, Platform platform, ExporterSettings settings, T layer) {
+        super(dimension, platform, (settings != null) ? settings : new TreeLayerSettings<>(layer), layer);
     }
 
     @Override
@@ -48,36 +48,36 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
 
     @SuppressWarnings("unchecked") // Responsibility of caller
     @Override
-    public List<Fixup> addFeatures(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
-        TreeLayerSettings<T> settings = (TreeLayerSettings<T>) getSettings();
-        int minimumLevel = settings.getMinimumLevel();
-        int treeChance = settings.getTreeChance();
-        int maxWaterDepth = settings.getMaxWaterDepth();
-        int layerStrengthCap = settings.getLayerStrengthCap();
-        int maxZ = dimension.getMaxHeight() - 1;
+    public List<Fixup> addFeatures(Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+        final TreeLayerSettings<T> settings = (TreeLayerSettings<T>) super.settings;
+        final int minimumLevel = settings.getMinimumLevel();
+        final int treeChance = settings.getTreeChance();
+        final int maxWaterDepth = settings.getMaxWaterDepth();
+        final int layerStrengthCap = settings.getLayerStrengthCap();
+        final int maxZ = dimension.getMaxHeight() - 1;
         for (int chunkX = area.x; chunkX < area.x + area.width; chunkX += 16) {
             for (int chunkY = area.y; chunkY < area.y + area.height; chunkY += 16) {
                 // Set the seed and randomizer according to the chunk coordinates to make sure the chunk is always
                 // rendered the same, no matter how often it is rendered
-                long seed = dimension.getSeed() + (chunkX >> 4) * 65537L + (chunkY >> 4) * 4099L + layer.hashCode();
+                final long seed = dimension.getSeed() + (chunkX >> 4) * 65537L + (chunkY >> 4) * 4099L + layer.hashCode();
                 Random random = new Random(seed);
                 for (int x = chunkX; x < chunkX + 16; x++) {
                     for (int y = chunkY; y < chunkY + 16; y++) {
-                        int height = dimension.getIntHeightAt(x, y);
+                        final int height = dimension.getIntHeightAt(x, y);
                         if ((height == Integer.MIN_VALUE) || (height >= maxZ)) {
                             // height == Integer.MIN_VALUE means there is no tile there
                             continue;
                         }
-                        int strength = Math.max(minimumLevel, dimension.getLayerValueAt(layer, x, y));
-                        int cappedStrength = Math.min(strength, layerStrengthCap);
+                        final int strength = Math.max(minimumLevel, dimension.getLayerValueAt(layer, x, y));
+                        final int cappedStrength = Math.min(strength, layerStrengthCap);
                         if ((strength > 0) && (random.nextInt(treeChance) <= (cappedStrength * cappedStrength))) {
-                            int waterDepth = dimension.getWaterLevelAt(x, y) - height;
+                            final int waterDepth = dimension.getWaterLevelAt(x, y) - height;
                             if (waterDepth > maxWaterDepth) {
                                 continue;
                             }
                             // Don't build trees on air, or in lava or water, or where there is already a solid block (from another layer)
-                            Material blockTypeUnderTree = minecraftWorld.getMaterialAt(x, y, height);
-                            Material blockTypeAtTree = minecraftWorld.getMaterialAt(x, y, height + 1);
+                            final Material blockTypeUnderTree = minecraftWorld.getMaterialAt(x, y, height);
+                            final Material blockTypeAtTree = minecraftWorld.getMaterialAt(x, y, height + 1);
                             if ((blockTypeUnderTree == AIR)
                                     || (blockTypeUnderTree.isNamed(MC_WATER))
                                     || (blockTypeAtTree.isNamed(MC_LAVA))
@@ -99,9 +99,10 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
         return null;
     }
 
+    @SuppressWarnings("unchecked") // Responsibility of creator
     @Override
-    public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
-        final TreeLayerSettings<T> settings = (TreeLayerSettings<T>) getSettings();
+    public Fixup apply(Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+        final TreeLayerSettings<T> settings = (TreeLayerSettings<T>) super.settings;
         final int treeChance = settings.getTreeChance();
         final int maxWaterDepth = settings.getMaxWaterDepth();
         final int layerStrengthCap = settings.getLayerStrengthCap();
@@ -169,9 +170,9 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
         if (height > (minecraftWorld.getMaxHeight() - 2)) {
             return;
         }
-        TreeLayerSettings<T> settings = (TreeLayerSettings<T>) getSettings();
-        int mushroomIncidence = settings.getMushroomIncidence();
-        float mushroomChance = settings.getMushroomChance();
+        final TreeLayerSettings<T> settings = (TreeLayerSettings<T>) super.settings;
+        final int mushroomIncidence = settings.getMushroomIncidence();
+        final float mushroomChance = settings.getMushroomChance();
         PerlinNoise perlinNoise = perlinNoiseRef.get();
         if (perlinNoise == null) {
             perlinNoise = new PerlinNoise(seed);
@@ -180,16 +181,16 @@ public class TreesExporter<T extends TreeLayer> extends AbstractLayerExporter<T>
         if (perlinNoise.getSeed() != (seed + SEED_OFFSET)) {
             perlinNoise.setSeed(seed + SEED_OFFSET);
         }
-        int size = Math.min(2 + strength / 3, 5) + random.nextInt(3);
-        int r = Math.min(size / 2, 3);
+        final int size = Math.min(2 + strength / 3, 5) + random.nextInt(3);
+        final int r = Math.min(size / 2, 3);
         if (r > 0) {
             for (int dx = -r; dx <= r; dx++) {
                 for (int dy = -r; dy <= r; dy++) {
                     if ((dx != 0) || (dy != 0)) {
-                        int rnd = random.nextInt(mushroomIncidence);
-                        int x = blockInWorldX + dx, y = blockInWorldY + dy;
+                        final int rnd = random.nextInt(mushroomIncidence);
+                        final int x = blockInWorldX + dx, y = blockInWorldY + dy;
                         if ((rnd == 0) && (minecraftWorld.getMaterialAt(x, y, height) != AIR) && (minecraftWorld.getMaterialAt(x, y, height + 1) == AIR)) {
-                            float chance = perlinNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, height / SMALL_BLOBS);
+                            final float chance = perlinNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, height / SMALL_BLOBS);
                             if (chance > mushroomChance) {
                                 minecraftWorld.setMaterialAt(x, y, height + 1, BROWN_MUSHROOM);
                             } else if (chance < -mushroomChance) {

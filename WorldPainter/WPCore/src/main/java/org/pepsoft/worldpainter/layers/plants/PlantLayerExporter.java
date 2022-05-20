@@ -37,8 +37,8 @@ import static org.pepsoft.worldpainter.layers.plants.Category.*;
  * @author pepijn
  */
 public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements SecondPassLayerExporter, IncidentalLayerExporter {
-    public PlantLayerExporter(PlantLayer layer) {
-        super(layer);
+    public PlantLayerExporter(Dimension dimension, Platform platform, PlantLayer layer) {
+        super(dimension, platform, null, layer);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
     }
 
     @Override
-    public List<Fixup> addFeatures(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    public List<Fixup> addFeatures(Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
         final long seed = dimension.getSeed();
         final int tileX1 = exportedArea.x >> TILE_SIZE_BITS, tileX2 = (exportedArea.x + exportedArea.width - 1) >> TILE_SIZE_BITS;
         final int tileY1 = exportedArea.y >> TILE_SIZE_BITS, tileY2 = (exportedArea.y + exportedArea.height - 1) >> TILE_SIZE_BITS;
@@ -137,7 +137,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
     }
 
     @Override
-    public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    public Fixup apply(Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
         final Random random = incidentalRandomRef.get();
         final long seed = dimension.getSeed() + location.x + location.y * 4099L + location.z * 65537L + layer.hashCode();
         random.setSeed(seed);

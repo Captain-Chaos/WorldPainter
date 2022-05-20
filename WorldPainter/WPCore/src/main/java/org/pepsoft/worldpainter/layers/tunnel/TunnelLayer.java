@@ -5,12 +5,11 @@
  */
 package org.pepsoft.worldpainter.layers.tunnel;
 
-import org.pepsoft.worldpainter.HeightTransform;
-import org.pepsoft.worldpainter.MixedMaterial;
-import org.pepsoft.worldpainter.MixedMaterialManager;
-import org.pepsoft.worldpainter.NoiseSettings;
+import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -238,10 +237,15 @@ public class TunnelLayer extends CustomLayer {
     }
 
     // CustomLayer
-    
+
     @Override
-    public TunnelLayerExporter getExporter() {
-        return new TunnelLayerExporter(this);
+    public Class<? extends LayerExporter> getExporterType() {
+        return TunnelLayerExporter.class;
+    }
+
+    @Override
+    public TunnelLayerExporter getExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        return new TunnelLayerExporter(dimension, platform, this);
     }
 
     @Override

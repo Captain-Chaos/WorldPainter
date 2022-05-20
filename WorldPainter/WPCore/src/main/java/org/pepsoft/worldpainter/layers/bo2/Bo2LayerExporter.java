@@ -41,8 +41,8 @@ import static org.pepsoft.worldpainter.objects.WPObject.*;
  * @author pepijn
  */
 public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements SecondPassLayerExporter, IncidentalLayerExporter {
-    public Bo2LayerExporter(Bo2Layer layer) {
-        super(layer);
+    public Bo2LayerExporter(Dimension dimension, Platform platform, Bo2Layer layer) {
+        super(dimension, platform, null, layer);
     }
 
     @Override
@@ -51,7 +51,7 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
     }
 
     @Override
-    public List<Fixup> addFeatures(final Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    public List<Fixup> addFeatures(Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
         try {
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider();
             final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
@@ -118,7 +118,7 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
     }
 
     @Override
-    public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    public Fixup apply(Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
         final long seed = dimension.getSeed() + location.x + location.y * 4099L + location.z * 65537L + layer.hashCode();
         applyRandom.setSeed(seed);
         if ((intensity > 0) && (applyRandom.nextInt(layer.getDensity() * 20) <= intensity * intensity / 225)) {

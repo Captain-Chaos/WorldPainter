@@ -2,8 +2,11 @@ package org.pepsoft.worldpainter.layers.exporters;
 
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
+import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.layers.Layer;
 
 import java.util.Random;
@@ -24,12 +27,8 @@ import static org.pepsoft.minecraft.Material.*;
  * @param <L> The cave layer type.
  */
 public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLayerExporter<L> {
-    public AbstractCavesExporter(L layer, ExporterSettings defaultSettings) {
-        super(layer, defaultSettings);
-    }
-
-    public AbstractCavesExporter(L layer) {
-        super(layer);
+    public AbstractCavesExporter(Dimension dimension, Platform platform, ExporterSettings settings, L layer) {
+        super(dimension, platform, settings, layer);
     }
 
     protected final void setupForColumn(long seed, Tile tile, int maxY, int waterLevel, boolean glassCeiling, boolean surfaceBreaking, boolean leaveWater, boolean floodWithLava) {

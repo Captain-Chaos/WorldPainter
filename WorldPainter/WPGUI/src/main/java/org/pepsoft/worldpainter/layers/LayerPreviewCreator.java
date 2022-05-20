@@ -48,13 +48,13 @@ public class LayerPreviewCreator {
     public MinecraftWorldObject renderPreview() {
         // Phase one: setup
         long timestamp = System.currentTimeMillis();
-        long seed = 0L;
-        TileFactory tileFactory = subterranean
+        final long seed = 0L;
+        final TileFactory tileFactory = subterranean
                 ? TileFactoryFactory.createNoiseTileFactory(seed, Terrain.BARE_GRASS, JAVA_ANVIL_1_17.minZ, previewHeight, 56, DEFAULT_WATER_LEVEL, false, true, 20f, 0.5)
                 : TileFactoryFactory.createNoiseTileFactory(seed, Terrain.BARE_GRASS, JAVA_ANVIL_1_17.minZ, previewHeight, 8, 14, false, true, 20f, 0.5);
-        Dimension dimension = new World2(DefaultPlugin.JAVA_MCREGION, seed, tileFactory, previewHeight).getDimension(DIM_NORMAL);
+        final Dimension dimension = new World2(DefaultPlugin.JAVA_MCREGION, seed, tileFactory, previewHeight).getDimension(DIM_NORMAL);
         dimension.setSubsurfaceMaterial(Terrain.STONE);
-        MinecraftWorldObject minecraftWorldObject = new MinecraftWorldObject(layer.getName() + " Preview", new Box(-8, 136, -8, 136, 0, previewHeight), previewHeight, null, new Point3i(-64, -64, 0));
+        final MinecraftWorldObject minecraftWorldObject = new MinecraftWorldObject(layer.getName() + " Preview", new Box(-8, 136, -8, 136, 0, previewHeight), previewHeight, null, new Point3i(-64, -64, 0));
         long now = System.currentTimeMillis();
         if (logger.isDebugEnabled()) {
             logger.debug("Creating data structures took " + (now - timestamp) + " ms");
@@ -62,7 +62,7 @@ public class LayerPreviewCreator {
 
         // Phase two: create tiles and apply layer to dimension
         timestamp = now;
-        Tile tile = tileFactory.createTile(0, 0);
+        final Tile tile = tileFactory.createTile(0, 0);
         switch (layer.getDataSize()) {
             case BIT:
                 Random random = new Random(seed);
@@ -129,14 +129,14 @@ public class LayerPreviewCreator {
         }
         // If the layer is a combined layer, apply it recursively and collect
         // the added layers
-        List<Layer> layers;
+        final List<Layer> layers;
         if (layer instanceof CombinedLayer) {
             layers = new ArrayList<>();
             layers.add(layer);
             while (true) {
-                List<Layer> addedLayers = new ArrayList<>();
+                final List<Layer> addedLayers = new ArrayList<>();
                 for (Iterator<Layer> i = layers.iterator(); i.hasNext(); ) {
-                    Layer tmpLayer = i.next();
+                    final Layer tmpLayer = i.next();
                     if (tmpLayer instanceof CombinedLayer) {
                         i.remove();
                         addedLayers.addAll(((CombinedLayer) tmpLayer).apply(tile));
@@ -157,15 +157,11 @@ public class LayerPreviewCreator {
             logger.debug("Applying layer(s) took " + (now - timestamp) + " ms");
         }
 
-        // Collect the exporters (could be multiple if the layer was a combined
-        // layer)
-        Map<Layer, LayerExporter> pass1Exporters = new HashMap<>();
-        Map<Layer, SecondPassLayerExporter> pass2Exporters = new HashMap<>();
+        // Collect the exporters (could be multiple if the layer was a combined layer)
+        final Map<Layer, LayerExporter> pass1Exporters = new HashMap<>();
+        final Map<Layer, SecondPassLayerExporter> pass2Exporters = new HashMap<>();
         for (Layer tmpLayer: layers) {
-            LayerExporter exporter = tmpLayer.getExporter();
-            if (tmpLayer.equals(layer)) {
-                exporter.setSettings(settings);
-            }
+            final LayerExporter exporter = tmpLayer.getExporter(dimension, JAVA_ANVIL_1_17, tmpLayer.equals(layer) ? settings : null);
             if (exporter instanceof FirstPassLayerExporter) {
                 pass1Exporters.put(layer, exporter);
             }
@@ -176,10 +172,10 @@ public class LayerPreviewCreator {
 
         // Phase three: generate terrain and render first pass layers, if any
         timestamp = now;
-        WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, pass1Exporters, JAVA_ANVIL_1_17, previewHeight);
+        final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, pass1Exporters, JAVA_ANVIL_1_17, previewHeight);
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
-                Chunk chunk = chunkFactory.createChunk(x, y).chunk;
+                final Chunk chunk = chunkFactory.createChunk(x, y).chunk;
                 minecraftWorldObject.addChunk(chunk);
             }
         }
@@ -191,12 +187,12 @@ public class LayerPreviewCreator {
         if (! pass2Exporters.isEmpty()) {
             // Phase four: render the second pass layers, if any
             timestamp = now;
-            Rectangle area = new Rectangle(128, 128);
+            final Rectangle area = new Rectangle(128, 128);
             for (SecondPassLayerExporter exporter: pass2Exporters.values()) {
-                exporter.carve(dimension, area, area, minecraftWorldObject, JAVA_ANVIL_1_17);
+                exporter.carve(area, area, minecraftWorldObject);
             }
             for (SecondPassLayerExporter exporter: pass2Exporters.values()) {
-                exporter.addFeatures(dimension, area, area, minecraftWorldObject, JAVA_ANVIL_1_17);
+                exporter.addFeatures(area, area, minecraftWorldObject);
             }
             now = System.currentTimeMillis();
             if (logger.isDebugEnabled()) {

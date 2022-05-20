@@ -28,8 +28,8 @@ public class TunnelLayerExporterTest {
         }
 
         try (final MinecraftWorld minecraftWorld = createMinecraftWorld(area, 100, GRASS_BLOCK)) {
-            final TunnelLayerExporter exporter = new TunnelLayerExporter(layer);
-            exporter.carve(dimension, area, area, minecraftWorld, PLATFORM);
+            final TunnelLayerExporter exporter = new TunnelLayerExporter(dimension, PLATFORM, layer);
+            exporter.carve(area, area, minecraftWorld);
             for (int x = 0; x < TILE_SIZE; x++) {
                 for (int y = 0; y < TILE_SIZE; y++) {
                     for (int z = MIN_HEIGHT; z < MAX_HEIGHT; z++) {
@@ -76,8 +76,8 @@ public class TunnelLayerExporterTest {
             final TunnelFloorDimension tunnelFloorDimension = new TunnelFloorDimension(dimension, layer);
             final TunnelRoofDimension tunnelRoofDimension = new TunnelRoofDimension(dimension, layer);
             final int reflectionPoint = MAX_HEIGHT + MIN_HEIGHT - 1;
-            final TunnelLayerExporter exporter = new TunnelLayerExporter(layer);
-            exporter.carve(dimension, area, area, minecraftWorld, PLATFORM);
+            final TunnelLayerExporter exporter = new TunnelLayerExporter(dimension, PLATFORM, layer);
+            exporter.carve(area, area, minecraftWorld);
             for (int x = 0; x < TILE_SIZE; x++) {
                 for (int y = 0; y < TILE_SIZE; y++) {
                     int detectedFloorLevel = Integer.MIN_VALUE, detectedRoofLevel = Integer.MIN_VALUE;

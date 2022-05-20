@@ -24,13 +24,13 @@ import static org.pepsoft.worldpainter.Constants.*;
  * @author pepijn
  */
 public class CavernsExporter extends AbstractCavesExporter<Caverns> implements FirstPassLayerExporter {
-    public CavernsExporter() {
-        super(Caverns.INSTANCE, new CavernsSettings());
+    public CavernsExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        super(dimension, platform, (settings != null) ? settings : new CavernsSettings(), Caverns.INSTANCE);
     }
     
     @Override
-    public void render(Dimension dimension, Tile tile, Chunk chunk, Platform platform) {
-        final CavernsSettings settings = (CavernsSettings) getSettings();
+    public void render(Tile tile, Chunk chunk) {
+        final CavernsSettings settings = (CavernsSettings) super.settings;
         final boolean surfaceBreaking = settings.isSurfaceBreaking();
         final boolean glassCeiling = settings.isGlassCeiling();
         final int minimumLevel = settings.getCavernsEverywhereLevel();

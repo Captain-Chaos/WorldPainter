@@ -5,11 +5,10 @@
 package org.pepsoft.worldpainter.layers.pockets;
 
 import org.pepsoft.minecraft.Material;
-import org.pepsoft.worldpainter.DefaultPlugin;
-import org.pepsoft.worldpainter.MixedMaterial;
-import org.pepsoft.worldpainter.MixedMaterialManager;
-import org.pepsoft.worldpainter.Terrain;
+import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.CustomLayer;
+import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -98,8 +97,13 @@ public class UndergroundPocketsLayer extends CustomLayer {
     }
 
     @Override
-    public UndergroundPocketsLayerExporter getExporter() {
-        return new UndergroundPocketsLayerExporter(this);
+    public Class<? extends LayerExporter> getExporterType() {
+        return UndergroundPocketsLayerExporter.class;
+    }
+
+    @Override
+    public UndergroundPocketsLayerExporter getExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        return new UndergroundPocketsLayerExporter(dimension, platform, this);
     }
 
     // Cloneable

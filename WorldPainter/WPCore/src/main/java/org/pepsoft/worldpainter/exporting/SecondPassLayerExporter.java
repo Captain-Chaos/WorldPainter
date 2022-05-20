@@ -22,8 +22,8 @@ import static java.util.Collections.singleton;
  * next stage is started. The exporter should indicate with {@link #getStages()}} for which stages it would like to be
  * invoked.
  *
- * <p>Implementations should implement {@link #carve(Dimension, Rectangle, Rectangle, MinecraftWorld, Platform)} and/or
- * {@link #addFeatures(Dimension, Rectangle, Rectangle, MinecraftWorld, Platform)} and implement {@link #getStages()}
+ * <p>Implementations should implement {@link #carve(Rectangle, Rectangle, MinecraftWorld)} and/or
+ * {@link #addFeatures(Rectangle, Rectangle, MinecraftWorld)} and implement {@link #getStages()}
  * accordingly.
  *
  * @author pepijn
@@ -36,36 +36,32 @@ public interface SecondPassLayerExporter extends LayerExporter {
     /**
      * Carve an area of the map. Will be invoked if {@link #getStages()} contains {@link Stage#CARVE}.
      *
-     * @param dimension The dimension that is being exported.
-     * @param area The area to process.
-     * @param exportedArea The area which will actually be exported. May be smaller than {@code area}. May be used to
-     *                     for instance avoid objects getting cut off at area boundaries.
+     * @param area           The area to process.
+     * @param exportedArea   The area which will actually be exported. May be smaller than {@code area}. May be used to
+     *                       for instance avoid objects getting cut off at area boundaries.
      * @param minecraftWorld The {@link MinecraftWorld} to which to export the layer.
-     * @param platform The platform for which the layer is being exported.
      * @return An optional list of fixups which should be executed after all regions have been exported.
      */
-    default List<Fixup> carve(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
-        return render(dimension, area, exportedArea, minecraftWorld, platform);
+    default List<Fixup> carve(Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+        return render(null, area, exportedArea, minecraftWorld, null);
     }
 
     /**
      * Add features to an area of the map. Will be invoked if {@link #getStages()} contains {@link Stage#ADD_FEATURES},
      * after the {@link Stage#CARVE} stage is finished for all layers.
      *
-     * @param dimension The dimension that is being exported.
-     * @param area The area to process.
-     * @param exportedArea The area which will actually be exported. May be smaller than {@code area}. May be used to
-     *                     for instance avoid objects getting cut off at area boundaries.
+     * @param area           The area to process.
+     * @param exportedArea   The area which will actually be exported. May be smaller than {@code area}. May be used to
+     *                       for instance avoid objects getting cut off at area boundaries.
      * @param minecraftWorld The {@link MinecraftWorld} to which to export the layer.
-     * @param platform The platform for which the layer is being exported.
      * @return An optional list of fixups which should be executed after all regions have been exported.
      */
-    default List<Fixup> addFeatures(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    default List<Fixup> addFeatures(Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
         return null;
     }
 
     /**
-     * @deprecated Use {@link #carve(Dimension, Rectangle, Rectangle, MinecraftWorld, Platform)} instead.
+     * @deprecated Use {@link #carve(Rectangle, Rectangle, MinecraftWorld)} instead.
      */
     @Deprecated default List<Fixup> render(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
         return null;

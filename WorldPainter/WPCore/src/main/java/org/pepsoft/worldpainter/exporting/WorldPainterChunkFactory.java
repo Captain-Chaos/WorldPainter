@@ -273,7 +273,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                 if (logger.isTraceEnabled()) {
                     logger.trace("Exporting layer {} for chunk {},{}", layer, chunkX, chunkZ);
                 }
-                ((FirstPassLayerExporter) layerExporter).render(dimension, tile, chunk, platform);
+                ((FirstPassLayerExporter) layerExporter).render(tile, chunk);
             }
         }
         result.stats.surfaceArea = 256;

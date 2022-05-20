@@ -29,8 +29,8 @@ import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.A
  * @author pepijn
  */
 public class FrostExporter extends AbstractLayerExporter<Frost> implements SecondPassLayerExporter {
-    public FrostExporter() {
-        super(Frost.INSTANCE, new FrostSettings());
+    public FrostExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        super(dimension, platform, (settings != null) ? settings : new FrostSettings(), Frost.INSTANCE);
     }
 
     @Override
@@ -39,8 +39,8 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
     }
 
     @Override
-    public List<Fixup> addFeatures(final Dimension dimension, final Rectangle area, final Rectangle exportedArea, final MinecraftWorld minecraftWorld, Platform platform) {
-        final FrostSettings settings = (FrostSettings) getSettings();
+    public List<Fixup> addFeatures(final Rectangle area, final Rectangle exportedArea, final MinecraftWorld minecraftWorld) {
+        final FrostSettings settings = (FrostSettings) super.settings;
         final boolean frostEverywhere = settings.isFrostEverywhere();
         final int mode = settings.getMode();
         final boolean snowUnderTrees = settings.isSnowUnderTrees();

@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
@@ -20,35 +21,24 @@ import java.util.function.Supplier;
  * @author pepijn
  */
 public abstract class AbstractLayerExporter<L extends Layer> implements LayerExporter {
-    public AbstractLayerExporter(L layer, ExporterSettings defaultSettings) {
+    public AbstractLayerExporter(Dimension dimension, Platform platform, ExporterSettings settings, L layer) {
+        this.dimension = dimension;
+        this.platform = platform;
+        this.settings = settings;
         this.layer = layer;
-        this.defaultSettings = defaultSettings;
-        settings = defaultSettings.clone();
+        minHeight = Math.max(dimension.getMinHeight(), platform.minZ);
+        maxHeight = Math.min(dimension.getMaxHeight(), platform.maxMaxHeight);
     }
 
-    public AbstractLayerExporter(L layer) {
-        this.layer = layer;
-        this.defaultSettings = null;
+    public final Dimension getDimension() {
+        return dimension;
     }
-    
+
     @Override
     public final L getLayer() {
         return layer;
     }
     
-    public final ExporterSettings getSettings() {
-        return settings;
-    }
-
-    @Override
-    public void setSettings(ExporterSettings settings) {
-        if (settings != null) {
-            this.settings = settings;
-        } else {
-            this.settings = (defaultSettings != null) ? defaultSettings.clone() : null;
-        }
-    }
-
     /**
      * A visitor of chunks.
      */
@@ -104,7 +94,9 @@ public abstract class AbstractLayerExporter<L extends Layer> implements LayerExp
         return true;
     }
 
+    protected final Dimension dimension;
+    protected final Platform platform;
     protected final L layer;
-    private final ExporterSettings defaultSettings;
-    private ExporterSettings settings;
+    protected final int minHeight, maxHeight;
+    protected final ExporterSettings settings;
 }
