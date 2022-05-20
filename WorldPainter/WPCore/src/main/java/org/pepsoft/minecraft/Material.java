@@ -1957,7 +1957,13 @@ public final class Material implements Serializable {
     public static final Material NETHER_SPROUTS = get(MC_NETHER_SPROUTS);
     public static final Material TWISTING_VINES_PLANT = get(MC_TWISTING_VINES_PLANT);
     public static final Material TWISTING_VINES_25 = get(MC_TWISTING_VINES, MC_AGE, 25);
-    public static final Material GLOW_LICHEN_DOWN = get(MC_GLOW_LICHEN, MC_UP, false, MC_DOWN, true);
+    /**
+     * A {@code glow_lichen} block with <em>none</em> of the directions enabled. This is not a valid block; you must
+     * enable at least one direction.
+     */
+    public static final Material GLOW_LICHEN_NONE = get(MC_GLOW_LICHEN, MC_UP, false, MC_DOWN, false, MC_NORTH, false, MC_SOUTH, false, MC_EAST, false, MC_WEST, false, MC_WATERLOGGED, false);
+    public static final Material GLOW_LICHEN_DOWN = get(MC_GLOW_LICHEN, MC_UP, false, MC_DOWN, true, MC_NORTH, false, MC_SOUTH, false, MC_EAST, false, MC_WEST, false, MC_WATERLOGGED, false);
+    public static final Material GLOW_LICHEN_UP = get(MC_GLOW_LICHEN, MC_UP, true, MC_DOWN, false, MC_NORTH, false, MC_SOUTH, false, MC_EAST, false, MC_WEST, false, MC_WATERLOGGED, false);
     public static final Material MOSS_CARPET = get(MC_MOSS_CARPET);
     public static final Material BIG_DRIPLEAF_STEM_SOUTH = get(MC_BIG_DRIPLEAF_STEM, MC_FACING, "south");
     public static final Material BIG_DRIPLEAF_SOUTH = get(MC_BIG_DRIPLEAF, MC_FACING, "south");

@@ -642,8 +642,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
             List<Layer> secondaryPassLayers = new ArrayList<>(), ceilingSecondaryPassLayers = new ArrayList<>();
             for (Layer layer: allLayers) {
-                LayerExporter exporter = layer.getExporter(dimension, platform, dimension.getLayerSettings(layer));
-                if (exporter instanceof SecondPassLayerExporter) {
+                if (SecondPassLayerExporter.class.isAssignableFrom(layer.getExporterType())) {
                     secondaryPassLayers.add(layer);
                 }
             }
@@ -661,8 +660,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 allCeilingLayers.removeIf(layer -> (layer instanceof CustomLayer) && (! ((CustomLayer) layer).isExport()));
 
                 for (Layer layer: allCeilingLayers) {
-                    LayerExporter exporter = layer.getExporter(ceiling, platform, ceiling.getLayerSettings(layer));
-                    if (exporter instanceof SecondPassLayerExporter) {
+                    if (SecondPassLayerExporter.class.isAssignableFrom(layer.getExporterType())) {
                         ceilingSecondaryPassLayers.add(layer);
                     }
                 }

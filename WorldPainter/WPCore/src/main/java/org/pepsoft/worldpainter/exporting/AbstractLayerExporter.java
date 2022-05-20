@@ -73,10 +73,11 @@ public abstract class AbstractLayerExporter<L extends Layer> implements LayerExp
         final int chunkX1 = area.x >> 4, chunkX2 = (area.x + area.width - 1) >> 4;
         final int chunkZ1 = area.y >> 4, chunkZ2 = (area.y + area.height - 1) >> 4;
         final int tileX1 = chunkX1 >> 3, tileX2 = chunkX2 >> 3, tileY1 = chunkZ1 >> 3, tileY2 = chunkZ2 >> 3;
+        final boolean applyEverywhere = (dimension.getLayerSettings(layer) != null) && dimension.getLayerSettings(layer).isApplyEverywhere();
         for (int tileX = tileX1; tileX <= tileX2; tileX++) {
             for (int tileY = tileY1; tileY <= tileY2; tileY++) {
                 final Tile tile = dimension.getTile(tileX, tileY);
-                if ((tile != null) && tile.containsOneOf(layer)) {
+                if ((tile != null) && (applyEverywhere || tile.containsOneOf(layer))) {
                     for (int chunkXInTile = 0; chunkXInTile < 8; chunkXInTile++) {
                         for (int chunkYInTile = 0; chunkYInTile < 8; chunkYInTile++) {
                             final int chunkX = (tileX << 3) | chunkXInTile, chunkZ = (tileY << 3) | chunkYInTile;
