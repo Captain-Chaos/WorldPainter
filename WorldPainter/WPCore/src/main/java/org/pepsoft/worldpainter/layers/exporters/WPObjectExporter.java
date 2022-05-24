@@ -193,7 +193,104 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             throw new RuntimeException(e.getMessage() + " (object: " + object.getName() + " at " + x + "," + y + "," + z + ")", e);
         }
     }
-    
+
+    /**
+     * Export an object to the world upside-down, optionally taking into account the blocks that are already there. This
+     * method does fewer checks than {@link #renderObject(MinecraftWorld, Dimension, WPObject, int, int, int, boolean)}
+     * because they don't make sense when rendering an object upside-down. It treats the location as if it is entirely
+     * above-ground.
+     *
+     * @param world The Minecraft world to which to export the object.
+     * @param object The object to export.
+     * @param x The X coordinate at which to export the object.
+     * @param y The Y coordinate at which to export the object.
+     * @param z The Z coordinate at which to export the object.
+     */
+    public static void renderObjectInverted(MinecraftWorld world, WPObject object, int x, int y, int z) {
+        try {
+            final Point3i dim = object.getDimensions();
+            final Point3i offset = object.getOffset();
+            final int leafDecayMode = object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE);
+            final Material replaceMaterial;
+            if (object.hasAttribute(ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL)) {
+                replaceMaterial = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL);
+            } else if (object.hasAttribute(ATTRIBUTE_REPLACE_WITH_AIR)) {
+                final int[] ids = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR);
+                replaceMaterial = Material.get(ids[0], ids[1]);
+            } else {
+                replaceMaterial = null;
+            }
+            final boolean replaceBlocks = replaceMaterial != null;
+            final int minHeight = world.getMinHeight(), maxHeight = world.getMaxHeight();
+            if ((z - offset.z) >= maxHeight) {
+                // Object doesn't fit in the world vertically
+                return;
+            }
+            for (int dx = 0; dx < dim.x; dx++) {
+                for (int dy = 0; dy < dim.y; dy++) {
+                    final int worldX = x + dx + offset.x;
+                    final int worldY = y + dy + offset.y;
+                    for (int dz = 0; dz < dim.z; dz++) {
+                        if (object.getMask(dx, dy, dz)) {
+                            final Material objectMaterial = object.getMaterial(dx, dy, dz);
+                            final Material finalMaterial = (replaceBlocks && (objectMaterial == replaceMaterial)) ? AIR : objectMaterial;
+                            final int worldZ = z - dz - offset.z;
+                            final Material existingMaterial = world.getMaterialAt(worldX, worldY, worldZ);
+                            // Only replace less solid blocks
+                            if (existingMaterial.veryInsubstantial) {
+                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
+                            }
+                        }
+                    }
+                }
+            }
+            List<Entity> entities = object.getEntities();
+            if (entities != null) {
+                for (Entity entity: entities) {
+                    double[] relPos = entity.getRelPos();
+                    double entityX = x + relPos[0] + offset.x,
+                            entityY = y + relPos[2] + offset.y,
+                            entityZ = z - relPos[1] - offset.z;
+                    if ((entityZ < minHeight) || (entityZ >= maxHeight)) {
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("NOT adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ + " because z coordinate is out of range!");
+                        }
+                    } else {
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("Adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ);
+                        }
+                        // Make sure each entity has a unique ID, otherwise
+                        // Minecraft will see them all as duplicates and remove
+                        // them:
+                        entity.setUUID(UUID.randomUUID());
+                        world.addEntity(entityX, entityY, entityZ, entity);
+                    }
+                }
+            }
+            List<TileEntity> tileEntities = object.getTileEntities();
+            if (tileEntities != null) {
+                for (TileEntity tileEntity: tileEntities) {
+                    final int tileEntityX = x + tileEntity.getX() + offset.x,
+                            tileEntityY = y + tileEntity.getZ() + offset.y,
+                            tileEntityZ = z - tileEntity.getY() - offset.z;
+                    final String entityId = tileEntity.getId();
+                    if ((tileEntityZ < minHeight) || (tileEntityZ >= maxHeight)) {
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("NOT adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " because z coordinate is out of range!");
+                        }
+                    } else {
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("Adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ);
+                        }
+                        world.addTileEntity(tileEntityX, tileEntityY, tileEntityZ, tileEntity);
+                    }
+                }
+            }
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage() + " (object: " + object.getName() + " at " + x + "," + y + "," + z + ")", e);
+        }
+    }
+
     /**
      * Check whether the coordinates of the extents of the object make sense. In
      * other words: whether it could potentially be placeable at all given its

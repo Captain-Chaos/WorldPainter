@@ -19,9 +19,11 @@ import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
@@ -39,7 +41,7 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Sec
 
     @Override
     public Set<Stage> getStages() {
-        return ImmutableSet.of(CARVE, ADD_FEATURES);
+        return decorationEnabled ? ImmutableSet.of(CARVE, ADD_FEATURES) : singleton(CARVE);
     }
 
     @Override
@@ -329,7 +331,7 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Sec
             if (this.maximumLevel != other.maximumLevel) {
                 return false;
             }
-            if (! this.decorationSettings.equals(other.decorationSettings)) {
+            if (! Objects.equals(this.decorationSettings, other.decorationSettings)) {
                 return false;
             }
             return true;
@@ -346,7 +348,7 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Sec
             hash = 29 * hash + (this.leaveWater ? 1 : 0);
             hash = 29 * hash + this.minimumLevel;
             hash = 29 * hash + this.maximumLevel;
-            hash = 29 * hash + this.decorationSettings.hashCode();
+            hash = 29 * hash + ((this.decorationSettings != null) ? this.decorationSettings.hashCode() : 0);
             return hash;
         }
 
@@ -354,7 +356,9 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Sec
         public ChasmsSettings clone() {
             try {
                 final ChasmsSettings clone = (ChasmsSettings) super.clone();
-                clone.decorationSettings = this.decorationSettings.clone();
+                if (decorationSettings != null) {
+                    clone.decorationSettings = decorationSettings.clone();
+                }
                 return clone;
             } catch (CloneNotSupportedException e) {
                 throw new RuntimeException(e);
@@ -369,13 +373,13 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Sec
                 maximumLevel = Integer.MAX_VALUE;
             }
             if (decorationSettings == null) {
-                decorationSettings = new CaveDecorationSettings();
+                decorationSettings = new CaveDecorationSettings(true, false, false, false);
             }
         }
 
-        private int waterLevel, chasmsEverywhereLevel;
+        private int waterLevel = Integer.MIN_VALUE, chasmsEverywhereLevel;
         private boolean floodWithLava, glassCeiling, surfaceBreaking, leaveWater = true;
-        private int minimumLevel = 0, maximumLevel = Integer.MAX_VALUE;
+        private int minimumLevel = Integer.MIN_VALUE, maximumLevel = Integer.MAX_VALUE;
         private CaveDecorationSettings decorationSettings = new CaveDecorationSettings();
 
         private static final long serialVersionUID = 1L;

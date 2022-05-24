@@ -15,7 +15,10 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.history.HistoryEntry;
-import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.layers.Biome;
+import org.pepsoft.worldpainter.layers.Frost;
+import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.ReadOnly;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.util.BiomeUtils;
 import org.pepsoft.worldpainter.util.FileInUseException;
@@ -400,39 +403,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         
         dimension.rememberChanges();
         try {
-            
-            // Gather all layers used on the map
-            final Map<Layer, LayerExporter> exporters = new HashMap<>();
-            Set<Layer> allLayers = dimension.getAllLayers(false);
-            allLayers.addAll(dimension.getMinimumLayers());
-            // If there are combined layers, apply them and gather any newly
-            // added layers, recursively
-            boolean done;
-            do {
-                done = true;
-                for (Layer layer: new HashSet<>(allLayers)) {
-                    if (layer instanceof CombinedLayer) {
-                        // Apply the combined layer
-                        Set<Layer> addedLayers = ((CombinedLayer) layer).apply(dimension);
-                        // Remove the combined layer from the list
-                        allLayers.remove(layer);
-                        // Add any layers it might have added
-                        allLayers.addAll(addedLayers);
-                        // Signal that we have to go around at least once more,
-                        // in case any of the newly added layers are themselves
-                        // combined layers
-                        done = false;
-                    }
-                }
-            } while (! done);
 
-            // Load all layer settings into the exporters
-            for (Layer layer: allLayers) {
-                LayerExporter exporter = layer.getExporter(dimension, platform, dimension.getLayerSettings(layer));
-                if (exporter != null) {
-                    exporters.put(layer, exporter);
-                }
-            }
+            setupDimensionForExport(dimension);
+            // TODO add ceiling support
 
             // Sort tiles into regions
             final Map<Point, Map<Point, Tile>> tilesByRegion = getTilesByRegion(dimension);
@@ -479,7 +452,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
 
             // Sort the regions to export the first two rows together, and then
             // row by row, to get the optimum tempo of performing fixups
-            List<Point> sortedRegions = new ArrayList<>(allRegionCoords.size());
+            final List<Point> sortedRegions = new ArrayList<>(allRegionCoords.size());
             if (lowestRegionZ == highestRegionZ) {
                 // No point in sorting it
                 sortedRegions.addAll(allRegionCoords);
@@ -503,7 +476,6 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             }
 
             // Merge each individual region
-            final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, dimension.getMaxHeight());
             final Map<Point, List<Fixup>> fixups = new HashMap<>();
             final Set<Point> exportedRegions = new HashSet<>();
             final ExecutorService executor = createExecutorService("merging", allRegionCoords.size() + additionalRegions.size());
@@ -519,7 +491,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             }
                             final Map<Point, Tile> tiles = tilesByRegion.get(regionCoords);
                             executor.execute(() -> {
-                                ProgressReceiver progressReceiver1 = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
+                                final ProgressReceiver progressReceiver1 = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
                                 if (progressReceiver1 != null) {
                                     try {
                                         progressReceiver1.checkForCancellation();
@@ -528,10 +500,13 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                     }
                                 }
                                 try {
-                                    List<Fixup> regionFixups = new ArrayList<>();
-                                    WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
+                                    final Map<Layer, LayerExporter> exporters = getExportersForRegion(dimension, regionCoords);
+                                    final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, dimension.getMaxHeight());
+
+                                    final List<Fixup> regionFixups = new ArrayList<>();
+                                    final WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
                                     try {
-                                        String regionWarnings = mergeRegion(minecraftWorld, backupRegionDir, dimension, regionCoords, tiles, world.getTilesToExport() != null, exporters, chunkFactory, regionFixups, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
+                                        final String regionWarnings = mergeRegion(minecraftWorld, backupRegionDir, dimension, regionCoords, tiles, world.getTilesToExport() != null, exporters, chunkFactory, regionFixups, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
                                         if (regionWarnings != null) {
                                             if (warnings == null) {
                                                 warnings = regionWarnings;
@@ -575,7 +550,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             logger.debug("Region " + regionCoords + " does not exist in existing map and will be created as new");
                         }
                         executor.execute(() -> {
-                            ProgressReceiver progressReceiver1 = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
+                            final ProgressReceiver progressReceiver1 = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
                             if (progressReceiver1 != null) {
                                 try {
                                     progressReceiver1.checkForCancellation();
@@ -584,7 +559,10 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                 }
                             }
                             try {
-                                WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
+                                final Map<Layer, LayerExporter> exporters = getExportersForRegion(dimension, regionCoords);
+                                final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, dimension.getMaxHeight());
+
+                                final WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
                                 ExportResults exportResults = null;
                                 try {
                                     exportResults = exportRegion(minecraftWorld, dimension, null, regionCoords, world.getTilesToExport() != null, exporters, null, chunkFactory, null, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.9f, 0.1f) : null);

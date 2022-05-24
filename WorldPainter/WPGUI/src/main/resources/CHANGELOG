@@ -1,5 +1,11 @@
 -- Version 2.10.6, released ...
 
+ * A new Decorate option has been added to the Caves, Caverns and Chasms layers, which can add random decorations to the generated caves of the following types:
+   + Brown mushrooms
+   + Glow lichen
+   + Patches of Lush Cave (stone will turn to moss, lush cave plants will be planted and the biome will be set to lush_caves)
+   + Patches of Dripstone Cave (dripstone stalagmites and stalactites will be generated and the biome will be set to dripstone_caves)
+   + These last two are still in beta. Please give feedback
  * The Import process now skips chunks when their data is corrupted, rather than aborting
 
 -- Version 2.10.5, released 18-5-2022

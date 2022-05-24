@@ -11,8 +11,8 @@ import org.pepsoft.worldpainter.layers.Layer;
  * An exporter of {@link Layer}s. The exporter should also implement at least one of {@link FirstPassLayerExporter},
  * {@link SecondPassLayerExporter}, and optionally also {@link IncidentalLayerExporter}.
  *
- * <p><strong>Please note:</strong> a layer exporter may be invoked for different areas on different threads
- * simultaneously, so it must be thread-safe!
+ * <p>Layer exporters are created separately per dimension and per parallelly exported region within a dimension. They
+ * do not need to be thread-safe and may keep state, e.g. between multiple phases.
  *
  * @author pepijn
  */

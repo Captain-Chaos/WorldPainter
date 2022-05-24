@@ -1977,6 +1977,15 @@ public final class Material implements Serializable {
     public static final Material CAVE_VINES_PLANT_NO_BERRIES = get(MC_CAVE_VINES_PLANT, MC_BERRIES, false);
     public static final Material SMALL_DRIPLEAF_SOUTH_LOWER = get(MC_SMALL_DRIPLEAF, MC_HALF, "lower", MC_FACING, "south", MC_WATERLOGGED, false);
     public static final Material BARRIER = get(MC_BARRIER);
+    public static final Material POINTED_DRIPSTONE_UP_TIP       = get(MC_POINTED_DRIPSTONE, MC_THICKNESS, "tip",     MC_VERTICAL_DIRECTION, "up",   MC_WATERLOGGED, false);
+    public static final Material POINTED_DRIPSTONE_UP_FRUSTUM   = get(MC_POINTED_DRIPSTONE, MC_THICKNESS, "frustum", MC_VERTICAL_DIRECTION, "up",   MC_WATERLOGGED, false);
+    public static final Material POINTED_DRIPSTONE_UP_MIDDLE    = get(MC_POINTED_DRIPSTONE, MC_THICKNESS, "middle",  MC_VERTICAL_DIRECTION, "up",   MC_WATERLOGGED, false);
+    public static final Material POINTED_DRIPSTONE_UP_BASE      = get(MC_POINTED_DRIPSTONE, MC_THICKNESS, "base",    MC_VERTICAL_DIRECTION, "up",   MC_WATERLOGGED, false);
+    public static final Material POINTED_DRIPSTONE_DOWN_TIP     = get(MC_POINTED_DRIPSTONE, MC_THICKNESS, "tip",     MC_VERTICAL_DIRECTION, "down", MC_WATERLOGGED, false);
+    public static final Material POINTED_DRIPSTONE_DOWN_FRUSTUM = get(MC_POINTED_DRIPSTONE, MC_THICKNESS, "frustum", MC_VERTICAL_DIRECTION, "down", MC_WATERLOGGED, false);
+    public static final Material POINTED_DRIPSTONE_DOWN_MIDDLE  = get(MC_POINTED_DRIPSTONE, MC_THICKNESS, "middle",  MC_VERTICAL_DIRECTION, "down", MC_WATERLOGGED, false);
+    public static final Material POINTED_DRIPSTONE_DOWN_BASE    = get(MC_POINTED_DRIPSTONE, MC_THICKNESS, "base",    MC_VERTICAL_DIRECTION, "down", MC_WATERLOGGED, false);
+    public static final Material MOSS_BLOCK = get(MC_MOSS_BLOCK);
 
     // Material type categories
 

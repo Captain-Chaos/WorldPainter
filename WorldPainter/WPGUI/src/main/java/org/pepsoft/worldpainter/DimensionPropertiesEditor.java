@@ -17,6 +17,7 @@ import org.pepsoft.worldpainter.Dimension.LayerAnchor;
 import org.pepsoft.worldpainter.exporting.ExportSettings;
 import org.pepsoft.worldpainter.exporting.ExportSettingsEditor;
 import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.layers.exporters.AbstractCavesExporter.CaveDecorationSettings;
 import org.pepsoft.worldpainter.layers.exporters.AnnotationsExporter.AnnotationsSettings;
 import org.pepsoft.worldpainter.layers.exporters.CavernsExporter.CavernsSettings;
 import org.pepsoft.worldpainter.layers.exporters.CavesExporter.CavesSettings;
@@ -42,10 +43,14 @@ import java.util.*;
 import static java.util.Objects.requireNonNull;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_17;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_18;
 import static org.pepsoft.worldpainter.DimensionPropertiesEditor.Mode.DEFAULT_SETTINGS;
 import static org.pepsoft.worldpainter.Generator.CUSTOM;
 import static org.pepsoft.worldpainter.Platform.Capability.GENERATOR_PER_DIMENSION;
 import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
+import static org.pepsoft.worldpainter.layers.exporters.AbstractCavesExporter.CaveDecorationSettings.Decoration.BROWN_MUSHROOM;
+import static org.pepsoft.worldpainter.layers.exporters.AbstractCavesExporter.CaveDecorationSettings.Decoration.*;
 
 /**
  * @author pepijn
@@ -343,6 +348,17 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         }
         cavesSettings.setFloodWithLava(checkBoxCavernsFloodWithLava.isSelected());
         cavesSettings.setLeaveWater(! checkBoxCavernsRemoveWater.isSelected());
+        final boolean anyDecorationsSelected = checkBoxDecorationBrownMushrooms.isSelected()
+                || checkBoxDecorationGlowLichen.isSelected()
+                || checkBoxDecorationLushCaves.isSelected()
+                || checkBoxDecorationDripstoneCaves.isSelected();
+        final CaveDecorationSettings decorationSettings = anyDecorationsSelected
+                ? new CaveDecorationSettings(checkBoxDecorationBrownMushrooms.isSelected(),
+                    checkBoxDecorationGlowLichen.isSelected(),
+                    checkBoxDecorationLushCaves.isSelected(),
+                    checkBoxDecorationDripstoneCaves.isSelected())
+                : null;
+        cavesSettings.setCaveDecorationSettings(checkBoxDecorateCaves.isSelected() ? decorationSettings : null);
         dimension.setLayerSettings(Caves.INSTANCE, cavesSettings);
 
         // caverns
@@ -367,6 +383,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         cavernsSettings.setMinimumLevel((Integer) spinnerCavernsMinLevel.getValue());
         int cavernsMaxLevel = (Integer) spinnerCavernsMaxLevel.getValue();
         cavernsSettings.setMaximumLevel((cavernsMaxLevel >= maxHeight) ? Integer.MAX_VALUE : cavernsMaxLevel);
+        cavernsSettings.setCaveDecorationSettings(checkBoxDecorateCaverns.isSelected() ? decorationSettings : null);
         dimension.setLayerSettings(Caverns.INSTANCE, cavernsSettings);
         
         // chasms
@@ -391,6 +408,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         }
         chasmsSettings.setFloodWithLava(checkBoxCavernsFloodWithLava.isSelected());
         chasmsSettings.setLeaveWater(! checkBoxCavernsRemoveWater.isSelected());
+        chasmsSettings.setCaveDecorationSettings(checkBoxDecorateChasms.isSelected() ? decorationSettings : null);
         dimension.setLayerSettings(Chasms.INSTANCE, chasmsSettings);
         
         // populate
@@ -737,10 +755,12 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         checkBoxCavesBreakSurface.setSelected(cavesSettings.isSurfaceBreaking());
         ((SpinnerNumberModel) spinnerCavesMinLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerCavesMinLevel.getModel()).setMaximum(maxHeight);
-        spinnerCavesMinLevel.setValue(Math.max(cavesSettings.getMinimumLevel(), minHeight));
+        spinnerCavesMinLevel.setValue((cavesSettings.getMinimumLevel() == Integer.MIN_VALUE) ? (minHeight + 8) : Math.max(cavesSettings.getMinimumLevel(), minHeight));
         ((SpinnerNumberModel) spinnerCavesMaxLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerCavesMaxLevel.getModel()).setMaximum(maxHeight);
         spinnerCavesMaxLevel.setValue(Math.min(cavesSettings.getMaximumLevel(), maxHeight));
+        CaveDecorationSettings decorationSettings = cavesSettings.getCaveDecorationSettings();
+        checkBoxDecorateCaves.setSelected(decorationSettings != null);
 
         // caverns
         CavernsSettings cavernsSettings = (CavernsSettings) dimension.getLayerSettings(Caverns.INSTANCE);
@@ -772,7 +792,14 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         ((SpinnerNumberModel) spinnerCavernsMaxLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerCavernsMaxLevel.getModel()).setMaximum(maxHeight);
         spinnerCavernsMaxLevel.setValue(Math.min(cavernsSettings.getMaximumLevel(), maxHeight));
-        
+        CaveDecorationSettings cavernDecorationSettings = cavernsSettings.getCaveDecorationSettings();
+        if (checkBoxDecorateCaverns.isEnabled()) {
+            checkBoxDecorateCaverns.setSelected(cavernDecorationSettings != null);
+        }
+        if (decorationSettings == null) {
+            decorationSettings = cavernDecorationSettings;
+        }
+
         // chasms
         ChasmsSettings chasmsSettings = (ChasmsSettings) dimension.getLayerSettings(Chasms.INSTANCE);
         if (chasmsSettings == null) {
@@ -792,7 +819,23 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         ((SpinnerNumberModel) spinnerChasmsMaxLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerChasmsMaxLevel.getModel()).setMaximum(maxHeight);
         spinnerChasmsMaxLevel.setValue(Math.min(chasmsSettings.getMaximumLevel(), maxHeight));
-        
+        CaveDecorationSettings chasmDecorationSettings = chasmsSettings.getCaveDecorationSettings();
+        if (checkBoxDecorateChasms.isEnabled()) {
+            checkBoxDecorateChasms.setSelected(chasmDecorationSettings != null);
+        }
+        if (decorationSettings == null) {
+            decorationSettings = chasmDecorationSettings;
+        }
+
+        // cave decoration settings
+        if (decorationSettings == null) {
+            decorationSettings = new CaveDecorationSettings();
+        }
+        checkBoxDecorationBrownMushrooms.setSelected(decorationSettings.isEnabled(BROWN_MUSHROOM));
+        checkBoxDecorationGlowLichen.setSelected(decorationSettings.isEnabled(GLOW_LICHEN));
+        checkBoxDecorationLushCaves.setSelected(decorationSettings.isEnabled(LUSH_CAVE_PATCHES));
+        checkBoxDecorationDripstoneCaves.setSelected(decorationSettings.isEnabled(DRIPSTONE_CAVE_PATCHES));
+
         // populate
         checkBoxPopulate.setSelected(dimension.isPopulate());
         
@@ -1027,10 +1070,12 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         final boolean enabled = isEnabled();
         final boolean dim0 = (dimension != null) && (dimension.getDim() == Constants.DIM_NORMAL);
         final boolean ceiling = (dimension != null) && (dimension.getDim() < 0);
+        final boolean decorations = checkBoxDecorateCaverns.isSelected() || checkBoxDecorateCaves.isSelected() || checkBoxDecorateChasms.isSelected();
         setEnabled(radioButtonLavaBorder, enabled && (! ceiling));
         setEnabled(radioButtonNoBorder, enabled && (! ceiling));
         setEnabled(radioButtonVoidBorder, enabled && (! ceiling));
         setEnabled(radioButtonWaterBorder, enabled && (! ceiling));
+        setEnabled(radioButtonBarrierBorder, enabled && (! ceiling));
         setEnabled(spinnerBorderLevel, enabled && (! ceiling) && (radioButtonLavaBorder.isSelected() || radioButtonWaterBorder.isSelected()));
         setEnabled(radioButtonFixedBorder, enabled && (! ceiling) && (! radioButtonNoBorder.isSelected()));
         setEnabled(radioButtonEndlessBorder, enabled && (platform.capabilities.contains(GENERATOR_PER_DIMENSION) || dim0) && (! ceiling) && (! radioButtonNoBorder.isSelected()));
@@ -1086,6 +1131,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setEnabled(checkBoxRoof, enabled);
         setEnabled(radioButtonBedrockRoof, enabled && checkBoxRoof.isSelected());
         setEnabled(radioButtonBarrierRoof, enabled && checkBoxRoof.isSelected());
+        setEnabled(checkBoxDecorateCaverns, enabled);
+        setEnabled(checkBoxDecorateCaves, enabled);
+        setEnabled(checkBoxDecorateChasms, enabled);
+        setEnabled(checkBoxDecorationBrownMushrooms, enabled && decorations);
+        setEnabled(checkBoxDecorationGlowLichen, enabled && decorations && (platform == JAVA_ANVIL_1_17 || platform == JAVA_ANVIL_1_18));
+        setEnabled(checkBoxDecorationLushCaves, enabled && decorations && (platform == JAVA_ANVIL_1_17 || platform == JAVA_ANVIL_1_18));
+        setEnabled(checkBoxDecorationDripstoneCaves, enabled && decorations && (platform == JAVA_ANVIL_1_17 || platform == JAVA_ANVIL_1_18));
     }
     
     private void setEnabled(Component component, boolean enabled) {
@@ -1228,7 +1280,6 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         sliderChasmsEverywhereLevel = new javax.swing.JSlider();
         jPanel16 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
-        jSeparator1 = new javax.swing.JSeparator();
         jPanel13 = new javax.swing.JPanel();
         jLabel87 = new javax.swing.JLabel();
         spinnerCavesMinLevel = new javax.swing.JSpinner();
@@ -1257,6 +1308,20 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         checkBoxChasmsBreakSurface = new javax.swing.JCheckBox();
         checkBoxCavernsRemoveWater = new javax.swing.JCheckBox();
         jPanel15 = new javax.swing.JPanel();
+        jPanel23 = new javax.swing.JPanel();
+        jSeparator5 = new javax.swing.JSeparator();
+        jPanel24 = new javax.swing.JPanel();
+        jLabel96 = new javax.swing.JLabel();
+        checkBoxDecorationBrownMushrooms = new javax.swing.JCheckBox();
+        checkBoxDecorationGlowLichen = new javax.swing.JCheckBox();
+        checkBoxDecorationLushCaves = new javax.swing.JCheckBox();
+        checkBoxDecorationDripstoneCaves = new javax.swing.JCheckBox();
+        jPanel25 = new javax.swing.JPanel();
+        checkBoxDecorateCaves = new javax.swing.JCheckBox();
+        jPanel26 = new javax.swing.JPanel();
+        checkBoxDecorateCaverns = new javax.swing.JCheckBox();
+        jPanel27 = new javax.swing.JPanel();
+        checkBoxDecorateChasms = new javax.swing.JCheckBox();
         jPanel4 = new javax.swing.JPanel();
         jCheckBox8 = new javax.swing.JCheckBox();
         jSlider4 = new javax.swing.JSlider();
@@ -1866,10 +1931,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         jTabbedPane1.addTab("Theme", jPanel5);
 
-        java.awt.GridBagLayout jPanel3Layout = new java.awt.GridBagLayout();
-        jPanel3Layout.columnWidths = new int[] {0, 2, 0, 2, 0};
-        jPanel3Layout.rowHeights = new int[] {0, 2, 0, 2, 0, 2, 0};
-        jPanel3.setLayout(jPanel3Layout);
+        jPanel3.setLayout(new java.awt.GridBagLayout());
 
         checkBoxCavesEverywhere.setText("Caves everywhere");
         checkBoxCavesEverywhere.addActionListener(new java.awt.event.ActionListener() {
@@ -1952,7 +2014,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         );
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
         jPanel3.add(jPanel10, gridBagConstraints);
@@ -1995,7 +2057,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         );
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
@@ -2009,21 +2071,15 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             jPanel16Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel16Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel16Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jSeparator1)
-                    .addGroup(jPanel16Layout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+                .addComponent(jLabel2)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel16Layout.setVerticalGroup(
             jPanel16Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel16Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel2)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -2119,7 +2175,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         );
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
@@ -2166,7 +2222,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         );
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
@@ -2221,8 +2277,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
         jPanel3.add(jPanel8, gridBagConstraints);
 
@@ -2252,7 +2307,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
         jPanel3.add(jPanel17, gridBagConstraints);
 
@@ -2281,8 +2336,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         );
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
         jPanel3.add(jPanel18, gridBagConstraints);
 
@@ -2311,8 +2366,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         );
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
         jPanel3.add(jPanel19, gridBagConstraints);
 
@@ -2321,7 +2377,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         checkBoxCavernsRemoveWater.setEnabled(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 19, 0, 0);
@@ -2340,11 +2396,173 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         jPanel3.add(jPanel15, gridBagConstraints);
+
+        javax.swing.GroupLayout jPanel23Layout = new javax.swing.GroupLayout(jPanel23);
+        jPanel23.setLayout(jPanel23Layout);
+        jPanel23Layout.setHorizontalGroup(
+            jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel23Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jSeparator5, javax.swing.GroupLayout.DEFAULT_SIZE, 789, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        jPanel23Layout.setVerticalGroup(
+            jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel23Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jSeparator5, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        jPanel3.add(jPanel23, gridBagConstraints);
+
+        jLabel96.setText("Decorations:");
+
+        checkBoxDecorationBrownMushrooms.setText("brown mushrooms");
+
+        checkBoxDecorationGlowLichen.setText("glow lichen");
+
+        checkBoxDecorationLushCaves.setText("[BETA] patches of lush cave (between levels -50 and -10)");
+
+        checkBoxDecorationDripstoneCaves.setText("[BETA] patches of dripstone cave");
+
+        javax.swing.GroupLayout jPanel24Layout = new javax.swing.GroupLayout(jPanel24);
+        jPanel24.setLayout(jPanel24Layout);
+        jPanel24Layout.setHorizontalGroup(
+            jPanel24Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel24Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel96)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel24Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(checkBoxDecorationDripstoneCaves)
+                    .addComponent(checkBoxDecorationLushCaves)
+                    .addComponent(checkBoxDecorationGlowLichen)
+                    .addComponent(checkBoxDecorationBrownMushrooms))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel24Layout.setVerticalGroup(
+            jPanel24Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel24Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel24Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel96)
+                    .addComponent(checkBoxDecorationBrownMushrooms))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(checkBoxDecorationGlowLichen)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(checkBoxDecorationLushCaves)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(checkBoxDecorationDripstoneCaves)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
+        jPanel3.add(jPanel24, gridBagConstraints);
+
+        checkBoxDecorateCaves.setText("Decorate");
+        checkBoxDecorateCaves.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxDecorateCavesActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel25Layout = new javax.swing.GroupLayout(jPanel25);
+        jPanel25.setLayout(jPanel25Layout);
+        jPanel25Layout.setHorizontalGroup(
+            jPanel25Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel25Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(checkBoxDecorateCaves)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel25Layout.setVerticalGroup(
+            jPanel25Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel25Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(checkBoxDecorateCaves)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
+        jPanel3.add(jPanel25, gridBagConstraints);
+
+        checkBoxDecorateCaverns.setText("Decorate");
+        checkBoxDecorateCaverns.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxDecorateCavernsActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel26Layout = new javax.swing.GroupLayout(jPanel26);
+        jPanel26.setLayout(jPanel26Layout);
+        jPanel26Layout.setHorizontalGroup(
+            jPanel26Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel26Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(checkBoxDecorateCaverns)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel26Layout.setVerticalGroup(
+            jPanel26Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel26Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(checkBoxDecorateCaverns)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
+        jPanel3.add(jPanel26, gridBagConstraints);
+
+        checkBoxDecorateChasms.setText("Decorate");
+        checkBoxDecorateChasms.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxDecorateChasmsActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel27Layout = new javax.swing.GroupLayout(jPanel27);
+        jPanel27.setLayout(jPanel27Layout);
+        jPanel27Layout.setHorizontalGroup(
+            jPanel27Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel27Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(checkBoxDecorateChasms)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel27Layout.setVerticalGroup(
+            jPanel27Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel27Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(checkBoxDecorateChasms)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
+        jPanel3.add(jPanel27, gridBagConstraints);
 
         jTabbedPane1.addTab("Caves, Caverns and Chasms", new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/caverns.png")), jPanel3); // NOI18N
 
@@ -3504,7 +3722,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 333, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 369, Short.MAX_VALUE)
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addComponent(buttonCustomLayerTop)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -3813,6 +4031,18 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setControlStates();
     }//GEN-LAST:event_radioButtonBarrierWallActionPerformed
 
+    private void checkBoxDecorateCavesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxDecorateCavesActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_checkBoxDecorateCavesActionPerformed
+
+    private void checkBoxDecorateCavernsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxDecorateCavernsActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_checkBoxDecorateCavernsActionPerformed
+
+    private void checkBoxDecorateChasmsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxDecorateChasmsActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_checkBoxDecorateChasmsActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCustomLayerBottom;
     private javax.swing.JButton buttonCustomLayerDown;
@@ -3834,6 +4064,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JCheckBox checkBoxChasmsEverywhere;
     private javax.swing.JCheckBox checkBoxCoverSteepTerrain;
     private javax.swing.JCheckBox checkBoxDeciduousEverywhere;
+    private javax.swing.JCheckBox checkBoxDecorateCaverns;
+    private javax.swing.JCheckBox checkBoxDecorateCaves;
+    private javax.swing.JCheckBox checkBoxDecorateChasms;
+    private javax.swing.JCheckBox checkBoxDecorationBrownMushrooms;
+    private javax.swing.JCheckBox checkBoxDecorationDripstoneCaves;
+    private javax.swing.JCheckBox checkBoxDecorationGlowLichen;
+    private javax.swing.JCheckBox checkBoxDecorationLushCaves;
     private javax.swing.JCheckBox checkBoxExportAnnotations;
     private javax.swing.JCheckBox checkBoxFloodCaverns;
     private javax.swing.JCheckBox checkBoxFrostEverywhere;
@@ -3947,6 +4184,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel93;
     private javax.swing.JLabel jLabel94;
     private javax.swing.JLabel jLabel95;
+    private javax.swing.JLabel jLabel96;
     private javax.swing.JLabel jLabel98;
     private javax.swing.JLabel jLabel99;
     private javax.swing.JPanel jPanel1;
@@ -3964,6 +4202,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JPanel jPanel20;
     private javax.swing.JPanel jPanel21;
     private javax.swing.JPanel jPanel22;
+    private javax.swing.JPanel jPanel23;
+    private javax.swing.JPanel jPanel24;
+    private javax.swing.JPanel jPanel25;
+    private javax.swing.JPanel jPanel26;
+    private javax.swing.JPanel jPanel27;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
@@ -3972,10 +4215,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JPanel jPanel8;
     private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JSeparator jSeparator4;
+    private javax.swing.JSeparator jSeparator5;
     private javax.swing.JSlider jSlider4;
     private javax.swing.JSlider jSlider6;
     private javax.swing.JTabbedPane jTabbedPane1;

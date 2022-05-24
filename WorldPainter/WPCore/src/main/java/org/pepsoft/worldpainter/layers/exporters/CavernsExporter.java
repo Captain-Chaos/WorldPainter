@@ -20,9 +20,11 @@ import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
@@ -39,7 +41,7 @@ public class CavernsExporter extends AbstractCavesExporter<Caverns> implements S
     
     @Override
     public Set<Stage> getStages() {
-        return ImmutableSet.of(CARVE, ADD_FEATURES);
+        return decorationEnabled ? ImmutableSet.of(CARVE, ADD_FEATURES) : singleton(CARVE);
     }
 
     @Override
@@ -252,9 +254,6 @@ public class CavernsExporter extends AbstractCavesExporter<Caverns> implements S
         }
 
         public void setCaveDecorationSettings(CaveDecorationSettings decorationSettings) {
-            if (decorationSettings == null) {
-                throw new NullPointerException();
-            }
             this.decorationSettings = decorationSettings;
         }
 
@@ -291,7 +290,7 @@ public class CavernsExporter extends AbstractCavesExporter<Caverns> implements S
             if (this.maximumLevel != other.maximumLevel) {
                 return false;
             }
-            if (! this.decorationSettings.equals(other.decorationSettings)) {
+            if (! Objects.equals(this.decorationSettings, other.decorationSettings)) {
                 return false;
             }
             return true;
@@ -308,7 +307,7 @@ public class CavernsExporter extends AbstractCavesExporter<Caverns> implements S
             hash = 29 * hash + (this.leaveWater ? 1 : 0);
             hash = 29 * hash + this.minimumLevel;
             hash = 29 * hash + this.maximumLevel;
-            hash = 29 * hash + this.decorationSettings.hashCode();
+            hash = 29 * hash + ((this.decorationSettings != null) ? this.decorationSettings.hashCode() : 0);
             return hash;
         }
 
@@ -316,7 +315,9 @@ public class CavernsExporter extends AbstractCavesExporter<Caverns> implements S
         public CavernsSettings clone() {
             try {
                 final CavernsSettings clone = (CavernsSettings) super.clone();
-                clone.decorationSettings = decorationSettings.clone();
+                if (decorationSettings != null) {
+                    clone.decorationSettings = decorationSettings.clone();
+                }
                 return clone;
             } catch (CloneNotSupportedException e) {
                 throw new RuntimeException(e);
@@ -331,13 +332,13 @@ public class CavernsExporter extends AbstractCavesExporter<Caverns> implements S
                 maximumLevel = Integer.MAX_VALUE;
             }
             if (decorationSettings == null) {
-                decorationSettings = new CaveDecorationSettings();
+                decorationSettings = new CaveDecorationSettings(true, false, false, false);
             }
         }
 
-        private int waterLevel, cavernsEverywhereLevel;
+        private int waterLevel = Integer.MIN_VALUE, cavernsEverywhereLevel;
         private boolean floodWithLava, glassCeiling, surfaceBreaking, leaveWater = true;
-        private int minimumLevel = 0, maximumLevel = Integer.MAX_VALUE;
+        private int minimumLevel = Integer.MIN_VALUE, maximumLevel = Integer.MAX_VALUE;
         private CaveDecorationSettings decorationSettings = new CaveDecorationSettings();
         
         private static final long serialVersionUID = 2011060801L;

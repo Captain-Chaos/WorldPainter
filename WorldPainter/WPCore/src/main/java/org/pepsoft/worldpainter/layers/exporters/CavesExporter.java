@@ -18,11 +18,10 @@ import javax.vecmath.Point3d;
 import javax.vecmath.Point3i;
 import javax.vecmath.Vector3d;
 import java.awt.*;
-import java.util.BitSet;
 import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
@@ -41,7 +40,7 @@ public class CavesExporter extends AbstractCavesExporter<Caves> implements Secon
 
     @Override
     public Set<Stage> getStages() {
-        return ImmutableSet.of(CARVE, ADD_FEATURES);
+        return decorationEnabled ? ImmutableSet.of(CARVE, ADD_FEATURES) : singleton(CARVE);
     }
 
     @Override
@@ -150,6 +149,11 @@ public class CavesExporter extends AbstractCavesExporter<Caves> implements Secon
                 removeFloatingBlocks = settings.removeFloatingBlocks;
         final int minZ = settings.minZ;
         visitFilledAbsoluteSphere(location.x, location.y, location.z, (float) radius, ((x, y, z, d) -> {
+            if (! world.isChunkPresent(x >> 4, y >> 4)) {
+                // This happens because even though tunnels are started where a tile and a chunk are present, they can
+                // then stray into areas outside the painted world
+                return true;
+            }
             // TODO: efficiently check maxZ per x,y:
             if (z >= minZ) {
                 final int terrainHeight = dimension.getIntHeightAt(x, y);
@@ -190,7 +194,9 @@ public class CavesExporter extends AbstractCavesExporter<Caves> implements Secon
                     blockExcavated = true;
                 }
                 if (blockExcavated) {
-                    excavatedBlocks.set(blockIndex);
+                    if (decorationEnabled) {
+                        excavatedBlocks.set(blockIndex);
+                    }
                     if (removeFloatingBlocks && (radius - d <= 2)) {
                         checkForFloatingBlock(world, area, x - 1, y, z, minZ, maxZ, settings);
                         checkForFloatingBlock(world, area, x, y - 1, z, minZ, maxZ, settings);
@@ -219,13 +225,20 @@ public class CavesExporter extends AbstractCavesExporter<Caves> implements Secon
      * Check if the indicated block is a "floating block" and if so remove it.
      */
     private void checkForFloatingBlock(MinecraftWorld world, Rectangle area, int x, int y, int z, int minZ, int maxZ, CaveSettings settings) {
+        if (! world.isChunkPresent(x >> 4, y >> 4)) {
+            // This happens because even though tunnels are started where a tile and a chunk are present, they can then
+            // stray into areas outside the painted world
+            return;
+        }
         Material material = world.getMaterialAt(x, y, z);
         if (material.isNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_PODZOL, MC_FARMLAND, MC_GRASS_PATH, MC_DIRT_PATH, MC_SAND, MC_RED_SAND, MC_GRAVEL)) {
             if (((z > minZ) && (! world.getMaterialAt(x, y, z - 1).solid))
                     && ((z <= maxZ) && (! world.getMaterialAt(x, y, z + 1).solid))) {
                 // The block is only one layer thick
                 excavateBlock(world, x, y, z, settings);
-                excavatedBlocks.set((x - area.x) + (y - area.y) * area.width + (z - minHeight) * area.width * area.height);
+                if (decorationEnabled) {
+                    excavatedBlocks.set((x - area.x) + (y - area.y) * area.width + (z - minHeight) * area.width * area.height);
+                }
                 // TODO: this isn't removing nearly all one-block thick dirt. Why?
             }
         } else if (material.isNotNamedOneOf(MC_AIR, MC_WATER, MC_LAVA) && (! material.name.endsWith("_leaves"))) {
@@ -237,7 +250,9 @@ public class CavesExporter extends AbstractCavesExporter<Caves> implements Secon
                     && ((z <= maxZ) && (! world.getMaterialAt(x, y, z + 1).solid))) {
                 // The block is floating in the air
                 excavateBlock(world, x, y, z, settings);
-                excavatedBlocks.set((x - area.x) + (y - area.y) * area.width + (z - minHeight) * area.width * area.height);
+                if (decorationEnabled) {
+                    excavatedBlocks.set((x - area.x) + (y - area.y) * area.width + (z - minHeight) * area.width * area.height);
+                }
             }
         }
     }
@@ -284,9 +299,13 @@ public class CavesExporter extends AbstractCavesExporter<Caves> implements Secon
         }
 
         @Override
-        public ExporterSettings clone() {
+        public CavesSettings clone() {
             try {
-                return (ExporterSettings) super.clone();
+                final CavesSettings clone = (CavesSettings) super.clone();
+                if (decorationSettings != null) {
+                    clone.decorationSettings = decorationSettings.clone();
+                }
+                return clone;
             } catch (CloneNotSupportedException e) {
                 throw new RuntimeException(e);
             }
@@ -369,7 +388,7 @@ public class CavesExporter extends AbstractCavesExporter<Caves> implements Secon
             if (surfaceBreaking != that.surfaceBreaking) return false;
             if (leaveWater != that.leaveWater) return false;
             if (minimumLevel != that.minimumLevel) return false;
-            if (! decorationSettings.equals(that.decorationSettings)) return false;
+            if (! Objects.equals(decorationSettings, that.decorationSettings)) return false;
             return maximumLevel == that.maximumLevel;
         }
 
@@ -382,13 +401,13 @@ public class CavesExporter extends AbstractCavesExporter<Caves> implements Secon
             result = 31 * result + (leaveWater ? 1 : 0);
             result = 31 * result + minimumLevel;
             result = 31 * result + maximumLevel;
-            result = 31 * result + decorationSettings.hashCode();
+            result = 31 * result + ((decorationSettings != null) ? decorationSettings.hashCode() : 0);
             return result;
         }
 
-        private int waterLevel, cavesEverywhereLevel;
+        private int waterLevel = Integer.MIN_VALUE, cavesEverywhereLevel;
         private boolean floodWithLava, surfaceBreaking = true, leaveWater = true;
-        private int minimumLevel = 8, maximumLevel = Integer.MAX_VALUE;
+        private int minimumLevel = Integer.MIN_VALUE, maximumLevel = Integer.MAX_VALUE;
         private CaveDecorationSettings decorationSettings = new CaveDecorationSettings();
 
         private static final long serialVersionUID = 1L;

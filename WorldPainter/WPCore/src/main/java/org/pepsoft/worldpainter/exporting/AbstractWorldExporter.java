@@ -1,6 +1,5 @@
 package org.pepsoft.worldpainter.exporting;
 
-import org.jetbrains.annotations.NotNull;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.Box;
 import org.pepsoft.util.ParallelProgressManager;
@@ -124,8 +123,10 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             ceiling.rememberChanges();
         }
         try {
-            final Map<Layer, LayerExporter> exporters = setupDimensionForExport(dimension);
-            final Map<Layer, LayerExporter> ceilingExporters = (ceiling != null) ? setupDimensionForExport(ceiling) : null;
+            setupDimensionForExport(dimension);
+            if (ceiling != null) {
+                setupDimensionForExport(ceiling);
+            }
 
             // Determine regions to export
             int lowestRegionX = Integer.MAX_VALUE, highestRegionX = Integer.MIN_VALUE, lowestRegionZ = Integer.MAX_VALUE, highestRegionZ = Integer.MIN_VALUE;
@@ -224,9 +225,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 }
             }
 
-            final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, dimension.getMaxHeight());
-            final WorldPainterChunkFactory ceilingChunkFactory = (ceiling != null) ? new WorldPainterChunkFactory(ceiling, ceilingExporters, platform, dimension.getMaxHeight()) : null;
-
             final Map<Point, List<Fixup>> fixups = new HashMap<>();
             final ExecutorService executor = createExecutorService("exporting", sortedRegions.size());
             final RuntimeException[] exception = new RuntimeException[1];
@@ -245,6 +243,11 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                             }
                         }
                         try {
+                            final Map<Layer, LayerExporter> exporters = getExportersForRegion(dimension, regionCoords);
+                            final Map<Layer, LayerExporter> ceilingExporters = (ceiling != null) ? getExportersForRegion(ceiling, region) : null;
+                            final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, dimension.getMaxHeight());
+                            final WorldPainterChunkFactory ceilingChunkFactory = (ceiling != null) ? new WorldPainterChunkFactory(ceiling, ceilingExporters, platform, dimension.getMaxHeight()) : null;
+
                             WorldRegion worldRegion = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
                             ExportResults exportResults = null;
                             try {
@@ -359,14 +362,11 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
     }
 
-    @NotNull
-    protected Map<Layer, LayerExporter> setupDimensionForExport(Dimension dimension) {
+    protected void setupDimensionForExport(Dimension dimension) {
         // Gather all layers used on the map
-        final Map<Layer, LayerExporter> exporters = new HashMap<>();
         Set<Layer> allLayers = dimension.getAllLayers(false);
         allLayers.addAll(dimension.getMinimumLayers());
-        // If there are combined layers, apply them and gather any newly
-        // added layers, recursively
+        // If there are combined layers, apply them and gather any newly added layers, recursively
         boolean done;
         do {
             done = true;
@@ -385,11 +385,45 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 }
             }
         } while (! done);
+    }
+
+    protected Map<Layer, LayerExporter> getExportersForRegion(Dimension dimension, Point regionCoords) {
+        // Gather all layers used in the region
+        final Map<Layer, LayerExporter> exporters = new HashMap<>();
+        final Set<Layer> allLayers = dimension.getAllLayers(false);
+        allLayers.addAll(dimension.getMinimumLayers());
+        final int tileX1 = regionCoords.x >> 2, tileX2 = tileX1 + 3, tileY1 = regionCoords.y >> 2, tileY2 = tileY1 + 3;
+        for (int tileX = tileX1; tileX <= tileX2; tileX++) {
+            for (int tileY = tileY1; tileY <= tileY2; tileY++) {
+                final Tile tile = dimension.getTile(tileX, tileY);
+                if (tile != null) {
+                    allLayers.addAll(tile.getLayers());
+                }
+            }
+        }
+
+        // If there are combined layers, apply them and gather any newly added layers, recursively
+        boolean done;
+        do {
+            done = true;
+            for (Layer layer: new HashSet<>(allLayers)) {
+                if ((layer instanceof CombinedLayer) && ((CombinedLayer) layer).isExport()) {
+                    // Remove the combined layer from the list
+                    allLayers.remove(layer);
+                    // Add any layers it contains
+                    allLayers.addAll(((CombinedLayer) layer).getLayers());
+                    // Signal that we have to go around at least once more,
+                    // in case any of the newly added layers are themselves
+                    // combined layers
+                    done = false;
+                }
+            }
+        } while (! done);
 
         // Remove layers which have been excluded for export
-        allLayers.removeIf(layer -> (layer instanceof CustomLayer) && (!((CustomLayer) layer).isExport()));
+        allLayers.removeIf(layer -> (layer instanceof CustomLayer) && (! ((CustomLayer) layer).isExport()));
 
-        // Load all layer settings into the exporters
+        // Create all the exporters
         for (Layer layer: allLayers) {
             final LayerExporter exporter = layer.getExporter(dimension, platform, dimension.getLayerSettings(layer));
             if (exporter != null) {

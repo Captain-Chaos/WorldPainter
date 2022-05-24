@@ -238,7 +238,7 @@ public class Java1_15PostProcessor extends PostProcessor {
                         case MC_WHITE_TULIP:
                         case MC_PINK_TULIP:
                         case MC_OXEYE_DAISY:
-                            if ((materialBelow != GRASS_BLOCK) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT)) {
+                            if (materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_FARMLAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK)) {
                                 // Tall grass and flowers can only exist on Grass or Dirt blocks
                                 minecraftWorld.setMaterialAt(x, y, z, AIR);
                                 material = AIR;

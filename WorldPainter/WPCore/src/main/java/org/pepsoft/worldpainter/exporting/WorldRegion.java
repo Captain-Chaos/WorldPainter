@@ -232,16 +232,7 @@ public class WorldRegion implements MinecraftWorld {
 
     @Override
     public Chunk getChunkForEditing(int x, int z) {
-        Chunk chunk = getChunk(x, z);
-        if (chunkCreationMode && (chunk == null)) {
-            int localX = x - (regionX << 5);
-            int localZ = z - (regionZ << 5);
-            if ((localX >= 0) && (localX < CHUNKS_PER_SIDE) && (localZ >= 0) && (localZ < CHUNKS_PER_SIDE)) {
-                chunk = platformProvider.createChunk(platform, x, z, maxHeight);
-                chunks[x + 1][z + 1] = chunk;
-            }
-        }
-        return chunk;
+        return getChunk(x, z);
     }
 
     @Override
@@ -283,20 +274,11 @@ public class WorldRegion implements MinecraftWorld {
         }
     }
 
-    public boolean isChunkCreationMode() {
-        return chunkCreationMode;
-    }
-
-    public void setChunkCreationMode(boolean chunkCreationMode) {
-        this.chunkCreationMode = chunkCreationMode;
-    }
- 
     private final int minHeight, maxHeight;
     private final Platform platform;
     private final Chunk[][] chunks = new Chunk[CHUNKS_PER_SIDE + 2][CHUNKS_PER_SIDE + 2];
     private final int regionX, regionZ;
     private final BlockBasedPlatformProvider platformProvider;
-    private boolean chunkCreationMode;
 
 //    private static final Object DISK_ACCESS_MONITOR = new Object();
     
