@@ -764,7 +764,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         
         List<Layer> secondaryPassLayers = new ArrayList<>();
         for (Layer layer: allLayers) {
-            if (SecondPassLayerExporter.class.isAssignableFrom(layer.getExporterType())) {
+            final Class<? extends LayerExporter> exporterType = layer.getExporterType();
+            if ((exporterType != null) && SecondPassLayerExporter.class.isAssignableFrom(exporterType)) {
                 secondaryPassLayers.add(layer);
             }
         }
