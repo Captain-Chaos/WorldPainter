@@ -11,6 +11,7 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.FileUtils;
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
@@ -257,33 +258,40 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             final int transferType = image.getSampleModel().getTransferType();
             if (image == null) {
                 labelImageDimensions.setForeground(Color.RED);
+                labelImageDimensions.setIcon(ICON_WARNING);
                 labelImageDimensions.setText("Not an image file, or damaged file!");
                 selectedFile = null;
             } else if ((image.getType() == BufferedImage.TYPE_BYTE_BINARY) || (image.getType() == BufferedImage.TYPE_BYTE_INDEXED)) {
                 labelImageDimensions.setForeground(Color.RED);
+                labelImageDimensions.setIcon(ICON_WARNING);
                 labelImageDimensions.setText("Indexed image not supported! Please convert to non-indexed.");
                 selectedFile = null;
             } else if (image.isAlphaPremultiplied()) {
                 labelImageDimensions.setForeground(Color.RED);
+                labelImageDimensions.setIcon(ICON_WARNING);
                 labelImageDimensions.setText("Premultiplied alpha not supported! Please convert to non-premultiplied.");
                 selectedFile = null;
             } else if ((transferType == TYPE_FLOAT) || (transferType == TYPE_DOUBLE)) {
                 labelImageDimensions.setForeground(Color.RED);
+                labelImageDimensions.setIcon(ICON_WARNING);
                 labelImageDimensions.setText("Floating point height maps not yet supported! Please convert to 32-bit integer.");
                 selectedFile = null;
             } else {
                 final int width = image.getWidth(), height = image.getHeight();
                 programmaticChange = true;
                 try {
+                    labelImageDimensions.setForeground(null);
                     if (image.getColorModel().hasAlpha()) {
                         spinnerScale.setValue(100);
                         spinnerScale.setEnabled(false);
                         spinnerScale.setToolTipText("<html>Scaling not supported for grey scale images with an alpha channel!<br>To enable scaling, please remove the alpha channel.</html>");
+                        labelImageDimensions.setIcon(ICON_WARNING);
+                        labelImageDimensions.setText("Scaling not supported for images with an alpha channel!");
                     } else {
                         spinnerScale.setEnabled(true);
                         spinnerScale.setToolTipText(null);
+                        labelImageDimensions.setIcon(null);
                     }
-                    labelImageDimensions.setForeground(null);
                     bitDepth = image.getSampleModel().getSampleSize(0);
                     final WritableRaster raster = image.getRaster();
                     imageLowValue = Long.MAX_VALUE;
@@ -326,7 +334,9 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                 // Set levels to reasonable defaults
                 selectDefaultVerticalScaling();
 
-                labelImageDimensions.setText(String.format("Image size: %d x %d, %d bits, lowest value: %d, highest value: %d", width, height, bitDepth, imageLowValue, imageHighValue));
+                if (! image.getColorModel().hasAlpha()) {
+                    labelImageDimensions.setText(String.format("Image size: %d x %d, %d bits, lowest value: %d, highest value: %d", width, height, bitDepth, imageLowValue, imageHighValue));
+                }
                 updateWorldDimensions();
                 updatePreview(true);
             }
@@ -1579,6 +1589,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
     private static final String UPDATE_HEIGHT_MAP_PREVIEW = ImportHeightMapDialog.class.getName() + ".updateHeightMap";
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
+    private static final Icon ICON_WARNING = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/error.png");
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ImportHeightMapDialog.class);
     private static final long serialVersionUID = 1L;
 }
