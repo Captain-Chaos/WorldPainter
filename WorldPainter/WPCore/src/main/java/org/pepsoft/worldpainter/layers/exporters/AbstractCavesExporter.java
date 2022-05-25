@@ -396,7 +396,7 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
         world.setMaterialAt(x, y, height, material.withProperty(WATERLOGGED, world.getMaterialAt(x, y, height).isNamed(MC_WATER)));
     }
 
-    public static class CaveDecorationSettings implements java.io.Serializable {
+    public static class CaveDecorationSettings implements java.io.Serializable, Cloneable {
         public CaveDecorationSettings() {
             enabledDecorations.put(Decoration.BROWN_MUSHROOM, null);
             enabledDecorations.put(Decoration.GLOW_LICHEN, null);
@@ -435,13 +435,6 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
             }
         }
 
-        /**
-         * If the key is present, the decoration is enabled. If the value is {@code null}, it is enabled everywhere;
-         * otherwise the value is an array with the minimum and maximum levels at which to apply the decoration.
-         */
-        final Map<Decoration, int[]> enabledDecorations = new HashMap<>();
-        final Map<Decoration, NoiseSettings> noiseSettingsMap = new HashMap<>();
-
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -465,6 +458,13 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
                 throw new WPRuntimeException(e);
             }
         }
+
+        /**
+         * If the key is present, the decoration is enabled. If the value is {@code null}, it is enabled everywhere;
+         * otherwise the value is an array with the minimum and maximum levels at which to apply the decoration.
+         */
+        final Map<Decoration, int[]> enabledDecorations = new HashMap<>();
+        final Map<Decoration, NoiseSettings> noiseSettingsMap = new HashMap<>();
 
         private static final long serialVersionUID = 1L;
 
