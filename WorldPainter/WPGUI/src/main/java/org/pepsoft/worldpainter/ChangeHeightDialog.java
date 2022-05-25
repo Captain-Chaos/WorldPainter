@@ -23,6 +23,7 @@ import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.stream;
@@ -48,7 +49,12 @@ public class ChangeHeightDialog extends WorldPainterDialog {
 
         initComponents();
         labelOldExtents.setText(lowestHeight + " - " + highestHeight);
-        comboBoxPlatform.setModel(new DefaultComboBoxModel<>(PlatformManager.getInstance().getAllPlatforms().toArray(new Platform[0])));
+        supportedPlatforms.addAll(PlatformManager.getInstance().getAllPlatforms());
+        final List<Platform> allPlatforms = new ArrayList<>(supportedPlatforms);
+        if (! allPlatforms.contains(world.getPlatform())) {
+            allPlatforms.add(0, world.getPlatform());
+        }
+        comboBoxPlatform.setModel(new DefaultComboBoxModel<>(allPlatforms.toArray(new Platform[allPlatforms.size()])));
         final Platform platform = world.getPlatform();
 
         labelCurrentMinHeight.setText(Integer.toString(platform.minZ));
@@ -108,6 +114,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         label.append("</html>");
         labelNewExtents.setText(label.toString());
         labelCutOffWarning.setVisible(activateWarning);
+        labelPlatformWarning.setVisible(! supportedPlatforms.contains(comboBoxPlatform.getSelectedItem()));
     }
 
     private void setControlStates() {
@@ -351,6 +358,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         labelOldExtents = new javax.swing.JLabel();
         jLabel12 = new javax.swing.JLabel();
         labelNewExtents = new javax.swing.JLabel();
+        labelPlatformWarning = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Change Map Format");
@@ -475,6 +483,10 @@ public class ChangeHeightDialog extends WorldPainterDialog {
 
         labelNewExtents.setText("<html><b>-999 - 999</b></html>");
 
+        labelPlatformWarning.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/error.png"))); // NOI18N
+        labelPlatformWarning.setText("<html><b>Unknown format; export not possible</b></html>");
+        labelPlatformWarning.setToolTipText("<html>This map format is unknown and cannot be Exported. Most likely it<br>\nis supported by a plugin that is not installed or cannot be loaded.</html>");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -538,7 +550,8 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(labelNewExtents, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(labelOldExtents))))
+                                    .addComponent(labelOldExtents)))
+                            .addComponent(labelPlatformWarning, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -551,7 +564,9 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
                     .addComponent(comboBoxPlatform, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(labelPlatformWarning, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel9)
                     .addComponent(jLabel10))
@@ -677,6 +692,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
     private javax.swing.JLabel labelCutOffWarning;
     private javax.swing.JLabel labelNewExtents;
     private javax.swing.JLabel labelOldExtents;
+    private javax.swing.JLabel labelPlatformWarning;
     private javax.swing.JLabel labelWarning;
     private javax.swing.JSpinner spinnerScaleAmount;
     private javax.swing.JSpinner spinnerTranslateAmount;
@@ -684,6 +700,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
 
     private final World2 world;
     private final int lowestHeight, highestHeight;
+    private final List<Platform> supportedPlatforms = new ArrayList<>();
 
     private static final long serialVersionUID = 1L;
 }

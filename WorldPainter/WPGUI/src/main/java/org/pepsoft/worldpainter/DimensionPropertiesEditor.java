@@ -601,7 +601,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private void initialisePostProcessingTab() {
         if ((mode == Mode.EXPORT) && (dimension != null)) {
             ExportSettings exportSettings = dimension.getExportSettings();
-            if (exportSettings == null) {
+            if ((exportSettings == null) && (platformProvider != null)) {
                 exportSettings = platformProvider.getDefaultExportSettings(platform);
             }
             if (exportSettings != null) {

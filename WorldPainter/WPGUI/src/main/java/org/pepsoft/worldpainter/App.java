@@ -50,6 +50,7 @@ import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.panels.InfoPanel;
 import org.pepsoft.worldpainter.plugins.CustomLayerProvider;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.selection.*;
 import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
@@ -402,6 +403,13 @@ public final class App extends JFrame implements RadiusControl,
             } else {
                 ACTION_EXPORT_WORLD.setEnabled(true);
                 ACTION_MERGE_WORLD.setEnabled(true);
+            }
+
+            if (! PlatformManager.getInstance().getAllPlatforms().contains(world.getPlatform())) {
+                DesktopUtils.beep();
+                JOptionPane.showMessageDialog(this, "This world is set to a map format (\"" + world.getPlatform().displayName + "\") that is unknown and unsupported.\n" +
+                        "It cannot be Exported without first changing the format.\n" +
+                        "It is most likely supported by a plugin that is not installed or could not be loaded.", "Unknown Map Format", WARNING_MESSAGE);
             }
         }
     }
