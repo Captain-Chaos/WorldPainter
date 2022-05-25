@@ -24,7 +24,8 @@ import org.pepsoft.worldpainter.operations.Filter;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.panels.DefaultFilter.LayerValue;
 
-import static org.pepsoft.worldpainter.panels.DefaultFilter.Condition.*;
+import static org.pepsoft.worldpainter.panels.DefaultFilter.Condition.HIGHER_THAN_OR_EQUAL;
+import static org.pepsoft.worldpainter.panels.DefaultFilter.Condition.LOWER_THAN_OR_EQUAL;
 
 /**
  *
@@ -289,7 +290,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         return new DefaultFilter(null, inSelection, outsideSelection, aboveLevel, belowLevel, feather, onlyOn, exceptOn, degrees, slopeIsAbove);
     }
     
-    private int aboveLevel = -1, belowLevel = -1, degrees = -1;
+    private int aboveLevel = Integer.MIN_VALUE, belowLevel = Integer.MIN_VALUE, degrees = -1;
     private boolean feather, slopeIsAbove, exceptOnLastSet, inSelection, outsideSelection;
     private Object onlyOn, exceptOn;
 }
