@@ -19,6 +19,7 @@
 package org.pepsoft.worldpainter.tools.scripts;
 
 import org.pepsoft.worldpainter.Terrain;
+import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.operations.Filter;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
@@ -140,7 +141,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (onlyOn != null) {
             throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        onlyOn = biomeIndex;
+        onlyOn = new LayerValue(Biome.INSTANCE, biomeIndex);;
         exceptOnLastSet = false;
         return this;
     }
@@ -149,7 +150,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (onlyOn != null) {
             throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        onlyOn = -biomeIndex;
+        onlyOn = new LayerValue(Biome.INSTANCE, -biomeIndex);;
         exceptOnLastSet = false;
         return this;
     }
@@ -203,7 +204,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (exceptOn != null) {
             throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        exceptOn = biomeIndex;
+        exceptOn = new LayerValue(Biome.INSTANCE, biomeIndex);
         exceptOnLastSet = true;
         return this;
     }
@@ -212,7 +213,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (exceptOn != null) {
             throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        exceptOn = -biomeIndex;
+        exceptOn = new LayerValue(Biome.INSTANCE, -biomeIndex);;
         exceptOnLastSet = true;
         return this;
     }
