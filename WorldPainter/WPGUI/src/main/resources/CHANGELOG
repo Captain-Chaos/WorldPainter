@@ -1,3 +1,7 @@
+-- Version 2.10.7, released 25-5-2022
+
+ * Bug fix: fixed a bug in the new cave decoration settings that sometimes caused erors or prevented WorldPainter from starting
+
 -- Version 2.10.6, released 25-5-2022
 
  * A new Decorate option has been added to the Caves, Caverns and Chasms layers, which can add random decorations to the generated caves of the following types:
