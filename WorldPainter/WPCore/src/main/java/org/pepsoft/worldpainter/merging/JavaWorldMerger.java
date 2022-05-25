@@ -213,6 +213,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 final int dim = dimension.getDim();
                 if ((dim < 0) || ((world.getDimensionsToExport() != null) && (! world.getDimensionsToExport().contains(dim)))) {
                     // Skip ceiling dimensions, or dimensions that are not going to be merged
+                    continue;
                 }
                 final int mapDimMinHeight, mapDimMaxHeight;
                 switch (dim) {
