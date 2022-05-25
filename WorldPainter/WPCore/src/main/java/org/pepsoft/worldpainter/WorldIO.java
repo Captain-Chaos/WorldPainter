@@ -126,7 +126,7 @@ public class WorldIO {
     private World2 migrate(Object object) {
         if (object instanceof World) {
             World oldWorld = (World) object;
-            World2 newWorld = new World2(JAVA_MCREGION, oldWorld.getMinecraftSeed(), oldWorld.getTileFactory(), 128);
+            World2 newWorld = new World2(JAVA_MCREGION, oldWorld.getMinecraftSeed(), oldWorld.getTileFactory());
             newWorld.setCreateGoodiesChest(oldWorld.isCreateGoodiesChest());
             newWorld.setImportedFrom(oldWorld.getImportedFrom());
             newWorld.setName(oldWorld.getName());

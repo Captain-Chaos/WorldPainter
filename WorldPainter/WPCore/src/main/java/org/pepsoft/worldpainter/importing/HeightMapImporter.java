@@ -54,7 +54,7 @@ public class HeightMapImporter {
         logger.info("Importing world from height map {} (size: {}x{})", name, extent.width, extent.height);
 
         calculateFlags();
-        final World2 world = new World2(platform, minecraftSeed, tileFactory, maxHeight);
+        final World2 world = new World2(platform, minecraftSeed, tileFactory);
         world.addHistoryEntry(HistoryEntry.WORLD_IMPORTED_FROM_HEIGHT_MAP, imageFile);
         world.setName(name);
         final Dimension dimension = world.getDimension(DIM_NORMAL);

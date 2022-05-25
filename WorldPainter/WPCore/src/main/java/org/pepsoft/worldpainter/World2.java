@@ -46,15 +46,15 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         this.maxheight = maxHeight;
     }
     
-    public World2(Platform platform, long minecraftSeed, TileFactory tileFactory, int maxHeight) {
+    public World2(Platform platform, long minecraftSeed, TileFactory tileFactory) {
         if (platform == null) {
             throw new NullPointerException();
-        } else if ((maxHeight < platform.minMaxHeight) || (maxHeight > platform.maxMaxHeight)) {
-            throw new IllegalArgumentException("maxHeight " + maxHeight + " < " + platform.minMaxHeight + " or > " + platform.maxMaxHeight);
+        } else if ((tileFactory.getMaxHeight() < platform.minMaxHeight) || (tileFactory.getMaxHeight() > platform.maxMaxHeight)) {
+            throw new IllegalArgumentException("tileFactory.maxHeight " + tileFactory.getMaxHeight() + " < " + platform.minMaxHeight + " or > " + platform.maxMaxHeight);
         }
         this.platform = platform;
-        this.maxheight = maxHeight;
-        Dimension dim = new Dimension(this, minecraftSeed, tileFactory, 0, platform.minZ, maxHeight);
+        this.maxheight = tileFactory.getMaxHeight();
+        Dimension dim = new Dimension(this, minecraftSeed, tileFactory, 0);
         addDimension(dim);
     }
     

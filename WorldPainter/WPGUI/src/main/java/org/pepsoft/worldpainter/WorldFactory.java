@@ -134,7 +134,7 @@ public final class WorldFactory {
             theme.setTerrainRanges(new TreeMap<>(defaultTheme.getTerrainRanges()));
             theme.setRandomise(defaultTheme.isRandomise());
         }
-        final World2 world = new World2(platform, DEFAULT_OCEAN_SEED, tileFactory, tileFactory.getMaxHeight());
+        final World2 world = new World2(platform, DEFAULT_OCEAN_SEED, tileFactory);
         world.addHistoryEntry(HistoryEntry.WORLD_CREATED);
         final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings");
         world.setName(strings.getString("generated.world"));
@@ -179,7 +179,7 @@ public final class WorldFactory {
         final Platform platform = config.getDefaultPlatform();
         final HeightMapTileFactory tileFactory = TileFactoryFactory.createFancyTileFactory(seed, Terrain.GRASS, platform.minZ, platform.standardMaxHeight, 58, DEFAULT_WATER_LEVEL, false, 20f, 1.0);
         final Dimension defaults = config.getDefaultTerrainAndLayerSettings();
-        final World2 world = new World2(platform, DEFAULT_OCEAN_SEED, tileFactory, tileFactory.getMaxHeight());
+        final World2 world = new World2(platform, DEFAULT_OCEAN_SEED, tileFactory);
         world.addHistoryEntry(HistoryEntry.WORLD_CREATED);
         world.setMixedMaterial(0, new MixedMaterial("Dirt/Gravel", new Row[] {new Row(Material.DIRT, 750, 1.0f), new Row(Material.GRAVEL, 250, 1.0f)}, Minecraft1_2BiomeScheme.BIOME_PLAINS, null, 1.0f));
         world.setMixedMaterial(1, new MixedMaterial("Stone/Gravel", new Row[] {new Row(Material.STONE, 750, 1.0f), new Row(Material.GRAVEL, 250, 1.0f)}, Minecraft1_2BiomeScheme.BIOME_PLAINS, null, 1.0f));
@@ -198,12 +198,10 @@ public final class WorldFactory {
                 for (int x = -tileRadius; x < tileRadius; x++) {
                     for (int y = -tileRadius; y < tileRadius; y++) {
                         if (getSmallestDistanceFromOrigin(x, y) < radius) {
-                            // At least one corner is inside the circle; include
-                            // the tile. Note that this is always correct in
-                            // this case only because the centre of the circle
-                            // is always at a tile intersection so the circle
-                            // can never "bulge" into a tile without any of the
-                            // the tile's corners being inside the circle
+                            // At least one corner is inside the circle; include the tile. Note that this is always
+                            // correct in this case only because the centre of the circle is always at a tile
+                            // intersection so the circle can never "bulge" into a tile without any of the the tile's
+                            // corners being inside the circle
                             final Tile tile = tileFactory.createTile(x, y);
                             dim0.addTile(tile);
 //                            if (org.pepsoft.worldpainter.util.MathUtils.getLargestDistanceFromOrigin(x, y) >= radius) {

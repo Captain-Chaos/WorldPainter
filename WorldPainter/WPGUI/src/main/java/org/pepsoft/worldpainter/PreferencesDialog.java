@@ -1648,7 +1648,7 @@ public class PreferencesDialog extends WorldPainterDialog {
             checkBoxBeaches.setSelected(true);
             comboBoxSurfaceMaterial.setSelectedItem(GRASS);
             checkBoxResourcesEverywhere.setSelected(true);
-            defaultTerrainAndLayerSettings = new World2(defaultPlatform, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), GRASS, defaultPlatform.minZ, defaultPlatform.standardMaxHeight, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0), defaultPlatform.standardMaxHeight).getDimension(DIM_NORMAL);
+            defaultTerrainAndLayerSettings = new World2(defaultPlatform, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), GRASS, defaultPlatform.minZ, defaultPlatform.standardMaxHeight, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0)).getDimension(DIM_NORMAL);
             config.setDefaultTerrainAndLayerSettings(defaultTerrainAndLayerSettings);
             defaultExportSettings = null;
         }

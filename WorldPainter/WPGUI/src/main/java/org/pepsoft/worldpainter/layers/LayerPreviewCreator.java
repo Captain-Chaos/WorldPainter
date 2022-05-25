@@ -52,7 +52,7 @@ public class LayerPreviewCreator {
         final TileFactory tileFactory = subterranean
                 ? TileFactoryFactory.createNoiseTileFactory(seed, Terrain.BARE_GRASS, JAVA_ANVIL_1_17.minZ, previewHeight, 56, DEFAULT_WATER_LEVEL, false, true, 20f, 0.5)
                 : TileFactoryFactory.createNoiseTileFactory(seed, Terrain.BARE_GRASS, JAVA_ANVIL_1_17.minZ, previewHeight, 8, 14, false, true, 20f, 0.5);
-        final Dimension dimension = new World2(DefaultPlugin.JAVA_MCREGION, seed, tileFactory, previewHeight).getDimension(DIM_NORMAL);
+        final Dimension dimension = new World2(DefaultPlugin.JAVA_MCREGION, seed, tileFactory).getDimension(DIM_NORMAL);
         dimension.setSubsurfaceMaterial(Terrain.STONE);
         final MinecraftWorldObject minecraftWorldObject = new MinecraftWorldObject(layer.getName() + " Preview", new Box(-8, 136, -8, 136, 0, previewHeight), previewHeight, null, new Point3i(-64, -64, 0));
         long now = System.currentTimeMillis();

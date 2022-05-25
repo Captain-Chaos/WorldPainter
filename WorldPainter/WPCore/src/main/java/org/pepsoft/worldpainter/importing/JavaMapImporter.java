@@ -76,7 +76,7 @@ public class JavaMapImporter extends MapImporter {
         World2 world = importWorld(level);
         long minecraftSeed = world.getAttribute(SEED).orElse(new Random().nextLong());
         tileFactory.setSeed(minecraftSeed);
-        Dimension dimension = new Dimension(world, minecraftSeed, tileFactory, DIM_NORMAL, platform.minZ, world.getMaxHeight());
+        Dimension dimension = new Dimension(world, minecraftSeed, tileFactory, DIM_NORMAL);
         dimension.setEventsInhibited(true);
         try {
             dimension.setCoverSteepTerrain(false);
@@ -110,14 +110,14 @@ public class JavaMapImporter extends MapImporter {
         world.addDimension(dimension);
         int dimNo = 1;
         if (dimensionsToImport.contains(DIM_NETHER)) {
-            HeightMapTileFactory netherTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 1, Terrain.NETHERRACK, platform.minZ, world.getMaxHeight(), 188, 192, true, false, 20f, 1.0);
+            HeightMapTileFactory netherTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 1, Terrain.NETHERRACK, Math.max(0, platform.minZ), Math.min(DEFAULT_MAX_HEIGHT_NETHER, world.getMaxHeight()), 188, 192, true, false, 20f, 1.0);
             SimpleTheme theme = (SimpleTheme) netherTileFactory.getTheme();
             SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
             terrainRanges.clear();
             terrainRanges.put(-1, Terrain.NETHERRACK);
             theme.setTerrainRanges(terrainRanges);
             theme.setLayerMap(null);
-            dimension = new Dimension(world, minecraftSeed + 1, netherTileFactory, DIM_NETHER, platform.minZ, world.getMaxHeight());
+            dimension = new Dimension(world, minecraftSeed + 1, netherTileFactory, DIM_NETHER);
             dimension.setEventsInhibited(true);
             try {
                 dimension.setCoverSteepTerrain(false);
@@ -139,14 +139,14 @@ public class JavaMapImporter extends MapImporter {
             world.addDimension(dimension);
         }
         if (dimensionsToImport.contains(DIM_END)) {
-            HeightMapTileFactory endTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 2, Terrain.END_STONE, platform.minZ, world.getMaxHeight(), 32, 0, false, false, 20f, 1.0);
+            HeightMapTileFactory endTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 2, Terrain.END_STONE, Math.max(0, platform.minZ), Math.min(DEFAULT_MAX_HEIGHT_NETHER, world.getMaxHeight()), 32, 0, false, false, 20f, 1.0);
             SimpleTheme theme = (SimpleTheme) endTileFactory.getTheme();
             SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
             terrainRanges.clear();
             terrainRanges.put(-1, Terrain.END_STONE);
             theme.setTerrainRanges(terrainRanges);
             theme.setLayerMap(Collections.emptyMap());
-            dimension = new Dimension(world, minecraftSeed + 2, endTileFactory, DIM_END, platform.minZ, world.getMaxHeight());
+            dimension = new Dimension(world, minecraftSeed + 2, endTileFactory, DIM_END);
             dimension.setEventsInhibited(true);
             try {
                 dimension.setCoverSteepTerrain(false);

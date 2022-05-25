@@ -19,7 +19,7 @@ import java.util.*;
  */
 public final class DimensionSnapshot extends Dimension {
     public DimensionSnapshot(Dimension dimension, Snapshot snapshot) {
-        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getDim(), dimension.getMinHeight(), dimension.getMaxHeight());
+        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getDim());
         this.dimension = dimension;
         this.snapshot = snapshot;
         super.setBorder(dimension.getBorder());

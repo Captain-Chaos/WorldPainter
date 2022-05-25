@@ -140,18 +140,43 @@ public class MergeWorldDialog extends WorldPainterDialog {
         }
         final boolean biomesOnly = radioButtonBiomes.isSelected();
         if (! biomesOnly) {
-            if ((!radioButtonExportEverything.isSelected()) && ((selectedTiles == null) || selectedTiles.isEmpty())) {
+            if ((! radioButtonExportEverything.isSelected()) && ((selectedTiles == null) || selectedTiles.isEmpty())) {
                 radioButtonExportEverything.requestFocusInWindow();
                 DesktopUtils.beep();
                 JOptionPane.showMessageDialog(this, "No tiles selected for merging.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            if ((!checkBoxSurface.isSelected()) && (!checkBoxNether.isSelected()) && (!checkBoxEnd.isSelected())) {
+            if ((! checkBoxSurface.isSelected()) && (! checkBoxNether.isSelected()) && (! checkBoxEnd.isSelected())) {
                 checkBoxSurface.requestFocusInWindow();
                 DesktopUtils.beep();
                 JOptionPane.showMessageDialog(this, "No dimension selected for merging.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+        }
+
+        if (radioButtonExportEverything.isSelected()) {
+            Set<Integer> dimensionsToExport = new HashSet<>();
+            if (checkBoxSurface.isSelected()) {
+                dimensionsToExport.add(DIM_NORMAL);
+            }
+            if (checkBoxNether.isSelected()) {
+                dimensionsToExport.add(DIM_NETHER);
+            }
+            if (checkBoxEnd.isSelected()) {
+                dimensionsToExport.add(DIM_END);
+            }
+            boolean allDimensionsSelected = true;
+            for (Dimension dimension: world.getDimensions()) {
+                if (! dimensionsToExport.contains(dimension.getDim())) {
+                    allDimensionsSelected = false;
+                    break;
+                }
+            }
+            world.setDimensionsToExport(allDimensionsSelected ? null : dimensionsToExport);
+            world.setTilesToExport(null);
+        } else {
+            world.setDimensionsToExport(Collections.singleton(selectedDimension));
+            world.setTilesToExport(selectedTiles);
         }
         JavaWorldMerger merger = new JavaWorldMerger(world, mapDir, platform);
         try {
@@ -232,30 +257,6 @@ public class MergeWorldDialog extends WorldPainterDialog {
         config.setSavesDirectory(mapDir.getParentFile());
         config.setMessageDisplayed(MERGE_WARNING_KEY);
         world.setImportedFrom(new File(mapDir, "level.dat"));
-        if (radioButtonExportEverything.isSelected()) {
-            Set<Integer> dimensionsToExport = new HashSet<>();
-            if (checkBoxSurface.isSelected()) {
-                dimensionsToExport.add(DIM_NORMAL);
-            }
-            if (checkBoxNether.isSelected()) {
-                dimensionsToExport.add(DIM_NETHER);
-            }
-            if (checkBoxEnd.isSelected()) {
-                dimensionsToExport.add(DIM_END);
-            }
-            boolean allDimensionsSelected = true;
-            for (Dimension dimension: world.getDimensions()) {
-                if (! dimensionsToExport.contains(dimension.getDim())) {
-                    allDimensionsSelected = false;
-                    break;
-                }
-            }
-            world.setDimensionsToExport(allDimensionsSelected ? null : dimensionsToExport);
-            world.setTilesToExport(null);
-        } else {
-            world.setDimensionsToExport(Collections.singleton(selectedDimension));
-            world.setTilesToExport(selectedTiles);
-        }
 
         synchronized (merger) {
             try {

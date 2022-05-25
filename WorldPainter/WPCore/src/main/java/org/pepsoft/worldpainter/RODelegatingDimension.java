@@ -33,7 +33,7 @@ import java.util.*;
  */
 public abstract class RODelegatingDimension extends Dimension {
     public RODelegatingDimension(Dimension dimension) {
-        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getDim(), dimension.getMinHeight(), dimension.getMaxHeight());
+        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getDim());
         this.dimension = dimension;
     }
 

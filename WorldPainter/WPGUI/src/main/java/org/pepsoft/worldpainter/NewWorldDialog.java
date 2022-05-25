@@ -345,7 +345,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         final TileFactory tileFactory = createTileFactory(worldpainterSeed);
 
         final Dimension dimension;
-        dimension = new Dimension(world, minecraftSeed, tileFactory, dim, tileFactory.getMinHeight(), tileFactory.getMaxHeight());
+        dimension = new Dimension(world, minecraftSeed, tileFactory, dim);
         dimension.setEventsInhibited(true);
         try {
             ExecutorService executorService = MDCThreadPoolExecutor.newFixedThreadPool(Runtime.getRuntime().availableProcessors());

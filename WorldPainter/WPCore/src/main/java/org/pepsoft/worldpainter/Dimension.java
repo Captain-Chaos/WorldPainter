@@ -58,11 +58,11 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
  * @author pepijn
  */
 public class Dimension extends InstanceKeeper implements TileProvider, Serializable, Tile.Listener, Cloneable {
-    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, int dim, int minHeight, int maxHeight) {
-        this(world, minecraftSeed, tileFactory, dim, minHeight, maxHeight, true);
+    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, int dim) {
+        this(world, minecraftSeed, tileFactory, dim, true);
     }
 
-    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, int dim, int minHeight, int maxHeight, boolean init) {
+    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, int dim, boolean init) {
         if (world == null) {
             throw new NullPointerException("world");
         }
@@ -71,8 +71,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         this.minecraftSeed = minecraftSeed;
         this.tileFactory = tileFactory;
         this.dim = dim;
-        this.minHeight = minHeight;
-        this.maxHeight = maxHeight;
+        this.minHeight = tileFactory.getMinHeight();
+        this.maxHeight = tileFactory.getMaxHeight();
         ceilingHeight = maxHeight;
         if (init) {
             layerSettings.put(Resources.INSTANCE, ResourcesExporterSettings.defaultSettings(world.getPlatform(), dim, maxHeight));
