@@ -351,14 +351,14 @@ public class BlockPropertiesCalculator {
      * steps of the process, such as removing floating leaf blocks.
      */
     public void finalise() {
-        if (! removeFloatingLeaves) {
+        if (! (removeFloatingLeaves || skyLight)) {
             return;
         }
         final int x1InChunks = originalDirtyArea.getX1() >> 4, z1InChunks = originalDirtyArea.getZ1() >> 4,
                 x2InChunks = (originalDirtyArea.getX2() - 1) >> 4, z2InChunks = (originalDirtyArea.getZ2() - 1) >> 4;
         for (int chunkX = x1InChunks; chunkX <= x2InChunks; chunkX++) {
             for (int chunkZ = z1InChunks; chunkZ <= z2InChunks; chunkZ++) {
-                final Chunk chunk = world.getChunk(chunkX, chunkZ);
+                final Chunk chunk = world.getChunkForEditing(chunkX, chunkZ);
                 if (chunk == null) {
                     continue;
                 }
@@ -399,6 +399,14 @@ public class BlockPropertiesCalculator {
                                 // NOTE: in theory we should start all the way over with the lighting calculations, but
                                 // that would take a huge amount of time again, so instead we just hope the lighting
                                 // bugs are not too obvious
+                            } else if (skyLight && ((material == DIRT_PATH) || (material == GRASS_PATH))) {
+                                // Dirty hack to fix lighting of weird blocks that receive light but don't transmit it
+                                // NOTE: this is not entirely correct since it only looks above, but it's correct in 99%
+                                // of cases and hardly noticeable in the other 1%
+                                // TODO make this dynamic
+                                final int skyLightAbove = (y < (maxHeight - 1)) ? chunk.getSkyLightLevel(xInChunk, y + 1, zInChunk) : 15;
+                                final int newSkyLight = (skyLightAbove == 15) ? 15 : max(skyLightAbove - 1, 0);
+                                chunk.setSkyLightLevel(xInChunk, y, zInChunk, newSkyLight);
                             }
                         }
                     }
