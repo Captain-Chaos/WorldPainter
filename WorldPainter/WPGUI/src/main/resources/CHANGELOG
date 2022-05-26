@@ -1,5 +1,6 @@
 -- Version 2.10.8, released ...
 
+ * Warn when loading an old world with invalid Superflat preset, rather than giving an error
  * Bug fix: covered dirt_path blocks are now turned to dirt during post processing
  * Bug fix: dirt_path blocks are now correctly lighted
 
