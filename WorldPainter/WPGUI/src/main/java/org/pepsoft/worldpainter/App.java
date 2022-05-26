@@ -970,6 +970,7 @@ public final class App extends JFrame implements RadiusControl,
 
         Set<Warning> warnings = newWorld.getWarnings();
         if ((warnings != null) && (! warnings.isEmpty())) {
+            DesktopUtils.beep();
             for (Warning warning: warnings) {
                 switch (warning) {
                     case AUTO_BIOMES_DISABLED:
@@ -995,6 +996,11 @@ public final class App extends JFrame implements RadiusControl,
                                 "circumstances; for example by using Undo after removing a Custom Terrain\n" +
                                 "Type. The missing Custom Terrain Type(s) have been replaced with Magenta\n" +
                                 "Wool and will have to be reconfigured from the Custom Terrain panel.", "Missing Custom Terrain Types", WARNING_MESSAGE);
+                        break;
+                    case SUPERFLAT_SETTINGS_RESET:
+                        JOptionPane.showMessageDialog(this, "The Superflat preset from this world could not be parsed.\n" +
+                                "It has been reset to default values.", "Superflat Preset Reset", WARNING_MESSAGE);
+                        break;
                 }
             }
         }

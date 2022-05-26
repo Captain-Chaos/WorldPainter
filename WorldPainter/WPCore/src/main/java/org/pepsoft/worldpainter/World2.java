@@ -710,7 +710,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             dimensions.values().forEach(dimension -> {
                 switch (dimension.getDim()) {
                     case DIM_NORMAL:
-                        MapGenerator generator = MapGenerator.fromLegacySettings(this.generator, dimension.getMinecraftSeed(), generatorName, generatorOptions, platform);
+                        MapGenerator generator = MapGenerator.fromLegacySettings(this.generator, dimension.getMinecraftSeed(), generatorName, generatorOptions, platform, this::addWarning);
                         dimension.setGenerator(generator);
                         break;
                     case DIM_NETHER:
@@ -834,7 +834,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(World2.class);
     private static final long serialVersionUID = 2011062401L;
 
-    enum Warning {
+    public enum Warning {
         /**
          * Warn the user that automatic biomes are now the default and are enabled.
          */
@@ -848,7 +848,12 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         /**
          * Warn the user that one or more custom terrain types were missing and have been replaced with magenta wool.
          */
-        MISSING_CUSTOM_TERRAINS
+        MISSING_CUSTOM_TERRAINS,
+
+        /**
+         * Warn the user that the Superflat settings could not be parsed and were reset to defaults.
+         */
+        SUPERFLAT_SETTINGS_RESET
     }
     
     public static class BorderSettings implements Serializable, org.pepsoft.util.undo.Cloneable<BorderSettings> {

@@ -5,12 +5,14 @@ import org.jnbt.StringTag;
 import org.jnbt.Tag;
 import org.pepsoft.worldpainter.Generator;
 import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.World2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.util.function.Consumer;
 
-import static org.pepsoft.worldpainter.Generator.DEFAULT;
+import static org.pepsoft.worldpainter.World2.Warning.SUPERFLAT_SETTINGS_RESET;
 
 public abstract class MapGenerator implements Serializable {
     protected MapGenerator(Generator type) {
@@ -28,10 +30,13 @@ public abstract class MapGenerator implements Serializable {
 
     private final Generator type;
 
-    public static MapGenerator fromLegacySettings(Generator type, long seed, String name, Object options, Platform platform) {
+    public static MapGenerator fromLegacySettings(Generator type, long seed, String name, Object options, Platform platform, Consumer<World2.Warning> warningConsumer) {
         switch (type) {
             case DEFAULT:
-                return new SeededGenerator(DEFAULT, seed);
+            case LARGE_BIOMES:
+            case BUFFET:
+            case CUSTOMIZED:
+                return new SeededGenerator(type, seed);
             case FLAT:
                 if (options != null) {
                     try {
@@ -43,17 +48,24 @@ public abstract class MapGenerator implements Serializable {
                             return new SuperflatGenerator(SuperflatPreset.fromMinecraft1_15_2((CompoundTag) options));
                         }
                     } catch (IllegalArgumentException e) {
-                        logger.warn("Could not parse legacy Superflat preset \"{}\"; reverting to default settings", options, e);
+                        logger.error("Could not parse legacy Superflat preset \"{}\"; reverting to default settings", options, e);
+                        if (warningConsumer != null) {
+                            warningConsumer.accept(SUPERFLAT_SETTINGS_RESET);
+                        }
                         return new SuperflatGenerator(SuperflatPreset.defaultPreset(platform));
                     }
-                    throw new IllegalArgumentException("Don't know how to process options of type " + options.getClass());
+                    logger.error("Could not parse legacy Superflat preset \"{}\"; reverting to default settings", options);
+                    if (warningConsumer != null) {
+                        warningConsumer.accept(SUPERFLAT_SETTINGS_RESET);
+                    }
+                    return new SuperflatGenerator(SuperflatPreset.defaultPreset(platform));
                 } else {
+                    logger.warn("No legacy Superflat preset present; reverting to default settings");
+                    if (warningConsumer != null) {
+                        warningConsumer.accept(SUPERFLAT_SETTINGS_RESET);
+                    }
                     return new SuperflatGenerator(SuperflatPreset.defaultPreset(platform));
                 }
-            case LARGE_BIOMES:
-            case BUFFET:
-            case CUSTOMIZED:
-                return new SeededGenerator(type, seed);
             case CUSTOM:
                 return new CustomGenerator(name, (options instanceof Tag) ? ((Tag) options) : null);
             case UNKNOWN:

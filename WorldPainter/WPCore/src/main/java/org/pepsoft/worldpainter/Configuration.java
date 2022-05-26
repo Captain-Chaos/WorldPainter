@@ -1017,7 +1017,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
                 autoDeleteBackups = true;
             }
             if (defaultGeneratorObj == null) {
-                defaultGeneratorObj = MapGenerator.fromLegacySettings(defaultGenerator, DEFAULT_OCEAN_SEED, null, defaultGeneratorOptions, Platform.getById(defaultPlatformId));
+                defaultGeneratorObj = MapGenerator.fromLegacySettings(defaultGenerator, DEFAULT_OCEAN_SEED, null, defaultGeneratorOptions, Platform.getById(defaultPlatformId), null);
                 defaultGenerator = null;
                 defaultGeneratorOptions = null;
             }

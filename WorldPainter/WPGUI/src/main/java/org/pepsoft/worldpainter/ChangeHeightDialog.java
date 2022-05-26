@@ -276,7 +276,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                     if (dimNewMinHeight != oldMinHeight) {
                         final int raiseBy = oldMinHeight - dimNewMinHeight;
                         final SuperflatPreset settings = ((SuperflatGenerator) dim.getGenerator()).getSettings();
-                        final List<SuperflatPreset.Layer> layers = settings.getLayers();
+                        final List<SuperflatPreset.Layer> layers = new ArrayList<>(settings.getLayers());
                         final int currentHeight = layers.stream().mapToInt(SuperflatPreset.Layer::getThickness).sum();
                         if (raiseBy > 0) {
                             // Insert deepslate to raise the Superflat terrain up. Skip the lowest layer
@@ -308,6 +308,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                                 }
                             }
                         }
+                        settings.setLayers(layers);
                     }
                 }
             }
