@@ -42,7 +42,6 @@ import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
-import static org.pepsoft.worldpainter.ChangeHeightDialog.resizeDimension;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Generator.*;
@@ -51,6 +50,7 @@ import static org.pepsoft.worldpainter.Platform.Capability.BLOCK_BASED;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.Terrain.GRASS;
 import static org.pepsoft.worldpainter.World2.DEFAULT_OCEAN_SEED;
+import static org.pepsoft.worldpainter.util.WorldUtils.resizeDimension;
 
 /**
  *

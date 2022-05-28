@@ -57,10 +57,7 @@ import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
 import org.pepsoft.worldpainter.tools.BiomesViewerFrame;
 import org.pepsoft.worldpainter.tools.RespawnPlayerDialog;
 import org.pepsoft.worldpainter.tools.scripts.ScriptRunner;
-import org.pepsoft.worldpainter.util.BackupUtils;
-import org.pepsoft.worldpainter.util.BetterAction;
-import org.pepsoft.worldpainter.util.LayoutUtils;
-import org.pepsoft.worldpainter.util.LazyLoadingIconToggleButton;
+import org.pepsoft.worldpainter.util.*;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
 import org.pepsoft.worldpainter.vo.EventVO;
 import org.pepsoft.worldpainter.vo.UsageVO;
@@ -1007,7 +1004,18 @@ public final class App extends JFrame implements RadiusControl,
 
         if (newWorld.isAskToConvertToAnvil() && (newWorld.getMaxHeight() == DEFAULT_MAX_HEIGHT_MCREGION) && (newWorld.getImportedFrom() == null)) {
             if (showConfirmDialog(this, strings.getString("this.world.is.128.blocks.high"), strings.getString("convert.world.height"), YES_NO_OPTION) == YES_OPTION) {
-                ChangeHeightDialog.resizeWorld(newWorld, HeightTransform.IDENTITY, 0, DEFAULT_MAX_HEIGHT_ANVIL, true, this);
+                ProgressDialog.executeTask(this, new ProgressTask<Void>() {
+                    @Override
+                    public String getName() {
+                        return "Changing world height";
+                    }
+
+                    @Override
+                    public Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                        WorldUtils.resizeWorld(world, HeightTransform.IDENTITY, 0, DEFAULT_MAX_HEIGHT_ANVIL, true, progressReceiver);
+                        return null;
+                    }
+                }, NOT_CANCELABLE);
                 newWorld.addHistoryEntry(HistoryEntry.WORLD_MAX_HEIGHT_CHANGED, DEFAULT_MAX_HEIGHT_ANVIL);
                 // Force the version to "Anvil" if it was previously exported
                 // with the old format
