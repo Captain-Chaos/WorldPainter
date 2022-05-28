@@ -1931,12 +1931,14 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                     customLayers.add((CustomLayer) layer);
                 });
 
-        // Bug fix: fix the maxHeight of the dimension, which somehow is not
-        // always correctly set (possibly only on imported worlds from
-        // non-standard height maps due to a bug which should be fixed).
-        if ((world != null) && (world.getMaxHeight() != 0) && (world.getMaxHeight() != maxHeight)) {
-            logger.warn("Fixing maxHeight of dimension " + dim + " (was " + maxHeight + ", should be " + world.getMaxHeight() + ")");
-            maxHeight = world.getMaxHeight();
+        // Because we did this fix wrong in the past, the maxHeight of the dimension may not correspond to that of its
+        // tiles.
+        if (! tiles.isEmpty()) {
+            final int tileMaxHeight = tiles.values().iterator().next().getMaxHeight();
+            if (tileMaxHeight != maxHeight) {
+                logger.warn("Fixing maxHeight of dimension " + getName() + " (was " + maxHeight + ", should be " + tileMaxHeight + ")");
+                maxHeight = tileMaxHeight;
+            }
         }
     }
 
