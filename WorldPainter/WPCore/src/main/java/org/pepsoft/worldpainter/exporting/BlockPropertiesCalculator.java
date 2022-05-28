@@ -368,7 +368,7 @@ public class BlockPropertiesCalculator {
                         final int x = (chunkX << 4) | xInChunk, z = (chunkZ << 4) | zInChunk;
                         for (int y = maxY; y >= originalDirtyArea.getY1() ; y--) {
                             Material material = chunk.getMaterial(xInChunk, y, zInChunk);
-                            if (material.name.endsWith("_leaves") && material.isPropertySet(MC_DISTANCE) && (material.getProperty(DISTANCE) > 6) && (! material.is(PERSISTENT))) {
+                            if (removeFloatingLeaves && material.name.endsWith("_leaves") && material.isPropertySet(MC_DISTANCE) && (material.getProperty(DISTANCE) > 6) && (! material.is(PERSISTENT))) {
                                 material = AIR;
                                 chunk.setMaterial(xInChunk, y, zInChunk, material);
                                 if (skyLight) {
