@@ -726,17 +726,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             generatorOptions = null;
         }
         wpVersion = CURRENT_WP_VERSION;
-        
-        // Bug fix: fix the maxHeight of the dimensions, which somehow is not
-        // always correctly set (possibly only on imported worlds from
-        // non-standard height maps due to a bug which should be fixed).
-        dimensions.values().stream()
-            .filter(dimension -> (dimension.getMaxHeight() != maxheight) && (dimension.getMaxHeight() != 0))
-            .forEach(dimension -> {
-                logger.warn("Fixing maxHeight of dimension " + dimension.getDim() + " (was " + dimension.getMaxHeight() + ", should be " + maxheight + ")");
-                dimension.setMaxHeight(maxheight);
-            });
-        
+
         // The number of custom terrains increases now and again; correct old
         // worlds for it
         if (mixedMaterials.length != Terrain.CUSTOM_TERRAIN_COUNT) {
