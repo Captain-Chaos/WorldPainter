@@ -1,12 +1,13 @@
--- Version 2.10.8, released ...
+-- Version 2.10.8, released 28-5-2022
 
  * Warn when loading an old world with invalid Superflat preset, rather than giving an error
  * Bug fix: covered dirt_path blocks are now turned to dirt during post processing
  * Bug fix: dirt_path blocks are now correctly lighted
+ * Some bug fixes concerning loading very old worlds
 
 -- Version 2.10.7, released 25-5-2022
 
- * Bug fix: fixed a bug in the new cave decoration settings that sometimes caused erors or prevented WorldPainter from starting
+ * Bug fix: fixed a bug in the new cave decoration settings that sometimes caused errors or prevented WorldPainter from starting
 
 -- Version 2.10.6, released 25-5-2022
 

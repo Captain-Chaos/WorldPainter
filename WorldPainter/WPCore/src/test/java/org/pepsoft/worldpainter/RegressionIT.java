@@ -30,6 +30,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
+import static org.pepsoft.worldpainter.GameType.CREATIVE;
 
 /**
  * Created by Pepijn Schmitz on 09-01-17.
@@ -65,6 +66,8 @@ public class RegressionIT {
 //                }
 //            }
 //        }
+        world.setGameType(CREATIVE);
+        world.setAllowCheats(true);
         for (Dimension dimension: world.getDimensions()) {
             File tmpBaseDir = createTmpBaseDir();
             try {
@@ -79,7 +82,7 @@ public class RegressionIT {
                     MinecraftWorldUtils.assertEquals("Anvil 1.2", anvil12World, "Anvil 1.15", anvil115World, area);
                 }
             } finally {
-                FileUtils.deleteDir(tmpBaseDir);
+//                FileUtils.deleteDir(tmpBaseDir);
             }
         }
     }
