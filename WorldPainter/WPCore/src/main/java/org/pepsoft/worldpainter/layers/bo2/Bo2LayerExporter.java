@@ -194,38 +194,26 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
         if (flooded && (spawnUnderWater || spawnUnderLava || spawnOnWater || spawnOnLava)) {
             boolean lava = dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, x, y);
             if (lava ? (spawnUnderLava && spawnOnLava) : (spawnUnderWater && spawnOnWater)) {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable under or on water or lava");
-                }
+                logger.trace("Object {} @ {},{},{} potentially placeable under or on water or lava", object.getName(), x, y, z);
                 return random.nextBoolean() ? Placement.ON_LAND : Placement.FLOATING;
             } else if (lava ? spawnUnderLava : spawnUnderWater) {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable under water or lava");
-                }
+                logger.trace("Object {} @ {},{},{} potentially placeable under water or lava", object.getName(), x, y, z);
                 return Placement.ON_LAND;
             } else if (lava ? spawnOnLava : spawnOnWater) {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable on water or lava");
-                }
+                logger.trace("Object {} @ {},{},{} potentially placeable on water or lava", object.getName(), x, y, z);
                 return Placement.FLOATING;
             }
         } else if (! flooded) {
             Material materialUnderCoords = (z > minecraftWorld.getMinHeight()) ? minecraftWorld.getMaterialAt(x, y, z - 1) : AIR;
             if (object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND) && (! materialUnderCoords.veryInsubstantial)) {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable on land");
-                }
+                logger.trace("Object {} @ {},{},{} potentially placeable on land", object.getName(), x, y, z);
                 return Placement.ON_LAND;
             } else if ((! object.getAttribute(ATTRIBUTE_NEEDS_FOUNDATION)) && materialUnderCoords.veryInsubstantial) {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable in the air");
-                }
+                logger.trace("Object {} @ {},{},{} potentially placeable in the air", object.getName(), x, y, z);
                 return Placement.ON_LAND;
             }
         }
-        if (logger.isTraceEnabled()) {
-            logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " not placeable");
-        }
+        logger.trace("Object {} @ {},{},{} not placeable", object.getName(), x, y, z);
         return Placement.NONE;
     }
 
