@@ -88,7 +88,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                     boolean newTall = (maxHeight - minHeight) > 256;
                     if (newTall == tall) {
                         // Tallness is not changing
-                        if (!heightTransform.isIdentity()) {
+                        if (! heightTransform.isIdentity()) {
                             for (int x = 0; x < TILE_SIZE; x++) {
                                 for (int y = 0; y < TILE_SIZE; y++) {
                                     setHeight(x, y, clamp(heightTransform.transformHeight(getHeight(x, y) + minHeightDelta)));
@@ -1336,12 +1336,14 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
 
     synchronized void convertBiomeData() {
         byte[] biomeData = layerData.remove(Biome.INSTANCE);
-        byte[] newBiomeData = new byte[biomeData.length * 2];
-        for (int i = 0; i < biomeData.length; i++) {
-            newBiomeData[i * 2] = (byte) (biomeData[i] & 0x0f);
-            newBiomeData[i * 2 + 1] = (byte) ((biomeData[i] & 0xf0) >> 4);
+        if (biomeData != null) {
+            byte[] newBiomeData = new byte[biomeData.length * 2];
+            for (int i = 0; i < biomeData.length; i++) {
+                newBiomeData[i * 2] = (byte) (biomeData[i] & 0x0f);
+                newBiomeData[i * 2 + 1] = (byte) ((biomeData[i] & 0xf0) >> 4);
+            }
+            layerData.put(Biome.INSTANCE, newBiomeData);
         }
-        layerData.put(Biome.INSTANCE, newBiomeData);
     }
 
     private boolean getBitPerBlockLayerValue(BitSet bitSet, int x, int y) {
