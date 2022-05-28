@@ -173,8 +173,8 @@ public class WorldIO {
                 resourcesSettings.setChance(LAPIS_LAZULI_ORE, 1);
                 resourcesSettings.setChance(DIAMOND_ORE,      1);
                 resourcesSettings.setChance(REDSTONE_ORE,     6);
-                resourcesSettings.setChance(WATER,            1);
-                resourcesSettings.setChance(LAVA,             1);
+                resourcesSettings.setChance(STATIONARY_WATER, 1);
+                resourcesSettings.setChance(STATIONARY_LAVA,  1);
                 resourcesSettings.setChance(DIRT,             9);
                 resourcesSettings.setChance(GRAVEL,           9);
                 resourcesSettings.setChance(EMERALD_ORE,      0);
@@ -184,8 +184,8 @@ public class WorldIO {
                 resourcesSettings.setMaxLevel(LAPIS_LAZULI_ORE, Terrain.LAPIS_LAZULI_LEVEL);
                 resourcesSettings.setMaxLevel(DIAMOND_ORE,      Terrain.DIAMOND_LEVEL);
                 resourcesSettings.setMaxLevel(REDSTONE_ORE,     Terrain.REDSTONE_LEVEL);
-                resourcesSettings.setMaxLevel(WATER,            Terrain.WATER_LEVEL);
-                resourcesSettings.setMaxLevel(LAVA,             Terrain.LAVA_LEVEL);
+                resourcesSettings.setMaxLevel(STATIONARY_WATER, Terrain.WATER_LEVEL);
+                resourcesSettings.setMaxLevel(STATIONARY_LAVA,  Terrain.LAVA_LEVEL);
                 resourcesSettings.setMaxLevel(DIRT,             Terrain.DIRT_LEVEL);
                 resourcesSettings.setMaxLevel(GRAVEL,           Terrain.GRAVEL_LEVEL);
                 resourcesSettings.setMaxLevel(EMERALD_ORE,      Terrain.GOLD_LEVEL);

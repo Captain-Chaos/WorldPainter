@@ -861,7 +861,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 addedTiles.clear();
                 fireTilesRemoved(removedTiles);
                 removedTiles.clear();
-                dirtyTiles.forEach(org.pepsoft.worldpainter.Tile::releaseEvents);
+                dirtyTiles.forEach(Tile::releaseEvents);
                 dirtyTiles.clear();
             }
         } else {
@@ -1479,7 +1479,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     void ensureAllReadable() {
-        tiles.values().forEach(org.pepsoft.worldpainter.Tile::ensureAllReadable);
+        tiles.values().forEach(Tile::ensureAllReadable);
     }
 
     public void addDimensionListener(Listener listener) {
@@ -1843,9 +1843,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 gridSize = 128;
             }
             if (! biomesConverted) {
-                // Convert the nibble sized biomes data from a legacy map (by
-                // deleting it so that it will be recalculated
-                tiles.values().forEach(org.pepsoft.worldpainter.Tile::convertBiomeData);
+                // Convert the nibble sized biomes data from a legacy map to byte-sized data
+                tiles.values().forEach(Tile::convertBiomeData);
                 biomesConverted = true;
             }
             if (maxHeight == 0) {
@@ -1862,8 +1861,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 settings.setChance(LAPIS_LAZULI_ORE, 1);
                 settings.setChance(DIAMOND_ORE,      1);
                 settings.setChance(REDSTONE_ORE,     6);
-                settings.setChance(WATER,            1);
-                settings.setChance(LAVA,             1);
+                settings.setChance(STATIONARY_WATER, 1);
+                settings.setChance(STATIONARY_LAVA,  1);
                 settings.setChance(DIRT,             9);
                 settings.setChance(GRAVEL,           9);
                 settings.setMaxLevel(GOLD_ORE,         Terrain.GOLD_LEVEL);
@@ -1872,8 +1871,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 settings.setMaxLevel(LAPIS_LAZULI_ORE, Terrain.LAPIS_LAZULI_LEVEL);
                 settings.setMaxLevel(DIAMOND_ORE,      Terrain.DIAMOND_LEVEL);
                 settings.setMaxLevel(REDSTONE_ORE,     Terrain.REDSTONE_LEVEL);
-                settings.setMaxLevel(WATER,            Terrain.WATER_LEVEL);
-                settings.setMaxLevel(LAVA,             Terrain.LAVA_LEVEL);
+                settings.setMaxLevel(STATIONARY_WATER, Terrain.WATER_LEVEL);
+                settings.setMaxLevel(STATIONARY_LAVA,  Terrain.LAVA_LEVEL);
                 settings.setMaxLevel(DIRT,             Terrain.DIRT_LEVEL);
                 settings.setMaxLevel(GRAVEL,           Terrain.GRAVEL_LEVEL);
 
