@@ -545,7 +545,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 material = material.withProperty(PERSISTENT, true);
             }
         }
-        boolean existingMaterialContainsWater = world.getMaterialAt(x, y, z).containsWater();
+        final boolean existingMaterialContainsWater = world.getMaterialAt(x, y, z).containsWater();
         if (material.hasProperty(WATERLOGGED)
                 || ((! material.opaque)
                         && (! material.watery) // These blocks always contain water and therefore don't have a "waterlogged" property; TODO: should we not place these blocks in dry places?
@@ -563,7 +563,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         }
         // Don't replace water with insubstantial blocks that don't have a
         // waterlogged property (assume such a block would be washed away)
-        if ((!material.veryInsubstantial) || (!existingMaterialContainsWater) || material.containsWater()) {
+        if ((! material.veryInsubstantial) || (! existingMaterialContainsWater) || material.containsWater()) {
             world.setMaterialAt(x, y, z, material);
         }
     }

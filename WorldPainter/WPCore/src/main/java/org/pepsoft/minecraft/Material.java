@@ -308,13 +308,13 @@ public final class Material implements Serializable {
                             // that value
                             String key = property.substring(0, p);
                             String value = property.substring(p + 1);
-                            if (!identity.containsPropertyWithValue(key, value)) {
+                            if (! identity.containsPropertyWithValue(key, value)) {
                                 continue specs;
                             }
                         } else {
                             // The spec just specifies a property name; check
                             // that the identity has that property
-                            if (!identity.properties.containsKey(property)) {
+                            if (! identity.properties.containsKey(property)) {
                                 continue specs;
                             }
                         }
