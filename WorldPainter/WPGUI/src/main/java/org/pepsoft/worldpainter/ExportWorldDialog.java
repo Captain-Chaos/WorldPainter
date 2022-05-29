@@ -32,7 +32,6 @@ import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_PEACEFUL;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_18;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.GameType.*;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
@@ -248,15 +247,6 @@ public class ExportWorldDialog extends WorldPainterDialog {
         // Check for warnings
         StringBuilder sb = new StringBuilder("<html>Please confirm that you want to export the world<br>notwithstanding the following warnings:<br><ul>");
         boolean showWarning = false;
-        Configuration config = Configuration.getInstance();
-        if ((platform == JAVA_ANVIL_1_18) && (! config.isMessageDisplayed(BETA_118_WARNING_KEY))) {
-            sb.append("<li><strong>Minecraft 1.18 support is still in preview!</strong><br>" +
-                    "Be careful and keep backups. If you encounter<br>" +
-                    "problems, please report them on GitHub:<br>" +
-                    "https://www.worldpainter.net/issues<br>" +
-                    "This warning will only be displayed once.");
-            showWarning = true;
-        }
         for (Dimension dimension: world.getDimensions()) {
             if (dimension.getDim() < 0) {
                 // Skip ceilings
@@ -386,10 +376,8 @@ public class ExportWorldDialog extends WorldPainterDialog {
         checkBoxMapFeatures.setEnabled(false);
         comboBoxDifficulty.setEnabled(false);
 
+        Configuration config = Configuration.getInstance();
         config.setExportDirectory(world.getPlatform(), baseDir);
-        if (platform == JAVA_ANVIL_1_18) {
-            config.setMessageDisplayed(BETA_118_WARNING_KEY);
-        }
 
         ExportProgressDialog dialog = new ExportProgressDialog(this, world, baseDir, name);
         view.setInhibitUpdates(true);
@@ -867,6 +855,5 @@ public class ExportWorldDialog extends WorldPainterDialog {
     private Set<Point> selectedTiles;
     private boolean disableTileSelectionWarning, disableDisabledLayersWarning;
 
-    private static final String BETA_118_WARNING_KEY = "org.pepsoft.worldpainter.beta118Warning";
     private static final long serialVersionUID = 1L;
 }
