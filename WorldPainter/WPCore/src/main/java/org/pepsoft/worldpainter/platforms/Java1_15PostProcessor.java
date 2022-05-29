@@ -219,10 +219,8 @@ public class Java1_15PostProcessor extends PostProcessor {
                             break;
                         case MC_DEAD_BUSH:
                             if ((materialBelow != SAND) && (materialBelow != RED_SAND) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT) && (! materialBelow.name.endsWith("_terracotta")) && (materialBelow != TERRACOTTA)) {
-                                // Dead shrubs can only exist on materials
-                                // present in Mesa biome
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                // Dead shrubs can only exist on materials present in Mesa biome
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_GRASS:
@@ -239,33 +237,28 @@ public class Java1_15PostProcessor extends PostProcessor {
                         case MC_OXEYE_DAISY:
                             if (materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_FARMLAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK)) {
                                 // Tall grass and flowers can only exist on Grass or Dirt blocks
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_RED_MUSHROOM:
                         case MC_BROWN_MUSHROOM:
                             if ((materialBelow != GRASS_BLOCK) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT) && (materialBelow != MYCELIUM) && (materialBelow != STONE) && (materialBelow != GRANITE) && (materialBelow != DIORITE) && (materialBelow != ANDESITE)) {
                                 // Mushrooms can only exist on Grass, Dirt, Mycelium or Stone (in caves) blocks
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_SNOW:
                             if ((materialBelow == ICE) || materialBelow.isNamed(MC_SNOW) || (materialBelow == AIR) || (materialBelow == PACKED_ICE)) {
-                                // Snow can't be on ice, or another snow block, or air
-                                // (well it could be, but it makes no sense, would
-                                // disappear when touched, and it makes this algorithm
-                                // remove stacks of snow blocks correctly)
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                // Snow can't be on ice, or another snow block, or air (well it could be, but it makes
+                                // no sense, would disappear when touched, and it makes this algorithm remove stacks of
+                                // snow blocks correctly)
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_WHEAT:
                             if (materialBelow.isNotNamed(MC_FARMLAND)) {
                                 // Wheat can only exist on Tilled Dirt blocks
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_SUNFLOWER:
@@ -287,30 +280,26 @@ public class Java1_15PostProcessor extends PostProcessor {
                         case MC_CACTUS:
                             if ((materialBelow != SAND) && (materialBelow != RED_SAND) && materialBelow.isNotNamed(MC_CACTUS)) {
                                 // Cactus blocks can only be on top of sand or other cactus blocks
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_SUGAR_CANE:
                             if (materialBelow.isNotNamed(MC_GRASS_BLOCK) && (materialBelow != DIRT) && materialBelow.isNotNamed(MC_PODZOL) && (materialBelow != PERMADIRT) && (materialBelow != SAND) && (materialBelow != RED_SAND) && materialBelow.isNotNamed(MC_SUGAR_CANE)) {
                                 // Sugar cane blocks can only be on top of grass, dirt, sand or other sugar cane blocks
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_NETHER_WART:
                             if (materialBelow != SOUL_SAND) {
                                 // Nether wart blocks can only be on top of soul sand
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_CHORUS_FLOWER:
                         case MC_CHORUS_PLANT:
                             if ((materialBelow != END_STONE) && (materialBelow.isNotNamed(MC_CHORUS_PLANT))) {
                                 // Chorus flower and plant blocks can only be on top of end stone or other chorus plant blocks
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_FIRE:
@@ -323,8 +312,40 @@ public class Java1_15PostProcessor extends PostProcessor {
                                     && (minecraftWorld.getMaterialAt(x + 1, y, z) == AIR)
                                     && (minecraftWorld.getMaterialAt(x, y - 1, z) == AIR)
                                     && (minecraftWorld.getMaterialAt(x, y + 1, z) == AIR)) {
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                material = clearBlock(minecraftWorld, x, y, z);
+                            }
+                            break;
+                        case MC_KELP:
+                        case MC_KELP_PLANT:
+                            if (! ((materialBelow.solid && materialBelow.opaque && materialBelow.natural) || materialBelow.isNamedOneOf(MC_KELP, MC_KELP_PLANT))) {
+                                material = clearBlock(minecraftWorld, x, y, z);
+                            }
+                            break;
+                        case MC_SEAGRASS:
+                        case MC_TALL_SEAGRASS:
+                        case MC_SEA_PICKLE:
+                        case MC_TUBE_CORAL:
+                        case MC_BRAIN_CORAL:
+                        case MC_BUBBLE_CORAL:
+                        case MC_FIRE_CORAL:
+                        case MC_HORN_CORAL:
+                        case MC_DEAD_TUBE_CORAL:
+                        case MC_DEAD_BRAIN_CORAL:
+                        case MC_DEAD_BUBBLE_CORAL:
+                        case MC_DEAD_FIRE_CORAL:
+                        case MC_DEAD_HORN_CORAL:
+                        case MC_TUBE_CORAL_FAN:
+                        case MC_BRAIN_CORAL_FAN:
+                        case MC_BUBBLE_CORAL_FAN:
+                        case MC_FIRE_CORAL_FAN:
+                        case MC_HORN_CORAL_FAN:
+                        case MC_DEAD_TUBE_CORAL_FAN:
+                        case MC_DEAD_BRAIN_CORAL_FAN:
+                        case MC_DEAD_BUBBLE_CORAL_FAN:
+                        case MC_DEAD_FIRE_CORAL_FAN:
+                        case MC_DEAD_HORN_CORAL_FAN:
+                            if (! (materialBelow.solid && materialBelow.opaque && materialBelow.natural)) {
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                     }

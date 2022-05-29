@@ -109,8 +109,8 @@ public enum Category {
     WATER_PLANTS {
         @Override
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
-            // TODOMC13 it's not clear on what blocks water plants can be
-            //  planted so for now allow all solid blocks
+            // TODOMC13 it's not clear on what blocks water plants can be planted so for now allow all solid, opaque and
+            //  natural blocks
             final Material material = world.getMaterialAt(x, y, z);
             return material.solid && material.opaque && material.natural && world.getMaterialAt(x, y, z + 1).containsWater();
         }
