@@ -34,16 +34,26 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
     }
 
     public Set<Layer> apply(Dimension dimension) {
+        return apply(dimension, null);
+    }
+
+    public Set<Layer> apply(Dimension dimension, Set<Point> selectedTiles) {
         Set<Layer> addedLayers = new HashSet<>();
-        for (Tile tile : dimension.getTiles()) {
-            addedLayers.addAll(apply(tile));
+        if (selectedTiles == null) {
+            for (Tile tile: dimension.getTiles()) {
+                addedLayers.addAll(apply(tile));
+            }
+        } else {
+            for (Point coords: selectedTiles) {
+                addedLayers.addAll(apply(dimension.getTile(coords)));
+            }
         }
         return addedLayers;
     }
 
     public Set<Layer> apply(Tile tile) {
         Set<Layer> addedLayers = new HashSet<>();
-        if (!tile.hasLayer(this)) {
+        if (! tile.hasLayer(this)) {
             return Collections.emptySet();
         }
         tile.inhibitEvents();
@@ -132,17 +142,14 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
     }
 
     /**
-     * Returns a dummy exporter, all methods of which throw an
-     * {@link UnsupportedOperationException}, since combined layers must be
-     * exported by {@link #apply(Dimension) applying} them and then exporting
-     * its constituent layers, if any.
+     * Returns a dummy exporter, all methods of which throw an {@link UnsupportedOperationException}, since combined
+     * layers must be exported by {@link #apply(Dimension, Set) applying} them and then exporting its constituent
+     * layers, if any.
      *
-     * <p>The exporter does implement {@link FirstPassLayerExporter} and
-     * {@link SecondPassLayerExporter} though, to signal the fact that it can
-     * contain layers for both phases.
+     * <p>The exporter does implement {@link FirstPassLayerExporter} and {@link SecondPassLayerExporter} though,
+     * to signal the fact that it can contain layers for both phases.
      *
-     * @return A dummy exporter which always throws
-     * {@code UnsupportedOperationException}.
+     * @return A dummy exporter which always throws {@code UnsupportedOperationException}.
      */
     @Override
     public LayerExporter getExporter(Dimension dimension, Platform platform, ExporterSettings settings) {

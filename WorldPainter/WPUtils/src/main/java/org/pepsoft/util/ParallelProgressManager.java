@@ -126,8 +126,10 @@ public class ParallelProgressManager {
             progressReceiver.exceptionThrown(exception);
         } else if (exception instanceof ProgressReceiver.OperationCancelledByUser) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Operation cancelled by user; not reporting to progress receiver", exception);
+                logger.debug("Operation cancelled by user; not reporting to progress receiver");
             }
+        } else if (exception instanceof ProgressReceiver.OperationCancelled) {
+            logger.debug("Operation cancelled on thread {} (message: \"{}\")", Thread.currentThread().getName(), exception.getMessage());
         } else {
             logger.error("Secondary exception from parallel task; not reporting to progress receiver", exception);
         }

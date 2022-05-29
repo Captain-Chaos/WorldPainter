@@ -39,6 +39,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
@@ -123,20 +124,17 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             ceiling.rememberChanges();
         }
         try {
-            setupDimensionForExport(dimension);
-            if (ceiling != null) {
-                setupDimensionForExport(ceiling);
-            }
-
             // Determine regions to export
             int lowestRegionX = Integer.MAX_VALUE, highestRegionX = Integer.MIN_VALUE, lowestRegionZ = Integer.MAX_VALUE, highestRegionZ = Integer.MIN_VALUE;
             final Set<Point> regions = new HashSet<>(), exportedRegions = new HashSet<>();
-            final boolean tileSelection = world.getTilesToExport() != null;
-            if (tileSelection) {
+            final boolean tilesSelected = world.getTilesToExport() != null;
+            final Set<Point> selectedTiles;
+            if (tilesSelected) {
                 // Sanity check
                 assert world.getDimensionsToExport().size() == 1;
                 assert world.getDimensionsToExport().contains(dimension.getDim());
-                for (Point tile: world.getTilesToExport()) {
+                selectedTiles = world.getTilesToExport();
+                for (Point tile: selectedTiles) {
                     int regionX = tile.x >> 2;
                     int regionZ = tile.y >> 2;
                     regions.add(new Point(regionX, regionZ));
@@ -154,6 +152,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                     }
                 }
             } else {
+                selectedTiles = null;
                 for (Tile tile: dimension.getTiles()) {
                     // Also add regions for any bedrock wall and/or border
                     // tiles, if present
@@ -200,6 +199,11 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 }
             }
 
+            setupDimensionForExport(dimension, selectedTiles);
+            if (ceiling != null) {
+                setupDimensionForExport(ceiling, selectedTiles);
+            }
+
             // Sort the regions to export the first two rows together, and then
             // row by row, to get the optimum tempo of performing fixups
             java.util.List<Point> sortedRegions = new ArrayList<>(regions.size());
@@ -229,16 +233,21 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             final ExecutorService executor = createExecutorService("exporting", sortedRegions.size());
             final RuntimeException[] exception = new RuntimeException[1];
             final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, regions.size()) : null;
+            final AtomicBoolean abort = new AtomicBoolean();
             try {
                 // Export each individual region
                 for (Point region: sortedRegions) {
                     final Point regionCoords = region;
                     executor.execute(() -> {
+                        if (abort.get()) {
+                            return;
+                        }
                         ProgressReceiver progressReceiver1 = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
                         if (progressReceiver1 != null) {
                             try {
                                 progressReceiver1.checkForCancellation();
                             } catch (OperationCancelled e) {
+                                abort.set(true);
                                 return;
                             }
                         }
@@ -251,7 +260,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                             WorldRegion worldRegion = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
                             ExportResults exportResults = null;
                             try {
-                                exportResults = exportRegion(worldRegion, dimension, ceiling, regionCoords, tileSelection, exporters, ceilingExporters, chunkFactory, ceilingChunkFactory, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
+                                exportResults = exportRegion(worldRegion, dimension, ceiling, regionCoords, tilesSelected, exporters, ceilingExporters, chunkFactory, ceilingChunkFactory, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
                                 if (logger.isDebugEnabled()) {
                                     logger.debug("Generated region " + regionCoords.x + "," + regionCoords.y);
                                 }
@@ -279,14 +288,18 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                             }
                             performFixupsIfNecessary(worldDir, dimension, regions, fixups, exportedRegions, progressReceiver1);
                         } catch (Throwable t) {
+                            if (t instanceof OperationCancelled) {
+                                logger.debug("Operation cancelled on thread {} (message: \"{}\")", Thread.currentThread().getName(), t.getMessage());
+                            } else {
+                                logger.error(t.getClass().getSimpleName() + " while exporting region {},{} (message: \"{}\")", region.x, region.y, t.getMessage(), t);
+                            }
+                            abort.set(true);
                             if (progressReceiver1 != null) {
                                 progressReceiver1.exceptionThrown(t);
                             } else {
-                                logger.error(t.getClass().getSimpleName() + " while exporting region {},{}", region.x, region.y, t);
                                 if (exception[0] == null) {
                                     exception[0] = new RuntimeException(t.getClass().getSimpleName() + " while exporting region" + region.x + "," + region.y, exception[0]);
                                 }
-                                executor.shutdownNow();
                             }
                         }
                     });
@@ -300,22 +313,23 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 }
             }
 
-            // If there is a progress receiver then we have reported any
-            // exceptions to it, but if not then we should rethrow the recorded
-            // exception, if any
+            // If there is a progress receiver then we have reported any exceptions to it, but if not then we should
+            // rethrow the recorded exception, if any
             if (exception[0] != null) {
                 throw exception[0];
             }
 
-            // It's possible for there to be fixups left, if thread A was
-            // performing fixups and thread B added new ones and then quit
-            synchronized (fixups) {
-                if (! fixups.isEmpty()) {
-                    if (progressReceiver != null) {
-                        progressReceiver.setMessage("Doing remaining fixups for " + dimension.getName());
-                        progressReceiver.reset();
+            if (! abort.get()) {
+                // It's possible for there to be fixups left, if thread A was performing fixups and thread B added new
+                // ones and then quit
+                synchronized (fixups) {
+                    if (! fixups.isEmpty()) {
+                        if (progressReceiver != null) {
+                            progressReceiver.setMessage("Doing remaining fixups for " + dimension.getName());
+                            progressReceiver.reset();
+                        }
+                        performFixups(worldDir, dimension, progressReceiver, fixups);
                     }
-                    performFixups(worldDir, dimension, progressReceiver, fixups);
                 }
             }
 
@@ -362,9 +376,17 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
     }
 
-    protected void setupDimensionForExport(Dimension dimension) {
-        // Gather all layers used on the map
-        Set<Layer> allLayers = dimension.getAllLayers(false);
+    protected void setupDimensionForExport(Dimension dimension, Set<Point> selectedTiles) {
+        // Gather all layers used on the map/selected tiles
+        final Set<Layer> allLayers;
+        if (selectedTiles == null) {
+            allLayers = dimension.getAllLayers(false);
+        } else {
+            allLayers = new HashSet<>();
+            for (Point coords: selectedTiles) {
+                allLayers.addAll(dimension.getTile(coords).getLayers());
+            }
+        }
         allLayers.addAll(dimension.getMinimumLayers());
         // If there are combined layers, apply them and gather any newly added layers, recursively
         boolean done;
@@ -373,7 +395,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             for (Layer layer: new HashSet<>(allLayers)) {
                 if ((layer instanceof CombinedLayer) && ((CombinedLayer) layer).isExport()) {
                     // Apply the combined layer
-                    Set<Layer> addedLayers = ((CombinedLayer) layer).apply(dimension);
+                    final Set<Layer> addedLayers = ((CombinedLayer) layer).apply(dimension, selectedTiles);
                     // Remove the combined layer from the list
                     allLayers.remove(layer);
                     // Add any layers it might have added

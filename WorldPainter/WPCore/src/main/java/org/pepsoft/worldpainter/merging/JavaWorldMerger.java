@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.joining;
@@ -405,7 +406,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         dimension.rememberChanges();
         try {
 
-            setupDimensionForExport(dimension);
+            final Set<Point> selectedTiles = world.getTilesToExport();
+            setupDimensionForExport(dimension, selectedTiles);
             // TODO add ceiling support
 
             // Sort tiles into regions
@@ -481,6 +483,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             final Set<Point> exportedRegions = new HashSet<>();
             final ExecutorService executor = createExecutorService("merging", allRegionCoords.size() + additionalRegions.size());
             final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, sortedRegions.size() + additionalRegions.size()) : null;
+            final AtomicBoolean abort = new AtomicBoolean();
             try {
                 // Merge each individual region
                 for (final Point regionCoords: sortedRegions) {
@@ -492,11 +495,15 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             }
                             final Map<Point, Tile> tiles = tilesByRegion.get(regionCoords);
                             executor.execute(() -> {
+                                if (abort.get()) {
+                                    return;
+                                }
                                 final ProgressReceiver progressReceiver1 = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
                                 if (progressReceiver1 != null) {
                                     try {
                                         progressReceiver1.checkForCancellation();
                                     } catch (ProgressReceiver.OperationCancelled e) {
+                                        abort.set(true);
                                         return;
                                     }
                                 }
@@ -507,7 +514,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                     final List<Fixup> regionFixups = new ArrayList<>();
                                     final WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
                                     try {
-                                        final String regionWarnings = mergeRegion(minecraftWorld, backupRegionDir, dimension, regionCoords, tiles, world.getTilesToExport() != null, exporters, chunkFactory, regionFixups, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
+                                        final String regionWarnings = mergeRegion(minecraftWorld, backupRegionDir, dimension, regionCoords, tiles, selectedTiles != null, exporters, chunkFactory, regionFixups, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
                                         if (regionWarnings != null) {
                                             if (warnings == null) {
                                                 warnings = regionWarnings;
@@ -529,10 +536,10 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                     }
                                     performFixupsIfNecessary(worldDir, dimension, allRegionCoords, fixups, exportedRegions, progressReceiver1);
                                 } catch (Throwable t) {
+                                    logger.error("{} while merging region {},{} (message: \"{}\")", t.getClass().getSimpleName(), regionCoords.x, regionCoords.y, t.getMessage(), t);
+                                    abort.set(true);
                                     if (progressReceiver1 != null) {
                                         progressReceiver1.exceptionThrown(t);
-                                    } else {
-                                        logger.error("Exception while exporting region", t);
                                     }
                                 }
                             });
@@ -543,7 +550,28 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             if (additionalRegions.containsKey(regionCoords)) {
                                 regions.putAll(additionalRegions.get(regionCoords));
                             }
-                            copyRegionsUnchanged(fixups, exportedRegions, executor, parallelProgressManager, regionCoords, regions, dimensionDir);
+                            executor.execute(() -> {
+                                if (abort.get()) {
+                                    return;
+                                }
+                                if (progressReceiver != null) {
+                                    try {
+                                        progressReceiver.checkForCancellation();
+                                    } catch (ProgressReceiver.OperationCancelled e) {
+                                        abort.set(true);
+                                        return;
+                                    }
+                                }
+                                try {
+                                    copyRegionsUnchanged(fixups, exportedRegions, regionCoords, regions, dimensionDir, (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null);
+                                } catch (Throwable t) {
+                                    logger.error("{} while copying region {},{} (message: \"{}\")", t.getClass().getSimpleName(), regionCoords.x, regionCoords.y, t.getMessage(), t);
+                                    abort.set(true);
+                                    if (progressReceiver != null) {
+                                        progressReceiver.exceptionThrown(t);
+                                    }
+                                }
+                            });
                         }
                     } else {
                         // Region only exists in new world. Create it as new
@@ -551,11 +579,15 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             logger.debug("Region " + regionCoords + " does not exist in existing map and will be created as new");
                         }
                         executor.execute(() -> {
+                            if (abort.get()) {
+                                return;
+                            }
                             final ProgressReceiver progressReceiver1 = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
                             if (progressReceiver1 != null) {
                                 try {
                                     progressReceiver1.checkForCancellation();
                                 } catch (ProgressReceiver.OperationCancelled e) {
+                                    abort.set(true);
                                     return;
                                 }
                             }
@@ -566,7 +598,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                 final WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
                                 ExportResults exportResults = null;
                                 try {
-                                    exportResults = exportRegion(minecraftWorld, dimension, null, regionCoords, world.getTilesToExport() != null, exporters, null, chunkFactory, null, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.9f, 0.1f) : null);
+                                    exportResults = exportRegion(minecraftWorld, dimension, null, regionCoords, selectedTiles != null, exporters, null, chunkFactory, null, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.9f, 0.1f) : null);
                                     if (logger.isDebugEnabled()) {
                                         logger.debug("Generated region " + regionCoords.x + "," + regionCoords.y);
                                     }
@@ -583,10 +615,10 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                 }
                                 performFixupsIfNecessary(worldDir, dimension, allRegionCoords, fixups, exportedRegions, progressReceiver1);
                             } catch (Throwable t) {
+                                logger.error("{} while exporting region {},{} (message: \"{}\")", t.getClass().getSimpleName(), regionCoords.x, regionCoords.y, t.getMessage(), t);
+                                abort.set(true);
                                 if (progressReceiver1 != null) {
                                     progressReceiver1.exceptionThrown(t);
-                                } else {
-                                    logger.error("Exception while exporting region", t);
                                 }
                             }
                         });
@@ -597,7 +629,28 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         // This is a region file from a directory other than "region" which does not have a
                         // corresponding region file in "region" in either the old or new maps, so it was not processed
                         // yet. Just copy it
-                        copyRegionsUnchanged(fixups, exportedRegions, executor, parallelProgressManager, coords, regions, dimensionDir);
+                        executor.execute(() -> {
+                            if (abort.get()) {
+                                return;
+                            }
+                            if (progressReceiver != null) {
+                                try {
+                                    progressReceiver.checkForCancellation();
+                                } catch (ProgressReceiver.OperationCancelled e) {
+                                    abort.set(true);
+                                    return;
+                                }
+                            }
+                            try {
+                                copyRegionsUnchanged(fixups, exportedRegions, coords, regions, dimensionDir, (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null);
+                            } catch (Throwable t) {
+                                logger.error("{} while copying region {},{} (message: \"{}\")", t.getClass().getSimpleName(), coords.x, coords.y, t.getMessage(), t);
+                                abort.set(true);
+                                if (progressReceiver != null) {
+                                    progressReceiver.exceptionThrown(t);
+                                }
+                            }
+                        });
                     }
                 });
             } finally {
@@ -609,16 +662,17 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 }
             }
 
-            // It's possible for there to be fixups left, if thread A was
-            // performing fixups and thread B added new ones and then quit, or
-            // if regions were copied from the existing map
-            synchronized (fixups) {
-                if (! fixups.isEmpty()) {
-                    if (progressReceiver != null) {
-                        progressReceiver.setMessage("doing remaining fixups for " + dimension.getName());
-                        progressReceiver.reset();
+            // It's possible for there to be fixups left, if thread A was performing fixups and thread B added new ones
+            // and then quit, or if regions were copied from the existing map
+            if (! abort.get()) {
+                synchronized (fixups) {
+                    if (!fixups.isEmpty()) {
+                        if (progressReceiver != null) {
+                            progressReceiver.setMessage("doing remaining fixups for " + dimension.getName());
+                            progressReceiver.reset();
+                        }
+                        performFixups(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, fixups);
                     }
-                    performFixups(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, fixups);
                 }
             }
 
@@ -706,47 +760,29 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         return tilesByRegion;
     }
 
-    private void copyRegionsUnchanged(Map<Point, List<Fixup>> fixups, Set<Point> exportedRegions, ExecutorService executor, ParallelProgressManager parallelProgressManager, Point coords, Map<DataType, File> regions, File dimensionDir) {
+    private void copyRegionsUnchanged(Map<Point, List<Fixup>> fixups, Set<Point> exportedRegions, Point coords, Map<DataType, File> regions, File dimensionDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
         if (logger.isDebugEnabled()) {
             logger.debug("Region " + coords + " does not exist in new world and will be copied from existing map");
         }
-        executor.execute(() -> {
-            final ProgressReceiver progressReceiver = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
-            if (progressReceiver != null) {
-                try {
-                    progressReceiver.checkForCancellation();
-                } catch (ProgressReceiver.OperationCancelled e) {
-                    return;
-                }
-            }
-            try {
-                if (progressReceiver != null) {
-                    progressReceiver.setMessage("Copying region " + coords.x + "," + coords.y + " unchanged");
-                }
-                final int fileCount = regions.size();
-                int fileNo = 0;
-                for (Map.Entry<DataType, File> entry: regions.entrySet()) {
-                    DataType type = entry.getKey();
-                    File file = entry.getValue();
-                    FileUtils.copyFileToDir(file, new File(dimensionDir, type.name().toLowerCase()), (progressReceiver != null)
-                            ? ((fileCount == 1) ? progressReceiver : new SubProgressReceiver(progressReceiver, "Copying region " + coords.x + "," + coords.y + " of type " + type + " unchanged", (float) fileNo / fileCount, 1.0f / fileCount))
-                            : null);
-                    fileNo++;
-                }
-                synchronized (fixups) {
-                    exportedRegions.add(coords);
-                }
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Copied region " + coords.x + "," + coords.y);
-                }
-            } catch (Throwable t) {
-                if (progressReceiver != null) {
-                    progressReceiver.exceptionThrown(t);
-                } else {
-                    logger.error("Exception while copying region " + coords.x + "," + coords.y, t);
-                }
-            }
-        });
+        if (progressReceiver != null) {
+            progressReceiver.setMessage("Copying region " + coords.x + "," + coords.y + " unchanged");
+        }
+        final int fileCount = regions.size();
+        int fileNo = 0;
+        for (Map.Entry<DataType, File> entry: regions.entrySet()) {
+            DataType type = entry.getKey();
+            File file = entry.getValue();
+            FileUtils.copyFileToDir(file, new File(dimensionDir, type.name().toLowerCase()), (progressReceiver != null)
+                    ? ((fileCount == 1) ? progressReceiver : new SubProgressReceiver(progressReceiver, "Copying region " + coords.x + "," + coords.y + " of type " + type + " unchanged", (float) fileNo / fileCount, 1.0f / fileCount))
+                    : null);
+            fileNo++;
+        }
+        synchronized (fixups) {
+            exportedRegions.add(coords);
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Copied region " + coords.x + "," + coords.y);
+        }
     }
 
     private String mergeRegion(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter> exporters, ChunkFactory chunkFactory, List<Fixup> fixups, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
