@@ -17,15 +17,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
-import static org.pepsoft.minecraft.Block.BLOCK_TYPE_NAMES;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
@@ -685,18 +678,6 @@ public class EditObjectAttributes extends javax.swing.JDialog {
     private final Map<WPObject, Point3i> offsets = new HashMap<>();
     private final ColourScheme colourScheme;
     private boolean cancelled = true;
-    
-    private static final String[] BLOCK_TYPES = new String[256];
-    
-    static {
-        for (int i = 0; i < 256; i++) {
-            if ((i >= BLOCK_TYPE_NAMES.length) || (BLOCK_TYPE_NAMES[i] == null)) {
-                BLOCK_TYPES[i] = Integer.toString(i);
-            } else {
-                BLOCK_TYPES[i] = i + " " + BLOCK_TYPE_NAMES[i];
-            }
-        }
-    }
-    
+
     private static final long serialVersionUID = 1L;
 }

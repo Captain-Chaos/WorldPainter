@@ -6,7 +6,7 @@
 
 package org.pepsoft.worldpainter.layers.bo2;
 
-import org.pepsoft.minecraft.Constants;
+import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.ColourScheme;
@@ -35,6 +35,7 @@ import java.text.NumberFormat;
 import java.util.List;
 import java.util.*;
 
+import static org.pepsoft.minecraft.Material.PERSISTENT;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
@@ -454,38 +455,35 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         }
         boolean decayingLeavesFound = false;
         boolean nonDecayingLeavesFound = false;
-outer:  for (Enumeration<WPObject> e = listModel.elements(); e.hasMoreElements(); ) {
+        outer:
+        for (Enumeration<WPObject> e = listModel.elements(); e.hasMoreElements(); ) {
             WPObject object = e.nextElement();
             int leafDecayMode = object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE);
             switch (leafDecayMode) {
                 case LEAF_DECAY_NO_CHANGE:
-                    // Leaf decay attribute not set (or set to "no change");
-                    // examine actual blocks
+                    // Leaf decay attribute not set (or set to "no change"); examine actual blocks
                     object.prepareForExport(context.getDimension());
                     Point3i dim = object.getDimensions();
                     for (int x = 0; x < dim.x; x++) {
                         for (int y = 0; y < dim.y; y++) {
                             for (int z = 0; z < dim.z; z++) {
-                                if ((object.getMask(x, y, z))
-                                        && ((object.getMaterial(x, y, z).blockType == Constants.BLK_LEAVES)
-                                            || (object.getMaterial(x, y, z).blockType == Constants.BLK_LEAVES2))) {
-                                    if ((object.getMaterial(x, y, z).data & 0x4) == 0x4) {
-                                        // Non decaying leaf block
-                                        nonDecayingLeavesFound = true;
-                                        if (decayingLeavesFound) {
-                                            // We have enough information; no
-                                            // reason to continue the
-                                            // examination
-                                            break outer;
-                                        }
-                                    } else {
-                                        // Decaying leaf block
-                                        decayingLeavesFound = true;
-                                        if (nonDecayingLeavesFound) {
-                                            // We have enough information; no
-                                            // reason to continue the
-                                            // examination
-                                            break outer;
+                                if (object.getMask(x, y, z)) {
+                                    final Material material = object.getMaterial(x, y, z);
+                                    if (material.name.endsWith("_leaves")) {
+                                        if (material.is(PERSISTENT)) {
+                                            // Non decaying leaf block
+                                            nonDecayingLeavesFound = true;
+                                            if (decayingLeavesFound) {
+                                                // We have enough information; no reason to continue the examination
+                                                break outer;
+                                            }
+                                        } else {
+                                            // Decaying leaf block
+                                            decayingLeavesFound = true;
+                                            if (nonDecayingLeavesFound) {
+                                                // We have enough information; no reason to continue the examination
+                                                break outer;
+                                            }
                                         }
                                     }
                                 }
@@ -494,26 +492,20 @@ outer:  for (Enumeration<WPObject> e = listModel.elements(); e.hasMoreElements()
                     }
                     break;
                 case LEAF_DECAY_OFF:
-                    // Leaf decay attribute set to "off"; don't examine blocks
-                    // for performance (even though this could lead to
-                    // misleading information if the object doesn't contain any
-                    // leaf blocks)
+                    // Leaf decay attribute set to "off"; don't examine blocks for performance (even though this could
+                    // lead to misleading information if the object doesn't contain any leaf blocks)
                     nonDecayingLeavesFound = true;
                     if (decayingLeavesFound) {
-                        // We have enough information; no reason to continue the
-                        // examination
+                        // We have enough information; no reason to continue the examination
                         break outer;
                     }
                     break;
                 case LEAF_DECAY_ON:
-                    // Leaf decay attribute set to "off"; don't examine blocks
-                    // for performance (even though this could lead to
-                    // misleading information if the object doesn't contain any
-                    // leaf blocks)
+                    // Leaf decay attribute set to "off"; don't examine blocks for performance (even though this could
+                    // lead to misleading information if the object doesn't contain any leaf blocks)
                     decayingLeavesFound = true;
                     if (nonDecayingLeavesFound) {
-                        // We have enough information; no reason to continue the
-                        // examination
+                        // We have enough information; no reason to continue the examination
                         break outer;
                     }
                     break;
