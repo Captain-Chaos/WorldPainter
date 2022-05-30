@@ -338,7 +338,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
             if (checkForNameOnlyMaterials) {
                 Set<String> materialNamesEncountered = new HashSet<>();
                 object.visitBlocks((o, x, y, z, material) -> {
-                    if (!materialNamesEncountered.contains(material.name)) {
+                    if (! materialNamesEncountered.contains(material.name)) {
                         materialNamesEncountered.add(material.name);
                         if (material.blockType == -1) {
                             nameOnlyMaterialsNames.add(material.name);

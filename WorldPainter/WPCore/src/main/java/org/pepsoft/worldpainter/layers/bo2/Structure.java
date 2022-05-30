@@ -129,7 +129,9 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
         if (name.toLowerCase().endsWith(".nbt")) {
             name = name.substring(0, name.length() - 4).trim();
         }
-        return load(name, new FileInputStream(file));
+        final Structure structure = load(name, new FileInputStream(file));
+        structure.setAttribute(ATTRIBUTE_FILE, file);
+        return structure;
     }
 
     @SuppressWarnings("unchecked") // Guaranteed by Minecraft

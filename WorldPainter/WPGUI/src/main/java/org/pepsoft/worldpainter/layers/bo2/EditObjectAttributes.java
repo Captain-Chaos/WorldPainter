@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.layers.bo2;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.ColourScheme;
+import org.pepsoft.worldpainter.WorldPainterDialog;
 import org.pepsoft.worldpainter.objects.WPObject;
 
 import javax.swing.*;
@@ -26,13 +27,13 @@ import static org.pepsoft.worldpainter.objects.WPObject.*;
  *
  * @author pepijn
  */
-public class EditObjectAttributes extends javax.swing.JDialog {
+public class EditObjectAttributes extends WorldPainterDialog {
     public EditObjectAttributes(Window parent, WPObject object, ColourScheme colourScheme) {
         this(parent, Collections.singleton(object), colourScheme);
     }
     
     public EditObjectAttributes(Window parent, Collection<WPObject> objects, ColourScheme colourScheme) {
-        super(parent, ModalityType.DOCUMENT_MODAL);
+        super(parent);
         this.objects = objects;
         this.colourScheme = colourScheme;
         
@@ -55,6 +56,8 @@ public class EditObjectAttributes extends javax.swing.JDialog {
                 if (! file.exists()) {
                     labelFile.setForeground(Color.RED);
                 }
+            } else {
+                labelFile.setText("<html><i>unknown</i></html>");
             }
             Point3i offset = object.getOffset();
             offsets.put(object, offset);
@@ -152,6 +155,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
             checkBoxExtendFoundation.setMixed(true);
         }
         pack();
+        scaleToUI();
         
         ActionMap actionMap = rootPane.getActionMap();
         actionMap.put("cancel", new AbstractAction("cancel") {
@@ -173,10 +177,6 @@ public class EditObjectAttributes extends javax.swing.JDialog {
         setControlStates();
     }
 
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
     private void editOffset() {
         if (objects.size() > 1) {
             return;
@@ -193,7 +193,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
         }
     }
 
-    private void ok() {
+    protected void ok() {
         boolean singleSelection = objects.size() == 1;
         for (WPObject object: objects) {
             if (singleSelection && (! fieldName.getText().trim().isEmpty())) {
@@ -264,8 +264,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
                 object.setAttributes(null);
             }
         }
-        cancelled = false;
-        dispose();
+        super.ok();
     }
 
     private void autoOffset() {
@@ -530,13 +529,14 @@ public class EditObjectAttributes extends javax.swing.JDialog {
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(labelFile))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addComponent(buttonOK)
                                 .addGap(77, 77, 77))
-                            .addComponent(buttonCancel, javax.swing.GroupLayout.Alignment.TRAILING))))
+                            .addComponent(buttonCancel, javax.swing.GroupLayout.Alignment.TRAILING)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(labelFile)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -615,7 +615,7 @@ public class EditObjectAttributes extends javax.swing.JDialog {
     }//GEN-LAST:event_labelOffsetMouseClicked
 
     private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelActionPerformed
-        dispose();
+        cancel();
     }//GEN-LAST:event_buttonCancelActionPerformed
 
     private void buttonOffsetAutoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonOffsetAutoActionPerformed
@@ -677,7 +677,6 @@ public class EditObjectAttributes extends javax.swing.JDialog {
     private final File file;
     private final Map<WPObject, Point3i> offsets = new HashMap<>();
     private final ColourScheme colourScheme;
-    private boolean cancelled = true;
 
     private static final long serialVersionUID = 1L;
 }

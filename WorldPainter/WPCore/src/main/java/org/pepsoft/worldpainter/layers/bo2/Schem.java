@@ -13,10 +13,7 @@ import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.objects.WPObject;
 
 import javax.vecmath.Point3i;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 
@@ -232,6 +229,12 @@ public final class Schem extends AbstractNBTItem implements WPObject {
             clone.attributes = new HashMap<>(attributes);
         }
         return clone;
+    }
+
+    public static Schem load(File file) throws IOException {
+        final Schem schem = load(new FileInputStream(file), file.getName().substring(0, file.getName().lastIndexOf('.')));
+        schem.setAttribute(ATTRIBUTE_FILE, file);
+        return schem;
     }
 
     public static Schem load(InputStream stream, String fallBackName) throws IOException {
