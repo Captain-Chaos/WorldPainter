@@ -77,6 +77,8 @@ public class EditObjectAttributes extends WorldPainterDialog {
             checkBoxOnWater.setTristateMode(false);
             checkBoxOnLava.setSelected(object.getAttribute(ATTRIBUTE_SPAWN_ON_LAVA));
             checkBoxOnLava.setTristateMode(false);
+            checkBoxCollideWithFloor.setSelected(! object.getAttribute(ATTRIBUTE_SPAWN_ON_WATER_NO_COLLIDE));
+            checkBoxCollideWithFloor.setTristateMode(false);
             // Remove "no change" choices
             ((DefaultComboBoxModel) comboBoxCollisionMode.getModel()).removeElementAt(0);
             ((DefaultComboBoxModel) comboBoxUndergroundMode.getModel()).removeElementAt(0);
@@ -141,6 +143,7 @@ public class EditObjectAttributes extends WorldPainterDialog {
             checkBoxOnSolidLand.setMixed(true);
             checkBoxOnWater.setMixed(true);
             checkBoxOnLava.setMixed(true);
+            checkBoxCollideWithFloor.setMixed(true);
             labelOffset.setCursor(null);
             labelOffset.setForeground(null);
             int averageFrequency = (int) (frequencyTotal / objects.size());
@@ -235,6 +238,9 @@ public class EditObjectAttributes extends WorldPainterDialog {
             if (! checkBoxOnWater.isMixed()) {
                 attributes.put(ATTRIBUTE_SPAWN_ON_WATER.key, checkBoxOnWater.isSelected());
             }
+            if (! checkBoxCollideWithFloor.isMixed()) {
+                attributes.put(ATTRIBUTE_SPAWN_ON_WATER_NO_COLLIDE.key, ! checkBoxCollideWithFloor.isSelected());
+            }
             if (! checkBoxOnLava.isMixed()) {
                 attributes.put(ATTRIBUTE_SPAWN_ON_LAVA.key, checkBoxOnLava.isSelected());
             }
@@ -301,8 +307,8 @@ public class EditObjectAttributes extends WorldPainterDialog {
     }
     
     private void setControlStates() {
-        boolean replaceBlocks = checkBoxReplace.isSelected();
-        comboBoxReplacedMaterial.setEnabled(replaceBlocks);
+        comboBoxReplacedMaterial.setEnabled(checkBoxReplace.isSelected());
+        checkBoxCollideWithFloor.setEnabled(checkBoxOnWater.isSelected() || checkBoxOnWater.isTristateMode());
     }
     
     /**
@@ -346,6 +352,7 @@ public class EditObjectAttributes extends WorldPainterDialog {
         checkBoxReplace = new javax.swing.JCheckBox();
         checkBoxExtendFoundation = new org.pepsoft.worldpainter.util.TristateCheckBox();
         comboBoxReplacedMaterial = new javax.swing.JComboBox<>();
+        checkBoxCollideWithFloor = new org.pepsoft.worldpainter.util.TristateCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Edit Object Attributes");
@@ -433,6 +440,11 @@ public class EditObjectAttributes extends WorldPainterDialog {
         checkBoxOnAir.setText("on air");
 
         checkBoxOnWater.setText("on water");
+        checkBoxOnWater.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxOnWaterActionPerformed(evt);
+            }
+        });
 
         checkBoxUnderWater.setText("under water");
 
@@ -463,6 +475,10 @@ public class EditObjectAttributes extends WorldPainterDialog {
         checkBoxExtendFoundation.setText("extend foundation to ground");
 
         comboBoxReplacedMaterial.setEnabled(false);
+
+        checkBoxCollideWithFloor.setSelected(true);
+        checkBoxCollideWithFloor.setText("collide with floor");
+        checkBoxCollideWithFloor.setEnabled(false);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -513,7 +529,10 @@ public class EditObjectAttributes extends WorldPainterDialog {
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(checkBoxOnAir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(checkBoxOnWater, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(checkBoxOnLava, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                    .addComponent(checkBoxOnLava, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(21, 21, 21)
+                                        .addComponent(checkBoxCollideWithFloor, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE))))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel9)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -575,6 +594,8 @@ public class EditObjectAttributes extends WorldPainterDialog {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(checkBoxUnderWater, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(checkBoxOnWater, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(checkBoxCollideWithFloor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(checkBoxUnderLava, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -638,11 +659,16 @@ public class EditObjectAttributes extends WorldPainterDialog {
         setControlStates();
     }//GEN-LAST:event_checkBoxReplaceActionPerformed
 
+    private void checkBoxOnWaterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxOnWaterActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_checkBoxOnWaterActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
     private javax.swing.JButton buttonOK;
     private javax.swing.JButton buttonOffsetAuto;
     private javax.swing.JButton buttonOffsetReset;
+    private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxCollideWithFloor;
     private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxExtendFoundation;
     private javax.swing.JCheckBox checkBoxFrequencyActive;
     private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxOnAir;

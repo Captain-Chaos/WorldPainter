@@ -76,6 +76,10 @@
                                   <Component id="checkBoxOnAir" min="-2" max="-2" attributes="0"/>
                                   <Component id="checkBoxOnWater" alignment="0" min="-2" max="-2" attributes="0"/>
                                   <Component id="checkBoxOnLava" min="-2" max="-2" attributes="0"/>
+                                  <Group type="102" attributes="0">
+                                      <EmptySpace min="21" pref="21" max="-2" attributes="0"/>
+                                      <Component id="checkBoxCollideWithFloor" min="-2" pref="121" max="-2" attributes="0"/>
+                                  </Group>
                               </Group>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
@@ -156,6 +160,8 @@
                           <Component id="checkBoxUnderWater" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="checkBoxOnWater" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="checkBoxCollideWithFloor" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="checkBoxUnderLava" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -361,6 +367,9 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="on water"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxOnWaterActionPerformed"/>
+      </Events>
     </Component>
     <Component class="org.pepsoft.worldpainter.util.TristateCheckBox" name="checkBoxUnderWater">
       <Properties>
@@ -424,6 +433,13 @@
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;Material&gt;"/>
       </AuxValues>
+    </Component>
+    <Component class="org.pepsoft.worldpainter.util.TristateCheckBox" name="checkBoxCollideWithFloor">
+      <Properties>
+        <Property name="selected" type="boolean" value="true"/>
+        <Property name="text" type="java.lang.String" value="collide with floor"/>
+        <Property name="enabled" type="boolean" value="false"/>
+      </Properties>
     </Component>
   </SubComponents>
 </Form>

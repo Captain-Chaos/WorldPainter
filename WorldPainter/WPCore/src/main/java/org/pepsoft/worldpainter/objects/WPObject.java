@@ -254,16 +254,17 @@ public interface WPObject extends Serializable, Cloneable {
     int LEAF_DECAY_OFF       = 3;
 
     // Standard attribute keys
-    AttributeKey<File>    ATTRIBUTE_FILE             = new AttributeKey<>("WPObject.file");
-    AttributeKey<Point3i> ATTRIBUTE_OFFSET           = new AttributeKey<>("WPObject.offset", new Point3i());
-    AttributeKey<Boolean> ATTRIBUTE_RANDOM_ROTATION  = new AttributeKey<>("WPObject.randomRotation", true);
-    AttributeKey<Boolean> ATTRIBUTE_NEEDS_FOUNDATION = new AttributeKey<>("WPObject.needsFoundation", true);
-    AttributeKey<Boolean> ATTRIBUTE_SPAWN_IN_WATER   = new AttributeKey<>("WPObject.spawnInWater", false);
-    AttributeKey<Boolean> ATTRIBUTE_SPAWN_IN_LAVA    = new AttributeKey<>("WPObject.spawnInLava", false);
-    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_LAND    = new AttributeKey<>("WPObject.spawnOnLand", true);
-    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_WATER   = new AttributeKey<>("WPObject.spawnOnWater", false);
-    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_LAVA    = new AttributeKey<>("WPObject.spawnOnLava", false);
-    AttributeKey<Integer> ATTRIBUTE_FREQUENCY        = new AttributeKey<>("WPObject.frequency", 100);
+    AttributeKey<File>    ATTRIBUTE_FILE                      = new AttributeKey<>("WPObject.file");
+    AttributeKey<Point3i> ATTRIBUTE_OFFSET                    = new AttributeKey<>("WPObject.offset", new Point3i());
+    AttributeKey<Boolean> ATTRIBUTE_RANDOM_ROTATION           = new AttributeKey<>("WPObject.randomRotation", true);
+    AttributeKey<Boolean> ATTRIBUTE_NEEDS_FOUNDATION          = new AttributeKey<>("WPObject.needsFoundation", true);
+    AttributeKey<Boolean> ATTRIBUTE_SPAWN_IN_WATER            = new AttributeKey<>("WPObject.spawnInWater", false);
+    AttributeKey<Boolean> ATTRIBUTE_SPAWN_IN_LAVA             = new AttributeKey<>("WPObject.spawnInLava", false);
+    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_LAND             = new AttributeKey<>("WPObject.spawnOnLand", true);
+    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_WATER            = new AttributeKey<>("WPObject.spawnOnWater", false);
+    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_LAVA             = new AttributeKey<>("WPObject.spawnOnLava", false);
+    AttributeKey<Integer> ATTRIBUTE_FREQUENCY                 = new AttributeKey<>("WPObject.frequency", 100);
+    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_WATER_NO_COLLIDE = new AttributeKey<>("WPObject.spawnOnWater.noCollide", false);
     /**
      * Collision mode. Possible values:
      * 

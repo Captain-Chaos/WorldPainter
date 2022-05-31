@@ -335,6 +335,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         final Point3i dimensions = object.getDimensions();
         final Point3i offset = object.getOffset();
         final int collisionMode = object.getAttribute(ATTRIBUTE_COLLISION_MODE), minHeight = world.getMinHeight(), maxHeight = world.getMaxHeight();
+        final boolean collideWithFloor = ! object.getAttribute(ATTRIBUTE_SPAWN_ON_WATER_NO_COLLIDE);
         final boolean allowConnectingBlocks = false, bottomlessWorld = dimension.isBottomless();
         final int minZ = minHeight + (bottomlessWorld ? 0 : 1);
         // Check if the object fits vertically
@@ -396,8 +397,6 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 }
             }
         } else if (placement == Placement.FLOATING) {
-            // When floating on fluid, the object is not allowed to collide
-            // with the floor
             for (int dx = 0; dx < dimensions.x; dx++) {
                 for (int dy = 0; dy < dimensions.y; dy++) {
                     final int worldX = x + dx + offset.x, worldY = y + dy + offset.y;
@@ -417,14 +416,14 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                         logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it extends above the top of the map");
                                     }
                                     return false;
-                                } else if (worldZ <= terrainHeight) {
+                                } else if ((worldZ <= terrainHeight) && collideWithFloor) {
                                     // A solid block in the object collides with
                                     // the floor
                                     if (logger.isTraceEnabled()) {
                                         logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with floor");
                                     }
                                     return false;
-                                } else if (collisionMode != COLLISION_MODE_NONE) {
+                                } else if ((worldZ > terrainHeight) && (collisionMode != COLLISION_MODE_NONE)) {
                                     if ((collisionMode == COLLISION_MODE_ALL)
                                             ? (! world.getMaterialAt(worldX, worldY, worldZ).isNamedOneOf(AIR_AND_FLUIDS))
                                             : (! world.getMaterialAt(worldX, worldY, worldZ).veryInsubstantial)) {
@@ -556,9 +555,9 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 material = material.withProperty(WATERLOGGED, false);
             }
         }
-        // Don't replace water with insubstantial blocks that don't have a
-        // waterlogged property (assume such a block would be washed away)
-        if ((! material.veryInsubstantial) || (! existingMaterialContainsWater) || material.containsWater()) {
+        // Don't replace water with insubstantial blocks that don't have a waterlogged property (assume such a block
+        // would be washed away), except air. We are slightly guessing at what the user would want to happen here...
+        if ((! material.veryInsubstantial) || (! existingMaterialContainsWater) || material.containsWater() || (material == AIR)) {
             world.setMaterialAt(x, y, z, material);
         }
     }
