@@ -400,11 +400,10 @@ public class BlockPropertiesCalculator {
                                 // NOTE: in theory we should start all the way over with the lighting calculations, but
                                 // that would take a huge amount of time again, so instead we just hope the lighting
                                 // bugs are not too obvious
-                            } else if (skyLight && ((material == DIRT_PATH) || (material == GRASS_PATH))) {
+                            } else if (skyLight && material.receivesLight) {
                                 // Dirty hack to fix lighting of weird blocks that receive light but don't transmit it
                                 // NOTE: this is not entirely correct since it only looks above, but it's correct in 99%
                                 // of cases and hardly noticeable in the other 1%
-                                // TODO make this dynamic
                                 final int skyLightAbove = (y < (maxHeight - 1)) ? chunk.getSkyLightLevel(xInChunk, y + 1, zInChunk) : 15;
                                 final int newSkyLight = (skyLightAbove == 15) ? 15 : max(skyLightAbove - 1, 0);
                                 chunk.setSkyLightLevel(xInChunk, y, zInChunk, newSkyLight);

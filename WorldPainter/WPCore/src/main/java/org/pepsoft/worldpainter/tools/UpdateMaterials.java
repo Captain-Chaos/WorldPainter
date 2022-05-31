@@ -29,9 +29,56 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.UNKNOWN_MATERIAL_COLOUR;
 
+@SuppressWarnings("ConstantConditions")
 public class UpdateMaterials {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-        enrichMaterialsFromPluginDump();
+        enrichMaterialsWithTransmissiveness();
+    }
+
+    private static void enrichMaterialsWithTransmissiveness() throws IOException, ClassNotFoundException {
+        Configuration config = Configuration.load();
+        if (config == null) {
+            config = new Configuration();
+        }
+        Configuration.setInstance(config);
+        try (Reader in = new InputStreamReader(Material.class.getResourceAsStream("mc-materials.csv"), UTF_8); Writer out = new OutputStreamWriter(System.out, UTF_8)) {
+            CSVDataSource csvIn = new CSVDataSource();
+            csvIn.openForReading(in);
+            CSVDataSource csvOut = new CSVDataSource();
+            csvOut.openForWriting(out, "name", "discriminator", "properties", "opacity", "receivesLight", "terrain", "insubstantial", "veryInsubstantial", "resource", "tileEntity", "tileEntityId", "treeRelated", "vegetation", "blockLight", "natural", "watery", "colour", "colourOrigin");
+            do {
+                String name = csvIn.getString("name");
+                csvOut.setString("name", name);
+                csvOut.setString("discriminator", csvIn.getString("discriminator"));
+                csvOut.setString("properties", csvIn.getString("properties"));
+                csvOut.setInt("opacity", csvIn.getInt("opacity"));
+                csvOut.setBoolean("receivesLight", guessReceivesLight(name));
+                csvOut.setBoolean("terrain", csvIn.getBoolean("terrain"));
+                csvOut.setBoolean("insubstantial", csvIn.getBoolean("insubstantial"));
+                csvOut.setBoolean("veryInsubstantial", csvIn.getBoolean("veryInsubstantial"));
+                csvOut.setBoolean("resource", csvIn.getBoolean("resource"));
+                csvOut.setBoolean("tileEntity", csvIn.getBoolean("tileEntity"));
+                csvOut.setString("tileEntityId", csvIn.getString("tileEntityId"));
+                csvOut.setBoolean("treeRelated", csvIn.getBoolean("treeRelated"));
+                csvOut.setBoolean("vegetation", csvIn.getBoolean("vegetation"));
+                csvOut.setInt("blockLight", csvIn.getInt("blockLight"));
+                csvOut.setBoolean("natural", csvIn.getBoolean("natural"));
+                csvOut.setBoolean("watery", csvIn.getBoolean("watery"));
+                csvOut.setString("colour", csvIn.getString("colour"));
+                csvOut.setString("colourOrigin", csvIn.getString("colourOrigin"));
+                csvIn.next();
+                csvOut.next();
+            } while (! csvIn.isEndOfFile());
+        }
+    }
+
+    /**
+     * Guess whether a material receives light unto itself, despite being opaque to surrounding blocks.
+     */
+    private static boolean guessReceivesLight(String name) {
+        return NON_TRANSMITTING_TRANSPARENT_BLOCKS.contains(name)
+                || name.endsWith("_slab")
+                || name.endsWith("_stairs");
     }
 
     private static void enrichMaterialsWithColours() throws IOException, ClassNotFoundException {
@@ -344,4 +391,6 @@ public class UpdateMaterials {
         public final int colour;
         public final String origin;
     }
+
+    private static final Set<String> NON_TRANSMITTING_TRANSPARENT_BLOCKS = ImmutableSet.of(MC_DIRT_PATH, MC_GRASS_PATH);
 }

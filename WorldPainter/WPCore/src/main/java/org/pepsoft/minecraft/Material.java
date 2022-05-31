@@ -102,6 +102,7 @@ public final class Material implements Serializable {
         Map<String, Object> spec = findSpec(identity);
         if (spec != null) {
             opacity = (int) spec.get("opacity");
+            receivesLight = (boolean) spec.get("receivesLight");
             terrain = (boolean) spec.get("terrain");
             insubstantial = (boolean) spec.get("insubstantial");
             veryInsubstantial = (boolean) spec.get("veryInsubstantial");
@@ -122,6 +123,7 @@ public final class Material implements Serializable {
             }
             // Use reasonable defaults and guesses for unknown blocks
             opacity = guessOpacity(name);
+            receivesLight = guessReceivesLight(name);
             terrain = false;
             insubstantial = false;
             veryInsubstantial = false;
@@ -232,6 +234,7 @@ public final class Material implements Serializable {
         Map<String, Object> spec = findSpec(identity);
         if (spec != null) {
             opacity = (int) spec.get("opacity");
+            receivesLight = (boolean) spec.get("receivesLight");
             terrain = (boolean) spec.get("terrain");
             insubstantial = (boolean) spec.get("insubstantial");
             veryInsubstantial = (boolean) spec.get("veryInsubstantial");
@@ -256,6 +259,7 @@ public final class Material implements Serializable {
             }
             // Use reasonable defaults and guesses for unknown blocks
             opacity = guessOpacity(name);
+            receivesLight = guessReceivesLight(name);
             terrain = false;
             insubstantial = false;
             veryInsubstantial = false;
@@ -1287,13 +1291,17 @@ public final class Material implements Serializable {
     }
 
     public static int guessOpacity(String name) {
-        if (name.contains("slab") || name.contains("stairs") || name.contains("block") || name.endsWith("_log") || name.endsWith("_wood") || name.endsWith("_stem") || name.endsWith("_hyphea") || name.contains("bricks")) {
+        if (name.endsWith("_slab") || name.endsWith("_stairs") || name.contains("block") || name.endsWith("_log") || name.endsWith("_wood") || name.endsWith("_stem") || name.endsWith("_hyphea") || name.contains("bricks")) {
             return 15;
         } else if (name.contains("leaves")) {
             return 1;
         } else {
             return 0;
         }
+    }
+
+    public static boolean guessReceivesLight(String name) {
+        return name.endsWith("_slab") || name.endsWith("_stairs");
     }
 
     public static boolean guessResource(String name) {
@@ -1330,6 +1338,11 @@ public final class Material implements Serializable {
      * Whether the block is fully opaque ({@link #opacity} == 15)
      */
     public final transient boolean opaque;
+
+    /**
+     * Whether the block receives light unto itself, despite being opaque to surrounding blocks.
+     */
+    public final transient boolean receivesLight;
 
     /**
      * Whether the block is part of Minecraft-generated natural ground; more
@@ -1549,6 +1562,7 @@ public final class Material implements Serializable {
                     materialSpecs.put("properties", stream(str.split(",")).map(PropertyDescriptor::fromString).collect(toMap(d -> d.name, identity())));
                 }
                 materialSpecs.put("opacity", csvDataSource.getInt("opacity"));
+                materialSpecs.put("receivesLight", csvDataSource.getBoolean("receivesLight"));
                 materialSpecs.put("terrain", csvDataSource.getBoolean("terrain"));
                 materialSpecs.put("insubstantial", csvDataSource.getBoolean("insubstantial"));
                 materialSpecs.put("veryInsubstantial", csvDataSource.getBoolean("veryInsubstantial"));
