@@ -2000,6 +2000,7 @@ public final class Material implements Serializable {
     public static final Material POINTED_DRIPSTONE_DOWN_MIDDLE  = get(MC_POINTED_DRIPSTONE, MC_THICKNESS, "middle",  MC_VERTICAL_DIRECTION, "down", MC_WATERLOGGED, false);
     public static final Material POINTED_DRIPSTONE_DOWN_BASE    = get(MC_POINTED_DRIPSTONE, MC_THICKNESS, "base",    MC_VERTICAL_DIRECTION, "down", MC_WATERLOGGED, false);
     public static final Material MOSS_BLOCK = get(MC_MOSS_BLOCK);
+    public static final Material DRIPSTONE_BLOCK = get(MC_DRIPSTONE_BLOCK);
 
     // Material type categories
 

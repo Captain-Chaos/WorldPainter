@@ -225,7 +225,7 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
                     final Material material = world.getMaterialAt(x, y, z);
                     if (SUPPORTS_DRIPSTONE.contains(material.name) || material.isNamed(MC_POINTED_DRIPSTONE)) {
                         // TODO make the length dependent on how deep in the patch we are
-                        renderStalagmite(world, x, y, height, rng.nextInt(Math.min(5, spaceAvailable)) + 1);
+                        renderStalagmite(world, x, y, height, rng.nextInt(Math.min(5, spaceAvailable)) + 1, rng);
                         return true;
                     } else if (material.solid) {
                         break;
@@ -290,7 +290,7 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
             // TODO make this more configurable and evaluate
             if (rng.nextInt(4) == 0) {
                 // TODO make the length dependent on how deep in the patch we are
-                renderStalactite(world, x, y, height, rng.nextInt(Math.min(5, spaceAvailable)) + 1);
+                renderStalactite(world, x, y, height, rng.nextInt(Math.min(5, spaceAvailable)) + 1, rng);
             }
         }
         if (inLushCave) {
@@ -350,7 +350,20 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
         }
     }
 
-    private void renderStalagmite(MinecraftWorld world, int x, int y, int height, int length) {
+    private void renderStalagmite(MinecraftWorld world, int x, int y, int height, int length, Random rng) {
+        world.setMaterialAt(x, y, height - 1, DRIPSTONE_BLOCK);
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dz = -2; dz <= 0; dz++) {
+                    if (((dx != 0) || (dy != 0) || (dz != -1)) && (rng.nextInt(3) > 0)) {
+                        final Material material = world.getMaterialAt(x + dx, y + dy, height + dz);
+                        if (material.opaque && material.solid && material.natural && (material != DRIPSTONE_BLOCK)) {
+                            world.setMaterialAt(x + dx, y + dy, height + dz, DRIPSTONE_BLOCK);
+                        }
+                    }
+                }
+            }
+        }
         for (int dz = 0; dz < Math.max(length, 3); dz++) {
             final Material material = world.getMaterialAt(x, y, height + dz);
             if ((! material.insubstantial) && (material != AIR) && material.isNotNamed(MC_WATER)) {
@@ -371,7 +384,20 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
         }
     }
 
-    private void renderStalactite(MinecraftWorld world, int x, int y, int height, int length) {
+    private void renderStalactite(MinecraftWorld world, int x, int y, int height, int length, Random rng) {
+        world.setMaterialAt(x, y, height + 1, DRIPSTONE_BLOCK);
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dz = 0; dz <= 2; dz++) {
+                    if (((dx != 0) || (dy != 0) || (dz != 1)) && (rng.nextInt(3) > 0)) {
+                        final Material material = world.getMaterialAt(x + dx, y + dy, height + dz);
+                        if (material.opaque && material.solid && material.natural && (material != DRIPSTONE_BLOCK)) {
+                            world.setMaterialAt(x + dx, y + dy, height + dz, DRIPSTONE_BLOCK);
+                        }
+                    }
+                }
+            }
+        }
         for (int dz = 0; dz < length; dz++) {
             final Material material = world.getMaterialAt(x, y, height - dz);
             if ((! material.insubstantial) && (material != AIR)) {
@@ -413,7 +439,7 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
                 enabledDecorations.put(Decoration.GLOW_LICHEN, null);
             }
             if (lushCavePatches) {
-                enabledDecorations.put(LUSH_CAVE_PATCHES, new int[] { -50, -10 });
+                enabledDecorations.put(LUSH_CAVE_PATCHES, null);
                 noiseSettingsMap.put(LUSH_CAVE_PATCHES, new NoiseSettings(0L, 500, 1, 2.5f));
             }
             if (dripstoneCavePatches) {
@@ -489,7 +515,7 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
 
     private static final ThreadLocal<State> STATE_HOLDER = new ThreadLocal<>();
     private static final int MUSHROOM_CHANCE = 250;
-    private static final float LUSH_CAVE_THRESHOLD = 675;
+    private static final float LUSH_CAVE_THRESHOLD = 600;
     private static final float DRIPSTONE_CAVE_THRESHOLD = 675;
     private static final Set<String> SUPPORTS_DRIPSTONE = ImmutableSet.of(MC_BEDROCK, MC_STONE, MC_GRANITE, MC_ANDESITE, MC_DIORITE, MC_CALCITE, MC_BASALT, MC_DEEPSLATE,
             MC_COAL_ORE, MC_IRON_ORE, MC_GOLD_ORE, MC_REDSTONE_ORE, MC_DIAMOND_ORE, MC_LAPIS_ORE, MC_EMERALD_ORE, MC_NETHER_QUARTZ_ORE, MC_COPPER_ORE,

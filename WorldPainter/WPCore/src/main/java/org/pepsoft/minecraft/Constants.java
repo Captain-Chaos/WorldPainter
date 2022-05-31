@@ -553,6 +553,7 @@ public final class Constants {
     public static final String MC_MOSS_BLOCK = "minecraft:moss_block";
     public static final String MC_SMALL_DRIPLEAF = "minecraft:small_dripleaf";
     public static final String MC_POINTED_DRIPSTONE = "minecraft:pointed_dripstone";
+    public static final String MC_DRIPSTONE_BLOCK = "minecraft:dripstone_block";
 
     // MC 1.18 biome names
 
