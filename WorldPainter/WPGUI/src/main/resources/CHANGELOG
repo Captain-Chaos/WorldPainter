@@ -1,3 +1,19 @@
+-- Version 2.10.9, released 31-5-2022
+
+ * Custom Objects marked for placement "on water" now have an additional option to control whether they will be placed if they collide with the floor of the body of water
+ * Cave decoration changes:
+   + Lush cave patches are now larger
+   + Lush cave patches now occur at all heights
+     - NOTE that for existing worlds you may have to turn the lush cave patches decoration setting off and on again to see the change
+   + Dripstone cave patches now place dripstone blocks around the stalagmites and stalactites
+ * Make exporting tile selections for large worlds more efficient
+ * Improve lighting of sea_pickles, slabs and stairs
+ * Remove unsupported water plants during post processing
+ * Bug fix: detect azalea leaves as leaf blocks
+ * Bug fix: fix an export error for chunk sections with a large number of biomes
+ * Bug fix: in scripts, make applyLayer() work without having to specify a heightmap
+ * Bug fix: don't create duplicate start menu/desktop icons for WorldPainter in .deb and .rpm installers
+
 -- Version 2.10.8, released 28-5-2022
 
  * Warn when loading an old world with invalid Superflat preset, rather than giving an error

@@ -82,7 +82,7 @@ public class RegressionIT {
                     MinecraftWorldUtils.assertEquals("Anvil 1.2", anvil12World, "Anvil 1.15", anvil115World, area);
                 }
             } finally {
-//                FileUtils.deleteDir(tmpBaseDir);
+                FileUtils.deleteDir(tmpBaseDir);
             }
         }
     }
