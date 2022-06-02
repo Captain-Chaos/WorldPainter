@@ -37,7 +37,6 @@ public class SwampLandExporter extends TreesExporter<TreeLayer> {
         // Render lily pads
         final TreeLayerSettings<? extends TreeLayer> settings = (TreeLayerSettings<? extends TreeLayer>) super.settings;
         final int minimumLevel = settings.getMinimumLevel();
-        final int maxZ = dimension.getMaxHeight() - 1;
         for (int chunkX = area.x; chunkX < area.x + area.width; chunkX += 16) {
             for (int chunkY = area.y; chunkY < area.y + area.height; chunkY += 16) {
                 // Set the seed and randomizer according to the chunk

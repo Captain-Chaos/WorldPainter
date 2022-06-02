@@ -59,7 +59,7 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
                     final int terrainheight = tile.getIntHeight(localX, localY);
                     // Coordinates in world
                     final int worldX = tile.getX() << TILE_SIZE_BITS | localX, worldY = tile.getY() << TILE_SIZE_BITS | localY;
-                    final int minY = Math.max(dimension.getMinHeight() + 1, minLevel);
+                    final int minY = Math.max(minHeight + 1, minLevel);
                     int maxY = Math.min(terrainheight - dimension.getTopLayerDepth(worldX, worldY, terrainheight), maxLevel);
                     if (coverSteepTerrain) {
                         maxY = Math.min(maxY,

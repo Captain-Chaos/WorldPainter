@@ -71,7 +71,6 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
     @Override
     public List<Fixup> carve(Rectangle area, Rectangle exportedArea, MinecraftWorld world) {
         final int floodLevel = layer.getFloodLevel(), biome = (layer.getTunnelBiome() != null) ? layer.getTunnelBiome() : -1;
-        final int minHeight = dimension.getMinHeight(), minZ = minHeight + (dimension.isBottomless() ? 0 : 1), maxZ = dimension.getMaxHeight() - 1;
         final boolean removeWater = layer.isRemoveWater(), floodWithLava = layer.isFloodWithLava();
         final boolean set3DBiomes = (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) && (layer.getTunnelBiome() != null);
         final BiomeUtils biomeUtils = new BiomeUtils(dimension);
@@ -235,7 +234,6 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                 index++;
             }
             final MinecraftWorld invertedWorld = new InvertedWorld(world, 0, platform);
-            final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
             visitChunksForLayerInAreaForEditing(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) ->
                     whereTunnelIsRealisedDo(dimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
                         final int z = actualRoofLevel;
@@ -378,7 +376,6 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                 maxWallDepth = Math.max(floorWallDepth, roofWallDepth) + 1,
                 floorMin = layer.getFloorMin(), floorMax = layer.getFloorMax(), roofMin = layer.getRoofMin(),
                 roofMax = layer.getRoofMax();
-        final int minHeight = dimension.getMinHeight(), minZ = minHeight + (dimension.isBottomless() ? 0 : 1), maxZ = dimension.getMaxHeight() - 1;
         Chunk chunk = null;
         for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
             for (int zInChunk = 0; zInChunk < 16; zInChunk++) {

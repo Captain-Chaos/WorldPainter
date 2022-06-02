@@ -44,7 +44,6 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
         final boolean frostEverywhere = settings.isFrostEverywhere();
         final int mode = settings.getMode();
         final boolean snowUnderTrees = settings.isSnowUnderTrees();
-        final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
         final Random random = new Random(); // Only used for random snow height, so it's not a big deal if it's different every time
         String customNoSnowOnIds = System.getProperty("org.pepsoft.worldpainter.noSnowOn");
         if ((customNoSnowOnIds != null) && (! customNoSnowOnIds.trim().isEmpty())) {
@@ -54,9 +53,9 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
             for (int y = area.y; y < area.y + area.height; y++) {
                 if (frostEverywhere || dimension.getBitLayerValueAt(Frost.INSTANCE, x, y)) {
                     int highestNonAirBlock = minecraftWorld.getHighestNonAirBlock(x, y);
-                    Material previousMaterial = (highestNonAirBlock == (maxHeight - 1)) ? minecraftWorld.getMaterialAt(x, y, maxHeight - 1) : AIR;
+                    Material previousMaterial = (highestNonAirBlock == maxZ) ? minecraftWorld.getMaterialAt(x, y, maxZ) : AIR;
                     int leafBlocksEncountered = 0;
-                    for (int height = Math.min(highestNonAirBlock, maxHeight - 2); height >= minHeight; height--) {
+                    for (int height = Math.min(highestNonAirBlock, maxZ - 1); height >= minHeight; height--) {
                         Material material = minecraftWorld.getMaterialAt(x, y, height);
                         if ((material.isNamed(MC_WATER) && (material.getProperty(LAYERS, 0) == 0))
                                 || (material.containsWater() && material.insubstantial)) {

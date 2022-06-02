@@ -55,8 +55,6 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
         }
         final int xOffset = (chunk.getxPos() & 7) << 4;
         final int zOffset = (chunk.getzPos() & 7) << 4;
-        final int minY = dimension.getMinHeight() + (dimension.isBottomless() ? 0 : 1);
-        final int maxY = dimension.getMaxHeight() - 1;
         final MixedMaterial mixedMaterial = layer.getMaterial();
         final int thickness = layer.getThickness(), edgeThickness = Math.abs(thickness) - 2;
         final GroundCoverLayer.EdgeShape edgeShape = layer.getEdgeShape();
@@ -155,7 +153,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                                 for (int dy = 0; layerHeight > 0; dy++, layerHeight -= 8) {
 //                                    System.out.printf("dy: %d, layerHeight: %d; ", dy, layerHeight);
                                     final int y = terrainheight + dy + 1;
-                                    if (y > maxY) {
+                                    if (y > maxZ) {
                                         break;
                                     }
                                     final Material existingMaterial = chunk.getMaterial(x, y, z);
@@ -182,7 +180,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                             } else {
                                 for (int dy = 0; dy < effectiveThickness; dy++) {
                                     final int y = terrainheight + dy + 1;
-                                    if (y > maxY) {
+                                    if (y > maxZ) {
                                         break;
                                     }
                                     final Material existingMaterial = chunk.getMaterial(x, y, z);
@@ -212,7 +210,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                             }
                             for (int dy = 0; dy < effectiveThickness; dy++) {
                                 final int y = terrainheight - dy;
-                                if (y < minY) {
+                                if (y < minZ) {
                                     break;
                                 }
                                 Material existingMaterial = chunk.getMaterial(x, y, z);
@@ -243,7 +241,6 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                     effectiveThickness += noiseHeightMap.getHeight(location.x, location.y) - noiseOffset;
                 }
                 if (thickness > 0) {
-                    final int maxZ = dimension.getMaxHeight() - 1;
                     for (int dz = 0; dz < effectiveThickness; dz++) {
                         final int z = location.z + dz;
                         if (z > maxZ) {
@@ -259,7 +256,6 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                         }
                     }
                 } else {
-                    final int minZ = dimension.getMinHeight() + (dimension.isBottomless() ? 0 : 1);
                     for (int dz = 0; dz < effectiveThickness; dz++) {
                         final int z = location.z - 1 - dz;
                         if (z < minZ) {

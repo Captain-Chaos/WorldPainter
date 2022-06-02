@@ -50,8 +50,8 @@ public class CavernsExporter extends AbstractCavesExporter<Caverns> implements S
         final boolean surfaceBreaking = settings.isSurfaceBreaking();
         final boolean glassCeiling = settings.isGlassCeiling();
         final int minimumLevel = settings.getCavernsEverywhereLevel();
-        final int minY = settings.getMinimumLevel(), minHeight = dimension.getMinHeight();
-        final int maxY = Math.min(settings.getMaximumLevel(), dimension.getMaxHeight() - 1), extremeY = Integer.MAX_VALUE - Math.max(-minY, 0);
+        final int minY = settings.getMinimumLevel();
+        final int maxY = Math.min(settings.getMaximumLevel(), maxZ), extremeY = Integer.MAX_VALUE - Math.max(-minY, 0);
         final boolean fallThrough = (minY == minHeight) && dimension.isBottomless();
         final int minYAdjusted = Math.max(minY, minHeight + 1);
         final long seed = dimension.getSeed();
@@ -120,8 +120,8 @@ public class CavernsExporter extends AbstractCavesExporter<Caverns> implements S
         final CavernsSettings settings = (CavernsSettings) super.settings;
         final boolean surfaceBreaking = settings.isSurfaceBreaking();
         final int minimumLevel = settings.getCavernsEverywhereLevel();
-        final int minY = settings.getMinimumLevel(), minHeight = dimension.getMinHeight();
-        final int maxY = Math.min(settings.getMaximumLevel(), dimension.getMaxHeight() - 1), extremeY = Integer.MAX_VALUE - Math.max(-minY, 0);
+        final int minY = settings.getMinimumLevel();
+        final int maxY = Math.min(settings.getMaximumLevel(), maxZ), extremeY = Integer.MAX_VALUE - Math.max(-minY, 0);
         final boolean fallThrough = (minY == minHeight) && dimension.isBottomless();
         final int minYAdjusted = Math.max(minY, minHeight + 1);
         final long seed = dimension.getSeed();

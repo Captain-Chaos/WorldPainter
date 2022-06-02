@@ -72,7 +72,6 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
         final int minimumLevel = ((ResourcesExporterSettings) super.settings).getMinimumLevel();
         final int xOffset = (chunk.getxPos() & 7) << 4;
         final int zOffset = (chunk.getzPos() & 7) << 4;
-        final int minY = dimension.getMinHeight(), maxY = dimension.getMaxHeight() - 1;
         final boolean coverSteepTerrain = dimension.isCoverSteepTerrain(), nether = (dimension.getDim() == DIM_NETHER);
 //        int[] counts = new int[256];
         for (int x = 0; x < 16; x++) {
@@ -100,7 +99,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                     // had several reports from the wild of this going higher
                     // than maxHeight, so there must be some obscure way in
                     // which the terrainHeight can be raised too high
-                    for (int y = Math.min(subsurfaceMaxHeight, maxY); y > minY; y--) {
+                    for (int y = Math.min(subsurfaceMaxHeight, maxZ); y > minZ; y--) {
                         final double dz = y / TINY_BLOBS;
                         final double dirtZ = y / SMALL_BLOBS;
                         for (int i = 0; i < activeMaterials.length; i++) {

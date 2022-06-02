@@ -54,8 +54,6 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
     public List<Fixup> addFeatures(Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
         try {
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider();
-            final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
-            final int maxZ = maxHeight - 1;
             final List<Fixup> fixups = new ArrayList<>();
             final int density = layer.getDensity() * 64;
             for (int chunkX = area.x; chunkX < area.x + area.width; chunkX += 16) {
