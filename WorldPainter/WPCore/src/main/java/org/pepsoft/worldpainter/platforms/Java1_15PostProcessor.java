@@ -356,7 +356,7 @@ public class Java1_15PostProcessor extends PostProcessor {
                                 material = clearBlock(minecraftWorld, x, y, z);
                             }
                         } else {
-                            if (materialAbove.isNotNamedSameAs(material) || (! materialBelow.isPropertySet(MC_HALF)) || (! materialAbove.getProperty(HALF).equals("upper"))) {
+                            if (materialAbove.isNotNamedSameAs(material) || (! materialAbove.isPropertySet(MC_HALF)) || (! materialAbove.getProperty(HALF).equals("upper"))) {
                                 material = clearBlock(minecraftWorld, x, y, z);
                             }
                         }
