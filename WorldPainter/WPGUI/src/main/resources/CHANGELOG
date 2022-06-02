@@ -1,3 +1,9 @@
+-- Version 2.10.10, released 2-6-2022
+
+ * Make smooth ground cover layers (see `smoothGroundCover` on https://www.worldpainter.net/trac/wiki/AdvancedSettings for details) work again with Minecraft 1.2 - 1.12
+ * Bug fix: fix a few export errors related to the new cave decoration functionality
+ * Bug fix: fix an export error related to removing incomplete double-high plants during post processing
+
 -- Version 2.10.9, released 31-5-2022
 
  * Custom Objects marked for placement "on water" now have an additional option to control whether they will be placed if they collide with the floor of the body of water
