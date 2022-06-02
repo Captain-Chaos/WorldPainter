@@ -17,6 +17,7 @@ import java.awt.*;
 
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.minecraft.Material.LAYERS;
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 
 /**
  * Algorithm:
@@ -71,6 +72,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
         } else {
             layeredMaterialAnchor = GroundCoverLayer.LayerAnchor.BEDROCK;
         }
+        final boolean namedBlocks = platform.capabilities.contains(NAME_BASED);
         for (int x = 0; x < 16; x++) {
             final int localX = xOffset + x;
             final int worldX = (chunk.getxPos() << 4) + x;
@@ -165,7 +167,11 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                                         // TODOMC13 don't forget to make this work for 1.12 worlds also still:
                                         if (layerHeight < 8) {
                                             // Top layer, smooth enabled
-                                            chunk.setMaterial(x, y, z, material.withProperty(LAYERS, layerHeight));
+                                            if (namedBlocks) {
+                                                chunk.setMaterial(x, y, z, material.withProperty(LAYERS, layerHeight));
+                                            } else {
+                                                chunk.setMaterial(x, y, z, Material.get(material.blockType, layerHeight - 1));
+                                            }
                                         } else {
                                             // Place a full block
                                             chunk.setMaterial(x, y, z, material == Material.SNOW_EIGHT_LAYERS ? Material.SNOW_BLOCK : material);
