@@ -67,7 +67,7 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Sec
             final Chunk chunk = chunkSupplier.get();
             final int xOffset = (chunkX & 7) << 4;
             final int zOffset = (chunkZ & 7) << 4;
-            setupForColumn(seed, tile, maxY, (settings.getWaterLevel() > minHeight) ? settings.getWaterLevel() : minHeight - 1, glassCeiling,
+            setupForColumn(seed, tile, maxY, (settings.getWaterLevel() >= minHeight) ? settings.getWaterLevel() : minHeight - 1, glassCeiling,
                     surfaceBreaking, settings.isLeaveWater(), settings.isFloodWithLava()); // TODO shouldn't we at least reset the flags for every column?
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {

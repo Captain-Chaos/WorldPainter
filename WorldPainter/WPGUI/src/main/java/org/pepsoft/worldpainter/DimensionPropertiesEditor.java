@@ -344,7 +344,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         if (checkBoxFloodCaverns.isSelected()) {
             cavesSettings.setWaterLevel((Integer) spinnerCavernsFloodLevel.getValue());
         } else {
-            cavesSettings.setWaterLevel(minHeight);
+            cavesSettings.setWaterLevel(Integer.MIN_VALUE);
         }
         cavesSettings.setFloodWithLava(checkBoxCavernsFloodWithLava.isSelected());
         cavesSettings.setLeaveWater(! checkBoxCavernsRemoveWater.isSelected());
@@ -375,7 +375,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         if (checkBoxFloodCaverns.isSelected()) {
             cavernsSettings.setWaterLevel((Integer) spinnerCavernsFloodLevel.getValue());
         } else {
-            cavernsSettings.setWaterLevel(minHeight);
+            cavernsSettings.setWaterLevel(Integer.MIN_VALUE);
         }
         cavernsSettings.setFloodWithLava(checkBoxCavernsFloodWithLava.isSelected());
         cavernsSettings.setSurfaceBreaking(checkBoxCavernsBreakSurface.isSelected());
@@ -404,7 +404,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         if (checkBoxFloodCaverns.isSelected()) {
             chasmsSettings.setWaterLevel((Integer) spinnerCavernsFloodLevel.getValue());
         } else {
-            chasmsSettings.setWaterLevel(minHeight);
+            chasmsSettings.setWaterLevel(Integer.MIN_VALUE);
         }
         chasmsSettings.setFloodWithLava(checkBoxCavernsFloodWithLava.isSelected());
         chasmsSettings.setLeaveWater(! checkBoxCavernsRemoveWater.isSelected());
@@ -776,12 +776,12 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         }
         ((SpinnerNumberModel) spinnerCavernsFloodLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerCavernsFloodLevel.getModel()).setMaximum(maxHeight);
-        if (cavernsSettings.getWaterLevel() > minHeight) {
+        if (cavernsSettings.getWaterLevel() >= minHeight) {
             checkBoxFloodCaverns.setSelected(true);
             spinnerCavernsFloodLevel.setValue(cavernsSettings.getWaterLevel());
         } else {
             checkBoxFloodCaverns.setSelected(false);
-            spinnerCavernsFloodLevel.setValue(8);
+            spinnerCavernsFloodLevel.setValue(minHeight + 8);
         }
         checkBoxCavernsFloodWithLava.setSelected(cavernsSettings.isFloodWithLava());
         checkBoxCavernsBreakSurface.setSelected(cavernsSettings.isSurfaceBreaking());
