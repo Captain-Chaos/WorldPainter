@@ -27,7 +27,9 @@ public abstract class AbstractLayerExporter<L extends Layer> implements LayerExp
         this.settings = settings;
         this.layer = layer;
         minHeight = Math.max(dimension.getMinHeight(), platform.minZ);
+        minZ = dimension.isBottomless() ? minHeight : (minHeight + 1);
         maxHeight = Math.min(dimension.getMaxHeight(), platform.maxMaxHeight);
+        maxZ = maxHeight - 1;
     }
 
     public final Dimension getDimension() {
@@ -98,6 +100,22 @@ public abstract class AbstractLayerExporter<L extends Layer> implements LayerExp
     protected final Dimension dimension;
     protected final Platform platform;
     protected final L layer;
-    protected final int minHeight, maxHeight;
+    /**
+     * The lowest height supported by both the selected platform and configured on the dimension.
+     */
+    protected final int minHeight;
+    /**
+     * One more than the highest height supported by both the selected platform and configured on the dimension.
+     */
+    protected final int maxHeight;
+    /**
+     * The lowest height blocks should actually be placed or removed, taking into account such things as whether the
+     * dimension is bottomless.
+     */
+    protected final int minZ;
+    /**
+     * The highest height blocks should actually be placed or removed.
+     */
+    protected final int maxZ;
     protected final ExporterSettings settings;
 }

@@ -234,7 +234,9 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
             }
         }
         if (inLushCave) {
-            world.setMaterialAt(x, y, height - 1, MOSS_BLOCK);
+            if ((height - 1) >= minZ) {
+                world.setMaterialAt(x, y, height - 1, MOSS_BLOCK);
+            }
             if (existingMaterial.isNamed(MC_WATER)) {
                 switch (rng.nextInt(10)) {
                     case 0:
@@ -294,7 +296,9 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
             }
         }
         if (inLushCave) {
-            world.setMaterialAt(x, y, height + 1, MOSS_BLOCK);
+            if ((height + 1) <= maxZ) {
+                world.setMaterialAt(x, y, height + 1, MOSS_BLOCK);
+            }
             if (! existingMaterial.isNamed(MC_WATER)) {
                 switch (rng.nextInt(50)) {
                     case 0:
@@ -351,9 +355,11 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
     }
 
     private void renderStalagmite(MinecraftWorld world, int x, int y, int height, int length, Random rng) {
-        world.setMaterialAt(x, y, height - 1, DRIPSTONE_BLOCK);
+        if ((height - 1) >= minZ) {
+            world.setMaterialAt(x, y, height - 1, DRIPSTONE_BLOCK);
+        }
         for (int dz = -2; dz <= 0; dz++) {
-            if ((height + dz) < minHeight) {
+            if ((height + dz) < minZ) {
                 continue;
             }
             for (int dx = -1; dx <= 1; dx++) {
@@ -388,9 +394,11 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
     }
 
     private void renderStalactite(MinecraftWorld world, int x, int y, int height, int length, Random rng) {
-        world.setMaterialAt(x, y, height + 1, DRIPSTONE_BLOCK);
+        if ((height + 1) <= maxZ) {
+            world.setMaterialAt(x, y, height + 1, DRIPSTONE_BLOCK);
+        }
         for (int dz = 0; dz <= 2; dz++) {
-            if ((height + dz) >= maxHeight) {
+            if ((height + dz) > maxZ) {
                 continue;
             }
             for (int dx = -1; dx <= 1; dx++) {
