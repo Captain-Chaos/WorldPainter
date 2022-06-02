@@ -352,9 +352,12 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
 
     private void renderStalagmite(MinecraftWorld world, int x, int y, int height, int length, Random rng) {
         world.setMaterialAt(x, y, height - 1, DRIPSTONE_BLOCK);
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dy = -1; dy <= 1; dy++) {
-                for (int dz = -2; dz <= 0; dz++) {
+        for (int dz = -2; dz <= 0; dz++) {
+            if ((height + dz) < minHeight) {
+                continue;
+            }
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
                     if (((dx != 0) || (dy != 0) || (dz != -1)) && (rng.nextInt(3) > 0)) {
                         final Material material = world.getMaterialAt(x + dx, y + dy, height + dz);
                         if (material.opaque && material.solid && material.natural && (material != DRIPSTONE_BLOCK)) {
@@ -386,9 +389,12 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
 
     private void renderStalactite(MinecraftWorld world, int x, int y, int height, int length, Random rng) {
         world.setMaterialAt(x, y, height + 1, DRIPSTONE_BLOCK);
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dy = -1; dy <= 1; dy++) {
-                for (int dz = 0; dz <= 2; dz++) {
+        for (int dz = 0; dz <= 2; dz++) {
+            if ((height + dz) >= maxHeight) {
+                continue;
+            }
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
                     if (((dx != 0) || (dy != 0) || (dz != 1)) && (rng.nextInt(3) > 0)) {
                         final Material material = world.getMaterialAt(x + dx, y + dy, height + dz);
                         if (material.opaque && material.solid && material.natural && (material != DRIPSTONE_BLOCK)) {
