@@ -352,11 +352,11 @@ public class Java1_15PostProcessor extends PostProcessor {
                     if (material.vegetation && material.isPropertySet(MC_HALF)) {
                         // Check that all lower and upper halves of plants have their corresponding opposite half
                         if (material.getProperty(HALF).equals("upper")) {
-                            if (materialBelow.isNotNamedSameAs(material) || (! materialBelow.getProperty(HALF).equals("lower"))) {
+                            if (materialBelow.isNotNamedSameAs(material) || (! materialBelow.isPropertySet(MC_HALF)) || (! materialBelow.getProperty(HALF).equals("lower"))) {
                                 material = clearBlock(minecraftWorld, x, y, z);
                             }
                         } else {
-                            if (materialAbove.isNotNamedSameAs(material) || (! materialAbove.getProperty(HALF).equals("upper"))) {
+                            if (materialAbove.isNotNamedSameAs(material) || (! materialBelow.isPropertySet(MC_HALF)) || (! materialAbove.getProperty(HALF).equals("upper"))) {
                                 material = clearBlock(minecraftWorld, x, y, z);
                             }
                         }
