@@ -25,16 +25,13 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
+import java.util.*;
 
 import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_PEACEFUL;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_18;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.GameType.*;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
@@ -46,9 +43,10 @@ import static org.pepsoft.worldpainter.util.MaterialUtils.gatherBlocksWithoutIds
  *
  * @author pepijn
  */
+@SuppressWarnings({"unused", "FieldCanBeLocal", "rawtypes", "Convert2Lambda", "Anonymous2MethodRef"}) // Managed by NetBeans
 public class ExportWorldDialog extends WorldPainterDialog {
     /** Creates new form ExportWorldDialog */
-    public ExportWorldDialog(java.awt.Frame parent, World2 world, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, WorldPainter view) {
+    public ExportWorldDialog(java.awt.Frame parent, World2 world, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Set<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, WorldPainter view) {
         super(parent);
         this.world = world;
         selectedTiles = world.getTilesToExport();
@@ -63,27 +61,31 @@ public class ExportWorldDialog extends WorldPainterDialog {
         this.view = view;
         initComponents();
 
-        Configuration config = Configuration.getInstance();
+        final Configuration config = Configuration.getInstance();
         if (config.isEasyMode()) {
             checkBoxMapFeatures.setVisible(false);
             jLabel1.setVisible(false);
             labelPlatform.setVisible(false);
         }
 
-        Platform platform = world.getPlatform();
-        if (config.getExportDirectory(platform) != null) {
-            fieldDirectory.setText(config.getExportDirectory(platform).getAbsolutePath());
-        } else {
-            File exportDir = PlatformManager.getInstance().getDefaultExportDir(platform);
-            if (exportDir != null) {
-                fieldDirectory.setText(exportDir.getAbsolutePath());
+        supportedPlatforms.addAll(PlatformManager.getInstance().getAllPlatforms());
+        final Platform platform = world.getPlatform();
+        if (supportedPlatforms.contains(platform)) {
+            labelPlatformWarning.setVisible(false);
+            if (config.getExportDirectory(platform) != null) {
+                fieldDirectory.setText(config.getExportDirectory(platform).getAbsolutePath());
             } else {
-                fieldDirectory.setText(DesktopUtils.getDocumentsFolder().getAbsolutePath());
+                File exportDir = PlatformManager.getInstance().getDefaultExportDir(platform);
+                if (exportDir != null) {
+                    fieldDirectory.setText(exportDir.getAbsolutePath());
+                } else {
+                    fieldDirectory.setText(DesktopUtils.getDocumentsFolder().getAbsolutePath());
+                }
             }
+        } else {
+            fieldDirectory.setText(null);
         }
         fieldName.setText(world.getName());
-
-        nameOnlyMaterials = gatherBlocksWithoutIds(world, platform);
 
         surfacePropertiesEditor.setColourScheme(colourScheme);
         surfacePropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
@@ -191,9 +193,11 @@ public class ExportWorldDialog extends WorldPainterDialog {
      * @param platform The platform to check for compatibility.
      * @return {@code true} is the platform is compatible with the loaded world.
      */
+    @SuppressWarnings("HtmlRequiredLangAttribute") // Not real HTML
     private boolean checkCompatibility(Platform platform) {
+        final Map<String, Set<String>> nameOnlyMaterials = gatherBlocksWithoutIds(world, platform);
         if ((! nameOnlyMaterials.isEmpty()) && (! platform.capabilities.contains(NAME_BASED))) {
-            StringBuilder sb = new StringBuilder();
+            final StringBuilder sb = new StringBuilder();
             sb.append("<html>");
             sb.append("<p>The world cannot be exported in format ").append(platform.displayName).append(" because it contains the following incompatible block types:");
             sb.append("<table><tr><th align='left'>Block Type</th><th align='left'>Source</th></tr>");
@@ -238,23 +242,11 @@ public class ExportWorldDialog extends WorldPainterDialog {
             JOptionPane.showMessageDialog(this, "No tiles have been selected for export.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        Platform platform = world.getPlatform();
-        if (! checkCompatibility(platform)) {
-            return;
-        }
+        final Platform platform = world.getPlatform();
 
         // Check for warnings
         StringBuilder sb = new StringBuilder("<html>Please confirm that you want to export the world<br>notwithstanding the following warnings:<br><ul>");
         boolean showWarning = false;
-        Configuration config = Configuration.getInstance();
-        if ((platform == JAVA_ANVIL_1_18) && (! config.isBeta118WarningDisplayed())) {
-            sb.append("<li><strong>Minecraft 1.18 support is still in preview!</strong><br>" +
-                    "Be careful and keep backups. If you encounter<br>" +
-                    "problems, please report them on GitHub:<br>" +
-                    "https://www.worldpainter.net/issues<br>" +
-                    "This warning will only be displayed once.");
-            showWarning = true;
-        }
         for (Dimension dimension: world.getDimensions()) {
             if (dimension.getDim() < 0) {
                 // Skip ceilings
@@ -349,6 +341,9 @@ public class ExportWorldDialog extends WorldPainterDialog {
         if (! saveDimensionSettings()) {
             return;
         }
+        if (! checkCompatibility(platform)) {
+            return;
+        }
 
         world.setCreateGoodiesChest(checkBoxGoodies.isSelected());
         world.setGameType((GameType) comboBoxGameType.getSelectedItem());
@@ -381,10 +376,8 @@ public class ExportWorldDialog extends WorldPainterDialog {
         checkBoxMapFeatures.setEnabled(false);
         comboBoxDifficulty.setEnabled(false);
 
+        Configuration config = Configuration.getInstance();
         config.setExportDirectory(world.getPlatform(), baseDir);
-        if (platform == JAVA_ANVIL_1_18) {
-            config.setBeta118WarningDisplayed(true);
-        }
 
         ExportProgressDialog dialog = new ExportProgressDialog(this, world, baseDir, name);
         view.setInhibitUpdates(true);
@@ -436,7 +429,8 @@ public class ExportWorldDialog extends WorldPainterDialog {
 
     private void setControlStates() {
         boolean notHardcore = comboBoxGameType.getSelectedItem() != HARDCORE;
-        if (radioButtonExportSelection.isSelected()) {
+        final boolean platformSupported = supportedPlatforms.contains(world.getPlatform());
+        if (radioButtonExportSelection.isSelected() && platformSupported) {
             labelSelectTiles.setForeground(Color.BLUE);
             labelSelectTiles.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         } else {
@@ -445,6 +439,16 @@ public class ExportWorldDialog extends WorldPainterDialog {
         }
         checkBoxAllowCheats.setEnabled((world.getPlatform() != JAVA_MCREGION) && notHardcore);
         comboBoxDifficulty.setEnabled(notHardcore);
+        fieldDirectory.setEnabled(platformSupported);
+        buttonSelectDirectory.setEnabled(platformSupported);
+        buttonExport.setEnabled(platformSupported);
+        if (! platformSupported) {
+            buttonExport.setToolTipText(labelPlatformWarning.getToolTipText());
+        } else {
+            buttonExport.setToolTipText(null);
+        }
+        radioButtonExportEverything.setEnabled(platformSupported);
+        radioButtonExportSelection.setEnabled(platformSupported);
     }
 
     private void selectDir() {
@@ -523,6 +527,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
         labelPlatform = new javax.swing.JLabel();
         checkBoxMapFeatures = new javax.swing.JCheckBox();
         jLabel4 = new javax.swing.JLabel();
+        labelPlatformWarning = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Exporting");
@@ -626,6 +631,10 @@ public class ExportWorldDialog extends WorldPainterDialog {
 
         jLabel4.setText("Minecraft settings:");
 
+        labelPlatformWarning.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/error.png"))); // NOI18N
+        labelPlatformWarning.setText("<html><b>unknown format</b></html>");
+        labelPlatformWarning.setToolTipText("<html>This map format is unknown and cannot be Exported. Most likely it<br>\nis supported by a plugin that is not installed or cannot be loaded.</html>");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -668,6 +677,8 @@ public class ExportWorldDialog extends WorldPainterDialog {
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(labelPlatform, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(labelPlatformWarning, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(radioButtonExportEverything)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -698,7 +709,8 @@ public class ExportWorldDialog extends WorldPainterDialog {
                     .addComponent(radioButtonExportSelection)
                     .addComponent(labelSelectTiles, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1)
-                    .addComponent(labelPlatform, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(labelPlatform, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(labelPlatformWarning, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
@@ -760,22 +772,24 @@ public class ExportWorldDialog extends WorldPainterDialog {
         } else {
             checkBoxAllowCheats.setSelected(false);
         }
-        File exportDir = Configuration.getInstance().getExportDirectory(newPlatform);
-        if ((exportDir == null) || (! exportDir.isDirectory())) {
-            exportDir = PlatformManager.getInstance().getDefaultExportDir(newPlatform);
-        }
-        if ((exportDir != null) && exportDir.isDirectory()) {
-            fieldDirectory.setText(exportDir.getAbsolutePath());
-        }
 
-        nameOnlyMaterials = gatherBlocksWithoutIds(world, newPlatform);
+        if (supportedPlatforms.contains(newPlatform)) {
+            labelPlatformWarning.setVisible(false);
+            File exportDir = Configuration.getInstance().getExportDirectory(newPlatform);
+            if ((exportDir == null) || (!exportDir.isDirectory())) {
+                exportDir = PlatformManager.getInstance().getDefaultExportDir(newPlatform);
+            }
+            if ((exportDir != null) && exportDir.isDirectory()) {
+                fieldDirectory.setText(exportDir.getAbsolutePath());
+            }
+        } else {
+            labelPlatformWarning.setVisible(true);
+        }
 
         checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
 
         dimensionPropertiesEditors.forEach((dim, editor) -> editor.setPlatform(newPlatform));
 
-        // Otherwise the JComboBox malfunctions:
-        SwingUtilities.invokeLater(() -> buttonExport.setEnabled(checkCompatibility(newPlatform)));
         pack();
         setControlStates();
     }
@@ -817,6 +831,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel labelPlatform;
+    private javax.swing.JLabel labelPlatformWarning;
     private javax.swing.JLabel labelSelectTiles;
     private org.pepsoft.worldpainter.DimensionPropertiesEditor netherCeilingPropertiesEditor;
     private org.pepsoft.worldpainter.DimensionPropertiesEditor netherPropertiesEditor;
@@ -828,17 +843,17 @@ public class ExportWorldDialog extends WorldPainterDialog {
 
     private final World2 world;
     private final ColourScheme colourScheme;
-    private final Collection<Layer> hiddenLayers;
+    private final Set<Layer> hiddenLayers;
     private final boolean contourLines;
     private final int contourSeparation;
     private final TileRenderer.LightOrigin lightOrigin;
     private final CustomBiomeManager customBiomeManager;
     private final WorldPainter view;
     private final Map<Integer, DimensionPropertiesEditor> dimensionPropertiesEditors = new HashMap<>();
+    private final List<Platform> supportedPlatforms = new ArrayList<>();
     private int selectedDimension;
     private Set<Point> selectedTiles;
     private boolean disableTileSelectionWarning, disableDisabledLayersWarning;
-    private Map<String, Set<String>> nameOnlyMaterials;
 
     private static final long serialVersionUID = 1L;
 }

@@ -377,6 +377,13 @@ public class SuperflatPreset implements Serializable {
             return this;
         }
 
+        /**
+         * Get the total depth of the layers added so far.
+         */
+        public int getLayerDepth() {
+            return layers.stream().mapToInt(Layer::getThickness).sum();
+        }
+
         public SuperflatPreset build() {
             return (biomeName != null) ? new SuperflatPreset(biomeName, layers, structures, features, lakes) : new SuperflatPreset(biome, layers, structures);
         }

@@ -84,7 +84,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
             Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, AMPLIFIED, CUSTOM, NETHER, END),
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
-            EnumSet.of(BIOMES, PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED));
+            EnumSet.of(BIOMES, PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, LEAF_DISTANCES));
 
     public static final Platform JAVA_ANVIL_1_17 = new Platform(
             "org.pepsoft.anvil.1.17",
@@ -94,15 +94,15 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
             Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, AMPLIFIED, CUSTOM, NETHER, END),
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
-            EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, BIOMES_3D, GENERATOR_PER_DIMENSION));
+            EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, BIOMES_3D, GENERATOR_PER_DIMENSION, LEAF_DISTANCES));
 
     public static final Platform JAVA_ANVIL_1_18 = new Platform(
             "org.pepsoft.anvil.1.18",
-            "[BETA] Minecraft 1.18 or later",
+            "Minecraft 1.18 or later",
             new int[] { 256, 320, 512, 1024, 1536, 2032 }, 320,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, -64,
             Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
             Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, AMPLIFIED, CUSTOM, NETHER, END),
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
-            EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, NAMED_BIOMES, POPULATE, GENERATOR_PER_DIMENSION));
+            EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, NAMED_BIOMES, POPULATE, GENERATOR_PER_DIMENSION, LEAF_DISTANCES));
 }

@@ -5,11 +5,10 @@
 package org.pepsoft.worldpainter.layers.pockets;
 
 import org.pepsoft.minecraft.Material;
-import org.pepsoft.worldpainter.DefaultPlugin;
-import org.pepsoft.worldpainter.MixedMaterial;
-import org.pepsoft.worldpainter.MixedMaterialManager;
-import org.pepsoft.worldpainter.Terrain;
+import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.CustomLayer;
+import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -22,16 +21,13 @@ public class UndergroundPocketsLayer extends CustomLayer {
     public UndergroundPocketsLayer(String name, MixedMaterial material, Terrain terrain, int frequency, int minLevel, int maxLevel, int scale, int colour) {
         super(name, "underground pockets of " + name, DataSize.NIBBLE, 15, colour);
         if ((frequency < 1) || (frequency > 1000)) {
-            throw new IllegalArgumentException("frequency");
+            throw new IllegalArgumentException("frequency < 1 or > 1000");
         }
         if (scale < 0) {
-            throw new IllegalArgumentException("scale");
-        }
-        if (minLevel < 0) {
-            throw new IllegalArgumentException("minLevel");
+            throw new IllegalArgumentException("scale < 0");
         }
         if (maxLevel < minLevel) {
-            throw new IllegalArgumentException("maxLevel");
+            throw new IllegalArgumentException("maxLevel < " + minLevel);
         }
         mixedMaterial = material;
         this.terrain = terrain;
@@ -101,8 +97,13 @@ public class UndergroundPocketsLayer extends CustomLayer {
     }
 
     @Override
-    public UndergroundPocketsLayerExporter getExporter() {
-        return new UndergroundPocketsLayerExporter(this);
+    public Class<? extends LayerExporter> getExporterType() {
+        return UndergroundPocketsLayerExporter.class;
+    }
+
+    @Override
+    public UndergroundPocketsLayerExporter getExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        return new UndergroundPocketsLayerExporter(dimension, platform, this);
     }
 
     // Cloneable

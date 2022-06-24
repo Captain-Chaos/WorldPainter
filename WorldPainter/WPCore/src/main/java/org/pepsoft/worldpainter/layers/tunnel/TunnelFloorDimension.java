@@ -14,7 +14,7 @@ public class TunnelFloorDimension extends TunnelDimension {
     }
 
     @Override
-    protected float determineHeight(boolean inTunnel, int tunnelFloorLevel, int tunnelRoofLevel, float realHeight) {
-        return (inTunnel && (tunnelFloorLevel >= tunnelRoofLevel)) ? tunnelFloorLevel : realHeight;
+    protected float determineHeight(boolean inTunnelLayer, int tunnelFloorLevel, int tunnelRoofLevel, float realHeight) {
+        return (inTunnelLayer && (tunnelRoofLevel > tunnelFloorLevel)) ? tunnelFloorLevel : realHeight;
     }
 }

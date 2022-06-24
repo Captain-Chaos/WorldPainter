@@ -53,7 +53,7 @@ public abstract class MCNamedBlocksChunk extends NBTChunk {
                 occupiedCoords.add(coords);
             }
         }
-        // TODO: find a fast way of checking for all tile entity blocks that there is actualy tile entity data present
+        // TODO: find a fast way of checking for all tile entity blocks that there is actually tile entity data present
     }
 
     private static final Logger logger = LoggerFactory.getLogger(MCNamedBlocksChunk.class);

@@ -49,14 +49,13 @@ public class Java1_15PostProcessor extends PostProcessor {
         }
         final int worldMinZ = minecraftWorld.getMinHeight(), worldMaxZ = minecraftWorld.getMaxHeight() - 1;
         final int x1, y1, x2, y2, minZ, maxZ;
-        // TODO: make these configurable:
         final JavaExportSettings settings = (exportSettings instanceof JavaExportSettings) ? (JavaExportSettings) exportSettings : new JavaExportSettings();
         final FloatMode sandMode = "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.supportSand")) ? FloatMode.LEAVE_FLOATING : settings.sandMode;
         final FloatMode gravelMode = settings.gravelMode;
         final FloatMode cementMode = settings.cementMode;
         final FloatMode waterMode = settings.waterMode;
         final FloatMode lavaMode = settings.lavaMode;
-        final boolean flowLava = settings.flowLava, flowWater = settings.flowWater;
+        final boolean flowLava = settings.flowLava, flowWater = settings.flowWater, makeAllLeavesPersistent = settings.makeAllLeavesPersistent;
         if (minecraftWorld instanceof MinecraftWorldObject) {
             // Special support for MinecraftWorldObjects to constrain the area
             // further
@@ -98,10 +97,9 @@ public class Java1_15PostProcessor extends PostProcessor {
                 for (int z = minZ; z <= columnMaxZ; z++) {
                     Material material = materialAbove;
                     materialAbove = (z < worldMaxZ) ? minecraftWorld.getMaterialAt(x, y, z + 1) : AIR;
-                    if (((materialBelow.isNamedOneOf(MC_GRASS_BLOCK, MC_MYCELIUM, MC_FARMLAND)))
-                            && (material.containsWater() || (material == ICE) || material.opaque)) {
-                        // Covered grass, mycelium or tilled earth block, should
-                        // be dirt
+                    if (((materialBelow.isNamedOneOf(MC_GRASS_BLOCK, MC_MYCELIUM, MC_FARMLAND, MC_DIRT_PATH, MC_GRASS_PATH)))
+                            && (material.containsWater() || (material == ICE) || (material.opaque && (! material.receivesLight)))) {
+                        // Covered grass, mycelium, tilled earth etc. blocks should be dirt
                         minecraftWorld.setMaterialAt(x, y, z - 1, DIRT);
                         materialBelow = DIRT;
                     } else if (((materialBelow.isNamedOneOf(MC_WARPED_NYLIUM, MC_CRIMSON_NYLIUM)))
@@ -109,6 +107,9 @@ public class Java1_15PostProcessor extends PostProcessor {
                         // Covered nylium should be netherrack
                         minecraftWorld.setMaterialAt(x, y, z - 1, NETHERRACK);
                         materialBelow = NETHERRACK;
+                    } else if (makeAllLeavesPersistent && material.name.endsWith("_leaves") && (! material.is(PERSISTENT))) {
+                        material = material.withProperty(PERSISTENT, true);
+                        minecraftWorld.setMaterialAt(x, y, z, material);
                     }
                     if (materialBelow.hasPropertySnowy) {
                         // The material below has a "snowy" property, so make sure it is set correctly
@@ -218,10 +219,8 @@ public class Java1_15PostProcessor extends PostProcessor {
                             break;
                         case MC_DEAD_BUSH:
                             if ((materialBelow != SAND) && (materialBelow != RED_SAND) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT) && (! materialBelow.name.endsWith("_terracotta")) && (materialBelow != TERRACOTTA)) {
-                                // Dead shrubs can only exist on materials
-                                // present in Mesa biome
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                // Dead shrubs can only exist on materials present in Mesa biome
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_GRASS:
@@ -236,35 +235,30 @@ public class Java1_15PostProcessor extends PostProcessor {
                         case MC_WHITE_TULIP:
                         case MC_PINK_TULIP:
                         case MC_OXEYE_DAISY:
-                            if ((materialBelow != GRASS_BLOCK) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT)) {
+                            if (materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_FARMLAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK)) {
                                 // Tall grass and flowers can only exist on Grass or Dirt blocks
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_RED_MUSHROOM:
                         case MC_BROWN_MUSHROOM:
                             if ((materialBelow != GRASS_BLOCK) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT) && (materialBelow != MYCELIUM) && (materialBelow != STONE) && (materialBelow != GRANITE) && (materialBelow != DIORITE) && (materialBelow != ANDESITE)) {
                                 // Mushrooms can only exist on Grass, Dirt, Mycelium or Stone (in caves) blocks
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_SNOW:
                             if ((materialBelow == ICE) || materialBelow.isNamed(MC_SNOW) || (materialBelow == AIR) || (materialBelow == PACKED_ICE)) {
-                                // Snow can't be on ice, or another snow block, or air
-                                // (well it could be, but it makes no sense, would
-                                // disappear when touched, and it makes this algorithm
-                                // remove stacks of snow blocks correctly)
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                // Snow can't be on ice, or another snow block, or air (well it could be, but it makes
+                                // no sense, would disappear when touched, and it makes this algorithm remove stacks of
+                                // snow blocks correctly)
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_WHEAT:
                             if (materialBelow.isNotNamed(MC_FARMLAND)) {
                                 // Wheat can only exist on Tilled Dirt blocks
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_SUNFLOWER:
@@ -274,61 +268,38 @@ public class Java1_15PostProcessor extends PostProcessor {
                         case MC_ROSE_BUSH:
                         case MC_PEONY:
                             // TODOMC13 recognise legacy "top half" block and replace it with the proper block
-                            if (material.getProperty(HALF).equals("upper")) {
-                                // Top half of double high plant.
-                                if (materialBelow.isNotNamedSameAs(material)
-                                        || (! materialBelow.getProperty(HALF).equals("lower"))) {
-                                    // There is not a corresponding lower half
-                                    // below; remove this block
-                                    minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                    material = AIR;
-                                }
-                            } else {
-                                // Otherwise: lower half of double high plant;
-                                // check there's a corresponding top half above
-                                // and grass or dirt below
-                                if (materialAbove.isNamedSameAs(material) && materialAbove.getProperty(HALF).equals("upper")) {
-                                    if (materialBelow.isNotNamed(MC_GRASS_BLOCK) && (materialBelow != DIRT) && (materialBelow.isNotNamed(MC_PODZOL)) && (materialBelow != PERMADIRT)) {
-                                        // Double high plants can (presumably; TODO:
-                                        // check) only exist on grass or dirt
-                                        minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                        material = AIR;
-                                    }
-                                } else {
-                                    // There's a non-double high plant block above;
-                                    // replace this block with air
-                                    minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                    material = AIR;
+                            if (material.getProperty(HALF).equals("lower")) {
+                                // Lower half of double high plant; check there's grass or dirt below
+                                if (materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_FARMLAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK)) {
+                                    // Double high plants can (presumably; TODO: check) only exist on grass or dirt
+                                    // The upper block will be removed below in the next iteration
+                                    material = clearBlock(minecraftWorld, x, y, z);
                                 }
                             }
                             break;
                         case MC_CACTUS:
                             if ((materialBelow != SAND) && (materialBelow != RED_SAND) && materialBelow.isNotNamed(MC_CACTUS)) {
                                 // Cactus blocks can only be on top of sand or other cactus blocks
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_SUGAR_CANE:
                             if (materialBelow.isNotNamed(MC_GRASS_BLOCK) && (materialBelow != DIRT) && materialBelow.isNotNamed(MC_PODZOL) && (materialBelow != PERMADIRT) && (materialBelow != SAND) && (materialBelow != RED_SAND) && materialBelow.isNotNamed(MC_SUGAR_CANE)) {
                                 // Sugar cane blocks can only be on top of grass, dirt, sand or other sugar cane blocks
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_NETHER_WART:
                             if (materialBelow != SOUL_SAND) {
                                 // Nether wart blocks can only be on top of soul sand
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_CHORUS_FLOWER:
                         case MC_CHORUS_PLANT:
                             if ((materialBelow != END_STONE) && (materialBelow.isNotNamed(MC_CHORUS_PLANT))) {
                                 // Chorus flower and plant blocks can only be on top of end stone or other chorus plant blocks
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_FIRE:
@@ -341,10 +312,54 @@ public class Java1_15PostProcessor extends PostProcessor {
                                     && (minecraftWorld.getMaterialAt(x + 1, y, z) == AIR)
                                     && (minecraftWorld.getMaterialAt(x, y - 1, z) == AIR)
                                     && (minecraftWorld.getMaterialAt(x, y + 1, z) == AIR)) {
-                                minecraftWorld.setMaterialAt(x, y, z, AIR);
-                                material = AIR;
+                                material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
+                        case MC_KELP:
+                        case MC_KELP_PLANT:
+                            if (! ((materialBelow.solid && materialBelow.opaque && materialBelow.natural) || materialBelow.isNamedOneOf(MC_KELP, MC_KELP_PLANT))) {
+                                material = clearBlock(minecraftWorld, x, y, z);
+                            }
+                            break;
+                        case MC_SEAGRASS:
+                        case MC_TALL_SEAGRASS:
+                        case MC_SEA_PICKLE:
+                        case MC_TUBE_CORAL:
+                        case MC_BRAIN_CORAL:
+                        case MC_BUBBLE_CORAL:
+                        case MC_FIRE_CORAL:
+                        case MC_HORN_CORAL:
+                        case MC_DEAD_TUBE_CORAL:
+                        case MC_DEAD_BRAIN_CORAL:
+                        case MC_DEAD_BUBBLE_CORAL:
+                        case MC_DEAD_FIRE_CORAL:
+                        case MC_DEAD_HORN_CORAL:
+                        case MC_TUBE_CORAL_FAN:
+                        case MC_BRAIN_CORAL_FAN:
+                        case MC_BUBBLE_CORAL_FAN:
+                        case MC_FIRE_CORAL_FAN:
+                        case MC_HORN_CORAL_FAN:
+                        case MC_DEAD_TUBE_CORAL_FAN:
+                        case MC_DEAD_BRAIN_CORAL_FAN:
+                        case MC_DEAD_BUBBLE_CORAL_FAN:
+                        case MC_DEAD_FIRE_CORAL_FAN:
+                        case MC_DEAD_HORN_CORAL_FAN:
+                            if (! (materialBelow.solid && materialBelow.opaque && materialBelow.natural)) {
+                                material = clearBlock(minecraftWorld, x, y, z);
+                            }
+                            break;
+                    }
+                    if (material.vegetation && material.isPropertySet(MC_HALF)) {
+                        // Check that all lower and upper halves of plants have their corresponding opposite half
+                        if (material.getProperty(HALF).equals("upper")) {
+                            if (materialBelow.isNotNamedSameAs(material) || (! materialBelow.isPropertySet(MC_HALF)) || (! materialBelow.getProperty(HALF).equals("lower"))) {
+                                material = clearBlock(minecraftWorld, x, y, z);
+                            }
+                        } else {
+                            if (materialAbove.isNotNamedSameAs(material) || (! materialAbove.isPropertySet(MC_HALF)) || (! materialAbove.getProperty(HALF).equals("upper"))) {
+                                material = clearBlock(minecraftWorld, x, y, z);
+                            }
+                        }
                     }
                     if (material.containsWater() && materialBelow.veryInsubstantial && (! materialBelow.containsWater())) {
                         switch (waterMode) {
@@ -395,6 +410,16 @@ public class Java1_15PostProcessor extends PostProcessor {
             }
         } else if (progressReceiver != null) {
             progressReceiver.setProgress(1.0f);
+        }
+    }
+
+    private static Material clearBlock(MinecraftWorld minecraftWorld, int x, int y, int z) {
+        if (minecraftWorld.getMaterialAt(x, y, z).containsWater()) {
+            minecraftWorld.setMaterialAt(x, y, z, STATIONARY_WATER);
+            return STATIONARY_WATER;
+        } else {
+            minecraftWorld.setMaterialAt(x, y, z, AIR);
+            return AIR;
         }
     }
 }

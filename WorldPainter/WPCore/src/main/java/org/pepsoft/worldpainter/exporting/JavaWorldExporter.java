@@ -26,6 +26,7 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.SuperflatPreset.Structure.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Dimension.Border.ENDLESS_BARRIER;
 import static org.pepsoft.worldpainter.Dimension.Border.ENDLESS_WATER;
 import static org.pepsoft.worldpainter.Platform.Capability.GENERATOR_PER_DIMENSION;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
@@ -37,6 +38,7 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
 public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this be made a BlockBasedPlatformProviderWorldExporter?
     public JavaWorldExporter(World2 world) {
         super(world, world.getPlatform());
+        this.platformProvider = (JavaPlatformProvider) super.platformProvider;
         if ((! (platform == JAVA_ANVIL))
                 && (! (platform == JAVA_MCREGION))
                 && (! (platform == JAVA_ANVIL_1_15))
@@ -48,6 +50,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
 
     protected JavaWorldExporter(World2 world, Platform platform) {
         super(world, platform);
+        this.platformProvider = (JavaPlatformProvider) super.platformProvider;
     }
 
     @SuppressWarnings("ConstantConditions") // Clarity
@@ -83,9 +86,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
         level.setSeed(dim0.getMinecraftSeed());
         level.setName(name);
         Point spawnPoint = world.getSpawnPoint();
-        level.setSpawnX(spawnPoint.x);
-        level.setSpawnY(Math.max(dim0.getIntHeightAt(spawnPoint), dim0.getWaterLevelAt(spawnPoint)));
-        level.setSpawnZ(spawnPoint.y);
+        level.setSpawn(spawnPoint.x, Math.max(dim0.getIntHeightAt(spawnPoint), dim0.getWaterLevelAt(spawnPoint)) + 1,spawnPoint.y);
         if (world.getGameType() == GameType.HARDCORE) {
             level.setGameType(GAME_TYPE_SURVIVAL);
             level.setHardcore(true);
@@ -107,8 +108,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                 continue;
             }
             Dimension.Border dimensionBorder = dimension.getBorder();
-            boolean endlessBorder = (dimensionBorder != null) && dimensionBorder.isEndless();
-            if (endlessBorder) {
+            if ((dimensionBorder != null) && dimensionBorder.isEndless()) {
                 final SuperflatPreset.Builder superflatPresetBuilder;
                 final int biome;
                 final Structure[] structures;
@@ -127,6 +127,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                                 biome = BIOME_OCEAN;
                                 break;
                             case ENDLESS_VOID:
+                            case ENDLESS_BARRIER:
                                 biome = ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) ? BIOME_THE_VOID : BIOME_PLAINS;
                                 break;
                             default:
@@ -141,7 +142,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                     case ENDLESS_WATER:
                         superflatPresetBuilder = SuperflatPreset.builder(biome, structures);
                         final boolean bottomless = dimension.isBottomless();
-                        final int borderLevel = dimension.getBorderLevel() - dimension.getMinHeight() + 1;
+                        final int borderLevel = dimension.getBorderLevel() - platform.minZ + 1;
                         final int oceanDepth = Math.max(Math.min(borderLevel / 2, 20), 1);
                         final int deepSlateDepth = (dimension.getMinHeight() < 0)
                                 ? Math.min(Math.max(borderLevel - oceanDepth - (bottomless ? 0 : 1) - 5, 0), bottomless ? 64 : 63)
@@ -168,8 +169,20 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                         superflatPresetBuilder = SuperflatPreset.builder(biome);
                         superflatPresetBuilder.addLayer(MC_AIR, 1);
                         break;
+                    case ENDLESS_BARRIER:
+                        superflatPresetBuilder = SuperflatPreset.builder(biome);
+                        superflatPresetBuilder.addLayer(MC_BARRIER, dimension.getMaxHeight() - platform.minZ - ((dimension.getRoofType() == Dimension.WallType.BEDROCK) ? 1 : 0));
+                        if (dimension.getRoofType() == Dimension.WallType.BEDROCK) {
+                            superflatPresetBuilder.addLayer(MC_BEDROCK, 1);
+                        }
+                        break;
                     default:
                         throw new InternalError();
+                }
+                if ((dimension.getRoofType() != null) && (dimensionBorder != ENDLESS_BARRIER)) {
+                    int totalDepth = superflatPresetBuilder.getLayerDepth();
+                    superflatPresetBuilder.addLayer(MC_AIR, dimension.getMaxHeight() - platform.minZ - totalDepth - 1);
+                    superflatPresetBuilder.addLayer((dimension.getRoofType() == Dimension.WallType.BEDROCK) ? MC_BEDROCK : MC_BARRIER, 1);
                 }
                 level.setGenerator(dimension.getDim(), new SuperflatGenerator(superflatPresetBuilder.build()));
             } else {
@@ -298,7 +311,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
             default:
                 throw new IllegalArgumentException("Dimension " + dimension.getDim() + " not supported");
         }
-        for (DataType dataType: ((JavaPlatformProvider) platformProvider).getDataTypes()) {
+        for (DataType dataType: platformProvider.getDataTypes(platform)) {
             File regionDir = new File(dimensionDir, dataType.name().toLowerCase());
             if (! regionDir.exists()) {
                 if (! regionDir.mkdirs()) {
@@ -320,7 +333,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                 // Also add regions for any bedrock wall and/or border
                 // tiles, if present
                 int r = (((dimension.getBorder() != null) && (! dimension.getBorder().isEndless())) ? dimension.getBorderSize() : 0)
-                        + (((dimension.getBorder() == null) || (! dimension.getBorder().isEndless())) && dimension.isBedrockWall() ? 1 : 0);
+                        + (((dimension.getBorder() == null) || (! dimension.getBorder().isEndless())) && (dimension.getWallType() != null) ? 1 : 0);
                 for (int dx = -r; dx <= r; dx++) {
                     for (int dy = -r; dy <= r; dy++) {
                         regions.add(new Point((tile.getX() + dx) >> 2, (tile.getY() + dy) >> 2));
@@ -345,6 +358,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
         return collectedStats;
     }
 
+    protected final JavaPlatformProvider platformProvider;
 
     private static final Logger logger = LoggerFactory.getLogger(JavaWorldExporter.class);
 }

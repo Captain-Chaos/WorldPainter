@@ -10,6 +10,10 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.util.RandomField;
+import org.pepsoft.worldpainter.layers.plants.Plant;
+import org.pepsoft.worldpainter.layers.plants.Plants;
+import org.pepsoft.worldpainter.objects.GenericObject;
+import org.pepsoft.worldpainter.objects.WPObject;
 
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -20,6 +24,7 @@ import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.MathUtils.mod;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
 
 /**
@@ -39,116 +44,83 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
 
 @SuppressWarnings("ConstantConditions") // Future-proofing
 public enum Terrain {
-    GRASS ("Grass", "grass with flowers, tall grass and ferns here and there", BIOME_PLAINS, 2) {
+    GRASS("Grass", GRASS_BLOCK, GRASS_BLOCK, "grass with flowers, tall grass and ferns here and there, and seagrass and kelp under water", BIOME_PLAINS) {
         @Override
-        public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
-            final int dz = z - height;
-            // TODOMC13 migrate this to modern materials
-            if (dz > 2) {
-                return AIR;
-            } else if (dz == 2) {
-                final Random rnd = new Random(seed + (x * 65537L) + (y * 4099L));
-                final int rndNr = rnd.nextInt(FLOWER_INCIDENCE);
-                if (rndNr == 0) {
-                    if (dandelionNoise.getSeed() != (seed + DANDELION_SEED_OFFSET)) {
-                        dandelionNoise.setSeed(seed + DANDELION_SEED_OFFSET);
-                        roseNoise.setSeed(seed + ROSE_SEED_OFFSET);
-                        flowerTypeField.setSeed(seed + FLOWER_TYPE_FIELD_OFFSET);
-                    }
-                    // Use 1 instead of 2, even though dz == 2, to get consistent results for the lower and upper blocks
-                    // Keep the "1 / SMALLBLOBS" and the two noise generators for consistency with existing maps
-                    if ((dandelionNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) > FLOWER_CHANCE)
-                            || (roseNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) > FLOWER_CHANCE)) {
-                        Material flower = FLOWER_TYPES[flowerTypeField.getValue(x, y)];
-                        if (flower.blockType == BLK_LARGE_FLOWERS) {
-                            if ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) {
-                                return flower.withProperty(HALF, "upper");
-                            } else {
-                                return LARGE_FLOWER_TOP;
-                            }
+        public WPObject getSurfaceObject(Platform platform, long seed, int x, int y, int waterBlocksAbove) {
+            final Random rnd = new Random(seed + (x * 65537L) + (y * 4099L));
+            final int rndNr = rnd.nextInt(FLOWER_INCIDENCE);
+            if ((waterBlocksAbove > 0) && platform.capabilities.contains(NAME_BASED)) {
+                if (grassNoise.getSeed() != (seed + GRASS_SEED_OFFSET)) {
+                    grassNoise.setSeed(seed + GRASS_SEED_OFFSET);
+                    tallGrassNoise.setSeed(seed + DOUBLE_TALL_GRASS_SEED_OFFSET);
+                }
+                final float grassValue = grassNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) + (rnd.nextFloat() * 0.3f - 0.15f);
+                if (grassValue > GRASS_CHANCE) {
+                    if (tallGrassNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) > 0) {
+                        // Double tallness
+                        if (grassValue > DOUBLE_TALL_GRASS_CHANCE) {
+                            return Plants.KELP.realise(rnd.nextInt(Math.min(waterBlocksAbove, 26)) + 1, platform);
                         } else {
-                            return AIR;
+                            if ((rnd.nextInt(4) == 0) || (waterBlocksAbove < 2)) {
+                                return Plants.SEAGRASS.realise(1, platform);
+                            } else {
+                                return Plants.TALL_SEAGRASS.realise(1, platform);
+                            }
                         }
                     } else {
-                        return AIR;
-                    }
-                } else {
-                    if (grassNoise.getSeed() != (seed + GRASS_SEED_OFFSET)) {
-                        grassNoise.setSeed(seed + GRASS_SEED_OFFSET);
-                        tallGrassNoise.setSeed(seed + DOUBLE_TALL_GRASS_SEED_OFFSET);
-                    }
-                    // Use 1 instead of 2, even though dz == 2, to get consistent results for the lower and upper blocks
-                    // Keep the "1 / SMALLBLOBS" for consistency with existing maps
-                    final float grassValue = grassNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) + (rnd.nextFloat() * 0.3f - 0.15f);
-                    if ((grassValue > DOUBLE_TALL_GRASS_CHANCE) && (tallGrassNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) > 0)) {
-                        if ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) {
-                            if (rnd.nextInt(4) == 0) {
-                                return DOUBLE_TALL_FERN_BOTTOM.withProperty(HALF, "upper");
-                            } else {
-                                return DOUBLE_TALL_GRASS_BOTTOM.withProperty(HALF, "upper");
-                            }
+                        if ((grassValue > FERN_CHANCE) && (waterBlocksAbove >= 2)) {
+                            return Plants.TALL_SEAGRASS.realise(1, platform);
                         } else {
-                            return LARGE_FLOWER_TOP;
+                            return Plants.SEAGRASS.realise(1, platform);
                         }
-                    } else {
-                        return AIR;
                     }
                 }
-            } else if (dz == 1) {
-                final Random rnd = new Random(seed + (x * 65537L) + (y * 4099L));
-                final int rndNr = rnd.nextInt(FLOWER_INCIDENCE);
+            } else if (waterBlocksAbove == 0) {
                 if (rndNr == 0) {
                     if (dandelionNoise.getSeed() != (seed + DANDELION_SEED_OFFSET)) {
                         dandelionNoise.setSeed(seed + DANDELION_SEED_OFFSET);
                         roseNoise.setSeed(seed + ROSE_SEED_OFFSET);
                         flowerTypeField.setSeed(seed + FLOWER_TYPE_FIELD_OFFSET);
                     }
-                    // Keep the "1 / SMALLBLOBS" and the two noise generators for constistency with existing maps
+                    // Keep the "1 / SMALL_BLOBS" and the two noise generators for consistency with existing maps
                     if ((dandelionNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) > FLOWER_CHANCE)
                             || (roseNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) > FLOWER_CHANCE)) {
-                        return FLOWER_TYPES[flowerTypeField.getValue(x, y)];
-                    } else {
-                        return AIR;
+                        return FLOWER_TYPES[flowerTypeField.getValue(x, y)].realise(1, platform);
                     }
                 } else {
                     if (grassNoise.getSeed() != (seed + GRASS_SEED_OFFSET)) {
                         grassNoise.setSeed(seed + GRASS_SEED_OFFSET);
                         tallGrassNoise.setSeed(seed + DOUBLE_TALL_GRASS_SEED_OFFSET);
                     }
-                    // Keep the "1 / SMALLBLOBS" for constistency with existing maps
+                    // Keep the "1 / SMALL_BLOBS" for consistency with existing maps
                     final float grassValue = grassNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) + (rnd.nextFloat() * 0.3f - 0.15f);
                     if (grassValue > GRASS_CHANCE) {
                         if (tallGrassNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) > 0) {
                             // Double tallness
                             if (grassValue > DOUBLE_TALL_GRASS_CHANCE) {
                                 if (rnd.nextInt(4) == 0) {
-                                    return DOUBLE_TALL_FERN_BOTTOM;
+                                    return Plants.LARGE_FERN.realise(1, platform);
                                 } else {
-                                    return DOUBLE_TALL_GRASS_BOTTOM;
+                                    return Plants.TALL_GRASS.realise(1, platform);
                                 }
-                            } else  {
+                            } else {
                                 if (rnd.nextInt(4) == 0) {
-                                    return FERN;
+                                    return Plants.FERN.realise(1, platform);
                                 } else {
-                                    return Material.GRASS;
+                                    return Plants.GRASS.realise(1, platform);
                                 }
                             }
                         } else {
                             if (grassValue > FERN_CHANCE) {
-                                return FERN;
+                                return Plants.FERN.realise(1, platform);
                             } else {
-                                return Material.GRASS;
+                                return Plants.GRASS.realise(1, platform);
                             }
                         }
-                    } else {
-                        return AIR;
                     }
                 }
-            } else {
-                // The post process step will take care of changing all covered
-                // grass blocks into dirt
-                return Material.GRASS_BLOCK;
             }
+            return null;
         }
 
         private final PerlinNoise dandelionNoise = new PerlinNoise(0);
@@ -157,28 +129,24 @@ public enum Terrain {
         private final RandomField flowerTypeField = new RandomField(4, SMALL_BLOBS, 0);
         private final PerlinNoise tallGrassNoise = new PerlinNoise(0);
 
-        private final Material[] FLOWER_TYPES = {
-            DANDELION,
-            ROSE,
-            Material.get(BLK_ROSE, 1), // Blue orchid
-            Material.get(BLK_ROSE, 2), // Allium
-            Material.get(BLK_ROSE, 3), // Azure bluet
-            Material.get(BLK_ROSE, 4), // Red tulip
-            Material.get(BLK_ROSE, 5), // Orange tulip
-            Material.get(BLK_ROSE, 6), // White tulip
-            Material.get(BLK_ROSE, 7), // Pink tulip
-            Material.get(BLK_ROSE, 8), // Oxeye daisy
-            Material.get(BLK_LARGE_FLOWERS, 0), // Sunflower
-            Material.get(BLK_LARGE_FLOWERS, 1), // Lilac
-            Material.get(BLK_LARGE_FLOWERS, 4), // Rose bush
-            Material.get(BLK_LARGE_FLOWERS, 5), // Peony
-            DANDELION, // Again to make them a bit more common
-            ROSE,      // Again to make them a bit more common
+        private final Plant[] FLOWER_TYPES = {
+            Plants.DANDELION,
+            Plants.POPPY,
+            Plants.BLUE_ORCHID,
+            Plants.ALLIUM,
+            Plants.AZURE_BLUET,
+            Plants.TULIP_RED,
+            Plants.TULIP_ORANGE,
+            Plants.TULIP_WHITE,
+            Plants.TULIP_PINK,
+            Plants.OXEYE_DAISY,
+            Plants.SUNFLOWER,
+            Plants.LILAC,
+            Plants.ROSE_BUSH,
+            Plants.PEONY,
+            Plants.DANDELION, // Again to make them a bit more common
+            Plants.POPPY,     // Again to make them a bit more common
         };
-
-        private final Material DOUBLE_TALL_GRASS_BOTTOM = Material.get(BLK_LARGE_FLOWERS, 2);
-        private final Material LARGE_FLOWER_TOP         = Material.get(BLK_LARGE_FLOWERS, 8);
-        private final Material DOUBLE_TALL_FERN_BOTTOM  = Material.get(BLK_LARGE_FLOWERS, 3);
 
         private static final long DANDELION_SEED_OFFSET = 145351781L;
         private static final long ROSE_SEED_OFFSET = 28286488L;
@@ -219,21 +187,19 @@ public enum Terrain {
     SNOW("Snow on Rock", "[DEPRECATED] a thin layer of snow on a mix of stone and cobblestone", BIOME_ICE_PLAINS, 1) {
         @Override
         public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
-            final int dz = z - height;
-            if (dz > 1) {
-                return AIR;
-            } else if (dz == 1) {
-                return Material.SNOW;
-            } else {
-                if (perlinNoise.getSeed() != (seed + STONE_SEED_OFFSET)) {
-                    perlinNoise.setSeed(seed + STONE_SEED_OFFSET);
-                }
-                if (perlinNoise.getPerlinNoise(x / TINY_BLOBS, y / TINY_BLOBS, z / TINY_BLOBS) > 0) {
-                    return Material.STONE;
-                } else {
-                    return Material.COBBLESTONE;
-                }
+            if (perlinNoise.getSeed() != (seed + STONE_SEED_OFFSET)) {
+                perlinNoise.setSeed(seed + STONE_SEED_OFFSET);
             }
+            if (perlinNoise.getPerlinNoise(x / TINY_BLOBS, y / TINY_BLOBS, z / TINY_BLOBS) > 0) {
+                return Material.STONE;
+            } else {
+                return Material.COBBLESTONE;
+            }
+        }
+
+        @Override
+        public WPObject getSurfaceObject(Platform platform, long seed, int x, int y, int waterBlocksAbove) {
+            return (waterBlocksAbove == 0) ? OBJECT_SNOW : null;
         }
 
         @Override
@@ -242,6 +208,7 @@ public enum Terrain {
         }
 
         private final PerlinNoise perlinNoise = new PerlinNoise(0);
+        private final WPObject OBJECT_SNOW = new GenericObject("Snow", 1, 1, 1, new Material[] { Material.SNOW });
 
         private static final int STONE_SEED_OFFSET = 188434540;
     },
@@ -254,33 +221,29 @@ public enum Terrain {
     SOUL_SAND("Soul Sand", BLK_SOUL_SAND, BLK_SOUL_SAND, "soul sand", BIOME_HELL),
     OBSIDIAN("Obsidian", BLK_OBSIDIAN, BLK_OBSIDIAN, "extremely tough volcanic glass", BIOME_PLAINS),
     BEDROCK("Bedrock", BLK_BEDROCK, BLK_BEDROCK, "unbreakable bedrock", BIOME_PLAINS),
-    DESERT("Desert", "sand with here and there a cactus or dead shrub", BIOME_DESERT, 3) {
+    DESERT("Desert", Material.SAND, Material.SAND, "sand with here and there a cactus or dead shrub", BIOME_DESERT) {
         @Override
-        public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
-            final int dz = z - height;
-            if (dz <= 0) {
-                return Material.SAND;
+        public WPObject getSurfaceObject(Platform platform, long seed, int x, int y, int waterBlocksAbove) {
+            if (waterBlocksAbove > 0) {
+                return null;
+            }
+            final int rnd = new Random(seed + (x * 65537L) + (y * 4099L)).nextInt(CACTUS_CHANCE);
+            final int cactusHeight;
+            boolean shrub = false;
+            if (rnd < 3) {
+                cactusHeight = rnd + 1;
             } else {
-                final int rnd = new Random(seed + (x * 65537L) + (y * 4099L)).nextInt(CACTUS_CHANCE);
-                final int cactusHeight;
-                boolean shrub = false;
-                if (rnd < 3) {
-                    cactusHeight = rnd + 1;
-                } else {
-                    cactusHeight = 0;
-                    if (rnd < 6) {
-                        shrub = true;
-                    }
+                cactusHeight = 0;
+                if (rnd < 6) {
+                    shrub = true;
                 }
-                if (dz > cactusHeight) {
-                    if ((dz == 1) && shrub) {
-                        return DEAD_SHRUBS;
-                    } else {
-                        return AIR;
-                    }
-                } else {
-                    return CACTUS;
-                }
+            }
+            if (shrub) {
+                return Plants.DEAD_SHRUB.realise(1, platform);
+            } else if (cactusHeight == 0) {
+                return null;
+            } else {
+                return Plants.CACTUS.realise(cactusHeight, platform);
             }
         }
 
@@ -289,37 +252,39 @@ public enum Terrain {
     NETHERLIKE("Netherlike", "netherrack with pockets of lava, soul sand and glowstone and patches of fire on top", BIOME_HELL, 1) {
         @Override
         public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
-            final int dz = z - height;
-            if (dz > 1) {
-                return AIR;
-            } else if (dz == 1) {
-                final int rnd = new Random(seed + (x * 65537L) + (y * 4099L)).nextInt(FIRE_CHANCE);
-                if (rnd == 0) {
-                    return FIRE;
-                } else {
-                    return AIR;
-                }
+            if (glowstoneNoise.getSeed() != (seed + GLOWSTONE_SEED_OFFSET)) {
+                glowstoneNoise.setSeed(seed + GLOWSTONE_SEED_OFFSET);
+                soulSandNoise.setSeed(seed + SOUL_SAND_SEED_OFFSET);
+                lavaNoise.setSeed(seed + LAVA_SEED_OFFSET);
+            }
+            if (glowstoneNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > .4) {
+                return GLOWSTONE;
+            } else if(soulSandNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > .4) {
+                return Material.SOUL_SAND;
+            } else if(lavaNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > .4) {
+                return Material.LAVA;
             } else {
-                if (glowstoneNoise.getSeed() != (seed + GLOWSTONE_SEED_OFFSET)) {
-                    glowstoneNoise.setSeed(seed + GLOWSTONE_SEED_OFFSET);
-                    soulSandNoise.setSeed(seed + SOUL_SAND_SEED_OFFSET);
-                    lavaNoise.setSeed(seed + LAVA_SEED_OFFSET);
-                }
-                if (glowstoneNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > .4) {
-                    return GLOWSTONE;
-                } else if(soulSandNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > .4) {
-                    return Material.SOUL_SAND;
-                } else if(lavaNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > .4) {
-                    return Material.LAVA;
-                } else {
-                    return Material.NETHERRACK;
-                }
+                return Material.NETHERRACK;
+            }
+        }
+
+        @Override
+        public WPObject getSurfaceObject(Platform platform, long seed, int x, int y, int waterBlocksAbove) {
+            if (waterBlocksAbove > 0) {
+                return null;
+            }
+            final int rnd = new Random(seed + (x * 65537L) + (y * 4099L)).nextInt(FIRE_CHANCE);
+            if (rnd == 0) {
+                return OBJECT_FIRE;
+            } else {
+                return null;
             }
         }
 
         private final PerlinNoise glowstoneNoise = new PerlinNoise(0);
         private final PerlinNoise soulSandNoise = new PerlinNoise(0);
         private final PerlinNoise lavaNoise = new PerlinNoise(0);
+        private final WPObject OBJECT_FIRE = new GenericObject("Fire", 1, 1, 1, new Material[] { Material.FIRE });
 
         private static final int GLOWSTONE_SEED_OFFSET =  57861047;
         private static final int LAVA_SEED_OFFSET      = 189831882;
@@ -330,51 +295,47 @@ public enum Terrain {
     RESOURCES("Resources", "stone on the surface with pockets of coal, ores, gravel and dirt, lava and water, etc.", BIOME_PLAINS) {
         @Override
         public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
-            if (z > height) {
-                return AIR;
+            if (goldNoise.getSeed() != (seed + GOLD_SEED_OFFSET)) {
+                goldNoise.setSeed(       seed + GOLD_SEED_OFFSET);
+                ironNoise.setSeed(       seed + IRON_SEED_OFFSET);
+                coalNoise.setSeed(       seed + COAL_SEED_OFFSET);
+                lapisLazuliNoise.setSeed(seed + LAPIS_LAZULI_SEED_OFFSET);
+                diamondNoise.setSeed(    seed + DIAMOND_SEED_OFFSET);
+                redstoneNoise.setSeed(   seed + REDSTONE_SEED_OFFSET);
+                waterNoise.setSeed(      seed + WATER_SEED_OFFSET);
+                lavaNoise.setSeed(       seed + LAVA_SEED_OFFSET);
+                dirtNoise.setSeed(       seed + DIRT_SEED_OFFSET);
+                gravelNoise.setSeed(     seed + GRAVEL_SEED_OFFSET);
+            }
+            final double dx = x / TINY_BLOBS, dy = y / TINY_BLOBS, dz = z / TINY_BLOBS;
+            final double dirtX = x / SMALL_BLOBS, dirtY = y / SMALL_BLOBS, dirtZ = z / SMALL_BLOBS;
+            if ((z <= COAL_LEVEL) && (coalNoise.getPerlinNoise(dx, dy, dz) >= COAL_CHANCE)) {
+                return COAL;
+            } else if ((z <= DIRT_LEVEL) && (dirtNoise.getPerlinNoise(dirtX, dirtY, dirtZ) >= DIRT_CHANCE)) {
+                return Material.DIRT;
+            } else if ((z <= GRAVEL_LEVEL) && (gravelNoise.getPerlinNoise(dirtX, dirtY, dirtZ) >= GRAVEL_CHANCE)) {
+                return Material.GRAVEL;
+            } else if ((z <= REDSTONE_LEVEL) && (redstoneNoise.getPerlinNoise(dx, dy, dz) >= REDSTONE_CHANCE)) {
+                return REDSTONE_ORE;
+            } else if ((z <= IRON_LEVEL) && (ironNoise.getPerlinNoise(dx, dy, dz) >= IRON_CHANCE)) {
+                return IRON_ORE;
+            } else if ((z <= WATER_LEVEL) && (waterNoise.getPerlinNoise(dx, dy, dz) >= WATER_CHANCE)) {
+                return Material.WATER;
+            } else if ((z <= LAVA_LEVEL) && (lavaNoise.getPerlinNoise(dx, dy, dz) >= (LAVA_CHANCE + (z * z / 65536f)))) {
+//                System.out.println("Lava at level " + z);
+//                if (z > highestLava) {
+//                    highestLava = z;
+//                }
+//                System.out.println("Highest lava: " + highestLava);
+                return Material.LAVA;
+            } else if ((z <= GOLD_LEVEL) && (goldNoise.getPerlinNoise(dx, dy, dz) >= GOLD_CHANCE)) {
+                return GOLD_ORE;
+            } else if ((z <= LAPIS_LAZULI_LEVEL) && (lapisLazuliNoise.getPerlinNoise(dx, dy, dz) >= LAPIS_LAZULI_CHANCE)) {
+                return LAPIS_LAZULI_ORE;
+            } else if ((z <= DIAMOND_LEVEL) && (diamondNoise.getPerlinNoise(dx, dy, dz) >= DIAMOND_CHANCE)) {
+                return DIAMOND_ORE;
             } else {
-                if (goldNoise.getSeed() != (seed + GOLD_SEED_OFFSET)) {
-                    goldNoise.setSeed(       seed + GOLD_SEED_OFFSET);
-                    ironNoise.setSeed(       seed + IRON_SEED_OFFSET);
-                    coalNoise.setSeed(       seed + COAL_SEED_OFFSET);
-                    lapisLazuliNoise.setSeed(seed + LAPIS_LAZULI_SEED_OFFSET);
-                    diamondNoise.setSeed(    seed + DIAMOND_SEED_OFFSET);
-                    redstoneNoise.setSeed(   seed + REDSTONE_SEED_OFFSET);
-                    waterNoise.setSeed(      seed + WATER_SEED_OFFSET);
-                    lavaNoise.setSeed(       seed + LAVA_SEED_OFFSET);
-                    dirtNoise.setSeed(       seed + DIRT_SEED_OFFSET);
-                    gravelNoise.setSeed(     seed + GRAVEL_SEED_OFFSET);
-                }
-                final double dx = x / TINY_BLOBS, dy = y / TINY_BLOBS, dz = z / TINY_BLOBS;
-                final double dirtX = x / SMALL_BLOBS, dirtY = y / SMALL_BLOBS, dirtZ = z / SMALL_BLOBS;
-                if ((z <= COAL_LEVEL) && (coalNoise.getPerlinNoise(dx, dy, dz) >= COAL_CHANCE)) {
-                    return COAL;
-                } else if ((z <= DIRT_LEVEL) && (dirtNoise.getPerlinNoise(dirtX, dirtY, dirtZ) >= DIRT_CHANCE)) {
-                    return Material.DIRT;
-                } else if ((z <= GRAVEL_LEVEL) && (gravelNoise.getPerlinNoise(dirtX, dirtY, dirtZ) >= GRAVEL_CHANCE)) {
-                    return Material.GRAVEL;
-                } else if ((z <= REDSTONE_LEVEL) && (redstoneNoise.getPerlinNoise(dx, dy, dz) >= REDSTONE_CHANCE)) {
-                    return REDSTONE_ORE;
-                } else if ((z <= IRON_LEVEL) && (ironNoise.getPerlinNoise(dx, dy, dz) >= IRON_CHANCE)) {
-                    return IRON_ORE;
-                } else if ((z <= WATER_LEVEL) && (waterNoise.getPerlinNoise(dx, dy, dz) >= WATER_CHANCE)) {
-                    return Material.WATER;
-                } else if ((z <= LAVA_LEVEL) && (lavaNoise.getPerlinNoise(dx, dy, dz) >= (LAVA_CHANCE + (z * z / 65536f)))) {
-    //                System.out.println("Lava at level " + z);
-    //                if (z > highestLava) {
-    //                    highestLava = z;
-    //                }
-    //                System.out.println("Highest lava: " + highestLava);
-                    return Material.LAVA;
-                } else if ((z <= GOLD_LEVEL) && (goldNoise.getPerlinNoise(dx, dy, dz) >= GOLD_CHANCE)) {
-                    return GOLD_ORE;
-                } else if ((z <= LAPIS_LAZULI_LEVEL) && (lapisLazuliNoise.getPerlinNoise(dx, dy, dz) >= LAPIS_LAZULI_CHANCE)) {
-                    return LAPIS_LAZULI_ORE;
-                } else if ((z <= DIAMOND_LEVEL) && (diamondNoise.getPerlinNoise(dx, dy, dz) >= DIAMOND_CHANCE)) {
-                    return DIAMOND_ORE;
-                } else {
-                    return Material.STONE;
-                }
+                return Material.STONE;
             }
         }
 
@@ -405,38 +366,68 @@ public enum Terrain {
     BEACHES("Beaches", "grass with patches of sand, gravel and clay", BIOME_BEACH) {
         @Override
         public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
-            final int dz = z - height;
-            if (dz > 0) {
-                return AIR;
+            if (sandNoise.getSeed() != (seed + SAND_SEED_OFFSET)) {
+                sandNoise.setSeed(seed + SAND_SEED_OFFSET);
+                clayNoise.setSeed(seed + CLAY_SEED_OFFSET);
+            }
+            float noise = clayNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS);
+            if (noise >= BEACH_CLAY_CHANCE) {
+                return Material.CLAY;
             } else {
-                if (sandNoise.getSeed() != (seed + SAND_SEED_OFFSET)) {
-                    sandNoise.setSeed(seed + SAND_SEED_OFFSET);
-                    clayNoise.setSeed(seed + CLAY_SEED_OFFSET);
-                }
-                float noise = clayNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS);
-                if (noise >= BEACH_CLAY_CHANCE) {
-                    return Material.CLAY;
+                noise = sandNoise.getPerlinNoise(x / HUGE_BLOBS, y / HUGE_BLOBS, z / SMALL_BLOBS);
+                noise += sandNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) / 2;
+                if (noise >= BEACH_SAND_CHANCE) {
+                    return Material.SAND;
+                } else if (-noise >= BEACH_GRAVEL_CHANCE) {
+                    return Material.GRAVEL;
                 } else {
-                    noise = sandNoise.getPerlinNoise(x / HUGE_BLOBS, y / HUGE_BLOBS, z / SMALL_BLOBS);
-                    noise += sandNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) / 2;
-                    if (noise >= BEACH_SAND_CHANCE) {
-                        return Material.SAND;
-                    } else if (-noise >= BEACH_GRAVEL_CHANCE) {
-                        return Material.GRAVEL;
-                    } else if (dz == 0) {
-                        return Material.GRASS_BLOCK;
-                    } else {
-                        return Material.DIRT;
-                    }
+                    return Material.GRASS_BLOCK;
                 }
             }
         }
 
+        @Override
+        public WPObject getSurfaceObject(Platform platform, long seed, int x, int y, int waterBlocksAbove) {
+            if (platform.capabilities.contains(NAME_BASED) && (waterBlocksAbove > 0)) {
+                final Random rnd = new Random(seed + (x * 65537L) + (y * 4099L));
+                if (grassNoise.getSeed() != (seed + GRASS_SEED_OFFSET)) {
+                    grassNoise.setSeed(seed + GRASS_SEED_OFFSET);
+                    tallGrassNoise.setSeed(seed + DOUBLE_TALL_GRASS_SEED_OFFSET);
+                }
+                final float grassValue = grassNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) + (rnd.nextFloat() * 0.3f - 0.15f);
+                if (grassValue > GRASS_CHANCE) {
+                    if (tallGrassNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, 1 / SMALL_BLOBS) > 0) {
+                        // Double tallness
+                        if (grassValue > DOUBLE_TALL_GRASS_CHANCE) {
+                            return Plants.KELP.realise(rnd.nextInt(Math.min(waterBlocksAbove, 26)) + 1, platform);
+                        } else {
+                            if ((rnd.nextInt(4) == 0) || (waterBlocksAbove < 2)) {
+                                return Plants.SEAGRASS.realise(1, platform);
+                            } else {
+                                return Plants.TALL_SEAGRASS.realise(1, platform);
+                            }
+                        }
+                    } else {
+                        if ((grassValue > FERN_CHANCE) && (waterBlocksAbove >= 2)) {
+                            return Plants.TALL_SEAGRASS.realise(1, platform);
+                        } else {
+                            return Plants.SEAGRASS.realise(1, platform);
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
         private final PerlinNoise sandNoise = new PerlinNoise(0);
         private final PerlinNoise clayNoise = new PerlinNoise(0);
+        private final PerlinNoise grassNoise = new PerlinNoise(0);
+        private final PerlinNoise tallGrassNoise = new PerlinNoise(0);
 
         private static final long SAND_SEED_OFFSET = 26796036;
         private static final long CLAY_SEED_OFFSET = 161603308;
+        private static final long GRASS_SEED_OFFSET = 169191195L;
+        private static final long DOUBLE_TALL_GRASS_SEED_OFFSET = 31695680L;
     },
     CUSTOM_1("Custom 1",                                  "custom material one", BIOME_PLAINS) {
         @Override public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {return helper.getMaterial(seed, x, y, z, height);}
@@ -1024,18 +1015,19 @@ public enum Terrain {
             if (seed != this.seed) {
                 init(seed);
             }
-            final int dz = Math.round(z) - height;
-            if (dz <= 0) {
-                return LAYERS[mod((int) (z + (perlinNoise.getPerlinNoise(x / GIGANTIC_BLOBS, y / GIGANTIC_BLOBS) * 4 + perlinNoise.getPerlinNoise(x / HUGE_BLOBS, y / HUGE_BLOBS) + perlinNoise.getPerlinNoise(x / LARGE_BLOBS, y / LARGE_BLOBS) + perlinNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS) / 4 + 3.125f) * 8), LAYER_COUNT)];
-            } else if (dz == 1) {
-                final int rnd = new Random(seed + (x * 65537L) + (y * 4099L)).nextInt(SHRUB_CHANCE);
-                if (rnd < 3) {
-                    return DEAD_SHRUBS;
-                } else {
-                    return AIR;
-                }
+            return LAYERS[mod((int) (z + (perlinNoise.getPerlinNoise(x / GIGANTIC_BLOBS, y / GIGANTIC_BLOBS) * 4 + perlinNoise.getPerlinNoise(x / HUGE_BLOBS, y / HUGE_BLOBS) + perlinNoise.getPerlinNoise(x / LARGE_BLOBS, y / LARGE_BLOBS) + perlinNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS) / 4 + 3.125f) * 8), LAYER_COUNT)];
+        }
+
+        @Override
+        public WPObject getSurfaceObject(Platform platform, long seed, int x, int y, int waterBlocksAbove) {
+            if (waterBlocksAbove > 0) {
+                return null;
+            }
+            final int rnd = new Random(seed + (x * 65537L) + (y * 4099L)).nextInt(SHRUB_CHANCE);
+            if (rnd < 3) {
+                return Plants.DEAD_SHRUB.realise(1, platform);
             } else {
-                return AIR;
+                return null;
             }
         }
 
@@ -1062,33 +1054,29 @@ public enum Terrain {
         private static final int SHRUB_CHANCE = 500;
         private static final long NOISE_SEED_OFFSET = 110335839L;
     },
-    RED_DESERT("Red Desert", "red sand with here and there a cactus or dead shrub", BIOME_MESA, 3) {
+    RED_DESERT("Red Desert", Material.RED_SAND, Material.RED_SAND, "red sand with here and there a cactus or dead shrub", BIOME_MESA) {
         @Override
-        public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
-            final int dz = z - height;
-            if (dz <= 0) {
-                return Material.RED_SAND;
+        public WPObject getSurfaceObject(Platform platform, long seed, int x, int y, int waterBlocksAbove) {
+            if (waterBlocksAbove > 0) {
+                return null;
+            }
+            final int rnd = new Random(seed + (x * 65537L) + (y * 4099L)).nextInt(CACTUS_CHANCE);
+            final int cactusHeight;
+            boolean shrub = false;
+            if (rnd < 3) {
+                cactusHeight = rnd + 1;
             } else {
-                final int rnd = new Random(seed + (x * 65537L) + (y * 4099L)).nextInt(CACTUS_CHANCE);
-                final int cactusHeight;
-                boolean shrub = false;
-                if (rnd < 3) {
-                    cactusHeight = rnd + 1;
-                } else {
-                    cactusHeight = 0;
-                    if (rnd < 12) {
-                        shrub = true;
-                    }
+                cactusHeight = 0;
+                if (rnd < 12) {
+                    shrub = true;
                 }
-                if (dz > cactusHeight) {
-                    if ((dz == 1) && shrub) {
-                        return DEAD_SHRUBS;
-                    } else {
-                        return AIR;
-                    }
-                } else {
-                    return CACTUS;
-                }
+            }
+            if (shrub) {
+                return Plants.DEAD_SHRUB.realise(1, platform);
+            } else if (cactusHeight == 0) {
+                return null;
+            } else {
+                return Plants.CACTUS.realise(cactusHeight, platform);
             }
         }
 
@@ -1101,36 +1089,31 @@ public enum Terrain {
     STONE_MIX("Stone Mix", "stone or deepslate with patches of granite, diorite, andesite and tuff", BIOME_PLAINS) {
         @Override
         public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
-            final int dz = z - height;
-            if (dz > 0) {
-                return AIR;
-            } else {
-                if (graniteNoise.getSeed() != (seed + GRANITE_SEED_OFFSET)) {
-                    graniteNoise.setSeed(seed + GRANITE_SEED_OFFSET);
-                    dioriteNoise.setSeed(seed + DIORITE_SEED_OFFSET);
-                    andesiteNoise.setSeed(seed + ANDESITE_SEED_OFFSET);
-                    RANDOM.setSeed(seed);
-                }
-                if (z >= -RANDOM.nextInt(5)) { // TODO this is not stable
-                    if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
-                        return Material.GRANITE;
-                    } else if(dioriteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > DIORITE_CHANCE) {
-                        return Material.DIORITE;
-                    } else if(andesiteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > ANDESITE_CHANCE) {
-                        return Material.ANDESITE;
-                    } else {
-                        return Material.STONE;
-                    }
+            if (graniteNoise.getSeed() != (seed + GRANITE_SEED_OFFSET)) {
+                graniteNoise.setSeed(seed + GRANITE_SEED_OFFSET);
+                dioriteNoise.setSeed(seed + DIORITE_SEED_OFFSET);
+                andesiteNoise.setSeed(seed + ANDESITE_SEED_OFFSET);
+                RANDOM.setSeed(seed);
+            }
+            if (z >= -RANDOM.nextInt(5)) { // TODO this is not stable
+                if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
+                    return Material.GRANITE;
+                } else if(dioriteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > DIORITE_CHANCE) {
+                    return Material.DIORITE;
+                } else if(andesiteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > ANDESITE_CHANCE) {
+                    return Material.ANDESITE;
                 } else {
-                    if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
-                        return Material.TUFF;
-                    } else if(dioriteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > DIORITE_CHANCE) {
-                        return Material.DEEPSLATE_X;
-                    } else if(andesiteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > ANDESITE_CHANCE) {
-                        return Material.DEEPSLATE_Z;
-                    } else {
-                        return Material.DEEPSLATE_Y;
-                    }
+                    return Material.STONE;
+                }
+            } else {
+                if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
+                    return Material.TUFF;
+                } else if(dioriteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > DIORITE_CHANCE) {
+                    return Material.DEEPSLATE_X;
+                } else if(andesiteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > ANDESITE_CHANCE) {
+                    return Material.DEEPSLATE_Z;
+                } else {
+                    return Material.DEEPSLATE_Y;
                 }
             }
         }
@@ -1701,9 +1684,7 @@ public enum Terrain {
         @Override
         public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
             final int dz = z - height;
-            if (dz > 0) {
-                return AIR;
-            } else if (dz == 0) {
+            if (dz == 0) {
                 if ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_15)) {
                     return Material.GRASS_PATH;
                 } else {
@@ -2829,26 +2810,21 @@ public enum Terrain {
     CALCITE("Calcite", Material.CALCITE, Material.CALCITE, "calcite", BIOME_PLAINS);
 
     Terrain(String name, String description, int defaultBiome) {
-        this(name, Material.STONE, Material.STONE, description, defaultBiome, 0);
+        this(name, Material.STONE, Material.STONE, description, defaultBiome);
     }
 
     Terrain(String name, String description, int defaultBiome, int toppingHeight) {
-        this(name, Material.STONE, Material.STONE, description, defaultBiome, toppingHeight);
+        this(name, Material.STONE, Material.STONE, description, defaultBiome);
     }
 
     Terrain(String name, int topMaterial, int topLayerMaterial, String description, int defaultBiome) {
-        this(name, Material.get(topMaterial), Material.get(topLayerMaterial), description, defaultBiome, 0);
+        this(name, Material.get(topMaterial), Material.get(topLayerMaterial), description, defaultBiome);
     }
 
     Terrain(String name, Material topMaterial, Material topLayerMaterial, String description, int defaultBiome) {
-        this(name, topMaterial, topLayerMaterial, description, defaultBiome, 0);
-    }
-
-    Terrain(String name, Material topMaterial, Material topLayerMaterial, String description, int defaultBiome, int toppingHeight) {
         this.name = name;
         this.topMaterial = topMaterial;
         this.topLayerMaterial = topLayerMaterial;
-        this.toppingHeight = toppingHeight;
         this.description = description;
         this.defaultBiome = defaultBiome;
         icon = IconUtils.loadUnscaledImage("org/pepsoft/worldpainter/icons/" + name().toLowerCase() + ".png");
@@ -2907,6 +2883,18 @@ public enum Terrain {
         return (topMaterial == topLayerMaterial) ? singleton(topMaterial) : ImmutableSet.of(topMaterial, topLayerMaterial);
     }
 
+    /**
+     * Get the {@link WPObject object}, if any (such as a {@link Plant}), to place on top of the terrain at the
+     * specified coordinates. The default implementation always returns {@code null}.
+     *
+     * <p>These objects must be small and simple, and in particular they must consist of one block or column of blocks.
+     * It may not extend sideways, as these objects are placed during the first export phase. Tile and block entities
+     * are ignored.
+     */
+    public WPObject getSurfaceObject(Platform platform, long seed, int x, int y, int waterBlocksAbove) {
+        return null;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -2957,10 +2945,6 @@ public enum Terrain {
         throw new IllegalArgumentException("Not a custom terrain");
     }
 
-    public int getToppingHeight() {
-        return toppingHeight;
-    }
-
     // Object
 
     @Override
@@ -3003,7 +2987,6 @@ public enum Terrain {
     }
 
     private final Material topMaterial, topLayerMaterial;
-    private final int toppingHeight;
     private final String name, description;
     private final BufferedImage icon;
     private final int defaultBiome;

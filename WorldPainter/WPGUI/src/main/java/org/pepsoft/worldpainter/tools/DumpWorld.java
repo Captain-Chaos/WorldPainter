@@ -65,14 +65,26 @@ public class DumpWorld {
         System.out.println("    Generator: " + dimension.getGenerator());
         System.out.println("    WorldPainter seed: " + dimension.getSeed() + "; Minecraft seed: " + dimension.getMinecraftSeed());
         if (dimension.getBorder() != null) {
-            switch (dimension.getBorder()) {
-                case LAVA:
-                case WATER:
-                    System.out.println("    Border: " + dimension.getBorder() + " (size: " + dimension.getBorderSize() + "; level; " + dimension.getBorderLevel() + ")");
-                    break;
-                case VOID:
-                    System.out.println("    Border: VOID (size: " + dimension.getBorderSize() + ")");
-                    break;
+            if (dimension.getBorder().isEndless()) {
+                switch (dimension.getBorder()) {
+                    case ENDLESS_LAVA:
+                    case ENDLESS_WATER:
+                        System.out.println("    Border: " + dimension.getBorder() + " (level; " + dimension.getBorderLevel() + ")");
+                        break;
+                    default:
+                        System.out.println("    Border: " + dimension.getBorder());
+                        break;
+                }
+            } else {
+                switch (dimension.getBorder()) {
+                    case LAVA:
+                    case WATER:
+                        System.out.println("    Border: " + dimension.getBorder() + " (size: " + dimension.getBorderSize() + "; level; " + dimension.getBorderLevel() + ")");
+                        break;
+                    default:
+                        System.out.println("    Border: " + dimension.getBorder() + " (size: " + dimension.getBorderSize() + ")");
+                        break;
+                }
             }
         } else {
             System.out.println("    Border: none");

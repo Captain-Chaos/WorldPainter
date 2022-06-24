@@ -8,16 +8,13 @@ package org.pepsoft.util;
 import com.kenperlin.ImprovedNoise;
 import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
+import java.io.*;
 
 /**
  *
  * @author pepijn
  */
+@SuppressWarnings("ConstantConditions") // Guaranteed by programmer
 public final class PerlinNoise implements Serializable, Cloneable {
     public PerlinNoise(long seed) {
         this.seed = seed;
@@ -45,7 +42,7 @@ public final class PerlinNoise implements Serializable, Cloneable {
      * @return A noise value between -0.5 and 0.5.
      */
     public float getPerlinNoise(double x) {
-        return (float) (improvedNoise.noise(x, 0, 0) * FACTOR);
+        return (float) (improvedNoise.noise(x, 0, 0));
     }
 
     /**
@@ -61,7 +58,7 @@ public final class PerlinNoise implements Serializable, Cloneable {
      * @return A noise value between -0.5 and 0.5.
      */
     public float getPerlinNoise(double x, double y) {
-        return (float) (improvedNoise.noise(x, y, 0) * FACTOR);
+        return (float) (improvedNoise.noise(x, y, 0) * FACTOR_2D);
     }
 
     /**
@@ -79,7 +76,7 @@ public final class PerlinNoise implements Serializable, Cloneable {
      * @return A noise value between -0.5 and 0.5.
      */
     public float getPerlinNoise(double x, double y, double z) {
-        return (float) (improvedNoise.noise(x, y, z) * FACTOR);
+        return (float) (improvedNoise.noise(x, y, z) * FACTOR_3D);
     }
     
     @Override
@@ -120,7 +117,8 @@ public final class PerlinNoise implements Serializable, Cloneable {
     private long seed;
     private ImprovedNoise improvedNoise;
 
-    private static final double FACTOR = 0.5;
+    private static final double FACTOR_2D = 0.5;
+    private static final double FACTOR_3D = 0.4824607142760952;
     private static final long serialVersionUID = 2011040701L;
 
     private static final float[] LEVEL_FOR_PROMILLAGE = new float[10001];

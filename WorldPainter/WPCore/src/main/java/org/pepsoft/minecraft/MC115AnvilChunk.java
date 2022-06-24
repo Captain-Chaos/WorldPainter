@@ -69,6 +69,9 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
                         Section section = new Section(sectionTag);
                         if ((section.level >= 0) && (section.level < sections.length)) {
                             sections[section.level] = section;
+                            if ((section.skyLight != null) && (section.level > highestSectionWithSkylight)) {
+                                highestSectionWithSkylight = section.level;
+                            }
                         } else if (! section.isEmpty()) {
                             logger.warn("Ignoring non-empty out of bounds chunk section @ " + getxPos() + "," + section.level + "," + getzPos());
                         }
@@ -342,8 +345,8 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
     @Override
     public int getSkyLightLevel(int x, int y, int z) {
         int level = y >> 4;
-        if (sections[level] == null) {
-            return 15;
+        if ((sections[level] == null) || (sections[level].skyLight == null)) {
+            return (level > highestSectionWithSkylight) ? 15 : 0;
         } else {
             return getDataByte(sections[level].skyLight, x, y, z);
         }
@@ -357,11 +360,22 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
         int level = y >> 4;
         Section section = sections[level];
         if (section == null) {
-            if (skyLightLevel == 15) {
+            if (skyLightLevel == ((level > highestSectionWithSkylight) ? 15 : 0)) {
                 return;
             }
             section = new Section((byte) level);
             sections[level] = section;
+        }
+        if (section.skyLight == null) {
+            if (skyLightLevel == ((level > highestSectionWithSkylight) ? 15 : 0)) {
+                return;
+            }
+            section.skyLight = new byte[128 * 16];
+            if (level > highestSectionWithSkylight) {
+                // This means we would have previously reported the light as all 0xf, so initialise it to that
+                Arrays.fill(section.skyLight, (byte) 0xff);
+                highestSectionWithSkylight = level;
+            }
         }
         setDataByte(section.skyLight, x, y, z, skyLightLevel);
     }
@@ -369,7 +383,7 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
     @Override
     public int getBlockLightLevel(int x, int y, int z) {
         int level = y >> 4;
-        if (sections[level] == null) {
+        if ((sections[level] == null) || (sections[level].blockLight == null)) {
             return 0;
         } else {
             return getDataByte(sections[level].blockLight, x, y, z);
@@ -389,6 +403,12 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
             }
             section = new Section((byte) level);
             sections[level] = section;
+        }
+        if (section.blockLight == null) {
+            if (blockLightLevel == 0) {
+                return;
+            }
+            section.blockLight = new byte[128 * 16];
         }
         setDataByte(section.blockLight, x, y, z, blockLightLevel);
     }
@@ -737,7 +757,7 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
-        throw new IOException("MC114AnvilChunk is not serializable");
+        throw new IOException("MC115AnvilChunk is not serializable");
     }
 
     static int blockOffset(int x, int y, int z) {
@@ -747,18 +767,18 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
     public final boolean readOnly;
 
     final Section[] sections;
-    final int xPos, zPos;
-    int[] biomes3d;
-    boolean lightOn;
+    final int xPos, zPos, maxHeight;
     final List<Entity> entities;
     final List<TileEntity> tileEntities;
-    final int maxHeight;
-    long inhabitedTime, lastUpdate;
-    String status;
     final Map<String, long[]> heightMaps;
     final List<CompoundTag> liquidTicks = new ArrayList<>();
 //    final boolean debugChunk;
     final Integer inputDataVersion;
+    int highestSectionWithSkylight = Integer.MIN_VALUE;
+    int[] biomes3d;
+    boolean lightOn;
+    long inhabitedTime, lastUpdate;
+    String status;
 
 //    private static long debugWorldX, debugWorldZ, debugXInChunk, debugZInChunk;
 
@@ -836,17 +856,8 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
                 } else {
                     throw new IncompleteSectionException();
                 }
-                byte[] skyLightBytes = getByteArray(TAG_SKY_LIGHT);
-                if (skyLightBytes == null) {
-                    skyLightBytes = new byte[128 * 16];
-                    Arrays.fill(skyLightBytes, (byte) 0xff);
-                }
-                skyLight = skyLightBytes;
-                byte[] blockLightBytes = getByteArray(TAG_BLOCK_LIGHT);
-                if (blockLightBytes == null) {
-                    blockLightBytes = new byte[128 * 16];
-                }
-                blockLight = blockLightBytes;
+                skyLight = getByteArray(TAG_SKY_LIGHT);
+                blockLight = getByteArray(TAG_BLOCK_LIGHT);
             } catch (IncompleteSectionException e) {
                 // Just propagate it
                 throw e;
@@ -860,9 +871,6 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
             super(new CompoundTag("", new HashMap<>()));
             this.level = level;
             materials = new Material[4096];
-            skyLight = new byte[128 * 16];
-            Arrays.fill(skyLight, (byte) 0xff);
-            blockLight = new byte[128 * 16];
         }
 
         @Override
@@ -947,8 +955,12 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
                 }
             }
 
-            setByteArray(TAG_SKY_LIGHT, skyLight);
-            setByteArray(TAG_BLOCK_LIGHT, blockLight);
+            if (skyLight != null) {
+                setByteArray(TAG_SKY_LIGHT, skyLight);
+            }
+            if (blockLight != null) {
+                setByteArray(TAG_BLOCK_LIGHT, blockLight);
+            }
             return super.toNBT();
         }
 
@@ -965,21 +977,25 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
                     return false;
                 }
             }
-            for (byte b: skyLight) {
-                if (b != (byte) -1) {
-                    return false;
+            if (skyLight != null) {
+                for (byte b: skyLight) {
+                    if (b != (byte) 0) {
+                        return false;
+                    }
                 }
             }
-            for (byte b: blockLight) {
-                if (b != (byte) 0) {
-                    return false;
+            if (blockLight != null) {
+                for (byte b: blockLight) {
+                    if (b != (byte) 0) {
+                        return false;
+                    }
                 }
             }
             return true;
         }
 
         private void writeObject(ObjectOutputStream out) throws IOException {
-            throw new IOException("MC113AnvilChunk.Section is not serializable");
+            throw new IOException("MC115AnvilChunk.Section is not serializable");
         }
 
         private Material getMaterial(List<CompoundTag> palette, int index) {
@@ -1002,8 +1018,8 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
         }
 
         public final byte level;
-        final byte[] skyLight;
-        final byte[] blockLight;
+        byte[] skyLight;
+        byte[] blockLight;
         final Material[] materials;
 
         static class IncompleteSectionException extends WPRuntimeException {

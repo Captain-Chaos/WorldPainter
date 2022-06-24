@@ -14,21 +14,19 @@ import org.pepsoft.minecraft.SuperflatGenerator;
 import org.pepsoft.minecraft.SuperflatPreset;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
-import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
-import org.pepsoft.worldpainter.layers.CustomLayer;
-import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
+import org.pepsoft.worldpainter.util.WorldUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.stream;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
-import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.history.HistoryEntry.*;
 
@@ -48,7 +46,12 @@ public class ChangeHeightDialog extends WorldPainterDialog {
 
         initComponents();
         labelOldExtents.setText(lowestHeight + " - " + highestHeight);
-        comboBoxPlatform.setModel(new DefaultComboBoxModel<>(PlatformManager.getInstance().getAllPlatforms().toArray(new Platform[0])));
+        supportedPlatforms.addAll(PlatformManager.getInstance().getAllPlatforms());
+        final List<Platform> allPlatforms = new ArrayList<>(supportedPlatforms);
+        if (! allPlatforms.contains(world.getPlatform())) {
+            allPlatforms.add(0, world.getPlatform());
+        }
+        comboBoxPlatform.setModel(new DefaultComboBoxModel<>(allPlatforms.toArray(new Platform[allPlatforms.size()])));
         final Platform platform = world.getPlatform();
 
         labelCurrentMinHeight.setText(Integer.toString(platform.minZ));
@@ -108,6 +111,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         label.append("</html>");
         labelNewExtents.setText(label.toString());
         labelCutOffWarning.setVisible(activateWarning);
+        labelPlatformWarning.setVisible(! supportedPlatforms.contains(comboBoxPlatform.getSelectedItem()));
     }
 
     private void setControlStates() {
@@ -139,7 +143,18 @@ public class ChangeHeightDialog extends WorldPainterDialog {
             return;
         }
         changePlatform(newPlatform, checkBoxAdjustLayers.isSelected());
-        resizeWorld(world, getTransform(), newMinHeight, newMaxHeight, checkBoxAdjustLayers.isSelected(), this);
+        ProgressDialog.executeTask(this, new ProgressTask<Void>() {
+            @Override
+            public String getName() {
+                return "Changing world height";
+            }
+
+            @Override
+            public Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                WorldUtils.resizeWorld(world, getTransform(), newMinHeight, newMaxHeight, checkBoxAdjustLayers.isSelected(), progressReceiver);
+                return null;
+            }
+        }, NOT_CANCELABLE);
         if (newMinHeight != oldMinHeight) {
             world.addHistoryEntry(WORLD_MIN_HEIGHT_CHANGED, newMinHeight);
         }
@@ -201,120 +216,6 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         return HeightTransform.get(scale ? scaleAmount : 100, translate ? translateAmount : 0);
     }
 
-    static void resizeWorld(final World2 world, final HeightTransform transform, final int newMinHeight, final int newMaxHeight, final boolean transformLayers, final Window parent) {
-        world.setMaxHeight(newMaxHeight);
-        ProgressDialog.executeTask(parent, new ProgressTask<Void>() {
-            @Override
-            public String getName() {
-                return "Changing world height";
-            }
-
-            @Override
-            public Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                final Dimension[] dimensions = world.getDimensions();
-                for (int i = 0; i < dimensions.length; i++) {
-                    resizeDimension(dimensions[i], newMinHeight, newMaxHeight, transform, transformLayers, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) i / dimensions.length, 1f / dimensions.length) : null);
-                }
-                return null;
-            }
-        }, NOT_CANCELABLE);
-    }
-
-    static void resizeDimension(Dimension dim, int newMinHeight, int newMaxHeight, HeightTransform transform, boolean transformLayers, ProgressReceiver progressReceiver) throws OperationCancelled {
-        final int oldMinHeight = dim.getMinHeight(), oldMaxHeight = dim.getMaxHeight();
-        final int dimNewMinHeight, dimNewMaxHeight;
-        switch (dim.getDim()) {
-            case DIM_NETHER:
-            case DIM_NETHER_CEILING:
-                dimNewMinHeight = Math.max(newMinHeight, 0);
-                dimNewMaxHeight = Math.min(newMaxHeight, DEFAULT_MAX_HEIGHT_NETHER);
-                break;
-            case DIM_END:
-            case DIM_END_CEILING:
-                dimNewMinHeight = Math.max(newMinHeight, 0);
-                dimNewMaxHeight = Math.min(newMaxHeight, DEFAULT_MAX_HEIGHT_END);
-                break;
-            default:
-                dimNewMinHeight = newMinHeight;
-                dimNewMaxHeight = newMaxHeight;
-                break;
-        }
-        if ((dimNewMinHeight == oldMinHeight) && (dimNewMaxHeight == oldMaxHeight) && transform.isIdentity()) {
-            // Dimension heights don't need to change
-            return;
-        }
-        dim.clearUndo();
-        dim.getTiles().forEach(Tile::inhibitEvents);
-        try {
-            final int tileCount = dim.getTileCount();
-            int tileNo = 0;
-            for (Tile tile: dim.getTiles()) {
-                tile.setMinMaxHeight(dimNewMinHeight, dimNewMaxHeight, transform);
-                tileNo++;
-                if (progressReceiver != null) {
-                    progressReceiver.setProgress((float) tileNo / tileCount);
-                }
-
-            }
-            dim.setMinHeight(dimNewMinHeight);
-            dim.setMaxHeight(dimNewMaxHeight);
-            dim.getTileFactory().setMinMaxHeight(dimNewMinHeight, dimNewMaxHeight, transform);
-            if (transformLayers) {
-                for (ExporterSettings exporterSettings: dim.getAllLayerSettings().values()) {
-                    exporterSettings.setMinMaxHeight(oldMinHeight, dimNewMinHeight, oldMaxHeight, dimNewMaxHeight, transform);
-                }
-                for (CustomLayer customLayer: dim.getCustomLayers()) {
-                    customLayer.setMinMaxHeight(oldMinHeight, dimNewMinHeight, oldMaxHeight, dimNewMaxHeight, transform);
-                }
-                if (dim.getGenerator() instanceof SuperflatGenerator) {
-                    if (dimNewMinHeight != oldMinHeight) {
-                        final int raiseBy = oldMinHeight - dimNewMinHeight;
-                        final SuperflatPreset settings = ((SuperflatGenerator) dim.getGenerator()).getSettings();
-                        final List<SuperflatPreset.Layer> layers = settings.getLayers();
-                        final int currentHeight = layers.stream().mapToInt(SuperflatPreset.Layer::getThickness).sum();
-                        if (raiseBy > 0) {
-                            // Insert deepslate to raise the Superflat terrain up. Skip the lowest layer
-                            // if that is bedrock, so that bedrock remains at the bottom. If the lowest
-                            // or second-lowest layer is already deepslate: expand that
-                            if (layers.get(0).getMaterialName().equals(MC_BEDROCK)) {
-                                if (layers.get(1).getMaterialName().equals(MC_DEEPSLATE)) {
-                                    layers.get(1).setThickness(layers.get(1).getThickness() + raiseBy);
-                                } else {
-                                    layers.add(1, new SuperflatPreset.Layer(MC_DEEPSLATE, raiseBy));
-                                }
-                            } else if (layers.get(0).getMaterialName().equals(MC_DEEPSLATE)) {
-                                layers.get(0).setThickness(layers.get(0).getThickness() + raiseBy);
-                            } else {
-                                layers.add(0, new SuperflatPreset.Layer(MC_DEEPSLATE, raiseBy));
-                            }
-                        } else {
-                            int lowerBy = -raiseBy;
-                            // Keep reducing the thickness of layers, starting with the bottom one, until we
-                            // have shaved off enough, or we run out of layers
-                            for (SuperflatPreset.Layer layer: layers) {
-                                final int amount = Math.min(lowerBy, layer.getThickness() - 1);
-                                if (amount > 0) {
-                                    layer.setThickness(layer.getThickness() - amount);
-                                    lowerBy -= amount;
-                                    if (lowerBy == 0) {
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            dim.clearUndo();
-            dim.armSavePoint();
-            if (progressReceiver != null) {
-                progressReceiver.setProgress(1f);
-            }
-        } finally {
-            dim.getTiles().forEach(Tile::releaseEvents);
-        }
-    }
-
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -352,6 +253,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         labelOldExtents = new javax.swing.JLabel();
         jLabel12 = new javax.swing.JLabel();
         labelNewExtents = new javax.swing.JLabel();
+        labelPlatformWarning = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Change Map Format");
@@ -476,6 +378,10 @@ public class ChangeHeightDialog extends WorldPainterDialog {
 
         labelNewExtents.setText("<html><b>-999 - 999</b></html>");
 
+        labelPlatformWarning.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/error.png"))); // NOI18N
+        labelPlatformWarning.setText("<html><b>Unknown format; export not possible</b></html>");
+        labelPlatformWarning.setToolTipText("<html>This map format is unknown and cannot be Exported. Most likely it<br>\nis supported by a plugin that is not installed or cannot be loaded.</html>");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -539,7 +445,8 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(labelNewExtents, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(labelOldExtents))))
+                                    .addComponent(labelOldExtents)))
+                            .addComponent(labelPlatformWarning, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -552,7 +459,9 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
                     .addComponent(comboBoxPlatform, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(labelPlatformWarning, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel9)
                     .addComponent(jLabel10))
@@ -678,6 +587,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
     private javax.swing.JLabel labelCutOffWarning;
     private javax.swing.JLabel labelNewExtents;
     private javax.swing.JLabel labelOldExtents;
+    private javax.swing.JLabel labelPlatformWarning;
     private javax.swing.JLabel labelWarning;
     private javax.swing.JSpinner spinnerScaleAmount;
     private javax.swing.JSpinner spinnerTranslateAmount;
@@ -685,6 +595,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
 
     private final World2 world;
     private final int lowestHeight, highestHeight;
+    private final List<Platform> supportedPlatforms = new ArrayList<>();
 
     private static final long serialVersionUID = 1L;
 }

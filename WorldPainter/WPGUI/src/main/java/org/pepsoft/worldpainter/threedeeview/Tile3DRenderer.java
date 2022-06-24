@@ -53,7 +53,7 @@ public class Tile3DRenderer {
         final int tileOffsetX = tile.getX() * TILE_SIZE, tileOffsetY = tile.getY() * TILE_SIZE;
         int currentColour = -1;
         final int imgWidth = TILE_SIZE * 2;
-        final int maxZ = tile.getHighestIntHeight();
+        final int maxZ = Math.max(tile.getHighestIntHeight(), tile.getHighestWaterLevel());
         final int imgHeight = TILE_SIZE + maxZ - minHeight;
         final BufferedImage img = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(imgWidth, imgHeight, Transparency.TRANSLUCENT);
         final Graphics2D g2 = img.createGraphics();

@@ -13,19 +13,28 @@ public class TaskbarProgressReceiver implements ProgressReceiver {
 
     @Override
     public void setProgress(float progress) throws OperationCancelled {
-        DesktopUtils.setProgress(window, Math.round(progress * 100));
+        if (! done) {
+            DesktopUtils.setProgress(window, Math.round(progress * 100));
+            if (progress >= 1.0f) {
+                done = true;
+            }
+        }
         nestedReceiver.setProgress(progress);
     }
 
     @Override
     public void exceptionThrown(Throwable exception) {
-        DesktopUtils.setProgressError(window);
+        if (! done) {
+            DesktopUtils.setProgressError(window);
+            done = true;
+        }
         nestedReceiver.exceptionThrown(exception);
     }
 
     @Override
     public void done() {
-        DesktopUtils.setProgress(window, 100);
+        DesktopUtils.setProgressDone(window);
+        done = true;
         nestedReceiver.done();
     }
 
@@ -41,6 +50,7 @@ public class TaskbarProgressReceiver implements ProgressReceiver {
 
     @Override
     public void reset() throws OperationCancelled {
+        done = false;
         DesktopUtils.setProgress(window, 0);
         nestedReceiver.reset();
     }
@@ -52,4 +62,5 @@ public class TaskbarProgressReceiver implements ProgressReceiver {
 
     private final Window window;
     private final ProgressReceiver nestedReceiver;
+    private volatile boolean done;
 }

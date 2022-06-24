@@ -17,6 +17,7 @@ import java.awt.*;
 
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.minecraft.Material.LAYERS;
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 
 /**
  * Algorithm:
@@ -35,8 +36,8 @@ import static org.pepsoft.minecraft.Material.LAYERS;
  * @author pepijn
  */
 public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverLayer> implements FirstPassLayerExporter, IncidentalLayerExporter {
-    public GroundCoverLayerExporter(GroundCoverLayer layer) {
-        super(layer);
+    public GroundCoverLayerExporter(Dimension dimension, Platform platform, GroundCoverLayer layer) {
+        super(dimension, platform, null, layer);
         NoiseSettings noiseSettings = layer.getNoiseSettings();
         if (noiseSettings != null) {
             noiseHeightMap = new NoiseHeightMap(noiseSettings, NOISE_SEED_OFFSET);
@@ -48,14 +49,12 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
     }
     
     @Override
-    public void render(Dimension dimension, Tile tile, Chunk chunk, Platform platform) {
+    public void render(Tile tile, Chunk chunk) {
         if (noiseHeightMap != null) {
             noiseHeightMap.setSeed(dimension.getSeed());
         }
         final int xOffset = (chunk.getxPos() & 7) << 4;
         final int zOffset = (chunk.getzPos() & 7) << 4;
-        final int minY = dimension.getMinHeight() + (dimension.isBottomless() ? 0 : 1);
-        final int maxY = dimension.getMaxHeight() - 1;
         final MixedMaterial mixedMaterial = layer.getMaterial();
         final int thickness = layer.getThickness(), edgeThickness = Math.abs(thickness) - 2;
         final GroundCoverLayer.EdgeShape edgeShape = layer.getEdgeShape();
@@ -71,6 +70,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
         } else {
             layeredMaterialAnchor = GroundCoverLayer.LayerAnchor.BEDROCK;
         }
+        final boolean namedBlocks = platform.capabilities.contains(NAME_BASED);
         for (int x = 0; x < 16; x++) {
             final int localX = xOffset + x;
             final int worldX = (chunk.getxPos() << 4) + x;
@@ -153,7 +153,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                                 for (int dy = 0; layerHeight > 0; dy++, layerHeight -= 8) {
 //                                    System.out.printf("dy: %d, layerHeight: %d; ", dy, layerHeight);
                                     final int y = terrainheight + dy + 1;
-                                    if (y > maxY) {
+                                    if (y > maxZ) {
                                         break;
                                     }
                                     final Material existingMaterial = chunk.getMaterial(x, y, z);
@@ -165,7 +165,11 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                                         // TODOMC13 don't forget to make this work for 1.12 worlds also still:
                                         if (layerHeight < 8) {
                                             // Top layer, smooth enabled
-                                            chunk.setMaterial(x, y, z, material.withProperty(LAYERS, layerHeight));
+                                            if (namedBlocks) {
+                                                chunk.setMaterial(x, y, z, material.withProperty(LAYERS, layerHeight));
+                                            } else {
+                                                chunk.setMaterial(x, y, z, Material.get(material.blockType, layerHeight - 1));
+                                            }
                                         } else {
                                             // Place a full block
                                             chunk.setMaterial(x, y, z, material == Material.SNOW_EIGHT_LAYERS ? Material.SNOW_BLOCK : material);
@@ -176,7 +180,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                             } else {
                                 for (int dy = 0; dy < effectiveThickness; dy++) {
                                     final int y = terrainheight + dy + 1;
-                                    if (y > maxY) {
+                                    if (y > maxZ) {
                                         break;
                                     }
                                     final Material existingMaterial = chunk.getMaterial(x, y, z);
@@ -206,7 +210,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                             }
                             for (int dy = 0; dy < effectiveThickness; dy++) {
                                 final int y = terrainheight - dy;
-                                if (y < minY) {
+                                if (y < minZ) {
                                     break;
                                 }
                                 Material existingMaterial = chunk.getMaterial(x, y, z);
@@ -223,7 +227,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
 
     // TODO: add smooth layer support here as well; will require refactoring the incidental layer framework
     @Override
-    public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    public Fixup apply(Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
         if (intensity > 0) {
             final Material blockBelow = minecraftWorld.getMaterialAt(location.x, location.y, location.z - 1);
             if ((blockBelow != AIR)
@@ -237,7 +241,6 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                     effectiveThickness += noiseHeightMap.getHeight(location.x, location.y) - noiseOffset;
                 }
                 if (thickness > 0) {
-                    final int maxZ = dimension.getMaxHeight() - 1;
                     for (int dz = 0; dz < effectiveThickness; dz++) {
                         final int z = location.z + dz;
                         if (z > maxZ) {
@@ -253,7 +256,6 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                         }
                     }
                 } else {
-                    final int minZ = dimension.getMinHeight() + (dimension.isBottomless() ? 0 : 1);
                     for (int dz = 0; dz < effectiveThickness; dz++) {
                         final int z = location.z - 1 - dz;
                         if (z < minZ) {

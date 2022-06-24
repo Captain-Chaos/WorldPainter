@@ -7,13 +7,19 @@ package org.pepsoft.worldpainter.layers;
 
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.plugins.PluginManager;
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
+import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.renderers.LayerRenderer;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  *
@@ -71,22 +77,47 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
     }
 
     /**
+     * Return the type of the exporter that {@link #getExporter(Dimension, Platform, ExporterSettings)} will return.
+     * If that method is implemented, this method must also be implemented. May be used to examine which phases the
+     * exporter requires.
+     */
+    public Class<? extends LayerExporter> getExporterType() {
+        return exporterType;
+    }
+
+    /**
      * Create a new exporter for this layer.
      *
+     * <p>If this method is implemented, {@link #getExporterType()} must also be implemented to indicate which type this
+     * method will return.</p>
+     *
+     * @param dimension The dimension that is being exported.
+     * @param platform  The platform for which the dimension is being exported.
+     * @param settings  The configured settings for the layer, if any. May be {@code null}.
      * @return A new exporter for this layer.
      */
-    public LayerExporter getExporter() {
-        if (exporterClass == null) {
+    public LayerExporter getExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        if (exporterType == null) {
             // Layer has no default exporter
             return null;
         } else {
             try {
-                //noinspection unchecked Responsibility of implementor
-                return exporterClass.newInstance();
+                Constructor<? extends LayerExporter> exporterConstructor = exporterType.getConstructor(Dimension.class, Platform.class, ExporterSettings.class);
+                return exporterConstructor.newInstance(dimension, platform, settings);
             } catch (InstantiationException e) {
                 throw new RuntimeException("Instantiation exception while instantiating exporter for layer " + name, e);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("Access denied while instantiating exporter for layer " + name, e);
+            } catch (NoSuchMethodException e) {
+                throw new WPRuntimeException("Exporter class for layer " + name + " is missing a (Dimension, Platform) constructor", e);
+            } catch (InvocationTargetException e) {
+                if (e.getTargetException() instanceof Error) {
+                    throw (Error) e.getTargetException();
+                } else if (e.getTargetException() instanceof RuntimeException) {
+                    throw (RuntimeException) e.getTargetException();
+                } else {
+                    throw new RuntimeException("Constructor for exporter for layer " + name + " threw " + e.getTargetException().getClass().getSimpleName() + " (message: " + e.getTargetException().getMessage() + ")", e);
+                }
             }
         }
     }
@@ -153,26 +184,23 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
 
     @SuppressWarnings("unchecked")
     private void init() {
-        Class<? extends Layer> clazz = getClass();
-        ClassLoader pluginClassLoader = PluginManager.getPluginClassLoader();
+        final Class<? extends Layer> clazz = getClass();
+        final ClassLoader pluginClassLoader = PluginManager.getPluginClassLoader();
         try {
-            LayerRenderer myRenderer;
             try {
-                myRenderer = (LayerRenderer) pluginClassLoader.loadClass(clazz.getPackage().getName() + ".renderers." + clazz.getSimpleName() + "Renderer").newInstance();
+                renderer = (LayerRenderer) pluginClassLoader.loadClass(clazz.getPackage().getName() + ".renderers." + clazz.getSimpleName() + "Renderer").newInstance();
             } catch (ClassNotFoundException | InstantiationException e) {
                 // This most likely means the class does not exist
-                myRenderer = null;
+                renderer = null;
             }
-            renderer = myRenderer;
-            Class<LayerExporter> myExporterClass;
             try {
-                myExporterClass = (Class<LayerExporter>) pluginClassLoader.loadClass(clazz.getPackage().getName() + ".exporters." + clazz.getSimpleName() + "Exporter");
+                exporterType = (Class<? extends LayerExporter>) pluginClassLoader.loadClass(clazz.getPackage().getName() + ".exporters." + clazz.getSimpleName() + "Exporter");
             } catch (ClassNotFoundException e) {
-                myExporterClass = null;
+                // This most likely means the class does not exist
+                exporterType = null;
             }
-            exporterClass = myExporterClass;
         } catch (IllegalAccessException e) {
-            throw new RuntimeException("Access denied while creating renderer for layer " + name, e);
+            throw new WPRuntimeException("Access denied while creating renderer for layer " + name, e);
         }
         icon = IconUtils.loadScaledImage(clazz.getClassLoader(), "org/pepsoft/worldpainter/icons/" + getClass().getSimpleName().toLowerCase() + ".png");
     }
@@ -192,10 +220,10 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
     public final DataSize dataSize;
     public final int priority;
     protected String id;
+    private final transient char mnemonic;
     private transient LayerRenderer renderer;
-    private transient Class<LayerExporter> exporterClass;
+    private transient Class<? extends LayerExporter> exporterType;
     private transient BufferedImage icon;
-    private transient char mnemonic;
 
     private static final long serialVersionUID = 2011032901L;
 

@@ -5,38 +5,53 @@
 
 package org.pepsoft.worldpainter.layers.exporters;
 
+import com.google.common.collect.ImmutableSet;
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
-import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
+import org.pepsoft.worldpainter.exporting.Fixup;
+import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
 import org.pepsoft.worldpainter.layers.Chasms;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
+import java.util.Set;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
+import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.CARVE;
 
 /**
  *
  * @author pepijn
  */
-public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements FirstPassLayerExporter {
-    public ChasmsExporter() {
-        super(Chasms.INSTANCE, new ChasmsSettings());
+public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements SecondPassLayerExporter {
+    public ChasmsExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        super(dimension, platform, (settings instanceof ChasmsSettings) ? ((ChasmsSettings) settings) : new ChasmsSettings(), Chasms.INSTANCE);
     }
 
     @Override
-    public void render(Dimension dimension, Tile tile, Chunk chunk, Platform platform) {
-        final ChasmsSettings settings = (ChasmsSettings) getSettings();
+    public Set<Stage> getStages() {
+        return decorationEnabled ? ImmutableSet.of(CARVE, ADD_FEATURES) : singleton(CARVE);
+    }
+
+    @Override
+    public List<Fixup> carve(Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+        final ChasmsSettings settings = (ChasmsSettings) super.settings;
         final boolean surfaceBreaking = settings.isSurfaceBreaking();
         final boolean glassCeiling = settings.isGlassCeiling();
         final int minimumLevel = settings.getChasmsEverywhereLevel();
-        final int minY = settings.getMinimumLevel(), minHeight = dimension.getMinHeight();
-        final int maxY = Math.min(settings.getMaximumLevel(), dimension.getMaxHeight() - 1), extremeY = Integer.MAX_VALUE - Math.max(-minY, 0);
+        final int minY = settings.getMinimumLevel();
+        final int maxY = Math.min(settings.getMaximumLevel(), maxZ), extremeY = Integer.MAX_VALUE - Math.max(-minY, 0);
         final boolean fallThrough = (minY == minHeight) && dimension.isBottomless();
         final int minYAdjusted = Math.max(minY, minHeight + 1);
         final long seed = dimension.getSeed();
@@ -48,71 +63,138 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Fir
             perlinNoise5.setSeed(seed + SEED_OFFSET5);
             perlinNoise6.setSeed(seed + SEED_OFFSET6);
         }
-        final int xOffset = (chunk.getxPos() & 7) << 4;
-        final int zOffset = (chunk.getzPos() & 7) << 4;
-        setupForColumn(seed, tile, maxY, (settings.getWaterLevel() > minHeight) ? settings.getWaterLevel() : minHeight - 1, glassCeiling,
-                surfaceBreaking, settings.isLeaveWater(), settings.isFloodWithLava()); // TODO shouldn't we at least reset the flags for every column?
-        for (int x = 0; x < 16; x++) {
-            for (int z = 0; z < 16; z++) {
-                final int localX = xOffset + x, localY = zOffset + z;
-                if (tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, localX, localY)) {
-                    continue;
-                }
-                final int chasmsValue = Math.max(minimumLevel, tile.getLayerValue(Chasms.INSTANCE, localX, localY));
-                if (chasmsValue > 0) {
-                    final int worldX = tile.getX() * TILE_SIZE + localX, worldY = tile.getY() * TILE_SIZE + localY;
-//                    final float px = worldX / MEDIUM_BLOBS, py = worldY / MEDIUM_BLOBS;
-//                    final float px = worldX / SMALL_BLOBS, py = worldY / SMALL_BLOBS; // [2] ravine?
-                    final float px = worldX / MEDIUM_BLOBS, py = worldY / MEDIUM_BLOBS; // [3] tunnellike
-                    // Maximising it shouldn't be necessary, but there are
-                    // worlds in the wild with heights above the maximum:
-                    final int terrainheight = Math.min(tile.getIntHeight(localX, localY), maxY);
-//                    if ((x == 0) && (z == 0)) {
-//                        System.out.println("terrainHeight: " + terrainheight);
-//                    }
-                    for (int y = terrainheight; fallThrough ? (y >= minHeight) : (y >= minYAdjusted); y--) {
-                        if (chunk.getMaterial(x, y, z) == AIR) {
-                            // There is already a void here; assume that things
-                            // like removing water, etc. have already been done
-                            // by whatever made the void
-                            emptyBlockEncountered();
-                            continue;
-                        }
-                        float bias = CHASM_CHANCE
-                            * Math.max(
-                            0.1f * (10 - Math.min(
-                                    Math.min(
-                                        surfaceBreaking ? Integer.MAX_VALUE : (terrainheight - Math.max(dimension.getTopLayerDepth(worldX, worldY, terrainheight), 3) - y),
-                                        (fallThrough ? extremeY : (y - 1)) - minY),
-                                    10)),
-                            1.0f - chasmsValue / 15.0f);
-//                            0.5f - chasmsValue / 15.0f); // TODO: higher than 50% has no effect
-                        if (fallThrough && (y < minHeight + 5)) {
-                            // Widen the caverns towards the bottom
-                            bias -= (minHeight + 5 - y) * 0.05f;
-                        }
-//                        final float pz = y / SMALL_BLOBS;
-//                        final float pz = y / MEDIUM_BLOBS; // [2] ravine?
-                        final float pz = (y + 15) / MEDIUM_BLOBS; // [3] tunnellike
-//                        float cavernLikelyhood = Math.min(perlinNoise.getPerlinNoise(px, py, pz), perlinNoise2.getPerlinNoise(px, py, pz)) + 0.5f - bias;
-//                        double cavernLikelyhood = Math.min(Math.sin(perlinNoise.getPerlinNoise(px, py, pz) * 10), Math.cos(perlinNoise2.getPerlinNoise(px, py, pz) * 10)) / 2 + 0.5f - bias; // [2] ravine?
-                        final double cavernLikelyhood = Math.min(perlinNoise3.getPerlinNoise(px, py, pz) - bias, Math.min(Math.sin(perlinNoise.getPerlinNoise(px, py, pz) * 25), Math.cos(perlinNoise2.getPerlinNoise(px, py, pz) * 25)) / 2) + 0.5f; // [3] tunnellike
-                        final double cavernLikelyhood2 = Math.min(perlinNoise6.getPerlinNoise(px, py, pz) - bias, Math.min(Math.sin(perlinNoise4.getPerlinNoise(px, py, pz) * 25), Math.cos(perlinNoise5.getPerlinNoise(px, py, pz) * 25)) / 2) + 0.5f; // [3] tunnellike
-//                        double cavernLikelyhood = Math.sin(perlinNoise.getPerlinNoise(px, py, pz) * 5);
-//                        double cavernLikelyhood2 = Math.sin(perlinNoise2.getPerlinNoise(px, py) * 5);
+        visitChunksForLayerInAreaForEditing(minecraftWorld, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) -> {
+            final Chunk chunk = chunkSupplier.get();
+            final int xOffset = (chunkX & 7) << 4;
+            final int zOffset = (chunkZ & 7) << 4;
+            setupForColumn(seed, tile, maxY, (settings.getWaterLevel() >= minHeight) ? settings.getWaterLevel() : minHeight - 1, glassCeiling,
+                    surfaceBreaking, settings.isLeaveWater(), settings.isFloodWithLava()); // TODO shouldn't we at least reset the flags for every column?
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    final int localX = xOffset + x, localY = zOffset + z;
+                    if (tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, localX, localY)) {
+                        continue;
+                    }
+                    final int chasmsValue = Math.max(minimumLevel, tile.getLayerValue(Chasms.INSTANCE, localX, localY));
+                    if (chasmsValue > 0) {
+                        final int worldX = tile.getX() * TILE_SIZE + localX, worldY = tile.getY() * TILE_SIZE + localY;
+//                        final float px = worldX / MEDIUM_BLOBS, py = worldY / MEDIUM_BLOBS;
+//                        final float px = worldX / SMALL_BLOBS, py = worldY / SMALL_BLOBS; // [2] ravine?
+                        final float px = worldX / MEDIUM_BLOBS, py = worldY / MEDIUM_BLOBS; // [3] tunnellike
+                        // Maximising it shouldn't be necessary, but there are worlds in the wild with heights above the
+                        // maximum:
+                        final int terrainheight = Math.min(tile.getIntHeight(localX, localY), maxY);
 //                        if ((x == 0) && (z == 0)) {
-//                            System.out.println(y + ": bias: " + bias + ", cavernLikelyHood: " + cavernLikelyhood);
+//                            System.out.println("terrainHeight: " + terrainheight);
 //                        }
-//                        if (cavernLikelyhood > CHASM_CHANCE) {
-                        processBlock(chunk, x, y, z, (cavernLikelyhood > CHASM_CHANCE) || (cavernLikelyhood2 > CHASM_CHANCE));
+                        for (int y = terrainheight; fallThrough ? (y >= minHeight) : (y >= minYAdjusted); y--) {
+                            if (chunk.getMaterial(x, y, z) == AIR) {
+                                // There is already a void here; assume that things like removing water, etc. have
+                                // already been done by whatever made the void
+                                emptyBlockEncountered();
+                                continue;
+                            }
+                            float bias = CHASM_CHANCE
+                                    * Math.max(
+                                    0.1f * (10 - Math.min(
+                                            Math.min(
+                                                    surfaceBreaking ? Integer.MAX_VALUE : (terrainheight - Math.max(dimension.getTopLayerDepth(worldX, worldY, terrainheight), 3) - y),
+                                                    (fallThrough ? extremeY : (y - 1)) - minY),
+                                            10)),
+                                    1.0f - chasmsValue / 15.0f);
+                            //                            0.5f - chasmsValue / 15.0f); // TODO: higher than 50% has no effect
+                            if (fallThrough && (y < minHeight + 5)) {
+                                // Widen the caverns towards the bottom
+                                bias -= (minHeight + 5 - y) * 0.05f;
+                            }
+//                            final float pz = y / SMALL_BLOBS;
+//                            final float pz = y / MEDIUM_BLOBS; // [2] ravine?
+                            final float pz = (y + 15) / MEDIUM_BLOBS; // [3] tunnellike
+//                            float cavernLikelyhood = Math.min(perlinNoise.getPerlinNoise(px, py, pz), perlinNoise2.getPerlinNoise(px, py, pz)) + 0.5f - bias;
+//                            double cavernLikelyhood = Math.min(Math.sin(perlinNoise.getPerlinNoise(px, py, pz) * 10), Math.cos(perlinNoise2.getPerlinNoise(px, py, pz) * 10)) / 2 + 0.5f - bias; // [2] ravine?
+                            final double cavernLikelyhood = Math.min(perlinNoise3.getPerlinNoise(px, py, pz) - bias, Math.min(Math.sin(perlinNoise.getPerlinNoise(px, py, pz) * 25), Math.cos(perlinNoise2.getPerlinNoise(px, py, pz) * 25)) / 2) + 0.5f; // [3] tunnellike
+                            final double cavernLikelyhood2 = Math.min(perlinNoise6.getPerlinNoise(px, py, pz) - bias, Math.min(Math.sin(perlinNoise4.getPerlinNoise(px, py, pz) * 25), Math.cos(perlinNoise5.getPerlinNoise(px, py, pz) * 25)) / 2) + 0.5f; // [3] tunnellike
+//                            double cavernLikelyhood = Math.sin(perlinNoise.getPerlinNoise(px, py, pz) * 5);
+//                            double cavernLikelyhood2 = Math.sin(perlinNoise2.getPerlinNoise(px, py) * 5);
+//                            if ((x == 0) && (z == 0)) {
+//                                System.out.println(y + ": bias: " + bias + ", cavernLikelyHood: " + cavernLikelyhood);
+//                            }
+//                            if (cavernLikelyhood > CHASM_CHANCE) {
+                            processBlock(chunk, x, y, z, (cavernLikelyhood > CHASM_CHANCE) || (cavernLikelyhood2 > CHASM_CHANCE));
+                        }
+                    }
+                    if (glassCeiling) {
+                        chunk.setHeight(x, z, 1);
+                    }
+                    resetColumn();
+                }
+            }
+            return true;
+        });
+        return null;
+    }
+
+    @Override
+    public List<Fixup> addFeatures(Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+        final ChasmsSettings settings = (ChasmsSettings) super.settings;
+        final boolean surfaceBreaking = settings.isSurfaceBreaking();
+        final int minimumLevel = settings.getChasmsEverywhereLevel();
+        final int minY = settings.getMinimumLevel();
+        final int maxY = Math.min(settings.getMaximumLevel(), maxZ), extremeY = Integer.MAX_VALUE - Math.max(-minY, 0);
+        final boolean fallThrough = (minY == minHeight) && dimension.isBottomless();
+        final int minYAdjusted = Math.max(minY, minHeight + 1);
+        final long seed = dimension.getSeed();
+        if ((seed + SEED_OFFSET) != perlinNoise.getSeed()) {
+            perlinNoise.setSeed(seed + SEED_OFFSET);
+            perlinNoise2.setSeed(seed + SEED_OFFSET2);
+            perlinNoise3.setSeed(seed + SEED_OFFSET3);
+            perlinNoise4.setSeed(seed + SEED_OFFSET4);
+            perlinNoise5.setSeed(seed + SEED_OFFSET5);
+            perlinNoise6.setSeed(seed + SEED_OFFSET6);
+        }
+        final Random random = new Random(seed + SEED_OFFSET + 1);
+        visitChunksForLayerInAreaForEditing(minecraftWorld, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) -> {
+            final int xOffset = (chunkX & 7) << 4;
+            final int zOffset = (chunkZ & 7) << 4;
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    final int localX = xOffset + x, localY = zOffset + z;
+                    if (tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, localX, localY)) {
+                        continue;
+                    }
+                    final int chasmsValue = Math.max(minimumLevel, tile.getLayerValue(Chasms.INSTANCE, localX, localY));
+                    if (chasmsValue > 0) {
+                        final int worldX = tile.getX() * TILE_SIZE + localX, worldY = tile.getY() * TILE_SIZE + localY;
+                        final float px = worldX / MEDIUM_BLOBS, py = worldY / MEDIUM_BLOBS; // [3] tunnellike
+                        // Maximising it shouldn't be necessary, but there are worlds in the wild with heights above the
+                        // maximum:
+                        final int terrainheight = Math.min(tile.getIntHeight(localX, localY), maxY);
+                        for (int y = terrainheight; fallThrough ? (y >= minHeight) : (y >= minYAdjusted); y--) {
+                            float bias = CHASM_CHANCE
+                                    * Math.max(
+                                    0.1f * (10 - Math.min(
+                                            Math.min(
+                                                    surfaceBreaking ? Integer.MAX_VALUE : (terrainheight - Math.max(dimension.getTopLayerDepth(worldX, worldY, terrainheight), 3) - y),
+                                                    (fallThrough ? extremeY : (y - 1)) - minY),
+                                            10)),
+                                    1.0f - chasmsValue / 15.0f);
+                            if (fallThrough && (y < minHeight + 5)) {
+                                // Widen the caverns towards the bottom
+                                bias -= (minHeight + 5 - y) * 0.05f;
+                            }
+                            final float pz = (y + 15) / MEDIUM_BLOBS; // [3] tunnellike
+                            final double cavernLikelyhood = Math.min(perlinNoise3.getPerlinNoise(px, py, pz) - bias, Math.min(Math.sin(perlinNoise.getPerlinNoise(px, py, pz) * 25), Math.cos(perlinNoise2.getPerlinNoise(px, py, pz) * 25)) / 2) + 0.5f; // [3] tunnellike
+                            final double cavernLikelyhood2 = Math.min(perlinNoise6.getPerlinNoise(px, py, pz) - bias, Math.min(Math.sin(perlinNoise4.getPerlinNoise(px, py, pz) * 25), Math.cos(perlinNoise5.getPerlinNoise(px, py, pz) * 25)) / 2) + 0.5f; // [3] tunnellike
+                            if ((cavernLikelyhood > CHASM_CHANCE) || (cavernLikelyhood2 > CHASM_CHANCE)) {
+                                decorateBlock(minecraftWorld, random, worldX, worldY, y);
+                            }
+                        }
                     }
                 }
-                if (glassCeiling) {
-                    chunk.setHeight(x, z, 1);
-                }
-                resetColumn();
             }
-        }
+            return true;
+        });
+        return null;
     }
 
     private final PerlinNoise perlinNoise = new PerlinNoise(0);
@@ -124,7 +206,7 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Fir
 //    private int lowestValueCavern = Integer.MAX_VALUE;
 
     private static final float CHASM_CHANCE = 0.5f;
-    //    private static final float CHASM_CHANCE = 0.95f;
+//    private static final float CHASM_CHANCE = 0.95f;
     private static final long SEED_OFFSET = 37;
     private static final long SEED_OFFSET2 = 41;
     private static final long SEED_OFFSET3 = 43;
@@ -132,7 +214,7 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Fir
     private static final long SEED_OFFSET5 = 49;
     private static final long SEED_OFFSET6 = 51;
 
-    public static class ChasmsSettings implements ExporterSettings {
+    public static class ChasmsSettings implements CaveSettings {
         @Override
         public boolean isApplyEverywhere() {
             return chasmsEverywhereLevel > 0;
@@ -208,6 +290,15 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Fir
         }
 
         @Override
+        public CaveDecorationSettings getCaveDecorationSettings() {
+            return decorationSettings;
+        }
+
+        public void setCaveDecorationSettings(CaveDecorationSettings decorationSettings) {
+            this.decorationSettings = decorationSettings;
+        }
+
+        @Override
         public boolean equals(Object obj) {
             if (obj == null) {
                 return false;
@@ -240,6 +331,9 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Fir
             if (this.maximumLevel != other.maximumLevel) {
                 return false;
             }
+            if (! Objects.equals(this.decorationSettings, other.decorationSettings)) {
+                return false;
+            }
             return true;
         }
 
@@ -254,13 +348,18 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Fir
             hash = 29 * hash + (this.leaveWater ? 1 : 0);
             hash = 29 * hash + this.minimumLevel;
             hash = 29 * hash + this.maximumLevel;
+            hash = 29 * hash + ((this.decorationSettings != null) ? this.decorationSettings.hashCode() : 0);
             return hash;
         }
 
         @Override
         public ChasmsSettings clone() {
             try {
-                return (ChasmsSettings) super.clone();
+                final ChasmsSettings clone = (ChasmsSettings) super.clone();
+                if (decorationSettings != null) {
+                    clone.decorationSettings = decorationSettings.clone();
+                }
+                return clone;
             } catch (CloneNotSupportedException e) {
                 throw new RuntimeException(e);
             }
@@ -273,11 +372,15 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Fir
             if (maximumLevel == 0) {
                 maximumLevel = Integer.MAX_VALUE;
             }
+            if (decorationSettings == null) {
+                decorationSettings = new CaveDecorationSettings(true, false, false, false);
+            }
         }
 
-        private int waterLevel, chasmsEverywhereLevel;
+        private int waterLevel = Integer.MIN_VALUE, chasmsEverywhereLevel;
         private boolean floodWithLava, glassCeiling, surfaceBreaking, leaveWater = true;
-        private int minimumLevel = 0, maximumLevel = Integer.MAX_VALUE;
+        private int minimumLevel = Integer.MIN_VALUE, maximumLevel = Integer.MAX_VALUE;
+        private CaveDecorationSettings decorationSettings = new CaveDecorationSettings();
 
         private static final long serialVersionUID = 1L;
     }

@@ -99,6 +99,7 @@
                                   <Component id="labelOldExtents" min="-2" max="-2" attributes="0"/>
                               </Group>
                           </Group>
+                          <Component id="labelPlatformWarning" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
@@ -117,7 +118,9 @@
                   <Component id="jLabel3" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="comboBoxPlatform" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="labelPlatformWarning" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="jLabel9" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel10" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -373,6 +376,15 @@
     <Component class="javax.swing.JLabel" name="labelNewExtents">
       <Properties>
         <Property name="text" type="java.lang.String" value="&lt;html&gt;&lt;b&gt;-999 - 999&lt;/b&gt;&lt;/html&gt;"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="labelPlatformWarning">
+      <Properties>
+        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+          <Image iconType="3" name="/org/pepsoft/worldpainter/icons/error.png"/>
+        </Property>
+        <Property name="text" type="java.lang.String" value="&lt;html&gt;&lt;b&gt;Unknown format; export not possible&lt;/b&gt;&lt;/html&gt;"/>
+        <Property name="toolTipText" type="java.lang.String" value="&lt;html&gt;This map format is unknown and cannot be Exported. Most likely it&lt;br&gt;&#xa;is supported by a plugin that is not installed or cannot be loaded.&lt;/html&gt;"/>
       </Properties>
     </Component>
   </SubComponents>

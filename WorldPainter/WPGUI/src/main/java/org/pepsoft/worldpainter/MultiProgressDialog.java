@@ -11,9 +11,11 @@
 
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.util.swing.ProgressComponent.Listener;
 import org.pepsoft.util.swing.ProgressTask;
+import org.pepsoft.worldpainter.merging.InvalidMapException;
 import org.pepsoft.worldpainter.util.FileInUseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +25,7 @@ import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
+import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 
 /**
@@ -92,41 +95,53 @@ public abstract class MultiProgressDialog<T> extends javax.swing.JDialog impleme
     
     @Override
     public void exceptionThrown(Throwable exception) {
-        Throwable cause = exception;
-        while (cause.getCause() != null) {
-            cause = cause.getCause();
-        }
-        if (cause instanceof FileInUseException) {
-            JOptionPane.showMessageDialog(MultiProgressDialog.this, "Could not " + getVerb().toLowerCase() + " the world because the existing map directory is in use.\nPlease close Minecraft and all other windows and try again.", "Map In Use", JOptionPane.ERROR_MESSAGE);
-        } else if (cause instanceof MissingCustomTerrainException) {
-            JOptionPane.showMessageDialog(MultiProgressDialog.this,
-                "Custom Terrain " + ((MissingCustomTerrainException) cause).getIndex() + " not configured!\n" +
-                "Please configure it on the Custom Terrain panel.\n" +
-                "\n" +
-                "The partially processed map is now probably corrupted.\n" +
-                "You should delete it, or export the map again.", "Unconfigured Custom Terrain", JOptionPane.ERROR_MESSAGE);
-        } else {
-            ErrorDialog dialog = new ErrorDialog(MultiProgressDialog.this);
-            dialog.setException(exception);
-            dialog.setVisible(true);
-        }
-        close();
+        doLaterOnEventThread(() -> {
+            Throwable cause = exception;
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
+            }
+            if (cause instanceof FileInUseException) {
+                DesktopUtils.beep();
+                JOptionPane.showMessageDialog(MultiProgressDialog.this, "Could not " + getVerb().toLowerCase() + " the world because the existing map directory is in use.\nPlease close Minecraft and all other windows and try again.", "Map In Use", JOptionPane.ERROR_MESSAGE);
+            } else if (cause instanceof MissingCustomTerrainException) {
+                DesktopUtils.beep();
+                JOptionPane.showMessageDialog(MultiProgressDialog.this,
+                        "Custom Terrain " + ((MissingCustomTerrainException) cause).getIndex() + " not configured!\n" +
+                                "Please configure it on the Custom Terrain panel.\n" +
+                                "\n" +
+                                "The partially processed map is now probably corrupted.\n" +
+                                "You should replace it from the backup, or " + getVerb().toLowerCase() + " the map again.", "Unconfigured Custom Terrain", JOptionPane.ERROR_MESSAGE);
+            } else if (cause instanceof InvalidMapException) {
+                DesktopUtils.beep();
+                JOptionPane.showMessageDialog(MultiProgressDialog.this, cause.getMessage(), "Invalid Map", JOptionPane.ERROR_MESSAGE);
+            } else {
+                DesktopUtils.beep();
+                ErrorDialog dialog = new ErrorDialog(MultiProgressDialog.this);
+                dialog.setException(exception);
+                dialog.setVisible(true);
+            }
+            close();
+        });
     }
 
     @Override
     public void done(T result) {
         long end = System.currentTimeMillis();
         long duration = (end - start) / 1000;
-        String resultsReport = getResultsReport(result, duration);
-        JOptionPane.showMessageDialog(this, resultsReport, "Success", JOptionPane.INFORMATION_MESSAGE);
-        close();
+        doLaterOnEventThread(() -> {
+            String resultsReport = getResultsReport(result, duration);
+            JOptionPane.showMessageDialog(this, resultsReport, "Success", JOptionPane.INFORMATION_MESSAGE);
+            close();
+        });
     }
 
     @Override
     public void cancelled() {
         logger.info(getVerb() + " cancelled by user");
-        JOptionPane.showMessageDialog(this, getCancellationMessage(), getVerb() + " Cancelled", JOptionPane.WARNING_MESSAGE);
-        close();
+        doLaterOnEventThread(() -> {
+            JOptionPane.showMessageDialog(this, getCancellationMessage(), getVerb() + " Cancelled", JOptionPane.WARNING_MESSAGE);
+            close();
+        });
     }
 
     // ComponentListener

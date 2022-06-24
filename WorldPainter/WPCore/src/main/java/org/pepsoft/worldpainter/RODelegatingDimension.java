@@ -33,7 +33,7 @@ import java.util.*;
  */
 public abstract class RODelegatingDimension extends Dimension {
     public RODelegatingDimension(Dimension dimension) {
-        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getDim(), dimension.getMinHeight(), dimension.getMaxHeight());
+        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getDim());
         this.dimension = dimension;
     }
 
@@ -85,16 +85,6 @@ public abstract class RODelegatingDimension extends Dimension {
     @Override
     public int getBorderSize() {
         return dimension.getBorderSize();
-    }
-
-    @Override
-    public boolean isDarkLevel() {
-        return dimension.isDarkLevel();
-    }
-
-    @Override
-    public boolean isBedrockWall() {
-        return dimension.isBedrockWall();
     }
 
     @Override
@@ -398,6 +388,26 @@ public abstract class RODelegatingDimension extends Dimension {
     }
 
     @Override
+    public WallType getWallType() {
+        return dimension.getWallType();
+    }
+
+    @Override
+    public void setWallType(WallType wallType) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public WallType getRoofType() {
+        return dimension.getRoofType();
+    }
+
+    @Override
+    public void setRoofType(WallType roofType) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public boolean undoChanges() {
         throw new UnsupportedOperationException();
     }
@@ -634,11 +644,6 @@ public abstract class RODelegatingDimension extends Dimension {
     }
 
     @Override
-    public void setBedrockWall(boolean bedrockWall) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void setBitLayerValueAt(Layer layer, int x, int y, boolean value) {
         throw new UnsupportedOperationException();
     }
@@ -655,11 +660,6 @@ public abstract class RODelegatingDimension extends Dimension {
 
     @Override
     public void setBorderSize(int borderSize) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setDarkLevel(boolean darkLevel) {
         throw new UnsupportedOperationException();
     }
 

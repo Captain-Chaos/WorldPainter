@@ -34,16 +34,26 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
     }
 
     public Set<Layer> apply(Dimension dimension) {
+        return apply(dimension, null);
+    }
+
+    public Set<Layer> apply(Dimension dimension, Set<Point> selectedTiles) {
         Set<Layer> addedLayers = new HashSet<>();
-        for (Tile tile : dimension.getTiles()) {
-            addedLayers.addAll(apply(tile));
+        if (selectedTiles == null) {
+            for (Tile tile: dimension.getTiles()) {
+                addedLayers.addAll(apply(tile));
+            }
+        } else {
+            for (Point coords: selectedTiles) {
+                addedLayers.addAll(apply(dimension.getTile(coords)));
+            }
         }
         return addedLayers;
     }
 
     public Set<Layer> apply(Tile tile) {
         Set<Layer> addedLayers = new HashSet<>();
-        if (!tile.hasLayer(this)) {
+        if (! tile.hasLayer(this)) {
             return Collections.emptySet();
         }
         tile.inhibitEvents();
@@ -126,21 +136,23 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
         this.factors = factors;
     }
 
+    @Override
+    public Class<? extends LayerExporter> getExporterType() {
+        return CombinedLayerExporter.class;
+    }
+
     /**
-     * Returns a dummy exporter, all methods of which throw an
-     * {@link UnsupportedOperationException}, since combined layers must be
-     * exported by {@link #apply(Dimension) applying} them and then exporting
-     * its constituent layers, if any.
+     * Returns a dummy exporter, all methods of which throw an {@link UnsupportedOperationException}, since combined
+     * layers must be exported by {@link #apply(Dimension, Set) applying} them and then exporting its constituent
+     * layers, if any.
      *
-     * <p>The exporter does implement {@link FirstPassLayerExporter} and
-     * {@link SecondPassLayerExporter} though, to signal the fact that it can
-     * contain layers for both phases.
+     * <p>The exporter does implement {@link FirstPassLayerExporter} and {@link SecondPassLayerExporter} though,
+     * to signal the fact that it can contain layers for both phases.
      *
-     * @return A dummy exporter which always throws
-     * {@code UnsupportedOperationException}.
+     * @return A dummy exporter which always throws {@code UnsupportedOperationException}.
      */
     @Override
-    public LayerExporter getExporter() {
+    public LayerExporter getExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
         return EXPORTER;
     }
 
@@ -267,12 +279,7 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
         }
 
         @Override
-        public void setSettings(ExporterSettings settings) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void render(Dimension dimension, Tile tile, Chunk chunk, Platform platform) {
+        public void render(Tile tile, Chunk chunk) {
             throw new UnsupportedOperationException();
         }
 
@@ -282,12 +289,12 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
         }
 
         @Override
-        public List<Fixup> carve(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+        public List<Fixup> carve(Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public List<Fixup> addFeatures(Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+        public List<Fixup> addFeatures(Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
             throw new UnsupportedOperationException();
         }
     }

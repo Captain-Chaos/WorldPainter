@@ -19,7 +19,8 @@ public enum Category {
                     || material.isNamed(MC_COARSE_DIRT)
                     || material.isNamed(MC_PODZOL)
                     || material.isNamed(MC_FARMLAND)
-                    || material.isNamed(MC_ROOTED_DIRT))
+                    || material.isNamed(MC_ROOTED_DIRT)
+                    || material.isNamed(MC_MOSS_BLOCK))
                 && (! isFlooded(world, x, y, z));
         }
     },
@@ -57,7 +58,8 @@ public enum Category {
                     || material.isNamed(MC_PODZOL)
                     || material.isNamed(MC_SAND)
                     || material.isNamed(MC_RED_SAND)
-                    || material.isNamed(MC_FARMLAND))
+                    || material.isNamed(MC_FARMLAND)
+                    || material.isNamed(MC_MOSS_BLOCK))
                 && (! isFlooded(world, x, y, z))
                 && (isWatery(world, x - 1, y, z)
                     || isWatery(world, x, y - 1, z)
@@ -107,8 +109,8 @@ public enum Category {
     WATER_PLANTS {
         @Override
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
-            // TODOMC13 it's not clear on what blocks water plants can be
-            //  planted so for now allow all solid blocks
+            // TODOMC13 it's not clear on what blocks water plants can be planted so for now allow all solid, opaque and
+            //  natural blocks
             final Material material = world.getMaterialAt(x, y, z);
             return material.solid && material.opaque && material.natural && world.getMaterialAt(x, y, z + 1).containsWater();
         }
@@ -127,6 +129,16 @@ public enum Category {
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
             final Material material = world.getMaterialAt(x, y, z);
             return material.solid && material.opaque && material.natural && isFlooded(world, x, y, z);
+        }
+    },
+
+    DRIPLEAF {
+        @Override
+        boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
+            Material material = world.getMaterialAt(x, y, z);
+            return world.getMaterialAt(x, y, z + 1).containsWater()
+                ? material.isNamedOneOf(MC_CLAY, MC_MOSS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_FARMLAND, MC_GRASS_BLOCK, MC_PODZOL, MC_ROOTED_DIRT, MC_MYCELIUM)
+                : material.isNamedOneOf(MC_CLAY, MC_MOSS_BLOCK);
         }
     };
 

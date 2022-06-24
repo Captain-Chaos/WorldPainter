@@ -5,6 +5,7 @@
 
 package org.pepsoft.worldpainter;
 
+import com.google.common.collect.Sets;
 import org.pepsoft.util.MemoryUtils;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
@@ -28,11 +29,15 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import static java.util.Collections.singleton;
+import static java.util.Collections.unmodifiableSet;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
+import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
+import static org.pepsoft.worldpainter.TileRenderer.TERRAIN_AS_LAYER;
 
 /**
  *
@@ -279,10 +284,11 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     }
 
     public void setCustomBrushShape(Shape customBrushShape) {
-        Shape oldCustomBrushShape = this.customBrushShape;
+        final Shape oldCustomBrushShape = this.customBrushShape;
+        final Rectangle oldBrushBounds = getBrushBounds();
         this.customBrushShape = customBrushShape;
         if ((drawBrush) && (brushShape == BrushShape.CUSTOM)) {
-            repaintWorld(customBrushShape.getBounds());
+            repaintWorld(getBrushBounds().union(oldBrushBounds));
         }
         firePropertyChange("customBrushShape", oldCustomBrushShape, customBrushShape);
     }
@@ -319,32 +325,20 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         }
     }
 
-    public void addHiddenLayer(Layer hiddenLayer) {
-        if (! hiddenLayers.contains(hiddenLayer)) {
-            Set<Layer> oldHiddenLayers = new HashSet<>(hiddenLayers);
-            hiddenLayers.add(hiddenLayer);
-            if (dimension != null) {
-                tileProvider.addHiddenLayer(hiddenLayer);
-                if ((hiddenLayer == TileRenderer.TERRAIN_AS_LAYER) || (hiddenLayer == TileRenderer.FLUIDS_AS_LAYER)) {
-                    refreshTiles();
-                } else {
-                    refreshTilesForLayer(hiddenLayer, true);
-                }
-            }
-            firePropertyChange("hiddenLayers", oldHiddenLayers, hiddenLayers);
+    public void setHiddenLayers(Set<Layer> hiddenLayers) {
+        final Set<Layer> oldHiddenLayers = new HashSet<>(this.hiddenLayers);
+        this.hiddenLayers.clear();
+        if (hiddenLayers != null) {
+            this.hiddenLayers.addAll(hiddenLayers);
         }
-    }
-
-    public void removeHiddenLayer(Layer hiddenLayer) {
-        if (hiddenLayers.contains(hiddenLayer)) {
-            Set<Layer> oldHiddenLayers = new HashSet<>(hiddenLayers);
-            hiddenLayers.remove(hiddenLayer);
+        final Set<Layer> difference = Sets.symmetricDifference(oldHiddenLayers, this.hiddenLayers);
+        if (! difference.isEmpty()) {
             if (dimension != null) {
-                tileProvider.removeHiddenLayer(hiddenLayer);
-                if ((hiddenLayer == TileRenderer.TERRAIN_AS_LAYER) || (hiddenLayer == TileRenderer.FLUIDS_AS_LAYER)) {
+                tileProvider.setHiddenLayers(this.hiddenLayers);
+                if ((difference.contains(TERRAIN_AS_LAYER)) || (difference.contains(FLUIDS_AS_LAYER))) {
                     refreshTiles();
-                } else {
-                    refreshTilesForLayer(hiddenLayer, true);
+                } else if (!difference.isEmpty()) {
+                    refreshTilesForLayers(difference, true);
                 }
             }
             firePropertyChange("hiddenLayers", oldHiddenLayers, hiddenLayers);
@@ -352,7 +346,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     }
 
     public Set<Layer> getHiddenLayers() {
-        return (Set<Layer>) hiddenLayers.clone();
+        return unmodifiableSet(hiddenLayers);
     }
 
     public void refreshTiles() {
@@ -390,23 +384,40 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     }
 
     public void refreshTilesForLayer(Layer layer, boolean evenIfHidden) {
-        if ((hiddenLayers.contains(layer) && (! evenIfHidden))
-                || (dimension == null)) {
+        refreshTilesForLayers(singleton(layer), evenIfHidden);
+    }
+
+    public void refreshTilesForLayers(Set<Layer> layers, boolean evenIfHidden) {
+        if ((hiddenLayers.containsAll(layers) && (! evenIfHidden)) || (dimension == null)) {
             return;
         }
-        int count = 0;
+        final long start = System.currentTimeMillis();
         Set<Point> coords = new HashSet<>();
-        for (Tile tile: dimension.getTiles()) {
-            if (tile.hasLayer(layer)) {
-                coords.add(new Point(tile.getX(), tile.getY()));
-                count++;
+        if (getZoom() < 0) {
+            final int shift = -getZoom();
+            for (Tile tile: dimension.getTiles()) {
+                for (Layer layer: layers) {
+                    if (tile.hasLayer(layer)) {
+                        coords.add(new Point(tile.getX() >> shift, tile.getY() >> shift));
+                        break;
+                    }
+                }
+            }
+        } else {
+            for (Tile tile: dimension.getTiles()) {
+                for (Layer layer: layers) {
+                    if (tile.hasLayer(layer)) {
+                        coords.add(new Point(tile.getX(), tile.getY()));
+                        break;
+                    }
+                }
             }
         }
-        if (count > 0) {
+        if (! coords.isEmpty()) {
             refresh(tileProvider, coords);
         }
         if (logger.isDebugEnabled()) {
-            logger.debug("Refreshing " + count + " tiles for layer " + layer.getName());
+            logger.debug("Refreshing {} tiles for layers {} took {} ms", coords.size(), layers, System.currentTimeMillis() - start);
         }
     }
     
@@ -878,7 +889,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         return null;
     }
     
-    private final HashSet<Layer> hiddenLayers = new HashSet<>();
+    private HashSet<Layer> hiddenLayers = new HashSet<>();
     private final CustomBiomeManager customBiomeManager;
     private Dimension dimension;
     private int mouseX, mouseY, radius, effectiveRadius, overlayOffsetX, overlayOffsetY, contourSeparation, brushRotation;

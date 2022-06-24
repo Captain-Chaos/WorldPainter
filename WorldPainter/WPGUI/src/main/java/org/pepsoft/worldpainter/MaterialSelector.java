@@ -133,12 +133,8 @@ public class MaterialSelector extends javax.swing.JPanel {
      * the current namespace and simple name) into the properties panel.
      */
     private void loadDefaultProperties() {
-        Material defaultMaterial = Material.getDefault(namespace + ":" + simpleName);
-        if (defaultMaterial != null) {
-            properties = (defaultMaterial.getProperties() != null) ? new HashMap<>(defaultMaterial.getProperties()) : null;
-        } else {
-            properties = null;
-        }
+        Material defaultMaterial = Material.getPrototype(namespace + ":" + simpleName);
+        properties = (defaultMaterial.getProperties() != null) ? new HashMap<>(defaultMaterial.getProperties()) : null;
         updateProperties();
     }
 
@@ -150,21 +146,26 @@ public class MaterialSelector extends javax.swing.JPanel {
         propertyEditors.clear();
         if (properties != null) {
             for (Map.Entry<String, String> entry: properties.entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue();
-                // TODO: is this robust enough?
-                // Is it a boolean?
-                if (value.equals("true") || (value.equals("false"))) {
-                    addBooleanProperty(key, Boolean.valueOf(value), false);
-                } else {
-                    // Not a boolean, try an int
-                    try {
-                        addIntProperty(key, Integer.parseInt(value), false);
-                    } catch (NumberFormatException e) {
-                        // Not an int, that leaves string
-                        // TODO: support enums (do those exist in properties?)
-                        addStringProperty(key, value, false);
+                final String name = entry.getKey();
+                final String value = entry.getValue();
+                final Material.PropertyDescriptor descriptor = (material.propertyDescriptors != null) ? material.propertyDescriptors.get(name) : null;
+                if (descriptor != null) {
+                    switch (descriptor.type) {
+                        case BOOLEAN:
+                            addBooleanProperty(name, Boolean.parseBoolean(value), false);
+                            break;
+                        case INTEGER:
+                            addIntProperty(name, descriptor.minValue, Integer.parseInt(value), descriptor.maxValue, false);
+                            break;
+                        case ENUM:
+                            addStringProperty(name, value, descriptor.enumValues, false);
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Unknown property type: " + descriptor.type);
                     }
+                } else {
+                    // No idea; just fall back to a string
+                    addStringProperty(name, value, null, false);
                 }
             }
 //            GridBagConstraints constraints = new GridBagConstraints();
@@ -213,25 +214,42 @@ public class MaterialSelector extends javax.swing.JPanel {
      *
      * @param key The key of the property.
      * @param value The initial value of the property.
+     * @param values Optionally, the possible values of the property.
      * @param focus Whether the new field should receive the keyboard focus.
      */
-    private void addStringProperty(String key, String value, boolean focus) {
+    private void addStringProperty(String key, String value, String[] values, boolean focus) {
         if (propertyEditors.containsKey(key)) {
             throw new IllegalStateException("Property " + key + " already present");
         }
-        JTextField control = new JTextField(value, 15);
+        JComponent control;
+        if (values != null) {
+            control = new JComboBox<>(values);
+            ((JComboBox<?>) control).setSelectedItem(value);
+        } else {
+            control = new JTextField(value, 15);
+        }
         control.setEnabled(propertiesEnabled);
         propertyEditors.put(key, control);
-        control.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusLost(FocusEvent e) {
+        if (control instanceof JComboBox) {
+            ((JComboBox<?>) control).addActionListener(e -> {
                 if (properties == null) {
                     properties = new HashMap<>();
                 }
-                properties.put(key, control.getText());
+                properties.put(key, (String) ((JComboBox<?>) control).getSelectedItem());
                 updateMaterial();
-            }
-        });
+            });
+        } else {
+            control.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusLost(FocusEvent e) {
+                    if (properties == null) {
+                        properties = new HashMap<>();
+                    }
+                    properties.put(key, ((JTextField) control).getText());
+                    updateMaterial();
+                }
+            });
+        }
         JLabel label = new JLabel(uppercaseFirst(key) + ':');
         label.setLabelFor(control);
         addControlsRow(label, control);
@@ -244,14 +262,16 @@ public class MaterialSelector extends javax.swing.JPanel {
      * Add a integer-typed property to the properties panel.
      *
      * @param key The key of the property.
+     * @param minValue The minimum value of the property.
      * @param value The initial value of the property.
+     * @param maxValue The maximum value of the property.
      * @param focus Whether the new field should receive the keyboard focus.
      */
-    private void addIntProperty(String key, int value, boolean focus) {
+    private void addIntProperty(String key, int minValue, int value, int maxValue, boolean focus) {
         if (propertyEditors.containsKey(key)) {
             throw new IllegalStateException("Property " + key + " already present");
         }
-        JSpinner control = new JSpinner(new SpinnerNumberModel(value, 0, 999, 1));
+        JSpinner control = new JSpinner(new SpinnerNumberModel(value, minValue, maxValue, 1));
         control.setEnabled(propertiesEnabled);
         propertyEditors.put(key, control);
         control.addChangeListener(e -> {
@@ -332,20 +352,9 @@ public class MaterialSelector extends javax.swing.JPanel {
      * panel.
      */
     private void addProperty() {
-        AddPropertyDialog dialog = new AddPropertyDialog(SwingUtilities.getWindowAncestor(this));
-        dialog.setVisible(true);
-        if (! dialog.isCancelled()) {
-            switch (dialog.getPropertyType()) {
-                case AddPropertyDialog.TYPE_BOOLEAN:
-                    addBooleanProperty(dialog.getPropertyKey(), false, true);
-                    break;
-                case AddPropertyDialog.TYPE_INTEGER:
-                    addIntProperty(dialog.getPropertyKey(), 0, true);
-                    break;
-                case AddPropertyDialog.TYPE_STRING:
-                    addStringProperty(dialog.getPropertyKey(), "", true);
-                    break;
-            }
+        final String name = JOptionPane.showInputDialog(this, "Enter the name of the property to add:", "Add Property", JOptionPane.QUESTION_MESSAGE);
+        if (name != null) {
+            addStringProperty(name, "", null, true);
             SwingUtilities.windowForComponent(this).validate();
             repaint();
         }
@@ -395,7 +404,7 @@ public class MaterialSelector extends javax.swing.JPanel {
     private void minecraftNameChanged() {
         namespace = Material.MINECRAFT;
         simpleName = (String) comboBoxMinecraftName.getSelectedItem();
-        material = Material.getDefault(namespace + ':' + simpleName);
+        material = Material.getPrototype(namespace + ':' + simpleName);
         loadDefaultProperties();
         updateLegacyIds();
         firePropertyChange("material", null, getMaterial());

@@ -694,7 +694,7 @@
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" attributes="0">
-                              <Component id="jScrollPane1" pref="518" max="32767" attributes="0"/>
+                              <Component id="jScrollPane1" pref="524" max="32767" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" max="-2" attributes="0">
                                   <Component id="buttonAddFloorLayer" alignment="1" max="32767" attributes="0"/>
@@ -766,7 +766,7 @@
             </Component>
             <Component class="javax.swing.JButton" name="buttonAddFloorLayer">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Add Existing"/>
+                <Property name="text" type="java.lang.String" value="Copy Existing"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonAddFloorLayerActionPerformed"/>
@@ -810,7 +810,7 @@
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
-                              <Component id="jScrollPane2" pref="528" max="32767" attributes="0"/>
+                              <Component id="jScrollPane2" pref="524" max="32767" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" max="-2" attributes="0">
                                   <Component id="buttonAddRoofLayer" alignment="1" max="32767" attributes="0"/>
@@ -882,7 +882,7 @@
             </Component>
             <Component class="javax.swing.JButton" name="buttonAddRoofLayer">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Add Existing"/>
+                <Property name="text" type="java.lang.String" value="Copy Existing"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonAddRoofLayerActionPerformed"/>

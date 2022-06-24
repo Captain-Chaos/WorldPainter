@@ -49,6 +49,7 @@ import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.Dimension.WallType.BEDROCK;
 import static org.pepsoft.worldpainter.Generator.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
 
@@ -57,11 +58,11 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
  * @author pepijn
  */
 public class Dimension extends InstanceKeeper implements TileProvider, Serializable, Tile.Listener, Cloneable {
-    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, int dim, int minHeight, int maxHeight) {
-        this(world, minecraftSeed, tileFactory, dim, minHeight, maxHeight, true);
+    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, int dim) {
+        this(world, minecraftSeed, tileFactory, dim, true);
     }
 
-    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, int dim, int minHeight, int maxHeight, boolean init) {
+    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, int dim, boolean init) {
         if (world == null) {
             throw new NullPointerException("world");
         }
@@ -70,8 +71,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         this.minecraftSeed = minecraftSeed;
         this.tileFactory = tileFactory;
         this.dim = dim;
-        this.minHeight = minHeight;
-        this.maxHeight = maxHeight;
+        this.minHeight = tileFactory.getMinHeight();
+        this.maxHeight = tileFactory.getMaxHeight();
         ceilingHeight = maxHeight;
         if (init) {
             layerSettings.put(Resources.INSTANCE, ResourcesExporterSettings.defaultSettings(world.getPlatform(), dim, maxHeight));
@@ -201,30 +202,6 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             this.borderSize = borderSize;
             changeNo++;
             propertyChangeSupport.firePropertyChange("borderSize", oldBorderSize, borderSize);
-        }
-    }
-
-    public boolean isDarkLevel() {
-        return darkLevel;
-    }
-
-    public void setDarkLevel(boolean darkLevel) {
-        if (darkLevel != this.darkLevel) {
-            this.darkLevel = darkLevel;
-            changeNo++;
-            propertyChangeSupport.firePropertyChange("darkLevel", ! darkLevel, darkLevel);
-        }
-    }
-
-    public boolean isBedrockWall() {
-        return bedrockWall;
-    }
-
-    public void setBedrockWall(boolean bedrockWall) {
-        if (bedrockWall != this.bedrockWall) {
-            this.bedrockWall = bedrockWall;
-            changeNo++;
-            propertyChangeSupport.firePropertyChange("bedrockWall", ! bedrockWall, bedrockWall);
         }
     }
 
@@ -884,7 +861,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 addedTiles.clear();
                 fireTilesRemoved(removedTiles);
                 removedTiles.clear();
-                dirtyTiles.forEach(org.pepsoft.worldpainter.Tile::releaseEvents);
+                dirtyTiles.forEach(Tile::releaseEvents);
                 dirtyTiles.clear();
             }
         } else {
@@ -1295,6 +1272,32 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
+    public WallType getWallType() {
+        return wallType;
+    }
+
+    public void setWallType(WallType wallType) {
+        if (wallType != this.wallType) {
+            WallType oldWallType = this.wallType;
+            this.wallType = wallType;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("wallType", oldWallType, wallType);
+        }
+    }
+
+    public WallType getRoofType() {
+        return roofType;
+    }
+
+    public void setRoofType(WallType roofType) {
+        if (roofType != this.roofType) {
+            WallType oldRoofType = this.roofType;
+            this.roofType = roofType;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("roofType", oldRoofType, roofType);
+        }
+    }
+
     public void applyTheme(Point coords) {
         applyTheme(coords.x, coords.y);
     }
@@ -1476,7 +1479,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     void ensureAllReadable() {
-        tiles.values().forEach(org.pepsoft.worldpainter.Tile::ensureAllReadable);
+        tiles.values().forEach(Tile::ensureAllReadable);
     }
 
     public void addDimensionListener(Listener listener) {
@@ -1840,9 +1843,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 gridSize = 128;
             }
             if (! biomesConverted) {
-                // Convert the nibble sized biomes data from a legacy map (by
-                // deleting it so that it will be recalculated
-                tiles.values().forEach(org.pepsoft.worldpainter.Tile::convertBiomeData);
+                // Convert the nibble sized biomes data from a legacy map to byte-sized data
+                tiles.values().forEach(Tile::convertBiomeData);
                 biomesConverted = true;
             }
             if (maxHeight == 0) {
@@ -1859,8 +1861,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 settings.setChance(LAPIS_LAZULI_ORE, 1);
                 settings.setChance(DIAMOND_ORE,      1);
                 settings.setChance(REDSTONE_ORE,     6);
-                settings.setChance(WATER,            1);
-                settings.setChance(LAVA,             1);
+                settings.setChance(STATIONARY_WATER, 1);
+                settings.setChance(STATIONARY_LAVA,  1);
                 settings.setChance(DIRT,             9);
                 settings.setChance(GRAVEL,           9);
                 settings.setMaxLevel(GOLD_ORE,         Terrain.GOLD_LEVEL);
@@ -1869,8 +1871,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 settings.setMaxLevel(LAPIS_LAZULI_ORE, Terrain.LAPIS_LAZULI_LEVEL);
                 settings.setMaxLevel(DIAMOND_ORE,      Terrain.DIAMOND_LEVEL);
                 settings.setMaxLevel(REDSTONE_ORE,     Terrain.REDSTONE_LEVEL);
-                settings.setMaxLevel(WATER,            Terrain.WATER_LEVEL);
-                settings.setMaxLevel(LAVA,             Terrain.LAVA_LEVEL);
+                settings.setMaxLevel(STATIONARY_WATER, Terrain.WATER_LEVEL);
+                settings.setMaxLevel(STATIONARY_LAVA,  Terrain.LAVA_LEVEL);
                 settings.setMaxLevel(DIRT,             Terrain.DIRT_LEVEL);
                 settings.setMaxLevel(GRAVEL,           Terrain.GRAVEL_LEVEL);
 
@@ -1903,6 +1905,16 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             subsurfaceLayerAnchor = LayerAnchor.BEDROCK;
             topLayerAnchor = LayerAnchor.BEDROCK;
         }
+        if (wpVersion < 5) {
+            if (darkLevel) {
+                roofType = BEDROCK;
+                darkLevel = false;
+            }
+            if (bedrockWall) {
+                wallType = BEDROCK;
+                bedrockWall = false;
+            }
+        }
         wpVersion = CURRENT_WP_VERSION;
 
         // Make sure that any custom layers which somehow ended up in the world
@@ -1919,12 +1931,14 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                     customLayers.add((CustomLayer) layer);
                 });
 
-        // Bug fix: fix the maxHeight of the dimension, which somehow is not
-        // always correctly set (possibly only on imported worlds from
-        // non-standard height maps due to a bug which should be fixed).
-        if ((world != null) && (world.getMaxHeight() != 0) && (world.getMaxHeight() != maxHeight)) {
-            logger.warn("Fixing maxHeight of dimension " + dim + " (was " + maxHeight + ", should be " + world.getMaxHeight() + ")");
-            maxHeight = world.getMaxHeight();
+        // Because we did this fix wrong in the past, the maxHeight of the dimension may not correspond to that of its
+        // tiles.
+        if (! tiles.isEmpty()) {
+            final int tileMaxHeight = tiles.values().iterator().next().getMaxHeight();
+            if (tileMaxHeight != maxHeight) {
+                logger.warn("Fixing maxHeight of dimension " + getName() + " (was " + maxHeight + ", should be " + tileMaxHeight + ")");
+                maxHeight = tileMaxHeight;
+            }
         }
     }
 
@@ -1938,7 +1952,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private boolean populate;
     private Border border;
     private int borderLevel = DEFAULT_WATER_LEVEL, borderSize = 2;
-    private boolean darkLevel, bedrockWall;
+    @Deprecated private boolean darkLevel, bedrockWall;
     private Map<Layer, ExporterSettings> layerSettings = new HashMap<>();
     private long minecraftSeed;
     private File overlay;
@@ -1960,6 +1974,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private LayerAnchor subsurfaceLayerAnchor = LayerAnchor.BEDROCK, topLayerAnchor = LayerAnchor.BEDROCK;
     private ExportSettings exportSettings;
     private MapGenerator generator;
+    private WallType wallType, roofType;
     private transient List<Listener> listeners = new ArrayList<>();
     private transient boolean eventsInhibited;
     private transient Set<Tile> dirtyTiles = new HashSet<>();
@@ -1980,7 +1995,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     private static final long TOP_LAYER_DEPTH_SEED_OFFSET = 180728193;
     private static final float ROOT_EIGHT = (float) Math.sqrt(8.0);
-    private static final int CURRENT_WP_VERSION = 4;
+    private static final int CURRENT_WP_VERSION = 5;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Dimension.class);
     private static final long serialVersionUID = 2011062401L;
 
@@ -1994,7 +2009,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public enum Border {
-        VOID(false), WATER(false), LAVA(false), ENDLESS_VOID(true), ENDLESS_WATER(true), ENDLESS_LAVA(true);
+        VOID(false), WATER(false), LAVA(false), ENDLESS_VOID(true), ENDLESS_WATER(true), ENDLESS_LAVA(true), BARRIER(false), ENDLESS_BARRIER(true);
 
         Border(boolean endless) {
             this.endless = endless;
@@ -2008,6 +2023,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public enum LayerAnchor {BEDROCK, TERRAIN}
+
+    public enum WallType { BEDROCK, BARIER /* typo, but it's in the wild, so we can't easily fix it anymore... 😔 */}
 
     public class TileVisitationBuilder {
         public TileVisitationBuilder forFilter(Filter filter) {

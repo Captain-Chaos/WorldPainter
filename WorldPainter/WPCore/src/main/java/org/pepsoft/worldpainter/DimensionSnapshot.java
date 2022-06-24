@@ -19,7 +19,7 @@ import java.util.*;
  */
 public final class DimensionSnapshot extends Dimension {
     public DimensionSnapshot(Dimension dimension, Snapshot snapshot) {
-        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getDim(), dimension.getMinHeight(), dimension.getMaxHeight());
+        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getDim());
         this.dimension = dimension;
         this.snapshot = snapshot;
         super.setBorder(dimension.getBorder());
@@ -27,8 +27,8 @@ public final class DimensionSnapshot extends Dimension {
         super.setBorderLevel(dimension.getBorderLevel());
         super.setMinecraftSeed(dimension.getMinecraftSeed());
         super.setSubsurfaceMaterial(dimension.getSubsurfaceMaterial());
-        super.setBedrockWall(dimension.isBedrockWall());
-        super.setDarkLevel(dimension.isDarkLevel());
+        super.setWallType(dimension.getWallType());
+        super.setRoofType(dimension.getRoofType());
         super.setPopulate(dimension.isPopulate());
         width = dimension.getWidth();
         height = dimension.getHeight();
@@ -195,11 +195,6 @@ public final class DimensionSnapshot extends Dimension {
     }
 
     @Override
-    public void setBedrockWall(boolean bedrockWall) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void setBitLayerValueAt(Layer layer, int x, int y, boolean value) {
         throw new UnsupportedOperationException();
     }
@@ -216,11 +211,6 @@ public final class DimensionSnapshot extends Dimension {
 
     @Override
     public void setBorderSize(int borderSize) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setDarkLevel(boolean darkLevel) {
         throw new UnsupportedOperationException();
     }
 
@@ -256,6 +246,16 @@ public final class DimensionSnapshot extends Dimension {
 
     @Override
     public void setMinecraftSeed(long minecraftSeed) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setWallType(WallType wallType) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setRoofType(WallType roofType) {
         throw new UnsupportedOperationException();
     }
 

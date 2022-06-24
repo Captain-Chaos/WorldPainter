@@ -51,14 +51,13 @@ public class Java1_2PostProcessor extends PostProcessor {
         }
         final int worldMaxZ = minecraftWorld.getMaxHeight() - 1;
         final int x1, y1, x2, y2, minZ, maxZ;
-        // TODO: make these configurable:
         final JavaExportSettings settings = (exportSettings instanceof JavaExportSettings) ? (JavaExportSettings) exportSettings : new JavaExportSettings();
         final FloatMode sandMode = "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.supportSand")) ? FloatMode.LEAVE_FLOATING : settings.sandMode;
         final FloatMode gravelMode = settings.gravelMode;
         final FloatMode cementMode = settings.cementMode;
         final FloatMode waterMode = settings.waterMode;
         final FloatMode lavaMode = settings.lavaMode;
-        final boolean flowLava = settings.flowLava, flowWater = settings.flowWater;
+        final boolean flowLava = settings.flowLava, flowWater = settings.flowWater, makeAllLeavesPersistent = settings.makeAllLeavesPersistent;
         if (minecraftWorld instanceof MinecraftWorldObject) {
             // Special support for MinecraftWorldObjects to constrain the area
             // further
@@ -323,6 +322,14 @@ public class Java1_2PostProcessor extends PostProcessor {
                                 blockType = BLK_AIR;
                             }
                             break;
+                        case BLK_LEAVES:
+                        case BLK_LEAVES2:
+                            data = minecraftWorld.getDataAt(x, y, z);
+                            if (makeAllLeavesPersistent && ((data & 0x4) == 0)) {
+                                minecraftWorld.setDataAt(x, y, z, data | 0x4);
+                            }
+                            break;
+
                     }
                     blockTypeBelow = blockType;
                 }

@@ -124,10 +124,10 @@ public class PackedArrayCube<T> {
         // Create the data array and fill it, using the appropriate length palette indices so that it just fits
         final int paletteIndexSize = Math.max((int) Math.ceil(Math.log(palette.size()) / Math.log(2)), minimumWordSize);
         final long[] data;
-        if (paletteIndexSize == 4) {
+        if ((paletteIndexSize == 4) && ((values.length % 16) == 0)) {
             // Optimised special case
-            data = new long[256];
-            for (int i = 0; i < 4096; i += 16) {
+            data = new long[values.length >> 4];
+            for (int i = 0; i < values.length; i += 16) {
                 data[i >> 4] =
                        reversePalette.get(values[i]     )
                     | (reversePalette.get(values[i +  1]) << 4)

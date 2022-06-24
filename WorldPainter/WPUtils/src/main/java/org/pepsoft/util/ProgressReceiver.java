@@ -78,6 +78,10 @@ public interface ProgressReceiver {
             super(message);
         }
 
+        public OperationCancelled(String message, Throwable cause) {
+            super(message, cause);
+        }
+
         private static final long serialVersionUID = 1L;
     }
 

@@ -1,9 +1,123 @@
--- Version 2.10.0, released ...
+-- Version 2.10.10, released 2-6-2022
 
- * The Custom Caves/Tunnel layer now supports roof layers in addition to floor layers. Note that the roof layers are inverted. This includes Custom Objects. A future version will make this inversion optional for Custom Object layers
- * The variation of Custom Caves/Tunnel floor and roof layers can now be configured, so that they are not applied with the same intensity everywhere but can vary randomly
- * WorldPainter can now calculate the distance property of leaf blocks while Exporting. This helps with preventing leaf blocks that are attached to treet trunks from decaying in-game. This can be turned off on the Post Processing tab
+ * Make smooth ground cover layers (see `smoothGroundCover` on https://www.worldpainter.net/trac/wiki/AdvancedSettings for details) work again with Minecraft 1.2 - 1.12
+ * Bug fix: fix a few export errors related to the new cave decoration functionality
+ * Bug fix: fix an export error related to removing incomplete double-high plants during post processing
+
+-- Version 2.10.9, released 31-5-2022
+
+ * Custom Objects marked for placement "on water" now have an additional option to control whether they will be placed if they collide with the floor of the body of water
+ * Cave decoration changes:
+   + Lush cave patches are now larger
+   + Lush cave patches now occur at all heights
+     - NOTE that for existing worlds you may have to turn the lush cave patches decoration setting off and on again to see the change
+   + Dripstone cave patches now place dripstone blocks around the stalagmites and stalactites
+ * Make exporting tile selections for large worlds more efficient
+ * Improve lighting of sea_pickles, slabs and stairs
+ * Remove unsupported water plants during post processing
+ * Bug fix: detect azalea leaves as leaf blocks
+ * Bug fix: fix an export error for chunk sections with a large number of biomes
+ * Bug fix: in scripts, make applyLayer() work without having to specify a heightmap
+ * Bug fix: don't create duplicate start menu/desktop icons for WorldPainter in .deb and .rpm installers
+
+-- Version 2.10.8, released 28-5-2022
+
+ * Warn when loading an old world with invalid Superflat preset, rather than giving an error
+ * Bug fix: covered dirt_path blocks are now turned to dirt during post processing
+ * Bug fix: dirt_path blocks are now correctly lighted
+ * Some bug fixes concerning loading very old worlds
+
+-- Version 2.10.7, released 25-5-2022
+
+ * Bug fix: fixed a bug in the new cave decoration settings that sometimes caused errors or prevented WorldPainter from starting
+
+-- Version 2.10.6, released 25-5-2022
+
+ * A new Decorate option has been added to the Caves, Caverns and Chasms layers, which can add random decorations to the generated caves of the following types:
+   + Brown mushrooms (on by default)
+   + Glow lichen (on by default)
+   + Patches of Lush Cave (off by default; stone will turn to moss, lush cave plants will be planted and the biome will be set to lush_caves)
+   + Patches of Dripstone Cave (off by default; dripstone stalagmites and stalactites will be generated and the biome will be set to dripstone_caves)
+   + These last two are still in beta. Please give feedback
+ * The Import process now skips chunks when their data is corrupted, rather than aborting
+ * Various bug fixes and usability improvements
+ * Bug fix: fix two separate scripting bugs that stopped filters from working in general, and filtering on biomes in particular
+
+-- Version 2.10.5, released 18-5-2022
+
+ * Bug fix: fix some over enthusiastic post processing that removed blocks with a "half: up" or "half: down" property
+ * Bug fix: correct a random number generation problem that was resulting in Custom Object and Custom Plants layers not being rendered with the correct distribution as Custom Cave/Tunnel floor and roof layers
+
+-- Version 2.10.4, released 17-5-2022
+
+ * Water plants are now supported for Custom Cave/Tunnel floor and roof layers
+ * Bug fix: more correct calulation and storage of sky light values
+ * Bug fix: support schem files that don't have metadata
+ * Bug fix: correct the block light emited by glow lichen
+
+-- Version 2.10.3, released 15-5-2022
+
+ * A new Barrier border type has been added, in addition to the previously added Barrier wall type
+ * When the Barrier wall type is used the word type is no longer forced to Superflat and no endless Void is generated beyond the wall. This means the Minecraft-generated land beyond it will be visible; to prevent that the new Barrier border can be used instead, which can be made to be much wider (or endless)
+ * Bug fix: don't treat negative numbers on the wpscript command line as options
+ * Bug fix: fix rare error when clearing blocks from the existing map during a Merge
+
+-- Version 2.10.2, released 14-5-2022
+
+ * In addition to the existing Bedrock wall option it is now also possible to create Barrier block walls
+   + In addition, a "roof" option has been added, that will cover the map with a one block layer of Bedrock or Barrier blocks at the top. Together these options can completely box players in
+   + NOTE that a bedrock roof will make the map dark, but it won't darken the sky or hide the sun
+   + When the Barrier wall is selected, outside the walls will be fixed to endless Void
+ * WorldPainter now tries harder to spawn you at the terrain level, rather than on top of the roof or the ceiling dimension
+   + This does mean that if your spawn location is blocked, you might suffocate
+   + It is not guaranteed to work for multiplayer
+ * Bug fix: fix an export crash when terrain near the build limit contains plants that go over it
+
+-- Version 2.10.1, released 13-5-2022
+
+ * Bug fix: fix an error when opening Cave/Tunnel Layer settings that have a Plant layer as floor or roof layer that was saved with a different version
+ * Bug fix: fix an error during Merging when the height difference between the world and the existing map is large
+
+-- Version 2.10.0, released 13-5-2022
+
+ * WorldPainter now has a merch store! Go to https://www.worldpainter.store/ to support WorldPainter development
+ * Custom Caves/Tunnel layer new functionality:
+   + The Custom Caves/Tunnel layer now supports roof layers in addition to floor layers
+   + Note that the roof layers are inverted. This includes Custom Objects, so you will have to make any objects you want to place on the roof upside-down (unless you _want_ them to be upside-down of course). A future version will make this inversion optional for Custom Object layers
+   + The variation of Custom Caves/Tunnel floor and roof layers can now be configured, so that they are not applied with the same intensity everywhere but can vary randomly
+   + The hanging plants have been added to the Custom Plants layer, for use as Cave/Tunnel roof layers. They will work non-inverted as well, but of course they will be upside-down
+ * All known Minecraft 1.18 materials and material properties have been added the the custom material selector, so they can be more easily used in Custom Terrains, Custom Materials, etc...
+ * Custom Layer palettes now have a "show" and "solo" checkbox for the entire palette, making it a little easier to show or hide entire categories of layers:
+   + Unchecking "show" will hide all the layers from that palette from the editor view. It will be indicated by changing the palette icon to a red cross
+   + Checking "solo" will only show the layers from that palette in the editor view. If will be indicated by changing the palette icon to a green checkmark. Soloing takes precedence over turning off "show". Only one palette can be soloed at a time
+   + Just like with showing or soloing individual layers, all the layers will still be Exported
+   + Soloing a single layer takes precedence over soloing a palette
+   + If you have a paint tool selected, the currently selected paint is always shown, regardless of the show and solo settings
+ * The Grass and Beaches terrain types now also place seagrass seagrass and kelp under water
+ * The Small Dripleaf plant has been added to the Custom Plants layer
+ * The Frost layer now also turns water blocks with plants in them to ice, and removes the remains of the plant above, if any
+ * Importing signed integer height maps is now supported
+ * WorldPainter now calculates the "distance" property of leaf blocks while Exporting. This may help prevent leaf blocks that should not decay from decaying in-game. This can be turned off on the Post Processing tab
    + WorldPainter can also automatically remove leaf blocks that are too distant (and not persistent) and would decay in Minecraft. This is turned off by default but can be turned on on the Post Processing tab
+   + There is also an option to make all leaf blocks persistent (even those placed by the WorldPainter tree layers or in other ways which are normally not persistent)
+ * Importing maps with custom dimension types or world types now works. Note that you can't edit these settings and WorldPainter will still only Import the vanilla Surface, Nether and End dimensions
+ * The performance of the 3D view has been significantly improved for very large worlds
+ * Various small bug fixes and usability/performance improvements
+ * Bug fix: fixed a visual glitch in the 3D view
+ * Bug fix: fix lighting of blocks that give off light
+
+-- Version 2.9.7, released 9-5-2022
+
+ * Allow Custom Cave/Tunnel floor layer minimum levels to go below zero
+
+-- Version 2.9.6, released 9-5-2022
+
+ * Bug fix: fix a regression in the Minecraft 1.17 support that was generating invalid datapacks for deviating build heights
+
+-- Version 2.9.5, released 6-5-2022
+
+ * The Moss Block material is now considered a solid block, rather than insubstantial vegetation
+ * Bug fix: fix an error that prevented the creation of Custom Underground Pockets layers
 
 
 -- Version 2.9.4, released 5-5-2022

@@ -11,6 +11,7 @@ public class SuperflatGenerator extends MapGenerator {
     public SuperflatPreset getSettings() {
         return settings;
     }
+
     @Override
     public String toString() {
         return getType().name() + "(settings=" + settings + ")";

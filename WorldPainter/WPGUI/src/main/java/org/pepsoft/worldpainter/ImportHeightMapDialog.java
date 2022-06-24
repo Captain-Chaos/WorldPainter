@@ -11,6 +11,7 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.FileUtils;
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
@@ -42,8 +43,7 @@ import java.util.List;
 import java.util.*;
 
 import static com.google.common.primitives.Ints.asList;
-import static java.awt.image.DataBuffer.TYPE_DOUBLE;
-import static java.awt.image.DataBuffer.TYPE_FLOAT;
+import static java.awt.image.DataBuffer.*;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
@@ -176,7 +176,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         }
         buttonSaveAsDefaults.setEnabled(true);
         buttonLoadDefaults.setEnabled(true);
-        updatePreview();
+        updatePreview(false);
     }
 
     private HeightMapImporter createImporter() {
@@ -234,7 +234,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         importer.setWorldLowLevel((Integer) spinnerWorldLow.getValue());
         importer.setWorldWaterLevel(waterLevel);
         importer.setWorldHighLevel((Integer) spinnerWorldHigh.getValue());
-        importer.setVoidBelowLevel(checkBoxVoid.isSelected() ? ((Long) spinnerVoidBelow.getValue()) : 0L);
+        importer.setVoidBelowLevel(checkBoxVoid.isSelected() ? ((Long) spinnerVoidBelow.getValue()) : imageMinHeight);
         return importer;
     }
 
@@ -255,60 +255,76 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         try {
             image = null; // Set image to null first to make more memory available for loading the new image
             image = ImageIO.read(selectedFile);
+            final int transferType = image.getSampleModel().getTransferType();
             if (image == null) {
                 labelImageDimensions.setForeground(Color.RED);
+                labelImageDimensions.setIcon(ICON_WARNING);
                 labelImageDimensions.setText("Not an image file, or damaged file!");
                 selectedFile = null;
             } else if ((image.getType() == BufferedImage.TYPE_BYTE_BINARY) || (image.getType() == BufferedImage.TYPE_BYTE_INDEXED)) {
                 labelImageDimensions.setForeground(Color.RED);
+                labelImageDimensions.setIcon(ICON_WARNING);
                 labelImageDimensions.setText("Indexed image not supported! Please convert to non-indexed.");
                 selectedFile = null;
             } else if (image.isAlphaPremultiplied()) {
                 labelImageDimensions.setForeground(Color.RED);
+                labelImageDimensions.setIcon(ICON_WARNING);
                 labelImageDimensions.setText("Premultiplied alpha not supported! Please convert to non-premultiplied.");
                 selectedFile = null;
-            } else if ((image.getSampleModel().getTransferType() == TYPE_FLOAT) || (image.getSampleModel().getTransferType() == TYPE_DOUBLE)) {
+            } else if ((transferType == TYPE_FLOAT) || (transferType == TYPE_DOUBLE)) {
                 labelImageDimensions.setForeground(Color.RED);
+                labelImageDimensions.setIcon(ICON_WARNING);
                 labelImageDimensions.setText("Floating point height maps not yet supported! Please convert to 32-bit integer.");
                 selectedFile = null;
             } else {
                 final int width = image.getWidth(), height = image.getHeight();
                 programmaticChange = true;
                 try {
+                    labelImageDimensions.setForeground(null);
                     if (image.getColorModel().hasAlpha()) {
                         spinnerScale.setValue(100);
                         spinnerScale.setEnabled(false);
                         spinnerScale.setToolTipText("<html>Scaling not supported for grey scale images with an alpha channel!<br>To enable scaling, please remove the alpha channel.</html>");
+                        labelImageDimensions.setIcon(ICON_WARNING);
+                        labelImageDimensions.setText("Scaling not supported for images with an alpha channel!");
                     } else {
                         spinnerScale.setEnabled(true);
                         spinnerScale.setToolTipText(null);
+                        labelImageDimensions.setIcon(null);
                     }
-                    labelImageDimensions.setForeground(null);
                     bitDepth = image.getSampleModel().getSampleSize(0);
                     final WritableRaster raster = image.getRaster();
                     imageLowValue = Long.MAX_VALUE;
                     imageHighValue = Long.MIN_VALUE;
-                    final long imageMaxHeight = (long) Math.pow(2, bitDepth) - 1;
+                    final boolean signed = transferType == TYPE_SHORT || transferType == TYPE_FLOAT || transferType == TYPE_DOUBLE;
+                    imageMinHeight = signed ? -(long) Math.pow(2, bitDepth - 1) : 0L;
+                    imageMaxHeight = signed ? (long) Math.pow(2, bitDepth - 1) - 1 : (long) Math.pow(2, bitDepth) - 1;
                     final boolean invert = checkBoxInvert.isSelected();
                     outer:
                     for (int x = 0; x < width; x++) {
                         for (int y = 0; y < height; y++) {
-                            final long value = invert ? (imageMaxHeight - raster.getSample(x, y, 0) & 0xffffffffL) : raster.getSample(x, y, 0) & 0xffffffffL; // Convert to unsigned integers
+                            final long value = invert
+                                    ? (imageMaxHeight - (signed ? raster.getSample(x, y, 0) : raster.getSample(x, y, 0) & 0xffffffffL))
+                                    : (signed ? raster.getSample(x, y, 0) : raster.getSample(x, y, 0) & 0xffffffffL);
                             if (value < imageLowValue) {
                                 imageLowValue = value;
                             }
                             if (value > imageHighValue) {
                                 imageHighValue = value;
                             }
-                            if ((imageLowValue == 0L) && (imageHighValue == imageMaxHeight)) {
+                            if ((imageLowValue == imageMinHeight) && (imageHighValue == imageMaxHeight)) {
                                 // No point in looking any further!
                                 break outer;
                             }
                         }
                     }
+                    setMinimum(spinnerImageLow, imageMinHeight);
                     setMaximum(spinnerImageLow, imageMaxHeight);
+                    setMinimum(spinnerImageHigh, imageMinHeight);
                     setMaximum(spinnerImageHigh, imageMaxHeight);
+                    setMinimum(spinnerVoidBelow, imageMinHeight + 1);
                     setMaximum(spinnerVoidBelow, imageMaxHeight);
+                    spinnerVoidBelow.setValue(imageMinHeight + 1);
                 } finally {
                     programmaticChange = false;
                 }
@@ -318,9 +334,11 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                 // Set levels to reasonable defaults
                 selectDefaultVerticalScaling();
 
-                labelImageDimensions.setText(String.format("Image size: %d x %d, %d bits, lowest value: %d, highest value: %d", width, height, bitDepth, imageLowValue, imageHighValue));
+                if (! image.getColorModel().hasAlpha()) {
+                    labelImageDimensions.setText(String.format("Image size: %d x %d, %d bits, lowest value: %d, highest value: %d", width, height, bitDepth, imageLowValue, imageHighValue));
+                }
                 updateWorldDimensions();
-                updatePreview();
+                updatePreview(true);
             }
         } catch (IOException e) {
             logger.error("I/O error loading image " + selectedFile, e);
@@ -338,7 +356,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         final Vector<ImportPreset> presets = new Vector<>(ImportPreset.PRESETS.length + 1);
         presets.add(null);
         for (ImportPreset preset: ImportPreset.PRESETS) {
-            if (preset.isValid(bitDepth, imageLowValue, imageHighValue, platform, (Integer) comboBoxHeight.getSelectedItem())) {
+            if (preset.isValid(imageMinHeight, imageMaxHeight, imageLowValue, imageHighValue, platform, (Integer) comboBoxHeight.getSelectedItem())) {
                 presets.add(preset);
             }
         }
@@ -413,7 +431,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     private void loadDefaults() {
         loadDefaultTheme();
         updateImageLevelLabels();
-        updatePreview();
+        updatePreview(false);
     }
 
     private void loadDefaultTheme() {
@@ -450,7 +468,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             buttonResetDefaults.setEnabled(false);
             spinnerWorldMiddle.setValue(theme.getWaterHeight());
             updateImageLevelLabels();
-            updatePreview();
+            updatePreview(false);
             themeEditor.setTheme((SimpleTheme) theme);
             buttonLoadDefaults.setEnabled(true);
             buttonSaveAsDefaults.setEnabled(true);
@@ -543,12 +561,12 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
         // Set levels to reasonable defaults
         selectDefaultVerticalScaling();
-        updatePreview();
+        updatePreview(false);
 
         labelWarning.setVisible((comboBoxPlatform.getSelectedItem() == JAVA_MCREGION) && (platformMaxHeight != DEFAULT_MAX_HEIGHT_MCREGION));
     }
 
-    private void updatePreview() {
+    private void updatePreview(boolean recentre) {
         doLaterOnEventThread(UPDATE_HEIGHT_MAP_PREVIEW, 250, () -> {
             if (image != null) {
                 TileProvider previewProvider = createImporter().getPreviewProvider(colourScheme, contourLines, contourSeparation, lightOrigin);
@@ -557,6 +575,9 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                         tiledImageViewer2.addTileProvider(previewProvider);
                     } else {
                         tiledImageViewer2.replaceTileProvider(0, previewProvider);
+                    }
+                    if (recentre) {
+                        tiledImageViewer2.moveTo(image.getWidth() / 2, image.getHeight() / 2);
                     }
                 }
             }
@@ -567,7 +588,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         if (preset != null) {
             programmaticChange = true;
             try {
-                final long[][] mappings = preset.getMapping(bitDepth, imageLowValue, imageHighValue, platform, (Integer) comboBoxHeight.getSelectedItem());
+                final long[][] mappings = preset.getMapping(imageMaxHeight, imageLowValue, imageHighValue, platform, (Integer) comboBoxHeight.getSelectedItem());
                 spinnerImageLow.setValue(mappings[0][0]);
                 spinnerWorldLow.setValue((int) mappings[1][0]);
                 spinnerImageHigh.setValue(mappings[0][1]);
@@ -1281,7 +1302,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         }
         resetPreset();
         updateImageLevelLabels();
-        updatePreview();
+        updatePreview(false);
         setControlStates();
     }//GEN-LAST:event_spinnerImageLowStateChanged
 
@@ -1297,7 +1318,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         }
         resetPreset();
         updateImageLevelLabels();
-        updatePreview();
+        updatePreview(false);
         setControlStates();
     }//GEN-LAST:event_spinnerImageHighStateChanged
 
@@ -1309,13 +1330,13 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         }
         resetPreset();
         updateImageLevelLabels();
-        updatePreview();
+        updatePreview(false);
         setControlStates();
     }//GEN-LAST:event_spinnerWorldLowStateChanged
 
     private void spinnerWorldMiddleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerWorldMiddleStateChanged
         updateImageLevelLabels();
-        updatePreview();
+        updatePreview(false);
     }//GEN-LAST:event_spinnerWorldMiddleStateChanged
 
     private void spinnerWorldHighStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerWorldHighStateChanged
@@ -1326,7 +1347,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         }
         resetPreset();
         updateImageLevelLabels();
-        updatePreview();
+        updatePreview(false);
         setControlStates();
     }//GEN-LAST:event_spinnerWorldHighStateChanged
 
@@ -1382,7 +1403,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     private void spinnerScaleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerScaleStateChanged
         if (image != null) {
             updateWorldDimensions();
-            updatePreview();
+            updatePreview(false);
         }
     }//GEN-LAST:event_spinnerScaleStateChanged
 
@@ -1420,20 +1441,20 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
     private void checkBoxVoidActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxVoidActionPerformed
         spinnerVoidBelow.setEnabled(checkBoxVoid.isSelected());
-        updatePreview();
+        updatePreview(false);
     }//GEN-LAST:event_checkBoxVoidActionPerformed
 
     private void spinnerOffsetXStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerOffsetXStateChanged
         if (image != null) {
             updateWorldDimensions();
-            updatePreview();
+            updatePreview(false);
         }
     }//GEN-LAST:event_spinnerOffsetXStateChanged
 
     private void spinnerOffsetYStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerOffsetYStateChanged
         if (image != null) {
             updateWorldDimensions();
-            updatePreview();
+            updatePreview(false);
         }
     }//GEN-LAST:event_spinnerOffsetYStateChanged
 
@@ -1462,17 +1483,17 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     private void radioButtonApplyThemeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonApplyThemeActionPerformed
         comboBoxSingleTerrain.setEnabled(false);
         jTabbedPane1.setEnabledAt(1, currentDimension == null);
-        updatePreview();
+        updatePreview(false);
     }//GEN-LAST:event_radioButtonApplyThemeActionPerformed
 
     private void radioButtonSingleTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonSingleTerrainActionPerformed
         comboBoxSingleTerrain.setEnabled(true);
         jTabbedPane1.setEnabledAt(1, false);
-        updatePreview();
+        updatePreview(false);
     }//GEN-LAST:event_radioButtonSingleTerrainActionPerformed
 
     private void comboBoxSingleTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxSingleTerrainActionPerformed
-        updatePreview();
+        updatePreview(false);
     }//GEN-LAST:event_comboBoxSingleTerrainActionPerformed
 
     private void comboBoxPresetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxPresetActionPerformed
@@ -1480,7 +1501,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     }//GEN-LAST:event_comboBoxPresetActionPerformed
 
     private void spinnerVoidBelowStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerVoidBelowStateChanged
-        updatePreview();
+        updatePreview(false);
     }//GEN-LAST:event_spinnerVoidBelowStateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -1562,12 +1583,13 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     private File selectedFile, heightMapDir;
     private volatile BufferedImage image;
     private int bitDepth = 8;
-    private long imageLowValue, imageHighValue = 255L;
+    private long imageLowValue, imageHighValue = 255L, imageMinHeight = 0, imageMaxHeight = 255;
     private boolean programmaticChange = true;
     private Platform platform;
 
     private static final String UPDATE_HEIGHT_MAP_PREVIEW = ImportHeightMapDialog.class.getName() + ".updateHeightMap";
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
+    private static final Icon ICON_WARNING = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/error.png");
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ImportHeightMapDialog.class);
     private static final long serialVersionUID = 1L;
 }

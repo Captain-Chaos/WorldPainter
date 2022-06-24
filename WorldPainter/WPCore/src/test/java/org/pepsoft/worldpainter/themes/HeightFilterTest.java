@@ -5,6 +5,7 @@
  */
 package org.pepsoft.worldpainter.themes;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -19,15 +20,31 @@ public class HeightFilterTest {
     public void testGetLevel() {
         HeightFilter filter = new HeightFilter(0, 32, 10, 20, true);
         for (int z = 0; z < 32; z++) {
-            System.out.printf("Level %3d: %2d%n", z, filter.getLevel(0, 0, z, 15));
+            if (z < 8) {
+                Assert.assertEquals(0, filter.getLevel(0, 0, z, 15));
+            } else if (z < 12) {
+                Assert.assertTrue(filter.getLevel(0, 0, z, 15) > 0 && filter.getLevel(0, 0, z, 15) < 15);
+            } else if (z < 19) {
+                Assert.assertEquals(15, filter.getLevel(0, 0, z, 15));
+            } else if (z < 23) {
+                Assert.assertTrue(filter.getLevel(0, 0, z, 15) > 0 && filter.getLevel(0, 0, z, 15) < 15);
+            } else {
+                Assert.assertEquals(0, filter.getLevel(0, 0, z, 15));
+            }
         }
         filter = new HeightFilter(0, 32, 0, 31, false);
         for (int z = 0; z < 32; z++) {
-            System.out.printf("Level %3d: %2d%n", z, filter.getLevel(0, 0, z, 15));
+            Assert.assertEquals(15, filter.getLevel(0, 0, z, 15));
         }
         filter = new HeightFilter(0, 32, 10, 20, false);
         for (int z = 0; z < 32; z++) {
-            System.out.printf("Level %3d: %2d%n", z, filter.getLevel(0, 0, z, 15));
+            if (z < 10) {
+                Assert.assertEquals(0, filter.getLevel(0, 0, z, 15));
+            } else if (z <= 20) {
+                Assert.assertEquals(15, filter.getLevel(0, 0, z, 15));
+            } else {
+                Assert.assertEquals(0, filter.getLevel(0, 0, z, 15));
+            }
         }
     }
 }

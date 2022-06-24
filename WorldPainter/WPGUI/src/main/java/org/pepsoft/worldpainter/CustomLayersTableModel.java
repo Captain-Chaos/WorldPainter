@@ -26,8 +26,8 @@ public class CustomLayersTableModel implements TableModel {
 
         // Sort the list, with first pass layers first
         customLayers.sort((layer1, layer2) -> {
-            boolean layer1FirstPass = layer1.getExporter() instanceof FirstPassLayerExporter;
-            boolean layer2FirstPass = layer2.getExporter() instanceof FirstPassLayerExporter;
+            boolean layer1FirstPass = FirstPassLayerExporter.class.isAssignableFrom(layer1.getExporterType());
+            boolean layer2FirstPass = FirstPassLayerExporter.class.isAssignableFrom(layer2.getExporterType());
             if (layer1FirstPass && (! layer2FirstPass)) {
                 return -1;
             } else if ((! layer1FirstPass) && layer2FirstPass) {
@@ -41,7 +41,7 @@ public class CustomLayersTableModel implements TableModel {
         if (! customLayers.isEmpty()) {
             customLayers.add(0, FIRST_PASS_HEADER);
             for (int i = customLayers.size() - 1; i > 1; i--) {
-                if (! (customLayers.get(i).getExporter() instanceof SecondPassLayerExporter)) {
+                if (! SecondPassLayerExporter.class.isAssignableFrom(customLayers.get(i).getExporterType())) {
                     customLayers.add(i + 1, SECOND_PASS_HEADER);
                     break;
                 }

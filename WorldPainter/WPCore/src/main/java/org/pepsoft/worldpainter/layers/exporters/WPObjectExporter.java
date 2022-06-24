@@ -35,14 +35,10 @@ import static org.pepsoft.worldpainter.objects.WPObject.*;
  * @author pepijn
  */
 public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExporter<L> {
-    public WPObjectExporter(L layer) {
-        super(layer);
+    public WPObjectExporter(Dimension dimension, Platform platform, ExporterSettings settings, L layer) {
+        super(dimension, platform, settings, layer);
     }
 
-    public WPObjectExporter(L layer, ExporterSettings defaultSettings) {
-        super(layer, defaultSettings);
-    }
-    
     /**
      * Export an object to the world, taking into account the blocks that are
      * already there.
@@ -201,7 +197,104 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             throw new RuntimeException(e.getMessage() + " (object: " + object.getName() + " at " + x + "," + y + "," + z + ")", e);
         }
     }
-    
+
+    /**
+     * Export an object to the world upside-down, optionally taking into account the blocks that are already there. This
+     * method does fewer checks than {@link #renderObject(MinecraftWorld, Dimension, WPObject, int, int, int, boolean)}
+     * because they don't make sense when rendering an object upside-down. It treats the location as if it is entirely
+     * above-ground.
+     *
+     * @param world The Minecraft world to which to export the object.
+     * @param object The object to export.
+     * @param x The X coordinate at which to export the object.
+     * @param y The Y coordinate at which to export the object.
+     * @param z The Z coordinate at which to export the object.
+     */
+    public static void renderObjectInverted(MinecraftWorld world, WPObject object, int x, int y, int z) {
+        try {
+            final Point3i dim = object.getDimensions();
+            final Point3i offset = object.getOffset();
+            final int leafDecayMode = object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE);
+            final Material replaceMaterial;
+            if (object.hasAttribute(ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL)) {
+                replaceMaterial = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL);
+            } else if (object.hasAttribute(ATTRIBUTE_REPLACE_WITH_AIR)) {
+                final int[] ids = object.getAttribute(ATTRIBUTE_REPLACE_WITH_AIR);
+                replaceMaterial = Material.get(ids[0], ids[1]);
+            } else {
+                replaceMaterial = null;
+            }
+            final boolean replaceBlocks = replaceMaterial != null;
+            final int minHeight = world.getMinHeight(), maxHeight = world.getMaxHeight();
+            if ((z - offset.z) >= maxHeight) {
+                // Object doesn't fit in the world vertically
+                return;
+            }
+            for (int dx = 0; dx < dim.x; dx++) {
+                for (int dy = 0; dy < dim.y; dy++) {
+                    final int worldX = x + dx + offset.x;
+                    final int worldY = y + dy + offset.y;
+                    for (int dz = 0; dz < dim.z; dz++) {
+                        if (object.getMask(dx, dy, dz)) {
+                            final Material objectMaterial = object.getMaterial(dx, dy, dz);
+                            final Material finalMaterial = (replaceBlocks && (objectMaterial == replaceMaterial)) ? AIR : objectMaterial;
+                            final int worldZ = z - dz - offset.z;
+                            final Material existingMaterial = world.getMaterialAt(worldX, worldY, worldZ);
+                            // Only replace less solid blocks
+                            if (existingMaterial.veryInsubstantial) {
+                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
+                            }
+                        }
+                    }
+                }
+            }
+            List<Entity> entities = object.getEntities();
+            if (entities != null) {
+                for (Entity entity: entities) {
+                    double[] relPos = entity.getRelPos();
+                    double entityX = x + relPos[0] + offset.x,
+                            entityY = y + relPos[2] + offset.y,
+                            entityZ = z - relPos[1] - offset.z;
+                    if ((entityZ < minHeight) || (entityZ >= maxHeight)) {
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("NOT adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ + " because z coordinate is out of range!");
+                        }
+                    } else {
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("Adding entity " + entity.getId() + " @ " + entityX + "," + entityY + "," + entityZ);
+                        }
+                        // Make sure each entity has a unique ID, otherwise
+                        // Minecraft will see them all as duplicates and remove
+                        // them:
+                        entity.setUUID(UUID.randomUUID());
+                        world.addEntity(entityX, entityY, entityZ, entity);
+                    }
+                }
+            }
+            List<TileEntity> tileEntities = object.getTileEntities();
+            if (tileEntities != null) {
+                for (TileEntity tileEntity: tileEntities) {
+                    final int tileEntityX = x + tileEntity.getX() + offset.x,
+                            tileEntityY = y + tileEntity.getZ() + offset.y,
+                            tileEntityZ = z - tileEntity.getY() - offset.z;
+                    final String entityId = tileEntity.getId();
+                    if ((tileEntityZ < minHeight) || (tileEntityZ >= maxHeight)) {
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("NOT adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ + " because z coordinate is out of range!");
+                        }
+                    } else {
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("Adding tile entity " + entityId + " @ " + tileEntityX + "," + tileEntityY + "," + tileEntityZ);
+                        }
+                        world.addTileEntity(tileEntityX, tileEntityY, tileEntityZ, tileEntity);
+                    }
+                }
+            }
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage() + " (object: " + object.getName() + " at " + x + "," + y + "," + z + ")", e);
+        }
+    }
+
     /**
      * Check whether the coordinates of the extents of the object make sense. In
      * other words: whether it could potentially be placeable at all given its
@@ -246,6 +339,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         final Point3i dimensions = object.getDimensions();
         final Point3i offset = object.getOffset();
         final int collisionMode = object.getAttribute(ATTRIBUTE_COLLISION_MODE), minHeight = world.getMinHeight(), maxHeight = world.getMaxHeight();
+        final boolean collideWithFloor = ! object.getAttribute(ATTRIBUTE_SPAWN_ON_WATER_NO_COLLIDE);
         final boolean allowConnectingBlocks = false, bottomlessWorld = dimension.isBottomless();
         final int minZ = minHeight + (bottomlessWorld ? 0 : 1);
         // Check if the object fits vertically
@@ -307,8 +401,6 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 }
             }
         } else if (placement == Placement.FLOATING) {
-            // When floating on fluid, the object is not allowed to collide
-            // with the floor
             for (int dx = 0; dx < dimensions.x; dx++) {
                 for (int dy = 0; dy < dimensions.y; dy++) {
                     final int worldX = x + dx + offset.x, worldY = y + dy + offset.y;
@@ -328,14 +420,14 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                                         logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " because it extends above the top of the map");
                                     }
                                     return false;
-                                } else if (worldZ <= terrainHeight) {
+                                } else if ((worldZ <= terrainHeight) && collideWithFloor) {
                                     // A solid block in the object collides with
                                     // the floor
                                     if (logger.isTraceEnabled()) {
                                         logger.trace("No room for object " + object.getName() + " @ " + x + "," + y + "," + z + " with placement " + placement + " due to collision with floor");
                                     }
                                     return false;
-                                } else if (collisionMode != COLLISION_MODE_NONE) {
+                                } else if ((worldZ > terrainHeight) && (collisionMode != COLLISION_MODE_NONE)) {
                                     if ((collisionMode == COLLISION_MODE_ALL)
                                             ? (! world.getMaterialAt(worldX, worldY, worldZ).isNamedOneOf(AIR_AND_FLUIDS))
                                             : (! world.getMaterialAt(worldX, worldY, worldZ).veryInsubstantial)) {
@@ -456,25 +548,20 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 material = material.withProperty(PERSISTENT, true);
             }
         }
-        boolean existingMaterialContainsWater = world.getMaterialAt(x, y, z).containsWater();
-        if (material.hasProperty(WATERLOGGED)
-                || ((! material.opaque)
-                        && (! material.watery) // These blocks always contain water and therefore don't have a "waterlogged" property; TODO: should we not place these blocks in dry places?
-//                        && (! material.veryInsubstantial) TODO this makes no sense, does it? insubstantial blocks can be waterlogged?
-                        && material.isNotNamedOneOf(MC_WATER, MC_LAVA, MC_AIR, MC_CAVE_AIR, MC_VINE))) { // TODO refactor the "can be waterlogged" mechanism
-            // Assume that any material that is not opaque, is not known to
-            // always contain water (and therefore has no waterlogged property)
-            // and is not air or cave air can be waterlogged. TODO: Q: is this good enough? A: no, see e.g. vines and probably many more
-            // Check if the block is under water and set the waterlogged property accordingly
+        final Material existingMaterial = world.getMaterialAt(x, y, z);
+        final boolean existingMaterialContainsWater = existingMaterial.containsWater();
+        // Manage the waterlogged property, but only if we're confident what it should be based on the block that is
+        // already there
+        if ((existingMaterial.translucent || existingMaterial.hasProperty(WATERLOGGED)) && material.hasProperty(WATERLOGGED)) {
             if (existingMaterialContainsWater) {
                 material = material.withProperty(WATERLOGGED, true);
             } else {
                 material = material.withProperty(WATERLOGGED, false);
             }
         }
-        // Don't replace water with insubstantial blocks that don't have a
-        // waterlogged property (assume such a block would be washed away)
-        if ((!material.veryInsubstantial) || (!existingMaterialContainsWater) || material.containsWater()) {
+        // Don't replace water with insubstantial blocks that don't have a waterlogged property (assume such a block
+        // would be washed away), except air. We are slightly guessing at what the user would want to happen here...
+        if ((! material.veryInsubstantial) || (! existingMaterialContainsWater) || material.containsWater() || (material == AIR)) {
             world.setMaterialAt(x, y, z, material);
         }
     }
@@ -520,11 +607,11 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 WPObjectExporter.renderObject(world, dimension, object, x, y, z);
                 
                 // Reapply the Frost layer to the area, if necessary
-                frostExporter.setSettings(dimension.getLayerSettings(Frost.INSTANCE));
+                final FrostExporter frostExporter = new FrostExporter(dimension, platform, dimension.getLayerSettings(Frost.INSTANCE));
                 Point3i offset = object.getOffset();
                 Point3i dim = object.getDimensions();
                 Rectangle area = new Rectangle(x + offset.x, y + offset.y, dim.x, dim.y);
-                frostExporter.addFeatures(dimension, area, null, world, platform);
+                frostExporter.addFeatures(area, null, world);
 
                 // Fixups are done *after* post processing, so post process
                 // again
@@ -574,7 +661,6 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         private final int x, y, z;
         private final Placement placement;
 
-        private static final FrostExporter frostExporter = new FrostExporter();
         private static final long serialVersionUID = 1L;
     }
 

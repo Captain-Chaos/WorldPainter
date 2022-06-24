@@ -15,6 +15,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class SubProgressReceiver implements ProgressReceiver {
     public SubProgressReceiver(ProgressReceiver progressReceiver, float offset, float extent) throws OperationCancelled {
+        this(progressReceiver, null, offset, extent);
+    }
+
+    public SubProgressReceiver(ProgressReceiver progressReceiver, String message, float offset, float extent) throws OperationCancelled {
         if ((offset < 0.0f) || (offset > 1.0f) || (extent <= 0.0f)) {
             throw new IllegalArgumentException();
         }
@@ -22,9 +26,9 @@ public class SubProgressReceiver implements ProgressReceiver {
         this.offset = offset;
         this.extent = extent;
         creationTrace = new Throwable("Creation");
-        lastMessage = creationTrace.getStackTrace()[1].getClassName() + '.' + creationTrace.getStackTrace()[1].getMethodName() + '#' + creationTrace.getStackTrace()[1].getLineNumber();
+        lastMessage = message;
     }
-    
+
     /**
      * Adds an additional progress receiver, to which the
      * {@link #setProgress(float)}, {@link #setMessage(java.lang.String)},
@@ -32,8 +36,6 @@ public class SubProgressReceiver implements ProgressReceiver {
      * will be forwarded (without remapping the progress). Note that recursive
      * invocations of {@code setMessage()}, </code>{@code exceptionThrown()}
      * and {@code done()} are not reported.
-     * 
-     * @param listener 
      */
     public synchronized void addListener(ProgressReceiver listener) {
         if (listeners == null) {

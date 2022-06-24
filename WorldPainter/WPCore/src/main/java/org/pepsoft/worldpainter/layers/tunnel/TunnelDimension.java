@@ -33,6 +33,7 @@ abstract class TunnelDimension extends RODelegatingDimension {
         maxZ = dimension.getMaxHeight() - 1;
         if (layer.getFloorNoise() != null) {
             floorNoise = new NoiseHeightMap(layer.getFloorNoise(), TunnelLayerExporter.FLOOR_NOISE_SEED_OFFSET);
+            floorNoise.setSeed(dimension.getSeed());
             floorNoiseOffset = layer.getFloorNoise().getRange();
         } else {
             floorNoise = null;
@@ -40,6 +41,7 @@ abstract class TunnelDimension extends RODelegatingDimension {
         }
         if (layer.getRoofNoise()!= null) {
             roofNoise = new NoiseHeightMap(layer.getRoofNoise(), TunnelLayerExporter.ROOF_NOISE_SEED_OFFSET);
+            roofNoise.setSeed(dimension.getSeed());
             roofNoiseOffset = layer.getRoofNoise().getRange();
         } else {
             roofNoise = null;
@@ -71,9 +73,57 @@ abstract class TunnelDimension extends RODelegatingDimension {
     }
 
     @Override
+    public float getHeightAt(Point coords) {
+        return getHeightAt(coords.x, coords.y);
+    }
+
+    @Override
+    public int getWaterLevelAt(int x, int y) {
+        final float terrainHeight = dimension.getHeightAt(x, y);
+        if (dimension.getBitLayerValueAt(layer, x, y)) {
+            // Potentially in cave/tunnel
+            final int intTerrainHeight = Math.round(terrainHeight);
+            int actualFloorLevel = TunnelLayerExporter.calculateLevel(floorMode, floorLevel, intTerrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0);
+            int actualRoofLevel = TunnelLayerExporter.calculateLevel(roofMode, roofLevel, intTerrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0);
+            if (actualRoofLevel <= actualFloorLevel) {
+                return dimension.getWaterLevelAt(x, y);
+            }
+            final float distanceToWall = dimension.getDistanceToEdge(layer, x, y, maxWallDepth) - 1;
+            final int floorLedgeHeight = TunnelLayerExporter.calculateLedgeHeight(floorWallDepth, distanceToWall);
+            final int roofLedgeHeight = TunnelLayerExporter.calculateLedgeHeight(roofWallDepth, distanceToWall);
+            actualFloorLevel += floorLedgeHeight;
+            actualRoofLevel -= roofLedgeHeight;
+            if (actualRoofLevel <= actualFloorLevel) {
+                return dimension.getWaterLevelAt(x, y);
+            } else {
+                final int floodLevel = layer.getFloodLevel();
+                return (floodLevel == Integer.MIN_VALUE) ? getMinHeight() : floodLevel;
+            }
+        } else {
+            // Definitely outside cave/tunnel
+            return dimension.getWaterLevelAt(x, y);
+        }
+    }
+
+    @Override
+    public int getWaterLevelAt(Point coords) {
+        return getWaterLevelAt(coords.x, coords.y);
+    }
+
+    @Override
+    public int getIntHeightAt(int x, int y) {
+        return Math.round(getHeightAt(x, y));
+    }
+
+    @Override
     public int getIntHeightAt(int x, int y, int defaultValue) {
         float height = getHeightAt(x, y);
-        return (height == Float.MIN_VALUE) ? Integer.MIN_VALUE : Math.round(height);
+        return (height == Float.MIN_VALUE) ? defaultValue : Math.round(height);
+    }
+
+    @Override
+    public int getIntHeightAt(Point coords) {
+        return getIntHeightAt(coords.x, coords.y);
     }
 
     @Override
@@ -106,7 +156,7 @@ abstract class TunnelDimension extends RODelegatingDimension {
         return wrappedTiles;
     }
     
-    protected abstract float determineHeight(boolean inTunnel, int tunnelFloorLevel, int tunnelRoofLevel, float realHeight);
+    protected abstract float determineHeight(boolean inTunnelLayer, int tunnelFloorLevel, int tunnelRoofLevel, float realHeight);
     
     private final TunnelLayer layer;
     private final TunnelLayer.Mode floorMode, roofMode;

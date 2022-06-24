@@ -15,6 +15,8 @@ import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.io.File;
 
+import static java.awt.image.DataBuffer.*;
+
 /**
  *
  * @author SchmitzP
@@ -23,15 +25,19 @@ public final class BitmapHeightMap extends AbstractHeightMap {
     private BitmapHeightMap(String name, BufferedImage image, int channel, File imageFile, boolean repeat, boolean smoothScaling) {
         super(name);
         this.image = image;
+        this.channel = channel;
+        this.imageFile = imageFile;
+        this.repeat = repeat;
+        this.smoothScaling = smoothScaling;
         raster = image.getRaster();
         width = image.getWidth();
         height = image.getHeight();
         extent = repeat ? null : new Rectangle(0, 0, width, height);
         bits = raster.getSampleModel().getSampleSize(0);
-        this.channel = channel;
-        this.imageFile = imageFile;
-        this.repeat = repeat;
-        this.smoothScaling = smoothScaling;
+        final int transferType = raster.getTransferType();
+        signed = (transferType == TYPE_SHORT) || (transferType == TYPE_FLOAT) || (transferType == TYPE_DOUBLE);
+        minHeight = signed ? -(1 << (bits - 1)) : 0;
+        maxHeight = signed ? (1 << (bits - 1)) - 1 : (1 << bits) - 1;
     }
 
     public BufferedImage getImage() {
@@ -59,11 +65,11 @@ public final class BitmapHeightMap extends AbstractHeightMap {
     @Override
     public float getHeight(int x, int y) {
         if (repeat) {
-            return getUnsignedSample(MathUtils.mod(x, width), MathUtils.mod(y, height));
+            return getSample(MathUtils.mod(x, width), MathUtils.mod(y, height));
         } else if (extent.contains(x, y)) {
-            return getUnsignedSample(x, y);
+            return getSample(x, y);
         } else {
-            return 0f;
+            return minHeight;
         }
     }
 
@@ -92,41 +98,41 @@ public final class BitmapHeightMap extends AbstractHeightMap {
      */
     private float getExtHeight(int x, int y) {
         if (repeat) {
-            return getUnsignedSample(MathUtils.mod(x, width), MathUtils.mod(y, height));
+            return getSample(MathUtils.mod(x, width), MathUtils.mod(y, height));
         } else if (extent.contains(x, y)) {
-            return getUnsignedSample(x, y);
+            return getSample(x, y);
         } else if (x < 0) {
             // West of the extent
             if (y < 0) {
                 // Northwest of the extent
-                return getUnsignedSample(0, 0);
+                return getSample(0, 0);
             } else if (y < height) {
                 // Due west of the extent
-                return getUnsignedSample(0, y);
+                return getSample(0, y);
             } else {
                 // Southwest of the extent
-                return getUnsignedSample(0, height - 1);
+                return getSample(0, height - 1);
             }
         } else if (x < width) {
             // North or south of the extent
             if (y < 0) {
                 // Due north of the extent
-                return getUnsignedSample(x, 0);
+                return getSample(x, 0);
             } else {
                 // Due south of the extent
-                return getUnsignedSample(x, height - 1);
+                return getSample(x, height - 1);
             }
         } else {
             // East of the extent
             if (y < 0) {
                 // Northeast of the extent
-                return getUnsignedSample(width - 1, 0);
+                return getSample(width - 1, 0);
             } else if (y < height) {
                 // Due east of the extent
-                return getUnsignedSample(width - 1, y);
+                return getSample(width - 1, y);
             } else {
                 // Southeast of the extent
-                return getUnsignedSample(width - 1, height - 1);
+                return getSample(width - 1, height - 1);
             }
         }
     }
@@ -154,16 +160,7 @@ public final class BitmapHeightMap extends AbstractHeightMap {
 
     @Override
     public float[] getRange() {
-        switch (bits) {
-            case 8:
-                return RANGE_8BIT;
-            case 16:
-                return RANGE_16BIT;
-            case 32:
-                return RANGE_32BIT;
-            default:
-                throw new UnsupportedOperationException();
-        }
+        return new float[] { minHeight, maxHeight };
     }
 
     public File getImageFile() {
@@ -181,8 +178,10 @@ public final class BitmapHeightMap extends AbstractHeightMap {
         return y1 + 0.5f * μ * (y2 - y0 + μ * (2.0f * y0 - 5.0f * y1 + 4.0f * y2 - y3 + μ * (3.0f * (y1 - y2) + y3 - y0)));
     }
 
-    private long getUnsignedSample(int x, int y) {
-        return raster.getSample(x, y, channel) & 0xffffffffL; // Convert to unsigned integer
+    private long getSample(int x, int y) {
+        return signed
+                ? raster.getSample(x, y, channel)
+                : raster.getSample(x, y, channel) & 0xffffffffL; // Convert to unsigned integer
     }
 
     private final BufferedImage image;
@@ -190,12 +189,12 @@ public final class BitmapHeightMap extends AbstractHeightMap {
     private final Raster raster;
     private final Rectangle extent;
     private final File imageFile;
-    private final boolean repeat;
+    private final boolean repeat, signed;
+    private final float minHeight, maxHeight;
     private boolean smoothScaling;
 
     private static final long serialVersionUID = 1L;
     private static final Icon ICON_BITMAP_HEIGHTMAP = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/height_map.png");
-    private static final float[] RANGE_8BIT = {0.0f, 255.0f}, RANGE_16BIT = {0.0f, 65535.0f}, RANGE_32BIT = {0.0f, 4294967295.0f};
 
     public static class BitmapHeightMapBuilder {
         public BitmapHeightMapBuilder withName(String name) {

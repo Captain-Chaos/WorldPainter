@@ -551,6 +551,10 @@ public final class Constants {
     public static final String MC_HANGING_ROOTS = "minecraft:hanging_roots";
     public static final String MC_CAVE_VINES = "minecraft:cave_vines";
     public static final String MC_CAVE_VINES_PLANT = "minecraft:cave_vines_plant";
+    public static final String MC_MOSS_BLOCK = "minecraft:moss_block";
+    public static final String MC_SMALL_DRIPLEAF = "minecraft:small_dripleaf";
+    public static final String MC_POINTED_DRIPSTONE = "minecraft:pointed_dripstone";
+    public static final String MC_DRIPSTONE_BLOCK = "minecraft:dripstone_block";
 
     // MC 1.18 biome names
 
@@ -558,31 +562,33 @@ public final class Constants {
 
     // MC 1.15+ property names
 
-    public static final String MC_SNOWY       = "snowy";
-    public static final String MC_NORTH       = "north";
-    public static final String MC_EAST        = "east";
-    public static final String MC_SOUTH       = "south";
-    public static final String MC_WEST        = "west";
-    public static final String MC_UP          = "up";
-    public static final String MC_HALF        = "half";
-    public static final String MC_LAYERS      = "layers";
-    public static final String MC_LEVEL       = "level";
-    public static final String MC_WATERLOGGED = "waterlogged";
-    public static final String MC_AGE         = "age";
-    public static final String MC_STAGE       = "stage";
-    public static final String MC_PERSISTENT  = "persistent";
-    public static final String MC_FACING      = "facing";
-    public static final String MC_TYPE        = "type";
-    public static final String MC_AXIS        = "axis";
-    public static final String MC_PICKLES     = "pickles";
-    public static final String MC_MOISTURE    = "moisture";
-    public static final String MC_ROTATION    = "rotation";
-    public static final String MC_SHAPE       = "shape";
-    public static final String MC_HINGE       = "hinge";
-    public static final String MC_LEAVES      = "leaves";
-    public static final String MC_DOWN        = "down";
-    public static final String MC_BERRIES     = "berries";
-    public static final String MC_DISTANCE    = "distance";
+    public static final String MC_SNOWY              = "snowy";
+    public static final String MC_NORTH              = "north";
+    public static final String MC_EAST               = "east";
+    public static final String MC_SOUTH              = "south";
+    public static final String MC_WEST               = "west";
+    public static final String MC_UP                 = "up";
+    public static final String MC_HALF               = "half";
+    public static final String MC_LAYERS             = "layers";
+    public static final String MC_LEVEL              = "level";
+    public static final String MC_WATERLOGGED        = "waterlogged";
+    public static final String MC_AGE                = "age";
+    public static final String MC_STAGE              = "stage";
+    public static final String MC_PERSISTENT         = "persistent";
+    public static final String MC_FACING             = "facing";
+    public static final String MC_TYPE               = "type";
+    public static final String MC_AXIS               = "axis";
+    public static final String MC_PICKLES            = "pickles";
+    public static final String MC_MOISTURE           = "moisture";
+    public static final String MC_ROTATION           = "rotation";
+    public static final String MC_SHAPE              = "shape";
+    public static final String MC_HINGE              = "hinge";
+    public static final String MC_LEAVES             = "leaves";
+    public static final String MC_DOWN               = "down";
+    public static final String MC_BERRIES            = "berries";
+    public static final String MC_DISTANCE           = "distance";
+    public static final String MC_VERTICAL_DIRECTION = "vertical_direction";
+    public static final String MC_THICKNESS          = "thickness";
 
     // Minecraft NBT tag names. An underscore at the end signifies a lower case
     // initial
@@ -719,6 +725,8 @@ public final class Constants {
     public static final String TAG_POSITION                = "Position";
     public static final String TAG_TAG_                    = "tag";
     public static final String TAG_LARGE_BIOMES_           = "large_biomes";
+    public static final String TAG_SPAWN_FORCED            = "SpawnForced";
+    public static final String TAG_SPAWN_DIMENSION         = "SpawnDimension";
 
     /**
      * Possibly unofficial, SpoutCraft-specific
@@ -1044,6 +1052,8 @@ public final class Constants {
     public static final int DATA_PUMPKIN_WEST_FACE  = 1;
     public static final int DATA_PUMPKIN_NORTH_FACE = 2;
     public static final int DATA_PUMPKIN_EAST_FACE  = 3;
+    @Deprecated // Here to support old plugins
+    public static final int DATA_PUMPKIN_NO_FACE    = 4;
 
     public static final int DATA_WHITE      =  0;
     public static final int DATA_ORANGE     =  1;

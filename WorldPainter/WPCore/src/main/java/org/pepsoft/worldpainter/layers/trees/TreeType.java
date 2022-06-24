@@ -30,7 +30,6 @@ public abstract class TreeType implements Serializable {
     public abstract void renderTree(int blockInWorldX, int blockInWorldY, int height, int strength, MinecraftWorld minecraftWorld, Dimension dimension, Random random);
     
     protected void renderTrunk(int blockInWorldX, int blockInWorldY, int height, int size, MinecraftWorld minecraftWorld) {
-        minecraftWorld.setMaterialAt(blockInWorldX, blockInWorldY, height, DIRT);
         for (int i = 1; i < size; i++) {
             minecraftWorld.setMaterialAt(blockInWorldX, blockInWorldY, height + i, trunkMaterial);
         }

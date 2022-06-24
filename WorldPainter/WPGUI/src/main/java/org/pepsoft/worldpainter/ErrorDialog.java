@@ -169,6 +169,7 @@ public class ErrorDialog extends javax.swing.JDialog {
             if ((world != null) && (dimension != null)) {
                 sb.append(eol);
                 sb.append("World name: " + world.getName() + eol);
+                sb.append("Platform: " + world.getPlatform().displayName + " (" + world.getPlatform().id + ')' + eol);
                 sb.append("Seed: " + dimension.getSeed() + eol);
                 sb.append("Bounds: " + dimension.getLowestX() + ", " + dimension.getLowestY() + " => " + dimension.getHighestX() + ", " + dimension.getHighestY() + eol);
                 sb.append("Height: " + world.getMaxHeight() + eol);

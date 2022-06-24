@@ -15,8 +15,10 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.history.HistoryEntry;
-import org.pepsoft.worldpainter.layers.*;
-import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
+import org.pepsoft.worldpainter.layers.Biome;
+import org.pepsoft.worldpainter.layers.Frost;
+import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.ReadOnly;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.util.BiomeUtils;
 import org.pepsoft.worldpainter.util.FileInUseException;
@@ -28,14 +30,18 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.DataType.REGION;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Platform.Capability.LEAF_DISTANCES;
+import static org.pepsoft.worldpainter.Platform.Capability.PRECALCULATED_LIGHT;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
+import static org.pepsoft.worldpainter.platforms.PlatformUtils.determineNativePlatforms;
 
 /**
  *
@@ -208,6 +214,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 final int dim = dimension.getDim();
                 if ((dim < 0) || ((world.getDimensionsToExport() != null) && (! world.getDimensionsToExport().contains(dim)))) {
                     // Skip ceiling dimensions, or dimensions that are not going to be merged
+                    continue;
                 }
                 final int mapDimMinHeight, mapDimMaxHeight;
                 switch (dim) {
@@ -262,7 +269,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             level.setSeed(surfaceDimension.getMinecraftSeed());
             Point spawnPoint = world.getSpawnPoint();
             level.setSpawnX(spawnPoint.x);
-            level.setSpawnY(Math.max(surfaceDimension.getIntHeightAt(spawnPoint), surfaceDimension.getWaterLevelAt(spawnPoint)));
+            level.setSpawnY(Math.max(surfaceDimension.getIntHeightAt(spawnPoint), surfaceDimension.getWaterLevelAt(spawnPoint)) + 1);
             level.setSpawnZ(spawnPoint.y);
         }
  
@@ -328,7 +335,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         default:
                             return Integer.toString(dim);
                     }
-                }).collect(Collectors.joining(", "));
+                }).collect(joining(", "));
             world.addHistoryEntry(HistoryEntry.WORLD_MERGED_PARTIAL, level.getName(), worldDir, dimNames);
         }
         final File levelDatFile = new File(worldDir, "level.dat");
@@ -386,7 +393,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             default:
                 throw new IllegalArgumentException("Dimension " + dimension.getDim() + " not supported");
         }
-        final Set<DataType> dataTypes = ((JavaPlatformProvider) platformProvider).getDataTypes();
+        final Set<DataType> dataTypes = platformProvider.getDataTypes(platform);
         for (DataType dataType: dataTypes) {
             File regionDir = new File(dimensionDir, dataType.name().toLowerCase());
             if (! regionDir.exists()) {
@@ -398,40 +405,10 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         
         dimension.rememberChanges();
         try {
-            
-            // Gather all layers used on the map
-            final Map<Layer, LayerExporter> exporters = new HashMap<>();
-            Set<Layer> allLayers = dimension.getAllLayers(false);
-            allLayers.addAll(dimension.getMinimumLayers());
-            // If there are combined layers, apply them and gather any newly
-            // added layers, recursively
-            boolean done;
-            do {
-                done = true;
-                for (Layer layer: new HashSet<>(allLayers)) {
-                    if (layer instanceof CombinedLayer) {
-                        // Apply the combined layer
-                        Set<Layer> addedLayers = ((CombinedLayer) layer).apply(dimension);
-                        // Remove the combined layer from the list
-                        allLayers.remove(layer);
-                        // Add any layers it might have added
-                        allLayers.addAll(addedLayers);
-                        // Signal that we have to go around at least once more,
-                        // in case any of the newly added layers are themselves
-                        // combined layers
-                        done = false;
-                    }
-                }
-            } while (! done);
 
-            // Load all layer settings into the exporters
-            for (Layer layer: allLayers) {
-                LayerExporter exporter = layer.getExporter();
-                if (exporter != null) {
-                    exporter.setSettings(dimension.getLayerSettings(layer));
-                    exporters.put(layer, exporter);
-                }
-            }
+            final Set<Point> selectedTiles = world.getTilesToExport();
+            setupDimensionForExport(dimension, selectedTiles);
+            // TODO add ceiling support
 
             // Sort tiles into regions
             final Map<Point, Map<Point, Tile>> tilesByRegion = getTilesByRegion(dimension);
@@ -439,7 +416,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             // Read the region coordinates of the existing map
             final File backupRegionDir = new File(backupDimensionDir, "region");
             // TODO: support any platform
-            File[] existingRegionFiles = ((JavaPlatformProvider) platformProvider).getRegionFiles(platform, backupRegionDir, REGION);
+            File[] existingRegionFiles = platformProvider.getRegionFiles(platform, backupRegionDir, REGION);
             final Map<Point, File> existingRegions = new HashMap<>();
             for (File file: existingRegionFiles) {
                 if (file.length() == 0L) {
@@ -465,7 +442,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     // Already handled above
                     continue;
                 }
-                existingRegionFiles = ((JavaPlatformProvider) platformProvider).getRegionFiles(platform, backupRegionDir, dataType);
+                existingRegionFiles = platformProvider.getRegionFiles(platform, backupRegionDir, dataType);
                 for (File file: existingRegionFiles) {
                     if (file.length() == 0L) {
                         continue;
@@ -478,7 +455,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
 
             // Sort the regions to export the first two rows together, and then
             // row by row, to get the optimum tempo of performing fixups
-            List<Point> sortedRegions = new ArrayList<>(allRegionCoords.size());
+            final List<Point> sortedRegions = new ArrayList<>(allRegionCoords.size());
             if (lowestRegionZ == highestRegionZ) {
                 // No point in sorting it
                 sortedRegions.addAll(allRegionCoords);
@@ -502,11 +479,11 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             }
 
             // Merge each individual region
-            final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, dimension.getMaxHeight());
             final Map<Point, List<Fixup>> fixups = new HashMap<>();
             final Set<Point> exportedRegions = new HashSet<>();
-            final ExecutorService executor = createExecutorService("Merger", allRegionCoords.size() + additionalRegions.size());
+            final ExecutorService executor = createExecutorService("merging", allRegionCoords.size() + additionalRegions.size());
             final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, sortedRegions.size() + additionalRegions.size()) : null;
+            final AtomicBoolean abort = new AtomicBoolean();
             try {
                 // Merge each individual region
                 for (final Point regionCoords: sortedRegions) {
@@ -518,19 +495,26 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             }
                             final Map<Point, Tile> tiles = tilesByRegion.get(regionCoords);
                             executor.execute(() -> {
-                                ProgressReceiver progressReceiver1 = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
+                                if (abort.get()) {
+                                    return;
+                                }
+                                final ProgressReceiver progressReceiver1 = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
                                 if (progressReceiver1 != null) {
                                     try {
                                         progressReceiver1.checkForCancellation();
                                     } catch (ProgressReceiver.OperationCancelled e) {
+                                        abort.set(true);
                                         return;
                                     }
                                 }
                                 try {
-                                    List<Fixup> regionFixups = new ArrayList<>();
-                                    WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
+                                    final Map<Layer, LayerExporter> exporters = getExportersForRegion(dimension, regionCoords);
+                                    final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, dimension.getMaxHeight());
+
+                                    final List<Fixup> regionFixups = new ArrayList<>();
+                                    final WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
                                     try {
-                                        String regionWarnings = mergeRegion(minecraftWorld, backupRegionDir, dimension, regionCoords, tiles, world.getTilesToExport() != null, exporters, chunkFactory, regionFixups, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
+                                        final String regionWarnings = mergeRegion(minecraftWorld, backupRegionDir, dimension, regionCoords, tiles, selectedTiles != null, exporters, chunkFactory, regionFixups, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
                                         if (regionWarnings != null) {
                                             if (warnings == null) {
                                                 warnings = regionWarnings;
@@ -552,10 +536,10 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                     }
                                     performFixupsIfNecessary(worldDir, dimension, allRegionCoords, fixups, exportedRegions, progressReceiver1);
                                 } catch (Throwable t) {
+                                    logger.error("{} while merging region {},{} (message: \"{}\")", t.getClass().getSimpleName(), regionCoords.x, regionCoords.y, t.getMessage(), t);
+                                    abort.set(true);
                                     if (progressReceiver1 != null) {
                                         progressReceiver1.exceptionThrown(t);
-                                    } else {
-                                        logger.error("Exception while exporting region", t);
                                     }
                                 }
                             });
@@ -566,7 +550,28 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             if (additionalRegions.containsKey(regionCoords)) {
                                 regions.putAll(additionalRegions.get(regionCoords));
                             }
-                            copyRegionsUnchanged(fixups, exportedRegions, executor, parallelProgressManager, regionCoords, regions, dimensionDir);
+                            executor.execute(() -> {
+                                if (abort.get()) {
+                                    return;
+                                }
+                                if (progressReceiver != null) {
+                                    try {
+                                        progressReceiver.checkForCancellation();
+                                    } catch (ProgressReceiver.OperationCancelled e) {
+                                        abort.set(true);
+                                        return;
+                                    }
+                                }
+                                try {
+                                    copyRegionsUnchanged(fixups, exportedRegions, regionCoords, regions, dimensionDir, (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null);
+                                } catch (Throwable t) {
+                                    logger.error("{} while copying region {},{} (message: \"{}\")", t.getClass().getSimpleName(), regionCoords.x, regionCoords.y, t.getMessage(), t);
+                                    abort.set(true);
+                                    if (progressReceiver != null) {
+                                        progressReceiver.exceptionThrown(t);
+                                    }
+                                }
+                            });
                         }
                     } else {
                         // Region only exists in new world. Create it as new
@@ -574,19 +579,26 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             logger.debug("Region " + regionCoords + " does not exist in existing map and will be created as new");
                         }
                         executor.execute(() -> {
-                            ProgressReceiver progressReceiver1 = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
+                            if (abort.get()) {
+                                return;
+                            }
+                            final ProgressReceiver progressReceiver1 = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
                             if (progressReceiver1 != null) {
                                 try {
                                     progressReceiver1.checkForCancellation();
                                 } catch (ProgressReceiver.OperationCancelled e) {
+                                    abort.set(true);
                                     return;
                                 }
                             }
                             try {
-                                WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
+                                final Map<Layer, LayerExporter> exporters = getExportersForRegion(dimension, regionCoords);
+                                final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, exporters, platform, dimension.getMaxHeight());
+
+                                final WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, dimension.getMaxHeight(), platform);
                                 ExportResults exportResults = null;
                                 try {
-                                    exportResults = exportRegion(minecraftWorld, dimension, null, regionCoords, world.getTilesToExport() != null, exporters, null, chunkFactory, null, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.9f, 0.1f) : null);
+                                    exportResults = exportRegion(minecraftWorld, dimension, null, regionCoords, selectedTiles != null, exporters, null, chunkFactory, null, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.9f, 0.1f) : null);
                                     if (logger.isDebugEnabled()) {
                                         logger.debug("Generated region " + regionCoords.x + "," + regionCoords.y);
                                     }
@@ -603,10 +615,10 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                 }
                                 performFixupsIfNecessary(worldDir, dimension, allRegionCoords, fixups, exportedRegions, progressReceiver1);
                             } catch (Throwable t) {
+                                logger.error("{} while exporting region {},{} (message: \"{}\")", t.getClass().getSimpleName(), regionCoords.x, regionCoords.y, t.getMessage(), t);
+                                abort.set(true);
                                 if (progressReceiver1 != null) {
                                     progressReceiver1.exceptionThrown(t);
-                                } else {
-                                    logger.error("Exception while exporting region", t);
                                 }
                             }
                         });
@@ -617,7 +629,28 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         // This is a region file from a directory other than "region" which does not have a
                         // corresponding region file in "region" in either the old or new maps, so it was not processed
                         // yet. Just copy it
-                        copyRegionsUnchanged(fixups, exportedRegions, executor, parallelProgressManager, coords, regions, dimensionDir);
+                        executor.execute(() -> {
+                            if (abort.get()) {
+                                return;
+                            }
+                            if (progressReceiver != null) {
+                                try {
+                                    progressReceiver.checkForCancellation();
+                                } catch (ProgressReceiver.OperationCancelled e) {
+                                    abort.set(true);
+                                    return;
+                                }
+                            }
+                            try {
+                                copyRegionsUnchanged(fixups, exportedRegions, coords, regions, dimensionDir, (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null);
+                            } catch (Throwable t) {
+                                logger.error("{} while copying region {},{} (message: \"{}\")", t.getClass().getSimpleName(), coords.x, coords.y, t.getMessage(), t);
+                                abort.set(true);
+                                if (progressReceiver != null) {
+                                    progressReceiver.exceptionThrown(t);
+                                }
+                            }
+                        });
                     }
                 });
             } finally {
@@ -629,16 +662,17 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 }
             }
 
-            // It's possible for there to be fixups left, if thread A was
-            // performing fixups and thread B added new ones and then quit, or
-            // if regions were copied from the existing map
-            synchronized (fixups) {
-                if (! fixups.isEmpty()) {
-                    if (progressReceiver != null) {
-                        progressReceiver.setMessage("doing remaining fixups for " + dimension.getName());
-                        progressReceiver.reset();
+            // It's possible for there to be fixups left, if thread A was performing fixups and thread B added new ones
+            // and then quit, or if regions were copied from the existing map
+            if (! abort.get()) {
+                synchronized (fixups) {
+                    if (!fixups.isEmpty()) {
+                        if (progressReceiver != null) {
+                            progressReceiver.setMessage("doing remaining fixups for " + dimension.getName());
+                            progressReceiver.reset();
+                        }
+                        performFixups(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, fixups);
                     }
-                    performFixups(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, fixups);
                 }
             }
 
@@ -726,47 +760,29 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         return tilesByRegion;
     }
 
-    private void copyRegionsUnchanged(Map<Point, List<Fixup>> fixups, Set<Point> exportedRegions, ExecutorService executor, ParallelProgressManager parallelProgressManager, Point coords, Map<DataType, File> regions, File dimensionDir) {
+    private void copyRegionsUnchanged(Map<Point, List<Fixup>> fixups, Set<Point> exportedRegions, Point coords, Map<DataType, File> regions, File dimensionDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
         if (logger.isDebugEnabled()) {
             logger.debug("Region " + coords + " does not exist in new world and will be copied from existing map");
         }
-        executor.execute(() -> {
-            final ProgressReceiver progressReceiver = (parallelProgressManager != null) ? parallelProgressManager.createProgressReceiver() : null;
-            if (progressReceiver != null) {
-                try {
-                    progressReceiver.checkForCancellation();
-                } catch (ProgressReceiver.OperationCancelled e) {
-                    return;
-                }
-            }
-            try {
-                if (progressReceiver != null) {
-                    progressReceiver.setMessage("Copying region " + coords.x + "," + coords.y + " unchanged");
-                }
-                final int fileCount = regions.size();
-                int fileNo = 0;
-                for (Map.Entry<DataType, File> entry: regions.entrySet()) {
-                    DataType type = entry.getKey();
-                    File file = entry.getValue();
-                    FileUtils.copyFileToDir(file, new File(dimensionDir, type.name().toLowerCase()), (progressReceiver != null)
-                            ? ((fileCount == 1) ? progressReceiver : new SubProgressReceiver(progressReceiver, (float) fileNo / fileCount, 1.0f / fileCount))
-                            : null);
-                    fileNo++;
-                }
-                synchronized (fixups) {
-                    exportedRegions.add(coords);
-                }
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Copied region " + coords.x + "," + coords.y);
-                }
-            } catch (Throwable t) {
-                if (progressReceiver != null) {
-                    progressReceiver.exceptionThrown(t);
-                } else {
-                    logger.error("Exception while copying region " + coords.x + "," + coords.y, t);
-                }
-            }
-        });
+        if (progressReceiver != null) {
+            progressReceiver.setMessage("Copying region " + coords.x + "," + coords.y + " unchanged");
+        }
+        final int fileCount = regions.size();
+        int fileNo = 0;
+        for (Map.Entry<DataType, File> entry: regions.entrySet()) {
+            DataType type = entry.getKey();
+            File file = entry.getValue();
+            FileUtils.copyFileToDir(file, new File(dimensionDir, type.name().toLowerCase()), (progressReceiver != null)
+                    ? ((fileCount == 1) ? progressReceiver : new SubProgressReceiver(progressReceiver, "Copying region " + coords.x + "," + coords.y + " of type " + type + " unchanged", (float) fileNo / fileCount, 1.0f / fileCount))
+                    : null);
+            fileNo++;
+        }
+        synchronized (fixups) {
+            exportedRegions.add(coords);
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Copied region " + coords.x + "," + coords.y);
+        }
     }
 
     private String mergeRegion(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter> exporters, ChunkFactory chunkFactory, List<Fixup> fixups, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
@@ -785,8 +801,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         
         List<Layer> secondaryPassLayers = new ArrayList<>();
         for (Layer layer: allLayers) {
-            LayerExporter exporter = layer.getExporter();
-            if (exporter instanceof SecondPassLayerExporter) {
+            final Class<? extends LayerExporter> exporterType = layer.getExporterType();
+            if ((exporterType != null) && SecondPassLayerExporter.class.isAssignableFrom(exporterType)) {
                 secondaryPassLayers.add(layer);
             }
         }
@@ -813,11 +829,18 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
 
             // Post processing. Fix covered grass blocks, things like that
             long t4 = System.currentTimeMillis();
-            PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), dimension.getExportSettings(), (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.1f) : null);
+            final BlockBasedExportSettings exportSettings = (BlockBasedExportSettings) ((dimension.getExportSettings() instanceof BlockBasedExportSettings)
+                    ? dimension.getExportSettings()
+                    : platformProvider.getDefaultExportSettings(platform));
+            PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.1f) : null);
 
             // Third pass. Calculate lighting
             long t5 = System.currentTimeMillis();
-            blockPropertiesPass(minecraftWorld, regionCoords, (BlockBasedExportSettings) dimension.getExportSettings(), (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.75f, 0.25f) : null);
+            final boolean lightingNeeded = (exportSettings.isCalculateBlockLight() || exportSettings.isCalculateSkyLight()) && platform.capabilities.contains(PRECALCULATED_LIGHT);
+            final boolean leafDistanceNeeded = exportSettings.isCalculateLeafDistance() && platform.capabilities.contains(LEAF_DISTANCES);
+            if (lightingNeeded || leafDistanceNeeded) {
+                blockPropertiesPass(minecraftWorld, regionCoords, exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.75f, 0.25f) : null);
+            }
             long t6 = System.currentTimeMillis();
             if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode"))) {
                 String timingMessage = (t2 - t1) + ", " + (t3 - t2) + ", " + (t4 - t3) + ", " + (t5 - t4) + ", " + (t6 - t5) + ", " + (t6 - t1);
@@ -897,7 +920,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         final Set<Point> regionsToMerge = getTilesByRegion(dimension).keySet();
 
         // Merge each individual region
-        final ExecutorService executor = createExecutorService("Merger", regionsToMerge.size());
+        final ExecutorService executor = createExecutorService("merging", regionsToMerge.size());
         final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, regionsToMerge.size()) : null;
         final StringBuffer reportBuilder = new StringBuffer();
         try {
@@ -914,7 +937,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     } else {
                         progressReceiver1 = null;
                     }
-                    try (JavaChunkStore chunkStore = ((JavaPlatformProvider) platformProvider).getChunkStore(platform, worldDir, DIM_NORMAL)) {
+                    try (JavaChunkStore chunkStore = platformProvider.getChunkStore(platform, worldDir, DIM_NORMAL)) {
                         for (int chunkXInRegion = 0; chunkXInRegion < 32; chunkXInRegion++) {
                             for (int chunkZInRegion = 0; chunkZInRegion < 32; chunkZInRegion++) {
                                 if (progressReceiver1 != null) {
@@ -997,9 +1020,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         //  Edit: was it to get accurate lighting around the edges? NOTE: if we change this back we also need to re-
         //  instate multiple region file (by coordinates) support!
         final Map<DataType, RegionFile> regionFiles = new HashMap<>();
-        final Set<DataType> dataTypes = ((JavaPlatformProvider) platformProvider).getDataTypes();
+        final Set<DataType> dataTypes = platformProvider.getDataTypes(platform);
         for (DataType dataType: dataTypes) {
-            RegionFile regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, dataType, regionCoords, true);
+            RegionFile regionFile = platformProvider.getRegionFile(platform, oldRegionDir, dataType, regionCoords, true);
             if (regionFile != null) {
                 regionFiles.put(dataType, regionFile);
             }
@@ -1075,16 +1098,22 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         if (! tags.containsKey(REGION)) {
                             continue;
                         }
-                        existingChunk = ((JavaPlatformProvider) platformProvider).createChunk(platform, tags, maxHeight);
+                        existingChunk = platformProvider.createChunk(platform, tags, maxHeight);
                     }
                     if (existingChunk != null) {
                         if (newChunk != null) {
                             // Chunk exists in existing and new world; merge it
-                            // Do any necessary processing of the existing chunk
-                            // (clearing trees, etc.) No need to check for
-                            // read-only; if the chunk was read-only it
-                            // wouldn't exist in the new map and we wouldn't
-                            // be here
+                            final Set<Platform> chunkNativePlatforms = determineNativePlatforms(existingChunk);
+                            if ((chunkNativePlatforms != null) && (! chunkNativePlatforms.contains(platform))) {
+                                throw new InvalidMapException("At least one of the existing chunks to be merged is in a different format (" + chunkNativePlatforms.stream().map(p -> p.displayName).collect(joining(" or ")) + ").\n" +
+                                        "Please use the Optimize function in Minecraft to convert the map fully to the current format.\n" +
+                                        "\n" +
+                                        "The partially processed map is now probably corrupted.\n" +
+                                        "You should replace it from the backup at " + oldRegionDir.getParent() + ".");
+                            }
+                            // Do any necessary processing of the existing chunk (clearing trees, etc.) No need to check
+                            // for read-only; if the chunk was read-only it wouldn't exist in the new map and we
+                            // wouldn't be here
                             processExistingChunk(existingChunk);
                             try {
                                 mergeChunk(existingChunk, newChunk, dimension);
@@ -1099,8 +1128,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                 continue;
                             }
                         } else {
-                            // Chunk exists in existing world, but not in new
-                            // one, copy old to new
+                            // Chunk exists in existing world, but not in new one, copy old to new
                             if (logger.isDebugEnabled()) {
                                 logger.debug("Using chunk from existing map at " + chunkX + "," + chunkY);
                             }
@@ -1176,29 +1204,29 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         }
     }
 
-    private void setToAirOrWater(final Chunk chunk, final int x, final int y, final int z, final Material existingMaterial) {
+    private void setToAirOrWater(final Chunk chunk, final int x, final int y, final int height, final Material existingMaterial) {
         final int maxZ = world.getMaxHeight() - 1;
         if (existingMaterial.watery || existingMaterial.is(WATERLOGGED)) {
-            chunk.setMaterial(x, y, z, STATIONARY_WATER);
+            chunk.setMaterial(x, height, y, STATIONARY_WATER);
             // TODO skylight adjustment for under water
             // TODO also set to water if water to the side or above
         } else {
-            chunk.setMaterial(x, z, y, AIR);
+            chunk.setMaterial(x, height, y, AIR);
             // Note that these lighting calculations aren't strictly necessary since
             // the lighting will be fully recalculated later on, but it doesn't hurt
             // and it might improve performance and/or fill in gaps in the logic
-            final int skyLightLevelAbove = (z < maxZ) ? chunk.getSkyLightLevel(x, z + 1, y) : 15;
+            final int skyLightLevelAbove = (height < maxZ) ? chunk.getSkyLightLevel(x, height + 1, y) : 15;
             if (skyLightLevelAbove == 15) {
                 // Propagate full daylight down
-                chunk.setSkyLightLevel(x, z, y, 15);
+                chunk.setSkyLightLevel(x, height, y, 15);
             } else {
-                int skyLightLevelBelow = (z > platform.minZ) ? chunk.getSkyLightLevel(x, z - 1, y) : 0;
-                chunk.setSkyLightLevel(x, z, y, Math.max(Math.max(skyLightLevelAbove, skyLightLevelBelow) - 1, 0));
+                int skyLightLevelBelow = (height > platform.minZ) ? chunk.getSkyLightLevel(x, height - 1, y) : 0;
+                chunk.setSkyLightLevel(x, height, y, Math.max(Math.max(skyLightLevelAbove, skyLightLevelBelow) - 1, 0));
             }
         }
-        int blockLightLevelAbove = (z < maxZ) ? chunk.getSkyLightLevel(x, z + 1, y) : 0;
-        int blockLightLevelBelow = (z > platform.minZ) ? chunk.getBlockLightLevel(x, z - 1, y) : 0;
-        chunk.setBlockLightLevel(x, z, y, Math.max(Math.max(blockLightLevelAbove, blockLightLevelBelow) - 1, 0));
+        int blockLightLevelAbove = (height < maxZ) ? chunk.getSkyLightLevel(x, height + 1, y) : 0;
+        int blockLightLevelBelow = (height > platform.minZ) ? chunk.getBlockLightLevel(x, height - 1, y) : 0;
+        chunk.setBlockLightLevel(x, height, y, Math.max(Math.max(blockLightLevelAbove, blockLightLevelBelow) - 1, 0));
     }
 
     /**
@@ -1240,9 +1268,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         }
 
         final Map<DataType, RegionFile> regionFiles = new HashMap<>();
-        final Set<DataType> dataTypes = ((JavaPlatformProvider) platformProvider).getDataTypes();
+        final Set<DataType> dataTypes = platformProvider.getDataTypes(platform);
         for (DataType dataType: dataTypes) {
-            RegionFile regionFile = ((JavaPlatformProvider) platformProvider).getRegionFile(platform, oldRegionDir, dataType, regionCoords, true);
+            RegionFile regionFile = platformProvider.getRegionFile(platform, oldRegionDir, dataType, regionCoords, true);
             if (regionFile != null) {
                 regionFiles.put(dataType, regionFile);
             }
@@ -1300,7 +1328,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             continue;
                         }
                         // TODO: support any platform
-                        minecraftWorld.addChunk(((JavaPlatformProvider) platformProvider).createChunk(platform, tags, maxHeight));
+                        minecraftWorld.addChunk(platformProvider.createChunk(platform, tags, maxHeight));
                     }
                 }
             }
@@ -1531,21 +1559,31 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
     private void mergeAboveGroundBlock(final Chunk existingChunk, final Chunk newChunk, final int x, final int y, final int z, final int dy, final boolean frost) {
         // Three steps, to keep things simpler:
         // First, move the existing block to the new height if necessary
-        Material existingMaterial = existingChunk.getMaterial(x, y - dy, z);
-        if (dy != 0) {
-            existingChunk.setMaterial(x, y, z, existingMaterial);
-            existingChunk.setSkyLightLevel(x, y, z, existingChunk.getSkyLightLevel(x, y - dy, z));
-            existingChunk.setBlockLightLevel(x, y, z, existingChunk.getBlockLightLevel(x, y - dy, z));
-            if (existingMaterial.tileEntity) {
-                moveEntityTileData(existingChunk, existingChunk, x, y, z, dy);
+        Material existingMaterial;
+        if (((y - dy) < existingChunk.getMinHeight()) || ((y - dy) >= existingChunk.getMaxHeight())) {
+            existingMaterial = AIR;
+            if (dy != 0) {
+                existingChunk.setMaterial(x, y, z, existingMaterial);
+                existingChunk.setSkyLightLevel(x, y, z, 15);
+                existingChunk.setBlockLightLevel(x, y, z, 0);
             }
-            if (dy < 0) {
-                // Terrain is being lowered, make sure to replace the source block with air. When the terrain is being
-                // raised, that's not necessary because mergeChunk() will fill that part in with blocks from the new
-                // map
-                existingChunk.setMaterial(x, y - dy, z, AIR);
-                existingChunk.setSkyLightLevel(x, y - dy, z, ((y - dy + 1) < existingChunk.getMaxHeight()) ? existingChunk.getSkyLightLevel(x, y - dy + 1, z) : 15);
-                existingChunk.setBlockLightLevel(x, y - dy, z, 0);
+        } else {
+            existingMaterial = existingChunk.getMaterial(x, y - dy, z);
+            if (dy != 0) {
+                existingChunk.setMaterial(x, y, z, existingMaterial);
+                existingChunk.setSkyLightLevel(x, y, z, existingChunk.getSkyLightLevel(x, y - dy, z));
+                existingChunk.setBlockLightLevel(x, y, z, existingChunk.getBlockLightLevel(x, y - dy, z));
+                if (existingMaterial.tileEntity) {
+                    moveEntityTileData(existingChunk, existingChunk, x, y, z, dy);
+                }
+                if (dy < 0) {
+                    // Terrain is being lowered, make sure to replace the source block with air. When the terrain is being
+                    // raised, that's not necessary because mergeChunk() will fill that part in with blocks from the new
+                    // map
+                    existingChunk.setMaterial(x, y - dy, z, AIR);
+                    existingChunk.setSkyLightLevel(x, y - dy, z, ((y - dy + 1) < existingChunk.getMaxHeight()) ? existingChunk.getSkyLightLevel(x, y - dy + 1, z) : 15);
+                    existingChunk.setBlockLightLevel(x, y - dy, z, 0);
+                }
             }
         }
 
@@ -1591,8 +1629,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     moveEntityTileData(existingChunk, newChunk, x, y, z, 0);
                 }
             }
-            existingChunk.setSkyLightLevel(x, y, z, newChunk.getSkyLightLevel(x, y - dy, z));
-            existingChunk.setBlockLightLevel(x, y, z, newChunk.getBlockLightLevel(x, y - dy, z));
+            existingChunk.setSkyLightLevel(x, y, z, newChunk.getSkyLightLevel(x, y, z));
+            existingChunk.setBlockLightLevel(x, y, z, newChunk.getBlockLightLevel(x, y, z));
             existingMaterial = newMaterial;
             existingMaterialIsWatery = newMaterialIsWatery;
         }

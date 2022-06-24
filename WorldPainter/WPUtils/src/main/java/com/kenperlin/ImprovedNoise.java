@@ -19,6 +19,16 @@ public final class ImprovedNoise implements Serializable {
         }
     }
 
+    /**
+     * Output ranges:
+     *
+     * <table>
+     *     <tr><th>Dimensions</th><th>Range</th></tr>
+     *     <tr><td>1</td><td>[-0.5, 0.5]</td></tr>
+     *     <tr><td>1</td><td>[-1.0, 1.0]</td></tr>
+     *     <tr><td>1</td><td>[-1.036353811211803, 1.036353811211803]<a href="https://www.gamedev.net/forums/topic/285533-2d-perlin-noise-gradient-noise-range/2796760/?page=3">*</a></td></tr>
+     * </table>
+     */
     public double noise(double x, double y, double z) {
         int X = (int) Math.floor(x) & 255,                           // FIND UNIT CUBE THAT
             Y = (int) Math.floor(y) & 255,                           // CONTAINS POINT.

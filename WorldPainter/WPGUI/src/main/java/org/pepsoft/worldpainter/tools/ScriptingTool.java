@@ -154,6 +154,14 @@ public class ScriptingTool {
                     paramMap.put(arg.substring(2), "true");
                 }
             } else if (arg.startsWith("-") && (arg.length() > 1) && (arg.charAt(1) != '-')) {
+                try {
+                    // It might just be a negative number
+                    Integer.parseInt(arg);
+                    argList.add(arg);
+                    continue;
+                } catch (NumberFormatException e) {
+                    // Apparently not. Continue
+                }
                 for (int i = 1; i < arg.length(); i++) {
                     paramMap.put(arg.substring(i, i + 1), "true");
                 }

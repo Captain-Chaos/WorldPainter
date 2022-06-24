@@ -29,7 +29,7 @@ public class TestTool {
         long seed = random.nextLong();
 //        TileFactory tileFactory = new NoiseTileFactory(Terrain.GRASS, DEFAULT_MAX_HEIGHT_ANVIL, 58, DEFAULT_WATER_LEVEL, false, false);
         TileFactory tileFactory = TileFactoryFactory.createFlatTileFactory(seed, Terrain.GRASS, JAVA_ANVIL_1_15.minZ, JAVA_ANVIL_1_15.standardMaxHeight, DEFAULT_WATER_LEVEL, 0, false, false);
-        World2 world = new World2(JAVA_ANVIL_1_15, seed, tileFactory, JAVA_ANVIL_1_15.standardMaxHeight);
+        World2 world = new World2(JAVA_ANVIL_1_15, seed, tileFactory);
         world.setName("TestWorld");
         world.setSpawnPoint(new Point(64, 64));
         world.setGameType(GameType.CREATIVE);

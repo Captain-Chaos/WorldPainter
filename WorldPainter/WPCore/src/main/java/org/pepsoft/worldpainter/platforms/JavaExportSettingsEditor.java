@@ -89,6 +89,7 @@ public class JavaExportSettingsEditor extends ExportSettingsEditor {
         checkBoxBlockLight.setSelected(javaSettings.calculateBlockLight);
         checkBoxLeafDistance.setSelected(javaSettings.calculateLeafDistance);
         checkBoxRemoveFloatingLeaves.setSelected(javaSettings.removeFloatingLeaves);
+        checkBoxMakeAllLeavesPersistent.setSelected(javaSettings.makeAllLeavesPersistent);
         setControlStates();
     }
 
@@ -105,7 +106,8 @@ public class JavaExportSettingsEditor extends ExportSettingsEditor {
                 checkBoxSkyLight.isSelected(),
                 checkBoxBlockLight.isSelected(),
                 checkBoxLeafDistance.isSelected(),
-                checkBoxLeafDistance.isSelected() && checkBoxRemoveFloatingLeaves.isSelected());
+                checkBoxLeafDistance.isSelected() && checkBoxRemoveFloatingLeaves.isSelected(),
+                checkBoxMakeAllLeavesPersistent.isSelected());
     }
 
     private void setControlStates() {
@@ -153,6 +155,7 @@ public class JavaExportSettingsEditor extends ExportSettingsEditor {
         checkBoxSkyLight = new javax.swing.JCheckBox();
         jLabel7 = new javax.swing.JLabel();
         checkBoxBlockLight = new javax.swing.JCheckBox();
+        checkBoxMakeAllLeavesPersistent = new javax.swing.JCheckBox();
 
         jLabel1.setText("Water:");
 
@@ -224,6 +227,8 @@ public class JavaExportSettingsEditor extends ExportSettingsEditor {
 
         checkBoxBlockLight.setText("calculate block light");
 
+        checkBoxMakeAllLeavesPersistent.setText("<html>make <i>all</i> leaves persistent</html>");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -240,6 +245,7 @@ public class JavaExportSettingsEditor extends ExportSettingsEditor {
                     .addComponent(jLabel7))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(checkBoxMakeAllLeavesPersistent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(21, 21, 21)
                         .addComponent(checkBoxRemoveFloatingLeaves))
@@ -324,6 +330,8 @@ public class JavaExportSettingsEditor extends ExportSettingsEditor {
                     .addComponent(jLabel6))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(checkBoxRemoveFloatingLeaves)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(checkBoxMakeAllLeavesPersistent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -341,6 +349,7 @@ public class JavaExportSettingsEditor extends ExportSettingsEditor {
     private javax.swing.JCheckBox checkBoxBlockLight;
     private javax.swing.JCheckBox checkBoxLavaFlow;
     private javax.swing.JCheckBox checkBoxLeafDistance;
+    private javax.swing.JCheckBox checkBoxMakeAllLeavesPersistent;
     private javax.swing.JCheckBox checkBoxRemoveFloatingLeaves;
     private javax.swing.JCheckBox checkBoxSkyLight;
     private javax.swing.JCheckBox checkBoxWaterFlow;

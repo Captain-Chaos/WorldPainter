@@ -940,16 +940,21 @@
       "persistent": "false"
     }
   },
-  "# Missing properties for these two?",
   {
     "blockId": 18,
     "dataValue": 10,
-    "name": "minecraft:birch_leaves"
+    "name": "minecraft:birch_leaves",
+    "properties": {
+      "persistent": "false"
+    }
   },
   {
     "blockId": 18,
     "dataValue": 11,
-    "name": "minecraft:jungle_leaves"
+    "name": "minecraft:jungle_leaves",
+    "properties": {
+      "persistent": "false"
+    }
   },
   {
     "blockId": 18,

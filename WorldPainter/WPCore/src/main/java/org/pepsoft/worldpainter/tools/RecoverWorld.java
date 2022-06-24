@@ -194,7 +194,7 @@ public class RecoverWorld {
                 System.err.println("Dimension " + dimension.getName() + " tile factory lost; creating default tile factory");
                 tileFactory = TileFactoryFactory.createNoiseTileFactory(dimension.getSeed(), Terrain.GRASS, minHeight, maxHeight, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0);
             }
-            Dimension newDimension = new Dimension(newWorld, dimension.getMinecraftSeed(), tileFactory, dimension.getDim(), minHeight, maxHeight);
+            Dimension newDimension = new Dimension(newWorld, dimension.getMinecraftSeed(), tileFactory, dimension.getDim());
             try {
                 for (Map.Entry<Layer, ExporterSettings> settingsEntry: dimension.getAllLayerSettings().entrySet()) {
                     if (settingsEntry.getValue() != null) {
@@ -206,7 +206,7 @@ public class RecoverWorld {
             } catch (NullPointerException e) {
                 System.err.println("Layer settings lost for dimension " + dimension.getName());
             }
-            newDimension.setBedrockWall(dimension.isBedrockWall());
+            newDimension.setWallType(dimension.getWallType());
             if ((dimension.getBorderLevel() > 0) && (dimension.getBorderSize() > 0)) {
                 newDimension.setBorder(dimension.getBorder());
                 newDimension.setBorderLevel(dimension.getBorderLevel());
@@ -220,7 +220,7 @@ public class RecoverWorld {
             } else {
                 System.err.println("Contour settings lost for dimension " + dimension.getName());
             }
-            newDimension.setDarkLevel(dimension.isDarkLevel());
+            newDimension.setRoofType(dimension.getRoofType());
             if (dimension.getGridSize() > 0) {
                 newDimension.setGridEnabled(dimension.isGridEnabled());
                 newDimension.setGridSize(dimension.getGridSize());

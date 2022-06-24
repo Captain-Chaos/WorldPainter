@@ -34,63 +34,45 @@ import static org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.Resour
  * @author pepijn
  */
 public class ResourcesExporter extends AbstractLayerExporter<Resources> implements FirstPassLayerExporter {
-    public ResourcesExporter() {
-        super(Resources.INSTANCE);
-    }
-    
-    @Override
-    public void setSettings(ExporterSettings settings) {
-        super.setSettings(settings);
-        ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) getSettings();
-        if (resourcesSettings != null) {
-            Set<Material> allMaterials = resourcesSettings.getMaterials();
-            List<Material> activeMaterials = new ArrayList<>(allMaterials.size());
-            for (Material material: allMaterials) {
-                if (resourcesSettings.getChance(material) > 0) {
-                    activeMaterials.add(material);
-                }
+    public ResourcesExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        super(dimension, platform, (settings != null) ? settings : defaultSettings(platform, dimension.getDim(), dimension.getMaxHeight()), Resources.INSTANCE);
+        final ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) super.settings;
+        final Set<Material> allMaterials = resourcesSettings.getMaterials();
+        final List<Material> activeMaterials = new ArrayList<>(allMaterials.size());
+        for (Material material: allMaterials) {
+            if (resourcesSettings.getChance(material) > 0) {
+                activeMaterials.add(material);
             }
-            this.activeMaterials = activeMaterials.toArray(new Material[activeMaterials.size()]);
-            noiseGenerators = new PerlinNoise[this.activeMaterials.length];
-            seedOffsets = new long[this.activeMaterials.length];
-            minLevels = new int[this.activeMaterials.length];
-            maxLevels = new int[this.activeMaterials.length];
-            chances = new float[this.activeMaterials.length][16];
-            for (int i = 0; i < this.activeMaterials.length; i++) {
-                noiseGenerators[i] = new PerlinNoise(0);
-                seedOffsets[i] = resourcesSettings.getSeedOffset(this.activeMaterials[i]);
-                minLevels[i] = resourcesSettings.getMinLevel(this.activeMaterials[i]);
-                maxLevels[i] = resourcesSettings.getMaxLevel(this.activeMaterials[i]);
-                chances[i] = new float[16];
-                for (int j = 0; j < 16; j++) {
-                    chances[i][j] = PerlinNoise.getLevelForPromillage(Math.min(resourcesSettings.getChance(this.activeMaterials[i]) * j / 8f, 1000f));
-                }
+        }
+        this.activeMaterials = activeMaterials.toArray(new Material[activeMaterials.size()]);
+        noiseGenerators = new PerlinNoise[this.activeMaterials.length];
+        final long[] seedOffsets = new long[this.activeMaterials.length];
+        minLevels = new int[this.activeMaterials.length];
+        maxLevels = new int[this.activeMaterials.length];
+        chances = new float[this.activeMaterials.length][16];
+        for (int i = 0; i < this.activeMaterials.length; i++) {
+            noiseGenerators[i] = new PerlinNoise(0);
+            seedOffsets[i] = resourcesSettings.getSeedOffset(this.activeMaterials[i]);
+            minLevels[i] = resourcesSettings.getMinLevel(this.activeMaterials[i]);
+            maxLevels[i] = resourcesSettings.getMaxLevel(this.activeMaterials[i]);
+            chances[i] = new float[16];
+            for (int j = 0; j < 16; j++) {
+                chances[i][j] = PerlinNoise.getLevelForPromillage(Math.min(resourcesSettings.getChance(this.activeMaterials[i]) * j / 8f, 1000f));
+            }
+        }
+        for (int i = 0; i < this.activeMaterials.length; i++) {
+            if (noiseGenerators[i].getSeed() != (dimension.getSeed() + seedOffsets[i])) {
+                noiseGenerators[i].setSeed(dimension.getSeed() + seedOffsets[i]);
             }
         }
     }
-    
+
     @Override
-    public void render(Dimension dimension, Tile tile, Chunk chunk, Platform platform) {
-        ResourcesExporterSettings settings = (ResourcesExporterSettings) getSettings();
-        if (settings == null) {
-            settings = defaultSettings(platform, dimension.getDim(), dimension.getMaxHeight());
-            setSettings(settings);
-        }
-        
-        final int minimumLevel = settings.getMinimumLevel();
+    public void render(Tile tile, Chunk chunk) {
+        final int minimumLevel = ((ResourcesExporterSettings) super.settings).getMinimumLevel();
         final int xOffset = (chunk.getxPos() & 7) << 4;
         final int zOffset = (chunk.getzPos() & 7) << 4;
-        final long seed = dimension.getSeed();
-        final int minY = dimension.getMinHeight(), maxY = dimension.getMaxHeight() - 1;
         final boolean coverSteepTerrain = dimension.isCoverSteepTerrain(), nether = (dimension.getDim() == DIM_NETHER);
-        if ((currentSeed == 0) || (currentSeed != seed)) {
-            for (int i = 0; i < activeMaterials.length; i++) {
-                if (noiseGenerators[i].getSeed() != (seed + seedOffsets[i])) {
-                    noiseGenerators[i].setSeed(seed + seedOffsets[i]);
-                }
-            }
-            currentSeed = seed;
-        }
 //        int[] counts = new int[256];
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
@@ -117,7 +99,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                     // had several reports from the wild of this going higher
                     // than maxHeight, so there must be some obscure way in
                     // which the terrainHeight can be raised too high
-                    for (int y = Math.min(subsurfaceMaxHeight, maxY); y > minY; y--) {
+                    for (int y = Math.min(subsurfaceMaxHeight, maxZ); y > minZ; y--) {
                         final double dz = y / TINY_BLOBS;
                         final double dirtZ = y / SMALL_BLOBS;
                         for (int i = 0; i < activeMaterials.length; i++) {
@@ -152,15 +134,13 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
 //        }
 //        System.out.println();
     }
-    
+
 //  TODO: resource frequenties onderzoeken met Statistics tool!
 
-    private Material[] activeMaterials;
-    private PerlinNoise[] noiseGenerators;
-    private long[] seedOffsets;
-    private int[] minLevels, maxLevels;
-    private float[][] chances;
-    private long currentSeed;
+    private final Material[] activeMaterials;
+    private final PerlinNoise[] noiseGenerators;
+    private final int[] minLevels, maxLevels;
+    private final float[][] chances;
 
     private static final Map<String, Material> ORE_TO_DEEPSLATE_VARIANT = ImmutableMap.of(
             MC_COAL_ORE, DEEPSLATE_COAL_ORE,

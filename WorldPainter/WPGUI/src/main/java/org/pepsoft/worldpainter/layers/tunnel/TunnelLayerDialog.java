@@ -12,6 +12,7 @@ import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 import org.pepsoft.worldpainter.layers.plants.PlantLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode;
+import org.pepsoft.worldpainter.themes.JSpinnerTableCellEditor;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -127,6 +128,12 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
 
     @Override
     protected void ok() {
+        if (tableFloorLayers.isEditing()) {
+            tableFloorLayers.getCellEditor().stopCellEditing();
+        }
+        if (tableRoofLayers.isEditing()) {
+            tableRoofLayers.getCellEditor().stopCellEditing();
+        }
         saveSettingsTo(layer, true);
         super.ok();
     }
@@ -144,14 +151,13 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     }
 
     private void generatePreview() {
-        TunnelLayer layer = new TunnelLayer("tmp", 0);
+        final TunnelLayer layer = new TunnelLayer("tmp", 0);
         saveSettingsTo(layer, false);
-        TunnelLayerExporter exporter = new TunnelLayerExporter(layer);
-        Insets insets = labelPreview.getInsets();
-        int width = labelPreview.getWidth() - insets.left - insets.right;
-        int height = labelPreview.getHeight() - insets.top - insets.bottom;
+        final Insets insets = labelPreview.getInsets();
+        final int width = labelPreview.getWidth() - insets.left - insets.right;
+        final int height = labelPreview.getHeight() - insets.top - insets.bottom;
         if ((width > 0) && (height > 0)) {
-            BufferedImage preview = exporter.generatePreview(width, height, waterLevel, minHeight, baseHeight, Math.min(maxHeight - baseHeight, height - baseHeight + minHeight));
+            final BufferedImage preview = TunnelLayerExporter.generatePreview(layer, width, height, waterLevel, minHeight, baseHeight, Math.min(maxHeight - baseHeight, height - baseHeight + minHeight));
             labelPreview.setIcon(new ImageIcon(preview));
         } else {
             labelPreview.setIcon(null);
@@ -215,13 +221,25 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             floorLayersTableModel = new TunnelLayersTableModel(floorLayers, minHeight, maxHeight);
             tableFloorLayers.setModel(floorLayersTableModel);
             tableFloorLayers.getColumnModel().getColumn(COLUMN_NAME).setCellRenderer(new LayerTableCellRenderer());
+            SpinnerModel spinnerModel = new SpinnerNumberModel(50, 0, 100, 1);
+            tableFloorLayers.getColumnModel().getColumn(COLUMN_INTENSITY).setCellEditor(new JSpinnerTableCellEditor(spinnerModel));
             tableFloorLayers.getColumnModel().getColumn(COLUMN_VARIATION).setCellRenderer(new NoiseSettingsTableCellRenderer());
+            spinnerModel = new SpinnerNumberModel(minHeight, minHeight, maxHeight - 1, 1);
+            tableFloorLayers.getColumnModel().getColumn(COLUMN_MIN_LEVEL).setCellEditor(new JSpinnerTableCellEditor(spinnerModel));
+            spinnerModel = new SpinnerNumberModel(maxHeight - 1, minHeight, maxHeight - 1, 1);
+            tableFloorLayers.getColumnModel().getColumn(COLUMN_MAX_LEVEL).setCellEditor(new JSpinnerTableCellEditor(spinnerModel));
 
             List<TunnelLayer.LayerSettings> roofLayers = layer.getRoofLayers();
             roofLayersTableModel = new TunnelLayersTableModel(roofLayers, minHeight, maxHeight);
             tableRoofLayers.setModel(roofLayersTableModel);
             tableRoofLayers.getColumnModel().getColumn(COLUMN_NAME).setCellRenderer(new LayerTableCellRenderer());
+            spinnerModel = new SpinnerNumberModel(50, 0, 100, 1);
+            tableRoofLayers.getColumnModel().getColumn(COLUMN_INTENSITY).setCellEditor(new JSpinnerTableCellEditor(spinnerModel));
             tableRoofLayers.getColumnModel().getColumn(COLUMN_VARIATION).setCellRenderer(new NoiseSettingsTableCellRenderer());
+            spinnerModel = new SpinnerNumberModel(minHeight, minHeight, maxHeight - 1, 1);
+            tableRoofLayers.getColumnModel().getColumn(COLUMN_MIN_LEVEL).setCellEditor(new JSpinnerTableCellEditor(spinnerModel));
+            spinnerModel = new SpinnerNumberModel(maxHeight - 1, minHeight, maxHeight - 1, 1);
+            tableRoofLayers.getColumnModel().getColumn(COLUMN_MAX_LEVEL).setCellEditor(new JSpinnerTableCellEditor(spinnerModel));
 
             if (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) {
                 comboBoxBiome.setSelectedItem(layer.getTunnelBiome());
@@ -320,6 +338,9 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     }
 
     private void removeFloorLayers() {
+        if (tableFloorLayers.isEditing()) {
+            tableFloorLayers.getCellEditor().stopCellEditing();
+        }
         int[] selectedRows = tableFloorLayers.getSelectedRows();
         for (int i = selectedRows.length - 1; i >= 0; i--) {
             floorLayersTableModel.removeLayer(selectedRows[i]);
@@ -327,6 +348,9 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     }
 
     private void removeRoofLayers() {
+        if (tableRoofLayers.isEditing()) {
+            tableRoofLayers.getCellEditor().stopCellEditing();
+        }
         int[] selectedRows = tableRoofLayers.getSelectedRows();
         for (int i = selectedRows.length - 1; i >= 0; i--) {
             roofLayersTableModel.removeLayer(selectedRows[i]);
@@ -366,7 +390,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     private void addLayer(Component button, TunnelLayersTableModel tableModel) {
         JPopupMenu popupMenu = new JPopupMenu();
         LayerManager.getInstance().getLayers().stream()
-            .filter(l -> l.getExporter() instanceof IncidentalLayerExporter)
+            .filter(l -> IncidentalLayerExporter.class.isAssignableFrom(l.getExporterType()))
             .forEach(l -> {
                 JMenuItem menuItem = new JMenuItem(l.getName(), new ImageIcon(l.getIcon()));
                 menuItem.addActionListener(e -> tableModel.addLayer(l));
@@ -374,7 +398,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             });
         App app = App.getInstance();
         Set<CustomLayer> customLayers = app.getCustomLayers().stream()
-            .filter(l -> l.getExporter() instanceof IncidentalLayerExporter)
+            .filter(l -> IncidentalLayerExporter.class.isAssignableFrom(l.getExporterType()))
             .collect(Collectors.toSet());
         if (customLayers.size() > 15) {
             // If there are fifteen or more custom layers, split them by palette
@@ -385,7 +409,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                     String palette = entry.getKey();
                     JMenu paletteMenu = new JMenu(palette != null ? palette : "Hidden Layers");
                     entry.getValue().stream()
-                        .filter(l -> l.getExporter() instanceof IncidentalLayerExporter)
+                        .filter(l -> IncidentalLayerExporter.class.isAssignableFrom(l.getExporterType()))
                         .forEach(l -> {
                             JMenuItem menuItem = new JMenuItem(l.getName(), new ImageIcon(l.getIcon()));
                             menuItem.addActionListener(e -> tableModel.addLayer(l));
@@ -970,7 +994,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             }
         });
 
-        buttonAddFloorLayer.setText("Add Existing");
+        buttonAddFloorLayer.setText("Copy Existing");
         buttonAddFloorLayer.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 buttonAddFloorLayerActionPerformed(evt);
@@ -1002,7 +1026,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                         .addComponent(jLabel22)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 518, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 524, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(buttonAddFloorLayer, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1049,7 +1073,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             }
         });
 
-        buttonAddRoofLayer.setText("Add Existing");
+        buttonAddRoofLayer.setText("Copy Existing");
         buttonAddRoofLayer.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 buttonAddRoofLayerActionPerformed(evt);
@@ -1081,7 +1105,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                         .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 528, Short.MAX_VALUE)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 524, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(buttonAddRoofLayer, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)

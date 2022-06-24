@@ -116,7 +116,36 @@ public class Plants {
             return new AgingPlant(name, material.withProperty(PICKLES, growth), iconName, maxGrowth, categories);
         }
     };
-    public static final Plant BAMBOO = new VariableHeightPlant("Bamboo", BAMBOO_NO_LEAVES, BAMBOO_LARGE_LEAVES_STAGE_1, "item/bamboo.png", 16, PLANTS_AND_FLOWERS); // TODO better approximate Minecraft-generated bamboo
+    public static final Plant BAMBOO = new VariableHeightPlant("Bamboo", BAMBOO_NO_LEAVES, BAMBOO_LARGE_LEAVES, "item/bamboo.png", 16, PLANTS_AND_FLOWERS) {
+        @Override
+        public Plant realise(int growth, Platform platform) {
+            return new VariableHeightPlant("Bamboo", BAMBOO_NO_LEAVES, BAMBOO_LARGE_LEAVES, "item/bamboo.png", growth, PLANTS_AND_FLOWERS) {
+                @Override
+                public Material getMaterial(int x, int y, int z) {
+                    final int age = (growth > 4) ? 1 : 0;
+                    switch (z) {
+                        case 0:
+                            return BAMBOO_NO_LEAVES.withProperty(AGE, age);
+                        case 1:
+                        case 2:
+                            if (growth <= 4) {
+                                return BAMBOO_SMALL_LEAVES.withProperty(AGE, age);
+                            } else {
+                                return BAMBOO_NO_LEAVES.withProperty(AGE, age);
+                            }
+                        default:
+                            if (z >= growth - 2) {
+                                return BAMBOO_LARGE_LEAVES.withProperty(AGE, age);
+                            } else if (z == growth - 3) {
+                                return BAMBOO_SMALL_LEAVES.withProperty(AGE, age);
+                            } else {
+                                return BAMBOO_NO_LEAVES.withProperty(AGE, age);
+                            }
+                    }
+                }
+            };
+        }
+    };
     public static final Plant SAPLING_AZALEA = new SimplePlant("Azalea", Material.AZALEA, "block/azalea_plant.png", SAPLINGS);
     public static final Plant SAPLING_FLOWERING_AZALEA = new SimplePlant("Flowering Azalea", Material.FLOWERING_AZALEA, "block/flowering_azalea_side.png", SAPLINGS);
     public static final Plant CRIMSON_FUNGUS = new SimplePlant("Crimson Fungus", Material.CRIMSON_FUNGUS, NETHER);
@@ -127,7 +156,7 @@ public class Plants {
     public static final Plant TWISTING_VINES = new VariableHeightPlant("Twisting Vines", Material.TWISTING_VINES_PLANT, TWISTING_VINES_25, 10, MUSHROOMS); // TODO not really mushrooms, but for now those are presented as "Various"
     public static final Plant GLOW_LICHEN = new SimplePlant("Glow Lichen", Material.GLOW_LICHEN_DOWN, MUSHROOMS, WATER_PLANTS, HANGING_DRY_PLANTS, HANGING_WATER_PLANTS); // TODO not really mushrooms, but for now those are presented as "Various"
     public static final Plant MOSS_CARPET = new SimplePlant("Moss Carpet", Material.MOSS_CARPET, "block/moss_block.png", MUSHROOMS); // TODO not really mushrooms, but for now those are presented as "Various"
-    public static final Plant BIG_DRIPLEAF = new VariableHeightPlant("Big Dripleaf", Material.BIG_DRIPLEAF_STEM_SOUTH, Material.BIG_DRIPLEAF_SOUTH, "block/big_dripleaf_top.png", 10, PLANTS_AND_FLOWERS, WATER_PLANTS) {
+    public static final Plant BIG_DRIPLEAF = new VariableHeightPlant("Big Dripleaf", Material.BIG_DRIPLEAF_STEM_SOUTH, Material.BIG_DRIPLEAF_SOUTH, "block/big_dripleaf_top.png", 10, PLANTS_AND_FLOWERS, DRIPLEAF) {
         @Override
         public VariableHeightPlant realise(int growth, Platform platform) {
             final Direction facing = Direction.values()[RANDOM.nextInt(4)];
@@ -183,15 +212,22 @@ public class Plants {
     public static final Plant SPORE_BLOSSOM = new SimplePlant("Spore Blossoms", Material.SPORE_BLOSSOM, HANGING_DRY_PLANTS);
     public static final Plant WEEPING_VINES = new VariableHeightPlant("Weeping Vines", Material.WEEPING_VINES_PLANT, Material.WEEPING_VINES, "block/weeping_vines_plant.png", 10, HANGING_DRY_PLANTS);
     public static final Plant HANGING_ROOTS = new SimplePlant("Hanging Roots", Material.HANGING_ROOTS, HANGING_DRY_PLANTS, HANGING_WATER_PLANTS);
-    public static final Plant GLOW_BERRIES = new VariableHeightPlant("Glow Berries", Material.CAVE_VINES_PLANT, Material.CAVE_VINES, "block/cave_vines_lit.png", 10, HANGING_DRY_PLANTS) {
+    public static final Plant GLOW_BERRIES = new VariableHeightPlant("Glow Berries", Material.CAVE_VINES_PLANT_NO_BERRIES, Material.CAVE_VINES_NO_BERRIES, "block/cave_vines_lit.png", 10, HANGING_DRY_PLANTS) {
         @Override
         public Plant realise(int growth, Platform platform) {
-            return new VariableHeightPlant("Glow Berries", Material.CAVE_VINES, Material.CAVE_VINES_PLANT, "block/cave_vines_lit.png", growth, categories) {
+            return new VariableHeightPlant("Glow Berries", Material.CAVE_VINES_PLANT_NO_BERRIES, Material.CAVE_VINES_NO_BERRIES, "block/cave_vines_lit.png", growth, categories) {
                 @Override
                 public Material getMaterial(int x, int y, int z) {
+                    // Randomly add berries to one in four blocks
                     return super.getMaterial(x, y, z).withProperty(BERRIES, RANDOM.nextInt(4) == 0);
                 }
             };
+        }
+    };
+    public static final Plant SMALL_DRIPLEAF = new DoubleHighPlant("Small Dripleaf", Material.SMALL_DRIPLEAF_SOUTH_LOWER, DRIPLEAF) {
+        @Override
+        public DoubleHighPlant realise(int growth, Platform platform) {
+            return new DoubleHighPlant("Small Dripleaf", Material.SMALL_DRIPLEAF_SOUTH_LOWER.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), DRIPLEAF, platform);
         }
     };
 
@@ -207,7 +243,8 @@ public class Plants {
             KELP, SEAGRASS, TALL_SEAGRASS, SEA_PICKLE, CORNFLOWER, LILY_OF_THE_VALLEY, WITHER_ROSE, SWEET_BERRY_BUSH,
             BAMBOO, SAPLING_AZALEA, SAPLING_FLOWERING_AZALEA, CRIMSON_FUNGUS, WARPED_FUNGUS, CRIMSON_ROOTS,
             WARPED_ROOTS, NETHER_SPROUTS, TWISTING_VINES, GLOW_LICHEN, MOSS_CARPET, BIG_DRIPLEAF, PUMPKIN, MELON,
-            CARVED_PUMPKIN, JACK_O_LANTERN, VINE, SPORE_BLOSSOM, WEEPING_VINES, HANGING_ROOTS, GLOW_BERRIES };
+            CARVED_PUMPKIN, JACK_O_LANTERN, VINE, SPORE_BLOSSOM, WEEPING_VINES, HANGING_ROOTS, GLOW_BERRIES,
+            SMALL_DRIPLEAF };
 
     private static final Random RANDOM = new Random();
 }

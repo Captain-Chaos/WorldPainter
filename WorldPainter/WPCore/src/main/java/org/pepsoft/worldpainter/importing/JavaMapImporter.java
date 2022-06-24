@@ -4,7 +4,6 @@
  */
 package org.pepsoft.worldpainter.importing;
 
-import com.google.common.collect.ImmutableSet;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.minecraft.ChunkStore.ChunkVisitor;
 import org.pepsoft.util.LongAttributeKey;
@@ -29,16 +28,17 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.Collections.singleton;
 import static java.util.Collections.synchronizedMap;
+import static java.util.Collections.synchronizedSet;
 import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
 import static org.pepsoft.worldpainter.importing.MapImporter.ReadOnlyOption.*;
+import static org.pepsoft.worldpainter.platforms.PlatformUtils.determineNativePlatforms;
 import static org.pepsoft.worldpainter.util.ChunkUtils.skipChunk;
 
 /**
@@ -48,7 +48,7 @@ import static org.pepsoft.worldpainter.util.ChunkUtils.skipChunk;
  * @author pepijn
  */
 public class JavaMapImporter extends MapImporter {
-    public JavaMapImporter(Platform platform, TileFactory tileFactory, File levelDatFile, boolean populateNewChunks, Set<MinecraftCoords> chunksToSkip, ReadOnlyOption readOnlyOption, Set<Integer> dimensionsToImport) {
+    public JavaMapImporter(Platform platform, TileFactory tileFactory, File levelDatFile, Set<MinecraftCoords> chunksToSkip, ReadOnlyOption readOnlyOption, Set<Integer> dimensionsToImport) {
         if ((tileFactory == null) || (levelDatFile == null) || (readOnlyOption == null) || (dimensionsToImport == null)) {
             throw new NullPointerException();
         }
@@ -61,7 +61,6 @@ public class JavaMapImporter extends MapImporter {
         this.platform = platform;
         this.tileFactory = tileFactory;
         this.levelDatFile = levelDatFile;
-        this.populateNewChunks = populateNewChunks;
         this.chunksToSkip = chunksToSkip;
         this.readOnlyOption = readOnlyOption;
         this.dimensionsToImport = dimensionsToImport;
@@ -77,7 +76,7 @@ public class JavaMapImporter extends MapImporter {
         World2 world = importWorld(level);
         long minecraftSeed = world.getAttribute(SEED).orElse(new Random().nextLong());
         tileFactory.setSeed(minecraftSeed);
-        Dimension dimension = new Dimension(world, minecraftSeed, tileFactory, DIM_NORMAL, platform.minZ, world.getMaxHeight());
+        Dimension dimension = new Dimension(world, minecraftSeed, tileFactory, DIM_NORMAL);
         dimension.setEventsInhibited(true);
         try {
             dimension.setCoverSteepTerrain(false);
@@ -111,14 +110,14 @@ public class JavaMapImporter extends MapImporter {
         world.addDimension(dimension);
         int dimNo = 1;
         if (dimensionsToImport.contains(DIM_NETHER)) {
-            HeightMapTileFactory netherTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 1, Terrain.NETHERRACK, platform.minZ, world.getMaxHeight(), 188, 192, true, false, 20f, 1.0);
+            HeightMapTileFactory netherTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 1, Terrain.NETHERRACK, Math.max(0, platform.minZ), Math.min(DEFAULT_MAX_HEIGHT_NETHER, world.getMaxHeight()), 188, 192, true, false, 20f, 1.0);
             SimpleTheme theme = (SimpleTheme) netherTileFactory.getTheme();
             SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
             terrainRanges.clear();
             terrainRanges.put(-1, Terrain.NETHERRACK);
             theme.setTerrainRanges(terrainRanges);
             theme.setLayerMap(null);
-            dimension = new Dimension(world, minecraftSeed + 1, netherTileFactory, DIM_NETHER, platform.minZ, world.getMaxHeight());
+            dimension = new Dimension(world, minecraftSeed + 1, netherTileFactory, DIM_NETHER);
             dimension.setEventsInhibited(true);
             try {
                 dimension.setCoverSteepTerrain(false);
@@ -140,14 +139,14 @@ public class JavaMapImporter extends MapImporter {
             world.addDimension(dimension);
         }
         if (dimensionsToImport.contains(DIM_END)) {
-            HeightMapTileFactory endTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 2, Terrain.END_STONE, platform.minZ, world.getMaxHeight(), 32, 0, false, false, 20f, 1.0);
+            HeightMapTileFactory endTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 2, Terrain.END_STONE, Math.max(0, platform.minZ), Math.min(DEFAULT_MAX_HEIGHT_NETHER, world.getMaxHeight()), 32, 0, false, false, 20f, 1.0);
             SimpleTheme theme = (SimpleTheme) endTileFactory.getTheme();
             SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
             terrainRanges.clear();
             terrainRanges.put(-1, Terrain.END_STONE);
             theme.setTerrainRanges(terrainRanges);
             theme.setLayerMap(Collections.emptyMap());
-            dimension = new Dimension(world, minecraftSeed + 2, endTileFactory, DIM_END, platform.minZ, world.getMaxHeight());
+            dimension = new Dimension(world, minecraftSeed + 2, endTileFactory, DIM_END);
             dimension.setEventsInhibited(true);
             try {
                 dimension.setCoverSteepTerrain(false);
@@ -228,13 +227,13 @@ public class JavaMapImporter extends MapImporter {
         }
         final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
         final int maxY = maxHeight - 1;
-        final Set<Point> newChunks = new HashSet<>();
-        final Set<String> manMadeBlockTypes = new HashSet<>();
-        final Set<Integer> unknownBiomes = new HashSet<>();
+        final Set<Point> newChunks = synchronizedSet(new HashSet<>());
+        final Set<String> manMadeBlockTypes = synchronizedSet(new HashSet<>());
+        final Set<Integer> unknownBiomes = synchronizedSet(new HashSet<>());
         final boolean importBiomes = platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
-        final Map<String, Integer> customNamedBiomes = new HashMap<>();
+        final Map<String, Integer> customNamedBiomes = synchronizedMap(new HashMap<>());
         final AtomicInteger nextCustomBiomeId = new AtomicInteger(FIRST_UNALLOCATED_ID);
-        final Set<String> allBiomes = new HashSet<>();
+        final Set<String> allBiomes = synchronizedSet(new HashSet<>());
         try (ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension.getDim())) {
             final int total = chunkStore.getChunkCount();
             final AtomicInteger count = new AtomicInteger();
@@ -276,7 +275,6 @@ public class JavaMapImporter extends MapImporter {
                             }
                             dimension.addTile(tile);
                         }
-                        newChunks.remove(new Point(chunkX << 4, chunkZ << 4));
 
                         boolean manMadeStructuresBelowGround = false;
                         boolean manMadeStructuresAboveGround = false;
@@ -379,7 +377,9 @@ public class JavaMapImporter extends MapImporter {
                                             // TODOMC118 add way of editing 3D biomes
                                             String biomeStr = chunk.getNamedBiome(xx >> 2, dimension.getIntHeightAt(blockX, blockY) >> 2, zz >> 2);
                                             if (biomeStr != null) {
-                                                allBiomes.add(biomeStr);
+                                                if (collectDebugInfo) {
+                                                    allBiomes.add(biomeStr);
+                                                }
                                                 if (BIOMES_BY_MODERN_ID.containsKey(biomeStr)) {
                                                     biome = BIOMES_BY_MODERN_ID.get(biomeStr);
                                                 } else if (customNamedBiomes.containsKey(biomeStr)) {
@@ -417,6 +417,7 @@ public class JavaMapImporter extends MapImporter {
                                     }
                                 }
                             }
+                            newChunks.remove(new Point(chunkX << 4, chunkZ << 4));
                         } catch (NullPointerException e) {
                             reportBuilder.append("Null pointer exception while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk" + EOL);
                             logger.error("Null pointer exception while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk", e);
@@ -437,26 +438,6 @@ public class JavaMapImporter extends MapImporter {
                     }
 
                     return true;
-                }
-
-                // TODO make this dynamic
-                private Set<Platform> determineNativePlatforms(Chunk chunk) {
-                    if (chunk instanceof MCRegionChunk) {
-                        return singleton(JAVA_MCREGION);
-                    } else if (chunk instanceof MC12AnvilChunk) {
-                        return singleton(JAVA_ANVIL);
-                    } else if (chunk instanceof MC115AnvilChunk) {
-                        if (((MC115AnvilChunk) chunk).getInputDataVersion() > DATA_VERSION_MC_1_16_5) {
-                            return singleton(JAVA_ANVIL_1_17);
-                        } else {
-                            // These chunks could have been created by WorldPainter with platform 1.17, so return both
-                            return ImmutableSet.of(JAVA_ANVIL_1_15, JAVA_ANVIL_1_17);
-                        }
-                    } else if (chunk instanceof MC118AnvilChunk) {
-                        return singleton(JAVA_ANVIL_1_18);
-                    } else {
-                        return null;
-                    }
                 }
 
                 @Override
@@ -489,11 +470,16 @@ public class JavaMapImporter extends MapImporter {
                 dimension.setCustomBiomes(customBiomes);
             }
 
-            // Process chunks that were only added to fill out a tile
+            // Process chunks that were only added to fill out a tile. This includes chunks that were skipped during
+            // import due to an error
+            final Map<Point, AtomicInteger> notPresentChunksCountPerTile = new HashMap<>();
             for (Point newChunkCoords: newChunks) {
                 dimension.setBitLayerValueAt(NotPresent.INSTANCE, newChunkCoords.x, newChunkCoords.y, true);
-                if (populateNewChunks) {
-                    dimension.setBitLayerValueAt(Populate.INSTANCE, newChunkCoords.x, newChunkCoords.y, true);
+                final Point tileCoords = new Point(newChunkCoords.x >> 3, newChunkCoords.y >> 3);
+                if (notPresentChunksCountPerTile.computeIfAbsent(tileCoords, k -> new AtomicInteger()).incrementAndGet() == 64) {
+                    // All the chunks in this tile are "not present" (this might happen if chunks were skipped due to
+                    // errors)
+                    dimension.removeTile(tileCoords);
                 }
             }
 
@@ -520,7 +506,6 @@ public class JavaMapImporter extends MapImporter {
     private final Platform platform;
     private final TileFactory tileFactory;
     private final File levelDatFile;
-    private final boolean populateNewChunks;
     private final Set<MinecraftCoords> chunksToSkip;
     private final ReadOnlyOption readOnlyOption;
     private final Set<Integer> dimensionsToImport;
@@ -608,7 +593,7 @@ public class JavaMapImporter extends MapImporter {
 
     static {
         TERRAIN_MAPPING.forEach((name, terrain) -> {
-            if (! Material.getDefault(name).terrain) {
+            if (! Material.getPrototype(name).terrain) {
                 throw new IllegalStateException("Material named \"" + name + "\" not marked as terrain");
             }
         });

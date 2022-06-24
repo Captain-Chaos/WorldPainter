@@ -46,15 +46,15 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         this.maxheight = maxHeight;
     }
     
-    public World2(Platform platform, long minecraftSeed, TileFactory tileFactory, int maxHeight) {
+    public World2(Platform platform, long minecraftSeed, TileFactory tileFactory) {
         if (platform == null) {
             throw new NullPointerException();
-        } else if ((maxHeight < platform.minMaxHeight) || (maxHeight > platform.maxMaxHeight)) {
-            throw new IllegalArgumentException("maxHeight " + maxHeight + " < " + platform.minMaxHeight + " or > " + platform.maxMaxHeight);
+        } else if ((tileFactory.getMaxHeight() < platform.minMaxHeight) || (tileFactory.getMaxHeight() > platform.maxMaxHeight)) {
+            throw new IllegalArgumentException("tileFactory.maxHeight " + tileFactory.getMaxHeight() + " < " + platform.minMaxHeight + " or > " + platform.maxMaxHeight);
         }
         this.platform = platform;
-        this.maxheight = maxHeight;
-        Dimension dim = new Dimension(this, minecraftSeed, tileFactory, 0, platform.minZ, maxHeight);
+        this.maxheight = tileFactory.getMaxHeight();
+        Dimension dim = new Dimension(this, minecraftSeed, tileFactory, 0);
         addDimension(dim);
     }
     
@@ -710,7 +710,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             dimensions.values().forEach(dimension -> {
                 switch (dimension.getDim()) {
                     case DIM_NORMAL:
-                        MapGenerator generator = MapGenerator.fromLegacySettings(this.generator, dimension.getMinecraftSeed(), generatorName, generatorOptions, platform);
+                        MapGenerator generator = MapGenerator.fromLegacySettings(this.generator, dimension.getMinecraftSeed(), generatorName, generatorOptions, platform, this::addWarning);
                         dimension.setGenerator(generator);
                         break;
                     case DIM_NETHER:
@@ -726,17 +726,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             generatorOptions = null;
         }
         wpVersion = CURRENT_WP_VERSION;
-        
-        // Bug fix: fix the maxHeight of the dimensions, which somehow is not
-        // always correctly set (possibly only on imported worlds from
-        // non-standard height maps due to a bug which should be fixed).
-        dimensions.values().stream()
-            .filter(dimension -> (dimension.getMaxHeight() != maxheight) && (dimension.getMaxHeight() != 0))
-            .forEach(dimension -> {
-                logger.warn("Fixing maxHeight of dimension " + dimension.getDim() + " (was " + dimension.getMaxHeight() + ", should be " + maxheight + ")");
-                dimension.setMaxHeight(maxheight);
-            });
-        
+
         // The number of custom terrains increases now and again; correct old
         // worlds for it
         if (mixedMaterials.length != Terrain.CUSTOM_TERRAIN_COUNT) {
@@ -834,7 +824,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(World2.class);
     private static final long serialVersionUID = 2011062401L;
 
-    enum Warning {
+    public enum Warning {
         /**
          * Warn the user that automatic biomes are now the default and are enabled.
          */
@@ -848,7 +838,12 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         /**
          * Warn the user that one or more custom terrain types were missing and have been replaced with magenta wool.
          */
-        MISSING_CUSTOM_TERRAINS
+        MISSING_CUSTOM_TERRAINS,
+
+        /**
+         * Warn the user that the Superflat settings could not be parsed and were reset to defaults.
+         */
+        SUPERFLAT_SETTINGS_RESET
     }
     
     public static class BorderSettings implements Serializable, org.pepsoft.util.undo.Cloneable<BorderSettings> {

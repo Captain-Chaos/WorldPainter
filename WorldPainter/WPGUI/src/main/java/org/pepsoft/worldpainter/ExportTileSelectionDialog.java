@@ -20,7 +20,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -32,7 +31,7 @@ import static org.pepsoft.worldpainter.Constants.*;
  */
 public class ExportTileSelectionDialog extends javax.swing.JDialog implements WindowListener {
     /** Creates new form ExportTileSelectionDialog */
-    public ExportTileSelectionDialog(java.awt.Dialog parent, World2 world, int selectedDimension, Set<Point> selectedTiles, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Collection<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
+    public ExportTileSelectionDialog(java.awt.Dialog parent, World2 world, int selectedDimension, Set<Point> selectedTiles, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Set<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
         super(parent, true);
         this.world = world;
         initComponents();

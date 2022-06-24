@@ -16,11 +16,11 @@ public final class ThreadUtils {
      * Choose a thread count taking into account the number of processor cores, the number of jobs and the available
      * memory, assuming that each job will need at least approximately {@link #REQUIRED_MEMORY_PER_JOB} bytes of memory.
      *
-     * @param noun      The name of the operation for use in the log entry.
+     * @param operation The name of the operation for use in the log entry.
      * @param jobCount  The number of jobs to be executed.
      * @return The number of threads to use.
      */
-    public static int chooseThreadCount(String noun, int jobCount) {
+    public static int chooseThreadCount(String operation, int jobCount) {
         Runtime runtime = Runtime.getRuntime();
         runtime.gc();
         long totalMemory = runtime.totalMemory();
@@ -35,7 +35,7 @@ public final class ThreadUtils {
         } else {
             threadCount = Math.max(Math.min(Math.min(maxThreadsByMem, runtime.availableProcessors()), jobCount), 1);
         }
-        logger.info("Using " + threadCount + " thread(s) for " + noun + "s (logical processors: " + runtime.availableProcessors() + ", available memory: " + (maxMemoryAvailable / 1048576L) + " MB)");
+        logger.info("Using " + threadCount + " thread(s) for " + operation + " (logical processors: " + runtime.availableProcessors() + ", available memory: " + (maxMemoryAvailable / 1048576L) + " MB)");
         return threadCount;
     }
 

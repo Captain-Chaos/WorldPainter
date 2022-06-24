@@ -27,15 +27,13 @@ public class DumpChunk extends AbstractTool {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         initialisePlatform();
 
-        File levelDatFile = new File(args[0]);
-        int blockX = Integer.parseInt(args[1]);
-        int blockZ = Integer.parseInt(args[2]);
-        int chunkX = blockX >> 4;
-        int chunkZ = blockZ >> 4;
-        JavaLevel level = JavaLevel.load(levelDatFile);
+        final File levelDatFile = new File(args[0]);
+        final int chunkX = Integer.parseInt(args[1]);
+        final int chunkZ = Integer.parseInt(args[2]);
+        final JavaLevel level = JavaLevel.load(levelDatFile);
         final File worldDir = levelDatFile.getParentFile();
-        Platform platform = PlatformManager.getInstance().identifyPlatform(worldDir);
-        Chunk chunk = PlatformManager.getInstance().getChunkStore(platform, worldDir, DIM_NORMAL).getChunk(chunkX, chunkZ);
+        final Platform platform = PlatformManager.getInstance().identifyPlatform(worldDir);
+        final Chunk chunk = PlatformManager.getInstance().getChunkStore(platform, worldDir, DIM_NORMAL).getChunk(chunkX, chunkZ);
 
         if (platform.capabilities.contains(BIOMES)) {
             System.out.println("Biomes");
@@ -55,8 +53,11 @@ public class DumpChunk extends AbstractTool {
             }
         }
 
-        if (chunk instanceof MC115AnvilChunk) {
-            for (Map.Entry<String, long[]> entry: ((MC115AnvilChunk) chunk).getHeightMaps().entrySet()) {
+        if ((chunk instanceof MC115AnvilChunk) || (chunk instanceof MC118AnvilChunk)) {
+            final Map<String, long[]> heightMaps = (chunk instanceof MC115AnvilChunk)
+                    ? ((MC115AnvilChunk) chunk).getHeightMaps()
+                    : ((MC118AnvilChunk) chunk).getHeightMaps();
+            for (Map.Entry<String, long[]> entry: heightMaps.entrySet()) {
                 System.out.println("Heightmap (type: " + entry.getKey() + ")");
                 System.out.println("X-->");
                 long[][] data = DataUtils.unpackDataArray(entry.getValue(), 9, 16);
@@ -100,40 +101,45 @@ x:          for (int x = 0; x < 16; x++) {
                     if (material != AIR) {
                         String name = material.name;
                         name = name.substring(name.indexOf(':') + 1);
-                        String property = "";
-                        Map<String, String> propertyMap = material.getProperties();
-                        if (propertyMap != null) {
-                            for (Map.Entry<String, String> entry: propertyMap.entrySet()) {
-                                String value = entry.getValue();
-                                if (value.equals("true")) {
-                                    property = entry.getKey();
-                                    break;
-                                } else if (! value.equals("false")) {
-                                    property = value;
-                                    break;
-                                }
-                            }
-                        }
-                        String tag;
-                        if (material.tileEntity) {
-                            int count = 0;
-                            for (Iterator<TileEntity> i = tileEntities.iterator(); i.hasNext(); ) {
-                                TileEntity tileEntity = i.next();
-                                if ((tileEntity.getX() == x) && (tileEntity.getY() == y) && (tileEntity.getZ() == z)) {
-                                    count++;
-                                    i.remove();
-                                }
-                            }
-                            if (count == 1) {
-                                tag = String.format("[%3.3s:%2.2s]", name, property);
-                            } else {
-                                tag = String.format("!%3.3s!%2d!", name, count);
-                            }
+//                        String property = "";
+//                        Map<String, String> propertyMap = material.getProperties();
+//                        if (propertyMap != null) {
+//                            for (Map.Entry<String, String> entry: propertyMap.entrySet()) {
+//                                String value = entry.getValue();
+//                                if (value.equals("true")) {
+//                                    property = entry.getKey();
+//                                    break;
+//                                } else if (! value.equals("false")) {
+//                                    property = value;
+//                                    break;
+//                                }
+//                            }
+//                        }
+//                        String tag;
+//                        if (material.tileEntity) {
+//                            int count = 0;
+//                            for (Iterator<TileEntity> i = tileEntities.iterator(); i.hasNext(); ) {
+//                                TileEntity tileEntity = i.next();
+//                                if ((tileEntity.getX() == x) && (tileEntity.getY() == y) && (tileEntity.getZ() == z)) {
+//                                    count++;
+//                                    i.remove();
+//                                }
+//                            }
+//                            if (count == 1) {
+//                                tag = String.format("[%3.3s:%2.2s]", name, property);
+//                            } else {
+//                                tag = String.format("!%3.3s!%2d!", name, count);
+//                            }
+//                        } else {
+//                            tag = String.format("[%3.3s:%2.2s]", name, property);
+//                        }
+//                        System.out.print(tag);
+                        if (chunk.getSkyLightLevel(x, y, z) == 15) {
+                            System.out.printf("[%3.3s:  ]", name);
                         } else {
-                            tag = String.format("[%3.3s:%2.2s]", name, property);
+                            System.out.printf("[%3.3s:%2d]", name, chunk.getSkyLightLevel(x, y, z));
                         }
-                        System.out.print(tag);
-                        materialsInSlice.computeIfAbsent(tag, materialsForTag -> new HashSet<>()).add(material);
+                        materialsInSlice.computeIfAbsent(name, materialsForTag -> new HashSet<>()).add(material);
 //                        if (chunk.getBlockLightLevel(x, y, z) == 0) {
 //                            System.out.printf("[%3.3s:  ]", name);
 //                        } else {

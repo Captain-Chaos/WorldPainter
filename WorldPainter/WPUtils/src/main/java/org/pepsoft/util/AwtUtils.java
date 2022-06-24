@@ -154,20 +154,18 @@ public class AwtUtils {
      * @param task The task to execute.
      */
     public static void doLaterOnEventThread(String key, int delay, Runnable task) {
-        doOnEventThread(() -> {
+        doOnEventThreadAndWait(() -> {
             if (TIMERS.containsKey(key)) {
-                TIMERS.get(key).restart();
-            } else {
-                Timer timer = new Timer(delay, e -> {
-                    task.run();
-                    synchronized (TIMERS) {
-                        TIMERS.remove(key);
-                    }
-                });
-                timer.setRepeats(false);
-                TIMERS.put(key, timer);
-                timer.start();
+                TIMERS.get(key).stop();
+                TIMERS.remove(key);
             }
+            Timer timer = new Timer(delay, e -> {
+                task.run();
+                TIMERS.remove(key);
+            });
+            timer.setRepeats(false);
+            TIMERS.put(key, timer);
+            timer.start();
         });
     }
 

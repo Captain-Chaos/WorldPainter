@@ -264,8 +264,8 @@ public class MappingOp extends AbstractOperation<Void> {
             }
         }
         final boolean colourMapPresent = ! colourMapping.isEmpty();
-        if ((greyScaleMapPresent || colourMapPresent) && (heightMap == null)) {
-            throw new ScriptException("Mapping specified but no height map specified");
+        if ((greyScaleMapPresent || colourMapPresent) && (heightMap == null) && (layer == null)) {
+            throw new ScriptException("Mapping specified but no height map or layer specified");
         } else if (heightMap != null) {
             if ((! greyScaleMapPresent) && (! colourMapPresent)) {
                 throw new ScriptException("mapping not specified");

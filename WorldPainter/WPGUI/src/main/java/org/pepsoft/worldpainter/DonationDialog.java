@@ -13,13 +13,8 @@ package org.pepsoft.worldpainter;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.vo.EventVO;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -27,55 +22,45 @@ import java.net.URL;
  *
  * @author pepijn
  */
+@SuppressWarnings({"ConstantConditions", "Convert2Lambda", "Anonymous2MethodRef", "unused", "FieldCanBeLocal"}) // Managed by NetBeans
 public final class DonationDialog extends WorldPainterDialog {
     /** Creates new form DonationDialog */
     public DonationDialog(Window parent) {
         super(parent);
+        config = Configuration.getInstance();
+        
         initComponents();
         
-        // Fix JTextArea font, which uses a butt ugly non-proportional font by
-        // default on Windows
-        jTextArea1.setFont(UIManager.getFont("TextField.font"));
+        // Fix JTextArea font, which uses a butt ugly non-proportional font by default on Windows
+        jTextArea1.setFont(UIManager.getFont("TextField.font").deriveFont(UIManager.getFont("TextField.font").getSize() + 6f));
         
-        try {
-            URL buttonURL = new URL("https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif");
-            try (InputStream in = buttonURL.openStream()) {
-                BufferedImage buttonImage = ImageIO.read(in);
-                // buttonImage is null if the image format is not supported:
-                if (buttonImage != null) {
-                    jButton1.setIcon(new ImageIcon(buttonImage));
-                    jButton1.setText(null);
-                    jButton1.setBorder(new EmptyBorder(0, 0, 0, 0));
-                    jButton1.setContentAreaFilled(false);
-                }
-            }
-        } catch (IOException e) {
-            // Do nothing
-        }
-        
-        rootPane.setDefaultButton(jButton1);
-        scaleToUI();
+        rootPane.setDefaultButton(buttonDonate);
         pack();
     }
 
-    public static void maybeShowDonationDialog(Window parent) {
-        Configuration config = Configuration.getInstance();
-        if ((config.getLaunchCount() >= 5) && (config.getDonationStatus() == null)) {
+    public static boolean maybeShowDonationDialog(Window parent) {
+        final Configuration config = Configuration.getInstance();
+        // Ask again every so often
+        if (config.getLaunchCount() >= config.getShowDonationDialogAfter()) {
             DonationDialog dialog = new DonationDialog(parent);
             dialog.setLocationRelativeTo(parent);
             dialog.setVisible(true);
             if (dialog.isCancelled()) {
                 config.logEvent(new EventVO(Constants.EVENT_KEY_DONATION_CLOSED).addTimestamp());
             }
+            return true;
+        } else {
+            return false;
         }
     }
     
     private void donate() {
         try {
-            DesktopUtils.open(new URL("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=VZ7WNQVPXDZHY"));
-            Configuration.getInstance().setDonationStatus(Configuration.DonationStatus.DONATED);
+            DesktopUtils.open(new URL("https://www.worldpainter.net/donate/paypal"));
+            config.setDonationStatus(Configuration.DonationStatus.DONATED);
+            config.setShowDonationDialogAfter(config.getLaunchCount() + 100);
             JOptionPane.showMessageDialog(this, "The donation PayPal page has been opened in your browser.\n\nThank you very much for donating!", "Thank You", JOptionPane.INFORMATION_MESSAGE);
-            Configuration.getInstance().logEvent(new EventVO(Constants.EVENT_KEY_DONATION_DONATE).addTimestamp());
+            config.logEvent(new EventVO(Constants.EVENT_KEY_DONATION_DONATE).addTimestamp());
             ok();
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
@@ -83,22 +68,34 @@ public final class DonationDialog extends WorldPainterDialog {
     }
     
     private void alreadyDonated() {
-        Configuration.getInstance().setDonationStatus(Configuration.DonationStatus.DONATED);
+        config.setDonationStatus(Configuration.DonationStatus.DONATED);
+        config.setShowDonationDialogAfter(config.getLaunchCount() + 100);
         JOptionPane.showMessageDialog(this, "Thank you very much for donating!", "Thank You", JOptionPane.INFORMATION_MESSAGE);
-        Configuration.getInstance().logEvent(new EventVO(Constants.EVENT_KEY_DONATION_ALREADY_DONATED).addTimestamp());
+        config.logEvent(new EventVO(Constants.EVENT_KEY_DONATION_ALREADY_DONATED).addTimestamp());
         ok();
     }
     
     private void askLater() {
-        Configuration.getInstance().logEvent(new EventVO(Constants.EVENT_KEY_DONATION_ASK_LATER).addTimestamp());
+        config.logEvent(new EventVO(Constants.EVENT_KEY_DONATION_ASK_LATER).addTimestamp());
         ok();
     }
     
     private void noThanks() {
-        Configuration.getInstance().setDonationStatus(Configuration.DonationStatus.NO_THANK_YOU);
-        JOptionPane.showMessageDialog(this, "Alright, no problem. We will not ask you again.\nIf you ever change your mind, you can donate from the About screen!", "No Problem", JOptionPane.INFORMATION_MESSAGE);
-        Configuration.getInstance().logEvent(new EventVO(Constants.EVENT_KEY_DONATION_NO_THANKS).addTimestamp());
+        config.setDonationStatus(Configuration.DonationStatus.NO_THANK_YOU);
+        config.setShowDonationDialogAfter(config.getLaunchCount() + 50);
+        JOptionPane.showMessageDialog(this, "Alright, no problem. We will not ask you again for a while.\nIf you change your mind, you can donate from the About screen!", "No Problem", JOptionPane.INFORMATION_MESSAGE);
+        config.logEvent(new EventVO(Constants.EVENT_KEY_DONATION_NO_THANKS).addTimestamp());
         ok();
+    }
+    
+    private void openMerchStore() {
+        try {
+            DesktopUtils.open(new URL("https://www.worldpainter.store/"));
+            config.logEvent(new EventVO(Constants.EVENT_KEY_MERCH_STORE_OPENED).addTimestamp());
+            ok();
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /** This method is called from within the constructor to
@@ -106,61 +103,76 @@ public final class DonationDialog extends WorldPainterDialog {
      * WARNING: Do NOT modify this code. The content of this method is
      * always regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         jLabel1 = new javax.swing.JLabel();
         jTextArea1 = new javax.swing.JTextArea();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
+        buttonDonate = new javax.swing.JButton();
+        buttonAlreadyDonated = new javax.swing.JButton();
+        buttonAskLater = new javax.swing.JButton();
+        buttonNoThanks = new javax.swing.JButton();
+        buttonMerchStore = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Please Donate");
+        setTitle("Please Support WorldPainter");
         setResizable(false);
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/resources/banner.png"))); // NOI18N
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/resources/about.png"))); // NOI18N
         jLabel1.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
         jTextArea1.setEditable(false);
         jTextArea1.setColumns(20);
+        jTextArea1.setFont(jTextArea1.getFont().deriveFont(jTextArea1.getFont().getSize()+6f));
         jTextArea1.setLineWrap(true);
-        jTextArea1.setText("Thank you for using WorldPainter!\n\nWorldPainter takes a lot of effort to create and maintain. You are free to keep using it without paying, but please consider helping out with a small donation of € 4.95.");
+        jTextArea1.setText("Thank you for using WorldPainter!\n\nWorldPainter takes a lot of effort to create and maintain. Please consider helping out with a donation, or by buying merchandise from our merch store.");
         jTextArea1.setWrapStyleWord(true);
         jTextArea1.setOpaque(false);
 
-        jButton1.setMnemonic('d');
-        jButton1.setText("Donate");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        buttonDonate.setBackground(new java.awt.Color(255, 196, 58));
+        buttonDonate.setFont(buttonDonate.getFont().deriveFont(buttonDonate.getFont().getStyle() | java.awt.Font.BOLD, buttonDonate.getFont().getSize()+3));
+        buttonDonate.setMnemonic('d');
+        buttonDonate.setText("Donate");
+        buttonDonate.setBorderPainted(false);
+        buttonDonate.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                buttonDonateActionPerformed(evt);
             }
         });
 
-        jButton2.setMnemonic('a');
-        jButton2.setText("I have already donated");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        buttonAlreadyDonated.setFont(buttonAlreadyDonated.getFont().deriveFont(buttonAlreadyDonated.getFont().getSize()+3f));
+        buttonAlreadyDonated.setMnemonic('a');
+        buttonAlreadyDonated.setText("I have already donated");
+        buttonAlreadyDonated.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                buttonAlreadyDonatedActionPerformed(evt);
             }
         });
 
-        jButton3.setMnemonic('l');
-        jButton3.setText("Ask me later");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        buttonAskLater.setFont(buttonAskLater.getFont().deriveFont(buttonAskLater.getFont().getSize()+3f));
+        buttonAskLater.setMnemonic('l');
+        buttonAskLater.setText("Ask me later");
+        buttonAskLater.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                buttonAskLaterActionPerformed(evt);
             }
         });
 
-        jButton4.setMnemonic('n');
-        jButton4.setText("No thank you");
-        jButton4.addActionListener(new java.awt.event.ActionListener() {
+        buttonNoThanks.setFont(buttonNoThanks.getFont().deriveFont(buttonNoThanks.getFont().getSize()+3f));
+        buttonNoThanks.setMnemonic('n');
+        buttonNoThanks.setText("No thank you");
+        buttonNoThanks.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton4ActionPerformed(evt);
+                buttonNoThanksActionPerformed(evt);
+            }
+        });
+
+        buttonMerchStore.setFont(buttonMerchStore.getFont().deriveFont(buttonMerchStore.getFont().getSize()+3f));
+        buttonMerchStore.setText("Merch store");
+        buttonMerchStore.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonMerchStoreActionPerformed(evt);
             }
         });
 
@@ -173,13 +185,15 @@ public final class DonationDialog extends WorldPainterDialog {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jButton1)
+                        .addComponent(buttonDonate)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton2)
+                        .addComponent(buttonMerchStore)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton3)
+                        .addComponent(buttonAlreadyDonated)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton4))
+                        .addComponent(buttonAskLater)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonNoThanks))
                     .addComponent(jTextArea1))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -192,40 +206,48 @@ public final class DonationDialog extends WorldPainterDialog {
                 .addComponent(jTextArea1)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2)
-                    .addComponent(jButton3)
-                    .addComponent(jButton4))
+                    .addComponent(buttonDonate)
+                    .addComponent(buttonAlreadyDonated)
+                    .addComponent(buttonAskLater)
+                    .addComponent(buttonNoThanks)
+                    .addComponent(buttonMerchStore))
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void buttonDonateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonDonateActionPerformed
         donate();
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_buttonDonateActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void buttonAlreadyDonatedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonAlreadyDonatedActionPerformed
         alreadyDonated();
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_buttonAlreadyDonatedActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+    private void buttonAskLaterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonAskLaterActionPerformed
         askLater();
-    }//GEN-LAST:event_jButton3ActionPerformed
+    }//GEN-LAST:event_buttonAskLaterActionPerformed
 
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+    private void buttonNoThanksActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonNoThanksActionPerformed
         noThanks();
-    }//GEN-LAST:event_jButton4ActionPerformed
+    }//GEN-LAST:event_buttonNoThanksActionPerformed
+
+    private void buttonMerchStoreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonMerchStoreActionPerformed
+        openMerchStore();
+    }//GEN-LAST:event_buttonMerchStoreActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
+    private javax.swing.JButton buttonAlreadyDonated;
+    private javax.swing.JButton buttonAskLater;
+    private javax.swing.JButton buttonDonate;
+    private javax.swing.JButton buttonMerchStore;
+    private javax.swing.JButton buttonNoThanks;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JTextArea jTextArea1;
     // End of variables declaration//GEN-END:variables
 
+    private final Configuration config;
+    
     private static final long serialVersionUID = 1L;
 }

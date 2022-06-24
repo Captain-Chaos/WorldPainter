@@ -1,23 +1,25 @@
 package org.pepsoft.worldpainter.layers.bo2;
 
+import org.jetbrains.annotations.NotNull;
 import org.jnbt.*;
-import org.pepsoft.minecraft.*;
+import org.pepsoft.minecraft.AbstractNBTItem;
+import org.pepsoft.minecraft.Entity;
+import org.pepsoft.minecraft.Material;
+import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.util.AttributeKey;
 import org.pepsoft.util.DynamicList;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.objects.WPObject;
 
 import javax.vecmath.Point3i;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toMap;
-import static org.pepsoft.minecraft.Constants.TAG_ID;
-import static org.pepsoft.minecraft.Constants.TAG_ID_;
+import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.minecraft.Material.MINECRAFT;
 
@@ -29,51 +31,94 @@ public final class Schem extends AbstractNBTItem implements WPObject {
     @SuppressWarnings("unchecked") // Guaranteed by Minecraft
     public Schem(CompoundTag tag, String fallBackName) {
         super(tag);
-        StringTag nameTag = (StringTag) getMap(TAG_METADATA).get(TAG_NAME);
+        final int version = getInt(TAG_VERSION);
+        final StringTag nameTag = (getMap(TAG_METADATA) != null) ? (StringTag) getMap(TAG_METADATA).get(TAG_NAME) : null;
         this.name = (nameTag != null) ? nameTag.getValue() : fallBackName;
         width = getShort(TAG_WIDTH);
         height = getShort(TAG_HEIGHT);
         length = getShort(TAG_LENGTH);
-        Map<String, Tag> paletteMap = getMap(TAG_PALETTE);
-        List<Material> paletteList = new DynamicList<>();
+
+        final Map<String, Tag> paletteMap;
+        final Tag blockDataTag;
+        final Tag tileEntitiesTag;
+        final Tag entitiesTag;
+        switch (version) {
+            case 1:
+                paletteMap = getMap(TAG_PALETTE);
+                blockDataTag = getTag(TAG_BLOCK_DATA);
+                tileEntitiesTag = getTag(TAG_TILE_ENTITIES);
+                entitiesTag = null;
+                // Save memory
+                removeTag(TAG_PALETTE);
+                removeTag(TAG_BLOCK_DATA);
+                removeTag(TAG_TILE_ENTITIES);
+                break;
+            case 2:
+                paletteMap = getMap(TAG_PALETTE);
+                blockDataTag = getTag(TAG_BLOCK_DATA);
+                tileEntitiesTag = getTag(TAG_BLOCK_ENTITIES);
+                entitiesTag = getTag(TAG_ENTITIES);
+                // Save memory
+                removeTag(TAG_PALETTE);
+                removeTag(TAG_BLOCK_DATA);
+                removeTag(TAG_BLOCK_ENTITIES);
+                removeTag(TAG_ENTITIES);
+                break;
+            case 3:
+                final CompoundTag blocksTag = (CompoundTag) getTag(TAG_BLOCKS);
+                paletteMap = ((CompoundTag) blocksTag.getTag(TAG_PALETTE)).getValue();
+                blockDataTag = blocksTag.getTag(TAG_DATA);
+                tileEntitiesTag = blocksTag.getTag(TAG_BLOCK_ENTITIES);
+                entitiesTag = getTag(TAG_ENTITIES);
+                // Save memory
+                removeTag(TAG_BLOCKS);
+                removeTag(TAG_ENTITIES);
+                break;
+            default:
+                throw new IllegalArgumentException("Schem version " + version + " not supported");
+        }
+
+        final List<Material> paletteList = new DynamicList<>();
         paletteMap.forEach((key, value) -> {
             Material material = decodeMaterial(key);
             paletteList.set(((IntTag) value).getValue(), material);
         });
         palette = paletteList.toArray(new Material[paletteList.size()]);
-        Tag blocksTag = getTag(TAG_BLOCK_DATA);
-        if (blocksTag instanceof IntArrayTag) {
-            blocks = ((IntArrayTag) blocksTag).getValue();
-        } else if (blocksTag instanceof ByteArrayTag) {
-            byte[] bytes = ((ByteArrayTag) blocksTag).getValue();
-            blocks = new int[bytes.length];
-            for (int i = 0; i < bytes.length; i++) {
-                blocks[i] = bytes[i] & 0xff;
+        if (blockDataTag instanceof IntArrayTag) {
+            // TODO since this is supposed to be varints; if we get here are these really straight integers?
+            blocks = ((IntArrayTag) blockDataTag).getValue();
+        } else if (blockDataTag instanceof ByteArrayTag) {
+            final byte[] bytes = ((ByteArrayTag) blockDataTag).getValue();
+            blocks = new int[width * height * length];
+            final ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+            for (int i = 0; i < blocks.length; i++) {
+                blocks[i] = readVarInt(bais);
             }
         } else {
-            throw new IllegalArgumentException("Unsupported tag type for BlockData: " + blocksTag.getClass().getSimpleName());
+            throw new IllegalArgumentException("Unsupported tag type for BlockData or Blocks/Data: " + blockDataTag.getClass().getSimpleName());
         }
-        Tag tileEntitiesTag = getTag(TAG_BLOCK_ENTITIES);
+
         if (tileEntitiesTag instanceof ListTag) {
             tileEntities = new ArrayList<>(((ListTag<?>) tileEntitiesTag).getValue().size());
             for (CompoundTag tileEntityTag: ((ListTag<CompoundTag>) tileEntitiesTag).getValue()) {
-                // It appears that schems contain the ID in the wrong case; fix that TODO what's going on here?
-                if ((tileEntityTag.getTag(TAG_ID_) == null) && (tileEntityTag.getTag(TAG_ID) != null)) {
-                    tileEntityTag.setTag(TAG_ID_, new StringTag(TAG_ID_, ((StringTag) tileEntityTag.getTag(TAG_ID)).getValue()));
-                    tileEntityTag.setTag(TAG_ID, null);
-                }
-                TileEntity tileEntity = TileEntity.fromNBT(tileEntityTag);
-                tileEntities.add(tileEntity);
+                tileEntities.add(getTileEntity(tileEntityTag));
             }
         } else if (tileEntitiesTag != null) {
-            throw new IllegalArgumentException("Unsupported tag type for BlockEntities: " + tileEntitiesTag.getClass().getSimpleName());
+            throw new IllegalArgumentException("Unsupported tag type for TileEntities or Blocks/BlockEntities: " + tileEntitiesTag.getClass().getSimpleName());
         } else {
             tileEntities = null;
         }
-        // Save memory
-        removeTag(TAG_PALETTE);
-        removeTag(TAG_BLOCK_DATA);
-        removeTag(TAG_BLOCK_ENTITIES);
+
+        if (entitiesTag instanceof ListTag) {
+            entities = new ArrayList<>(((ListTag<CompoundTag>) entitiesTag).getValue().size());
+            for (CompoundTag entityTag: ((ListTag<CompoundTag>) entitiesTag).getValue()) {
+                entities.add(getEntity(entityTag, version));
+            }
+        } else if (entitiesTag != null) {
+            throw new IllegalArgumentException("Unsupported tag type for Entities: " + entitiesTag.getClass().getSimpleName());
+        } else {
+            entities = null;
+        }
 
         Point3i offset;
         int[] schemOffset = getIntArray(TAG_OFFSET);
@@ -131,7 +176,7 @@ public final class Schem extends AbstractNBTItem implements WPObject {
 
     @Override
     public List<Entity> getEntities() {
-        return null;
+        return entities;
     }
 
     @Override
@@ -186,6 +231,12 @@ public final class Schem extends AbstractNBTItem implements WPObject {
         return clone;
     }
 
+    public static Schem load(File file) throws IOException {
+        final Schem schem = load(new FileInputStream(file), file.getName().substring(0, file.getName().lastIndexOf('.')));
+        schem.setAttribute(ATTRIBUTE_FILE, file);
+        return schem;
+    }
+
     public static Schem load(InputStream stream, String fallBackName) throws IOException {
         try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(stream))) {
             return new Schem((CompoundTag) in.readTag(), fallBackName);
@@ -213,10 +264,82 @@ public final class Schem extends AbstractNBTItem implements WPObject {
         return Material.get(name, properties);
     }
 
+    private int readVarInt(InputStream is) {
+        try {
+            int i = 0;
+            int byteCount = 0;
+            while (true) {
+                final int _byte = is.read();
+                i |= (_byte & 0x7F) << byteCount++ * 7;
+                if (byteCount > 5) {
+                    throw new WPRuntimeException("VarInt too big");
+                }
+                if ((_byte & 0x80) != 128) {
+                    break;
+                }
+            }
+            return i;
+        } catch (IOException e) {
+            throw new WPRuntimeException(e);
+        }
+    }
+
+    @NotNull
+    private TileEntity getTileEntity(CompoundTag tileEntityTag) {
+        String id = null;
+        int x = 0, y = 0, z = 0;
+        for (Iterator<Map.Entry<String, Tag>> i = tileEntityTag.getValue().entrySet().iterator(); i.hasNext(); ) {
+            Tag extraTag = i.next().getValue();
+            if (extraTag.getName().equals(TAG_ID)) {
+                id = ((StringTag) extraTag).getValue();
+                i.remove();
+            } else if (extraTag.getName().equals(TAG_POS)) {
+                x = ((IntArrayTag) extraTag).getValue()[0];
+                y = ((IntArrayTag) extraTag).getValue()[1];
+                z = ((IntArrayTag) extraTag).getValue()[2];
+                i.remove();
+            }
+        }
+        tileEntityTag.setTag(TAG_ID_, new StringTag(TAG_ID_, id));
+        tileEntityTag.setTag(TAG_X_, new IntTag(TAG_X_, x));
+        tileEntityTag.setTag(TAG_Y_, new IntTag(TAG_Y_, y));
+        tileEntityTag.setTag(TAG_Z_, new IntTag(TAG_Z_, z));
+        return TileEntity.fromNBT(tileEntityTag);
+    }
+
+    @SuppressWarnings("unchecked") // Guaranteed by standard
+    private Entity getEntity(CompoundTag entityTag, int version) {
+        String id = null;
+        double x = 0, y = 0, z = 0;
+        CompoundTag dataTag = null;
+        for (Iterator<Map.Entry<String, Tag>> i = entityTag.getValue().entrySet().iterator(); i.hasNext(); ) {
+            Tag extraTag = i.next().getValue();
+            if (extraTag.getName().equals(TAG_ID)) {
+                id = ((StringTag) extraTag).getValue();
+                i.remove();
+            } else if (extraTag.getName().equals(TAG_POS)) {
+                x = ((ListTag<DoubleTag>) extraTag).getValue().get(0).getValue();
+                y = ((ListTag<DoubleTag>) extraTag).getValue().get(1).getValue();
+                z = ((ListTag<DoubleTag>) extraTag).getValue().get(3).getValue();
+                i.remove();
+            } else if (extraTag.getName().equals(TAG_DATA)) {
+                dataTag = (CompoundTag) extraTag;
+            }
+        }
+        if (version >= 3) {
+            dataTag.setTag(TAG_ID_, new StringTag(TAG_ID_, id));
+            return Entity.fromNBT(dataTag, new double[] {x, y, z});
+        } else {
+            entityTag.setTag(TAG_ID_, new StringTag(TAG_ID_, id));
+            return Entity.fromNBT(entityTag, new double[] {x, y, z});
+        }
+    }
+
     private final int width, height, length;
     private final Material[] palette;
     private final int[] blocks;
     private final List<TileEntity> tileEntities;
+    private final List<Entity> entities;
     private String name;
     private Map<String, Serializable> attributes;
 

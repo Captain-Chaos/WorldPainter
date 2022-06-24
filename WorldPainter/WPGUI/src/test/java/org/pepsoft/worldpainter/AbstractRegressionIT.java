@@ -1,6 +1,5 @@
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.objects.WPObject;
 import org.pepsoft.worldpainter.tools.scripts.RegressionIT;
 
@@ -19,7 +18,6 @@ public abstract class AbstractRegressionIT {
             while ((fileName = in.readLine()) != null) {
                 WPObject object = loader.load(RegressionIT.class.getResourceAsStream(path + "/" + fileName));
                 tester.test(object);
-                System.out.println("Tested " + fileName);
             }
         }
     }

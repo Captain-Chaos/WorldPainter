@@ -345,7 +345,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         final TileFactory tileFactory = createTileFactory(worldpainterSeed);
 
         final Dimension dimension;
-        dimension = new Dimension(world, minecraftSeed, tileFactory, dim, tileFactory.getMinHeight(), tileFactory.getMaxHeight());
+        dimension = new Dimension(world, minecraftSeed, tileFactory, dim);
         dimension.setEventsInhibited(true);
         try {
             ExecutorService executorService = MDCThreadPoolExecutor.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -508,7 +508,8 @@ public class NewWorldDialog extends WorldPainterDialog {
                     dimension.setBorder(defaults.getBorder());
                     dimension.setBorderSize(defaults.getBorderSize());
                 }
-                dimension.setBedrockWall(defaults.isBedrockWall());
+                dimension.setWallType(defaults.getWallType());
+                dimension.setRoofType(defaults.getRoofType());
                 dimension.setSubsurfaceMaterial(defaults.getSubsurfaceMaterial());
                 dimension.setPopulate(defaults.isPopulate());
                 dimension.setTopLayerMinDepth(defaults.getTopLayerMinDepth());

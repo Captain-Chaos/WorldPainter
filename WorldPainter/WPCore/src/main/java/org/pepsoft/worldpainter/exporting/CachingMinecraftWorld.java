@@ -117,7 +117,7 @@ public class CachingMinecraftWorld implements MinecraftWorld {
         if (chunk != null) {
             return chunk.getSkyLightLevel(x & 0xf, height, y & 0xf);
         } else {
-            return 15;
+            return 0;
         }
     }
 

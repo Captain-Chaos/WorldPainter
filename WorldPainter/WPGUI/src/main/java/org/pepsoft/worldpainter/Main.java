@@ -168,13 +168,14 @@ public class Main {
 
         // If the config file does not exist, also reset the persistent settings that are not stored in that, since the
         // user may be trying to reset the configuration
+        final boolean snapshot = Version.isSnapshot();
         if (! Configuration.getConfigFile().isFile()) {
             try {
                 Preferences prefs = Preferences.userNodeForPackage(Main.class);
-                prefs.remove("accelerationType");
+                prefs.remove((snapshot ? "snapshot." : "") + "accelerationType");
                 prefs.flush();
                 prefs = Preferences.userNodeForPackage(GUIUtils.class);
-                prefs.remove("manualUIScale");
+                prefs.remove((snapshot ? "snapshot." : "") + "manualUIScale");
                 prefs.flush();
             } catch (BackingStoreException e) {
                 logger.error("Error resetting user preferences", e);
@@ -184,7 +185,7 @@ public class Main {
         // Set the acceleration mode. For some reason we don't fully understand, loading the Configuration from disk
         // initialises Java2D, so we have to do this *before* then.
         AccelerationType accelerationType;
-        String accelTypeName = Preferences.userNodeForPackage(Main.class).get("accelerationType", null);
+        String accelTypeName = Preferences.userNodeForPackage(Main.class).get((snapshot ? "snapshot." : "") + "accelerationType", null);
         if (accelTypeName != null) {
             accelerationType = AccelerationType.valueOf(accelTypeName);
         } else {
@@ -360,10 +361,10 @@ public class Main {
                     // Store the acceleration type and manual GUI scale separately, because we need them before we can
                     // load the config:
                     Preferences prefs = Preferences.userNodeForPackage(Main.class);
-                    prefs.put("accelerationType", config.getAccelerationType().name());
+                    prefs.put((snapshot ? "snapshot." : "") + "accelerationType", config.getAccelerationType().name());
                     prefs.flush();
                     prefs = Preferences.userNodeForPackage(GUIUtils.class);
-                    prefs.putFloat("manualUIScale", config.getUiScale());
+                    prefs.putFloat((snapshot ? "snapshot." : "") + "manualUIScale", config.getUiScale());
                     prefs.flush();
                 } catch (IOException e) {
                     logger.error("I/O error saving configuration", e);
@@ -479,7 +480,7 @@ public class Main {
             // Do this later to give the app the chance to properly set
             // itself up
             SwingUtilities.invokeLater(() -> {
-                if (Version.isSnapshot() && ! myConfig.isSnapshotWarningDisplayed()) {
+                if (Version.isSnapshot() && ! myConfig.isMessageDisplayed(SNAPSHOT_MESSAGE_KEY)) {
                     String result = JOptionPane.showInputDialog(app, SNAPSHOT_MESSAGE, "Snapshot Release", JOptionPane.WARNING_MESSAGE);
                     if (result == null) {
                         // Cancel was pressed
@@ -493,7 +494,7 @@ public class Main {
                             System.exit(0);
                         }
                     }
-                    myConfig.setSnapshotWarningDisplayed(true);
+                    myConfig.setMessageDisplayed(SNAPSHOT_MESSAGE_KEY);
                 }
                 if (world != null) {
                     // On a Mac we may be doing this unnecessarily because we
@@ -511,7 +512,9 @@ public class Main {
                 if (myConfig.isAutosaveEnabled() && autosaveInhibited) {
                     JOptionPane.showMessageDialog(app, "Another instance of WorldPainter is already running.\nAutosave will therefore be disabled in this instance of WorldPainter!", "Autosave Disabled", JOptionPane.WARNING_MESSAGE);
                 }
-                DonationDialog.maybeShowDonationDialog(app);
+                if (! DonationDialog.maybeShowDonationDialog(app)) {
+                    MerchDialog.maybeShowMerchDialog(app);
+                }
             });
         });
     }
@@ -541,6 +544,7 @@ public class Main {
             "<p>Any or all work you do with this test release may be lost, and if you don't create backups,<br>you may lose your current worlds." +
             "<p>Please report bugs on GitHub: https://github.com/Captain-Chaos/WorldPainter" +
             "<p>Type \"I understand\" below to proceed with testing the next release of WorldPainter:</p></html>";
+    private static final String SNAPSHOT_MESSAGE_KEY = "org.pepsoft.worldpainter.snapshotWarning";
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Main.class);
 

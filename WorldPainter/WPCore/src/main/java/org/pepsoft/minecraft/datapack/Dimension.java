@@ -43,6 +43,7 @@ public class Dimension extends Descriptor {
                         .logicalHeight(maxHeight - platform.minZ)
                         .minY(platform.minZ)
                         .height(maxHeight - platform.minZ)
+                        .effects((platform == JAVA_ANVIL_1_17) ? "minecraft:overworld" : "#minecraft:overworld")
                         .build();
             case DIM_NETHER:
                 return builder()

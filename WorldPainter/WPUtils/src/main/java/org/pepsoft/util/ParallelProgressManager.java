@@ -97,9 +97,7 @@ public class ParallelProgressManager {
         if (! started) {
             start();
         }
-        if (cancelledException != null) {
-            throw cancelledException;
-        }
+        cancelIfPreviousException();
         taskProgress[index] = subProgress;
         float totalProgress = 0.0f;
         for (float progress: taskProgress) {
@@ -108,7 +106,7 @@ public class ParallelProgressManager {
         try {
             progressReceiver.setProgress(totalProgress / taskCount);
         } catch (ProgressReceiver.OperationCancelled e) {
-            cancelledException = e;
+            previousException = e;
             throw e;
         }
     }
@@ -118,12 +116,8 @@ public class ParallelProgressManager {
             start();
         }
         exceptionThrown = true;
-        if (cancelledException == null) {
-            if (exception instanceof ProgressReceiver.OperationCancelled) {
-                cancelledException = (ProgressReceiver.OperationCancelled) exception;
-            } else {
-                cancelledException = new ProgressReceiver.OperationCancelled("Operation cancelled due to exception on other thread (type: " + exception.getClass().getSimpleName() + ", message: " + exception.getMessage() + ")");
-            }
+        if (previousException == null) {
+            previousException = exception;
         }
         running.clear(index);
         notifyAll();
@@ -132,8 +126,10 @@ public class ParallelProgressManager {
             progressReceiver.exceptionThrown(exception);
         } else if (exception instanceof ProgressReceiver.OperationCancelledByUser) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Operation cancelled by user; not reporting to progress receiver", exception);
+                logger.debug("Operation cancelled by user; not reporting to progress receiver");
             }
+        } else if (exception instanceof ProgressReceiver.OperationCancelled) {
+            logger.debug("Operation cancelled on thread {} (message: \"{}\")", Thread.currentThread().getName(), exception.getMessage());
         } else {
             logger.error("Secondary exception from parallel task; not reporting to progress receiver", exception);
         }
@@ -156,9 +152,7 @@ public class ParallelProgressManager {
         if (! started) {
             start();
         }
-        if (cancelledException != null) {
-            throw cancelledException;
-        }
+        cancelIfPreviousException();
         progressReceiver.setMessage(message);
     }
 
@@ -166,18 +160,14 @@ public class ParallelProgressManager {
         if (! started) {
             start();
         }
-        if (cancelledException != null) {
-            throw cancelledException;
-        }
+        cancelIfPreviousException();
     }
 
     private synchronized void subProgressStarted(org.pepsoft.util.SubProgressReceiver subProgressReceiver) throws ProgressReceiver.OperationCancelled {
         if (! started) {
             start();
         }
-        if (cancelledException != null) {
-            throw cancelledException;
-        }
+        cancelIfPreviousException();
         progressReceiver.subProgressStarted(subProgressReceiver);
     }
 
@@ -188,13 +178,19 @@ public class ParallelProgressManager {
         started = true;
         notifyAll();
     }
+
+    private void cancelIfPreviousException() throws ProgressReceiver.OperationCancelled {
+        if (previousException != null) {
+            throw new ProgressReceiver.OperationCancelled("Operation cancelled due to exception on other thread (type: " + previousException.getClass().getSimpleName() + ", message: " + previousException.getMessage() + ")", previousException);
+        }
+    }
     
     private final ProgressReceiver progressReceiver;
     private final boolean taskCountKnown;
     private final BitSet running = new BitSet();
     private int taskCount, tasksCreated;
     private float[] taskProgress;
-    private ProgressReceiver.OperationCancelled cancelledException;
+    private Throwable previousException;
     private boolean started, exceptionThrown, exceptionReported;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ParallelProgressManager.class);

@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.exporting;
 
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
@@ -20,35 +21,26 @@ import java.util.function.Supplier;
  * @author pepijn
  */
 public abstract class AbstractLayerExporter<L extends Layer> implements LayerExporter {
-    public AbstractLayerExporter(L layer, ExporterSettings defaultSettings) {
+    public AbstractLayerExporter(Dimension dimension, Platform platform, ExporterSettings settings, L layer) {
+        this.dimension = dimension;
+        this.platform = platform;
+        this.settings = settings;
         this.layer = layer;
-        this.defaultSettings = defaultSettings;
-        settings = defaultSettings.clone();
+        minHeight = Math.max(dimension.getMinHeight(), platform.minZ);
+        minZ = dimension.isBottomless() ? minHeight : (minHeight + 1);
+        maxHeight = Math.min(dimension.getMaxHeight(), platform.maxMaxHeight);
+        maxZ = maxHeight - 1;
     }
 
-    public AbstractLayerExporter(L layer) {
-        this.layer = layer;
-        this.defaultSettings = null;
+    public final Dimension getDimension() {
+        return dimension;
     }
-    
+
     @Override
     public final L getLayer() {
         return layer;
     }
     
-    public final ExporterSettings getSettings() {
-        return settings;
-    }
-
-    @Override
-    public void setSettings(ExporterSettings settings) {
-        if (settings != null) {
-            this.settings = settings;
-        } else {
-            this.settings = (defaultSettings != null) ? defaultSettings.clone() : null;
-        }
-    }
-
     /**
      * A visitor of chunks.
      */
@@ -83,10 +75,11 @@ public abstract class AbstractLayerExporter<L extends Layer> implements LayerExp
         final int chunkX1 = area.x >> 4, chunkX2 = (area.x + area.width - 1) >> 4;
         final int chunkZ1 = area.y >> 4, chunkZ2 = (area.y + area.height - 1) >> 4;
         final int tileX1 = chunkX1 >> 3, tileX2 = chunkX2 >> 3, tileY1 = chunkZ1 >> 3, tileY2 = chunkZ2 >> 3;
+        final boolean applyEverywhere = (dimension.getLayerSettings(layer) != null) && dimension.getLayerSettings(layer).isApplyEverywhere();
         for (int tileX = tileX1; tileX <= tileX2; tileX++) {
             for (int tileY = tileY1; tileY <= tileY2; tileY++) {
                 final Tile tile = dimension.getTile(tileX, tileY);
-                if ((tile != null) && tile.containsOneOf(layer)) {
+                if ((tile != null) && (applyEverywhere || tile.containsOneOf(layer))) {
                     for (int chunkXInTile = 0; chunkXInTile < 8; chunkXInTile++) {
                         for (int chunkYInTile = 0; chunkYInTile < 8; chunkYInTile++) {
                             final int chunkX = (tileX << 3) | chunkXInTile, chunkZ = (tileY << 3) | chunkYInTile;
@@ -104,7 +97,25 @@ public abstract class AbstractLayerExporter<L extends Layer> implements LayerExp
         return true;
     }
 
+    protected final Dimension dimension;
+    protected final Platform platform;
     protected final L layer;
-    private final ExporterSettings defaultSettings;
-    private ExporterSettings settings;
+    /**
+     * The lowest height supported by both the selected platform and configured on the dimension.
+     */
+    protected final int minHeight;
+    /**
+     * One more than the highest height supported by both the selected platform and configured on the dimension.
+     */
+    protected final int maxHeight;
+    /**
+     * The lowest height blocks should actually be placed or removed, taking into account such things as whether the
+     * dimension is bottomless.
+     */
+    protected final int minZ;
+    /**
+     * The highest height blocks should actually be placed or removed.
+     */
+    protected final int maxZ;
+    protected final ExporterSettings settings;
 }

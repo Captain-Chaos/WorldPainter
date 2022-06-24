@@ -6,9 +6,12 @@
 
 package org.pepsoft.worldpainter.layers.plants;
 
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.bo2.Bo2ObjectProvider;
+import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.objects.WPObject;
 
 import java.io.IOException;
@@ -115,10 +118,15 @@ public class PlantLayer extends CustomLayer {
     }
     
     // Layer
-    
+
     @Override
-    public PlantLayerExporter getExporter() {
-        return new PlantLayerExporter(this);
+    public Class<? extends LayerExporter> getExporterType() {
+        return PlantLayerExporter.class;
+    }
+
+    @Override
+    public PlantLayerExporter getExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        return new PlantLayerExporter(dimension, platform, this);
     }
 
     // Cloneable
@@ -133,7 +141,7 @@ public class PlantLayer extends CustomLayer {
         PlantLayer clone = (PlantLayer) super.clone();
         clone.settings = new PlantSettings[settings.length];
         for (int i = 0; i < settings.length; i++) {
-            clone.settings[i] = settings[i].clone();
+            clone.settings[i] = (settings[i] != null) ? settings[i].clone() : null;
         }
         return clone;
     }

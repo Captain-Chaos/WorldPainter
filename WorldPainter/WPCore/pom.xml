@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.pepsoft.worldpainter</groupId>
         <artifactId>WorldPainter</artifactId>
-        <version>2.10.0-SNAPSHOT</version>
+        <version>2.10.11-SNAPSHOT</version>
     </parent>
 
     <artifactId>WPCore</artifactId>
@@ -79,7 +79,6 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <includes>
-                    <include>org.pepsoft.worldpainter.properties</include>
                     <include>org.pepsoft.worldpainter.plugins</include>
                 </includes>
                 <filtering>true</filtering>
@@ -87,28 +86,10 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <excludes>
-                    <exclude>org.pepsoft.worldpainter.properties</exclude>
                     <exclude>org.pepsoft.worldpainter.plugins</exclude>
                 </excludes>
                 <filtering>false</filtering>
             </resource>
         </resources>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>1.3</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>create-timestamp</goal>
-                        </goals>
-                        <configuration>
-                            <timestampFormat>yyyyMMddHHmmss</timestampFormat>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
     </build>
 </project>

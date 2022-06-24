@@ -35,7 +35,7 @@ public class WorldMorph {
     private static World2 createNewWorld() {
         long seed = System.currentTimeMillis();
         TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(seed, Terrain.GRASS, JAVA_MCREGION.minZ, JAVA_MCREGION.standardMaxHeight, 16, 24, false, true, 20, 1.0);
-        World2 world = new World2(JAVA_MCREGION, seed, tileFactory, JAVA_MCREGION.standardMaxHeight);
+        World2 world = new World2(JAVA_MCREGION, seed, tileFactory);
         Dimension dim0 = world.getDimension(0);
         for (int x = -2; x <= 2; x++) {
             for (int y = -2; y <= 2; y++) {

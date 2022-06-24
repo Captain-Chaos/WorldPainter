@@ -42,7 +42,6 @@ import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
-import static org.pepsoft.worldpainter.ChangeHeightDialog.resizeDimension;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Generator.*;
@@ -51,6 +50,7 @@ import static org.pepsoft.worldpainter.Platform.Capability.BLOCK_BASED;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.Terrain.GRASS;
 import static org.pepsoft.worldpainter.World2.DEFAULT_OCEAN_SEED;
+import static org.pepsoft.worldpainter.util.WorldUtils.resizeDimension;
 
 /**
  *
@@ -418,7 +418,7 @@ public class PreferencesDialog extends WorldPainterDialog {
 
         // Check whether this platform supports the current default export settings (or any export settings)
         final PlatformProvider platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
-        final ExportSettings platformDefaultExportSettings = platformProvider.getDefaultExportSettings();
+        final ExportSettings platformDefaultExportSettings = platformProvider.getDefaultExportSettings(platform);
         if (platformDefaultExportSettings != null) {
             labelEditExportSettingsLink.setForeground(BLUE);
             labelEditExportSettingsLink.setCursor(new Cursor(HAND_CURSOR));
@@ -435,9 +435,9 @@ public class PreferencesDialog extends WorldPainterDialog {
     private void editDefaultExportSettings() {
         final Platform platform = (Platform) comboBoxPlatform.getSelectedItem();
         final PlatformProvider platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
-        final ExportSettings platformDefaultExportSettings = platformProvider.getDefaultExportSettings();
+        final ExportSettings platformDefaultExportSettings = platformProvider.getDefaultExportSettings(platform);
         if (platformDefaultExportSettings != null) {
-            final ExportSettingsEditor editor = platformProvider.getExportSettingsEditor();
+            final ExportSettingsEditor editor = platformProvider.getExportSettingsEditor(platform);
             if ((defaultExportSettings != null) && (defaultExportSettings.getClass() == platformDefaultExportSettings.getClass())) {
                 editor.setExportSettings(defaultExportSettings);
             } else {
@@ -1648,7 +1648,7 @@ public class PreferencesDialog extends WorldPainterDialog {
             checkBoxBeaches.setSelected(true);
             comboBoxSurfaceMaterial.setSelectedItem(GRASS);
             checkBoxResourcesEverywhere.setSelected(true);
-            defaultTerrainAndLayerSettings = new World2(defaultPlatform, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), GRASS, defaultPlatform.minZ, defaultPlatform.standardMaxHeight, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0), defaultPlatform.standardMaxHeight).getDimension(DIM_NORMAL);
+            defaultTerrainAndLayerSettings = new World2(defaultPlatform, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), GRASS, defaultPlatform.minZ, defaultPlatform.standardMaxHeight, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0)).getDimension(DIM_NORMAL);
             config.setDefaultTerrainAndLayerSettings(defaultTerrainAndLayerSettings);
             defaultExportSettings = null;
         }

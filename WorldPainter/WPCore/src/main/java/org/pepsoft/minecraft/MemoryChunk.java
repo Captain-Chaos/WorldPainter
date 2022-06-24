@@ -110,7 +110,7 @@ public class MemoryChunk implements Chunk, MinecraftWorld, Serializable {
     public int getSkyLightLevel(int x, int y, int z) {
         int level = y >> 4;
         if (sections[level] == null) {
-            return 15;
+            return 0;
         } else {
             return getDataByte(sections[level].skyLight, x, y, z);
         }
@@ -124,7 +124,7 @@ public class MemoryChunk implements Chunk, MinecraftWorld, Serializable {
         int level = y >> 4;
         Section section = sections[level];
         if (section == null) {
-            if (skyLightLevel == 15) {
+            if (skyLightLevel == 0) {
                 return;
             }
             section = new Section((byte) level);

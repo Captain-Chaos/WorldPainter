@@ -41,8 +41,8 @@ import static org.pepsoft.worldpainter.objects.WPObject.*;
  * @author pepijn
  */
 public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements SecondPassLayerExporter, IncidentalLayerExporter {
-    public Bo2LayerExporter(Bo2Layer layer) {
-        super(layer);
+    public Bo2LayerExporter(Dimension dimension, Platform platform, Bo2Layer layer) {
+        super(dimension, platform, null, layer);
     }
 
     @Override
@@ -51,11 +51,9 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
     }
 
     @Override
-    public List<Fixup> addFeatures(final Dimension dimension, Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
+    public List<Fixup> addFeatures(Rectangle area, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
         try {
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider();
-            final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
-            final int maxZ = maxHeight - 1;
             final List<Fixup> fixups = new ArrayList<>();
             final int density = layer.getDensity() * 64;
             for (int chunkX = area.x; chunkX < area.x + area.width; chunkX += 16) {
@@ -118,12 +116,12 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
     }
 
     @Override
-    public Fixup apply(Dimension dimension, Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld, Platform platform) {
-        final long seed = dimension.getSeed() ^ ((long) location.x << 40) ^ ((long) location.y << 20) ^ (location.z);
+    public Fixup apply(Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
+        final long seed = dimension.getSeed() + location.x + location.y * 4099L + location.z * 65537L + layer.hashCode();
         applyRandom.setSeed(seed);
         if ((intensity > 0) && (applyRandom.nextInt(layer.getDensity() * 20) <= intensity * intensity / 225)) {
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider();
-            objectProvider.setSeed(seed);
+            objectProvider.setSeed(seed + 1);
             WPObject object = objectProvider.getObject();
             Material existingMaterial = minecraftWorld.getMaterialAt(location.x, location.y, location.z);
             Material materialBelow = minecraftWorld.getMaterialAt(location.x, location.y, location.z - 1);
@@ -194,38 +192,26 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
         if (flooded && (spawnUnderWater || spawnUnderLava || spawnOnWater || spawnOnLava)) {
             boolean lava = dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, x, y);
             if (lava ? (spawnUnderLava && spawnOnLava) : (spawnUnderWater && spawnOnWater)) {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable under or on water or lava");
-                }
+                logger.trace("Object {} @ {},{},{} potentially placeable under or on water or lava", object.getName(), x, y, z);
                 return random.nextBoolean() ? Placement.ON_LAND : Placement.FLOATING;
             } else if (lava ? spawnUnderLava : spawnUnderWater) {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable under water or lava");
-                }
+                logger.trace("Object {} @ {},{},{} potentially placeable under water or lava", object.getName(), x, y, z);
                 return Placement.ON_LAND;
             } else if (lava ? spawnOnLava : spawnOnWater) {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable on water or lava");
-                }
+                logger.trace("Object {} @ {},{},{} potentially placeable on water or lava", object.getName(), x, y, z);
                 return Placement.FLOATING;
             }
         } else if (! flooded) {
             Material materialUnderCoords = (z > minecraftWorld.getMinHeight()) ? minecraftWorld.getMaterialAt(x, y, z - 1) : AIR;
             if (object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND) && (! materialUnderCoords.veryInsubstantial)) {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable on land");
-                }
+                logger.trace("Object {} @ {},{},{} potentially placeable on land", object.getName(), x, y, z);
                 return Placement.ON_LAND;
             } else if ((! object.getAttribute(ATTRIBUTE_NEEDS_FOUNDATION)) && materialUnderCoords.veryInsubstantial) {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " potentially placeable in the air");
-                }
+                logger.trace("Object {} @ {},{},{} potentially placeable in the air", object.getName(), x, y, z);
                 return Placement.ON_LAND;
             }
         }
-        if (logger.isTraceEnabled()) {
-            logger.trace("Object " + object.getName() + " @ " + x + "," + y + "," + z + " not placeable");
-        }
+        logger.trace("Object {} @ {},{},{} not placeable", object.getName(), x, y, z);
         return Placement.NONE;
     }
 

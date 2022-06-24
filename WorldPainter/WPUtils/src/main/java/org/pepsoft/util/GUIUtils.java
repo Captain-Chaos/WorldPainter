@@ -1,5 +1,6 @@
 package org.pepsoft.util;
 
+import org.pepsoft.worldpainter.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -240,7 +241,11 @@ public class GUIUtils {
      * <p><strong>Note:</strong> for now UI scaling is only activated on <!-- TODO -->
      * Windows, until the current support on Mac and Linux can be investigated. <!-- TODO -->
      */
-    public static final float SYSTEM_UI_SCALE_FLOAT = SystemUtils.isWindows() ? MathUtils.clamp(1.0f, (float) Toolkit.getDefaultToolkit().getScreenResolution() / 96, 2.0f) : 1.0f;
+    public static final float SYSTEM_UI_SCALE_FLOAT = GraphicsEnvironment.isHeadless()
+            ? 1.0f
+            : SystemUtils.isWindows()
+                ? MathUtils.clamp(1.0f, (float) Toolkit.getDefaultToolkit().getScreenResolution() / 96, 2.0f)
+                : 1.0f;
 
     /**
      * How many times to scale pixel sizes to display at approximately the
@@ -266,13 +271,13 @@ public class GUIUtils {
             logger.info("[SAFE MODE] Not scaling GUI");
             UI_SCALE_FLOAT = 1.0f;
         } else {
-            float manualUIScale = Preferences.userNodeForPackage(GUIUtils.class).getFloat("manualUIScale", -1.0f);
+            float manualUIScale = Preferences.userNodeForPackage(GUIUtils.class).getFloat((Version.isSnapshot() ? "snapshot." : "") + "manualUIScale", -1.0f);
             if (manualUIScale > 0.0f) {
                 UI_SCALE_FLOAT = manualUIScale;
             } else {
                 UI_SCALE_FLOAT = SYSTEM_UI_SCALE_FLOAT;
             }
         }
-        UI_SCALE = Math.min(round(UI_SCALE_FLOAT), 1);
+        UI_SCALE = Math.max(round(UI_SCALE_FLOAT), 1);
     }
 }

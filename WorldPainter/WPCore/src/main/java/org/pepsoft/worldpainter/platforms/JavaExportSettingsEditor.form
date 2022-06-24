@@ -41,6 +41,7 @@
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="checkBoxMakeAllLeavesPersistent" min="-2" max="-2" attributes="0"/>
                   <Group type="102" attributes="0">
                       <EmptySpace min="21" pref="21" max="-2" attributes="0"/>
                       <Component id="checkBoxRemoveFloatingLeaves" min="-2" max="-2" attributes="0"/>
@@ -142,6 +143,8 @@
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="checkBoxRemoveFloatingLeaves" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="checkBoxMakeAllLeavesPersistent" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="32767" attributes="0"/>
           </Group>
       </Group>
@@ -318,6 +321,11 @@
     <Component class="javax.swing.JCheckBox" name="checkBoxBlockLight">
       <Properties>
         <Property name="text" type="java.lang.String" value="calculate block light"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="checkBoxMakeAllLeavesPersistent">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&lt;html&gt;make &lt;i&gt;all&lt;/i&gt; leaves persistent&lt;/html&gt;"/>
       </Properties>
     </Component>
   </SubComponents>

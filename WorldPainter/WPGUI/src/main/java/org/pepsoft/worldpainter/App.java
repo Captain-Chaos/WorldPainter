@@ -50,16 +50,14 @@ import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.panels.InfoPanel;
 import org.pepsoft.worldpainter.plugins.CustomLayerProvider;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.selection.*;
 import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
 import org.pepsoft.worldpainter.tools.BiomesViewerFrame;
 import org.pepsoft.worldpainter.tools.RespawnPlayerDialog;
 import org.pepsoft.worldpainter.tools.scripts.ScriptRunner;
-import org.pepsoft.worldpainter.util.BackupUtils;
-import org.pepsoft.worldpainter.util.BetterAction;
-import org.pepsoft.worldpainter.util.LayoutUtils;
-import org.pepsoft.worldpainter.util.LazyLoadingIconToggleButton;
+import org.pepsoft.worldpainter.util.*;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
 import org.pepsoft.worldpainter.vo.EventVO;
 import org.pepsoft.worldpainter.vo.UsageVO;
@@ -98,6 +96,7 @@ import static com.jidesoft.docking.DockContext.DOCK_SIDE_WEST;
 import static com.jidesoft.docking.DockableFrame.*;
 import static java.awt.event.KeyEvent.*;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toSet;
 import static javax.swing.JOptionPane.*;
 import static org.pepsoft.minecraft.Constants.*;
@@ -164,7 +163,7 @@ public final class App extends JFrame implements RadiusControl,
         getRootPane().putClientProperty(KEY_HELP_KEY, "Main");
 
         hiddenLayers.add(Biome.INSTANCE);
-        view.addHiddenLayer(Biome.INSTANCE);
+        view.setHiddenLayers(singleton(Biome.INSTANCE));
         
         // Initialize various things
         customBiomeManager.addListener(this);
@@ -402,6 +401,13 @@ public final class App extends JFrame implements RadiusControl,
                 ACTION_EXPORT_WORLD.setEnabled(true);
                 ACTION_MERGE_WORLD.setEnabled(true);
             }
+
+            if (! PlatformManager.getInstance().getAllPlatforms().contains(world.getPlatform())) {
+                DesktopUtils.beep();
+                JOptionPane.showMessageDialog(this, "This world is set to a map format (\"" + world.getPlatform().displayName + "\") that is unknown and unsupported.\n" +
+                        "It cannot be Exported without first changing the format.\n" +
+                        "It is most likely supported by a plugin that is not installed or could not be loaded.", "Unknown Map Format", WARNING_MESSAGE);
+            }
         }
     }
 
@@ -460,6 +466,7 @@ public final class App extends JFrame implements RadiusControl,
                 List<CustomLayer> customLayers = new ArrayList<>();
                 boolean visibleLayersChanged = false;
                 for (Palette palette: paletteManager.clear()) {
+                    palette.removePropertyChangeListener(this);
                     List<CustomLayer> paletteLayers = palette.getLayers();
                     customLayers.addAll(paletteLayers);
                     for (Layer layer: paletteLayers) {
@@ -960,6 +967,7 @@ public final class App extends JFrame implements RadiusControl,
 
         Set<Warning> warnings = newWorld.getWarnings();
         if ((warnings != null) && (! warnings.isEmpty())) {
+            DesktopUtils.beep();
             for (Warning warning: warnings) {
                 switch (warning) {
                     case AUTO_BIOMES_DISABLED:
@@ -985,13 +993,29 @@ public final class App extends JFrame implements RadiusControl,
                                 "circumstances; for example by using Undo after removing a Custom Terrain\n" +
                                 "Type. The missing Custom Terrain Type(s) have been replaced with Magenta\n" +
                                 "Wool and will have to be reconfigured from the Custom Terrain panel.", "Missing Custom Terrain Types", WARNING_MESSAGE);
+                        break;
+                    case SUPERFLAT_SETTINGS_RESET:
+                        JOptionPane.showMessageDialog(this, "The Superflat preset from this world could not be parsed.\n" +
+                                "It has been reset to default values.", "Superflat Preset Reset", WARNING_MESSAGE);
+                        break;
                 }
             }
         }
 
         if (newWorld.isAskToConvertToAnvil() && (newWorld.getMaxHeight() == DEFAULT_MAX_HEIGHT_MCREGION) && (newWorld.getImportedFrom() == null)) {
             if (showConfirmDialog(this, strings.getString("this.world.is.128.blocks.high"), strings.getString("convert.world.height"), YES_NO_OPTION) == YES_OPTION) {
-                ChangeHeightDialog.resizeWorld(newWorld, HeightTransform.IDENTITY, 0, DEFAULT_MAX_HEIGHT_ANVIL, true, this);
+                ProgressDialog.executeTask(this, new ProgressTask<Void>() {
+                    @Override
+                    public String getName() {
+                        return "Changing world height";
+                    }
+
+                    @Override
+                    public Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                        WorldUtils.resizeWorld(world, HeightTransform.IDENTITY, 0, DEFAULT_MAX_HEIGHT_ANVIL, true, progressReceiver);
+                        return null;
+                    }
+                }, NOT_CANCELABLE);
                 newWorld.addHistoryEntry(HistoryEntry.WORLD_MAX_HEIGHT_CHANGED, DEFAULT_MAX_HEIGHT_ANVIL);
                 // Force the version to "Anvil" if it was previously exported
                 // with the old format
@@ -1173,11 +1197,28 @@ public final class App extends JFrame implements RadiusControl,
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if (evt.getSource() == world) {
-            lastChangeTimestamp = System.currentTimeMillis();
-            if (evt.getPropertyName().equals("platform")) {
-                doOnEventThread(this::configureForPlatform);
+        if (programmaticChange) {
+            return;
+        }
+        programmaticChange = true;
+        try {
+            if (evt.getSource() == world) {
+                lastChangeTimestamp = System.currentTimeMillis();
+                if (evt.getPropertyName().equals("platform")) {
+                    doOnEventThread(this::configureForPlatform);
+                }
+            } else if ((evt.getSource() instanceof Palette) && (evt.getPropertyName().equals("show") || evt.getPropertyName().equals("solo"))) {
+                if (evt.getPropertyName().equals("solo") && evt.getNewValue() == Boolean.TRUE) {
+                    for (Palette palette: paletteManager.getPalettes()) {
+                        if ((palette != evt.getSource()) && palette.isSolo()) {
+                            palette.setSolo(false);
+                        }
+                    }
+                }
+                updateLayerVisibility();
             }
+        } finally {
+            programmaticChange = false;
         }
     }
 
@@ -2369,7 +2410,7 @@ public final class App extends JFrame implements RadiusControl,
         if (! saveIfNecessary()) {
             return;
         }
-        if (! Configuration.getInstance().isImportWarningDisplayed()) {
+        if (! Configuration.getInstance().isMessageDisplayed(IMPORT_WARNING_KEY)) {
             showMessageDialog(this, strings.getString("the.import.functionality.only.imports.the.i.landscape"), strings.getString("information"), INFORMATION_MESSAGE);
         }
         MapImportDialog dialog = new MapImportDialog(this);
@@ -2379,7 +2420,7 @@ public final class App extends JFrame implements RadiusControl,
             setWorld(importedWorld, true);
             lastSelectedFile = null;
             Configuration config = Configuration.getInstance();
-            config.setImportWarningDisplayed(true);
+            config.setMessageDisplayed(IMPORT_WARNING_KEY);
             enableImportedWorldOperation();
         }
     }
@@ -2426,7 +2467,7 @@ public final class App extends JFrame implements RadiusControl,
                 return;
             }
             Configuration config = Configuration.getInstance();
-            if (((config == null) || (!config.isMergeWarningDisplayed())) && (showConfirmDialog(this, strings.getString("this.is.experimental.and.unfinished.functionality"), strings.getString("experimental.functionality"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
+            if (((config == null) || (!config.isMessageDisplayed(MERGE_WARNING_KEY))) && (showConfirmDialog(this, strings.getString("this.is.experimental.and.unfinished.functionality"), strings.getString("experimental.functionality"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
                 return;
             }
             saveCustomBiomes();
@@ -3551,6 +3592,7 @@ public final class App extends JFrame implements RadiusControl,
             if (activate) {
                 dockingManager.activateFrame(palette.getDockableFrame().getKey());
             }
+            palette.addPropertyChangeListener(this);
         } else {
             validate();
         }
@@ -3569,6 +3611,7 @@ public final class App extends JFrame implements RadiusControl,
 
         // If the palette is now empty, remove it too
         if (palette.isEmpty()) {
+            palette.removePropertyChangeListener(this);
             paletteManager.delete(palette);
             dockingManager.removeFrame(palette.getDockableFrame().getKey());
         }
@@ -3818,6 +3861,7 @@ public final class App extends JFrame implements RadiusControl,
             dockingManager.dockFrame(destPalette.getDockableFrame().getKey(), DockContext.DOCK_SIDE_WEST, 3);
             moveLayerToPalette(layer, destPalette);
             dockingManager.activateFrame(destPalette.getDockableFrame().getKey());
+            destPalette.addPropertyChangeListener(this);
         }
     }
 
@@ -3825,6 +3869,7 @@ public final class App extends JFrame implements RadiusControl,
         Palette srcPalette = paletteManager.move(layer, destPalette);
         if (srcPalette.isEmpty()) {
             dockingManager.removeFrame(srcPalette.getDockableFrame().getKey());
+            srcPalette.removePropertyChangeListener(this);
             paletteManager.delete(srcPalette);
         }
         validate();
@@ -4433,9 +4478,53 @@ public final class App extends JFrame implements RadiusControl,
 
 //        menu.add(ACTION_SHOW_HELP_PICKER);
 
-        if (! hideAbout) {
-//            menu.addSeparator();
+        menuItem = new JMenuItem("Frequently Asked Questions");
+        menuItem.setMnemonic('f');
+        menuItem.addActionListener(e -> {
+            try {
+                DesktopUtils.open(new URL("https://www.worldpainter.net/doc/faq"));
+            } catch (MalformedURLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        menu.add(menuItem);
 
+        menuItem = new JMenuItem("Troubleshooting");
+        menuItem.setMnemonic('t');
+        menuItem.addActionListener(e -> {
+            try {
+                DesktopUtils.open(new URL("https://www.worldpainter.net/trac/wiki/Troubleshooting"));
+            } catch (MalformedURLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        menu.add(menuItem);
+
+        menu.addSeparator();
+
+        menuItem = new JMenuItem("Donate");
+        menuItem.setMnemonic('d');
+        menuItem.addActionListener(e -> {
+            try {
+                DesktopUtils.open(new URL("https://www.worldpainter.net/donate/paypal"));
+            } catch (MalformedURLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        menu.add(menuItem);
+
+        menuItem = new JMenuItem("Merch store");
+        menuItem.setMnemonic('m');
+        menuItem.addActionListener(e -> {
+            try {
+                DesktopUtils.open(new URL("https://www.worldpainter.store/"));
+            } catch (MalformedURLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        menu.add(menuItem);
+
+        if (! hideAbout) {
             menuItem = new JMenuItem(strings.getString("about"));
             menuItem.setMnemonic('a');
             menuItem.addActionListener(e -> {
@@ -5081,9 +5170,6 @@ public final class App extends JFrame implements RadiusControl,
      * Configure the view to show the correct layers
      */
     private void updateLayerVisibility() {
-        // Get the currently hidden layers
-        Set<Layer> viewHiddenLayers = view.getHiddenLayers();
-        
         // Determine which layers should be hidden
         Set<Layer> targetHiddenLayers = new HashSet<>();
         // The FloodWithLava layer should *always* be hidden
@@ -5097,9 +5183,30 @@ public final class App extends JFrame implements RadiusControl,
             targetHiddenLayers.addAll(hiddenLayers);
             targetHiddenLayers.remove(soloLayer);
         } else {
-            // The layers marked as hidden should be invisible, except the
-            // currently active one, if any
-            targetHiddenLayers.addAll(hiddenLayers);
+            Palette soloPalette = null;
+            for (Palette palette: paletteManager.getPalettes()) {
+                if (palette.isSolo()) {
+                    soloPalette = palette;
+                    break;
+                }
+            }
+            if (soloPalette != null) {
+                // Only the layers on the solo palette and the active layer (if there is one and it is different than
+                // the solo layer) should be visible
+                targetHiddenLayers.addAll((dimension != null) ? dimension.getAllLayers(true) : new HashSet<>(layers));
+                soloPalette.getLayers().forEach(targetHiddenLayers::remove);
+                // Put in the currently hidden layers as well, as some of them might be on the solo palette and we still
+                // want to hide those
+                targetHiddenLayers.addAll(hiddenLayers);
+            } else {
+                // The layers marked as hidden should be invisible, except the currently active one, if any
+                targetHiddenLayers.addAll(hiddenLayers);
+                for (Palette palette: paletteManager.getPalettes()) {
+                    if (! palette.isShow()) {
+                        targetHiddenLayers.addAll(palette.getLayers());
+                    }
+                }
+            }
         }
         // The currently active layer, if any, should always be visible
         if (activeOperation instanceof PaintOperation) {
@@ -5116,13 +5223,8 @@ public final class App extends JFrame implements RadiusControl,
         targetHiddenLayers.remove(SelectionChunk.INSTANCE);
         
         // Hide the selected layers
-        targetHiddenLayers.stream()
-                .filter(hiddenLayer -> ! viewHiddenLayers.contains(hiddenLayer))
-                .forEach(view::addHiddenLayer);
-        viewHiddenLayers.stream()
-                .filter(hiddenLayer -> ! targetHiddenLayers.contains(hiddenLayer))
-                .forEach(view::removeHiddenLayer);
-        
+        view.setHiddenLayers(targetHiddenLayers);
+
         // Configure the glass pane to show the right icons
         glassPane.setHiddenLayers(hiddenLayers);
         glassPane.setSoloLayer(soloLayer);
@@ -6537,7 +6639,7 @@ public final class App extends JFrame implements RadiusControl,
             int previousBorderSize = dimension.getBorderSize();
             long previousMinecraftSeed = dimension.getMinecraftSeed();
             int previousCeilingHeight = dimension.getCeilingHeight();
-            boolean previousBedrockWall = dimension.isBedrockWall();
+            Dimension.WallType previousWallType = dimension.getWallType();
             BorderSettings previousBorderSettings = (dimension.getWorld() != null) ? dimension.getWorld().getBorderSettings().clone() : null;
             Dimension.LayerAnchor previousTopLayerAnchor = dimension.getTopLayerAnchor();
             DimensionPropertiesDialog dialog = new DimensionPropertiesDialog(App.this, dimension, selectedColourScheme);
@@ -6554,7 +6656,7 @@ public final class App extends JFrame implements RadiusControl,
                     || ((dimension.getBorder() != null) && (dimension.getBorderSize() != previousBorderSize))
                     || (dimension.getMinecraftSeed() != previousMinecraftSeed)
                     || (dimension.getCeilingHeight() != previousCeilingHeight)
-                    || (dimension.isBedrockWall() != previousBedrockWall)
+                    || (dimension.getWallType() != previousWallType)
                     || (dimension.getTopLayerAnchor() != previousTopLayerAnchor)) {
                 view.refreshTiles();
             }
@@ -7007,6 +7109,11 @@ public final class App extends JFrame implements RadiusControl,
     private static final String HELP_ROOT_URL = "https://www.worldpainter.net/help/";
 
     private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
+
+    private static final String IMPORT_WARNING_KEY = "org.pepsoft.worldpainter.importWarning";
+
+    static final String MERGE_WARNING_KEY = "org.pepsoft.worldpainter.mergeWarning";
+
     private static final long serialVersionUID = 1L;
     
     public class IntensityAction extends BetterAction {

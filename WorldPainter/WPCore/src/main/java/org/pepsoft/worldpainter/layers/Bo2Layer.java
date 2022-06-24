@@ -4,8 +4,12 @@
  */
 package org.pepsoft.worldpainter.layers;
 
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.bo2.Bo2LayerExporter;
 import org.pepsoft.worldpainter.layers.bo2.Bo2ObjectProvider;
+import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,8 +45,13 @@ public class Bo2Layer extends CustomLayer {
     }
 
     @Override
-    public Bo2LayerExporter getExporter() {
-        return new Bo2LayerExporter(this);
+    public Class<? extends LayerExporter> getExporterType() {
+        return Bo2LayerExporter.class;
+    }
+
+    @Override
+    public Bo2LayerExporter getExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        return new Bo2LayerExporter(dimension, platform, this);
     }
 
     public int getDensity() {
