@@ -36,7 +36,6 @@ import java.util.Set;
 
 import static org.pepsoft.worldpainter.App.MERGE_WARNING_KEY;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.util.BackupUtils.cleanUpBackups;
 
@@ -209,10 +208,6 @@ public class MergeWorldDialog extends WorldPainterDialog {
                     throw new InternalError();
             }
             sb.append("<li>A tile selection is active! Only " + selectedTiles.size() + " tiles of the<br>" + dim + " dimension are going to be merged.");
-            showWarning = true;
-        }
-        if (platform.capabilities.contains(BIOMES_3D)) {
-            sb.append("<li>The target format supports 3D biomes<br>but WorldPainter does not yet support these.<br>Any 3D biomes present will be replaced with<br>the 2D biomes from WorldPainter.");
             showWarning = true;
         }
         sb.append("</ul>Do you want to continue with the merge?</html>");
