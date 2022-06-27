@@ -1,3 +1,10 @@
+-- Version 2.10.11, released 27-6-2022
+
+ * Support Importing Minecraft 1.19 maps
+ * Replace deepslate ores with deepslate rather than stone when removing resources while Merging
+ * Various small improvements
+ * Bug fix: prevent an error while handling key presses on Java 17 or higher
+
 -- Version 2.10.10, released 2-6-2022
 
  * Make smooth ground cover layers (see `smoothGroundCover` on https://www.worldpainter.net/trac/wiki/AdvancedSettings for details) work again with Minecraft 1.2 - 1.12
