@@ -62,7 +62,7 @@ public class MergeProgressDialog extends MultiProgressDialog<Void> implements Wi
         StringBuilder sb = new StringBuilder();
         sb.append("World merged with ").append(merger.getMapDir());
         int hours = (int) (duration / 3600);
-        duration = duration - hours * 3600;
+        duration = duration - hours * 3600L;
         int minutes = (int) (duration / 60);
         int seconds = (int) (duration - minutes * 60);
         sb.append("\nMerge took ").append(hours).append(":").append((minutes < 10) ? "0" : "").append(minutes).append(":").append((seconds < 10) ? "0" : "").append(seconds);
