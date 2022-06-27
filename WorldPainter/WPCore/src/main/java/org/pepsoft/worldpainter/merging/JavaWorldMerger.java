@@ -204,10 +204,6 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             if (level.getMaxHeight() != world.getMaxHeight()) {
                 throw new IllegalArgumentException("Existing map has different max height (" + level.getMaxHeight() + ") than WorldPainter world (" + world.getMaxHeight() + ")");
             }
-            int version = level.getVersion();
-            if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
-                throw new IllegalArgumentException("Version of existing map not supported: 0x" + Integer.toHexString(version));
-            }
 
             // Dimension sanity checks
             for (Dimension dimension: world.getDimensions()) {
@@ -1162,7 +1158,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         if ((clearTrees && existingBlock.treeRelated)
                                 || (clearVegetation && existingBlock.vegetation)
                                 || (clearManMadeAboveGround && (! existingBlock.natural))) {
-                            setToAirOrWater(existingChunk, x, z, y, existingBlock);
+                            clearBlock(existingChunk, x, z, y, existingBlock);
                         } else if (existingBlock.terrain) {
                             aboveGround = false;
                         }
@@ -1174,7 +1170,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         if (clearManMadeBelowGround && (! existingBlock.natural)) {
                             final Material newMaterial = findMostPrevalentSolidSurroundingMaterial(existingChunk, x, z, y);
                             if (newMaterial == AIR) {
-                                setToAirOrWater(existingChunk, x, z, y, existingBlock);
+                                clearBlock(existingChunk, x, z, y, existingBlock);
                             } else {
                                 existingChunk.setMaterial(x, y, z, newMaterial);
                                 existingChunk.setSkyLightLevel(x, y, z, 0);
@@ -1194,6 +1190,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         } else if (clearResources && existingBlock.resource) {
                             if (existingBlock.isNamed(MC_NETHER_QUARTZ_ORE)) {
                                 existingChunk.setMaterial(x, y, z, NETHERRACK);
+                            } else if (existingBlock.name.startsWith("minecraft:deepslate_")) {
+                                existingChunk.setMaterial(x, y, z, DEEPSLATE_Y);
                             } else {
                                 existingChunk.setMaterial(x, y, z, STONE);
                             }
@@ -1204,7 +1202,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         }
     }
 
-    private void setToAirOrWater(final Chunk chunk, final int x, final int y, final int height, final Material existingMaterial) {
+    private void clearBlock(final Chunk chunk, final int x, final int y, final int height, final Material existingMaterial) {
         final int maxZ = world.getMaxHeight() - 1;
         if (existingMaterial.watery || existingMaterial.is(WATERLOGGED)) {
             chunk.setMaterial(x, height, y, STATIONARY_WATER);
@@ -1349,7 +1347,6 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
      * @param existingChunk The existing chunk into which to merge the changes.
      * @param newChunk      The new chunk from which to take the changes to merge.
      * @param dimension     The dimension from which to take the changes to merge.
-     * @return The specified existing chunk, with the changes merged into it.
      */
     private void mergeChunk(Chunk existingChunk, Chunk newChunk, Dimension dimension) {
         // TODO support 3D biomes
@@ -1480,8 +1477,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         }
         // Any entities in the new chunk are already at the correct height; we can just copy them all:
         existingChunk.getEntities().addAll(newChunk.getEntities());
-        // TODO: merge other NBT tags (?)
-        //  (in which case *do* merge 1.14 structure_starts chunks)
+        // TODO: biomes
     }
 
     /**
