@@ -81,7 +81,7 @@ public class Java118Level extends JavaLevel {
             final CompoundTag generatorTag = (CompoundTag) dimensionTag.getTag(TAG_GENERATOR_);
             final String generatorType = ((StringTag) generatorTag.getTag(TAG_TYPE_)).getValue();
             final Tag generatorSettings = generatorTag.getTag(TAG_SETTINGS_);
-            final Long generatorSeed = generatorTag.containsTag(TAG_SEED_) ? ((LongTag) generatorTag.getTag(TAG_SEED_)).getValue() : null;
+            final long generatorSeed = generatorTag.containsTag(TAG_SEED_) ? ((LongTag) generatorTag.getTag(TAG_SEED_)).getValue() : seed;
             final MapGenerator generator;
             if (generatorType.equals(MC_NOISE) && (generatorSettings instanceof StringTag)) {
                 final String noiseSettings = ((StringTag) generatorSettings).getValue();
