@@ -490,7 +490,7 @@ minecraft:magenta_wall_banner,,facing:e[north;south;west;east],0,false,false,fal
 minecraft:magenta_wool,,,15,false,false,false,false,false,false,,false,false,0,false,false,ffb350bc,old default
 minecraft:magma_block,,,15,false,true,false,false,false,false,,false,false,3,true,false,ffcf5b14,old default
 minecraft:medium_amethyst_bud,,"facing:e[north;east;south;west;up;down],waterlogged:b",0,false,false,false,false,false,false,,false,false,2,true,false,ff9e78c9,medium_amethyst_bud.png
-minecraft:melon,,,15,false,false,true,true,false,false,,false,true,0,false,false,ff979924,old default
+minecraft:melon,,,15,false,false,true,true,false,false,,false,true,0,true,false,ff979924,old default
 minecraft:melon_stem,,age:i[0-7],0,false,false,true,true,false,false,,false,true,0,false,false,ff487336,old default
 minecraft:moss_block,,,15,false,false,false,false,false,false,,false,false,0,true,false,ff596d2d,moss_block.png
 minecraft:moss_carpet,,,0,false,false,true,true,false,false,,false,true,0,true,false,ff596d2d,moss_block.png
