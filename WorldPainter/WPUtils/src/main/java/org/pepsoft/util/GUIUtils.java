@@ -92,7 +92,7 @@ public class GUIUtils {
         if (UI_SCALE_FLOAT == 1.0f) {
             return;
         }
-        if (container instanceof Window) {
+        if ((container instanceof Window) && (UI_SCALE_FLOAT > 1.0f)) {
             Window window = (Window) container;
             window.setSize(Math.round(window.getWidth() * UI_SCALE_FLOAT), Math.round(window.getHeight() * UI_SCALE_FLOAT));
         }
