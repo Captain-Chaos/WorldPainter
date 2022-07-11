@@ -282,6 +282,7 @@ public class TileSelector extends javax.swing.JPanel {
     
     public void setSelectedTiles(Set<Point> selectedTiles) {
         viewer.setSelectedTiles(selectedTiles);
+        setControlStates();
         notifyListeners();
     }
 
