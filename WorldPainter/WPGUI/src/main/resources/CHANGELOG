@@ -1,3 +1,8 @@
+-- Version 2.10.12, released 11-7-2022
+
+ * Bug fix: set the button states correctly when opening the Tile Selection screen
+ * Bug fix: more thoroughly prevent UI errors on Java 17 or higher
+
 -- Version 2.10.11, released 27-6-2022
 
  * Support Importing Minecraft 1.19 maps
