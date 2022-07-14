@@ -317,12 +317,12 @@ public class Java1_15PostProcessor extends PostProcessor {
                             break;
                         case MC_KELP:
                         case MC_KELP_PLANT:
-                            if (! ((materialBelow.solid && materialBelow.opaque && materialBelow.natural) || materialBelow.isNamedOneOf(MC_KELP, MC_KELP_PLANT))) {
+                        case MC_TALL_SEAGRASS:
+                            if (! ((materialBelow.solid && materialBelow.opaque && materialBelow.natural) || materialBelow.isNamedOneOf(MC_KELP, MC_KELP_PLANT, MC_TALL_SEAGRASS))) {
                                 material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
                         case MC_SEAGRASS:
-                        case MC_TALL_SEAGRASS:
                         case MC_SEA_PICKLE:
                         case MC_TUBE_CORAL:
                         case MC_BRAIN_CORAL:
