@@ -9,6 +9,8 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.awt.geom.Line2D;
@@ -32,7 +34,6 @@ public class Tile3DRenderer {
     public Tile3DRenderer(Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int rotation) {
         this.dimension = dimension;
         minHeight = dimension.getMinHeight();
-        maxHeight = dimension.getMaxHeight();
         this.colourScheme = colourScheme;
         this.rotation = rotation;
         tileRenderer = new TileRenderer(dimension, colourScheme, customBiomeManager, 0);
@@ -45,6 +46,7 @@ public class Tile3DRenderer {
         platform = tileRenderer.getPlatform();
     }
     
+    @SuppressWarnings("SuspiciousNameCombination") // Don't worry about it, we're rotating the tile
     public BufferedImage render(Tile tile) {
 //        System.out.println("Rendering tile " + tile);
         tileRenderer.renderTile(tile, tileImgBuffer, 0, 0);
@@ -214,6 +216,9 @@ public class Tile3DRenderer {
                     }
                 }
             }
+        } catch (MissingCustomTerrainException | NullPointerException e) {
+            logger.error("Could not render tile {},{} due to {}", tile.getX(), tile.getY(), e.getClass().getSimpleName(), e);
+            return TILE_NOT_RENDERABLE;
         } finally {
             g2.dispose();
         }
@@ -223,10 +228,12 @@ public class Tile3DRenderer {
     private final Dimension dimension;
     private final ColourScheme colourScheme;
     private final TileRenderer tileRenderer;
-    private final int minHeight, maxHeight, rotation, stoneColour, waterColour, lavaColour, iceColour;
+    private final int minHeight, rotation, stoneColour, waterColour, lavaColour, iceColour;
     private final Platform platform;
 
     private final BufferedImage tileImgBuffer = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_RGB);
 
     static final Set<Layer> DEFAULT_HIDDEN_LAYERS = new HashSet<>(Arrays.asList(FLUIDS_AS_LAYER, Biome.INSTANCE, Caverns.INSTANCE, Caves.INSTANCE, Chasms.INSTANCE, ReadOnly.INSTANCE, Resources.INSTANCE));
+
+    private static final Logger logger = LoggerFactory.getLogger(Tile3DRenderer.class);
 }
