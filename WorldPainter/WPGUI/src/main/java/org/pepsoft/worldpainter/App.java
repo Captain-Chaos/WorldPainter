@@ -4463,7 +4463,17 @@ public final class App extends JFrame implements RadiusControl,
 //        menu.add(menuItem);
 
         menuItem = new JMenuItem("Run script...");
-        menuItem.addActionListener(e -> new ScriptRunner(this, world, dimension, undoManagers.values()).setVisible(true));
+        menuItem.addActionListener(e -> {
+            try {
+                new ScriptRunner(this, world, dimension, undoManagers.values()).setVisible(true);
+            } catch (UnsupportedClassVersionError | NoClassDefFoundError exc) {
+                logger.error("Could not open ScriptRunner", exc);
+                DesktopUtils.beep();
+                JOptionPane.showMessageDialog(App.this, "JavaScript support requires Java 11 or later.\n" +
+                        "Please install a newer version of Java and try again.\n" +
+                        "See www.worldpainter.net for links.", "Newer Java Required", JOptionPane.ERROR_MESSAGE);
+            }
+        });
         menu.add(menuItem);
         menu.putClientProperty(KEY_HELP_KEY, "Menu/Tools");
         return menu;
