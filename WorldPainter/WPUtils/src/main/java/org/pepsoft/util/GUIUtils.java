@@ -179,8 +179,8 @@ public class GUIUtils {
                     Image scaledImage = image.getScaledInstance(Math.round(icon.getIconWidth() * scale), -1, SCALE_SMOOTH);
                     UIManager.put(key, new ImageIcon(scaledImage));
                     logger.trace("Scaled Icon {}", key);
-                } catch (NullPointerException e) {
-                    logger.debug("Did NOT scale Icon {} due to NullPointerException", key);
+                } catch (NullPointerException | IllegalArgumentException e) {
+                    logger.debug("Did NOT scale Icon {} due to {}", key, e.getClass().getSimpleName());
                 }
             } else if ((value instanceof Color) || (value instanceof Boolean)) {
                 // Ignore silently
