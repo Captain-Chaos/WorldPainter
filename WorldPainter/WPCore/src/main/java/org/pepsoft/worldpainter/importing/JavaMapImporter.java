@@ -67,14 +67,14 @@ public class JavaMapImporter extends MapImporter {
     }
 
     public World2 doImport(ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
-        long start = System.currentTimeMillis();
+        final long start = System.currentTimeMillis();
 
         logger.info("Importing map from " + levelDatFile.getAbsolutePath());
-        File worldDir = levelDatFile.getParentFile();
-        int dimCount = dimensionsToImport.size();
-        JavaLevel level = JavaLevel.load(levelDatFile);
-        World2 world = importWorld(level);
-        long minecraftSeed = world.getAttribute(SEED).orElse(new Random().nextLong());
+        final File worldDir = levelDatFile.getParentFile();
+        final int dimCount = dimensionsToImport.size();
+        final JavaLevel level = JavaLevel.load(levelDatFile);
+        final World2 world = importWorld(level);
+        final long minecraftSeed = world.getAttribute(SEED).orElse(new Random().nextLong());
         tileFactory.setSeed(minecraftSeed);
         Dimension dimension = new Dimension(world, minecraftSeed, tileFactory, DIM_NORMAL);
         dimension.setEventsInhibited(true);
@@ -84,19 +84,30 @@ public class JavaMapImporter extends MapImporter {
             dimension.setBorderLevel(DEFAULT_WATER_LEVEL);
             
             // Turn off smooth snow
-            FrostSettings frostSettings = new FrostSettings();
+            final FrostSettings frostSettings = new FrostSettings();
             frostSettings.setMode(FrostSettings.MODE_FLAT);
             dimension.setLayerSettings(Frost.INSTANCE, frostSettings);
             
-            ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
+            final ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
             resourcesSettings.setMinimumLevel(0);
-            Configuration config = Configuration.getInstance();
+            final Configuration config = Configuration.getInstance();
             dimension.setGridEnabled(config.isDefaultGridEnabled());
             dimension.setGridSize(config.getDefaultGridSize());
             dimension.setContoursEnabled(config.isDefaultContoursEnabled());
             dimension.setContourSeparation(config.getDefaultContourSeparation());
-            dimension.setGenerator(level.getGenerator(DIM_NORMAL));
-            String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 1.0f / dimCount) : null);
+            try {
+                dimension.setGenerator(level.getGenerator(DIM_NORMAL));
+            } catch (IllegalArgumentException e) {
+                dimension.setGenerator(new SuperflatGenerator(SuperflatPreset.defaultPreset(platform)));
+                final String warning = "Could not parse Superflat preset (details: \"" + e.getMessage() + "\"); Superflat preset reset to defaults" + EOL;
+                logger.error(warning, e);
+                if (warnings == null) {
+                    warnings = warning;
+                } else {
+                    warnings = warnings + warning;
+                }
+            }
+            final String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 1.0f / dimCount) : null);
             if (dimWarnings != null) {
                 if (warnings == null) {
                     warnings = dimWarnings;
@@ -110,9 +121,9 @@ public class JavaMapImporter extends MapImporter {
         world.addDimension(dimension);
         int dimNo = 1;
         if (dimensionsToImport.contains(DIM_NETHER)) {
-            HeightMapTileFactory netherTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 1, Terrain.NETHERRACK, Math.max(0, platform.minZ), Math.min(DEFAULT_MAX_HEIGHT_NETHER, world.getMaxHeight()), 188, 192, true, false, 20f, 1.0);
-            SimpleTheme theme = (SimpleTheme) netherTileFactory.getTheme();
-            SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
+            final HeightMapTileFactory netherTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 1, Terrain.NETHERRACK, Math.max(0, platform.minZ), Math.min(DEFAULT_MAX_HEIGHT_NETHER, world.getMaxHeight()), 188, 192, true, false, 20f, 1.0);
+            final SimpleTheme theme = (SimpleTheme) netherTileFactory.getTheme();
+            final SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
             terrainRanges.clear();
             terrainRanges.put(-1, Terrain.NETHERRACK);
             theme.setTerrainRanges(terrainRanges);
@@ -122,10 +133,10 @@ public class JavaMapImporter extends MapImporter {
             try {
                 dimension.setCoverSteepTerrain(false);
                 dimension.setSubsurfaceMaterial(Terrain.NETHERRACK);
-                ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
+                final ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
                 resourcesSettings.setMinimumLevel(0);
                 dimension.setGenerator(level.getGenerator(DIM_NETHER)); // TODOMC118
-                String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo++ / dimCount, 1.0f / dimCount) : null);
+                final String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo++ / dimCount, 1.0f / dimCount) : null);
                 if (dimWarnings != null) {
                     if (warnings == null) {
                         warnings = dimWarnings;
@@ -139,9 +150,9 @@ public class JavaMapImporter extends MapImporter {
             world.addDimension(dimension);
         }
         if (dimensionsToImport.contains(DIM_END)) {
-            HeightMapTileFactory endTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 2, Terrain.END_STONE, Math.max(0, platform.minZ), Math.min(DEFAULT_MAX_HEIGHT_NETHER, world.getMaxHeight()), 32, 0, false, false, 20f, 1.0);
-            SimpleTheme theme = (SimpleTheme) endTileFactory.getTheme();
-            SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
+            final HeightMapTileFactory endTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 2, Terrain.END_STONE, Math.max(0, platform.minZ), Math.min(DEFAULT_MAX_HEIGHT_NETHER, world.getMaxHeight()), 32, 0, false, false, 20f, 1.0);
+            final SimpleTheme theme = (SimpleTheme) endTileFactory.getTheme();
+            final SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
             terrainRanges.clear();
             terrainRanges.put(-1, Terrain.END_STONE);
             theme.setTerrainRanges(terrainRanges);
@@ -152,7 +163,7 @@ public class JavaMapImporter extends MapImporter {
                 dimension.setCoverSteepTerrain(false);
                 dimension.setSubsurfaceMaterial(Terrain.END_STONE);
                 dimension.setGenerator(level.getGenerator(DIM_END)); // TODOMC118
-                String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo / dimCount, 1.0f / dimCount) : null);
+                final String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo / dimCount, 1.0f / dimCount) : null);
                 if (dimWarnings != null) {
                     if (warnings == null) {
                         warnings = dimWarnings;
@@ -167,7 +178,7 @@ public class JavaMapImporter extends MapImporter {
         }
         
         // Log an event
-        Configuration config = Configuration.getInstance();
+        final Configuration config = Configuration.getInstance();
         if (config != null) {
             EventVO event = new EventVO(EVENT_KEY_ACTION_IMPORT_MAP).duration(System.currentTimeMillis() - start);
             event.setAttribute(EventVO.ATTRIBUTE_TIMESTAMP, new Date(start));
