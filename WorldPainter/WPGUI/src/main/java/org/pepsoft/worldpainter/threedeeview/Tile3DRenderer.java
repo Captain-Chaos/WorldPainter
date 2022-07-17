@@ -21,6 +21,7 @@ import java.util.Set;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
+import static org.pepsoft.worldpainter.threedeeview.ThreeDeeView.TILE_NOT_RENDERABLE;
 
 /**
  *
@@ -55,6 +56,10 @@ public class Tile3DRenderer {
         final int imgWidth = TILE_SIZE * 2;
         final int maxZ = Math.max(tile.getHighestIntHeight(), tile.getHighestWaterLevel());
         final int imgHeight = TILE_SIZE + maxZ - minHeight;
+        final long tileImgSize = (long) imgWidth * imgHeight;
+        if ((tileImgSize < 0L) || (tileImgSize > Integer.MAX_VALUE)) {
+            return TILE_NOT_RENDERABLE;
+        }
         final BufferedImage img = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(imgWidth, imgHeight, Transparency.TRANSLUCENT);
         final Graphics2D g2 = img.createGraphics();
         try {

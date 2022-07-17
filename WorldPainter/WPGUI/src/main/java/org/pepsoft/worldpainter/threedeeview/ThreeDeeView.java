@@ -23,6 +23,8 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.*;
 
+import static java.awt.image.BufferedImage.TYPE_BYTE_BINARY;
+import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 
@@ -121,7 +123,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
                 tileCount++;
             }
         }
-        final BufferedImage image = new BufferedImage(imageBounds.width, imageBounds.height, BufferedImage.TYPE_INT_ARGB);
+        final BufferedImage image = new BufferedImage(imageBounds.width, imageBounds.height, TYPE_INT_ARGB);
         final Graphics2D g2 = image.createGraphics();
         try {
             int tileNo = 0;
@@ -392,7 +394,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         final int centerY = visibleRect.y + visibleRect.height / 2 + waterLevel;
         Tile mostCentredTile = null;
         int smallestDistance = Integer.MAX_VALUE;
-        final Rectangle clipBounds = g.getClipBounds();
+        final Rectangle clipBounds = g2.getClipBounds();
 
         for (SortedMap<Integer, Tile> row: zSortedTiles.subMap(clipBounds.y - yOffset - maxHeight, clipBounds.y + clipBounds.height - yOffset + maxHeight).values()) {
             for (Tile tile: row.subMap(clipBounds.x - xOffset - TILE_SIZE * 2, clipBounds.x + clipBounds.width - xOffset).values()) {
@@ -409,7 +411,14 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
                     }
                     BufferedImage tileImg = renderedTiles.get(tile);
                     if (tileImg != null) {
-                        g.drawImage(tileImg, tileBounds.x, tileBounds.y, null);
+                        if (tileImg != TILE_NOT_RENDERABLE) {
+                            g2.drawImage(tileImg, tileBounds.x, tileBounds.y, null);
+                        } else {
+                            g2.setColor(Color.RED);
+                            g2.drawRect(tileBounds.x, tileBounds.y, tileBounds.width, tileBounds.height);
+                            g2.drawLine(tileBounds.x, tileBounds.y, tileBounds.x + tileBounds.width, tileBounds.y + tileBounds.height);
+                            g2.drawLine(tileBounds.x + tileBounds.width, tileBounds.y, tileBounds.x, tileBounds.y + tileBounds.height);
+                        }
                     } else {
                         tilesWaitingToBeRendered.add(0, tile);
                     }
@@ -422,23 +431,23 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
             centreTile = mostCentredTile;
         }
         if (highlightTile != null) {
-            g.setColor(Color.RED);
+            g2.setColor(Color.RED);
             Rectangle rect = getTileBounds(highlightTile.x, highlightTile.y, maxHeight);
-            g.drawRect(rect.x, rect.y, rect.width, rect.height);
+            g2.drawRect(rect.x, rect.y, rect.width, rect.height);
         }
         if (highlightPoint != null) {
-            g.setColor(Color.RED);
-            g.drawLine(highlightPoint.x - 2, highlightPoint.y, highlightPoint.x + 2, highlightPoint.y);
-            g.drawLine(highlightPoint.x, highlightPoint.y - 2, highlightPoint.x, highlightPoint.y + 2);
+            g2.setColor(Color.RED);
+            g2.drawLine(highlightPoint.x - 2, highlightPoint.y, highlightPoint.x + 2, highlightPoint.y);
+            g2.drawLine(highlightPoint.x, highlightPoint.y - 2, highlightPoint.x, highlightPoint.y + 2);
         }
 //        for (Map.Entry<Point, BufferedImage> entry: renderedTiles.entrySet()) {
 //            Point tileCoords = entry.getKey();
 //            BufferedImage tileImg = entry.getValue();
 //            Rectangle tileBounds = getTileBounds(tileCoords.x, tileCoords.y);
 //            if (tileBounds.intersects(clipBounds)) {
-//                g.drawImage(tileImg, tileBounds.x, tileBounds.y, null);
-////                g.setColor(Color.RED);
-////                g.drawRect(tileBounds.x, tileBounds.y, tileBounds.width, tileBounds.height);
+//                g2.drawImage(tileImg, tileBounds.x, tileBounds.y, null);
+////                g2.setColor(Color.RED);
+////                g2.drawRect(tileBounds.x, tileBounds.y, tileBounds.width, tileBounds.height);
 //            }
 //        }
     }
@@ -625,7 +634,9 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
     private Tile centreTile;
     private int waterLevel, zoom = 1, scale = 1;
     private Point highlightTile, highlightPoint;
-    
+
+    public static final BufferedImage TILE_NOT_RENDERABLE = new BufferedImage(1, 1, TYPE_BYTE_BINARY);
+
 //    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ThreeDeeView.class);
     private static final long serialVersionUID = 2011101701L;
 
