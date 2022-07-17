@@ -153,7 +153,10 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
         this.oneShot = oneshot;
         this.statisticsKey = statisticsKey;
         statisticsKeyUndo = statisticsKey + ".undo";
-        legacy = (SystemUtils.isMac() && System.getProperty("os.version").startsWith("10.4.")) || "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.disableTabletSupport"));
+        legacy = (SystemUtils.isMac() && System.getProperty("os.version").startsWith("10.4."))
+                || "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.disableTabletSupport"))
+                // TODO this is based on one incident. Check whether it is always necessary. See: https://github.com/Captain-Chaos/WorldPainter/issues/263
+                || (SystemUtils.isLinux() && (System.getenv("XDG_SESSION_TYPE") != null) && System.getenv("XDG_SESSION_TYPE").equalsIgnoreCase("wayland"));
         if (legacy) {
             logger.warn("Tablet support disabled for operation " + name);
         }
