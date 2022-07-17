@@ -145,7 +145,7 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
                 progressReceiver.setMessage("Exporting world " + name);
                 WorldExporter exporter = PlatformManager.getInstance().getExporter(world);
                 try {
-                    backupDir = exporter.selectBackupDir(baseDir, world);
+                    backupDir = exporter.selectBackupDir(baseDir, name);
                     return exporter.export(baseDir, name, backupDir, progressReceiver);
                 } catch (IOException e) {
                     throw new RuntimeException("I/O error while exporting world", e);

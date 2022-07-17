@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.*;
 import java.util.function.Consumer;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.awt.FileDialog.LOAD;
 import static java.lang.Boolean.TRUE;
 import static javax.swing.JFileChooser.APPROVE_OPTION;
@@ -228,6 +229,10 @@ public class FileUtils {
      * @return The sanitised filename.
      */
     public static String sanitiseName(@NonNls String filename) {
+        if (isNullOrEmpty(filename)) {
+            return filename;
+        }
+
         StringBuilder sb = new StringBuilder(filename.length());
 
         // Replace illegal characters for Windows, Linux or Mac OS with

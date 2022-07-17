@@ -49,6 +49,6 @@ public class TestTool {
         while (! garden.tick());
         JavaWorldExporter worldExporter = new JavaWorldExporter(world);
         File exportDir = new File(args[0]);
-        worldExporter.export(exportDir, "TestWorld", worldExporter.selectBackupDir(exportDir, world), null);
+        worldExporter.export(exportDir, "TestWorld", worldExporter.selectBackupDir(exportDir, world.getName()), null);
     }
 }

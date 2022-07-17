@@ -78,7 +78,7 @@ public class ExportWorldOp extends AbstractOperation<Void> {
         }
         JavaWorldExporter exporter = new JavaWorldExporter(world);
         try {
-            File backupDir = exporter.selectBackupDir(baseDir, world);
+            File backupDir = exporter.selectBackupDir(baseDir, world.getName());
         
             // Export the world
             exporter.export(baseDir, world.getName(), backupDir, null);

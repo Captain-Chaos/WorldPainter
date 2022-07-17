@@ -30,11 +30,12 @@ public interface WorldExporter {
      *
      * @param baseDir The base directory in which the map directory would be created into which the world would be
      *                exported.
+     * @param name    The map name to which the world is being exported.
      * @return The directory to which the existing map at that location, if any, should be backed up.
      * @throws IOException If an I/O error occurs while determining the backup directory.
      */
-    default File selectBackupDir(File baseDir, World2 world) throws IOException {
-        return selectBackupDir(new File(baseDir, sanitiseName(world.getName())));
+    default File selectBackupDir(File baseDir, String name) throws IOException {
+        return selectBackupDir(new File(baseDir, sanitiseName(name)));
     }
 
     /**
