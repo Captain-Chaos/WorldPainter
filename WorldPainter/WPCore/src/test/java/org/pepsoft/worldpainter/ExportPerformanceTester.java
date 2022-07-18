@@ -44,7 +44,7 @@ public class ExportPerformanceTester extends AbstractTool {
         logger.info("Testing export of {} with {} thread(s)", world.getName(), threadCount);
         final WorldExporter exporter = PlatformManager.getInstance().getExporter(world);
         final File baseDir = new File(System.getProperty("user.dir"), "tmp-exported-worlds");
-        final File backupDir = exporter.selectBackupDir(baseDir, world);
+        final File backupDir = exporter.selectBackupDir(baseDir, world.getName());
         long start = System.currentTimeMillis();
         try {
             exporter.export(baseDir, world.getName(), backupDir, new TextProgressReceiver());
