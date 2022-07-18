@@ -95,129 +95,136 @@ public class PreferencesDialog extends WorldPainterDialog {
     }
     
     private void loadSettings() {
-        Configuration config = Configuration.getInstance();
-        if (Main.privateContext == null) {
-            checkBoxPing.setSelected(false);
-            checkBoxPing.setEnabled(false);
-            pingNotSet = true;
-        } else if (config.getPingAllowed() != null) {
-            checkBoxPing.setSelected(config.getPingAllowed());
-        } else {
-            checkBoxPing.setSelected(false);
-            pingNotSet = true;
-        }
-        if ((Main.privateContext == null)
-                || "true".equals(System.getProperty("org.pepsoft.worldpainter.devMode"))
-                || "true".equals(System.getProperty("org.pepsoft.worldpainter.disableUpdateCheck"))) {
-            checkBoxCheckForUpdates.setSelected(false);
-            checkBoxCheckForUpdates.setEnabled(false);
-        } else {
-            checkBoxCheckForUpdates.setSelected(config.isCheckForUpdates());
-        }
-        if ("true".equals(System.getProperty("org.pepsoft.worldpainter.disableUndo"))) {
-            checkBoxUndo.setSelected(false);
-            checkBoxUndo.setEnabled(false);
-            spinnerUndoLevels.setEnabled(false);
-        } else {
-            checkBoxUndo.setSelected(config.isUndoEnabled());
-            spinnerUndoLevels.setValue(config.getUndoLevels());
-        }
+        programmaticChange = true;
+        try {
+            Configuration config = Configuration.getInstance();
+            if (Main.privateContext == null) {
+                checkBoxPing.setSelected(false);
+                checkBoxPing.setEnabled(false);
+                pingNotSet = true;
+            } else if (config.getPingAllowed() != null) {
+                checkBoxPing.setSelected(config.getPingAllowed());
+            } else {
+                checkBoxPing.setSelected(false);
+                pingNotSet = true;
+            }
+            if ((Main.privateContext == null)
+                    || "true".equals(System.getProperty("org.pepsoft.worldpainter.devMode"))
+                    || "true".equals(System.getProperty("org.pepsoft.worldpainter.disableUpdateCheck"))) {
+                checkBoxCheckForUpdates.setSelected(false);
+                checkBoxCheckForUpdates.setEnabled(false);
+            } else {
+                checkBoxCheckForUpdates.setSelected(config.isCheckForUpdates());
+            }
+            if ("true".equals(System.getProperty("org.pepsoft.worldpainter.disableUndo"))) {
+                checkBoxUndo.setSelected(false);
+                checkBoxUndo.setEnabled(false);
+                spinnerUndoLevels.setEnabled(false);
+            } else {
+                checkBoxUndo.setSelected(config.isUndoEnabled());
+                spinnerUndoLevels.setValue(config.getUndoLevels());
+            }
 
-        checkBoxGrid.setSelected(config.isDefaultGridEnabled());
-        spinnerGrid.setValue(config.getDefaultGridSize());
-        checkBoxContours.setSelected(config.isDefaultContoursEnabled());
-        spinnerContours.setValue(config.getDefaultContourSeparation());
-        checkBoxViewDistance.setSelected(config.isDefaultViewDistanceEnabled());
-        checkBoxWalkingDistance.setSelected(config.isDefaultWalkingDistanceEnabled());
-        comboBoxLightDirection.setSelectedItem(config.getDefaultLightOrigin());
-        checkBoxCircular.setSelected(config.isDefaultCircularWorld());
-        spinnerBrushSize.setValue(config.getMaximumBrushSize());
+            checkBoxGrid.setSelected(config.isDefaultGridEnabled());
+            spinnerGrid.setValue(config.getDefaultGridSize());
+            checkBoxContours.setSelected(config.isDefaultContoursEnabled());
+            spinnerContours.setValue(config.getDefaultContourSeparation());
+            checkBoxViewDistance.setSelected(config.isDefaultViewDistanceEnabled());
+            checkBoxWalkingDistance.setSelected(config.isDefaultWalkingDistanceEnabled());
+            comboBoxLightDirection.setSelectedItem(config.getDefaultLightOrigin());
+            checkBoxCircular.setSelected(config.isDefaultCircularWorld());
+            spinnerBrushSize.setValue(config.getMaximumBrushSize());
 
-        defaultTerrainAndLayerSettings = config.getDefaultTerrainAndLayerSettings(); // TODO this should be cloned too
-        defaultExportSettings = (config.getDefaultExportSettings() != null) ? config.getDefaultExportSettings().clone() : null;
-        checkBoxResourcesEverywhere.setSelected(config.getDefaultResourcesMinimumLevel() > 0);
+            defaultTerrainAndLayerSettings = config.getDefaultTerrainAndLayerSettings(); // TODO this should be cloned too
+            defaultExportSettings = (config.getDefaultExportSettings() != null) ? config.getDefaultExportSettings().clone() : null;
+            checkBoxResourcesEverywhere.setSelected(config.getDefaultResourcesMinimumLevel() > 0);
 
-        spinnerWidth.setValue(config.getDefaultWidth() * 128);
-        spinnerHeight.setValue(config.getDefaultHeight() * 128);
-        comboBoxPlatform.setSelectedItem(config.getDefaultPlatform());
-        comboBoxHeight.setSelectedItem(config.getDefaultMaxHeight());
-        if (config.isHilly()) {
-            radioButtonHilly.setSelected(true);
-        } else {
-            radioButtonFlat.setSelected(true);
-            spinnerRange.setEnabled(false);
-            spinnerScale.setEnabled(false);
+            spinnerWidth.setValue(config.getDefaultWidth() * 128);
+            spinnerHeight.setValue(config.getDefaultHeight() * 128);
+            previousPlatform = config.getDefaultPlatform();
+            comboBoxPlatform.setSelectedItem(previousPlatform);
+            setControlStatesForPlatform();
+            comboBoxHeight.setSelectedItem(config.getDefaultMaxHeight());
+            if (config.isHilly()) {
+                radioButtonHilly.setSelected(true);
+            } else {
+                radioButtonFlat.setSelected(true);
+                spinnerRange.setEnabled(false);
+                spinnerScale.setEnabled(false);
+            }
+            spinnerRange.setValue(Math.round(config.getDefaultRange()));
+            spinnerScale.setValue((int) Math.round(config.getDefaultScale() * 100));
+            spinnerGroundLevel.setValue(config.getLevel());
+            spinnerWaterLevel.setValue(config.getWaterLevel());
+            checkBoxLava.setSelected(config.isLava());
+            checkBoxBeaches.setSelected(config.isBeaches());
+            comboBoxSurfaceMaterial.setSelectedItem(config.getSurface());
+            spinnerWorldBackups.setValue(config.getWorldFileBackups());
+            checkBoxExtendedBlockIds.setSelected(config.isDefaultExtendedBlockIds());
+
+            // Export settings
+            checkBoxChestOfGoodies.setSelected(config.isDefaultCreateGoodiesChest());
+            comboBoxWorldType.setSelectedItem(config.getDefaultGenerator().getType());
+            generatorOptions = (config.getDefaultGenerator() instanceof CustomGenerator) ? ((CustomGenerator) config.getDefaultGenerator()).getName() : null;
+            checkBoxStructures.setSelected(config.isDefaultMapFeatures());
+            comboBoxMode.setSelectedItem(config.getDefaultGameType());
+            checkBoxCheats.setSelected(config.isDefaultAllowCheats());
+
+            previousMaxHeight = config.getDefaultMaxHeight();
+
+            comboBoxLookAndFeel.setSelectedIndex(config.getLookAndFeel() != null ? config.getLookAndFeel().ordinal() : 0);
+            if (config.getUiScale() == 0.0f) {
+                radioButtonUIScaleAuto.setSelected(true);
+                sliderUIScale.setValue((int) (GUIUtils.SYSTEM_UI_SCALE_FLOAT * 100));
+            } else {
+                radioButtonUIScaleManual.setSelected(true);
+                sliderUIScale.setValue((int) (config.getUiScale() * 100));
+            }
+            updateLabelUIScale();
+
+            switch (config.getAccelerationType()) {
+                case DEFAULT:
+                    radioButtonAccelDefault.setSelected(true);
+                    break;
+                case DIRECT3D:
+                    radioButtonAccelDirect3D.setSelected(true);
+                    break;
+                case OPENGL:
+                    radioButtonAccelOpenGL.setSelected(true);
+                    break;
+                case QUARTZ:
+                    radioButtonAccelQuartz.setSelected(true);
+                    break;
+                case UNACCELERATED:
+                    radioButtonAccelUnaccelerated.setSelected(true);
+                    break;
+                case XRENDER:
+                    radioButtonAccelXRender.setSelected(true);
+                    break;
+            }
+
+            switch (config.getOverlayType()) {
+                case OPTIMISE_ON_LOAD:
+                    radioButtonOverlayOptimiseOnLoad.setSelected(true);
+                    break;
+                case SCALE_ON_LOAD:
+                    radioButtonOverlayScaleOnLoad.setSelected(true);
+                    break;
+                case SCALE_ON_PAINT:
+                    radioButtonOverlayScaleOnPaint.setSelected(true);
+                    break;
+            }
+
+            checkBoxAutoSave.setSelected(config.isAutosaveEnabled());
+            spinnerAutoSaveGuardTime.setValue(config.getAutosaveDelay() / 1000);
+            spinnerAutoSaveInterval.setValue(config.getAutosaveInterval() / 1000);
+            spinnerFreeSpaceForMaps.setValue(config.getMinimumFreeSpaceForMaps());
+            checkBoxAutoDeleteBackups.setSelected(config.isAutoDeleteBackups());
+
+            setControlStates();
+        } finally {
+            programmaticChange = false;
         }
-        spinnerRange.setValue(Math.round(config.getDefaultRange()));
-        spinnerScale.setValue((int) Math.round(config.getDefaultScale() * 100));
-        spinnerGroundLevel.setValue(config.getLevel());
-        spinnerWaterLevel.setValue(config.getWaterLevel());
-        checkBoxLava.setSelected(config.isLava());
-        checkBoxBeaches.setSelected(config.isBeaches());
-        comboBoxSurfaceMaterial.setSelectedItem(config.getSurface());
-        spinnerWorldBackups.setValue(config.getWorldFileBackups());
-        checkBoxExtendedBlockIds.setSelected(config.isDefaultExtendedBlockIds());
-        
-        // Export settings
-        checkBoxChestOfGoodies.setSelected(config.isDefaultCreateGoodiesChest());
-        comboBoxWorldType.setSelectedItem(config.getDefaultGenerator().getType());
-        generatorOptions = (config.getDefaultGenerator() instanceof CustomGenerator) ? ((CustomGenerator) config.getDefaultGenerator()).getName() : null;
-        checkBoxStructures.setSelected(config.isDefaultMapFeatures());
-        comboBoxMode.setSelectedItem(config.getDefaultGameType());
-        checkBoxCheats.setSelected(config.isDefaultAllowCheats());
-
-        previousMaxHeight = config.getDefaultMaxHeight();
-
-        comboBoxLookAndFeel.setSelectedIndex(config.getLookAndFeel() != null ? config.getLookAndFeel().ordinal() : 0);
-        if (config.getUiScale() == 0.0f) {
-            radioButtonUIScaleAuto.setSelected(true);
-            sliderUIScale.setValue((int) (GUIUtils.SYSTEM_UI_SCALE_FLOAT * 100));
-        } else {
-            radioButtonUIScaleManual.setSelected(true);
-            sliderUIScale.setValue((int) (config.getUiScale() * 100));
-        }
-        updateLabelUIScale();
-        
-        switch (config.getAccelerationType()) {
-            case DEFAULT:
-                radioButtonAccelDefault.setSelected(true);
-                break;
-            case DIRECT3D:
-                radioButtonAccelDirect3D.setSelected(true);
-                break;
-            case OPENGL:
-                radioButtonAccelOpenGL.setSelected(true);
-                break;
-            case QUARTZ:
-                radioButtonAccelQuartz.setSelected(true);
-                break;
-            case UNACCELERATED:
-                radioButtonAccelUnaccelerated.setSelected(true);
-                break;
-            case XRENDER:
-                radioButtonAccelXRender.setSelected(true);
-                break;
-        }
-        
-        switch (config.getOverlayType()) {
-            case OPTIMISE_ON_LOAD:
-                radioButtonOverlayOptimiseOnLoad.setSelected(true);
-                break;
-            case SCALE_ON_LOAD:
-                radioButtonOverlayScaleOnLoad.setSelected(true);
-                break;
-            case SCALE_ON_PAINT:
-                radioButtonOverlayScaleOnPaint.setSelected(true);
-                break;
-        }
-        
-        checkBoxAutoSave.setSelected(config.isAutosaveEnabled());
-        spinnerAutoSaveGuardTime.setValue(config.getAutosaveDelay() / 1000);
-        spinnerAutoSaveInterval.setValue(config.getAutosaveInterval() / 1000);
-        spinnerFreeSpaceForMaps.setValue(config.getMinimumFreeSpaceForMaps());
-        checkBoxAutoDeleteBackups.setSelected(config.isAutoDeleteBackups());
-
-        setControlStates();
     }
     
     private void saveSettings() {
@@ -354,6 +361,7 @@ public class PreferencesDialog extends WorldPainterDialog {
     
     private void editTerrainAndLayerSettings() {
         Configuration config = Configuration.getInstance();
+        defaultTerrainAndLayerSettings.getWorld().setPlatform((Platform) comboBoxPlatform.getSelectedItem());
         DimensionPropertiesDialog dialog = new DimensionPropertiesDialog(this, defaultTerrainAndLayerSettings, colourScheme, true);
         dialog.setVisible(true);
         TileFactory tileFactory = defaultTerrainAndLayerSettings.getTileFactory();
@@ -384,37 +392,80 @@ public class PreferencesDialog extends WorldPainterDialog {
     }
 
     private void platformSelected() {
-        Platform platform = (Platform) comboBoxPlatform.getSelectedItem();
-        final Generator currentGenerator = (Generator) comboBoxWorldType.getSelectedItem();
+        if (programmaticChange) {
+            return;
+        }
+        programmaticChange = true;
+        try {
+            final Platform platform = (Platform) comboBoxPlatform.getSelectedItem();
+            final Generator currentGenerator = (Generator) comboBoxWorldType.getSelectedItem();
+            final List<Generator> supportedGenerators = new ArrayList<>(platform.supportedGenerators);
+            supportedGenerators.retainAll(asList(DEFAULT, LARGE_BIOMES, AMPLIFIED, NETHER, END, FLAT));
+            comboBoxWorldType.setModel(new DefaultComboBoxModel<>(supportedGenerators.toArray(new Generator[0])));
+            if ((currentGenerator != null) && supportedGenerators.contains(currentGenerator)) {
+                comboBoxWorldType.setSelectedItem(currentGenerator);
+            }
+            final Integer currentMaxHeight = (Integer) comboBoxHeight.getSelectedItem();
+            final boolean useStandardMaxHeight = (currentMaxHeight == null) || (currentMaxHeight == previousPlatform.standardMaxHeight);
+            final List<Integer> supportedMaxHeights = stream(platform.maxHeights).boxed().collect(toList());
+            comboBoxHeight.setModel(new DefaultComboBoxModel<>(supportedMaxHeights.toArray(new Integer[0])));
+            final int newMaxHeight;
+            if ((! useStandardMaxHeight) && supportedMaxHeights.contains(currentMaxHeight)) {
+                newMaxHeight = currentMaxHeight;
+            } else {
+                newMaxHeight = platform.standardMaxHeight;
+            }
+            comboBoxHeight.setSelectedItem(newMaxHeight);
+            ((SpinnerNumberModel) spinnerGroundLevel.getModel()).setMaximum(newMaxHeight - 1);
+            ((SpinnerNumberModel) spinnerWaterLevel.getModel()).setMaximum(newMaxHeight - 1);
+            ((SpinnerNumberModel) spinnerRange.getModel()).setMaximum(newMaxHeight - 1);
+            final GameType currentGameType = (GameType) comboBoxMode.getSelectedItem();
+            final List<GameType> supportedGameTypes = platform.supportedGameTypes;
+            comboBoxMode.setModel(new DefaultComboBoxModel<>(supportedGameTypes.toArray(new GameType[0])));
+            if ((currentGameType != null) && supportedGameTypes.contains(currentGameType)) {
+                comboBoxMode.setSelectedItem(currentGameType);
+            }
+            checkBoxChestOfGoodies.setEnabled((platform != JAVA_ANVIL_1_15) && (platform != JAVA_ANVIL_1_17));
+            checkBoxExtendedBlockIds.setEnabled(platform.capabilities.contains(BLOCK_BASED) && (!platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION));
+            try {
+                resizeDimension(defaultTerrainAndLayerSettings, platform.minZ, newMaxHeight, IDENTITY, true, null);
+            } catch (ProgressReceiver.OperationCancelled e) {
+                throw new InternalError(); // Can't happen since we don't pass in a ProgressReceiver
+            }
+
+            // Check whether this platform supports the current default export settings (or any export settings)
+            final PlatformProvider platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
+            final ExportSettings platformDefaultExportSettings = platformProvider.getDefaultExportSettings(platform);
+            if (platformDefaultExportSettings != null) {
+                labelEditExportSettingsLink.setForeground(BLUE);
+                labelEditExportSettingsLink.setCursor(new Cursor(HAND_CURSOR));
+                if ((defaultExportSettings != null) && (platformDefaultExportSettings.getClass() != defaultExportSettings.getClass())) {
+                    defaultExportSettings = null;
+                }
+            } else {
+                defaultExportSettings = null;
+                labelEditExportSettingsLink.setForeground(GRAY);
+                labelEditExportSettingsLink.setCursor(null);
+            }
+
+            previousPlatform = platform;
+        } finally {
+            programmaticChange = false;
+        }
+    }
+
+    private void setControlStatesForPlatform() {
+        final Configuration config = Configuration.getInstance();
+        final Platform platform = config.getDefaultPlatform();
         final List<Generator> supportedGenerators = new ArrayList<>(platform.supportedGenerators);
         supportedGenerators.retainAll(asList(DEFAULT, LARGE_BIOMES, AMPLIFIED, NETHER, END, FLAT));
         comboBoxWorldType.setModel(new DefaultComboBoxModel<>(supportedGenerators.toArray(new Generator[0])));
-        if ((currentGenerator != null) && supportedGenerators.contains(currentGenerator)) {
-            comboBoxWorldType.setSelectedItem(currentGenerator);
-        }
-        final Integer currentMaxHeight = (Integer) comboBoxHeight.getSelectedItem();
         final List<Integer> supportedMaxHeights = stream(platform.maxHeights).boxed().collect(toList());
         comboBoxHeight.setModel(new DefaultComboBoxModel<>(supportedMaxHeights.toArray(new Integer[0])));
-        final int newMaxHeight;
-        if ((currentMaxHeight != null) && supportedMaxHeights.contains(currentMaxHeight)) {
-            newMaxHeight = currentMaxHeight;
-        } else {
-            newMaxHeight = platform.standardMaxHeight;
-        }
-        comboBoxHeight.setSelectedItem(newMaxHeight);
-        final GameType currentGameType = (GameType) comboBoxMode.getSelectedItem();
         final List<GameType> supportedGameTypes = platform.supportedGameTypes;
         comboBoxMode.setModel(new DefaultComboBoxModel<>(supportedGameTypes.toArray(new GameType[0])));
-        if ((currentGameType != null) && supportedGameTypes.contains(currentGameType)) {
-            comboBoxMode.setSelectedItem(currentGameType);
-        }
         checkBoxChestOfGoodies.setEnabled((platform != JAVA_ANVIL_1_15) && (platform != JAVA_ANVIL_1_17));
-        checkBoxExtendedBlockIds.setEnabled(platform.capabilities.contains(BLOCK_BASED) && (! platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION));
-        try {
-            resizeDimension(defaultTerrainAndLayerSettings, platform.minZ, newMaxHeight, IDENTITY, true, null);
-        } catch (ProgressReceiver.OperationCancelled e) {
-            throw new InternalError(); // Can't happen since we don't pass in a ProgressReceiver
-        }
+        checkBoxExtendedBlockIds.setEnabled(platform.capabilities.contains(BLOCK_BASED) && (!platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION));
 
         // Check whether this platform supports the current default export settings (or any export settings)
         final PlatformProvider platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
@@ -422,14 +473,15 @@ public class PreferencesDialog extends WorldPainterDialog {
         if (platformDefaultExportSettings != null) {
             labelEditExportSettingsLink.setForeground(BLUE);
             labelEditExportSettingsLink.setCursor(new Cursor(HAND_CURSOR));
-            if ((defaultExportSettings != null) && (platformDefaultExportSettings.getClass() != defaultExportSettings.getClass())) {
-                defaultExportSettings = null;
-            }
         } else {
-            defaultExportSettings = null;
             labelEditExportSettingsLink.setForeground(GRAY);
             labelEditExportSettingsLink.setCursor(null);
         }
+
+        final int maxHeight = config.getDefaultMaxHeight();
+        ((SpinnerNumberModel) spinnerGroundLevel.getModel()).setMaximum(maxHeight - 1);
+        ((SpinnerNumberModel) spinnerWaterLevel.getModel()).setMaximum(maxHeight - 1);
+        ((SpinnerNumberModel) spinnerRange.getModel()).setMaximum(maxHeight - 1);
     }
 
     private void editDefaultExportSettings() {
@@ -1576,28 +1628,43 @@ public class PreferencesDialog extends WorldPainterDialog {
     }//GEN-LAST:event_labelTerrainAndLayerSettingsMouseClicked
 
     private void comboBoxHeightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxHeightActionPerformed
-        int maxHeight = (Integer) comboBoxHeight.getSelectedItem();
-        if (maxHeight != previousMaxHeight) {
-            previousMaxHeight = maxHeight;
-            
-            int terrainLevel = (Integer) spinnerGroundLevel.getValue();
-            int waterLevel = (Integer) spinnerWaterLevel.getValue();
-            if (terrainLevel >= maxHeight) {
-                spinnerGroundLevel.setValue(maxHeight - 1);
+        if (programmaticChange) {
+            return;
+        }
+        programmaticChange = true;
+        try {
+            int maxHeight = (Integer) comboBoxHeight.getSelectedItem();
+            if (maxHeight != previousMaxHeight) {
+                previousMaxHeight = maxHeight;
+
+                int terrainLevel = (Integer) spinnerGroundLevel.getValue();
+                int waterLevel = (Integer) spinnerWaterLevel.getValue();
+                if (terrainLevel >= maxHeight) {
+                    spinnerGroundLevel.setValue(maxHeight - 1);
+                }
+                if (waterLevel >= maxHeight) {
+                    spinnerWaterLevel.setValue(maxHeight - 1);
+                }
+                ((SpinnerNumberModel) spinnerGroundLevel.getModel()).setMaximum(maxHeight - 1);
+                ((SpinnerNumberModel) spinnerWaterLevel.getModel()).setMaximum(maxHeight - 1);
+
+                int range = (Integer) spinnerRange.getValue();
+                if (range >= maxHeight) {
+                    spinnerRange.setValue(maxHeight - 1);
+                }
+                ((SpinnerNumberModel) spinnerRange.getModel()).setMaximum(maxHeight - 1);
+
+                try {
+                    resizeDimension(defaultTerrainAndLayerSettings, defaultTerrainAndLayerSettings.getMinHeight(), maxHeight, IDENTITY, true, null);
+                } catch (ProgressReceiver.OperationCancelled e) {
+                    // Can never happen since we don't pass in a ProgressReceiver
+                    throw new InternalError(e);
+                }
+
+                setControlStates();
             }
-            if (waterLevel >= maxHeight) {
-                spinnerWaterLevel.setValue(maxHeight - 1);
-            }
-            ((SpinnerNumberModel) spinnerGroundLevel.getModel()).setMaximum(maxHeight - 1);
-            ((SpinnerNumberModel) spinnerWaterLevel.getModel()).setMaximum(maxHeight - 1);
-            
-            int range = (Integer) spinnerRange.getValue();
-            if (range >= maxHeight) {
-                spinnerRange.setValue(maxHeight - 1);
-            }
-            ((SpinnerNumberModel) spinnerRange.getModel()).setMaximum(maxHeight - 1);
-                        
-            setControlStates();
+        } finally {
+            programmaticChange = false;
         }
     }//GEN-LAST:event_comboBoxHeightActionPerformed
 
@@ -1874,11 +1941,12 @@ public class PreferencesDialog extends WorldPainterDialog {
     // End of variables declaration//GEN-END:variables
 
     private final ColourScheme colourScheme;
-    private boolean pingNotSet;
+    private boolean pingNotSet, programmaticChange;
     private int previousMaxHeight;
     private String generatorOptions; // TODOMC118 this needs to become a SuperflatPreset
     private Dimension defaultTerrainAndLayerSettings;
     private ExportSettings defaultExportSettings;
+    private Platform previousPlatform;
     
     private static final long serialVersionUID = 1L;
 }
