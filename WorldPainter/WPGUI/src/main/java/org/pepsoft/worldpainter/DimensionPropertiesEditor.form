@@ -1512,7 +1512,7 @@
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="checkBoxDecorationLushCaves">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="[BETA] patches of lush cave (between levels -50 and -10)"/>
+                    <Property name="text" type="java.lang.String" value="[BETA] patches of lush cave"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="checkBoxDecorationDripstoneCaves">

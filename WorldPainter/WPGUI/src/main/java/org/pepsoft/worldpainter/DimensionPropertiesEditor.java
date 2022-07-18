@@ -2431,7 +2431,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         checkBoxDecorationGlowLichen.setText("glow lichen");
 
-        checkBoxDecorationLushCaves.setText("[BETA] patches of lush cave (between levels -50 and -10)");
+        checkBoxDecorationLushCaves.setText("[BETA] patches of lush cave");
 
         checkBoxDecorationDripstoneCaves.setText("[BETA] patches of dripstone cave");
 
