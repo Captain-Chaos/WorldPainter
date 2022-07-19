@@ -148,7 +148,11 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
                 JavaLevel level = JavaLevel.load(file);
                 return new MapInfo(dir, level.getPlatform(), level.getName(), ICON, level.getMaxHeight());
             } catch (IOException e) {
-                logger.info("I/O error reading level.dat; assuming it is not a (supported) Java Minecraft level.dat file", e);
+                if (logger.isDebugEnabled()) {
+                    logger.info("I/O error reading {}; assuming it is not a (supported) Java Minecraft level.dat file", file.getAbsolutePath(), e);
+                } else {
+                    logger.info("I/O error reading {}; assuming it is not a (supported) Java Minecraft level.dat file (type: {}, message: \"{}\")", file.getAbsolutePath(), e.getClass().getSimpleName(), e.getMessage());
+                }
             }
         }
         return null;
