@@ -11,6 +11,7 @@
 
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.util.AttributeKey;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -29,6 +30,7 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -36,7 +38,7 @@ import java.util.Set;
 
 import static org.pepsoft.worldpainter.App.MERGE_WARNING_KEY;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
+import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.util.BackupUtils.cleanUpBackups;
 
 /**
@@ -92,6 +94,24 @@ public class MergeWorldDialog extends WorldPainterDialog {
             checkBoxNether.setSelected(world.getDimension(DIM_NETHER) != null);
             checkBoxEnd.setSelected(world.getDimension(DIM_END) != null);
         }
+        world.getAttribute(ATTRIBUTE_MERGE_SETTINGS).ifPresent(mergeSettings -> {
+            if (mergeSettings.replaceChunks) {
+                radioButtonReplaceChunks.setSelected(true);
+            } else {
+                radioButtonAll.setSelected(true);
+            }
+            checkBoxAboveMergeBlocks.setSelected(mergeSettings.mergeBlocksAboveGround);
+            checkBoxBelowMergeBlocks.setSelected(mergeSettings.mergeBlocksUnderground);
+            checkBoxAboveMergeBiomes.setSelected(mergeSettings.mergeBiomesAboveGround);
+            checkBoxBelowMergeBiomes.setSelected(mergeSettings.mergeBiomesUnderground);
+            checkBoxRemoveTrees.setSelected(mergeSettings.clearTrees);
+            checkBoxRemoveVegetation.setSelected(mergeSettings.clearVegetation);
+            checkBoxRemoveManMadeAboveGround.setSelected(mergeSettings.clearManMadeAboveGround);
+            checkBoxRemoveResources.setSelected(mergeSettings.clearResources);
+            checkBoxFillCaves.setSelected(mergeSettings.fillCaves);
+            checkBoxRemoveManMadeBelowGround.setSelected(mergeSettings.clearManMadeBelowGround);
+            spinnerSurfaceThickness.setValue(mergeSettings.surfaceMergeDepth);
+        });
         
         DocumentListener documentListener = new DocumentListener() {
             @Override
@@ -137,20 +157,17 @@ public class MergeWorldDialog extends WorldPainterDialog {
         if (! checkCompatibility(platform)) {
             return;
         }
-        final boolean biomesOnly = radioButtonBiomes.isSelected();
-        if (! biomesOnly) {
-            if ((! radioButtonExportEverything.isSelected()) && ((selectedTiles == null) || selectedTiles.isEmpty())) {
-                radioButtonExportEverything.requestFocusInWindow();
-                DesktopUtils.beep();
-                JOptionPane.showMessageDialog(this, "No tiles selected for merging.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if ((! checkBoxSurface.isSelected()) && (! checkBoxNether.isSelected()) && (! checkBoxEnd.isSelected())) {
-                checkBoxSurface.requestFocusInWindow();
-                DesktopUtils.beep();
-                JOptionPane.showMessageDialog(this, "No dimension selected for merging.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+        if ((! radioButtonExportEverything.isSelected()) && ((selectedTiles == null) || selectedTiles.isEmpty())) {
+            radioButtonExportEverything.requestFocusInWindow();
+            DesktopUtils.beep();
+            JOptionPane.showMessageDialog(this, "No tiles selected for merging.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if ((! checkBoxSurface.isSelected()) && (! checkBoxNether.isSelected()) && (! checkBoxEnd.isSelected())) {
+            checkBoxSurface.requestFocusInWindow();
+            DesktopUtils.beep();
+            JOptionPane.showMessageDialog(this, "No dimension selected for merging.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
 
         if (radioButtonExportEverything.isSelected()) {
@@ -177,9 +194,25 @@ public class MergeWorldDialog extends WorldPainterDialog {
             world.setDimensionsToExport(Collections.singleton(selectedDimension));
             world.setTilesToExport(selectedTiles);
         }
-        JavaWorldMerger merger = new JavaWorldMerger(world, mapDir, platform);
+        final boolean replaceChunks = radioButtonReplaceChunks.isSelected();
+        final JavaWorldMerger merger = new JavaWorldMerger(world, mapDir, platform);
         try {
-            merger.performSanityChecks(biomesOnly);
+            if (replaceChunks) {
+                merger.setReplaceChunks(true);
+            } else {
+                merger.setMergeBlocksAboveGround(checkBoxAboveMergeBlocks.isSelected());
+                merger.setMergeBlocksUnderground(checkBoxBelowMergeBlocks.isSelected());
+                merger.setMergeBiomesAboveGround(platform.supportsBiomes() && checkBoxAboveMergeBiomes.isSelected());
+                merger.setMergeBiomesUnderground((platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) && checkBoxBelowMergeBiomes.isSelected());
+                merger.setClearManMadeAboveGround(checkBoxRemoveManMadeAboveGround.isSelected());
+                merger.setClearManMadeBelowGround(checkBoxRemoveManMadeBelowGround.isSelected());
+                merger.setClearResources(checkBoxRemoveResources.isSelected());
+                merger.setClearTrees(checkBoxRemoveTrees.isSelected());
+                merger.setClearVegetation(checkBoxRemoveVegetation.isSelected());
+                merger.setFillCaves(checkBoxFillCaves.isSelected());
+                merger.setSurfaceMergeDepth((Integer) spinnerSurfaceThickness.getValue());
+            }
+            merger.performSanityChecks();
         } catch (IllegalArgumentException e) {
             logger.error(e.getClass().getSimpleName() + ": " + e.getMessage(), e);
             DesktopUtils.beep();
@@ -215,8 +248,6 @@ public class MergeWorldDialog extends WorldPainterDialog {
             return;
         }
 
-        final boolean replaceChunks = radioButtonReplaceChunks.isSelected();
-
         // Make sure the minimum free disk space is met
         try {
             if (! cleanUpBackups(mapDir.getParentFile(), null)) {
@@ -230,7 +261,6 @@ public class MergeWorldDialog extends WorldPainterDialog {
         buttonSelectDirectory.setEnabled(false);
         buttonMerge.setEnabled(false);
         radioButtonAll.setEnabled(false);
-        radioButtonBiomes.setEnabled(false);
         radioButtonReplaceChunks.setEnabled(false);
         radioButtonExportEverything.setEnabled(false);
         radioButtonExportSelection.setEnabled(false);
@@ -246,38 +276,25 @@ public class MergeWorldDialog extends WorldPainterDialog {
         checkBoxSurface.setEnabled(false);
         checkBoxNether.setEnabled(false);
         checkBoxEnd.setEnabled(false);
-        checkBoxIncludeUnderground.setEnabled(false);
+        checkBoxAboveMergeBlocks.setEnabled(false);
+        checkBoxBelowMergeBlocks.setEnabled(false);
+        checkBoxAboveMergeBiomes.setEnabled(false);
+        checkBoxBelowMergeBiomes.setEnabled(false);
 
         Configuration config = Configuration.getInstance();
         config.setSavesDirectory(mapDir.getParentFile());
         config.setMessageDisplayed(MERGE_WARNING_KEY);
         world.setImportedFrom(new File(mapDir, "level.dat"));
 
-        synchronized (merger) {
-            try {
-                backupDir = merger.selectBackupDir(mapDir);
-            } catch (IOException e) {
-                throw new RuntimeException("I/O error while creating backup directory", e);
-            }
-            if (! biomesOnly) {
-                if (replaceChunks) {
-                    merger.setReplaceChunks(true);
-                } else {
-                    merger.setMergeUnderworld(checkBoxIncludeUnderground.isSelected());
-                    merger.setClearManMadeAboveGround(checkBoxRemoveManMadeAboveGround.isSelected());
-                    merger.setClearManMadeBelowGround(checkBoxRemoveManMadeBelowGround.isSelected());
-                    merger.setClearResources(checkBoxRemoveResources.isSelected());
-                    merger.setClearTrees(checkBoxRemoveTrees.isSelected());
-                    merger.setClearVegetation(checkBoxRemoveVegetation.isSelected());
-                    merger.setFillCaves(checkBoxFillCaves.isSelected());
-                    merger.setSurfaceMergeDepth((Integer) spinnerSurfaceThickness.getValue());
-                }
-            }
+        try {
+            backupDir = merger.selectBackupDir(mapDir);
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error while creating backup directory", e);
         }
-        
+
         setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 
-        MergeProgressDialog dialog = new MergeProgressDialog(this, merger, backupDir, biomesOnly);
+        MergeProgressDialog dialog = new MergeProgressDialog(this, merger, backupDir);
         view.setInhibitUpdates(true);
         try {
             dialog.setVisible(true);
@@ -286,6 +303,22 @@ public class MergeWorldDialog extends WorldPainterDialog {
         }
 
         synchronized (merger) {
+            if (! merger.isAborted()) {
+                world.setAttribute(ATTRIBUTE_MERGE_SETTINGS, new MergeSettings(
+                        radioButtonReplaceChunks.isSelected(),
+                        checkBoxAboveMergeBlocks.isSelected(),
+                        checkBoxBelowMergeBlocks.isSelected(),
+                        checkBoxAboveMergeBiomes.isSelected(),
+                        checkBoxBelowMergeBiomes.isSelected(),
+                        checkBoxRemoveTrees.isSelected(),
+                        checkBoxRemoveVegetation.isSelected(),
+                        checkBoxRemoveManMadeAboveGround.isSelected(),
+                        checkBoxRemoveResources.isSelected(),
+                        checkBoxFillCaves.isSelected(),
+                        checkBoxRemoveManMadeBelowGround.isSelected(),
+                        (Integer) spinnerSurfaceThickness.getValue()));
+            }
+
             if (merger.getWarnings() != null) {
                 Icon warningIcon = UIManager.getIcon("OptionPane.warningIcon");
                 DesktopUtils.beep();
@@ -302,20 +335,21 @@ public class MergeWorldDialog extends WorldPainterDialog {
     }
 
     private void setControlStates() {
-        File mapDir = new File(fieldSelectedMapDir.getText().trim());
+        final boolean mergeAll = radioButtonAll.isSelected();
+        final boolean mergeEverything = radioButtonExportEverything.isSelected();
+        final boolean surfacePresent = world.getDimension(DIM_NORMAL) != null;
+        final boolean netherPresent = world.getDimension(DIM_NETHER) != null;
+        final boolean endPresent = world.getDimension(DIM_END) != null;
+        final boolean oneDimensionPresent = world.getDimensions().length == 1;
+        boolean biomesSupported = false, threeDeeBiomesSupported = false;
+        final File mapDir = new File(fieldSelectedMapDir.getText().trim());
         if (mapDir.isDirectory()) {
             this.mapDir = mapDir;
             final PlatformProvider.MapInfo mapInfo = PlatformManager.getInstance().identifyMap(mapDir);
             platform = (mapInfo != null) ? mapInfo.platform : null;
             if (platform != null) {
-                if (! platform.supportsBiomes()) {
-                    if (radioButtonBiomes.isSelected()) {
-                        radioButtonAll.setSelected(true);
-                    }
-                    radioButtonBiomes.setEnabled(false);
-                } else {
-                    radioButtonBiomes.setEnabled(true);
-                }
+                biomesSupported = platform.supportsBiomes();
+                threeDeeBiomesSupported = platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
                 labelPlatform.setText(platform.displayName);
                 labelPlatform.setIcon(mapInfo.icon);
             } else {
@@ -326,14 +360,10 @@ public class MergeWorldDialog extends WorldPainterDialog {
             this.mapDir = null;
             labelPlatform.setText(null);
         }
-        boolean mergeAll = radioButtonAll.isSelected();
-        boolean mergeBiomesOnly = radioButtonBiomes.isSelected();
-        boolean mergeEverything = radioButtonExportEverything.isSelected();
-        boolean surfacePresent = world.getDimension(DIM_NORMAL) != null;
-        boolean netherPresent = world.getDimension(DIM_NETHER) != null;
-        boolean endPresent = world.getDimension(DIM_END) != null;
-        boolean oneDimensionPresent = world.getDimensions().length == 1;
-        checkBoxIncludeUnderground.setEnabled(mergeAll);
+        checkBoxAboveMergeBlocks.setEnabled(mergeAll);
+        checkBoxBelowMergeBlocks.setEnabled(mergeAll);
+        checkBoxAboveMergeBiomes.setEnabled(mergeAll && biomesSupported);
+        checkBoxBelowMergeBiomes.setEnabled(mergeAll && threeDeeBiomesSupported);
         checkBoxFillCaves.setEnabled(mergeAll);
         checkBoxRemoveManMadeAboveGround.setEnabled(mergeAll);
         checkBoxRemoveManMadeBelowGround.setEnabled(mergeAll);
@@ -341,9 +371,9 @@ public class MergeWorldDialog extends WorldPainterDialog {
         checkBoxRemoveTrees.setEnabled(mergeAll);
         checkBoxRemoveVegetation.setEnabled(mergeAll);
         spinnerSurfaceThickness.setEnabled(mergeAll);
-        checkBoxSurface.setEnabled(mergeEverything && (! mergeBiomesOnly) && surfacePresent && (! oneDimensionPresent));
-        checkBoxNether.setEnabled(mergeEverything && (! mergeBiomesOnly) && netherPresent && (! oneDimensionPresent));
-        checkBoxEnd.setEnabled(mergeEverything && (! mergeBiomesOnly) && endPresent && (! oneDimensionPresent));
+        checkBoxSurface.setEnabled(mergeEverything && surfacePresent && (! oneDimensionPresent));
+        checkBoxNether.setEnabled(mergeEverything && netherPresent && (! oneDimensionPresent));
+        checkBoxEnd.setEnabled(mergeEverything && endPresent && (! oneDimensionPresent));
         if (radioButtonExportSelection.isSelected()) {
             labelSelectTiles.setForeground(Color.BLUE);
             labelSelectTiles.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -431,7 +461,6 @@ public class MergeWorldDialog extends WorldPainterDialog {
         buttonSelectDirectory = new javax.swing.JButton();
         buttonMerge = new javax.swing.JButton();
         radioButtonAll = new javax.swing.JRadioButton();
-        radioButtonBiomes = new javax.swing.JRadioButton();
         radioButtonReplaceChunks = new javax.swing.JRadioButton();
         radioButtonExportEverything = new javax.swing.JRadioButton();
         radioButtonExportSelection = new javax.swing.JRadioButton();
@@ -454,16 +483,17 @@ public class MergeWorldDialog extends WorldPainterDialog {
         checkBoxSurface = new javax.swing.JCheckBox();
         checkBoxNether = new javax.swing.JCheckBox();
         checkBoxEnd = new javax.swing.JCheckBox();
-        checkBoxIncludeUnderground = new javax.swing.JCheckBox();
         jLabel10 = new javax.swing.JLabel();
         labelPlatform = new javax.swing.JLabel();
+        checkBoxAboveMergeBlocks = new javax.swing.JCheckBox();
+        checkBoxAboveMergeBiomes = new javax.swing.JCheckBox();
+        checkBoxBelowMergeBlocks = new javax.swing.JCheckBox();
+        checkBoxBelowMergeBiomes = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Merging");
 
         jLabel2.setText("Select the existing map to merge your changes with:");
-
-        fieldSelectedMapDir.setText("jTextField1");
 
         buttonSelectDirectory.setText("...");
         buttonSelectDirectory.addActionListener(new java.awt.event.ActionListener() {
@@ -481,20 +511,11 @@ public class MergeWorldDialog extends WorldPainterDialog {
 
         buttonGroup1.add(radioButtonAll);
         radioButtonAll.setSelected(true);
-        radioButtonAll.setText("Merge old and new chunks (");
-        radioButtonAll.setToolTipText("Will merge everything (terrain type and height changes, new layers, biome changes, etc.). Takes a very long time.");
+        radioButtonAll.setText("Merge old and new chunks");
+        radioButtonAll.setToolTipText("<html><i>Will merge everything (terrain type and height changes,<br>\nnew layers, etc.). Takes a long time.</i></html>");
         radioButtonAll.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonAllActionPerformed(evt);
-            }
-        });
-
-        buttonGroup1.add(radioButtonBiomes);
-        radioButtonBiomes.setText("Only change the biomes (Surface dimension only)");
-        radioButtonBiomes.setToolTipText("<html>Will merge <i>only</i> biome changes. Much quicker than merging everything, and with no side effects.</html>");
-        radioButtonBiomes.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonBiomesActionPerformed(evt);
             }
         });
 
@@ -509,7 +530,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
 
         buttonGroup2.add(radioButtonExportEverything);
         radioButtonExportEverything.setSelected(true);
-        radioButtonExportEverything.setText("Merge everything");
+        radioButtonExportEverything.setText("Merge all tiles");
         radioButtonExportEverything.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonExportEverythingActionPerformed(evt);
@@ -533,9 +554,9 @@ public class MergeWorldDialog extends WorldPainterDialog {
 
         jLabel1.setText("Choose which part of the map to merge:");
 
-        jLabel4.setText("Choose what kind of merge to perform (non-read-only chunks in selected tiles only):");
+        jLabel4.setText("<html>Choose what kind of merge to perform (<b>non-read-only</b> chunks in <b>selected tiles</b> only):</html>");
 
-        jLabel5.setText("<html>Options for the existing map (<b>non-read-only</b> chunks in <b>selected tiles</b> only):</html>");
+        jLabel5.setText("Options for the existing map:");
 
         jLabel6.setText("<html><b>Above</b> ground:</html>");
 
@@ -590,9 +611,16 @@ public class MergeWorldDialog extends WorldPainterDialog {
             }
         });
 
-        checkBoxIncludeUnderground.setText("including underground portion)");
-
         jLabel10.setText("Map format:");
+
+        checkBoxAboveMergeBlocks.setSelected(true);
+        checkBoxAboveMergeBlocks.setText("Merge blocks");
+
+        checkBoxAboveMergeBiomes.setText("Replace biomes");
+
+        checkBoxBelowMergeBlocks.setText("Merge blocks");
+
+        checkBoxBelowMergeBiomes.setText("Replace biomes");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -607,22 +635,38 @@ public class MergeWorldDialog extends WorldPainterDialog {
                                 .addComponent(fieldSelectedMapDir)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(buttonSelectDirectory))
-                            .addComponent(buttonMerge, javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(radioButtonExportEverything)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(radioButtonExportSelection)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(labelSelectTiles, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(jLabel1)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(checkBoxSurface)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(checkBoxNether)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(checkBoxEnd))
                                     .addComponent(jLabel2)
-                                    .addComponent(jLabel4)
-                                    .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addGroup(layout.createSequentialGroup()
                                         .addGap(12, 12, 12)
                                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(radioButtonBiomes)
-                                            .addGroup(layout.createSequentialGroup()
-                                                .addComponent(radioButtonAll)
-                                                .addGap(0, 0, 0)
-                                                .addComponent(checkBoxIncludeUnderground))
-                                            .addComponent(radioButtonReplaceChunks))))
-                                .addGap(0, 0, Short.MAX_VALUE)))
+                                            .addComponent(radioButtonAll)
+                                            .addComponent(radioButtonReplaceChunks)
+                                            .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel8)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(spinnerSurfaceThickness, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel9)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(buttonMerge)))
                         .addContainerGap())
                     .addGroup(layout.createSequentialGroup()
                         .addGap(12, 12, 12)
@@ -633,39 +677,22 @@ public class MergeWorldDialog extends WorldPainterDialog {
                                 .addComponent(jLabel3))
                             .addComponent(checkBoxRemoveVegetation)
                             .addComponent(checkBoxRemoveManMadeAboveGround)
-                            .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel5)
+                            .addComponent(checkBoxAboveMergeBlocks)
+                            .addComponent(checkBoxAboveMergeBiomes))
                         .addGap(0, 0, 0)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(checkBoxRemoveManMadeBelowGround)
                             .addComponent(checkBoxFillCaves)
-                            .addComponent(checkBoxRemoveResources))
+                            .addComponent(checkBoxRemoveResources)
+                            .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(checkBoxBelowMergeBlocks)
+                            .addComponent(checkBoxBelowMergeBiomes))
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel8)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerSurfaceThickness, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jLabel9))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(radioButtonExportEverything)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(radioButtonExportSelection)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(labelSelectTiles, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jLabel1)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(checkBoxSurface)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(checkBoxNether)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(checkBoxEnd))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel10)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(labelPlatform)))
+                        .addComponent(jLabel10)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(labelPlatform)
                         .addGap(0, 0, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
@@ -682,15 +709,38 @@ public class MergeWorldDialog extends WorldPainterDialog {
                     .addComponent(jLabel10)
                     .addComponent(labelPlatform))
                 .addGap(18, 18, 18)
-                .addComponent(jLabel4)
+                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(radioButtonAll)
-                    .addComponent(checkBoxIncludeUnderground))
+                .addComponent(radioButtonAll)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(radioButtonReplaceChunks)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(radioButtonBiomes)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(checkBoxAboveMergeBlocks)
+                    .addComponent(checkBoxBelowMergeBlocks))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(checkBoxAboveMergeBiomes)
+                    .addComponent(checkBoxBelowMergeBiomes))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel5)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(checkBoxRemoveTrees)
+                    .addComponent(checkBoxRemoveResources)
+                    .addComponent(jLabel3))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(checkBoxRemoveVegetation)
+                    .addComponent(checkBoxFillCaves))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(checkBoxRemoveManMadeAboveGround)
+                    .addComponent(checkBoxRemoveManMadeBelowGround))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -707,29 +757,9 @@ public class MergeWorldDialog extends WorldPainterDialog {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel8)
                     .addComponent(spinnerSurfaceThickness, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel9))
-                .addGap(18, 18, 18)
-                .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(checkBoxRemoveTrees)
-                    .addComponent(checkBoxRemoveResources)
-                    .addComponent(jLabel3))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(checkBoxRemoveVegetation)
-                    .addComponent(checkBoxFillCaves))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(checkBoxRemoveManMadeAboveGround)
-                    .addComponent(checkBoxRemoveManMadeBelowGround))
-                .addGap(18, 18, Short.MAX_VALUE)
-                .addComponent(buttonMerge)
-                .addContainerGap())
+                    .addComponent(jLabel9)
+                    .addComponent(buttonMerge))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -763,10 +793,6 @@ public class MergeWorldDialog extends WorldPainterDialog {
         setControlStates();
     }//GEN-LAST:event_radioButtonAllActionPerformed
 
-    private void radioButtonBiomesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonBiomesActionPerformed
-        setControlStates();
-    }//GEN-LAST:event_radioButtonBiomesActionPerformed
-
     private void radioButtonReplaceChunksActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonReplaceChunksActionPerformed
         setControlStates();
     }//GEN-LAST:event_radioButtonReplaceChunksActionPerformed
@@ -788,9 +814,12 @@ public class MergeWorldDialog extends WorldPainterDialog {
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JButton buttonMerge;
     private javax.swing.JButton buttonSelectDirectory;
+    private javax.swing.JCheckBox checkBoxAboveMergeBiomes;
+    private javax.swing.JCheckBox checkBoxAboveMergeBlocks;
+    private javax.swing.JCheckBox checkBoxBelowMergeBiomes;
+    private javax.swing.JCheckBox checkBoxBelowMergeBlocks;
     private javax.swing.JCheckBox checkBoxEnd;
     private javax.swing.JCheckBox checkBoxFillCaves;
-    private javax.swing.JCheckBox checkBoxIncludeUnderground;
     private javax.swing.JCheckBox checkBoxNether;
     private javax.swing.JCheckBox checkBoxRemoveManMadeAboveGround;
     private javax.swing.JCheckBox checkBoxRemoveManMadeBelowGround;
@@ -812,7 +841,6 @@ public class MergeWorldDialog extends WorldPainterDialog {
     private javax.swing.JLabel labelPlatform;
     private javax.swing.JLabel labelSelectTiles;
     private javax.swing.JRadioButton radioButtonAll;
-    private javax.swing.JRadioButton radioButtonBiomes;
     private javax.swing.JRadioButton radioButtonExportEverything;
     private javax.swing.JRadioButton radioButtonExportSelection;
     private javax.swing.JRadioButton radioButtonReplaceChunks;
@@ -834,6 +862,32 @@ public class MergeWorldDialog extends WorldPainterDialog {
     private Set<Point> selectedTiles;
     private boolean disableTileSelectionWarning;
 
+    private static final AttributeKey<MergeSettings> ATTRIBUTE_MERGE_SETTINGS = new AttributeKey<>("MergeWorldDialog.mergeSettings");
     private static final Logger logger = LoggerFactory.getLogger(MergeWorldDialog.class);
     private static final long serialVersionUID = 1L;
+
+    static class MergeSettings implements Serializable {
+        public MergeSettings(boolean replaceChunks, boolean mergeBlocksAboveGround, boolean mergeBlocksUnderground, boolean mergeBiomesAboveGround, boolean mergeBiomesUnderground, boolean clearTrees, boolean clearVegetation, boolean clearManMadeAboveGround, boolean clearResources, boolean fillCaves, boolean clearManMadeBelowGround, int surfaceMergeDepth) {
+            this.replaceChunks = replaceChunks;
+            this.mergeBlocksAboveGround = mergeBlocksAboveGround;
+            this.mergeBlocksUnderground = mergeBlocksUnderground;
+            this.mergeBiomesAboveGround = mergeBiomesAboveGround;
+            this.mergeBiomesUnderground = mergeBiomesUnderground;
+            this.clearTrees = clearTrees;
+            this.clearVegetation = clearVegetation;
+            this.clearManMadeAboveGround = clearManMadeAboveGround;
+            this.clearResources = clearResources;
+            this.fillCaves = fillCaves;
+            this.clearManMadeBelowGround = clearManMadeBelowGround;
+            this.surfaceMergeDepth = surfaceMergeDepth;
+        }
+
+        final boolean replaceChunks,
+                mergeBlocksAboveGround, mergeBlocksUnderground, mergeBiomesAboveGround, mergeBiomesUnderground,
+                clearTrees, clearVegetation, clearManMadeAboveGround,
+                clearResources, fillCaves, clearManMadeBelowGround;
+        final int surfaceMergeDepth;
+
+        private static final long serialVersionUID = 1L;
+    }
 }

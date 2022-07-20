@@ -15,12 +15,10 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.history.HistoryEntry;
-import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.ReadOnly;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
-import org.pepsoft.worldpainter.util.BiomeUtils;
 import org.pepsoft.worldpainter.util.FileInUseException;
 import org.pepsoft.worldpainter.vo.EventVO;
 
@@ -32,15 +30,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.DataType.REGION;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.Platform.Capability.LEAF_DISTANCES;
-import static org.pepsoft.worldpainter.Platform.Capability.PRECALCULATED_LIGHT;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
+import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.platforms.PlatformUtils.determineNativePlatforms;
 
 /**
@@ -74,15 +69,36 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         this.replaceChunks = replaceChunks;
     }
 
-    /**
-     * Whether to merge the part of the map <em>below</em> the surface.
-     */
-    public boolean isMergeUnderworld() {
-        return mergeUnderworld;
+    public boolean isMergeBlocksAboveGround() {
+        return mergeBlocksAboveGround;
     }
 
-    public void setMergeUnderworld(final boolean mergeUnderworld) {
-        this.mergeUnderworld = mergeUnderworld;
+    public void setMergeBlocksAboveGround(boolean mergeBlocksAboveGround) {
+        this.mergeBlocksAboveGround = mergeBlocksAboveGround;
+    }
+
+    public boolean isMergeBlocksUnderground() {
+        return mergeBlocksUnderground;
+    }
+
+    public void setMergeBlocksUnderground(final boolean mergeBlocksUnderground) {
+        this.mergeBlocksUnderground = mergeBlocksUnderground;
+    }
+
+    public boolean isMergeBiomesAboveGround() {
+        return mergeBiomesAboveGround;
+    }
+
+    public void setMergeBiomesAboveGround(boolean mergeBiomesAboveGround) {
+        this.mergeBiomesAboveGround = mergeBiomesAboveGround;
+    }
+
+    public boolean isMergeBiomesUnderground() {
+        return mergeBiomesUnderground;
+    }
+
+    public void setMergeBiomesUnderground(boolean mergeBiomesUnderground) {
+        this.mergeBiomesUnderground = mergeBiomesUnderground;
     }
 
     public int getSurfaceMergeDepth() {
@@ -170,33 +186,37 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
     }
 
     /**
-     * Perform sanity checks to ensure the merge can proceed. Throws an
-     * {@link IllegalArgumentException} if the check fails, with the message
-     * describing the problem. Returns the loaded Minecraft level object as a
-     * convenience.
+     * Perform sanity checks to ensure the merge can proceed. Throws an {@link IllegalArgumentException} if the check
+     * fails, with the message describing the problem. Returns the loaded Minecraft level object as a convenience.
      *
-     * @param biomesOnly Whether to check sanity for a biomes only merge (when
-     *                   {@code true}) or a full merge (when
-     *                   {@code false}).
      * @return The loaded Minecraft level object, for convenience.
-     * @throws IllegalArgumentException If there is a problem that would prevent
-     * the merge from completing.
-     * @throws IOException If the level.dat file could not be read due to an I/O
-     * error.
+     * @throws IllegalArgumentException If there is a problem that would prevent the merge from completing.
+     * @throws IOException If the level.dat file could not be read due to an I/O error.
      */
-    public JavaLevel performSanityChecks(boolean biomesOnly) throws IOException {
+    public JavaLevel performSanityChecks() throws IOException {
+        if (! (replaceChunks || mergeBiomesAboveGround || mergeBiomesUnderground || mergeBlocksAboveGround || mergeBlocksUnderground || clearTrees || clearResources || clearVegetation || clearManMadeAboveGround || clearManMadeBelowGround || fillCaves)) {
+            throw new IllegalArgumentException("Nothing to do");
+        } else if (replaceChunks && (mergeBiomesAboveGround || mergeBiomesUnderground || mergeBlocksAboveGround || mergeBlocksUnderground || clearTrees || clearResources || clearVegetation || clearManMadeAboveGround || clearManMadeBelowGround || fillCaves)) {
+            throw new IllegalArgumentException("replaceChunks is mutually exclusive with other merge options");
+        }
+
         // Read existing level.dat file
         JavaLevel level = JavaLevel.load(new File(worldDir, "level.dat"));
 
         // Sanity checks
-        if (biomesOnly) {
-            int version = level.getVersion();
-            if (version == VERSION_MCREGION) {
-                throw new IllegalArgumentException("MCRegion (Minecraft 1.1) maps do not support biomes");
-            } else if (version != VERSION_ANVIL) {
-                throw new IllegalArgumentException("Version of existing map not supported: 0x" + Integer.toHexString(version));
-            }
-        } else {
+        int version = level.getVersion();
+        if (version != VERSION_ANVIL) {
+            throw new IllegalArgumentException("Version of existing map not supported: 0x" + Integer.toHexString(version));
+        }
+
+        if (mergeBiomesAboveGround && (! (platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)))) {
+            throw new IllegalArgumentException(platform.displayName + " maps do not support biomes");
+        }
+        if (mergeBiomesUnderground && (! (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)))) {
+            throw new IllegalArgumentException(platform.displayName + " maps do not support 3D biomes");
+        }
+
+        if (mergeBlocksAboveGround || mergeBlocksUnderground || mergeBiomesUnderground) {
             // TODO support different map heights; just give a warning
             if (platform.minZ != world.getPlatform().minZ) {
                 throw new IllegalArgumentException("Existing map has different min height (" + platform.minZ + ") than WorldPainter world (" + world.getPlatform().minZ + ")");
@@ -245,8 +265,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         logger.info("Merging world " + world.getName() + " with map at " + worldDir);
         
         // Read existing level.dat file and perform sanity checks
-        JavaLevel level = performSanityChecks(false);
-        
+        final JavaLevel level = performSanityChecks();
+
         // Record start of export
         long start = System.currentTimeMillis();
 
@@ -361,10 +381,16 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             }
             config.logEvent(event);
         }
+
+        aborted = false;
     }
 
     public String getWarnings() {
         return warnings;
+    }
+
+    public boolean isAborted() {
+        return aborted;
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent") // It's always there. The API should allow to assert that
@@ -512,10 +538,12 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                     try {
                                         final String regionWarnings = mergeRegion(minecraftWorld, backupRegionDir, dimension, regionCoords, tiles, selectedTiles != null, exporters, chunkFactory, regionFixups, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
                                         if (regionWarnings != null) {
-                                            if (warnings == null) {
-                                                warnings = regionWarnings;
-                                            } else {
-                                                warnings = warnings + regionWarnings;
+                                            synchronized (JavaWorldMerger.this){
+                                                if (warnings == null) {
+                                                    warnings = regionWarnings;
+                                                } else {
+                                                    warnings = warnings + regionWarnings;
+                                                }
                                             }
                                         }
                                         if (logger.isDebugEnabled()) {
@@ -823,19 +851,23 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             long t3 = System.currentTimeMillis();
             warnings = thirdPass(minecraftWorld, oldRegionDir, dimension, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.25f) : null);
 
-            // Post processing. Fix covered grass blocks, things like that
             long t4 = System.currentTimeMillis();
-            final BlockBasedExportSettings exportSettings = (BlockBasedExportSettings) ((dimension.getExportSettings() instanceof BlockBasedExportSettings)
-                    ? dimension.getExportSettings()
-                    : platformProvider.getDefaultExportSettings(platform));
-            PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.1f) : null);
+            long t5 = t4;
+            // If all we did was replace biomes then post-processing and lighting are not needed
+            if (mergeBlocksAboveGround || mergeBlocksUnderground || clearTrees || clearVegetation || clearManMadeAboveGround || clearResources || fillCaves || clearManMadeBelowGround) {
+                // Post processing. Fix covered grass blocks, things like that
+                final BlockBasedExportSettings exportSettings = (BlockBasedExportSettings) ((dimension.getExportSettings() instanceof BlockBasedExportSettings)
+                        ? dimension.getExportSettings()
+                        : platformProvider.getDefaultExportSettings(platform));
+                PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.1f) : null);
 
-            // Third pass. Calculate lighting
-            long t5 = System.currentTimeMillis();
-            final boolean lightingNeeded = (exportSettings.isCalculateBlockLight() || exportSettings.isCalculateSkyLight()) && platform.capabilities.contains(PRECALCULATED_LIGHT);
-            final boolean leafDistanceNeeded = exportSettings.isCalculateLeafDistance() && platform.capabilities.contains(LEAF_DISTANCES);
-            if (lightingNeeded || leafDistanceNeeded) {
-                blockPropertiesPass(minecraftWorld, regionCoords, exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.75f, 0.25f) : null);
+                // Third pass. Calculate lighting
+                t5 = System.currentTimeMillis();
+                final boolean lightingNeeded = (exportSettings.isCalculateBlockLight() || exportSettings.isCalculateSkyLight()) && platform.capabilities.contains(PRECALCULATED_LIGHT);
+                final boolean leafDistanceNeeded = exportSettings.isCalculateLeafDistance() && platform.capabilities.contains(LEAF_DISTANCES);
+                if (lightingNeeded || leafDistanceNeeded) {
+                    blockPropertiesPass(minecraftWorld, regionCoords, exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.75f, 0.25f) : null);
+                }
             }
             long t6 = System.currentTimeMillis();
             if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode"))) {
@@ -852,159 +884,10 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             // region
             warnings = copyAllChunksInRegion(minecraftWorld, oldRegionDir, dimension, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.3f, 0.7f) : null);
         }
-        return warnings;
-    }
-
-    // TODO make more configurable; e.g. only merge biomes above ground; only change biomes that are the same as a specified biome, or the existing biome at ground level
-    /**
-     * Merge only the biomes, leave everything else the same.
-     */
-    public void mergeBiomes(File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
-        if (! (platform.supportsBiomes())) {
-            throw new IllegalArgumentException("Platform " + platform + " does not support biomes");
-        }
-
-        logger.info("Merging biomes of world " + world.getName() + " with map at " + worldDir);
-
-        // Read existing level.dat file and perform sanity checks
-        performSanityChecks(true);
-
-        final Set<Point> tilesToMerge = world.getTilesToExport();
-        if (tilesToMerge != null) {
-            if (! world.getDimensionsToExport().equals(singleton(DIM_NORMAL))) {
-                throw new IllegalArgumentException("There is a tile section active, but it is not for the Surface dimension");
-            }
-        }
-
-        // Backup existing level
-        if (! worldDir.renameTo(backupDir)) {
-            throw new FileInUseException("Could not move " + worldDir + " to " + backupDir);
-        }
-        if (! worldDir.mkdirs()) {
-            throw new IOException("Could not create " + worldDir);
-        }
-        
-        // Copy everything that we are not going to generate
-        final File[] files = backupDir.listFiles();
-        //noinspection ConstantConditions // Cannot happen because we previously loaded level.dat from it
-        for (File file: files) {
-            if (! file.getName().equalsIgnoreCase("session.lock")) {
-                if (file.isFile()) {
-                    FileUtils.copyFileToDir(file, worldDir);
-                } else if (file.isDirectory()) {
-                    FileUtils.copyDir(file, new File(worldDir, file.getName()));
-                } else {
-                    logger.warn("Not copying " + file + "; not a regular file or directory");
-                }
-            }
-        }
-
-        // Write session.lock file
-        final File sessionLockFile = new File(worldDir, "session.lock");
-        try (DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile))) {
-            sessionOut.writeLong(System.currentTimeMillis());
-        }
-        
-        // Process all chunks and copy just the biomes
-        if (progressReceiver != null) {
-            progressReceiver.setMessage("Merging biomes");
-        }
-        final Dimension dimension = world.getDimension(DIM_NORMAL);
-        final BiomeUtils biomeUtils = new BiomeUtils(dimension);
-
-        // Determine regions to process
-        final Set<Point> regionsToMerge = getTilesByRegion(dimension).keySet();
-
-        // Merge each individual region
-        final ExecutorService executor = createExecutorService("merging", regionsToMerge.size());
-        final ParallelProgressManager parallelProgressManager = (progressReceiver != null) ? new ParallelProgressManager(progressReceiver, regionsToMerge.size()) : null;
-        final StringBuffer reportBuilder = new StringBuffer();
-        try {
-            for (final Point regionCoords: regionsToMerge) {
-                executor.execute(() -> {
-                    final ProgressReceiver progressReceiver1;
-                    if (parallelProgressManager != null) {
-                        try {
-                            progressReceiver1 = new SubProgressReceiver(parallelProgressManager.createProgressReceiver(), 0.0f, 1.0f);
-                            progressReceiver1.setMessage("Merging biomes of region " + regionCoords.x + "," + regionCoords.y);
-                        } catch (ProgressReceiver.OperationCancelled e) {
-                            return;
-                        }
-                    } else {
-                        progressReceiver1 = null;
-                    }
-                    try (JavaChunkStore chunkStore = platformProvider.getChunkStore(platform, worldDir, DIM_NORMAL)) {
-                        for (int chunkXInRegion = 0; chunkXInRegion < 32; chunkXInRegion++) {
-                            for (int chunkZInRegion = 0; chunkZInRegion < 32; chunkZInRegion++) {
-                                if (progressReceiver1 != null) {
-                                    progressReceiver1.setProgress((float) (chunkXInRegion * 32 + chunkZInRegion) / 1024);
-                                }
-                                final int chunkX = (regionCoords.x << 5) | chunkXInRegion, chunkZ = (regionCoords.y << 5) | chunkZInRegion;
-                                if (dimension.getBitLayerValueAt(ReadOnly.INSTANCE, chunkX << 4, chunkZ << 4)
-                                        || ((tilesToMerge != null) && (! tilesToMerge.contains(new Point(chunkX >> 3, chunkZ >> 3))))) {
-                                    // Skip read-only chunks or chunks that are not part of the tile selection
-                                    continue;
-                                }
-                                if (chunkStore.isChunkPresent(chunkX, chunkZ)) {
-                                    final Chunk chunk = chunkStore.getChunkForEditing(chunkX, chunkZ);
-                                    if (chunk.is3DBiomesSupported() || chunk.isNamedBiomesSupported()) {
-                                        for (int xx = 0; xx < 4; xx++) {
-                                            for (int zz = 0; zz < 4; zz++) {
-                                                final int biome = dimension.getMostPrevalentBiome((chunkX << 2) | xx, (chunkZ << 2) | zz, BIOME_PLAINS);
-                                                for (int y = 0; y < chunk.getMaxHeight(); y += 4) {
-                                                    // TODOMC118 this obliterates the existing 3D biomes; how to handle that?
-                                                    biomeUtils.set3DBiome(chunk, xx, y >> 2, zz, biome);
-                                                }
-                                            }
-                                        }
-                                        chunkStore.saveChunk(chunk);
-                                    } else if (chunk.isBiomesSupported()) {
-                                        for (int xx = 0; xx < 16; xx++) {
-                                            for (int zz = 0; zz < 16; zz++) {
-                                                final int biome = dimension.getLayerValueAt(Biome.INSTANCE, (chunkX << 4) | xx, (chunkZ << 4) | zz);
-                                                biomeUtils.set2DBiome(chunk, xx, zz, (biome != 255) ? biome : dimension.getAutoBiome((chunkX << 4) | xx, (chunkZ << 4) | zz));
-                                            }
-                                        }
-                                        chunkStore.saveChunk(chunk);
-                                    } else {
-                                        reportBuilder.append("Chunk " + chunkX + ", " + chunkZ + " of type " + chunk.getClass().getSimpleName() + " does not support any kind of biomes; skipping chunk" + EOL);
-                                        logger.error("Chunk " + chunkX + ", " + chunkZ + " of type " + chunk.getClass().getSimpleName() + " does not support any kind of biomes; skipping chunk");
-                                    }
-                                }
-                            }
-                        }
-                        if (progressReceiver1 != null) {
-                            progressReceiver1.setProgress(1.0f);
-                        }
-                    } catch (Throwable t) {
-                        if (progressReceiver1 != null) {
-                            progressReceiver1.exceptionThrown(t);
-                        } else {
-                            logger.error("Exception while merging region", t);
-                        }
-                    }
-                });
-            }
-        } finally {
-            executor.shutdown();
-            try {
-                executor.awaitTermination(1000, TimeUnit.DAYS);
-            } catch (InterruptedException e) {
-                throw new RuntimeException("Thread interrupted while waiting for all tasks to finish", e);
-            }
-        }
-
-        // Rewrite session.lock file
-        try (DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile))) {
-            sessionOut.writeLong(System.currentTimeMillis());
-        }
-
         if (progressReceiver != null) {
             progressReceiver.setProgress(1.0f);
         }
-        if (reportBuilder.length() != 0) {
-            warnings = reportBuilder.toString();
-        }
+        return warnings;
     }
 
     private String thirdPass(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Point regionCoords, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
@@ -1349,14 +1232,21 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
      * @param dimension     The dimension from which to take the changes to merge.
      */
     private void mergeChunk(Chunk existingChunk, Chunk newChunk, Dimension dimension) {
-        // TODO support 3D biomes
         if (logger.isDebugEnabled()) {
             logger.debug("Merging chunks at " + existingChunk.getxPos() + "," + existingChunk.getzPos());
         }
         final int minHeight = existingChunk.getMinHeight(), oldMaxY = existingChunk.getHighestNonAirBlock(), newMaxY = newChunk.getHighestNonAirBlock(), maxHeight = existingChunk.getMaxHeight();
         final int chunkX = existingChunk.getxPos() << 4, chunkZ = existingChunk.getzPos() << 4;
+        final boolean copy2DBiomes = existingChunk.isBiomesSupported() && newChunk.isBiomesAvailable();
+        final boolean copy3DBiomes = existingChunk.is3DBiomesSupported() && newChunk.is3DBiomesAvailable();
+        final boolean copyNamedBiomes = existingChunk.isNamedBiomesSupported() && newChunk.isNamedBiomesAvailable();
+        final boolean copyBiomes = (mergeBiomesAboveGround || mergeBiomesUnderground) && (copy3DBiomes || copyNamedBiomes);
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
+                if (mergeBiomesAboveGround && copy2DBiomes) {
+                    existingChunk.setBiome(x, z, newChunk.getBiome(x, z));
+                }
+                final boolean biomeCopyColumn = copyBiomes && ((x % 4) == 1) && ((z % 4) == 1);
                 if (dimension.getBitLayerValueAt(org.pepsoft.worldpainter.layers.Void.INSTANCE, chunkX | x, chunkZ | z)) {
                     // Void. Just empty the entire column
                     // TODO: only empty from the terrain height on downwards? or find some other way of preserving overhanging trees, that kind of thing?
@@ -1364,6 +1254,13 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         existingChunk.setMaterial(x, y, z, AIR);
                         existingChunk.setBlockLightLevel(x, y, z, 0);
                         existingChunk.setSkyLightLevel(x, y, z, 15);
+                        if (biomeCopyColumn) {
+                            if (copy3DBiomes) {
+                                existingChunk.set3DBiome(x >> 2, y >> 2, z >>2, newChunk.get3DBiome(x >> 2, y >> 2, z >> 2));
+                            } else {
+                                existingChunk.setNamedBiome(x >> 2, y >> 2, z >> 2, newChunk.getNamedBiome(x >> 2, y >> 2, z >> 2));
+                            }
+                        }
                     }
                 } else {
                     final int newHeight = dimension.getIntHeightAt(chunkX | x, chunkZ | z);
@@ -1379,17 +1276,19 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     final int dy = newHeight - oldHeight;
                     if (dy > 0) {
                         // Terrain has been raised; go from top to bottom to avoid stepping on ourselves
-                        // Merge above ground portion from new chunk
-                        for (int y = Math.min(Math.max(oldMaxY + dy, newMaxY), maxHeight - 1); y >= newHeight + 1; y--) {
-                            mergeAboveGroundBlock(existingChunk, newChunk, x, y, z, dy, frost);
-                        }
                         final int mergeLimit = Math.min(newHeight - surfaceMergeDepth, oldHeight);
-                        // Merge surface layer blocks
-                        for (int y = newHeight; y >= mergeLimit + 1; y--) {
-                            mergeSurfaceBlock(existingChunk, newChunk, x, y, z, dy, minHeight, y < oldHeight);
+                        if (mergeBlocksAboveGround) {
+                            // Merge above ground portion from new chunk
+                            for (int y = Math.min(Math.max(oldMaxY + dy, newMaxY), maxHeight - 1); y >= newHeight + 1; y--) {
+                                mergeAboveGroundBlock(existingChunk, newChunk, x, y, z, dy, frost);
+                            }
+                            // Merge surface layer blocks
+                            for (int y = newHeight; y >= mergeLimit + 1; y--) {
+                                mergeSurfaceBlock(existingChunk, newChunk, x, y, z, dy, minHeight, y < oldHeight);
+                            }
                         }
                         // Merge underground portion if requested
-                        if (mergeUnderworld) {
+                        if (mergeBlocksUnderground) {
                             for (int y = mergeLimit; y >= minHeight; y--) {
                                 mergeUndergroundBlock(existingChunk, newChunk, x, y, z);
                             }
@@ -1411,36 +1310,38 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         // Terrain has been lowered
                         // Merge underground portion if requested
                         final int mergeLimit = Math.max(newHeight - surfaceMergeDepth, minHeight - 1);
-                        if (mergeUnderworld) {
+                        if (mergeBlocksUnderground) {
                             for (int y = minHeight; y <= mergeLimit; y++) {
                                 mergeUndergroundBlock(existingChunk, newChunk, x, y, z);
                             }
                         }
-                        for (int y = mergeLimit + 1; y <= newHeight; y++) {
-                            mergeSurfaceBlock(existingChunk, newChunk, x, y, z, dy, minHeight, y < newHeight);
-                        }
-                        // TODOMC118 reinstate this:
-                        // If the new ground height block is insubstantial in the
-                        // existing chunk, and there is nothing substantial on the
-                        // block in the new or existing chunks, remove it, so as not
-                        // to create a weird one block layer of blocks over newly
-                        // opened up voids such as caves, chasms, abandoned mines,
-                        // etc.
-//                        final Material existingMaterial = existingChunk.getMaterial(x, newHeight, z);
-//                        if ((existingMaterial == AIR) || existingMaterial.insubstantial) {
-//                            Material existingMaterialAbove = (newHeight < maxY) ? existingChunk.getMaterial(x, newHeight + 1, z) : AIR;
-//                            Material newMaterialAbove = (((newHeight - dy) >= -1) && ((newHeight - dy) < maxY)) ? newChunk.getMaterial(x, newHeight + 1 - dy, z) : AIR;
-//                            if (((newMaterialAbove == AIR) || newMaterialAbove.insubstantial) && ((existingMaterialAbove == AIR) || existingMaterialAbove.insubstantial)) {
-//                                newChunk.setMaterial(x, newHeight, z, AIR);
-//                                newChunk.setSkyLightLevel(x, newHeight, z, 0);
-//                                newChunk.setBlockLightLevel(x, newHeight, z, 0);
+                        if (mergeBlocksAboveGround) {
+                            for (int y = mergeLimit + 1; y <= newHeight; y++) {
+                                mergeSurfaceBlock(existingChunk, newChunk, x, y, z, dy, minHeight, y < newHeight);
+                            }
+                            // TODOMC118 reinstate this:
+                            // If the new ground height block is insubstantial in the
+                            // existing chunk, and there is nothing substantial on the
+                            // block in the new or existing chunks, remove it, so as not
+                            // to create a weird one block layer of blocks over newly
+                            // opened up voids such as caves, chasms, abandoned mines,
+                            // etc.
+//                            final Material existingMaterial = existingChunk.getMaterial(x, newHeight, z);
+//                            if ((existingMaterial == AIR) || existingMaterial.insubstantial) {
+//                                Material existingMaterialAbove = (newHeight < maxY) ? existingChunk.getMaterial(x, newHeight + 1, z) : AIR;
+//                                Material newMaterialAbove = (((newHeight - dy) >= -1) && ((newHeight - dy) < maxY)) ? newChunk.getMaterial(x, newHeight + 1 - dy, z) : AIR;
+//                                if (((newMaterialAbove == AIR) || newMaterialAbove.insubstantial) && ((existingMaterialAbove == AIR) || existingMaterialAbove.insubstantial)) {
+//                                    newChunk.setMaterial(x, newHeight, z, AIR);
+//                                    newChunk.setSkyLightLevel(x, newHeight, z, 0);
+//                                    newChunk.setBlockLightLevel(x, newHeight, z, 0);
+//                                }
 //                            }
-//                        }
-                        // Copy above ground portion from existing chunk, lowered by
-                        // the appropriate amount
-                        final int maxY = Math.min(Math.max(oldMaxY, newMaxY), maxHeight - 1);
-                        for (int y = newHeight + 1; y <= maxY; y++) {
-                            mergeAboveGroundBlock(existingChunk, newChunk, x, y, z, dy, frost);
+                            // Copy above ground portion from existing chunk, lowered by
+                            // the appropriate amount
+                            final int maxY = Math.min(Math.max(oldMaxY, newMaxY), maxHeight - 1);
+                            for (int y = newHeight + 1; y <= maxY; y++) {
+                                mergeAboveGroundBlock(existingChunk, newChunk, x, y, z, dy, frost);
+                            }
                         }
                         existingChunk.setHeight(x, z, Math.min(Math.max(existingChunk.getHeight(x, z) + dy, newChunk.getHeight(x, z)), maxHeight - 1));
 
@@ -1459,17 +1360,32 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         // Terrain height has not changed. Copy everything from the
                         // existing chunk, except the top layer of the terrain.
                         final int mergeLimit = Math.max(newHeight - surfaceMergeDepth, minHeight - 1);
-                        if (mergeUnderworld) {
+                        if (mergeBlocksUnderground) {
                             for (int y = minHeight; y <= mergeLimit; y++) {
                                 mergeUndergroundBlock(existingChunk, newChunk, x, y, z);
                             }
                         }
-                        for (int y = mergeLimit + 1; y <= newHeight; y++) {
-                            mergeSurfaceBlock(existingChunk, newChunk, x, y, z, 0, minHeight, y < newHeight);
+                        if (mergeBlocksAboveGround) {
+                            for (int y = mergeLimit + 1; y <= newHeight; y++) {
+                                mergeSurfaceBlock(existingChunk, newChunk, x, y, z, 0, minHeight, y < newHeight);
+                            }
+                            final int maxY = Math.min(Math.max(oldMaxY, newMaxY), maxHeight - 1);
+                            for (int y = newHeight + 1; y <= maxY; y++) {
+                                mergeAboveGroundBlock(existingChunk, newChunk, x, y, z, 0, frost);
+                            }
                         }
-                        final int maxY = Math.min(Math.max(oldMaxY, newMaxY), maxHeight - 1);
-                        for (int y = newHeight + 1; y <= maxY; y++) {
-                            mergeAboveGroundBlock(existingChunk, newChunk, x, y, z, 0, frost);
+                    }
+                    if (biomeCopyColumn) {
+                        // For high worlds, go to at least 64 blocks above the surface:
+                        final int biomesMaxY = Math.min(Math.max(Math.max(oldMaxY, newMaxY) + 64, 319), maxHeight - 1) >> 2;
+                        for (int y = minHeight >> 2; y <= biomesMaxY; y++) {
+                            if ((y >= (newHeight >> 2)) ? mergeBiomesAboveGround : mergeBiomesUnderground) {
+                                if (copy3DBiomes) {
+                                    existingChunk.set3DBiome(x >> 2, y, z >> 2, newChunk.get3DBiome(x >> 2, y, z >> 2));
+                                } else {
+                                    existingChunk.setNamedBiome(x >> 2, y, z >> 2, newChunk.getNamedBiome(x >> 2, y, z >> 2));
+                                }
+                            }
                         }
                     }
                 }
@@ -1477,7 +1393,6 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         }
         // Any entities in the new chunk are already at the correct height; we can just copy them all:
         existingChunk.getEntities().addAll(newChunk.getEntities());
-        // TODO: biomes
     }
 
     /**
@@ -1560,8 +1475,17 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             existingMaterial = AIR;
             if (dy != 0) {
                 existingChunk.setMaterial(x, y, z, existingMaterial);
-                existingChunk.setSkyLightLevel(x, y, z, 15);
+                existingChunk.setSkyLightLevel(x, y, z, ((y - dy) < existingChunk.getMinHeight()) ? 0 : 15);
                 existingChunk.setBlockLightLevel(x, y, z, 0);
+
+                // Also copy the 3D biome, if any (but only once per 4x4 column)
+                if (((x % 4) == 1) && ((z % 4) == 1) && ((dy < -2) || (dy > 1))) {
+                    if (existingChunk.is3DBiomesAvailable()) {
+                        existingChunk.set3DBiome(x >> 2, y >> 2, z >> 2, ((y - dy) < existingChunk.getMinHeight()) ? existingChunk.get3DBiome(x >> 2, existingChunk.getMinHeight() >> 2, z >> 2) : existingChunk.get3DBiome(x >> 2, existingChunk.getMaxHeight() >> 2, z >> 2));
+                    } else if (existingChunk.isNamedBiomesAvailable()) {
+                        existingChunk.setNamedBiome(x >> 2, y >> 2, z >> 2, ((y - dy) < existingChunk.getMinHeight()) ? existingChunk.getNamedBiome(x >> 2, existingChunk.getMinHeight() >> 2, z >> 2) : existingChunk.getNamedBiome(x >> 2, existingChunk.getMaxHeight() >> 2, z >> 2));
+                    }
+                }
             }
         } else {
             existingMaterial = existingChunk.getMaterial(x, y - dy, z);
@@ -1579,6 +1503,16 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     existingChunk.setMaterial(x, y - dy, z, AIR);
                     existingChunk.setSkyLightLevel(x, y - dy, z, ((y - dy + 1) < existingChunk.getMaxHeight()) ? existingChunk.getSkyLightLevel(x, y - dy + 1, z) : 15);
                     existingChunk.setBlockLightLevel(x, y - dy, z, 0);
+                }
+
+                // Also copy the 3D biome, if any (but only once per 4x4 column)
+                if (((x % 4) == 1) && ((z % 4) == 1) && ((dy < -2) || (dy > 1))) {
+                    final int dyBiome = (dy + 2) >> 2;
+                    if (existingChunk.is3DBiomesAvailable()) {
+                        existingChunk.set3DBiome(x >> 2, y >> 2, z >> 2, existingChunk.get3DBiome(x >> 2, (y >> 2) - dyBiome, z >> 2));
+                    } else if (existingChunk.isNamedBiomesAvailable()) {
+                        existingChunk.setNamedBiome(x >> 2, y >> 2, z >> 2, existingChunk.getNamedBiome(x >> 2, (y >> 2) - dyBiome, z >> 2));
+                    }
                 }
             }
         }
@@ -1644,11 +1578,11 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
 
     private final File worldDir;
     private final ThreadLocal<Map<Material, Integer>> materialCountsRef = ThreadLocal.withInitial(HashMap::new);
-    private boolean replaceChunks, mergeUnderworld, clearTrees, clearResources,
-        fillCaves, clearVegetation, clearManMadeAboveGround,
-        clearManMadeBelowGround;
+    private boolean replaceChunks, mergeBlocksUnderground, clearTrees, clearResources, fillCaves, clearVegetation,
+            clearManMadeAboveGround, clearManMadeBelowGround, mergeBlocksAboveGround, mergeBiomesAboveGround, mergeBiomesUnderground;
     private String warnings;
     private int surfaceMergeDepth = 1;
+    private volatile boolean aborted = true;
     
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(JavaWorldMerger.class);
     private static final Object TIMING_FILE_LOCK = new Object();

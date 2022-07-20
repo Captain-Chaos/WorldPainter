@@ -40,32 +40,50 @@
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="buttonSelectDirectory" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <Component id="buttonMerge" alignment="1" min="-2" max="-2" attributes="0"/>
                           <Group type="102" attributes="0">
                               <Group type="103" groupAlignment="0" attributes="0">
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <Component id="radioButtonExportEverything" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="radioButtonExportSelection" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="labelSelectTiles" min="-2" max="-2" attributes="0"/>
+                                  </Group>
+                                  <Component id="jLabel1" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <Component id="checkBoxSurface" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="checkBoxNether" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="checkBoxEnd" min="-2" max="-2" attributes="0"/>
+                                  </Group>
                                   <Component id="jLabel2" alignment="0" min="-2" max="-2" attributes="0"/>
                                   <Component id="jLabel4" alignment="0" min="-2" max="-2" attributes="0"/>
-                                  <Component id="jLabel5" alignment="0" min="-2" max="-2" attributes="0"/>
                                   <Group type="102" alignment="0" attributes="0">
                                       <EmptySpace min="-2" pref="12" max="-2" attributes="0"/>
                                       <Group type="103" groupAlignment="0" attributes="0">
-                                          <Component id="radioButtonBiomes" min="-2" max="-2" attributes="0"/>
-                                          <Group type="102" attributes="0">
-                                              <Component id="radioButtonAll" min="-2" max="-2" attributes="0"/>
-                                              <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                                              <Component id="checkBoxIncludeUnderground" min="-2" max="-2" attributes="0"/>
-                                          </Group>
+                                          <Component id="radioButtonAll" min="-2" max="-2" attributes="0"/>
                                           <Component id="radioButtonReplaceChunks" min="-2" max="-2" attributes="0"/>
+                                          <Component id="jLabel6" alignment="0" min="-2" max="-2" attributes="0"/>
                                       </Group>
                                   </Group>
                               </Group>
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                           </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Component id="jLabel8" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="spinnerSurfaceThickness" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="jLabel9" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="32767" attributes="0"/>
+                              <Component id="buttonMerge" min="-2" max="-2" attributes="0"/>
+                          </Group>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="12" pref="12" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="12" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="checkBoxRemoveTrees" min="-2" max="-2" attributes="0"/>
@@ -74,47 +92,25 @@
                           </Group>
                           <Component id="checkBoxRemoveVegetation" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="checkBoxRemoveManMadeAboveGround" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="jLabel6" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel5" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="checkBoxAboveMergeBlocks" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="checkBoxAboveMergeBiomes" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="jLabel7" min="-2" max="-2" attributes="0"/>
                           <Component id="checkBoxRemoveManMadeBelowGround" min="-2" max="-2" attributes="0"/>
                           <Component id="checkBoxFillCaves" min="-2" max="-2" attributes="0"/>
                           <Component id="checkBoxRemoveResources" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel7" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="checkBoxBelowMergeBlocks" min="-2" max="-2" attributes="0"/>
+                          <Component id="checkBoxBelowMergeBiomes" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="32767" attributes="0"/>
                   </Group>
                   <Group type="102" attributes="0">
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Group type="102" attributes="0">
-                              <Component id="jLabel8" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="spinnerSurfaceThickness" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                              <Component id="jLabel9" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <Group type="102" alignment="0" attributes="0">
-                              <Component id="radioButtonExportEverything" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="radioButtonExportSelection" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="labelSelectTiles" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <Component id="jLabel1" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Group type="102" alignment="0" attributes="0">
-                              <Component id="checkBoxSurface" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="checkBoxNether" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="checkBoxEnd" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <Group type="102" alignment="0" attributes="0">
-                              <Component id="jLabel10" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="labelPlatform" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                      </Group>
+                      <Component id="jLabel10" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="labelPlatform" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
               </Group>
@@ -139,14 +135,42 @@
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="radioButtonAll" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="checkBoxIncludeUnderground" alignment="3" min="-2" max="-2" attributes="0"/>
-              </Group>
+              <Component id="radioButtonAll" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="radioButtonReplaceChunks" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="radioButtonBiomes" min="-2" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="jLabel6" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jLabel7" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="checkBoxAboveMergeBlocks" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="checkBoxBelowMergeBlocks" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="checkBoxAboveMergeBiomes" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="checkBoxBelowMergeBiomes" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="jLabel5" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="checkBoxRemoveTrees" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="checkBoxRemoveResources" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jLabel3" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="checkBoxRemoveVegetation" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="checkBoxFillCaves" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="checkBoxRemoveManMadeAboveGround" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="checkBoxRemoveManMadeBelowGround" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
@@ -166,33 +190,9 @@
                   <Component id="jLabel8" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="spinnerSurfaceThickness" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel9" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="buttonMerge" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace type="separate" max="-2" attributes="0"/>
-              <Component id="jLabel5" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="jLabel6" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="jLabel7" alignment="3" min="-2" max="-2" attributes="0"/>
-              </Group>
-              <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="checkBoxRemoveTrees" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="checkBoxRemoveResources" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="jLabel3" alignment="3" min="-2" max="-2" attributes="0"/>
-              </Group>
-              <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="checkBoxRemoveVegetation" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="checkBoxFillCaves" alignment="3" min="-2" max="-2" attributes="0"/>
-              </Group>
-              <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="checkBoxRemoveManMadeAboveGround" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="checkBoxRemoveManMadeBelowGround" alignment="3" min="-2" max="-2" attributes="0"/>
-              </Group>
-              <EmptySpace type="separate" max="32767" attributes="0"/>
-              <Component id="buttonMerge" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -204,9 +204,6 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="fieldSelectedMapDir">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="jTextField1"/>
-      </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="buttonSelectDirectory">
       <Properties>
@@ -230,23 +227,11 @@
           <ComponentRef name="buttonGroup1"/>
         </Property>
         <Property name="selected" type="boolean" value="true"/>
-        <Property name="text" type="java.lang.String" value="Merge old and new chunks ("/>
-        <Property name="toolTipText" type="java.lang.String" value="Will merge everything (terrain type and height changes, new layers, biome changes, etc.). Takes a very long time."/>
+        <Property name="text" type="java.lang.String" value="Merge old and new chunks"/>
+        <Property name="toolTipText" type="java.lang.String" value="&lt;html&gt;&lt;i&gt;Will merge everything (terrain type and height changes,&lt;br&gt;&#xa;new layers, etc.). Takes a long time.&lt;/i&gt;&lt;/html&gt;"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="radioButtonAllActionPerformed"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JRadioButton" name="radioButtonBiomes">
-      <Properties>
-        <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
-          <ComponentRef name="buttonGroup1"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="Only change the biomes (Surface dimension only)"/>
-        <Property name="toolTipText" type="java.lang.String" value="&lt;html&gt;Will merge &lt;i&gt;only&lt;/i&gt; biome changes. Much quicker than merging everything, and with no side effects.&lt;/html&gt;"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="radioButtonBiomesActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JRadioButton" name="radioButtonReplaceChunks">
@@ -267,7 +252,7 @@
           <ComponentRef name="buttonGroup2"/>
         </Property>
         <Property name="selected" type="boolean" value="true"/>
-        <Property name="text" type="java.lang.String" value="Merge everything"/>
+        <Property name="text" type="java.lang.String" value="Merge all tiles"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="radioButtonExportEverythingActionPerformed"/>
@@ -299,12 +284,12 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel4">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Choose what kind of merge to perform (non-read-only chunks in selected tiles only):"/>
+        <Property name="text" type="java.lang.String" value="&lt;html&gt;Choose what kind of merge to perform (&lt;b&gt;non-read-only&lt;/b&gt; chunks in &lt;b&gt;selected tiles&lt;/b&gt; only):&lt;/html&gt;"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel5">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&lt;html&gt;Options for the existing map (&lt;b&gt;non-read-only&lt;/b&gt; chunks in &lt;b&gt;selected tiles&lt;/b&gt; only):&lt;/html&gt;"/>
+        <Property name="text" type="java.lang.String" value="Options for the existing map:"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel6">
@@ -403,17 +388,33 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxEndActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JCheckBox" name="checkBoxIncludeUnderground">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="including underground portion)"/>
-      </Properties>
-    </Component>
     <Component class="javax.swing.JLabel" name="jLabel10">
       <Properties>
         <Property name="text" type="java.lang.String" value="Map format:"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="labelPlatform">
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="checkBoxAboveMergeBlocks">
+      <Properties>
+        <Property name="selected" type="boolean" value="true"/>
+        <Property name="text" type="java.lang.String" value="Merge blocks"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="checkBoxAboveMergeBiomes">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Replace biomes"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="checkBoxBelowMergeBlocks">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Merge blocks"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="checkBoxBelowMergeBiomes">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Replace biomes"/>
+      </Properties>
     </Component>
   </SubComponents>
 </Form>

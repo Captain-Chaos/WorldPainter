@@ -23,11 +23,10 @@ import java.io.IOException;
  * @author Pepijn Schmitz
  */
 public class MergeProgressDialog extends MultiProgressDialog<Void> implements WindowListener {
-    public MergeProgressDialog(Window parent, JavaWorldMerger merger, File backupDir, boolean biomesOnly) {
+    public MergeProgressDialog(Window parent, JavaWorldMerger merger, File backupDir) {
         super(parent, "Merging");
         this.merger = merger;
         this.backupDir = backupDir;
-        this.biomesOnly = biomesOnly;
         addWindowListener(this);
 
         JButton minimiseButton = new JButton("Minimize");
@@ -87,11 +86,7 @@ public class MergeProgressDialog extends MultiProgressDialog<Void> implements Wi
             public Void execute(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
                 progressReceiver = new TaskbarProgressReceiver(App.getInstance(), progressReceiver);
                 try {
-                    if (biomesOnly) {
-                        merger.mergeBiomes(backupDir, progressReceiver);
-                    } else {
-                        merger.merge(backupDir, progressReceiver);
-                    }
+                    merger.merge(backupDir, progressReceiver);
                 } catch (IOException e) {
                     throw new RuntimeException("I/O error while merging world " + merger.getWorld().getName() + " with map " + merger.getMapDir(), e);
                 }
@@ -102,5 +97,4 @@ public class MergeProgressDialog extends MultiProgressDialog<Void> implements Wi
 
     private final File backupDir;
     private final JavaWorldMerger merger;
-    private final boolean biomesOnly;
 }
