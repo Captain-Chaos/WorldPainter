@@ -1,10 +1,15 @@
--- Version 2.10.14, released ...
+-- Version 2.10.14, released 20-7-2022
 
  * The Merging screen has been improved:
    + The layout has been made more clear
    + It is once again possible to replace the biomes. For formats with 3D biomes this can now be done separately above ground and below ground
    + Biome replacing is now integrated in the other forms of merging and consequently now conforms to the tile selection and the Read Only layer. It is still faster to _only_ replace biomes though because the post processing and lighting steps are skipped
    + The merge settings are now remembered per world
+ * Fix a problem in the updater which would cause downloads to fail after first checking the update comments. This will no longer happen starting from the _next_ update
+ * Running JavaScript scripts requires at least Java 11; a popup will now be shown to indicate this, rather than crashing with an error
+ * If rendering a tile in the 3D view fails for some reason, for example because it is too large for very high worlds, it will be rendered as a red outline rather than crashing with an error
+ * Various usability improvements
+ * Various small bug fixes
 
 -- Version 2.10.13, released 14-7-2022
 
