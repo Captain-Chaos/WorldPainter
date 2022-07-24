@@ -17,6 +17,7 @@ import java.net.URL;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
+import static org.pepsoft.minecraft.Material.MINECRAFT;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 
 /**
@@ -73,7 +74,7 @@ public class MaterialSelector extends javax.swing.JPanel {
             } else {
                 radioButtonCustom.setSelected(true);
                 comboBoxNamespace.setSelectedItem(namespace);
-                fieldCustomName.setText(simpleName);
+                comboBoxCustomName.setSelectedItem(simpleName);
                 comboBoxBlockType.setSelectedItem(null);
                 spinnerDataValue.setValue(0);
                 comboBoxMinecraftName.setSelectedItem(null);
@@ -201,11 +202,11 @@ public class MaterialSelector extends javax.swing.JPanel {
         if (namespace.equals(Material.MINECRAFT)) {
             comboBoxMinecraftName.setSelectedItem(simpleName);
             comboBoxNamespace.setSelectedItem(null);
-            fieldCustomName.setText(null);
+            comboBoxCustomName.setSelectedItem(null);
         } else {
             comboBoxMinecraftName.setSelectedItem(null);
             comboBoxNamespace.setSelectedItem(namespace);
-            fieldCustomName.setText(simpleName);
+            comboBoxCustomName.setSelectedItem(simpleName);
         }
     }
 
@@ -373,7 +374,7 @@ public class MaterialSelector extends javax.swing.JPanel {
         spinnerDataValue.setEnabled(minecraft);
         comboBoxMinecraftName.setEnabled(minecraft && platformHasNames);
         comboBoxNamespace.setEnabled(! minecraft);
-        fieldCustomName.setEnabled(! minecraft);
+        comboBoxCustomName.setEnabled(! minecraft);
         buttonAddProperty.setEnabled(! minecraft);
         propertiesEnabled = platformHasNames;
         for (Component control: propertyEditors.values()) {
@@ -416,7 +417,7 @@ public class MaterialSelector extends javax.swing.JPanel {
         try {
             if (radioButtonCustom.isSelected()) {
                 // Make sure to finish editing the custom name, even if the field still has the keyboard focus
-                simpleName = fieldCustomName.getText();
+                simpleName = (String) comboBoxCustomName.getSelectedItem();
             }
             if ((simpleName != null) && (! simpleName.trim().isEmpty())) {
                 if ((namespace == null) || namespace.trim().isEmpty()) {
@@ -447,7 +448,6 @@ public class MaterialSelector extends javax.swing.JPanel {
         buttonGroup1 = new javax.swing.ButtonGroup();
         radioButtonCustom = new javax.swing.JRadioButton();
         jLabel1 = new javax.swing.JLabel();
-        fieldCustomName = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         comboBoxMinecraftName = new javax.swing.JComboBox<>();
         buttonAddProperty = new javax.swing.JButton();
@@ -462,6 +462,7 @@ public class MaterialSelector extends javax.swing.JPanel {
         jLabel9 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         panelProperties = new javax.swing.JPanel();
+        comboBoxCustomName = new javax.swing.JComboBox<>();
 
         buttonGroup1.add(radioButtonCustom);
         radioButtonCustom.setText("<html><em>Custom:</em></html>");
@@ -472,14 +473,6 @@ public class MaterialSelector extends javax.swing.JPanel {
         });
 
         jLabel1.setText(":");
-
-        fieldCustomName.setColumns(15);
-        fieldCustomName.setEnabled(false);
-        fieldCustomName.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                fieldCustomNameFocusLost(evt);
-            }
-        });
 
         jLabel2.setText("minecraft:");
 
@@ -554,6 +547,18 @@ public class MaterialSelector extends javax.swing.JPanel {
         panelProperties.setLayout(new java.awt.GridBagLayout());
         jScrollPane1.setViewportView(panelProperties);
 
+        comboBoxCustomName.setEditable(true);
+        comboBoxCustomName.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                comboBoxCustomNameFocusLost(evt);
+            }
+        });
+        comboBoxCustomName.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxCustomNameActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -596,8 +601,8 @@ public class MaterialSelector extends javax.swing.JPanel {
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(jLabel1)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(fieldCustomName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                                        .addComponent(comboBoxCustomName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                        .addGap(0, 46, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -624,13 +629,13 @@ public class MaterialSelector extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
-                    .addComponent(fieldCustomName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(comboBoxNamespace, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(comboBoxNamespace, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(comboBoxCustomName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(buttonAddProperty)
-                        .addGap(0, 8, Short.MAX_VALUE))
+                        .addGap(0, 22, Short.MAX_VALUE))
                     .addComponent(jScrollPane1))
                 .addContainerGap())
         );
@@ -638,7 +643,7 @@ public class MaterialSelector extends javax.swing.JPanel {
 
     private void radioButtonCustomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonCustomActionPerformed
         namespace = (String) comboBoxNamespace.getSelectedItem();
-        simpleName = fieldCustomName.getText();
+        simpleName = (String) comboBoxCustomName.getSelectedItem();
         setControlStates();
         properties = null;
         updateProperties();
@@ -654,6 +659,15 @@ public class MaterialSelector extends javax.swing.JPanel {
             programmaticChange = true;
             try {
                 namespace = (String) comboBoxNamespace.getSelectedItem();
+                final Vector<String> simpleNames;
+                if (MINECRAFT.equals(namespace)) {
+                    simpleNames = new Vector<>();
+                } else {
+                    simpleNames = new Vector<>(Material.getAllSimpleNamesForNamespace(namespace));
+                    Collections.sort(simpleNames);
+                }
+                comboBoxCustomName.setModel(new DefaultComboBoxModel<>(simpleNames));
+                comboBoxCustomName.setSelectedItem(simpleName);
                 updateMaterial();
             } finally {
                 programmaticChange = false;
@@ -710,24 +724,36 @@ public class MaterialSelector extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_comboBoxMinecraftNameActionPerformed
 
-    private void fieldCustomNameFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldCustomNameFocusLost
-        simpleName = fieldCustomName.getText();
+    private void comboBoxCustomNameFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_comboBoxCustomNameFocusLost
+        simpleName = (String) comboBoxCustomName.getSelectedItem();
         programmaticChange = true;
         try {
             updateMaterial();
         } finally {
             programmaticChange = false;
         }
-    }//GEN-LAST:event_fieldCustomNameFocusLost
+    }//GEN-LAST:event_comboBoxCustomNameFocusLost
+
+    private void comboBoxCustomNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxCustomNameActionPerformed
+        if (! programmaticChange) {
+            simpleName = (String) comboBoxCustomName.getSelectedItem();
+            programmaticChange = true;
+            try {
+                updateMaterial();
+            } finally {
+                programmaticChange = false;
+            }
+        }
+    }//GEN-LAST:event_comboBoxCustomNameActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonAddProperty;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JComboBox<String> comboBoxBlockType;
+    private javax.swing.JComboBox<String> comboBoxCustomName;
     private javax.swing.JComboBox<String> comboBoxMinecraftName;
     private javax.swing.JComboBox<String> comboBoxNamespace;
-    private javax.swing.JTextField fieldCustomName;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

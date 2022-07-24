@@ -4379,11 +4379,24 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.setMnemonic('p');
         menu.add(menuItem);
 
+        menuItem = new JMenuItem("Open custom materials folder");
+        menuItem.addActionListener(e -> {
+            File customMaterialsDir = new File(Configuration.getConfigDir(), "materials");
+            if (! customMaterialsDir.exists()) {
+                if (! customMaterialsDir.mkdirs()) {
+                    DesktopUtils.beep();
+                    return;
+                }
+            }
+            DesktopUtils.open(customMaterialsDir);
+        });
+        menuItem.setMnemonic('m');
+        menu.add(menuItem);
+
         menuItem = new JMenuItem(strings.getString("biomes.viewer") + "...");
-        // Disable the menu item after the biome scheme manager has been
-        // initialised, if it turns out there are no supported biome algorithms
-        // (because no supported Minecraft installation could be found, for
-        // instance), but without blocking the GUI
+        // Disable the menu item after the biome scheme manager has been initialised, if it turns out there are no
+        // supported biome algorithms (because no supported Minecraft installation could be found, for instance), but
+        // without blocking the GUI
         final JMenuItem biomesViewerMenuItem = menuItem;
         new Thread("Biomes Viewer Menu Item Initialiser") {
             @Override
@@ -4399,9 +4412,8 @@ public final class App extends JFrame implements RadiusControl,
         }.start();
         menuItem.addActionListener(event -> {
             if (BiomeSchemeManager.getAvailableBiomeAlgorithms().isEmpty()) {
-                // This could theoretically happen if the user selects the menu
-                // item before the biome scheme manager has been initialised and
-                // the menu item is still enabled
+                // This could theoretically happen if the user selects the menu item before the biome scheme manager has
+                // been initialised and the menu item is still enabled
                 return;
             }
 
@@ -4422,9 +4434,8 @@ public final class App extends JFrame implements RadiusControl,
                 biomesViewerFrame.addWindowListener(new WindowAdapter() {
                     @Override
                     public void windowClosing(WindowEvent e) {
-                        // TODO not sure how this can be null, but at least
-                        // one error has been reported by a user where it
-                        // was
+                        // TODO not sure how this can be null, but at least one error has been reported by a user where
+                        //  it was
                         if (biomesViewerFrame != null) {
                             biomesViewerFrame.destroy();
                             biomesViewerFrame.dispose();
@@ -4439,29 +4450,6 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.setMnemonic('b');
         menu.add(menuItem);
 
-//        menuItem = new JMenuItem("Manage plugins...");
-//        menuItem.addActionListener(e -> {
-//                StringBuilder url = new StringBuilder("http://bo.worldpainter.net:8081/wp/plugins/overview.jsp");
-//                url.append("?uuid=").append(Configuration.getInstance().getUuid().toString());
-//                boolean first = true;
-//                for (Plugin plugin: PluginManager.getInstance().getAllPlugins()) {
-//                    if (plugin.getName().equals("Default")) {
-//                        continue;
-//                    }
-//                    if (first) {
-//                        url.append("&plugins=");
-//                        first = false;
-//                    } else {
-//                        url.append(',');
-//                    }
-//                    url.append(plugin.getName().replaceAll("\\s", "").toLowerCase());
-//                }
-//                SimpleBrowser browser = new SimpleBrowser(App.this, true, "Manage Plugins", url.toString());
-//                browser.setVisible(true);
-//        });
-//        menuItem.setMnemonic('p');
-//        menu.add(menuItem);
-
         menuItem = new JMenuItem("Run script...");
         menuItem.addActionListener(e -> {
             try {
@@ -4474,6 +4462,7 @@ public final class App extends JFrame implements RadiusControl,
                         "See www.worldpainter.net for links.", "Newer Java Required", JOptionPane.ERROR_MESSAGE);
             }
         });
+        menuItem.setMnemonic('s');
         menu.add(menuItem);
         menu.putClientProperty(KEY_HELP_KEY, "Menu/Tools");
         return menu;
