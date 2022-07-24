@@ -1,3 +1,13 @@
+-- Version 2.11.0, released 24-7-2022
+
+ * Added support for custom/mod block definitions:
+   + Have mod blocks be correctly lighted, and behave correctly during Exports and Merges
+   + More easily use mod blocks as custom materials (choose from a list, and have the properties be preconfigured)
+   + Have mod blocks be displayed in the right colour in the editor view
+   + For details, see: https://www.worldpainter.net/trac/wiki/CustomBlocks
+   + If you are a mod author, please create custom block definition files for your mods! If not, ask the authors of your favourite mods to create ones, or create them yourself!
+ * The snowy property of grass blocks is now also set correctly for powder snow
+
 -- Version 2.10.14, released 20-7-2022
 
  * The Merging screen has been improved:
