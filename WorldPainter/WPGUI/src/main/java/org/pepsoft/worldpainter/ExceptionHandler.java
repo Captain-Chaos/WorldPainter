@@ -8,46 +8,50 @@ package org.pepsoft.worldpainter;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
  * @author pepijn
  */
 public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
-    public void handle(Throwable t) {
+    public static void handleException(Throwable t) {
 //        t.printStackTrace();
         if (shouldIgnore(t)) {
             t.printStackTrace();
         } else {
-            if (handlingException.compareAndSet(false, true)) {
-                try {
-                    ErrorDialog dialog = new ErrorDialog(App.getInstanceIfExists());
-                    dialog.setException(t);
-                    dialog.setVisible(true);
-                } finally {
-                    handlingException.set(false);
+            final Runnable task = () -> {
+                if (! handlingException) {
+                    handlingException = true;
+                    try {
+                        ErrorDialog dialog = new ErrorDialog(App.getInstanceIfExists());
+                        dialog.setException(t);
+                        dialog.setVisible(true);
+                    } finally {
+                        handlingException = false;
+                    }
+                } else {
+                    LoggerFactory.getLogger(ExceptionHandler.class)
+                            .error("{} occurred while exception dialog was open (message: {})", t.getClass().getSimpleName(), t.getMessage(), t);
                 }
+            };
+            if (SwingUtilities.isEventDispatchThread()) {
+                task.run();
             } else {
-                LoggerFactory.getLogger(ExceptionHandler.class)
-                        .error("{} occurred while exception dialog was open (message: {})", t.getClass().getSimpleName(), t.getMessage(), t);
+                SwingUtilities.invokeLater(task);
             }
         }
     }
 
     @Override
     public void uncaughtException(Thread t, final Throwable e) {
-//        e.printStackTrace();
-        if (shouldIgnore(e)) {
-            e.printStackTrace();
-        } else  if (SwingUtilities.isEventDispatchThread()) {
-            handle(e);
-        } else {
-            SwingUtilities.invokeLater(() -> handle(e));
-        }
+        handleException(e);
     }
     
-    private boolean shouldIgnore(Throwable rootCause) {
+    private static boolean shouldIgnore(Throwable t) {
+        Throwable rootCause = t;
+        while (rootCause.getCause() != null) {
+            rootCause = rootCause.getCause();
+        }
         if ((rootCause instanceof NullPointerException)
                 && (rootCause.getStackTrace() != null)
                 && (rootCause.getStackTrace().length > 0)) {
@@ -63,5 +67,5 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
         return false;
     }
 
-    private static final AtomicBoolean handlingException = new AtomicBoolean();
+    private static boolean handlingException;
 }

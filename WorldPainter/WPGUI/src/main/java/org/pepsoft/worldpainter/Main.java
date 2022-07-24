@@ -68,7 +68,6 @@ public class Main {
         // translations are implemented
         Locale.setDefault(Locale.US);
 
-        System.setProperty("sun.awt.exception.handler", ExceptionHandler.class.getName());
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
 
         // Set some hardcoded system properties we always want set:
