@@ -113,7 +113,7 @@ public class Java1_15PostProcessor extends PostProcessor {
                     }
                     if (materialBelow.hasPropertySnowy) {
                         // The material below has a "snowy" property, so make sure it is set correctly
-                        if (material.isNamed(MC_SNOW) || material.isNamed(MC_SNOW_BLOCK)) {
+                        if (material.isNamed(MC_SNOW) || material.isNamed(MC_SNOW_BLOCK) || material.isNamedOneOf(MC_POWDER_SNOW)) {
                             // It should be snowy, change it if it isn't
                             if (! materialBelow.is(SNOWY)) {
                                 materialBelow = materialBelow.withProperty(SNOWY, true);
