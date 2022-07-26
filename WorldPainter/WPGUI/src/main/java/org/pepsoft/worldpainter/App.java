@@ -5248,7 +5248,6 @@ public final class App extends JFrame implements RadiusControl,
         button.setMargin(new Insets(2, 2, 2, 2));
         button.setToolTipText(brush.getName());
         button.addItemListener(e -> {
-            System.out.println("itemStateChanged()");
             if (! programmaticChange) {
                 updateBrushRotation(brush, button);
                 if (e.getStateChange() == ItemEvent.SELECTED) {
