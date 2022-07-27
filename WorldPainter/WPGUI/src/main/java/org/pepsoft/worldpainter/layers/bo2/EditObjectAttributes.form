@@ -93,19 +93,20 @@
                               <Component id="comboBoxReplacedMaterial" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <Component id="checkBoxExtendFoundation" min="-2" max="-2" attributes="0"/>
+                          <Group type="102" attributes="0">
+                              <Component id="checkBoxRandomMirroring" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="jLabel10" min="-2" max="-2" attributes="0"/>
+                          </Group>
                       </Group>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="jPanel1" pref="256" max="32767" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="1" attributes="0">
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Group type="102" alignment="1" attributes="0">
-                              <Component id="buttonOK" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="-2" pref="77" max="-2" attributes="0"/>
-                          </Group>
-                          <Component id="buttonCancel" alignment="1" min="-2" max="-2" attributes="0"/>
-                      </Group>
+                      <Component id="buttonOK" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="buttonCancel" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="1" attributes="0">
                       <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
@@ -149,6 +150,11 @@
                       </Group>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="checkBoxRandomRotation" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="checkBoxRandomMirroring" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel10" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="jLabel8" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -194,13 +200,11 @@
                   <Component id="jPanel1" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="buttonOK" min="-2" max="-2" attributes="0"/>
-                  <Group type="102" alignment="1" attributes="0">
-                      <Component id="buttonCancel" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                  </Group>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="buttonCancel" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="buttonOK" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -350,7 +354,7 @@
     </Component>
     <Component class="org.pepsoft.worldpainter.util.TristateCheckBox" name="checkBoxRandomRotation">
       <Properties>
-        <Property name="text" type="java.lang.String" value="random rotation and mirroring"/>
+        <Property name="text" type="java.lang.String" value="random rotation"/>
       </Properties>
     </Component>
     <Component class="org.pepsoft.worldpainter.util.TristateCheckBox" name="checkBoxOnSolidLand">
@@ -439,6 +443,23 @@
         <Property name="selected" type="boolean" value="true"/>
         <Property name="text" type="java.lang.String" value="collide with floor"/>
         <Property name="enabled" type="boolean" value="false"/>
+      </Properties>
+    </Component>
+    <Component class="org.pepsoft.worldpainter.util.TristateCheckBox" name="checkBoxRandomMirroring">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="random mirroring"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel10">
+      <Properties>
+        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+          <Image iconType="3" name="/org/pepsoft/worldpainter/icons/information.png"/>
+        </Property>
+        <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
+          <ComponentRef name="checkBoxRandomMirroring"/>
+        </Property>
+        <Property name="text" type="java.lang.String" value=" "/>
+        <Property name="toolTipText" type="java.lang.String" value="&lt;html&gt;Mirroring works by rotating blocks 180 degrees.&lt;br&gt;&#xa;It does not work for asymmetric mod blocks of which&lt;br&gt;&#xa;the rotated versions are not mirrors of the originals.&lt;/html&gt;"/>
       </Properties>
     </Component>
   </SubComponents>

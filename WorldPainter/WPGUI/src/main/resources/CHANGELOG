@@ -1,3 +1,7 @@
+-- Version 2.11.1, released ...
+
+ * Random mirroring for Custom Objects is now a separate setting from random rotation. They are still both on by default (unless random rotation is turned off in the bo2 or bo3 file). Depending on what properties a block has, mirroring blocks works by rotating them 180 degrees, and for some mod blocks this does not give the right result because their rotated versions are not mirrors of the original blocks
+
 -- Version 2.11.0, released 24-7-2022
 
  * Added support for custom/mod block definitions:

@@ -254,17 +254,23 @@ public interface WPObject extends Serializable, Cloneable {
     int LEAF_DECAY_OFF       = 3;
 
     // Standard attribute keys
-    AttributeKey<File>    ATTRIBUTE_FILE                      = new AttributeKey<>("WPObject.file");
-    AttributeKey<Point3i> ATTRIBUTE_OFFSET                    = new AttributeKey<>("WPObject.offset", new Point3i());
-    AttributeKey<Boolean> ATTRIBUTE_RANDOM_ROTATION           = new AttributeKey<>("WPObject.randomRotation", true);
-    AttributeKey<Boolean> ATTRIBUTE_NEEDS_FOUNDATION          = new AttributeKey<>("WPObject.needsFoundation", true);
-    AttributeKey<Boolean> ATTRIBUTE_SPAWN_IN_WATER            = new AttributeKey<>("WPObject.spawnInWater", false);
-    AttributeKey<Boolean> ATTRIBUTE_SPAWN_IN_LAVA             = new AttributeKey<>("WPObject.spawnInLava", false);
-    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_LAND             = new AttributeKey<>("WPObject.spawnOnLand", true);
-    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_WATER            = new AttributeKey<>("WPObject.spawnOnWater", false);
-    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_LAVA             = new AttributeKey<>("WPObject.spawnOnLava", false);
-    AttributeKey<Integer> ATTRIBUTE_FREQUENCY                 = new AttributeKey<>("WPObject.frequency", 100);
-    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_WATER_NO_COLLIDE = new AttributeKey<>("WPObject.spawnOnWater.noCollide", false);
+    AttributeKey<File>    ATTRIBUTE_FILE   = new AttributeKey<>("WPObject.file");
+    AttributeKey<Point3i> ATTRIBUTE_OFFSET = new AttributeKey<>("WPObject.offset", new Point3i());
+    /**
+     * Random rotation <strong>and</strong> mirroring, for historical reasons. See {@link #ATTRIBUTE_RANDOM_ROTATION_ONLY}
+     * and {@link #ATTRIBUTE_RANDOM_MIRRORING_ONLY} for separate attributes. If one or both of those attributes are
+     * set, this one must be set to {@code false}, since otherwise it defaults to {@code true} and will override the
+     * separate attributes.
+     */
+    AttributeKey<Boolean> ATTRIBUTE_RANDOM_ROTATION            = new AttributeKey<>("WPObject.randomRotation", true);
+    AttributeKey<Boolean> ATTRIBUTE_NEEDS_FOUNDATION           = new AttributeKey<>("WPObject.needsFoundation", true);
+    AttributeKey<Boolean> ATTRIBUTE_SPAWN_IN_WATER             = new AttributeKey<>("WPObject.spawnInWater", false);
+    AttributeKey<Boolean> ATTRIBUTE_SPAWN_IN_LAVA              = new AttributeKey<>("WPObject.spawnInLava", false);
+    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_LAND              = new AttributeKey<>("WPObject.spawnOnLand", true);
+    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_WATER             = new AttributeKey<>("WPObject.spawnOnWater", false);
+    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_LAVA              = new AttributeKey<>("WPObject.spawnOnLava", false);
+    AttributeKey<Integer> ATTRIBUTE_FREQUENCY                  = new AttributeKey<>("WPObject.frequency", 100);
+    AttributeKey<Boolean> ATTRIBUTE_SPAWN_ON_WATER_NO_COLLIDE  = new AttributeKey<>("WPObject.spawnOnWater.noCollide", false);
     /**
      * Collision mode. Possible values:
      * 
@@ -311,7 +317,9 @@ public interface WPObject extends Serializable, Cloneable {
      * floating in the air. This allows objects to have "legs", "roots" or a
      * "foundation" which will be extended by WorldPainter to meet the ground.
      */
-    AttributeKey<Boolean>  ATTRIBUTE_EXTEND_FOUNDATION = new AttributeKey<>("WPObject.extendFoundation", false);
+    AttributeKey<Boolean> ATTRIBUTE_EXTEND_FOUNDATION     = new AttributeKey<>("WPObject.extendFoundation", false);
+    AttributeKey<Boolean> ATTRIBUTE_RANDOM_ROTATION_ONLY  = new AttributeKey<>("WPObject.randomRotationOnly", false);
+    AttributeKey<Boolean> ATTRIBUTE_RANDOM_MIRRORING_ONLY = new AttributeKey<>("WPObject.randomMirroringOnly", false);
 
     @FunctionalInterface
     interface BlockVisitor {

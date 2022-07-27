@@ -63,8 +63,10 @@ public class EditObjectAttributes extends WorldPainterDialog {
             offsets.put(object, offset);
             String offsetStr = "<html><u>" + offset.x + ", " + offset.y + ", " + offset.z + "</u></html>";
             labelOffset.setText(offsetStr);
-            checkBoxRandomRotation.setSelected(object.getAttribute(ATTRIBUTE_RANDOM_ROTATION));
+            checkBoxRandomRotation.setSelected(object.getAttribute(ATTRIBUTE_RANDOM_ROTATION) || object.getAttribute(ATTRIBUTE_RANDOM_ROTATION_ONLY));
             checkBoxRandomRotation.setTristateMode(false);
+            checkBoxRandomMirroring.setSelected(object.getAttribute(ATTRIBUTE_RANDOM_ROTATION) || object.getAttribute(ATTRIBUTE_RANDOM_MIRRORING_ONLY));
+            checkBoxRandomMirroring.setTristateMode(false);
             checkBoxOnAir.setSelected(! object.getAttribute(ATTRIBUTE_NEEDS_FOUNDATION));
             checkBoxOnAir.setTristateMode(false);
             checkBoxUnderLava.setSelected(object.getAttribute(ATTRIBUTE_SPAWN_IN_LAVA));
@@ -137,6 +139,7 @@ public class EditObjectAttributes extends WorldPainterDialog {
             }
             labelOffset.setText("multiple");
             checkBoxRandomRotation.setMixed(true);
+            checkBoxRandomMirroring.setMixed(true);
             checkBoxOnAir.setMixed(true);
             checkBoxUnderLava.setMixed(true);
             checkBoxUnderWater.setMixed(true);
@@ -220,8 +223,19 @@ public class EditObjectAttributes extends WorldPainterDialog {
             } else {
                 attributes.remove(ATTRIBUTE_OFFSET.key);
             }
-            if (! checkBoxRandomRotation.isMixed()) {
-                attributes.put(ATTRIBUTE_RANDOM_ROTATION.key, checkBoxRandomRotation.isSelected());
+            if ((! checkBoxRandomRotation.isMixed()) || (! checkBoxRandomMirroring.isMixed())) {
+                // To make things simpler, always migrate the single attribute to the separate attributes first
+                if (ATTRIBUTE_RANDOM_ROTATION.get(attributes)) {
+                    attributes.put(ATTRIBUTE_RANDOM_ROTATION.key, false);
+                    attributes.put(ATTRIBUTE_RANDOM_ROTATION_ONLY.key, true);
+                    attributes.put(ATTRIBUTE_RANDOM_MIRRORING_ONLY.key, true);
+                }
+                if (! checkBoxRandomRotation.isMixed()) {
+                    attributes.put(ATTRIBUTE_RANDOM_ROTATION_ONLY.key, checkBoxRandomRotation.isSelected());
+                }
+                if (! checkBoxRandomMirroring.isMixed()) {
+                    attributes.put(ATTRIBUTE_RANDOM_MIRRORING_ONLY.key, checkBoxRandomMirroring.isSelected());
+                }
             }
             if (! checkBoxOnAir.isMixed()) {
                 attributes.put(ATTRIBUTE_NEEDS_FOUNDATION.key, ! checkBoxOnAir.isSelected());
@@ -353,6 +367,8 @@ public class EditObjectAttributes extends WorldPainterDialog {
         checkBoxExtendFoundation = new org.pepsoft.worldpainter.util.TristateCheckBox();
         comboBoxReplacedMaterial = new javax.swing.JComboBox<>();
         checkBoxCollideWithFloor = new org.pepsoft.worldpainter.util.TristateCheckBox();
+        checkBoxRandomMirroring = new org.pepsoft.worldpainter.util.TristateCheckBox();
+        jLabel10 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Edit Object Attributes");
@@ -433,7 +449,7 @@ public class EditObjectAttributes extends WorldPainterDialog {
 
         jLabel8.setText("Spawn:");
 
-        checkBoxRandomRotation.setText("random rotation and mirroring");
+        checkBoxRandomRotation.setText("random rotation");
 
         checkBoxOnSolidLand.setText("on solid land");
 
@@ -479,6 +495,13 @@ public class EditObjectAttributes extends WorldPainterDialog {
         checkBoxCollideWithFloor.setSelected(true);
         checkBoxCollideWithFloor.setText("collide with floor");
         checkBoxCollideWithFloor.setEnabled(false);
+
+        checkBoxRandomMirroring.setText("random mirroring");
+
+        jLabel10.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/information.png"))); // NOI18N
+        jLabel10.setLabelFor(checkBoxRandomMirroring);
+        jLabel10.setText(" ");
+        jLabel10.setToolTipText("<html>Mirroring works by rotating blocks 180 degrees.<br>\nIt does not work for asymmetric mod blocks of which<br>\nthe rotated versions are not mirrors of the originals.</html>");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -541,16 +564,18 @@ public class EditObjectAttributes extends WorldPainterDialog {
                                 .addComponent(checkBoxReplace)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(comboBoxReplacedMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(checkBoxExtendFoundation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(checkBoxExtendFoundation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(checkBoxRandomMirroring, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel10)))
                         .addGap(18, 18, 18)
                         .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(buttonOK)
-                                .addGap(77, 77, 77))
-                            .addComponent(buttonCancel, javax.swing.GroupLayout.Alignment.TRAILING)))
+                        .addComponent(buttonOK)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonCancel))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -585,6 +610,10 @@ public class EditObjectAttributes extends WorldPainterDialog {
                             .addComponent(checkBoxFrequencyActive))
                         .addGap(18, 18, 18)
                         .addComponent(checkBoxRandomRotation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(checkBoxRandomMirroring, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel10))
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel8)
@@ -621,11 +650,10 @@ public class EditObjectAttributes extends WorldPainterDialog {
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(buttonOK)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(buttonCancel)
-                        .addContainerGap())))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(buttonCancel)
+                    .addComponent(buttonOK))
+                .addContainerGap())
         );
 
         pack();
@@ -675,6 +703,7 @@ public class EditObjectAttributes extends WorldPainterDialog {
     private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxOnLava;
     private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxOnSolidLand;
     private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxOnWater;
+    private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxRandomMirroring;
     private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxRandomRotation;
     private javax.swing.JCheckBox checkBoxReplace;
     private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxUnderLava;
@@ -685,6 +714,7 @@ public class EditObjectAttributes extends WorldPainterDialog {
     private javax.swing.JComboBox comboBoxUndergroundMode;
     private javax.swing.JTextField fieldName;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;

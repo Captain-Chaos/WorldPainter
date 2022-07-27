@@ -78,10 +78,13 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                                 if (placement == Placement.NONE) {
                                     continue;
                                 }
-                                if (object.getAttribute(ATTRIBUTE_RANDOM_ROTATION)) {
-                                    if (random.nextBoolean()) {
-                                        object = new MirroredObject(object, false, platform);
-                                    }
+                                final boolean randomRotationAndMirroring = object.getAttribute(ATTRIBUTE_RANDOM_ROTATION);
+                                if ((randomRotationAndMirroring || object.getAttribute(ATTRIBUTE_RANDOM_MIRRORING_ONLY))
+                                        && random.nextBoolean()) {
+                                    // Preserve previous behaviour of only mirroring in X axis for un-migrated objects:
+                                    object = new MirroredObject(object, (! randomRotationAndMirroring) && random.nextBoolean(), platform);
+                                }
+                                if (randomRotationAndMirroring || object.getAttribute(ATTRIBUTE_RANDOM_ROTATION_ONLY)) {
                                     int rotateSteps = random.nextInt(4);
                                     if (rotateSteps > 0) {
                                         object = new RotatedObject(object, rotateSteps, platform);
@@ -129,10 +132,13 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                     || (object.getAttribute(ATTRIBUTE_SPAWN_IN_WATER) && existingMaterial.isNamed(MC_WATER))
                     || (object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND) && (! materialBelow.veryInsubstantial))
                     || (! object.getAttribute(ATTRIBUTE_NEEDS_FOUNDATION) && materialBelow.veryInsubstantial)) {
-                if (object.getAttribute(ATTRIBUTE_RANDOM_ROTATION)) {
-                    if (applyRandom.nextBoolean()) {
-                        object = new MirroredObject(object, false, platform);
-                    }
+                final boolean randomRotationAndMirroring = object.getAttribute(ATTRIBUTE_RANDOM_ROTATION);
+                if ((randomRotationAndMirroring || object.getAttribute(ATTRIBUTE_RANDOM_MIRRORING_ONLY))
+                        && applyRandom.nextBoolean()) {
+                    // Preserve previous behaviour of only mirroring in X axis for un-migrated objects:
+                    object = new MirroredObject(object, (! randomRotationAndMirroring) && applyRandom.nextBoolean(), platform);
+                }
+                if (randomRotationAndMirroring || object.getAttribute(ATTRIBUTE_RANDOM_ROTATION_ONLY)) {
                     int rotateSteps = applyRandom.nextInt(4);
                     if (rotateSteps > 0) {
                         object = new RotatedObject(object, rotateSteps, platform);
