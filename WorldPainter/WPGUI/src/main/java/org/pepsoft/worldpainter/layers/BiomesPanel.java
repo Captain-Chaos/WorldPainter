@@ -43,7 +43,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         BiomesSet desiredSet;
         // TODO move this stuff to BiomeScheme/PlatformProvider
         if (platform.capabilities.contains(NAMED_BIOMES)) {
-            desiredSet = MINECRAFT_1_18_BIOMES;
+            desiredSet = MINECRAFT_1_19_BIOMES;
             showIds = false;
         } else if (platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D)) {
             desiredSet = MINECRAFT_1_17_BIOMES;
@@ -423,15 +423,15 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
             BIOME_NETHER_WASTES, BIOME_SOUL_SAND_VALLEY, BIOME_CRIMSON_FOREST, BIOME_WARPED_FOREST, BIOME_BASALT_DELTAS,
     };
 
-    private static final int[] MC_118_BIOME_ORDER = {
+    private static final int[] MC_119_BIOME_ORDER = {
             BIOME_PLAINS, BIOME_FOREST, BIOME_SWAMP, BIOME_JUNGLE, BIOME_BAMBOO_JUNGLE,
-            BIOME_BIRCH_FOREST, BIOME_DARK_FOREST, BIOME_TAIGA, BIOME_OLD_GROWTH_PINE_TAIGA, BIOME_OLD_GROWTH_SPRUCE_TAIGA,
-            BIOME_WINDSWEPT_HILLS, BIOME_MUSHROOM_FIELDS, BIOME_DESERT, BIOME_SAVANNA, BIOME_BADLANDS,
+            BIOME_BIRCH_FOREST, BIOME_DARK_FOREST, BIOME_MANGROVE_SWAMP, BIOME_OLD_GROWTH_PINE_TAIGA, BIOME_OLD_GROWTH_SPRUCE_TAIGA,
+            BIOME_WINDSWEPT_HILLS, BIOME_DESERT, BIOME_SAVANNA, BIOME_BADLANDS, BIOME_TAIGA,
             BIOME_SNOWY_PLAINS, BIOME_ICE_SPIKES, BIOME_OCEAN, BIOME_RIVER, BIOME_BEACH,
             BIOME_DRIPSTONE_CAVES, BIOME_MEADOW, BIOME_STONY_PEAKS, BIOME_JAGGED_PEAKS, BIOME_STONY_SHORE,
-            BIOME_LUSH_CAVES, BIOME_SNOWY_SLOPES, BIOME_GROVE, BIOME_FROZEN_PEAKS, -1,
+            BIOME_LUSH_CAVES, BIOME_MUSHROOM_FIELDS, BIOME_SNOWY_SLOPES, BIOME_GROVE, BIOME_FROZEN_PEAKS,
+            BIOME_DEEP_DARK, BIOME_THE_VOID, -1, -1, -1,
             BIOME_THE_END, BIOME_END_BARRENS, BIOME_END_HIGHLANDS, BIOME_END_MIDLANDS, BIOME_SMALL_END_ISLANDS,
-            BIOME_THE_VOID, -1, -1, -1, -1,
             BIOME_NETHER_WASTES, BIOME_SOUL_SAND_VALLEY, BIOME_CRIMSON_FOREST, BIOME_WARPED_FOREST, BIOME_BASALT_DELTAS
     };
 
@@ -524,7 +524,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         new BiomeDescriptor(BIOME_LUSH_CAVES)
     );
 
-    private static final Set<BiomeDescriptor> MC_118_DESCRIPTORS = ImmutableSet.of(
+    private static final Set<BiomeDescriptor> MC_119_DESCRIPTORS = ImmutableSet.of(
         new BiomeDescriptor(BIOME_PLAINS),
         new BiomeDescriptor(BIOME_SUNFLOWER_PLAINS, BIOME_PLAINS, FLOWERS),
         new BiomeDescriptor(BIOME_FOREST),
@@ -585,11 +585,13 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         new BiomeDescriptor(BIOME_SOUL_SAND_VALLEY),
         new BiomeDescriptor(BIOME_CRIMSON_FOREST),
         new BiomeDescriptor(BIOME_WARPED_FOREST),
-        new BiomeDescriptor(BIOME_BASALT_DELTAS)
+        new BiomeDescriptor(BIOME_BASALT_DELTAS),
+        new BiomeDescriptor(BIOME_MANGROVE_SWAMP),
+        new BiomeDescriptor(BIOME_DEEP_DARK)
     );
 
     private static final BiomesSet MINECRAFT_1_17_BIOMES = new BiomesSet(MC_117_BIOME_ORDER, MC_117_DESCRIPTORS, Minecraft1_17Biomes.BIOME_NAMES);
-    private static final BiomesSet MINECRAFT_1_18_BIOMES = new BiomesSet(MC_118_BIOME_ORDER, MC_118_DESCRIPTORS, Minecraft1_19Biomes.BIOME_NAMES);
+    private static final BiomesSet MINECRAFT_1_19_BIOMES = new BiomesSet(MC_119_BIOME_ORDER, MC_119_DESCRIPTORS, Minecraft1_19Biomes.BIOME_NAMES);
 
     public enum BiomeOption {HILLS, SHORE, EDGE, PLATEAU, MOUNTAINOUS, VARIANT, FROZEN, SNOWY, DEEP, WOODED, WARM,
         LUKEWARM, COLD, TALL, FLOWERS, LAKES, GRAVELLY, SHATTERED, SMALL_ISLANDS, MIDLANDS, HIGHLANDS, BARRENS,
