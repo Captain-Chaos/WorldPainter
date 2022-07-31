@@ -1210,20 +1210,43 @@ public final class Material implements Serializable {
         return get(name, (Map<String, String>) null);
     }
 
+    /**
+     * Get all known namespaces.
+     */
     public static Set<String> getAllNamespaces() {
         return unmodifiableSet(SIMPLE_NAMES_BY_NAMESPACE.keySet());
     }
 
+    /**
+     * Get all known names for a specific namespace.
+     */
     public static Set<String> getAllSimpleNamesForNamespace(String namespace) {
         return SIMPLE_NAMES_BY_NAMESPACE.containsKey(namespace) ? unmodifiableSet(SIMPLE_NAMES_BY_NAMESPACE.get(namespace)) : emptySet();
     }
 
+    /**
+     * Get the fully qualified names of all realised materials.
+     */
     public static Set<String> getAllNames() {
         return ALL_MATERIALS.values().stream().map(material -> material.name).collect(toSet());
     }
 
+    /**
+     * Get all realised materials.
+     */
     public static Collection<Material> getAllMaterials() {
         return Collections.unmodifiableCollection(ALL_MATERIALS.values());
+    }
+
+    /**
+     * Get the specs for a known material. Returns an empty set if the specified material is not known.
+     */
+    public static Set<Map<String, Object>> getSpecs(String name) {
+        if (MATERIAL_SPECS.containsKey(name)) {
+            return MATERIAL_SPECS.get(name).stream().map(Collections::unmodifiableMap).collect(toSet());
+        } else {
+            return emptySet();
+        }
     }
 
     // Object
@@ -2059,6 +2082,9 @@ public final class Material implements Serializable {
     public static final Material POINTED_DRIPSTONE_DOWN_BASE    = get(MC_POINTED_DRIPSTONE, MC_THICKNESS, "base",    MC_VERTICAL_DIRECTION, "down", MC_WATERLOGGED, false);
     public static final Material MOSS_BLOCK = get(MC_MOSS_BLOCK);
     public static final Material DRIPSTONE_BLOCK = get(MC_DRIPSTONE_BLOCK);
+    public static final Material MUD = get(MC_MUD);
+    public static final Material INFESTED_STONE = get(MC_INFESTED_STONE);
+    public static final Material MANGROVE_PROPAGULE = get(MC_MANGROVE_PROPAGULE);
 
     // Material type categories
 

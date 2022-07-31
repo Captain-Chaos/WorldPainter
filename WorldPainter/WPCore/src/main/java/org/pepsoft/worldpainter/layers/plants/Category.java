@@ -20,7 +20,8 @@ public enum Category {
                     || material.isNamed(MC_PODZOL)
                     || material.isNamed(MC_FARMLAND)
                     || material.isNamed(MC_ROOTED_DIRT)
-                    || material.isNamed(MC_MOSS_BLOCK))
+                    || material.isNamed(MC_MOSS_BLOCK)
+                    || material.isNamed(MC_MUD))
                 && (! isFlooded(world, x, y, z));
         }
     },
@@ -59,7 +60,8 @@ public enum Category {
                     || material.isNamed(MC_SAND)
                     || material.isNamed(MC_RED_SAND)
                     || material.isNamed(MC_FARMLAND)
-                    || material.isNamed(MC_MOSS_BLOCK))
+                    || material.isNamed(MC_MOSS_BLOCK)
+                    || material.isNamed(MC_MUD))
                 && (! isFlooded(world, x, y, z))
                 && (isWatery(world, x - 1, y, z)
                     || isWatery(world, x, y - 1, z)
@@ -137,7 +139,7 @@ public enum Category {
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z) {
             Material material = world.getMaterialAt(x, y, z);
             return world.getMaterialAt(x, y, z + 1).containsWater()
-                ? material.isNamedOneOf(MC_CLAY, MC_MOSS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_FARMLAND, MC_GRASS_BLOCK, MC_PODZOL, MC_ROOTED_DIRT, MC_MYCELIUM)
+                ? material.isNamedOneOf(MC_CLAY, MC_MOSS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_FARMLAND, MC_GRASS_BLOCK, MC_PODZOL, MC_ROOTED_DIRT, MC_MYCELIUM, MC_MUD)
                 : material.isNamedOneOf(MC_CLAY, MC_MOSS_BLOCK);
         }
     };

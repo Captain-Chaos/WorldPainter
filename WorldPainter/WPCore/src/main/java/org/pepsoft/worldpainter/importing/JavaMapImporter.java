@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.lang.Boolean.TRUE;
 import static java.util.Collections.synchronizedMap;
 import static java.util.Collections.synchronizedSet;
 import static java.util.stream.Collectors.joining;
@@ -36,7 +37,7 @@ import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.*;
 import static org.pepsoft.worldpainter.importing.MapImporter.ReadOnlyOption.*;
 import static org.pepsoft.worldpainter.platforms.PlatformUtils.determineNativePlatforms;
 import static org.pepsoft.worldpainter.util.ChunkUtils.skipChunk;
@@ -600,6 +601,8 @@ public class JavaMapImporter extends MapImporter {
         TERRAIN_MAPPING.put(MC_WARPED_NYLIUM, Terrain.WARPED_NYLIUM);
         TERRAIN_MAPPING.put(MC_CRIMSON_NYLIUM, Terrain.CRIMSON_NYLIUM);
         TERRAIN_MAPPING.put(MC_CALCITE, Terrain.CALCITE);
+        TERRAIN_MAPPING.put(MC_MUD, Terrain.MUD);
+        TERRAIN_MAPPING.put(MC_MUDDY_MANGROVE_ROOTS, Terrain.MUD);
     }
 
     static {
@@ -608,11 +611,13 @@ public class JavaMapImporter extends MapImporter {
                 throw new IllegalStateException("Material named \"" + name + "\" not marked as terrain");
             }
         });
-        Material.getAllMaterials().forEach(material -> {
-            //noinspection StringEquality String is interned
-            if (material.terrain && (material.namespace != LEGACY) && (! TERRAIN_MAPPING.containsKey(material.name))) {
-                throw new IllegalStateException("Material \"" + material + "\" missing from terrain mapping");
-            }
-        });
+        Material.getAllSimpleNamesForNamespace(MINECRAFT).stream()
+                .map(name -> MINECRAFT + ':' + name)
+                .forEach(name -> Material.getSpecs(name)
+                        .forEach(spec -> {
+                            if (TRUE.equals(spec.get("terrain")) && (! TERRAIN_MAPPING.containsKey(name))) {
+                                throw new IllegalStateException("Material \"" + name + "\" missing from terrain mapping");
+                            }
+                        }));
     }
 }

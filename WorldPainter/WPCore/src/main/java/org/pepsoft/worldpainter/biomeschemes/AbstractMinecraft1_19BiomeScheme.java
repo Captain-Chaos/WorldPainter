@@ -16,7 +16,7 @@ import static org.pepsoft.minecraft.Constants.*;
  *
  * @author pepijn
  */
-public abstract class AbstractMinecraft1_18BiomeScheme extends AbstractBiomeScheme implements Minecraft1_18Biomes {
+public abstract class AbstractMinecraft1_19BiomeScheme extends AbstractBiomeScheme implements Minecraft1_19Biomes {
     @Override
     public final int getBiomeCount() {
         return HIGHEST_BIOME_ID + 1;
@@ -45,6 +45,7 @@ public abstract class AbstractMinecraft1_18BiomeScheme extends AbstractBiomeSche
             case BIOME_DRIPSTONE_CAVES:
             case BIOME_LUSH_CAVES:
             case BIOME_MEADOW:
+            case BIOME_DEEP_DARK:
                 return colourScheme.getColour(BLK_GRASS);
             case BIOME_DESERT:
             case BIOME_BEACH:
@@ -58,6 +59,7 @@ public abstract class AbstractMinecraft1_18BiomeScheme extends AbstractBiomeSche
             case BIOME_ROOFED_FOREST_M:
             case BIOME_FLOWER_FOREST:
             case BIOME_SWAMPLAND_M:
+            case BIOME_MANGROVE_SWAMP:
                 return colourScheme.getColour(BLK_LEAVES, DATA_OAK);
             case BIOME_JUNGLE:
             case BIOME_JUNGLE_HILLS:

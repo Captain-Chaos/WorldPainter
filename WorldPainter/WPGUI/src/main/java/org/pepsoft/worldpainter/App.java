@@ -3298,7 +3298,7 @@ public final class App extends JFrame implements RadiusControl,
 
         buttonPanel.add(createTerrainButton(BARE_GRASS));
         buttonPanel.add(createTerrainButton(STONE));
-        buttonPanel.add(createTerrainButton(SANDSTONE));
+        buttonPanel.add(createTerrainButton(MUD));
         buttonPanel.add(createTerrainButton(GRAVEL));
         buttonPanel.add(createTerrainButton(CLAY));
 
@@ -3321,10 +3321,10 @@ public final class App extends JFrame implements RadiusControl,
         buttonPanel.add(createTerrainButton(MYCELIUM));
 
         buttonPanel.add(createTerrainButton(DESERT));
+        buttonPanel.add(createTerrainButton(SANDSTONE));
         buttonPanel.add(createTerrainButton(RED_SAND));
         buttonPanel.add(createTerrainButton(RED_SANDSTONE));
         buttonPanel.add(createTerrainButton(RED_DESERT));
-        buttonPanel.add(createTerrainButton(MESA));
 
         buttonPanel.add(createTerrainButton(WHITE_STAINED_CLAY));
         buttonPanel.add(createTerrainButton(ORANGE_STAINED_CLAY));
@@ -3346,9 +3346,15 @@ public final class App extends JFrame implements RadiusControl,
 
         buttonPanel.add(createTerrainButton(BLACK_STAINED_CLAY));
         buttonPanel.add(createTerrainButton(HARDENED_CLAY));
+        buttonPanel.add(createTerrainButton(MESA));
+        buttonPanel.add(Box.createGlue());
+        buttonPanel.add(Box.createGlue());
+
         buttonPanel.add(createTerrainButton(BEACHES));
         buttonPanel.add(createTerrainButton(WATER));
         buttonPanel.add(createTerrainButton(DEEP_SNOW));
+        buttonPanel.add(Box.createGlue());
+        buttonPanel.add(Box.createGlue());
 
         // Nether
         buttonPanel.add(createTerrainButton(NETHERRACK));

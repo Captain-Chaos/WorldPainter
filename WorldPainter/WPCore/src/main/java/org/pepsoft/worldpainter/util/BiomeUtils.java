@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.MODERN_IDS;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.MODERN_IDS;
 
 /**
  * This class uses the Minecraft coordinate system (y is vertical).

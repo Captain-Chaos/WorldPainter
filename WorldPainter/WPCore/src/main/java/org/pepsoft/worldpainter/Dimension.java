@@ -51,7 +51,7 @@ import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.Dimension.WallType.BEDROCK;
 import static org.pepsoft.worldpainter.Generator.*;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.*;
 
 /**
  *

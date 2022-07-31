@@ -21,7 +21,7 @@ import static java.util.EnumSet.noneOf;
 import static java.util.stream.Collectors.joining;
 import static javax.swing.BoxLayout.PAGE_AXIS;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.*;
 import static org.pepsoft.worldpainter.layers.BiomesPanel.BiomeOption.*;
 
 /**
@@ -589,7 +589,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     );
 
     private static final BiomesSet MINECRAFT_1_17_BIOMES = new BiomesSet(MC_117_BIOME_ORDER, MC_117_DESCRIPTORS, Minecraft1_17Biomes.BIOME_NAMES);
-    private static final BiomesSet MINECRAFT_1_18_BIOMES = new BiomesSet(MC_118_BIOME_ORDER, MC_118_DESCRIPTORS, Minecraft1_18Biomes.BIOME_NAMES);
+    private static final BiomesSet MINECRAFT_1_18_BIOMES = new BiomesSet(MC_118_BIOME_ORDER, MC_118_DESCRIPTORS, Minecraft1_19Biomes.BIOME_NAMES);
 
     public enum BiomeOption {HILLS, SHORE, EDGE, PLATEAU, MOUNTAINOUS, VARIANT, FROZEN, SNOWY, DEEP, WOODED, WARM,
         LUKEWARM, COLD, TALL, FLOWERS, LAKES, GRAVELLY, SHATTERED, SMALL_ISLANDS, MIDLANDS, HIGHLANDS, BARRENS,

@@ -22,7 +22,6 @@ import java.util.jar.JarFile;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.Math.max;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static java.util.zip.ZipFile.OPEN_READ;
 import static org.pepsoft.minecraft.Constants.*;
@@ -32,7 +31,7 @@ import static org.pepsoft.worldpainter.Constants.UNKNOWN_MATERIAL_COLOUR;
 @SuppressWarnings("ConstantConditions")
 public class UpdateMaterials {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-        enrichMaterialsWithTransmissiveness();
+        enrichMaterialsFromPluginDump();
     }
 
     private static void enrichMaterialsWithTransmissiveness() throws IOException, ClassNotFoundException {
@@ -137,10 +136,17 @@ public class UpdateMaterials {
         }
     }
 
-    private static void enrichMaterialsFromPluginDump() {
-        try (Reader in = new InputStreamReader(Material.class.getResourceAsStream("materials.csv"), UTF_8)) {
+    private static void enrichMaterialsFromPluginDump() throws IOException, ClassNotFoundException {
+        Configuration config = Configuration.load();
+        if (config == null) {
+            config = new Configuration();
+        }
+        Configuration.setInstance(config);
+        try (JarFile jarFile = new JarFile(BiomeSchemeManager.getLatestMinecraftJar(), true, OPEN_READ); Reader in = new InputStreamReader(Material.class.getResourceAsStream("materials.csv"), UTF_8); Writer out = new OutputStreamWriter(System.out, UTF_8)) {
             final CSVDataSource csvIn = new CSVDataSource();
+            final CSVDataSource csvOut = new CSVDataSource();
             csvIn.openForReading(in);
+            csvOut.openForWriting(out, "name", "discriminator", "properties", "opacity", "receivesLight", "terrain", "insubstantial", "veryInsubstantial", "resource", "tileEntity", "tileEntityId", "treeRelated", "vegetation", "blockLight", "natural", "watery", "colour", "colourOrigin");
             do {
                 final String name = csvIn.getString("name");
                 final String properties = csvIn.getString("properties");
@@ -148,33 +154,32 @@ public class UpdateMaterials {
                 final String tileEntityId = csvIn.getString("tileEntityId");
                 final int blockLight = csvIn.getInt("blockLight");
 
-                if (MATERIAL_SPECS.containsKey(name)) {
-                    final Set<Map<String, Object>> specs = MATERIAL_SPECS.get(name);
-                    specs.forEach(spec -> {
-                        if (! isNullOrEmpty(properties)) {
-                            spec.put("properties", ImmutableSet.copyOf(properties.split(",")));
-                        } else {
-                            spec.remove("properties");
-                        }
-                        spec.put("tileEntity", tileEntity);
-                        if (! isNullOrEmpty(tileEntityId)) {
-                            spec.put("tileEntityId", tileEntityId);
-                        } else {
-                            spec.remove("tileEntityId");
-                        }
-                        spec.put("blockLight", blockLight);
-                    });
-                } else {
-                    final Map<String, Object> spec = new HashMap<>();
+                if (! MATERIAL_SPECS.containsKey(name)) {
+                    csvOut.setString("name", name);
                     if (! isNullOrEmpty(properties)) {
-                        spec.put("properties", ImmutableSet.copyOf(properties.split(",")));
+                        csvOut.setString("properties", properties);
                     }
-                    spec.put("tileEntity", tileEntity);
+                    csvOut.setInt("opacity", guessOpacity(name));
+                    csvOut.setBoolean("receivesLight", guessReceivesLight(name));
+                    csvOut.setBoolean("terrain", false);
+                    csvOut.setBoolean("insubstantial", guessInsubstantial(name));
+                    csvOut.setBoolean("veryInsubstantial", guessVeryInsubstantial(name));
+                    csvOut.setBoolean("resource", guessResource(name));
+                    csvOut.setBoolean("tileEntity", tileEntity);
                     if (! isNullOrEmpty(tileEntityId)) {
-                        spec.put("tileEntityId", tileEntityId);
+                        csvOut.setString("tileEntityId", tileEntityId);
                     }
-                    spec.put("blockLight", blockLight);
-                    MATERIAL_SPECS.put(name, singleton(spec));
+                    csvOut.setBoolean("treeRelated", guessTreeRelated(name));
+                    csvOut.setBoolean("vegetation", guessVegetation(name));
+                    csvOut.setInt("blockLight", blockLight);
+                    csvOut.setBoolean("natural", guessNatural(name));
+                    csvOut.setBoolean("watery", false);
+                    final ColourAndOrigin colourAndOrigin = findAverageColour(jarFile, name.substring(name.indexOf(':') + 1));
+                    if (colourAndOrigin != null) {
+                        csvOut.setString("colour", String.format("%8x", colourAndOrigin.colour));
+                        csvOut.setString("colourOrigin", colourAndOrigin.origin);
+                    }
+                    csvOut.next();
                 }
 
                 csvIn.next();
@@ -182,46 +187,10 @@ public class UpdateMaterials {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
 
-        try (Writer out = new OutputStreamWriter(System.out, UTF_8)) {
-            final CSVDataSource csvOut = new CSVDataSource();
-            csvOut.openForWriting(out, "name", "discriminator", "properties", "opacity", "terrain", "insubstantial", "veryInsubstantial", "resource", "tileEntity", "tileEntityId", "treeRelated", "vegetation", "blockLight", "natural", "watery", "colour", "colourOrigin");
-            for (Map.Entry<String, Set<Map<String, Object>>> entry: MATERIAL_SPECS.entrySet()) {
-                final String name = entry.getKey();
-                for (Map<String, Object> spec: entry.getValue()) {
-                    csvOut.setString("name", name);
-                    if (spec.containsKey("discriminator")) {
-                        csvOut.setString("discriminator", String.join(",", (Set<String>) spec.get("discriminator")));
-                    }
-                    if (spec.containsKey("properties")) {
-                        csvOut.setString("properties", String.join(",", (Set<String>) spec.get("properties")));
-                    }
-                    csvOut.setInt("opacity", (Integer) spec.getOrDefault("opacity", guessOpacity(name)));
-                    csvOut.setBoolean("terrain", (Boolean) spec.getOrDefault("terrain", false));
-                    csvOut.setBoolean("insubstantial", (Boolean) spec.getOrDefault("insubstantial", guessInsubstantial(name)));
-                    csvOut.setBoolean("veryInsubstantial", (Boolean) spec.getOrDefault("veryInsubstantial", guessInsubstantial(name)));
-                    csvOut.setBoolean("resource", (Boolean) spec.getOrDefault("resource", guessResource(name)));
-                    csvOut.setBoolean("tileEntity", (Boolean) spec.get("tileEntity"));
-                    if (spec.containsKey("tileEntityId")) {
-                        csvOut.setString("tileEntityId", (String) spec.get("tileEntityId"));
-                    }
-                    csvOut.setBoolean("treeRelated", (Boolean) spec.getOrDefault("treeRelated", guessTreeRelated(name)));
-                    csvOut.setBoolean("vegetation", (Boolean) spec.getOrDefault("vegetation", guessVegetation(name)));
-                    csvOut.setInt("blockLight", (Integer) spec.get("blockLight"));
-                    csvOut.setBoolean("natural", (Boolean) spec.getOrDefault("natural", guessNatural(name)));
-                    csvOut.setBoolean("watery", (Boolean) spec.getOrDefault("watery", false));
-                    if (spec.containsKey("colour")) {
-                        csvOut.setString("colour", String.format("%8x", (Integer) spec.get("colour")));
-                    }
-                    if (spec.containsKey("colourOrigin")) {
-                        csvOut.setString("colourOrigin", (String) spec.get("colourOrigin"));
-                    }
-                    csvOut.next();
-                }
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    private static boolean guessVeryInsubstantial(String name) {
+        return guessVegetation(name) || name.contains("leaves");
     }
 
     private static boolean guessInsubstantial(String name) {
@@ -244,7 +213,8 @@ public class UpdateMaterials {
     }
 
     private static boolean guessNatural(String material) {
-        return guessVegetation(material) || guessTreeRelated(material);
+        return (guessVegetation(material) || guessTreeRelated(material))
+                && (! material.contains("stripped"));
     }
 
     public static ColourAndOrigin determineColour(Material material, JarFile jarFile) {
@@ -255,12 +225,12 @@ public class UpdateMaterials {
         } else if (HARDCODED_COLOURS.containsKey(material.name)) {
             return new ColourAndOrigin(HARDCODED_COLOURS.get(material.name), "hardcoded");
         } else {
-            return findAverageColour(jarFile, material);
+            return findAverageColour(jarFile, material.simpleName);
         }
     }
 
-    private static ColourAndOrigin findAverageColour(JarFile jarFile, Material material) {
-        final JarEntry entry = findJarEntry(jarFile, material);
+    private static ColourAndOrigin findAverageColour(JarFile jarFile, String simpleName) {
+        final JarEntry entry = findJarEntry(jarFile, simpleName);
         if (entry != null) {
             int red = 0, green = 0, blue = 0;
             int pixelCount = 0;
@@ -289,8 +259,7 @@ public class UpdateMaterials {
         }
     }
 
-    private static JarEntry findJarEntry(JarFile jarFile, Material material) {
-        String name = material.simpleName;
+    private static JarEntry findJarEntry(JarFile jarFile, String name) {
         do {
             for (String prefix: PREFIXES) {
                 String subName = name.startsWith(prefix) ? name.substring(prefix.length()) : name;

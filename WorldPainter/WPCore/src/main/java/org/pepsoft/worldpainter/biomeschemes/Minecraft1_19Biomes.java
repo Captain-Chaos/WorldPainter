@@ -15,7 +15,7 @@ import static org.pepsoft.minecraft.Constants.MC_PLAINS;
  * synthesised. Display names for biomes that occur in Minecraft 1.18 are those for Minecraft 1.18, for legacy biomes
  * they are those from Minecraft 1.17.
  */
-public interface Minecraft1_18Biomes extends Minecraft1_17Biomes {
+public interface Minecraft1_19Biomes extends Minecraft1_17Biomes {
     int BIOME_WINDSWEPT_HILLS = 3;
 
     int BIOME_SNOWY_PLAINS = 12;
@@ -34,6 +34,8 @@ public interface Minecraft1_18Biomes extends Minecraft1_17Biomes {
     int BIOME_OLD_GROWTH_SPRUCE_TAIGA = 160;
     int BIOME_WINDSWEPT_SAVANNA = 163;
 
+    int BIOME_MANGROVE_SWAMP = 247;
+    int BIOME_DEEP_DARK = 248;
     int BIOME_FROZEN_PEAKS = 249;
     int BIOME_GROVE = 250;
     int BIOME_JAGGED_PEAKS = 251;
@@ -318,9 +320,9 @@ public interface Minecraft1_18Biomes extends Minecraft1_17Biomes {
             null,
             null,
             null,
-            null,
-            null,
-            "Frozen Peaks", // TODOMC118 add colour and icon support
+            "Mangrove Swamp", // TODOMC118 add colour and icon support
+            "Deep Dark",
+            "Frozen Peaks",
 
             "Grove",
             "Jagged Peaks",
@@ -330,293 +332,6 @@ public interface Minecraft1_18Biomes extends Minecraft1_17Biomes {
             // Add 1.18+ biomes that have no numerical ID from the end, replacing nulls above here. This is to minimise
             // the chance of collisions with IDs used as custom biomes for Minecraft 1.17- maps.
             null // Automatic biome/default value of Biome layer; don't map to biome to prevent confusion
-    };
-
-    /**
-     * Minecraft 1.17 and earlier technical (runtime) names of the biomes.
-     */
-    String[] LEGACY_IDS = {
-            "minecraft:ocean",
-            "minecraft:plains",
-            "minecraft:desert",
-            "minecraft:mountains",
-            "minecraft:forest",
-            "minecraft:taiga",
-            "minecraft:swamp",
-            "minecraft:river",
-            "minecraft:nether_wastes",
-            "minecraft:the_end",
-
-            "minecraft:frozen_ocean",
-            "minecraft:frozen_river",
-            "minecraft:snowy_tundra",
-            "minecraft:snowy_mountains",
-            "minecraft:mushroom_fields",
-            "minecraft:mushroom_field_shore",
-            "minecraft:beach",
-            "minecraft:desert_hills",
-            "minecraft:wooded_hills",
-            "minecraft:taiga_hills",
-
-            "minecraft:mountain_edge",
-            "minecraft:jungle",
-            "minecraft:jungle_hills",
-            "minecraft:jungle_edge",
-            "minecraft:deep_ocean",
-            "minecraft:stone_shore",
-            "minecraft:snowy_beach",
-            "minecraft:birch_forest",
-            "minecraft:birch_forest_hills",
-            "minecraft:dark_forest",
-
-            "minecraft:snowy_taiga",
-            "minecraft:snowy_taiga_hills",
-            "minecraft:giant_tree_taiga",
-            "minecraft:giant_tree_taiga_hills",
-            "minecraft:wooded_mountains",
-            "minecraft:savanna",
-            "minecraft:savanna_plateau",
-            "minecraft:badlands",
-            "minecraft:wooded_badlands_plateau",
-            "minecraft:badlands_plateau",
-
-            "minecraft:small_end_islands",
-            "minecraft:end_midlands",
-            "minecraft:end_highlands",
-            "minecraft:end_barrens",
-            "minecraft:warm_ocean",
-            "minecraft:lukewarm_ocean",
-            "minecraft:cold_ocean",
-            "minecraft:deep_warm_ocean",
-            "minecraft:deep_lukewarm_ocean",
-            "minecraft:deep_cold_ocean",
-
-            "minecraft:deep_frozen_ocean",
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            "minecraft:the_void",
-            null,
-            "minecraft:sunflower_plains",
-
-            "minecraft:desert_lakes",
-            "minecraft:gravelly_mountains",
-            "minecraft:flower_forest",
-            "minecraft:taiga_mountains",
-            "minecraft:swamp_hills",
-            null,
-            null,
-            null,
-            null,
-            null,
-
-            "minecraft:ice_spikes",
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            "minecraft:modified_jungle",
-
-            null,
-            "minecraft:modified_jungle_edge",
-            null,
-            null,
-            null,
-            "minecraft:tall_birch_forest",
-            "minecraft:tall_birch_hills",
-            "minecraft:dark_forest_hills",
-            "minecraft:snowy_taiga_mountains",
-            null,
-
-            "minecraft:giant_spruce_taiga",
-            "minecraft:giant_spruce_taiga_hills",
-            "minecraft:modified_gravelly_mountains",
-            "minecraft:shattered_savanna",
-            "minecraft:shattered_savanna_plateau",
-            "minecraft:eroded_badlands",
-            "minecraft:modified_wooded_badlands_plateau",
-            "minecraft:modified_badlands_plateau",
-            "minecraft:bamboo_jungle",
-            "minecraft:bamboo_jungle_hills",
-
-            "minecraft:soul_sand_valley",
-            "minecraft:crimson_forest",
-            "minecraft:warped_forest",
-            "minecraft:basalt_deltas",
-            "minecraft:dripstone_caves",
-            "minecraft:lush_caves",
-            null,
-            null,
-            null,
-            null,
-
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
     };
 
     /**
@@ -894,8 +609,8 @@ public interface Minecraft1_18Biomes extends Minecraft1_17Biomes {
             null,
             null,
             null,
-            null,
-            null,
+            "minecraft:mangrove_swamp",
+            "minecraft:deep_dark",
             "minecraft:frozen_peaks",
 
             "minecraft:grove",
@@ -918,6 +633,7 @@ public interface Minecraft1_18Biomes extends Minecraft1_17Biomes {
                 BufferedImage image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/swamp_pattern.png"));
                 patterns[BIOME_SWAMPLAND] = createPattern(image);
                 patterns[BIOME_SWAMPLAND_M] = createPattern(image);
+                patterns[BIOME_MANGROVE_SWAMP] = createPattern(image);
 
                 image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/mountains_pattern.png"));
                 patterns[BIOME_EXTREME_HILLS] = createPattern(image);

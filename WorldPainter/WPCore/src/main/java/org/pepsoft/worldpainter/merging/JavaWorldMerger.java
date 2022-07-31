@@ -1091,6 +1091,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             chunk.setMaterial(x, height, y, STATIONARY_WATER);
             // TODO skylight adjustment for under water
             // TODO also set to water if water to the side or above
+        } else if (existingMaterial.isNamed(MC_MUDDY_MANGROVE_ROOTS)) {
+            chunk.setMaterial(x, height, y, MUD);
         } else {
             chunk.setMaterial(x, height, y, AIR);
             // Note that these lighting calculations aren't strictly necessary since
@@ -1411,11 +1413,12 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             Material newMaterial = newChunk.getMaterial(x, y, z);
 
             if ((existingMaterial != null)
-                    && (((newMaterial == DIRT) && existingMaterial.isNamed(MC_FARMLAND)) // Tilled earth is imported as dirt, so make sure to leave it intact.
-                    || ((newMaterial == DIRT) && existingMaterial.isNamed(MC_ROOTED_DIRT)) // Rooted dirt is imported as dirt, so make sure to leave it intact.
-                    || ((newMaterial == STONE) && existingMaterial.isNamed(MC_INFESTED_STONE)) // Infested stone is imported as stone, so make sure to leave it intact.
-                    || ((newMaterial == DEEPSLATE_Y) && existingMaterial.isNamed(MC_INFESTED_DEEPSLATE)) // Infested deepslate is imported as deepslate, so make sure to leave it intact.
-                    || (newMaterial.isNamed(MC_ICE) && existingMaterial.isNamed(MC_FROSTED_ICE)))) { // Frosted ice is imported as water + Frost, so make sure to leave it intact TODO do this for other forms of ice?
+                    && (((newMaterial == DIRT) && existingMaterial.isNamed(MC_FARMLAND)) // Farmland is imported as dirt, so make sure to leave it intact.
+                    || ((newMaterial == DIRT) && (existingMaterial == ROOTED_DIRT)) // Rooted dirt is imported as dirt, so make sure to leave it intact.
+                    || ((newMaterial == STONE) && (existingMaterial == INFESTED_STONE)) // Infested stone is imported as stone, so make sure to leave it intact.
+                    || (newMaterial.isNamed(MC_DEEPSLATE) && existingMaterial.isNamed(MC_INFESTED_DEEPSLATE)) // Infested deepslate is imported as deepslate, so make sure to leave it intact.
+                    || ((newMaterial == ICE) && existingMaterial.isNamed(MC_FROSTED_ICE)) // Frosted ice is imported as water + Frost, so make sure to leave it intact TODO do this for other forms of ice?
+                    || ((newMaterial == MUD) && existingMaterial.isNamed(MC_MUDDY_MANGROVE_ROOTS)))) { // Muddy mangrove roots are imported as mud, so make sure to leave it intact.
                 newMaterial = existingMaterial;
             }
 

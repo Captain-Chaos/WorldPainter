@@ -29,7 +29,7 @@ import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Dimension.Border.ENDLESS_BARRIER;
 import static org.pepsoft.worldpainter.Dimension.Border.ENDLESS_WATER;
 import static org.pepsoft.worldpainter.Platform.Capability.GENERATOR_PER_DIMENSION;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_18Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.*;
 
 /**
  *

@@ -2807,7 +2807,8 @@ public enum Terrain {
     SOUL_SOIL("Soul Soil", Material.SOUL_SOIL, Material.SOUL_SOIL, "soul soil", BIOME_HELL),
     WARPED_NYLIUM("Warped Nylium", Material.WARPED_NYLIUM, Material.NETHERRACK, "warped nylium", BIOME_HELL),
     CRIMSON_NYLIUM("Crimson Nylium", Material.CRIMSON_NYLIUM, Material.NETHERRACK, "crimson nylium", BIOME_HELL),
-    CALCITE("Calcite", Material.CALCITE, Material.CALCITE, "calcite", BIOME_PLAINS);
+    CALCITE("Calcite", Material.CALCITE, Material.CALCITE, "calcite", BIOME_PLAINS),
+    MUD("Mud", Material.MUD, Material.MUD, "mud", BIOME_PLAINS);
 
     Terrain(String name, String description, int defaultBiome) {
         this(name, Material.STONE, Material.STONE, description, defaultBiome);
