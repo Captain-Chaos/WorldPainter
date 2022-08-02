@@ -35,21 +35,6 @@ public final class ChunkUtils {
                 }
             }
         }
-        if (chunk instanceof SectionedChunk) {
-            boolean sectionFound = false;
-            for (SectionedChunk.Section section: ((SectionedChunk) chunk).getSections()) {
-                if (section != null) {
-                    sectionFound = true;
-                    break;
-                }
-            }
-            if (! sectionFound) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Skipping chunk {},{} because it has no sections, or no sections with y >= minHeight", chunk.getxPos(), chunk.getzPos());
-                }
-                return true;
-            }
-        }
         return false;
     }
 
