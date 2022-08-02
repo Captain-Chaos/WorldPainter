@@ -246,6 +246,7 @@ public class JavaMapImporter extends MapImporter {
         final Map<String, Integer> customNamedBiomes = synchronizedMap(new HashMap<>());
         final AtomicInteger nextCustomBiomeId = new AtomicInteger(FIRST_UNALLOCATED_ID);
         final Set<String> allBiomes = synchronizedSet(new HashSet<>());
+        final Set<Integer> invalidBiomeIds = synchronizedSet(new HashSet<>());
         try (ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension.getDim())) {
             final int total = chunkStore.getChunkCount();
             final AtomicInteger count = new AtomicInteger();
@@ -291,6 +292,7 @@ public class JavaMapImporter extends MapImporter {
                         boolean manMadeStructuresBelowGround = false;
                         boolean manMadeStructuresAboveGround = false;
                         final boolean collectDebugInfo = logger.isDebugEnabled();
+                        boolean markReadOnly = false;
                         try {
                             for (int xx = 0; xx < 16; xx++) {
                                 for (int zz = 0; zz < 16; zz++) {
@@ -418,13 +420,23 @@ public class JavaMapImporter extends MapImporter {
                                         if (collectDebugInfo && ((biome > 255) || (BIOME_NAMES[biome] == null)) && (biome != 255)) {
                                             unknownBiomes.add(biome);
                                         }
-                                        // If the biome is set (around the edges of the map Minecraft sets it to
-                                        // 255, presumably as a marker that it has yet to be calculated), copy
-                                        // it to the dimension. However, if it matches what the automatic biome
-                                        // would be, don't copy it, so that WorldPainter will automatically
-                                        // adjust the biome when the user makes changes
+                                        // If the biome is set (around the edges of the map Minecraft sets it to 255,
+                                        // presumably as a marker that it has yet to be calculated), copy it to the
+                                        // dimension. However, if it matches what the automatic biome would be, don't
+                                        // copy it, so that WorldPainter will automatically adjust the biome when the
+                                        // user makes changes
                                         if ((biome != 255) && (biome != dimension.getAutoBiome(blockX, blockY))) {
-                                            dimension.setLayerValueAt(Biome.INSTANCE, blockX, blockY, biome);
+                                            if ((biome < 0) || (biome > 255)) {
+                                                // This has been seen in the wild; perhaps a modded map?
+                                                if (! invalidBiomeIds.contains(biome)) {
+                                                    invalidBiomeIds.add(biome);
+                                                    reportBuilder.append("Unsupported biome ID " + biome + " encountered at location " + blockX + "," + blockY + "; ignoring biome and marking chunk(s) Read-Only" + EOL);
+                                                    logger.error("Unsupported biome ID {} encountered at location {},{}; ignoring biome and marking chunk(s) Read-Only", biome, blockX, blockY);
+                                                }
+                                                markReadOnly = true;
+                                            } else {
+                                                dimension.setLayerValueAt(Biome.INSTANCE, blockX, blockY, biome);
+                                            }
                                         }
                                     }
                                 }
@@ -432,15 +444,16 @@ public class JavaMapImporter extends MapImporter {
                             newChunks.remove(new Point(chunkX << 4, chunkZ << 4));
                         } catch (NullPointerException e) {
                             reportBuilder.append("Null pointer exception while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk" + EOL);
-                            logger.error("Null pointer exception while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk", e);
+                            logger.error("Null pointer exception while reading chunk {},{}; skipping chunk", chunkX, chunkZ, e);
                             return true;
                         } catch (ArrayIndexOutOfBoundsException e) {
                             reportBuilder.append("Array index out of bounds while reading chunk " + chunkX + "," + chunkZ + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                            logger.error("Array index out of bounds while reading chunk " + chunkX + "," + chunkZ + "; skipping chunk", e);
+                            logger.error("Array index out of bounds while reading chunk {},{}; skipping chunk", chunkX, chunkZ, e);
                             return true;
                         }
 
-                        if (((readOnlyOption == MAN_MADE) && (manMadeStructuresBelowGround || manMadeStructuresAboveGround))
+                        if (markReadOnly
+                                || ((readOnlyOption == MAN_MADE) && (manMadeStructuresBelowGround || manMadeStructuresAboveGround))
                                 || ((readOnlyOption == MAN_MADE_ABOVE_GROUND) && manMadeStructuresAboveGround)
                                 || (readOnlyOption == ALL)) {
                             dimension.setBitLayerValueAt(ReadOnly.INSTANCE, chunkX << 4, chunkZ << 4, true);
