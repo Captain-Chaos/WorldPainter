@@ -305,14 +305,10 @@ public class MapImportDialog extends WorldPainterDialog {
                     if (importer.getWarnings() != null) {
                         try {
                             SwingUtilities.invokeAndWait(() -> {
-                                final Icon warningIcon = UIManager.getIcon("OptionPane.warningIcon");
                                 DesktopUtils.beep();
-                                final int selectedOption = JOptionPane.showOptionDialog(MapImportDialog.this, strings.getString("the.import.process.generated.warnings"), strings.getString("import.warnings"), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, warningIcon, new Object[] {strings.getString("review.warnings"), strings.getString("ok")}, null);
-                                if (selectedOption == 0) {
-                                    ImportWarningsDialog warningsDialog = new ImportWarningsDialog(MapImportDialog.this, strings.getString("import.warnings"));
-                                    warningsDialog.setWarnings(importer.getWarnings());
-                                    warningsDialog.setVisible(true);
-                                }
+                                ImportWarningsDialog warningsDialog = new ImportWarningsDialog(MapImportDialog.this, strings.getString("import.warnings"), strings.getString("the.import.process.generated.warnings"));
+                                warningsDialog.setWarnings(importer.getWarnings());
+                                warningsDialog.setVisible(true);
                             });
                         } catch (InterruptedException | InvocationTargetException e) {
                             throw new RuntimeException(e);

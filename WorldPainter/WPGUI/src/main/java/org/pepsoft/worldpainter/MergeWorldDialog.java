@@ -320,14 +320,10 @@ public class MergeWorldDialog extends WorldPainterDialog {
             }
 
             if (merger.getWarnings() != null) {
-                Icon warningIcon = UIManager.getIcon("OptionPane.warningIcon");
                 DesktopUtils.beep();
-                int selectedOption = JOptionPane.showOptionDialog(MergeWorldDialog.this, "The merge process generated warnings! The existing map may have had pre-\nexisting damage or corruption. Not all chunks may have been merged correctly.", "Merge Warnings", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, warningIcon, new Object[] {"Review warnings", "OK"}, null);
-                if (selectedOption == 0) {
-                    ImportWarningsDialog warningsDialog = new ImportWarningsDialog(MergeWorldDialog.this, "Merge Warnings");
-                    warningsDialog.setWarnings(merger.getWarnings());
-                    warningsDialog.setVisible(true);
-                }
+                ImportWarningsDialog warningsDialog = new ImportWarningsDialog(MergeWorldDialog.this, "Merge Warnings", "<html>The merge process generated warnings! The existing map may have had pre-<br>existing damage or corruption. Not all chunks may have been merged correctly.<br>Please review the warnings below:</html>");
+                warningsDialog.setWarnings(merger.getWarnings());
+                warningsDialog.setVisible(true);
             }
         }
 
