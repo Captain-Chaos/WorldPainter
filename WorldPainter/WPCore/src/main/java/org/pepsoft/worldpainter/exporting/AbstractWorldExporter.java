@@ -717,7 +717,8 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 allCeilingLayers.removeIf(layer -> (layer instanceof CustomLayer) && (! ((CustomLayer) layer).isExport()));
 
                 for (Layer layer: allCeilingLayers) {
-                    if (SecondPassLayerExporter.class.isAssignableFrom(layer.getExporterType())) {
+                    final Class<? extends LayerExporter> exporterType = layer.getExporterType();
+                    if ((exporterType != null) && SecondPassLayerExporter.class.isAssignableFrom(exporterType)) {
                         ceilingSecondaryPassLayers.add(layer);
                     }
                 }

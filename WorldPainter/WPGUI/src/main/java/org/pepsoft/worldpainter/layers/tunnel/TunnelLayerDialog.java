@@ -390,7 +390,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     private void addLayer(Component button, TunnelLayersTableModel tableModel) {
         JPopupMenu popupMenu = new JPopupMenu();
         LayerManager.getInstance().getLayers().stream()
-            .filter(l -> IncidentalLayerExporter.class.isAssignableFrom(l.getExporterType()))
+            .filter(l -> (l.getExporterType() != null) && IncidentalLayerExporter.class.isAssignableFrom(l.getExporterType()))
             .forEach(l -> {
                 JMenuItem menuItem = new JMenuItem(l.getName(), new ImageIcon(l.getIcon()));
                 menuItem.addActionListener(e -> tableModel.addLayer(l));
