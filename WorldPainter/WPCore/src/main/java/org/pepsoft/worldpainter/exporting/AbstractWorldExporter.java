@@ -784,7 +784,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             }
 
             return exportResults;
-        }  catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage() + " (region: " + regionCoords + ")", e);
         }
     }
