@@ -363,7 +363,7 @@ public enum Terrain {
         private static final long DIRT_SEED_OFFSET         = 193567846;
         private static final long GRAVEL_SEED_OFFSET       = 19951397;
     },
-    BEACHES("Beaches", "grass with patches of sand, gravel and clay", BIOME_BEACH) {
+    BEACHES("Beaches", "grass with patches of sand, gravel and clay, and here and there seagrass and kelp under water", BIOME_BEACH) {
         @Override
         public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
             if (sandNoise.getSeed() != (seed + SAND_SEED_OFFSET)) {
@@ -2808,7 +2808,36 @@ public enum Terrain {
     WARPED_NYLIUM("Warped Nylium", Material.WARPED_NYLIUM, Material.NETHERRACK, "warped nylium", BIOME_HELL),
     CRIMSON_NYLIUM("Crimson Nylium", Material.CRIMSON_NYLIUM, Material.NETHERRACK, "crimson nylium", BIOME_HELL),
     CALCITE("Calcite", Material.CALCITE, Material.CALCITE, "calcite", BIOME_PLAINS),
-    MUD("Mud", Material.MUD, Material.MUD, "mud", BIOME_PLAINS);
+    MUD("Mud", Material.MUD, Material.MUD, "mud", BIOME_PLAINS),
+    BARE_BEACHES("Bare Beaches", "grass with patches of sand, gravel and clay, and no plants", BIOME_BEACH) {
+        @Override
+        public Material getMaterial(Platform platform, long seed, int x, int y, int z, int height) {
+            if (sandNoise.getSeed() != (seed + SAND_SEED_OFFSET)) {
+                sandNoise.setSeed(seed + SAND_SEED_OFFSET);
+                clayNoise.setSeed(seed + CLAY_SEED_OFFSET);
+            }
+            float noise = clayNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS);
+            if (noise >= BEACH_CLAY_CHANCE) {
+                return Material.CLAY;
+            } else {
+                noise = sandNoise.getPerlinNoise(x / HUGE_BLOBS, y / HUGE_BLOBS, z / SMALL_BLOBS);
+                noise += sandNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) / 2;
+                if (noise >= BEACH_SAND_CHANCE) {
+                    return Material.SAND;
+                } else if (-noise >= BEACH_GRAVEL_CHANCE) {
+                    return Material.GRAVEL;
+                } else {
+                    return Material.GRASS_BLOCK;
+                }
+            }
+        }
+
+        private final PerlinNoise sandNoise = new PerlinNoise(0);
+        private final PerlinNoise clayNoise = new PerlinNoise(0);
+
+        private static final long SAND_SEED_OFFSET = 26796036;
+        private static final long CLAY_SEED_OFFSET = 161603308;
+    };
 
     Terrain(String name, String description, int defaultBiome) {
         this(name, Material.STONE, Material.STONE, description, defaultBiome);
@@ -3209,7 +3238,9 @@ public enum Terrain {
         SOUL_SOIL,
         WARPED_NYLIUM,
         CRIMSON_NYLIUM,
-        CALCITE
+        CALCITE,
+        MUD,
+        BARE_BEACHES
     };
 
     /**
@@ -3224,11 +3255,12 @@ public enum Terrain {
         DIRT,
         PERMADIRT,
         PODZOL,
+        MUD,
         SAND,
         RED_SAND,
         DESERT,
-        RED_DESERT,
 
+        RED_DESERT,
         MESA,
         HARDENED_CLAY,
         SANDSTONE,
@@ -3238,8 +3270,8 @@ public enum Terrain {
         GRANITE,
         DIORITE,
         ANDESITE,
-        CALCITE,
 
+        CALCITE,
         ROCK,
         COBBLESTONE,
         MOSSY_COBBLESTONE,
@@ -3249,8 +3281,8 @@ public enum Terrain {
         BEDROCK,
         GRAVEL,
         CLAY,
-        BEACHES,
 
+        BEACHES,
         WATER,
         LAVA,
         MAGMA,
@@ -3260,8 +3292,8 @@ public enum Terrain {
         BLACKSTONE,
         SOUL_SAND,
         SOUL_SOIL,
-        NETHERLIKE,
 
+        NETHERLIKE,
         WARPED_NYLIUM,
         CRIMSON_NYLIUM,
         MYCELIUM,
@@ -3271,8 +3303,8 @@ public enum Terrain {
         MAGENTA_STAINED_CLAY,
         LIGHT_BLUE_STAINED_CLAY,
         YELLOW_STAINED_CLAY,
-        LIME_STAINED_CLAY,
 
+        LIME_STAINED_CLAY,
         PINK_STAINED_CLAY,
         GREY_STAINED_CLAY,
         LIGHT_GREY_STAINED_CLAY,
@@ -3282,6 +3314,7 @@ public enum Terrain {
         BROWN_STAINED_CLAY,
         GREEN_STAINED_CLAY,
         RED_STAINED_CLAY,
+
         BLACK_STAINED_CLAY
     };
 
