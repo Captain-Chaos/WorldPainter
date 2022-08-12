@@ -55,7 +55,6 @@ public final class Constants {
     public static final AttributeKeyVO<String> ATTRIBUTE_KEY_GAME_TYPE_NAME = new AttributeKeyVO<>("gameTypeName");
     public static final AttributeKeyVO<Boolean> ATTRIBUTE_KEY_ALLOW_CHEATS = new AttributeKeyVO<>("allowCheats");
     public static final AttributeKeyVO<String> ATTRIBUTE_KEY_GENERATOR = new AttributeKeyVO<>("generator");
-    public static final AttributeKeyVO<String> ATTRIBUTE_KEY_GENERATOR_OPTIONS = new AttributeKeyVO<>("generatorOptions");
     public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_TILES = new AttributeKeyVO<>("tiles");
     public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_NETHER_TILES = new AttributeKeyVO<>("nether.tiles");
     public static final AttributeKeyVO<Integer> ATTRIBUTE_KEY_END_TILES = new AttributeKeyVO<>("end.tiles");
@@ -89,7 +88,6 @@ public final class Constants {
     public static final String EVENT_KEY_ACTION_MIGRATE_HEIGHT    = "action.migrateHeight";
     public static final String EVENT_KEY_ACTION_MIGRATE_ROTATION  = "action.migrateRotation";
     public static final String EVENT_KEY_DONATION_DONATE          = "donation.donate";
-    public static final String EVENT_KEY_DONATION_DONATE_BITCOIN  = "donation.donateBitcoin";
     public static final String EVENT_KEY_DONATION_ALREADY_DONATED = "donation.alreadyDonated";
     public static final String EVENT_KEY_DONATION_ASK_LATER       = "donation.askLater";
     public static final String EVENT_KEY_DONATION_NO_THANKS       = "donation.noThanks";
