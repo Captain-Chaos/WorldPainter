@@ -439,6 +439,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         EditObjectAttributes dialog = new EditObjectAttributes(SwingUtilities.getWindowAncestor(this), selectedObjects, colourScheme);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
+            settingsChanged();
             refreshLeafDecaySettings();
         }
     }
