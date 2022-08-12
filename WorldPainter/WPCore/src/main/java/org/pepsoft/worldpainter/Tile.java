@@ -776,7 +776,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                     throw new IllegalArgumentException("Can't set bits using this method");
                 case NIBBLE:
                     if ((value < 0) || (value > 15)) {
-                        throw new IllegalArgumentException("Illegal value for nibble sized layer: " + value);
+                        throw new IllegalArgumentException("Illegal value " + value + " for nibble sized layer " + layer);
                     }
                     int byteOffset = x | (y << TILE_SIZE_BITS);
                     byte _byte = layerValues[byteOffset / 2];
@@ -791,7 +791,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                     break;
                 case BYTE:
                     if ((value < 0) || (value > 255)) {
-                        throw new IllegalArgumentException("Illegal value for byte sized layer: " + value);
+                        throw new IllegalArgumentException("Illegal value " + value + " for byte sized layer " + layer);
                     }
                     byteOffset = x | (y << TILE_SIZE_BITS);
                     layerValues[byteOffset] = (byte) value;
