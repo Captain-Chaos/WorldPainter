@@ -151,7 +151,7 @@ public class Main {
         File myFile = null;
         boolean safeMode = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"));
         for (String arg: args) {
-            if (arg.trim().toLowerCase().equals("--safe")) {
+            if (arg.trim().equalsIgnoreCase("--safe")) {
                 safeMode = true;
             } else if (new File(arg).isFile() && (myFile == null)) {
                 myFile = new File(arg);
