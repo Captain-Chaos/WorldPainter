@@ -1,3 +1,15 @@
+-- Version 2.13.0, released ...
+
+ * Scaling the world is now supported!
+   + The new Scale screen can be reached from the Edit menu or the Global Operations tool
+   + This is new and relatively untested functionality. Please save your work, carefully examine the results and report any problems you encounter
+   + Each dimension is scaled separately, but ceiling dimensions can automatically be scaled along with their associated dimension
+   + Just like rotating and shifting, scaling cannot be undone! In addition, if you are scaling up and do not have enough memory, the operation may fail and remove all tiles! So be sure to save your work to disk first
+   + Scaling can result in artefacts, especially at large scales. If the resulting world edges don't fall on chunk boundaries, scaling may also result in land being added along the edges
+ * For new installations on UNIX/Linux systems the location of the configuration directory now follows the XDG specification
+ * Bug fix: the new Mud terrain type has been added to terrain selection lists
+ * Bug fix: the preview of Custom Object layers is now updated after changing the properties of individual Custom Objects
+
 -- Version 2.12.0, released 2-8-2022
 
  * Added support for Minecraft 1.19 blocks, plants and biomes
