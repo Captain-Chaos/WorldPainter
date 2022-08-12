@@ -35,6 +35,8 @@ import java.util.*;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.minecraft.Material.DIRT;
+import static org.pepsoft.util.XDG.HOME;
+import static org.pepsoft.util.XDG.XDG_DATA_HOME;
 import static org.pepsoft.worldpainter.Configuration.DonationStatus.DONATED;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
@@ -1125,33 +1127,20 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     }
 
     public static File getConfigDir() {
-        if (Version.isSnapshot()) {
-            if (SystemUtils.isMac()) {
-                return new File(System.getProperty("user.home"), "Library/Application Support/WorldPainter [SNAPSHOT]");
-            } else if (SystemUtils.isWindows()) {
-                String appDataStr = System.getenv("APPDATA");
-                if (appDataStr != null) {
-                    return new File(appDataStr, "WorldPainter [SNAPSHOT]");
-                } else {
-                    return new File(System.getProperty("user.home"), ".worldpainter-snapshot");
-                }
-            } else {
-                return new File(System.getProperty("user.home"), ".worldpainter-snapshot");
-            }
-        } else {
-            if (SystemUtils.isMac()) {
-                return new File(System.getProperty("user.home"), "Library/Application Support/WorldPainter");
-            } else if (SystemUtils.isWindows()) {
-                String appDataStr = System.getenv("APPDATA");
-                if (appDataStr != null) {
-                    return new File(appDataStr, "WorldPainter");
-                } else {
-                    return new File(System.getProperty("user.home"), ".worldpainter");
-                }
-            } else {
-                return new File(System.getProperty("user.home"), ".worldpainter");
+        if (SystemUtils.isMac()) {
+            return new File(System.getProperty("user.home"), "Library/Application Support/WorldPainter" + (Version.isSnapshot() ? " [SNAPSHOT]" : ""));
+        } else if (SystemUtils.isWindows()) {
+            final String appDataStr = System.getenv("APPDATA");
+            if (appDataStr != null) {
+                return new File(appDataStr, "WorldPainter" + (Version.isSnapshot() ? " [SNAPSHOT]" : ""));
             }
         }
+        // Backwards compatibility with existing installations:
+        final File defaultDir = new File(HOME, ".worldpainter" + (Version.isSnapshot() ? "-snapshot" : ""));
+        if (defaultDir.isDirectory()) {
+            return defaultDir;
+        }
+        return new File(XDG_DATA_HOME, "worldpainter" + (Version.isSnapshot() ? "-snapshot" : ""));
     }
 
     public static File getConfigFile() {
