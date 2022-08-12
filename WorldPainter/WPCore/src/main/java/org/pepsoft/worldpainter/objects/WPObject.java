@@ -60,9 +60,9 @@ public interface WPObject extends Serializable, Cloneable {
     Point3i getOffset();
 
     /**
-     * Get the material to place at the specified relative coordinates. Should
-     * only be invoked for coordinates for which {@link #getMask(int, int, int)}
-     * returns {@code true}.
+     * Get the material to place at the specified relative coordinates. Should only be invoked for coordinates for which
+     * {@link #getMask(int, int, int)} returns {@code true}. These coordinates are zero-based and must never be
+     * negative.
      * 
      * @param x The relative X coordinate.
      * @param y The relative Y coordinate.
@@ -83,14 +83,13 @@ public interface WPObject extends Serializable, Cloneable {
     }
 
     /**
-     * Determine whether a block should be placed at the specified relative
-     * coordinates.
+     * Determine whether a block should be placed at the specified relative coordinates. These coordinates are
+     * zero-based and must never be negative.
      * 
      * @param x The relative X coordinate.
      * @param y The relative Y coordinate.
      * @param z The relative Z coordinate.
-     * @return {@code true} if a block should be placed at the specified
-     *     relative coordinates.
+     * @return {@code true} if a block should be placed at the specified relative coordinates.
      */
     boolean getMask(int x, int y, int z);
     
