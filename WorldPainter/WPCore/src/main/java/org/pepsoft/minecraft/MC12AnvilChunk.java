@@ -21,7 +21,7 @@ import static org.pepsoft.minecraft.Constants.*;
  * 
  * @author pepijn
  */
-public final class MC12AnvilChunk extends MCNumberedBlocksChunk implements MinecraftWorld {
+public final class MC12AnvilChunk extends MCNumberedBlocksChunk implements MinecraftWorld, SectionedChunk {
     public MC12AnvilChunk(int xPos, int zPos, int maxHeight) {
         super(new CompoundTag(TAG_LEVEL, new HashMap<>()));
         this.xPos = xPos;
@@ -82,7 +82,7 @@ public final class MC12AnvilChunk extends MCNumberedBlocksChunk implements Minec
     }
 
     public boolean isSectionPresent(int y) {
-        return sections[y] != null;
+        return (y >= 0) && (y < sections.length) && (sections[y] != null);
     }
 
     public Section[] getSections() {
@@ -632,7 +632,7 @@ public final class MC12AnvilChunk extends MCNumberedBlocksChunk implements Minec
     final int maxHeight;
     long inhabitedTime, lastUpdate;
 
-    public static class Section extends AbstractNBTItem {
+    public static class Section extends AbstractNBTItem implements SectionedChunk.Section {
         Section(CompoundTag tag) {
             super(tag);
             level = getByte(TAG_Y);
@@ -679,7 +679,7 @@ public final class MC12AnvilChunk extends MCNumberedBlocksChunk implements Minec
          * 
          * @return {@code true} if the section is empty
          */
-        boolean isEmpty() {
+        public boolean isEmpty() {
             for (byte b: blocks) {
                 if (b != (byte) 0) {
                     return false;

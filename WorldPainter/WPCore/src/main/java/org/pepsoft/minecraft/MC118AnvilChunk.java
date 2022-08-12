@@ -136,7 +136,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
     }
 
     public boolean isSectionPresent(int y) {
-        return sections[y + UNDERGROUND_SECTIONS] != null;
+        return (y + UNDERGROUND_SECTIONS >= 0) && (y + UNDERGROUND_SECTIONS < sections.length) && (sections[y + UNDERGROUND_SECTIONS] != null);
     }
 
     public Section[] getSections() {

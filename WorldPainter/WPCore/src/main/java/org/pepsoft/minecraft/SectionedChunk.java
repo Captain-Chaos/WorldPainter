@@ -10,6 +10,11 @@ public interface SectionedChunk extends Chunk {
     Section[] getSections();
 
     /**
+     * Indicates whether a specific section is present.
+     */
+    boolean isSectionPresent(int y);
+
+    /**
      * A 16x16x16 chunk section.
      */
     interface Section {
