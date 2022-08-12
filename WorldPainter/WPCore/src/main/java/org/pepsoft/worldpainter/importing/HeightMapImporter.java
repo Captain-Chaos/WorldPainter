@@ -360,8 +360,8 @@ public class HeightMapImporter {
         // each block height 1/8 higher, in order to make smooth snow work less surprisingly
         mayBeScaled = ! ((heightMap instanceof BitmapHeightMap)
                 || ((heightMap instanceof TransformingHeightMap)
-                    && (((TransformingHeightMap) heightMap).getScaleX() == 100)
-                    && (((TransformingHeightMap) heightMap).getScaleY() == 100)
+                    && (((TransformingHeightMap) heightMap).getScaleX() == 1.0f)
+                    && (((TransformingHeightMap) heightMap).getScaleY() == 1.0f)
                     && (((TransformingHeightMap) heightMap).getBaseHeightMap() instanceof BitmapHeightMap)));
         oneOnOne = (worldLowLevel == imageLowLevel) && (worldHighLevel == imageHighLevel);
         highRes = (imageHighLevel >= maxHeight) && (worldHighLevel < maxHeight);

@@ -264,16 +264,16 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                 event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
                 event.setAttribute(ATTRIBUTE_KEY_GENERATOR, dim0.getGenerator().getType().name());
                 Dimension dimension = world.getDimension(0);
-                event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTiles().size());
+                event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTileCount());
                 logLayers(dimension, event, "");
                 dimension = world.getDimension(1);
                 if (dimension != null) {
-                    event.setAttribute(ATTRIBUTE_KEY_NETHER_TILES, dimension.getTiles().size());
+                    event.setAttribute(ATTRIBUTE_KEY_NETHER_TILES, dimension.getTileCount());
                     logLayers(dimension, event, "nether.");
                 }
                 dimension = world.getDimension(2);
                 if (dimension != null) {
-                    event.setAttribute(ATTRIBUTE_KEY_END_TILES, dimension.getTiles().size());
+                    event.setAttribute(ATTRIBUTE_KEY_END_TILES, dimension.getTileCount());
                     logLayers(dimension, event, "end.");
                 }
                 if (selectedDimension != -1) {
@@ -329,20 +329,20 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                 regions.add(new Point(tile.x >> 2, tile.y >> 2));
             }
         } else {
-            for (Tile tile: dimension.getTiles()) {
+            for (Point tileCoords: dimension.getTileCoords()) {
                 // Also add regions for any bedrock wall and/or border
                 // tiles, if present
                 int r = (((dimension.getBorder() != null) && (! dimension.getBorder().isEndless())) ? dimension.getBorderSize() : 0)
                         + (((dimension.getBorder() == null) || (! dimension.getBorder().isEndless())) && (dimension.getWallType() != null) ? 1 : 0);
                 for (int dx = -r; dx <= r; dx++) {
                     for (int dy = -r; dy <= r; dy++) {
-                        regions.add(new Point((tile.getX() + dx) >> 2, (tile.getY() + dy) >> 2));
+                        regions.add(new Point((tileCoords.x + dx) >> 2, (tileCoords.y + dy) >> 2));
                     }
                 }
             }
             if (ceiling != null) {
-                for (Tile tile: ceiling.getTiles()) {
-                    regions.add(new Point(tile.getX() >> 2, tile.getY() >> 2));
+                for (Point tileCoords: ceiling.getTileCoords()) {
+                    regions.add(new Point(tileCoords.x >> 2, tileCoords.y >> 2));
                 }
             }
         }

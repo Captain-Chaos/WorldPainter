@@ -937,16 +937,16 @@ public final class App extends JFrame implements RadiusControl,
         EventVO event = new EventVO(EVENT_KEY_ACTION_OPEN_WORLD).addTimestamp();
         event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, newWorld.getMaxHeight());
         Dimension loadedDimension = newWorld.getDimension(0);
-        event.setAttribute(ATTRIBUTE_KEY_TILES, loadedDimension.getTiles().size());
+        event.setAttribute(ATTRIBUTE_KEY_TILES, loadedDimension.getTileCount());
         logLayers(loadedDimension, event, "");
         loadedDimension = newWorld.getDimension(1);
         if (loadedDimension != null) {
-            event.setAttribute(ATTRIBUTE_KEY_NETHER_TILES, loadedDimension.getTiles().size());
+            event.setAttribute(ATTRIBUTE_KEY_NETHER_TILES, loadedDimension.getTileCount());
             logLayers(loadedDimension, event, "nether.");
         }
         loadedDimension = newWorld.getDimension(2);
         if (loadedDimension != null) {
-            event.setAttribute(ATTRIBUTE_KEY_END_TILES, loadedDimension.getTiles().size());
+            event.setAttribute(ATTRIBUTE_KEY_END_TILES, loadedDimension.getTileCount());
             logLayers(loadedDimension, event, "end.");
         }
         if (newWorld.getImportedFrom() != null) {
@@ -1127,10 +1127,18 @@ public final class App extends JFrame implements RadiusControl,
         if ((world.getImportedFrom() != null) && (showConfirmDialog(parent, "This world was imported from an existing map!\nIf you shift it you will no longer be able to merge it properly.\nAre you sure you want to shift the world?", strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
             return;
         }
-        ShiftWorldDialog dialog = new ShiftWorldDialog(parent, world, dimension.getDim());
-        dialog.setVisible(true);
-        if (! dialog.isCancelled()) {
-            currentUndoManager.armSavePoint();
+        view.setInhibitUpdates(true);
+        try {
+            ShiftWorldDialog dialog = new ShiftWorldDialog(parent, world, dimension.getDim());
+            dialog.setVisible(true);
+            if (! dialog.isCancelled()) {
+                currentUndoManager.armSavePoint();
+                if (threeDeeFrame != null) {
+                    threeDeeFrame.refresh();
+                }
+            }
+        } finally {
+            view.setInhibitUpdates(false);
         }
     }
 
@@ -1138,10 +1146,37 @@ public final class App extends JFrame implements RadiusControl,
         if ((world.getImportedFrom() != null) && (showConfirmDialog(parent, strings.getString("this.world.was.imported.from.an.existing.map"), strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
             return;
         }
-        RotateWorldDialog dialog = new RotateWorldDialog(parent, world, dimension.getDim());
-        dialog.setVisible(true);
-        if (! dialog.isCancelled()) {
-            currentUndoManager.armSavePoint();
+        view.setInhibitUpdates(true);
+        try {
+            RotateWorldDialog dialog = new RotateWorldDialog(parent, world, dimension.getDim());
+            dialog.setVisible(true);
+            if (! dialog.isCancelled()) {
+                currentUndoManager.armSavePoint();
+                if (threeDeeFrame != null) {
+                    threeDeeFrame.refresh();
+                }
+            }
+        } finally {
+            view.setInhibitUpdates(false);
+        }
+    }
+    
+    void scaleWorld(Window parent) {
+        if ((world.getImportedFrom() != null) && (showConfirmDialog(parent, "This world was imported from an existing map!\nIf you scale it you will no longer be able to merge it properly.\nAre you sure you want to scale the world?", strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
+            return;
+        }
+        view.setInhibitUpdates(true);
+        try {
+            ScaleWorldDialog dialog = new ScaleWorldDialog(parent, world, dimension.getDim());
+            dialog.setVisible(true);
+            if (! dialog.isCancelled()) {
+                currentUndoManager.armSavePoint();
+                if (threeDeeFrame != null) {
+                    threeDeeFrame.refresh();
+                }
+            }
+        } finally {
+            view.setInhibitUpdates(false);
         }
     }
 
@@ -1945,7 +1980,7 @@ public final class App extends JFrame implements RadiusControl,
             // Log an event
             EventVO event = new EventVO(EVENT_KEY_ACTION_NEW_WORLD).addTimestamp();
             event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, newWorld.getMaxHeight());
-            event.setAttribute(ATTRIBUTE_KEY_TILES, newWorld.getDimension(0).getTiles().size());
+            event.setAttribute(ATTRIBUTE_KEY_TILES, newWorld.getDimension(0).getTileCount());
             config.logEvent(event);
 
             setWorld(newWorld, true);
@@ -2212,16 +2247,16 @@ public final class App extends JFrame implements RadiusControl,
             EventVO event = new EventVO(EVENT_KEY_ACTION_SAVE_WORLD).addTimestamp();
             event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
             Dimension loadedDimension = world.getDimension(0);
-            event.setAttribute(ATTRIBUTE_KEY_TILES, loadedDimension.getTiles().size());
+            event.setAttribute(ATTRIBUTE_KEY_TILES, loadedDimension.getTileCount());
             logLayers(loadedDimension, event, "");
             loadedDimension = world.getDimension(1);
             if (loadedDimension != null) {
-                event.setAttribute(ATTRIBUTE_KEY_NETHER_TILES, loadedDimension.getTiles().size());
+                event.setAttribute(ATTRIBUTE_KEY_NETHER_TILES, loadedDimension.getTileCount());
                 logLayers(loadedDimension, event, "nether.");
             }
             loadedDimension = world.getDimension(2);
             if (loadedDimension != null) {
-                event.setAttribute(ATTRIBUTE_KEY_END_TILES, loadedDimension.getTiles().size());
+                event.setAttribute(ATTRIBUTE_KEY_END_TILES, loadedDimension.getTileCount());
                 logLayers(loadedDimension, event, "end.");
             }
             if (world.getImportedFrom() != null) {
@@ -4110,6 +4145,10 @@ public final class App extends JFrame implements RadiusControl,
 
             menuItem = new JMenuItem(ACTION_SHIFT_WORLD);
             menuItem.setMnemonic('s');
+            menu.add(menuItem);
+
+            menuItem = new JMenuItem(ACTION_SCALE_WORLD);
+            menuItem.setMnemonic('c');
             menu.add(menuItem);
         }
 
@@ -6628,6 +6667,19 @@ public final class App extends JFrame implements RadiusControl,
         private static final long serialVersionUID = 1L;
     };
 
+    private final BetterAction ACTION_SCALE_WORLD = new BetterAction("scale", "Scale...", ICON_SCALE_WORLD) {
+        {
+            setShortDescription("Scale the entire map up or down by an arbitrary amount");
+        }
+
+        @Override
+        public void performAction(ActionEvent e) {
+            scaleWorld(App.this);
+        }
+
+        private static final long serialVersionUID = 1L;
+    };
+
     private final BetterAction ACTION_DIMENSION_PROPERTIES = new BetterAction("dimensionProperties", strings.getString("dimension.properties") + "...", ICON_DIMENSION_PROPERTIES) {
         {
             setAcceleratorKey(KeyStroke.getKeyStroke(VK_P, PLATFORM_COMMAND_MASK));
@@ -7099,6 +7151,7 @@ public final class App extends JFrame implements RadiusControl,
     private static final Icon ICON_MOVE_TO_ORIGIN       = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_in.png");
     private static final Icon ICON_UNKNOWN_PATTERN      = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/unknown_pattern.png");
     private static final Icon ICON_SHIFT_WORLD          = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_cross.png");
+    private static final Icon ICON_SCALE_WORLD          = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_out.png");
     private static final Icon ICON_SETTINGS             = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/wrench.png");
     private static final Icon ICON_ANNOTATIONS          = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/annotations.png");
     private static final Icon ICON_BIOMES               = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/deciduous_trees_pattern.png");

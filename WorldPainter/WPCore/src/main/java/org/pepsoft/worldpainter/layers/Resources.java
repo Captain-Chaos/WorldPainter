@@ -10,7 +10,7 @@ package org.pepsoft.worldpainter.layers;
  */
 public class Resources extends Layer {
     private Resources() {
-        super("Resources", "Underground pockets of coal, ores, gravel and dirt, lava and water, etc.", DataSize.NIBBLE, 10, 'r');
+        super("Resources", "Underground pockets of coal, ores, gravel and dirt, lava and water, etc.", DataSize.NIBBLE, false, 10, 'r');
     }
     
     public static final Resources INSTANCE = new Resources();

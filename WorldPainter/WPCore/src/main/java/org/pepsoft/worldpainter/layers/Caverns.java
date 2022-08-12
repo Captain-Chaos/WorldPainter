@@ -11,7 +11,7 @@ package org.pepsoft.worldpainter.layers;
  */
 public class Caverns extends Layer {
     private Caverns() {
-        super("Caverns", "Generate underground caverns of varying size", DataSize.NIBBLE, 20, 'c');
+        super("Caverns", "Generate underground caverns of varying size", DataSize.NIBBLE, false, 20, 'c');
     }
 
     public static final Caverns INSTANCE = new Caverns();

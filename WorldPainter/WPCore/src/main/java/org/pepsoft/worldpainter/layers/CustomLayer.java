@@ -21,13 +21,13 @@ import java.util.Random;
  */
 public abstract class CustomLayer extends Layer implements Cloneable {
     public CustomLayer(String name, String description, DataSize dataSize, int priority, int colour) {
-        super(createId(name), name, description, dataSize, priority);
+        super(createId(name), name, description, dataSize, false, priority);
         this.colour = colour;
         renderer = new TransparentColourRenderer(colour);
     }
 
     public CustomLayer(String name, String description, DataSize dataSize, int priority, char mnemonic, int colour) {
-        super(createId(name), name, description, dataSize, priority, mnemonic);
+        super(createId(name), name, description, dataSize, false, priority, mnemonic);
         this.colour = colour;
         renderer = new TransparentColourRenderer(colour);
     }

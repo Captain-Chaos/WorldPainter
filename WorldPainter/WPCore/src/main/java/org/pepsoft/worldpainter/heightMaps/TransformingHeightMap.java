@@ -32,12 +32,12 @@ import java.awt.geom.Point2D;
  * @author pepijn
  */
 public class TransformingHeightMap extends DelegatingHeightMap {
-    public TransformingHeightMap(String name, HeightMap baseHeightMap, int scaleX, int scaleY, int offsetX, int offsetY, int rotation) {
+    public TransformingHeightMap(String name, HeightMap baseHeightMap, float scaleX, float scaleY, int offsetX, int offsetY, int rotation) {
         super("baseHeightMap");
         setName(name);
         setHeightMap(0, baseHeightMap);
-        this.scaleX = scaleX / 100.0f;
-        this.scaleY = scaleY / 100.0f;
+        this.scaleX = scaleX;
+        this.scaleY = scaleY;
         this.offsetX = offsetX;
         this.offsetY = offsetY;
         this.rotation = rotation;
@@ -70,21 +70,21 @@ public class TransformingHeightMap extends DelegatingHeightMap {
         recalculate();
     }
 
-    public int getScaleX() {
-        return Math.round(scaleX * 100);
+    public float getScaleX() {
+        return scaleX;
     }
 
-    public void setScaleX(int scaleX) {
-        this.scaleX = scaleX / 100.0f;
+    public void setScaleX(float scaleX) {
+        this.scaleX = scaleX;
         recalculate();
     }
 
-    public int getScaleY() {
-        return Math.round(scaleY * 100);
+    public float getScaleY() {
+        return scaleY;
     }
 
-    public void setScaleY(int scaleY) {
-        this.scaleY = scaleY / 100.0f;
+    public void setScaleY(float scaleY) {
+        this.scaleY = scaleY;
         recalculate();
     }
 
@@ -219,7 +219,7 @@ public class TransformingHeightMap extends DelegatingHeightMap {
             return this;
         }
 
-        public TransformingHeightMapBuilder withScale(int scale) {
+        public TransformingHeightMapBuilder withScale(float scale) {
             scaleX = scale;
             scaleY = scale;
             return this;
@@ -243,7 +243,7 @@ public class TransformingHeightMap extends DelegatingHeightMap {
         private String name;
         private HeightMap baseHeightMap;
         private int offsetX, offsetY;
-        private int scaleX = 100, scaleY = 100;
+        private float scaleX = 1.0f, scaleY = 1.0f;
         private int rotation;
     }
 }

@@ -27,20 +27,20 @@ import java.lang.reflect.InvocationTargetException;
  */
 public abstract class Layer implements Serializable, Comparable<Layer> {
     @Deprecated
-    protected Layer(String name, String description, DataSize dataSize, int priority) {
-        this(name, name, description, dataSize, priority, '\0');
+    protected Layer(String name, String description, DataSize dataSize, boolean discrete, int priority) {
+        this(name, name, description, dataSize, discrete, priority, '\0');
     }
 
     @Deprecated
-    protected Layer(String name, String description, DataSize dataSize, int priority, char mnemonic) {
-        this(name, name, description, dataSize, priority, mnemonic);
+    protected Layer(String name, String description, DataSize dataSize, boolean discrete, int priority, char mnemonic) {
+        this(name, name, description, dataSize, discrete, priority, mnemonic);
     }
 
-    protected Layer(String id, String name, String description, DataSize dataSize, int priority) {
-        this(id, name, description, dataSize, priority, '\0');
+    protected Layer(String id, String name, String description, DataSize dataSize, boolean discrete, int priority) {
+        this(id, name, description, dataSize, discrete, priority, '\0');
     }
     
-    protected Layer(String id, String name, String description, DataSize dataSize, int priority, char mnemonic) {
+    protected Layer(String id, String name, String description, DataSize dataSize, boolean discrete, int priority, char mnemonic) {
         if (id == null) {
             throw new NullPointerException("id");
         }
@@ -51,6 +51,7 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
         this.name = name;
         this.description = description;
         this.dataSize = dataSize;
+        this.discrete = discrete;
         this.priority = priority;
         this.mnemonic = mnemonic;
         init();
@@ -212,7 +213,10 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
         if (id == null) {
             id = name;
         }
-        
+        if ((! discrete) && ((this instanceof Annotations) || (this instanceof Biome) || (this instanceof GardenCategory))) {
+            discrete = true;
+        }
+
         init();
     }
 
@@ -220,6 +224,7 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
     public final DataSize dataSize;
     public final int priority;
     protected String id;
+    public boolean discrete;
     private final transient char mnemonic;
     private transient LayerRenderer renderer;
     private transient Class<? extends LayerExporter> exporterType;
@@ -228,6 +233,12 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
     private static final long serialVersionUID = 2011032901L;
 
     public enum DataSize {
-        BIT, NIBBLE, BYTE, BIT_PER_CHUNK, NONE
+        BIT(1), NIBBLE(15), BYTE(255), BIT_PER_CHUNK(1), NONE(-1);
+
+        DataSize(int maxValue) {
+            this.maxValue = maxValue;
+        }
+
+        public final int maxValue;
     }
 }

@@ -338,7 +338,7 @@ public class MappingOp extends AbstractOperation<Void> {
         if (heightMap != null) {
             if ((scale != 100) || (offsetX != 0) || (offsetY != 0)) {
                 boolean smoothScaling = (scale != 100) && smoothScalingAllowed; // TODO ?
-                scaledHeightMap = TransformingHeightMap.build().withHeightMap(heightMap).withScale(scale).withOffset(offsetX, offsetY).now();
+                scaledHeightMap = TransformingHeightMap.build().withHeightMap(heightMap).withScale(scale / 100.0f).withOffset(offsetX, offsetY).now();
             } else {
                 scaledHeightMap = heightMap;
             }

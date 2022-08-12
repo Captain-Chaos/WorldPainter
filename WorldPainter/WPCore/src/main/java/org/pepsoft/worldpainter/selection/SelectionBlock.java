@@ -11,7 +11,7 @@ import org.pepsoft.worldpainter.layers.renderers.TransparentColourRenderer;
  */
 public class SelectionBlock extends Layer {
     public SelectionBlock() {
-        super(SelectionBlock.class.getName(), "SelectionBlock", "Selected area with block resolution", DataSize.BIT, 85);
+        super(SelectionBlock.class.getName(), "SelectionBlock", "Selected area with block resolution", DataSize.BIT, true, 85);
     }
 
     @Override

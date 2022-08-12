@@ -5,16 +5,10 @@ import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 
 import java.awt.*;
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 // TODO make TunnelDimension much more intelligent, so that "distance to edge" can work and the normal exporting can be
 //  used rather than the incidental exporting
-abstract class TunnelDimension extends RODelegatingDimension {
+abstract class TunnelDimension extends RODelegatingDimension<TunnelDimension.TunnelTile> {
     TunnelDimension(Dimension dimension, TunnelLayer layer) {
         super(dimension);
         this.layer = layer;
@@ -127,35 +121,10 @@ abstract class TunnelDimension extends RODelegatingDimension {
     }
 
     @Override
-    public Tile getTile(Point coords) {
-        Reference<TunnelTile> cachedTileRef = tileCache.get(coords);
-        TunnelTile cachedTile = (cachedTileRef != null) ? cachedTileRef.get() : null;
-        if (cachedTile == null) {
-            Tile tile = dimension.getTile(coords);
-            if (tile != null) {
-                cachedTile = new TunnelTile(tile);
-                tileCache.put(coords, new SoftReference<>(cachedTile));
-            }
-        }
-        return cachedTile;
+    protected TunnelTile wrapTile(Tile tile) {
+        return new TunnelTile(tile);
     }
 
-    @Override
-    public Collection<? extends Tile> getTiles() {
-        Collection<? extends Tile> tiles = dimension.getTiles();
-        java.util.List<Tile> wrappedTiles = new ArrayList<>(tiles.size());
-        for (Tile tile: tiles) {
-            Reference<TunnelTile> cachedTileRef = tileCache.get(new Point(tile.getX(), tile.getY()));
-            TunnelTile cachedTile = (cachedTileRef != null) ? cachedTileRef.get() : null;
-            if (cachedTile != null) {
-                wrappedTiles.add(cachedTile);
-            } else {
-                wrappedTiles.add(new TunnelTile(tile));
-            }
-        }
-        return wrappedTiles;
-    }
-    
     protected abstract float determineHeight(boolean inTunnelLayer, int tunnelFloorLevel, int tunnelRoofLevel, float realHeight);
     
     private final TunnelLayer layer;
@@ -163,7 +132,6 @@ abstract class TunnelDimension extends RODelegatingDimension {
     private final int floorLevel, floorMin, floorMax, minZ, maxZ, roofLevel, roofMin, roofMax, floorWallDepth, roofWallDepth, maxWallDepth;
     private final NoiseHeightMap floorNoise, roofNoise;
     private final int floorNoiseOffset, roofNoiseOffset;
-    private final Map<Point, Reference<TunnelTile>> tileCache = new HashMap<>();
 
     /**
      * A {@link Tile} of which the terrain height follows the floor of a particular

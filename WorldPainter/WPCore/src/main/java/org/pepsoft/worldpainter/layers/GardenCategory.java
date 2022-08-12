@@ -12,7 +12,7 @@ import java.util.ResourceBundle;
  */
 public class GardenCategory extends Layer {
     public GardenCategory() {
-        super("Category", "Garden category", DataSize.NIBBLE, 80);
+        super("Category", "Garden category", DataSize.NIBBLE, true, 80);
     }
     
     public static String getLabel(ResourceBundle resourceBundle, int category) {

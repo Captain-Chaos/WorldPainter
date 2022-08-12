@@ -4,17 +4,13 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.World2;
+
+import java.awt.*;
+import java.io.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.World2;
 
 /**
  *
@@ -29,12 +25,12 @@ public class PruneTiles {
             world = (World2) in.readObject();
         }
         for (Dimension dimension: world.getDimensions()) {
-            for (Tile tile: dimension.getTiles()) {
-                int dx = Math.abs(tile.getX()), dy = Math.abs(tile.getY());
+            for (Point tileCoords: dimension.getTileCoords()) {
+                int dx = Math.abs(tileCoords.x), dy = Math.abs(tileCoords.y);
                 if ((dx > maxTileDistance) || (dy > maxTileDistance)) {
                     // It's an outlier. Remove it
-                    System.out.println("Removing tile at " + tile.getX() + ", " + tile.getY());
-                    dimension.removeTile(tile);
+                    System.out.println("Removing tile at " + tileCoords.getX() + ", " + tileCoords.getY());
+                    dimension.removeTile(tileCoords);
                 }
             }
         }

@@ -26,7 +26,6 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -173,11 +172,8 @@ public class ErrorDialog extends javax.swing.JDialog {
                 sb.append("Seed: " + dimension.getSeed() + eol);
                 sb.append("Bounds: " + dimension.getLowestX() + ", " + dimension.getLowestY() + " => " + dimension.getHighestX() + ", " + dimension.getHighestY() + eol);
                 sb.append("Height: " + world.getMaxHeight() + eol);
-                sb.append("Number of tiles: " + dimension.getTiles().size() + eol);
-                Set<Layer> layers = new HashSet<>();
-                for (Tile tile : dimension.getTiles()) {
-                    layers.addAll(tile.getLayers());
-                }
+                sb.append("Number of tiles: " + dimension.getTileCount() + eol);
+                Set<Layer> layers = dimension.getAllLayers(false);
                 sb.append("Layers in use: ");
                 boolean first = true;
                 for (Layer layer : layers) {

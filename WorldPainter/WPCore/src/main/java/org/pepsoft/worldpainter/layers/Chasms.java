@@ -11,7 +11,7 @@ package org.pepsoft.worldpainter.layers;
  */
 public class Chasms extends Layer {
     private Chasms() {
-        super("org.pepsoft.Chasms", "Chasms", "Generate underground tunnel- or ravine-like chasms of varying size", DataSize.NIBBLE, 21);
+        super("org.pepsoft.Chasms", "Chasms", "Generate underground tunnel- or ravine-like chasms of varying size", DataSize.NIBBLE, false, 21);
     }
 
     public static final Chasms INSTANCE = new Chasms();

@@ -190,7 +190,7 @@ public class JavaMapImporter extends MapImporter {
             event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
             event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getDimension(DIM_NORMAL).getGenerator().getType().name());
-            event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTiles().size());
+            event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTileCount());
             config.logEvent(event);
         }
         

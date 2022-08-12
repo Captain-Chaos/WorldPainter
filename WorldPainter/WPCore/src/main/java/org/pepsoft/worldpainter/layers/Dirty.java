@@ -10,7 +10,7 @@ package org.pepsoft.worldpainter.layers;
  */
 public class Dirty extends Layer {
     private Dirty() {
-        super("Dirty", "Tracks chunks that have been changed since importing the map", Layer.DataSize.BIT_PER_CHUNK, 0);
+        super("Dirty", "Tracks chunks that have been changed since importing the map", Layer.DataSize.BIT_PER_CHUNK, true, 0);
     }
     
     public static final Dirty INSTANCE = new Dirty();

@@ -15,7 +15,7 @@ import org.pepsoft.worldpainter.layers.trees.Tree;
 public abstract class Trees extends Layer {
     private Trees() {
         // Prevent instantiation
-        super(null, null, null, 0);
+        super(null, null, null, false, 0);
         treeType = null;
     }
 

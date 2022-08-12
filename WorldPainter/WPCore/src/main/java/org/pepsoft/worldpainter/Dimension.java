@@ -1552,10 +1552,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             }
 
             // Remove all tiles
-            Set<Tile> removedTiles;
+            final Map<Point, Tile> oldTiles = new HashMap<>(tiles);
+            final Set<Tile> removedTiles;
             synchronized (this) {
-                Map<Point, Tile> oldTiles = tiles;
-                tiles = new HashMap<>();
+                tiles.clear();
                 removedTiles = new HashSet<>(oldTiles.values());
                 for (Tile removedTile: removedTiles) {
                     removedTile.removeListener(this);
@@ -1572,14 +1572,41 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             highestX = Integer.MIN_VALUE;
             lowestY = Integer.MAX_VALUE;
             highestY = Integer.MIN_VALUE;
-            int tileCount = removedTiles.size(), tileNo = 0;
-            for (Iterator<Tile> i = removedTiles.iterator(); i.hasNext(); ) {
-                Tile tile = i.next();
-                addTile(tile.transform(transform));
-                i.remove(); // Remove each tile as we're done with it so it can be garbage collected
-                tileNo++;
-                if (progressReceiver != null) {
-                    progressReceiver.setProgress((float) tileNo / tileCount);
+            if (transform.isScaling()) {
+                // Scaling requires a different approach. Note that we assume ONLY scaling!
+                final ScalingHelper scalingHelper = new ScalingHelper(oldTiles, tileFactory, transform.getScale());
+                final Set<Tile> scaledTiles = scalingHelper.getAllScaledTiles(progressReceiver);
+                for (Tile tile: scaledTiles) {
+                    // In rare circumstances (e.g. scaling up after scaling down) the tile may be entirely marked as
+                    // NotPresent, in which case we want to skip it
+                    if (tile.containsOneOf(NotPresent.INSTANCE)) {
+                        boolean presentChunkFound = false;
+                        outer:
+                        for (int x = 0; x < TILE_SIZE; x += 16) {
+                            for (int y = 0; y < TILE_SIZE; y += 16) {
+                                if (! tile.getBitLayerValue(NotPresent.INSTANCE, x, y)) {
+                                    presentChunkFound = true;
+                                    break outer;
+                                }
+                            }
+                        }
+                        if (presentChunkFound) {
+                            addTile(tile);
+                        }
+                    } else {
+                        addTile(tile);
+                    }
+                }
+            } else {
+                int tileCount = removedTiles.size(), tileNo = 0;
+                for (Iterator<Tile> i = removedTiles.iterator(); i.hasNext(); ) {
+                    final Tile tile = i.next();
+                    addTile(tile.transform(transform));
+                    i.remove(); // Remove each tile as we're done with it so it can be garbage collected
+                    tileNo++;
+                    if (progressReceiver != null) {
+                        progressReceiver.setProgress((float) tileNo / tileCount);
+                    }
                 }
             }
 
@@ -1945,7 +1972,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private final World2 world;
     private final long seed;
     private final int dim;
-    private Map<Point, Tile> tiles = new HashMap<>();
+    final Map<Point, Tile> tiles = new HashMap<>();
     private final TileFactory tileFactory;
     private int lowestX = Integer.MAX_VALUE, highestX = Integer.MIN_VALUE, lowestY = Integer.MAX_VALUE, highestY = Integer.MIN_VALUE;
     private Terrain subsurfaceMaterial = Terrain.STONE_MIX;

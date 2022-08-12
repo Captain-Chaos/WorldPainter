@@ -373,7 +373,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getDimension(DIM_NORMAL).getGenerator().getType().name());
             if ((selectedDimensions == null) || selectedDimensions.contains(DIM_NORMAL)) {
                 Dimension surfaceDimension = world.getDimension(0);
-                event.setAttribute(ATTRIBUTE_KEY_TILES, surfaceDimension.getTiles().size());
+                event.setAttribute(ATTRIBUTE_KEY_TILES, surfaceDimension.getTileCount());
                 logLayers(surfaceDimension, event, "");
             }
             if (world.getImportedFrom() == null) {

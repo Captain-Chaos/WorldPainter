@@ -53,11 +53,11 @@ public class RotateWorldDialog extends WorldPainterDialog implements ProgressRec
         if (opposite != null) {
             oppositeDim = opposite.getDim();
         } else {
-            oppositeDim = -1;
+            oppositeDim = Integer.MIN_VALUE;
         }
         
         initComponents();
-        jCheckBox1.setEnabled(oppositeDim != -1);
+        jCheckBox1.setEnabled(oppositeDim != Integer.MIN_VALUE);
 
         getRootPane().setDefaultButton(buttonRotate);
 
@@ -126,7 +126,7 @@ public class RotateWorldDialog extends WorldPainterDialog implements ProgressRec
             @Override
             public void run() {
                 try {
-                    if ((oppositeDim == -1) || (! jCheckBox1.isSelected())) {
+                    if ((oppositeDim == Integer.MIN_VALUE) || (! jCheckBox1.isSelected())) {
                         world.transform(dim, transform, RotateWorldDialog.this);
                         world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_ROTATED, world.getDimension(dim).getName(), degrees);
                     } else {

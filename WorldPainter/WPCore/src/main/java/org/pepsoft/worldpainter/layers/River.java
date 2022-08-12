@@ -11,7 +11,7 @@ package org.pepsoft.worldpainter.layers;
  */
 public class River extends Layer {
     private River() {
-        super(River.class.getName(), "River", "Generates a river complete with riverbed and sloping edges", DataSize.BIT, 25);
+        super(River.class.getName(), "River", "Generates a river complete with riverbed and sloping edges", DataSize.BIT, false, 25);
     }
     
     public static final River INSTANCE = new River();

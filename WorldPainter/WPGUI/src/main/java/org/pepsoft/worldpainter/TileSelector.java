@@ -314,8 +314,7 @@ public class TileSelector extends javax.swing.JPanel {
 
     public void selectAllTiles() {
         boolean selectionChanged = false;
-        for (Tile tile: dimension.getTiles()) {
-            Point tileCoords = new Point(tile.getX(), tile.getY());
+        for (Point tileCoords: dimension.getTileCoords()) {
             if (! viewer.isSelectedTile(tileCoords)) {
                 viewer.addSelectedTile(tileCoords);
                 selectionChanged = true;
@@ -334,8 +333,7 @@ public class TileSelector extends javax.swing.JPanel {
     }
     
     public void invertSelection() {
-        for (Tile tile: dimension.getTiles()) {
-            Point tileCoords = new Point(tile.getX(), tile.getY());
+        for (Point tileCoords: dimension.getTileCoords()) {
             if (! viewer.isSelectedTile(tileCoords)) {
                 viewer.addSelectedTile(tileCoords);
             } else {
@@ -371,7 +369,7 @@ public class TileSelector extends javax.swing.JPanel {
         } else if (selectedTiles.isEmpty()) {
             allowSelectAll = allowInvertSelection = true;
         } else {
-            int existingTileCount = dimension.getTiles().size(), selectedExistingTileCount = 0;
+            int existingTileCount = dimension.getTileCount(), selectedExistingTileCount = 0;
             for (Point selectedTile: selectedTiles) {
                 if (dimension.getTile(selectedTile) != null) {
                     selectedExistingTileCount++;

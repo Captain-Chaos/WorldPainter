@@ -8,7 +8,7 @@ package org.pepsoft.worldpainter.layers;
  */
 public class NotPresent extends Layer {
     private NotPresent() {
-        super(NotPresent.class.getName(), "Not Present", "Mark chunks that were not present in the map from which the world was imported", DataSize.BIT_PER_CHUNK, 91);
+        super(NotPresent.class.getName(), "Not Present", "Mark chunks that were not present in the map from which the world was imported", DataSize.BIT_PER_CHUNK, true, 91);
     }
 
     public static final NotPresent INSTANCE = new NotPresent();

@@ -10,6 +10,6 @@ package org.pepsoft.worldpainter.layers;
  */
 public class Delete extends Layer {
     public Delete() {
-        super(null, null, Layer.DataSize.BIT, 0);
+        super(null, null, Layer.DataSize.BIT, true, 0);
     }
 }

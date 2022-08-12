@@ -14,10 +14,7 @@ import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.gardenofeden.GardenExporter;
 import org.pepsoft.worldpainter.gardenofeden.Seed;
-import org.pepsoft.worldpainter.layers.CombinedLayer;
-import org.pepsoft.worldpainter.layers.CustomLayer;
-import org.pepsoft.worldpainter.layers.GardenCategory;
-import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
@@ -153,15 +150,15 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 }
             } else {
                 selectedTiles = null;
-                for (Tile tile: dimension.getTiles()) {
+                for (Point tileCoords: dimension.getTileCoords()) {
                     // Also add regions for any bedrock wall and/or border
                     // tiles, if present
                     int r = (((dimension.getBorder() != null) && (! dimension.getBorder().isEndless())) ? dimension.getBorderSize() : 0)
                             + (((dimension.getBorder() == null) || (! dimension.getBorder().isEndless())) && (dimension.getWallType() != null) ? 1 : 0);
                     for (int dx = -r; dx <= r; dx++) {
                         for (int dy = -r; dy <= r; dy++) {
-                            int regionX = (tile.getX() + dx) >> 2;
-                            int regionZ = (tile.getY() + dy) >> 2;
+                            int regionX = (tileCoords.x + dx) >> 2;
+                            int regionZ = (tileCoords.y + dy) >> 2;
                             regions.add(new Point(regionX, regionZ));
                             if (regionX < lowestRegionX) {
                                 lowestRegionX = regionX;
@@ -179,9 +176,9 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                     }
                 }
                 if (ceiling != null) {
-                    for (Tile tile: ceiling.getTiles()) {
-                        int regionX = tile.getX() >> 2;
-                        int regionZ = tile.getY() >> 2;
+                    for (Point tileCoords: ceiling.getTileCoords()) {
+                        int regionX = tileCoords.x >> 2;
+                        int regionZ = tileCoords.y >> 2;
                         regions.add(new Point(regionX, regionZ));
                         if (regionX < lowestRegionX) {
                             lowestRegionX = regionX;
@@ -804,8 +801,15 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 return null;
             }
         } else {
-            if (dimension.getTile(tileCoords) != null) {
-                return chunkFactory.createChunk(chunkX, chunkY);
+            final Tile tile = dimension.getTile(tileCoords);
+            if (tile != null) {
+                final ChunkFactory.ChunkCreationResult result = chunkFactory.createChunk(chunkX, chunkY);
+                // If the chunk is marked as NotPresent we might want to render a border chunk here
+                if ((result == null) && border && tile.getBitLayerValue(NotPresent.INSTANCE, (chunkX & 0x7) << 4, (chunkY & 0x7) << 4)) {
+                    return BorderChunkFactory.create(chunkX, chunkY, dimension, platform, exporters);
+                } else {
+                    return result;
+                }
             } else if ((! ceiling) && (! endlessBorder)) {
                 // Might be a border or wall chunk (but not if this is a ceiling dimension or the border is an endless
                 // border)

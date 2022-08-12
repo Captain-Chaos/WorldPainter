@@ -4,10 +4,7 @@
  */
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
-import org.pepsoft.worldpainter.heightMaps.DifferenceHeightMap;
-import org.pepsoft.worldpainter.heightMaps.ProductHeightMap;
-import org.pepsoft.worldpainter.heightMaps.SumHeightMap;
+import org.pepsoft.worldpainter.heightMaps.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -133,14 +130,14 @@ public interface HeightMap extends Serializable {
     /**
      * Create a new height map which is the sum of this and another height map.
      */
-    default SumHeightMap plus(HeightMap addend) {
+    default HeightMap plus(HeightMap addend) {
         return new SumHeightMap(this, addend);
     }
 
     /**
      * Create a new height map which is the sum of this and a constant value.
      */
-    default SumHeightMap plus(float addend) {
+    default HeightMap plus(float addend) {
         return new SumHeightMap(this, new ConstantHeightMap(addend));
     }
 
@@ -148,7 +145,7 @@ public interface HeightMap extends Serializable {
      * Create a new height map which is the difference of this and another
      * height map.
      */
-    default DifferenceHeightMap minus(HeightMap subtrahend) {
+    default HeightMap minus(HeightMap subtrahend) {
         return new DifferenceHeightMap(this, subtrahend);
     }
 
@@ -156,7 +153,7 @@ public interface HeightMap extends Serializable {
      * Create a new height map which is the difference of this and a constant
      * value.
      */
-    default DifferenceHeightMap minus(float subtrahend) {
+    default HeightMap minus(float subtrahend) {
         return new DifferenceHeightMap(this, new ConstantHeightMap(subtrahend));
     }
 
@@ -164,7 +161,7 @@ public interface HeightMap extends Serializable {
      * Create a new height map which is the product of this and another
      * height map.
      */
-    default ProductHeightMap times(HeightMap subtrahend) {
+    default HeightMap times(HeightMap subtrahend) {
         return new ProductHeightMap(this, subtrahend);
     }
 
@@ -172,7 +169,29 @@ public interface HeightMap extends Serializable {
      * Create a new height map which is the product of this and a constant
      * value.
      */
-    default ProductHeightMap times(float subtrahend) {
+    default HeightMap times(float subtrahend) {
         return new ProductHeightMap(this, new ConstantHeightMap(subtrahend));
+    }
+
+    /**
+     * Create a new height map which uses bicubic interpolation to interpolate values between the integer coordinates
+     * of another height map.
+     */
+    default HeightMap smoothed() {
+        return new BicubicHeightMap(this);
+    }
+
+    /**
+     * Create a new height map that is another height map scaled up by a given factor.
+     */
+    default HeightMap scaled(float scale) {
+        return TransformingHeightMap.build().withHeightMap(this).withScale(scale).now();
+    }
+
+    /**
+     * Create a new height map that constrains the value of another height map to a given range.
+     */
+    default HeightMap clamped(float min, float max) {
+        return new MaximisingHeightMap(new MinimisingHeightMap(this, new ConstantHeightMap(max)), new ConstantHeightMap(min));
     }
 }

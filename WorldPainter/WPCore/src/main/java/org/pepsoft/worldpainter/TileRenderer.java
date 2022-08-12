@@ -87,6 +87,30 @@ public final class TileRenderer {
         waterColour = colourScheme.getColour(BLK_WATER);
         lavaColour = colourScheme.getColour(BLK_LAVA);
         bedrockColour = colourScheme.getColour(BLK_BEDROCK);
+        notPresentColour = 0x00000000;
+        if (tileProvider instanceof Dimension) {
+            final Dimension dimension = (Dimension) tileProvider;
+            if (dimension.getBorder() != null) {
+                switch (dimension.getBorder()) {
+                    case WATER:
+                    case ENDLESS_WATER:
+                        notPresentColour = waterColour;
+                        break;
+                    case LAVA:
+                    case ENDLESS_LAVA:
+                        notPresentColour = lavaColour;
+                        break;
+                    case VOID:
+                    case ENDLESS_VOID:
+                        notPresentColour = 0xff000000 | VoidRenderer.getColour();
+                        break;
+                    case BARRIER:
+                    case ENDLESS_BARRIER:
+                        notPresentColour = 0x40ff0000;
+                        break;
+                }
+            }
+        }
     }
 
     public void addHiddenLayers(Collection<Layer> hiddenLayers) {
@@ -222,7 +246,7 @@ public final class TileRenderer {
                 for (int x = 0; x < TILE_SIZE; x++) {
                     for (int y = 0; y < TILE_SIZE; y++) {
                         if (notAllChunksPresent && (tile.getBitLayerValue(NotPresent.INSTANCE, x, y))) {
-                            renderBuffer[x | (y << TILE_SIZE_BITS)] = 0x00000000;
+                            renderBuffer[x | (y << TILE_SIZE_BITS)] = notPresentColour;
                         } else if ((!noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)] && CEILING_PATTERN[x & 0x7][y & 0x7]) {
                             renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000;
                         } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
@@ -245,7 +269,7 @@ public final class TileRenderer {
                 for (int x = 0; x < TILE_SIZE; x += scale) {
                     for (int y = 0; y < TILE_SIZE; y += scale) {
                         if (notAllChunksPresent && (tile.getBitLayerValue(NotPresent.INSTANCE, x, y))) {
-                            renderBuffer[x / scale + y * tileSize] = 0x00000000;
+                            renderBuffer[x / scale + y * tileSize] = notPresentColour;
                         } else if ((!noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)]) {
                             renderBuffer[x / scale + y * tileSize] = 0xff000000;
                         } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
@@ -506,10 +530,10 @@ public final class TileRenderer {
     private final TileProvider tileProvider, oppositeTileProvider;
     private ColourScheme colourScheme;
     private boolean contourLines = true;
-    private int contourSeparation = 10, waterColour, lavaColour, bedrockColour;
+    private int contourSeparation = 10, waterColour, lavaColour, bedrockColour, notPresentColour;
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
 
-    public static final Layer TERRAIN_AS_LAYER = new Layer("org.pepsoft.synthetic.Terrain", "Terrain", "The terrain type of the surface", Layer.DataSize.NONE, 0) {
+    public static final Layer TERRAIN_AS_LAYER = new Layer("org.pepsoft.synthetic.Terrain", "Terrain", "The terrain type of the surface", Layer.DataSize.NONE, false, 0) {
         @Override
         public BufferedImage getIcon() {
             return ICON;
@@ -517,7 +541,7 @@ public final class TileRenderer {
 
         private final BufferedImage ICON = IconUtils.scaleIcon(IconUtils.loadScaledImage("org/pepsoft/worldpainter/resources/terrain.png"), 16);
     };
-    public static final Layer FLUIDS_AS_LAYER = new Layer("org.pepsoft.synthetic.Fluids", "Water/Lava", "Areas flooded with water or lava", Layer.DataSize.NONE, 0) {
+    public static final Layer FLUIDS_AS_LAYER = new Layer("org.pepsoft.synthetic.Fluids", "Water/Lava", "Areas flooded with water or lava", Layer.DataSize.NONE, false, 0) {
         @Override
         public BufferedImage getIcon() {
             return ICON;

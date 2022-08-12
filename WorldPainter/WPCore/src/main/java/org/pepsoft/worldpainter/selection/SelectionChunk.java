@@ -12,7 +12,7 @@ import org.pepsoft.worldpainter.layers.renderers.TransparentColourRenderer;
  */
 public class SelectionChunk extends Layer {
     public SelectionChunk() {
-        super(SelectionChunk.class.getName(), "SelectionChunk", "Selected area with chunk resolution", DataSize.BIT_PER_CHUNK, 85);
+        super(SelectionChunk.class.getName(), "SelectionChunk", "Selected area with chunk resolution", DataSize.BIT_PER_CHUNK, true, 85);
     }
 
     @Override

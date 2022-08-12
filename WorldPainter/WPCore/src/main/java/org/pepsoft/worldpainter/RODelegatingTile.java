@@ -57,7 +57,7 @@ public class RODelegatingTile extends Tile {
     }
 
     @Override
-    public void setMinMaxHeight(int minHeight, int maxHeight, HeightTransform heightTransform) {
+    public final void setMinMaxHeight(int minHeight, int maxHeight, HeightTransform heightTransform) {
         throw new UnsupportedOperationException();
     }
 
@@ -87,7 +87,7 @@ public class RODelegatingTile extends Tile {
     }
 
     @Override
-    public void setRawHeight(int x, int y, int rawHeight) {
+    public final void setRawHeight(int x, int y, int rawHeight) {
         throw new UnsupportedOperationException();
     }
 
@@ -157,12 +157,12 @@ public class RODelegatingTile extends Tile {
     }
 
     @Override
-    public void clearLayerData(Layer layer) {
+    public final void clearLayerData(Layer layer) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void clearLayerData(int x, int y, Set<Layer> excludedLayers) {
+    public final void clearLayerData(int x, int y, Set<Layer> excludedLayers) {
         throw new UnsupportedOperationException();
     }
 
@@ -172,12 +172,12 @@ public class RODelegatingTile extends Tile {
     }
 
     @Override
-    public boolean plantSeed(Seed seed) {
+    public final boolean plantSeed(Seed seed) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void removeSeed(Seed seed) {
+    public final void removeSeed(Seed seed) {
         throw new UnsupportedOperationException();
     }
 
@@ -187,13 +187,13 @@ public class RODelegatingTile extends Tile {
     }
 
     @Override
-    public Tile transform(CoordinateTransform transform) {
+    public final Tile transform(CoordinateTransform transform) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean repair(int minHeight, int maxHeight, PrintStream out) {
-        throw new UnsupportedOperationException();
+        return true;
     }
 
     @Override
@@ -222,17 +222,17 @@ public class RODelegatingTile extends Tile {
     }
 
     @Override
-    void ensureAllReadable() {
+    final void ensureAllReadable() {
         throw new UnsupportedOperationException();
     }
 
     @Override
     void convertBiomeData() {
-        throw new UnsupportedOperationException();
+        // Do nothing
     }
 
     @Override
-    protected void ensureReadable(TileBuffer buffer) {
+    protected final void ensureReadable(TileBuffer buffer) {
         throw new UnsupportedOperationException();
     }
 
@@ -243,41 +243,41 @@ public class RODelegatingTile extends Tile {
 
     @Override
     public void register(UndoManager undoManager) {
+        // Do nothing
+    }
+
+    @Override
+    public final void setBitLayerValue(Layer layer, int x, int y, boolean value) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void setBitLayerValue(Layer layer, int x, int y, boolean value) {
+    public void inhibitEvents() {
+        // Do nothing
+    }
+
+    @Override
+    public void releaseEvents() {
+        // Do nothing
+    }
+
+    @Override
+    public final void setHeight(int x, int y, float height) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public synchronized void inhibitEvents() {
+    public final void setLayerValue(Layer layer, int x, int y, int value) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public synchronized void releaseEvents() {
+    public final void setTerrain(int x, int y, Terrain terrain) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void setHeight(int x, int y, float height) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setLayerValue(Layer layer, int x, int y, int value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setTerrain(int x, int y, Terrain terrain) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setWaterLevel(int x, int y, int waterLevel) {
+    public final void setWaterLevel(int x, int y, int waterLevel) {
         throw new UnsupportedOperationException();
     }
 

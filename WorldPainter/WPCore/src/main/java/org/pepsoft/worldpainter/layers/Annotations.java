@@ -12,7 +12,7 @@ package org.pepsoft.worldpainter.layers;
  */
 public class Annotations extends Layer {
     private Annotations() {
-        super("org.pepsoft.Annotations", "Annotations", "Coloured annotations on the world, which can optionally be exported with it", DataSize.NIBBLE, 65);
+        super("org.pepsoft.Annotations", "Annotations", "Coloured annotations on the world, which can optionally be exported with it", DataSize.NIBBLE, true, 65);
     }
     
     public static final Annotations INSTANCE = new Annotations();

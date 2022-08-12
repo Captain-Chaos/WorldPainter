@@ -178,7 +178,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                 insertMenu.add(menuItem);
                 menuItem = new JMenuItem("Transformation");
                 menuItem.addActionListener(actionEvent -> {
-                    TransformingHeightMap transformingHeightMap = new TransformingHeightMap(heightMap.getName(), heightMap, 100, 100, 0, 0, 0);
+                    TransformingHeightMap transformingHeightMap = new TransformingHeightMap(heightMap.getName(), heightMap, 1.0f, 1.0f, 0, 0, 0);
                     replace(parent, heightMap, transformingHeightMap);
                 });
                 insertMenu.add(menuItem);
@@ -302,7 +302,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                 replaceMenu.add(menuItem);
                 menuItem = new JMenuItem("Transformation");
                 menuItem.addActionListener(actionEvent -> {
-                    TransformingHeightMap transformingHeightMap = new TransformingHeightMap(null, new ConstantHeightMap(1.0f), 100, 100, 0, 0, 0);
+                    TransformingHeightMap transformingHeightMap = new TransformingHeightMap(null, new ConstantHeightMap(1.0f), 1.0f, 1.0f, 0, 0, 0);
                     replace(parent, heightMap, transformingHeightMap);
                 });
                 replaceMenu.add(menuItem);

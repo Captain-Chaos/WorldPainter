@@ -11,7 +11,7 @@ package org.pepsoft.worldpainter.layers;
  */
 public class Biome extends Layer {
     private Biome() {
-        super("Biome", "Displays the biome Minecraft will generate", Layer.DataSize.BYTE, 70);
+        super("Biome", "Displays the biome Minecraft will generate", Layer.DataSize.BYTE, true, 70);
     }
 
     @Override

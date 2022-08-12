@@ -4,10 +4,10 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Point;
-import java.awt.Rectangle;
-import javax.vecmath.Point3i;
 import org.pepsoft.minecraft.Direction;
+
+import javax.vecmath.Point3i;
+import java.awt.*;
 
 /**
  *
@@ -51,7 +51,60 @@ public abstract class CoordinateTransform {
     public abstract Direction inverseTransform(Direction direction);
     
     public abstract float transform(float angle);
-    
+
+    public boolean isScaling() {
+        return false;
+    }
+
+    public float getScale() {
+        return 1.0f;
+    }
+
+    public static CoordinateTransform getScalingInstance(float scale) {
+        if (scale == 1.0f) {
+            return NOOP;
+        } else {
+            return new CoordinateTransform() {
+                @Override
+                public void transformInPlace(Point coords) {
+                    coords.x = Math.round(coords.x * scale);
+                    coords.y = Math.round(coords.y * scale);
+                }
+
+                @Override
+                public void transformInPlace(Point3i coords) {
+                    coords.x = Math.round(coords.x * scale);
+                    coords.y = Math.round(coords.y * scale);
+                }
+
+                @Override
+                public Direction transform(Direction direction) {
+                    return direction;
+                }
+
+                @Override
+                public Direction inverseTransform(Direction direction) {
+                    return direction;
+                }
+
+                @Override
+                public float transform(float angle) {
+                    return angle;
+                }
+
+                @Override
+                public boolean isScaling() {
+                    return true;
+                }
+
+                @Override
+                public float getScale() {
+                    return scale;
+                }
+            };
+        }
+    }
+
     public static final CoordinateTransform ROTATE_CLOCKWISE_90_DEGREES = new CoordinateTransform() {
         @Override
         public Point transform(int x, int y) {
@@ -183,7 +236,53 @@ public abstract class CoordinateTransform {
             }
             return angle;
         }
-        
+    };
+
+    public static final CoordinateTransform NOOP = new CoordinateTransform() {
+        @Override
+        public Point transform(int x, int y) {
+            return new Point(x, y);
+        }
+
+        @Override
+        public Point3i transform(int x, int y, int z) {
+            return new Point3i(x, y, z);
+        }
+
+        @Override
+        public void transformInPlace(Point coords) {
+            // Do nothing
+        }
+
+        @Override
+        public void transformInPlace(Point3i coords) {
+            // Do nothing
+        }
+
+        @Override
+        public Rectangle transform(Rectangle rectangle) {
+            return rectangle;
+        }
+
+        @Override
+        public Direction transform(Direction direction) {
+            return direction;
+        }
+
+        @Override
+        public Direction inverseTransform(Direction direction) {
+            return direction;
+        }
+
+        @Override
+        public float transform(float angle) {
+            return angle;
+        }
+
+        @Override
+        public boolean isScaling() {
+            return false;
+        }
     };
 
     private static final float HALF_PI = (float) (Math.PI / 2);

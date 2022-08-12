@@ -11,7 +11,7 @@ package org.pepsoft.worldpainter.layers;
  */
 public class FloodWithLava extends Layer {
     private FloodWithLava() {
-        super("Lava", "Flood with lava instead of water", DataSize.BIT, 0);
+        super("Lava", "Flood with lava instead of water", DataSize.BIT, false, 0);
     }
 
     public static final FloodWithLava INSTANCE = new FloodWithLava();

@@ -67,6 +67,8 @@ public class HistoryEntry implements Serializable {
                 return MessageFormat.format("World recovered from autosave with WorldPainter {0}", wpVersion);
             case WORLD_RETARGETED:
                 return MessageFormat.format("World retargeted from map format {0} to {1}", args[0], args[1]);
+            case WORLD_DIMENSION_SCALED:
+                return MessageFormat.format("Dimension {0} scaled by {1}%", args[0], args[1]);
             default:
                 return MessageFormat.format("Unknown event ID {0} by WorldPainter {0} ({1})", key, wpVersion, wpBuild);
         }
@@ -102,6 +104,7 @@ public class HistoryEntry implements Serializable {
     public static final int WORLD_RECOVERED_FROM_AUTOSAVE          = 23;
     public static final int WORLD_MIN_HEIGHT_CHANGED               = 24; // arg 0: new minHeight as Integer
     public static final int WORLD_RETARGETED                       = 25; // arg 0: old platform as String, arg 1: new platform as String
+    public static final int WORLD_DIMENSION_SCALED                 = 26; // arg 0: name of dimension as String, arg 1: scaling percentage as Integer
 
     private static final long serialVersionUID = 1L;
 }

@@ -10,7 +10,7 @@ package org.pepsoft.worldpainter.layers;
  */
 public class Void extends Layer {
     private Void() {
-        super("Void", "Just the long drop into nothingness", DataSize.BIT, 0);
+        super("Void", "Just the long drop into nothingness", DataSize.BIT, false, 0);
     }
     
     public static final Void INSTANCE = new Void();
