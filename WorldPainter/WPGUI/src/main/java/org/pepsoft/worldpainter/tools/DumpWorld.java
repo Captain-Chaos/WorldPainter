@@ -57,7 +57,7 @@ public class DumpWorld {
     }
 
     private static void dumpDimension(Dimension dimension) {
-        System.out.println("Dimension: " + dimension.getName() + " (index: " + dimension.getDim() + ")");
+        System.out.println("Dimension: " + dimension.getName() + " (index: " + dimension.getAnchor().dim + ")");
         System.out.println("    Size: " + dimension.getWidth() + "x" + dimension.getHeight() + " tiles");
         System.out.println("    Westernmost tile: " + dimension.getLowestX() + "; easternmost tile: " + dimension.getHighestX());
         System.out.println("    Northernmost tile: " + dimension.getLowestY() + "; southernmost tile: " + dimension.getHighestY());
@@ -89,7 +89,7 @@ public class DumpWorld {
         } else {
             System.out.println("    Border: none");
         }
-        if ((dimension.getDim() == Constants.DIM_NORMAL_CEILING) || (dimension.getDim() == Constants.DIM_NETHER_CEILING) || (dimension.getDim() == Constants.DIM_END_CEILING)) {
+        if (dimension.getAnchor().invert) {
             System.out.println("    Ceiling height: " + dimension.getCeilingHeight());
         }
         System.out.println("    Max height: " + dimension.getMaxHeight());

@@ -8,6 +8,7 @@ import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.util.mdc.MDCThreadPoolExecutor;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.World2;
@@ -40,7 +41,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
-import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
 
@@ -100,20 +100,8 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
         long start = System.currentTimeMillis();
 
-        final Dimension ceiling;
-        switch (dimension.getDim()) {
-            case DIM_NORMAL:
-                ceiling = dimension.getWorld().getDimension(DIM_NORMAL_CEILING);
-                break;
-            case DIM_NETHER:
-                ceiling = dimension.getWorld().getDimension(DIM_NETHER_CEILING);
-                break;
-            case DIM_END:
-                ceiling = dimension.getWorld().getDimension(DIM_END_CEILING);
-                break;
-            default:
-                throw new IllegalArgumentException("Dimension " + dimension.getDim() + " not supported");
-        }
+        final Anchor anchor = dimension.getAnchor();
+        final Dimension ceiling = dimension.getWorld().getDimension(new Anchor(anchor.dim, anchor.role, true, 0));
 
         final ChunkFactory.Stats collectedStats = new ChunkFactory.Stats();
         dimension.rememberChanges();
@@ -129,7 +117,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             if (tilesSelected) {
                 // Sanity check
                 assert world.getDimensionsToExport().size() == 1;
-                assert world.getDimensionsToExport().contains(dimension.getDim());
+                assert world.getDimensionsToExport().contains(anchor.dim);
                 selectedTiles = world.getTilesToExport();
                 for (Point tile: selectedTiles) {
                     int regionX = tile.x >> 2;
@@ -271,7 +259,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                             } finally {
                                 if ((exportResults != null) && exportResults.chunksGenerated) {
                                     long saveStart = System.currentTimeMillis();
-                                    worldRegion.save(worldDir, dimension.getDim());
+                                    worldRegion.save(worldDir, anchor.dim);
                                     if (logger.isDebugEnabled()) {
                                         logger.debug("Saving region took {} ms", System.currentTimeMillis() - saveStart);
                                     }
@@ -568,7 +556,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
         // TODO: trying to do this for every region should work but is not very
         //  elegant
-        if ((dimension.getDim() == 0) && world.isCreateGoodiesChest()) {
+        if ((dimension.getAnchor().dim == 0) && world.isCreateGoodiesChest()) {
             Point goodiesPoint = (Point) world.getSpawnPoint().clone();
             goodiesPoint.translate(3, 3);
             int height = Math.min(dimension.getIntHeightAt(goodiesPoint) + 1, dimension.getMaxHeight() - 1);
@@ -886,7 +874,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             total += entry.getValue().size();
         }
         // Make sure to honour the read-only layer: TODO: this means nothing at the moment. Is it still relevant?
-        try (CachingMinecraftWorld minecraftWorld = new CachingMinecraftWorld(worldDir, dimension.getDim(), dimension.getMaxHeight(), platform, false, 512)) {
+        try (CachingMinecraftWorld minecraftWorld = new CachingMinecraftWorld(worldDir, dimension.getAnchor().dim, dimension.getMaxHeight(), platform, false, 512)) {
             final ExportSettings exportSettings = (dimension.getExportSettings() != null) ? dimension.getExportSettings() : platformProvider.getDefaultExportSettings(platform);
             for (Entry<Point, List<Fixup>> entry: fixups.entrySet()) {
                 if (progressReceiver != null) {

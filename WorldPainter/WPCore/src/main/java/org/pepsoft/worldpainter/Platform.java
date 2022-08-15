@@ -67,7 +67,7 @@ public final class Platform implements Serializable {
             return false;
         }
         for (Dimension dimension: world.getDimensions()) {
-            if ((dimension.getDim() >= 0) && (! supportedDimensions.contains(dimension.getDim()))) {
+            if ((! dimension.getAnchor().invert) && (! supportedDimensions.contains(dimension.getAnchor().dim))) {
                 return false;
             }
         }

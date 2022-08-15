@@ -35,7 +35,7 @@ import java.util.*;
  */
 public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
     public RODelegatingDimension(Dimension dimension) {
-        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getDim());
+        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getAnchor());
         this.dimension = dimension;
     }
 
@@ -45,8 +45,8 @@ public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
     }
 
     @Override
-    public int getDim() {
-        return dimension.getDim();
+    public Anchor getAnchor() {
+        return dimension.getAnchor();
     }
 
     @Override

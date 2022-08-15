@@ -43,9 +43,6 @@ public final class Constants {
      */
     public static final int UNKNOWN_MATERIAL_COLOUR = 0xFF00FF;
 
-    public static final int DIM_END_CEILING    = -3;
-    public static final int DIM_NETHER_CEILING = -2;
-    public static final int DIM_NORMAL_CEILING = -1;
     public static final int DIM_NORMAL         =  0;
     public static final int DIM_NETHER         =  1;
     public static final int DIM_END            =  2;

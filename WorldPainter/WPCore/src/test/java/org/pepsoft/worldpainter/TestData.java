@@ -11,8 +11,8 @@ import org.pepsoft.worldpainter.themes.Theme;
 import java.awt.*;
 
 import static org.pepsoft.minecraft.Material.*;
-import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 import static org.pepsoft.worldpainter.Terrain.GRASS;
 
 public final class TestData {
@@ -26,7 +26,7 @@ public final class TestData {
 
     public static Dimension createDimension(Rectangle area, int terrainHeight) {
         final TileFactory tileFactory = createTileFactory(terrainHeight);
-        final Dimension dimension = new Dimension(WORLD, SEED, tileFactory, DIM_NORMAL);
+        final Dimension dimension = new Dimension(WORLD, SEED, tileFactory, NORMAL_DETAIL);
         final int tileX1 = area.x / TILE_SIZE, tileX2 = (area.x + area.width - 1) / TILE_SIZE, tileY1 = area.y / TILE_SIZE, tileY2 = (area.y + area.height - 1) / TILE_SIZE;
         for (int tileX = tileX1; tileX <= tileX2; tileX++) {
             for (int tileY = tileY1; tileY <= tileY2; tileY++) {

@@ -23,6 +23,7 @@ import java.util.zip.ZipException;
 
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
 
 // TODO why this design again? Just make these utility methods, surely?
@@ -131,7 +132,7 @@ public class WorldIO {
             newWorld.setImportedFrom(oldWorld.getImportedFrom());
             newWorld.setName(oldWorld.getName());
             newWorld.setSpawnPoint(oldWorld.getSpawnPoint());
-            Dimension dim0 = newWorld.getDimension(0);
+            Dimension dim0 = newWorld.getDimension(NORMAL_DETAIL);
             newWorld.setAskToConvertToAnvil(true);
             newWorld.setUpIs(Direction.WEST);
             newWorld.setAskToRotate(true);

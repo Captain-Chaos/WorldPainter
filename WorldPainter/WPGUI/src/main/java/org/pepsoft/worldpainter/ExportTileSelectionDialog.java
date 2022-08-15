@@ -10,6 +10,7 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Layer;
 
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 
 /**
  *
@@ -38,11 +40,11 @@ public class ExportTileSelectionDialog extends javax.swing.JDialog implements Wi
         
         List<Integer> dimensions = new ArrayList<>();
         for (Dimension dimension: world.getDimensions()) {
-            if (dimension.getDim() < 0) {
+            if (dimension.getAnchor().invert) {
                 // Ceiling dimensions shouldn't be separately selectable
                 continue;
             }
-            dimensions.add(dimension.getDim());
+            dimensions.add(dimension.getAnchor().dim);
         }
         jComboBox1.setModel(new DefaultComboBoxModel(dimensions.toArray()));
         programmaticChange = true;
@@ -89,7 +91,7 @@ public class ExportTileSelectionDialog extends javax.swing.JDialog implements Wi
         tileSelector1.setContourLines(contourLines);
         tileSelector1.setContourSeparation(contourSeparation);
         tileSelector1.setLightOrigin(lightOrigin);
-        tileSelector1.setDimension(world.getDimension(selectedDimension));
+        tileSelector1.setDimension(world.getDimension(new Anchor(selectedDimension, DETAIL, false, 0)));
         tileSelector1.setCustomBiomeManager(customBiomeManager);
         if (selectedTiles != null) {
             tileSelector1.setSelectedTiles(selectedTiles);
@@ -214,7 +216,7 @@ public class ExportTileSelectionDialog extends javax.swing.JDialog implements Wi
     private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
         if (! programmaticChange) {
             int selectedDimension = getSelectedDimension();
-            tileSelector1.setDimension(world.getDimension(selectedDimension));
+            tileSelector1.setDimension(world.getDimension(new Anchor(selectedDimension, DETAIL, false, 0)));
             tileSelector1.moveToCentre();
             tileSelector1.clearSelection();
             buttonSetSpawn.setEnabled(selectedDimension == DIM_NORMAL);

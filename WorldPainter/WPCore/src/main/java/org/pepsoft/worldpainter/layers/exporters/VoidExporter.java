@@ -76,7 +76,7 @@ public class VoidExporter extends AbstractLayerExporter<org.pepsoft.worldpainter
         // Check for water surrounding the column; pre-render the falling water
         // column to avoid long pauses in Minecraft when the chunks are loaded
         // (but not for ceiling dimensions)
-        if (dimension.getDim() >= 0) {
+        if (! dimension.getAnchor().invert) {
             int highestNonAirBlock = Integer.MIN_VALUE;
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dy = -1; dy <= 1; dy++) {

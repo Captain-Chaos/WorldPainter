@@ -13,6 +13,7 @@ import org.pepsoft.util.MemoryUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.util.undo.UndoManager;
+import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -24,8 +25,10 @@ import java.io.*;
 import java.util.List;
 import java.util.*;
 
+import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Material.WOOL_MAGENTA;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 import static org.pepsoft.worldpainter.Generator.END;
 import static org.pepsoft.worldpainter.Generator.NETHER;
 import static org.pepsoft.worldpainter.World2.Warning.MISSING_CUSTOM_TERRAINS;
@@ -54,13 +57,13 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
         this.platform = platform;
         this.maxheight = tileFactory.getMaxHeight();
-        Dimension dim = new Dimension(this, minecraftSeed, tileFactory, 0);
+        Dimension dim = new Dimension(this, minecraftSeed, tileFactory, NORMAL_DETAIL);
         addDimension(dim);
     }
     
     public long getChangeNo() {
         long totalChangeNo = changeNo + borderSettings.getChangeNo();
-        for (Dimension dimension: dimensions.values()) {
+        for (Dimension dimension: dimensionsByAnchor.values()) {
             totalChangeNo += dimension.getChangeNo();
         }
         if (logger.isDebugEnabled()) {
@@ -173,25 +176,33 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         propertyChangeSupport.removePropertyChangeListener(propertyName, listener);
     }
     
-    public Dimension getDimension(int dim) {
-        return dimensions.get(dim);
+    public Dimension getDimension(Anchor anchor) {
+        return dimensionsByAnchor.get(anchor);
     }
-    
-    public Dimension[] getDimensions() {
-        return dimensions.values().toArray(new Dimension[dimensions.size()]);
+
+    public Set<Dimension> getDimensions() {
+        return new HashSet<>(dimensionsByAnchor.values());
     }
-    
+
+    public Set<Dimension> getDimensionsWithRole(Dimension.Role role, boolean inverted, int layer) {
+        return dimensionsByAnchor.values().stream()
+                .filter(dimension -> {
+                    final Anchor anchor = dimension.getAnchor();
+                    return (anchor.role == role) && (anchor.invert == inverted) && (anchor.layer == layer);
+                }).collect(toSet());
+    }
+
     public final void addDimension(Dimension dimension) {
-        if (dimensions.containsKey(dimension.getDim())) {
-            throw new IllegalStateException("Dimension " + dimension.getDim() + " already exists");
+        if (dimensionsByAnchor.containsKey(dimension.getAnchor())) {
+            throw new IllegalStateException("Dimension " + dimension.getAnchor() + " already exists");
         } else if (dimension.getMaxHeight() > maxheight) {
             throw new IllegalStateException("Dimension has higher max height (" + dimension.getMaxHeight() + ") than world (" + maxheight + ")");
         } else {
             if (dimension.getWorld() != this) {
                 throw new IllegalArgumentException("Dimension belongs to another world");
             }
-            dimensions.put(dimension.getDim(), dimension);
-            if (dimension.getDim() == 0) {
+            dimensionsByAnchor.put(dimension.getAnchor(), dimension);
+            if (dimension.getAnchor().dim == DIM_NORMAL) {
                 TileFactory tileFactory = dimension.getTileFactory();
                 if (tileFactory instanceof HeightMapTileFactory) {
                     if (((HeightMapTileFactory) tileFactory).getWaterHeight() < 32) {
@@ -201,19 +212,19 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
                 }
             }
         }
-        if (dimension.getDim() != DIM_NORMAL) {
+        if (dimension.getAnchor().dim != DIM_NORMAL) {
             history.add(new HistoryEntry(HistoryEntry.WORLD_DIMENSION_ADDED, dimension.getName()));
         }
     }
 
-    public Dimension removeDimension(int dim) {
-        if (dimensions.containsKey(dim)) {
+    public Dimension removeDimension(Anchor anchor) {
+        if (dimensionsByAnchor.containsKey(anchor)) {
             changeNo++;
-            Dimension dimension = dimensions.remove(dim);
+            Dimension dimension = dimensionsByAnchor.remove(anchor);
             history.add(new HistoryEntry(HistoryEntry.WORLD_DIMENSION_REMOVED, dimension.getName()));
             return dimension;
         } else {
-            throw new IllegalStateException("Dimension " + dim + " does not exist");
+            throw new IllegalStateException("Dimension " + anchor + " does not exist");
         }
     }
 
@@ -250,7 +261,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
      */
     @Deprecated
     public Generator getGenerator() {
-        return dimensions.get(DIM_NORMAL).getGenerator().getType();
+        return dimensionsByAnchor.get(NORMAL_DETAIL).getGenerator().getType();
     }
 
     public Platform getPlatform() {
@@ -344,8 +355,8 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
      */
     @Deprecated
     public String getGeneratorOptions() {
-        return (dimensions.get(DIM_NORMAL).getGenerator() instanceof CustomGenerator)
-                ? ((CustomGenerator) dimensions.get(DIM_NORMAL).getGenerator()).getName()
+        return (dimensionsByAnchor.get(NORMAL_DETAIL).getGenerator() instanceof CustomGenerator)
+                ? ((CustomGenerator) dimensionsByAnchor.get(NORMAL_DETAIL).getGenerator()).getName()
                 : null;
     }
 
@@ -459,8 +470,8 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
      *     rotation progress.
      */
     public void transform(CoordinateTransform transform, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-        int dimCount = dimensions.size(), dim = 0;
-        for (Dimension dimension: dimensions.values()) {
+        int dimCount = dimensionsByAnchor.size(), dim = 0;
+        for (Dimension dimension: dimensionsByAnchor.values()) {
             dimension.transform(transform, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dim / dimCount, 1.0f / dimCount) : null);
             dim++;
         }
@@ -478,14 +489,14 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
      * transforms any surface-related metadata stored in the world. If an undo
      * manager is installed this operation will destroy all undo info.
      *
-     * @param dim The index of the dimension to transform.
+     * @param anchor The anchor of the dimension to transform.
      * @param transform The coordinate transform to apply.
      * @param progressReceiver A progress receiver which will be informed of
      *     rotation progress.
      */
-    public void transform(int dim, CoordinateTransform transform, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-        dimensions.get(dim).transform(transform, progressReceiver);
-        if (dim == DIM_NORMAL) {
+    public void transform(Anchor anchor, CoordinateTransform transform, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+        dimensionsByAnchor.get(anchor).transform(transform, progressReceiver);
+        if (anchor.equals(NORMAL_DETAIL)) {
             Point oldSpawnPoint = spawnPoint;
             spawnPoint = transform.transform(spawnPoint);
             propertyChangeSupport.firePropertyChange("spawnPoint", oldSpawnPoint, spawnPoint);
@@ -497,14 +508,13 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     }
 
     public void clearLayerData(Layer layer) {
-        for (Dimension dimension: dimensions.values()) {
+        for (Dimension dimension: dimensionsByAnchor.values()) {
             dimension.clearLayerData(layer);
         }
     }
     
-    @SuppressWarnings("unchecked")
     public long measureSize() {
-        dimensions.values().forEach(org.pepsoft.worldpainter.Dimension::ensureAllReadable);
+        dimensionsByAnchor.values().forEach(org.pepsoft.worldpainter.Dimension::ensureAllReadable);
         return MemoryUtils.getSize(this, new HashSet<>(Arrays.asList(UndoManager.class, Dimension.Listener.class, PropertyChangeSupport.class, Layer.class, Terrain.class)));
     }
 
@@ -708,7 +718,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
         if (wpVersion < 9) {
             dimensions.values().forEach(dimension -> {
-                switch (dimension.getDim()) {
+                switch (dimension.getAnchor().dim) {
                     case DIM_NORMAL:
                         MapGenerator generator = MapGenerator.fromLegacySettings(this.generator, dimension.getMinecraftSeed(), generatorName, generatorOptions, platform, this::addWarning);
                         dimension.setGenerator(generator);
@@ -725,6 +735,11 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             generatorName = null;
             generatorOptions = null;
         }
+        if (wpVersion < 10) {
+            dimensionsByAnchor = new HashMap<>();
+            dimensions.values().forEach(dimension -> dimensionsByAnchor.put(dimension.getAnchor(), dimension));
+            dimensions = null;
+        }
         wpVersion = CURRENT_WP_VERSION;
 
         // The number of custom terrains increases now and again; correct old
@@ -738,7 +753,8 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private boolean createGoodiesChest = true;
     private Point spawnPoint = new Point(0, 0);
     private File importedFrom;
-    private final SortedMap<Integer, Dimension> dimensions = new TreeMap<>();
+    @Deprecated
+    private SortedMap<Integer, Dimension> dimensions;
     private boolean mapFeatures = true;
     @Deprecated
     private int gameType;
@@ -777,6 +793,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private Map<String, Object> attributes;
     @Deprecated
     private SuperflatPreset superflatPreset;
+    private Map<Anchor, Dimension> dimensionsByAnchor = new HashMap<>();
     private transient Set<Warning> warnings;
     private transient Map<String, Object> metadata;
     private transient long changeNo;
@@ -819,7 +836,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
      */
     public static final String METADATA_KEY_PLUGINS = "org.pepsoft.worldpainter.plugins";
 
-    private static final int CURRENT_WP_VERSION = 9;
+    private static final int CURRENT_WP_VERSION = 10;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(World2.class);
     private static final long serialVersionUID = 2011062401L;

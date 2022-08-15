@@ -69,8 +69,8 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         biomesSupported2D = platform.capabilities.contains(BIOMES);
         biomesSupported3D = platform.capabilities.contains(BIOMES_3D);
         biomesSupportedNamed = platform.capabilities.contains(NAMED_BIOMES);
-        copyBiomes = (biomesSupported2D || biomesSupported3D || biomesSupportedNamed) && (dimension.getDim() >= 0);
-        switch (dimension.getDim()) {
+        copyBiomes = (biomesSupported2D || biomesSupported3D || biomesSupportedNamed) && (! dimension.getAnchor().invert);
+        switch (dimension.getAnchor().dim) {
             case DIM_NORMAL:
                 defaultBiome = BIOME_PLAINS;
                 break;
@@ -79,12 +79,6 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                 break;
             case DIM_END:
                 defaultBiome = BIOME_SKY;
-                break;
-            case DIM_NORMAL_CEILING:
-            case DIM_NETHER_CEILING:
-            case DIM_END_CEILING:
-                // Biome is ignored for ceilings
-                defaultBiome = 0;
                 break;
             default:
                 throw new InternalError();

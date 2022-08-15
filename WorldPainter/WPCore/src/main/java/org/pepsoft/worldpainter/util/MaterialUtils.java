@@ -97,7 +97,7 @@ public class MaterialUtils {
                         if (settings.getChance(material) > 0) {
                             if (material.blockType == -1) {
                                 nameOnlyMaterialsForLayer.add(material.name);
-                            } else if ((material == GOLD_ORE) && (dimension.getDim() == DIM_NETHER)) {
+                            } else if ((material == GOLD_ORE) && (dimension.getAnchor().dim == DIM_NETHER)) {
                                 nameOnlyMaterialsForLayer.add(NETHER_GOLD_ORE.name);
                             }
                         }

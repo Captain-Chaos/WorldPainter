@@ -49,6 +49,8 @@ import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.Dimension.Anchor.*;
+import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.Dimension.WallType.BEDROCK;
 import static org.pepsoft.worldpainter.Generator.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.*;
@@ -58,11 +60,11 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.*;
  * @author pepijn
  */
 public class Dimension extends InstanceKeeper implements TileProvider, Serializable, Tile.Listener, Cloneable {
-    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, int dim) {
-        this(world, minecraftSeed, tileFactory, dim, true);
+    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, Anchor anchor) {
+        this(world, minecraftSeed, tileFactory, anchor, true);
     }
 
-    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, int dim, boolean init) {
+    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, Anchor anchor, boolean init) {
         if (world == null) {
             throw new NullPointerException("world");
         }
@@ -70,23 +72,25 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         this.seed = tileFactory.getSeed();
         this.minecraftSeed = minecraftSeed;
         this.tileFactory = tileFactory;
-        this.dim = dim;
+        this.anchor = anchor;
         this.minHeight = tileFactory.getMinHeight();
         this.maxHeight = tileFactory.getMaxHeight();
         ceilingHeight = maxHeight;
         if (init) {
-            layerSettings.put(Resources.INSTANCE, ResourcesExporterSettings.defaultSettings(world.getPlatform(), dim, maxHeight));
+            layerSettings.put(Resources.INSTANCE, ResourcesExporterSettings.defaultSettings(world.getPlatform(), anchor.dim, maxHeight));
             topLayerDepthNoise = new PerlinNoise(seed + TOP_LAYER_DEPTH_SEED_OFFSET);
-            switch (dim) {
-                case DIM_NORMAL:
-                    generator = new SeededGenerator(DEFAULT, minecraftSeed);
-                    break;
-                case DIM_NETHER:
-                    generator = new SeededGenerator(NETHER, minecraftSeed);
-                    break;
-                case DIM_END:
-                    generator = new SeededGenerator(END, minecraftSeed);
-                    break;
+            if (anchor.role == DETAIL) {
+                switch (anchor.dim) {
+                    case DIM_NORMAL:
+                        generator = new SeededGenerator(DEFAULT, minecraftSeed);
+                        break;
+                    case DIM_NETHER:
+                        generator = new SeededGenerator(NETHER, minecraftSeed);
+                        break;
+                    case DIM_END:
+                        generator = new SeededGenerator(END, minecraftSeed);
+                        break;
+                }
             }
         }
     }
@@ -95,26 +99,36 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return world;
     }
 
-    public int getDim() {
-        return dim;
+    public Anchor getAnchor() {
+        return anchor;
     }
 
     public String getName() {
-        switch (dim) {
-            case -3:
-                return "End Ceiling";
-            case -2:
-                return "Nether Ceiling";
-            case -1:
-                return "Surface Ceiling";
-            case 0:
-                return "Surface";
-            case 1:
-                return "Nether";
-            case 2:
-                return "End";
+        switch (anchor.role) {
+            case DETAIL:
+                switch (anchor.dim) {
+                    case 0:
+                        return "Surface" + (anchor.invert ? " Ceiling" : "");
+                    case 1:
+                        return "Nether" + (anchor.invert ? " Ceiling" : "");
+                    case 2:
+                        return "End" + (anchor.invert ? " Ceiling" : "");
+                    default:
+                        return "Dimension " + anchor.dim + (anchor.invert ? " Ceiling" : "");
+                }
+            case MASTER:
+                switch (anchor.dim) {
+                    case 0:
+                        return "Surface Master" + (anchor.invert ? " Ceiling" : "");
+                    case 1:
+                        return "Nether Master" + (anchor.invert ? " Ceiling" : "");
+                    case 2:
+                        return "End Master" + (anchor.invert ? " Ceiling" : "");
+                    default:
+                        return "Master " + anchor.dim + (anchor.invert ? " Ceiling" : "");
+                }
             default:
-                return "Dimension " + dim;
+                throw new InternalError("Unknown role " + anchor.role);
         }
     }
 
@@ -1365,12 +1379,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public final int getAutoBiome(int x, int y) {
-        switch (dim) {
+        switch (anchor.dim) {
             case DIM_NETHER:
-            case DIM_NETHER_CEILING:
                 return BIOME_HELL;
             case DIM_END:
-            case DIM_END_CEILING:
                 return BIOME_SKY;
             default:
                 Tile tile = getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
@@ -1384,12 +1396,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     public final int getAutoBiome(Tile tile, int x, int y) {
         // TODO add platform support and Minecraft 1.18 biomes
-        switch (dim) {
+        switch (anchor.dim) {
             case DIM_NETHER:
-            case DIM_NETHER_CEILING:
                 return BIOME_HELL;
             case DIM_END:
-            case DIM_END_CEILING:
                 return BIOME_SKY;
             default:
                 int biome;
@@ -1942,6 +1952,28 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 bedrockWall = false;
             }
         }
+        if (wpVersion < 6) {
+            switch (dim) {
+                case -3:
+                    anchor = END_DETAIL_CEILING;
+                    break;
+                case -2:
+                    anchor = NETHER_DETAIL_CEILING;
+                    break;
+                case -1:
+                    anchor = NORMAL_DETAIL_CEILING;
+                    break;
+                case DIM_NORMAL:
+                    anchor = NORMAL_DETAIL;
+                    break;
+                case DIM_NETHER:
+                    anchor = NETHER_DETAIL;
+                    break;
+                case DIM_END:
+                    anchor = END_DETAIL;
+                    break;
+            }
+        }
         wpVersion = CURRENT_WP_VERSION;
 
         // Make sure that any custom layers which somehow ended up in the world
@@ -1971,7 +2003,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     private final World2 world;
     private final long seed;
-    private final int dim;
+    @Deprecated
+    private final int dim = 0;
     final Map<Point, Tile> tiles = new HashMap<>();
     private final TileFactory tileFactory;
     private int lowestX = Integer.MAX_VALUE, highestX = Integer.MIN_VALUE, lowestY = Integer.MAX_VALUE, highestY = Integer.MIN_VALUE;
@@ -2002,6 +2035,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private ExportSettings exportSettings;
     private MapGenerator generator;
     private WallType wallType, roofType;
+    private Anchor anchor;
     private transient List<Listener> listeners = new ArrayList<>();
     private transient boolean eventsInhibited;
     private transient Set<Tile> dirtyTiles = new HashSet<>();
@@ -2022,7 +2056,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     private static final long TOP_LAYER_DEPTH_SEED_OFFSET = 180728193;
     private static final float ROOT_EIGHT = (float) Math.sqrt(8.0);
-    private static final int CURRENT_WP_VERSION = 5;
+    private static final int CURRENT_WP_VERSION = 6;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Dimension.class);
     private static final long serialVersionUID = 2011062401L;
 
@@ -2285,5 +2319,108 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
 
         private final HashSet<Point> activeTiles = new HashSet<>();
+    }
+
+    public static final class Anchor implements Serializable {
+        public Anchor(int dim, Role role, boolean invert, int layer) {
+            if (role == null) {
+                throw new NullPointerException("role");
+            }
+            this.dim = dim;
+            this.role = role;
+            this.invert = invert;
+            this.layer = layer;
+        }
+
+        @Override
+        public String toString() {
+            return dim
+                    + " " + role
+                    + (invert ? " CEILING" : "")
+                    + ((layer != 0) ? (" " + layer) : "");
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            return (o instanceof Anchor)
+                    && (((Anchor) o).dim == dim)
+                    && (((Anchor) o).role == role)
+                    && (((Anchor) o).invert == invert)
+                    && (((Anchor) o).layer == layer);
+        }
+
+        @Override
+        public int hashCode() {
+            return 31 * (31 * (31 * dim + role.hashCode()) + (invert ? 1 : 0)) + layer;
+        }
+
+        /**
+         * The game dimension to which this anchor refers. See {@link Constants#DIM_NORMAL},
+         * {@link Constants#DIM_NETHER} and {@link Constants#DIM_END} for predefined values. Note that they don't
+         * correspond to the dimension numbers in Minecraft.
+         */
+        public final int dim;
+
+        /**
+         * The role this anchor plays in the specified game dimension.
+         */
+        public final Role role;
+
+        /**
+         * Whether this anchor should be exported inverted (e.g. as a ceiling).
+         */
+        public final boolean invert;
+
+        /**
+         * The layer this anchor occupies in the specified game dimension and role.
+         */
+        public final int layer;
+
+        /**
+         * Convenience constant for the default dimension (surface detail dimension, not inverted, layer zero).
+         */
+        public static final Anchor NORMAL_DETAIL = new Anchor(DIM_NORMAL, DETAIL, false, 0);
+
+        /**
+         * Convenience constant for the default Nether dimension (Nether detail dimension, not inverted, layer zero).
+         */
+        public static final Anchor NETHER_DETAIL = new Anchor(DIM_NETHER, DETAIL, false, 0);
+
+        /**
+         * Convenience constant for the default End dimension (End detail dimension, not inverted, layer zero).
+         */
+        public static final Anchor END_DETAIL = new Anchor(DIM_END, DETAIL, false, 0);
+
+        /**
+         * Convenience constant for the default dimension ceiling (surface detail dimension, inverted, layer zero).
+         */
+        public static final Anchor NORMAL_DETAIL_CEILING = new Anchor(DIM_NORMAL, DETAIL, true, 0);
+
+        /**
+         * Convenience constant for the default Nether dimension ceiling (Nether detail dimension, inverted, layer zero).
+         */
+        public static final Anchor NETHER_DETAIL_CEILING = new Anchor(DIM_NETHER, DETAIL, true, 0);
+
+        /**
+         * Convenience constant for the default End dimension ceiling (End detail dimension, inverted, layer zero).
+         */
+        public static final Anchor END_DETAIL_CEILING = new Anchor(DIM_END, DETAIL, true, 0);
+
+        private static final long serialVersionUID = 1L;
+    }
+
+    /**
+     * A role of a {@link Dimension} within a game dimension.
+     */
+    public enum Role {
+        /**
+         * A detail dimension.
+         */
+        DETAIL,
+
+        /**
+         * A master dimension that is exported where no detail dimension exists, at 1:16 scale.
+         */
+        MASTER
     }
 }

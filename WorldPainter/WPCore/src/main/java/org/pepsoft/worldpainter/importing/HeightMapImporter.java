@@ -32,6 +32,7 @@ import java.util.Map;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 
 /**
  *
@@ -57,7 +58,7 @@ public class HeightMapImporter {
         final World2 world = new World2(platform, minecraftSeed, tileFactory);
         world.addHistoryEntry(HistoryEntry.WORLD_IMPORTED_FROM_HEIGHT_MAP, imageFile);
         world.setName(name);
-        final Dimension dimension = world.getDimension(DIM_NORMAL);
+        final Dimension dimension = world.getDimension(NORMAL_DETAIL);
 
         // Export settings
         final Configuration config = Configuration.getInstance();
@@ -220,7 +221,7 @@ public class HeightMapImporter {
             Theme theme = ((this.theme != null) ? this.theme : heightMapTileFactory.getTheme()).clone();
             theme.setWaterHeight(worldWaterLevel);
             HeightMapTileFactory tileFactory = new PreviewTileFactory(1L, previewHeightMap, platform.minZ, maxHeight, heightMapTileFactory.isFloodWithLava(), theme, heightMap, voidBelowLevel);
-            return new WPTileProvider(tileFactory, colourScheme, null, null, contourLines, contourSeparation, lightOrigin, false, null);
+            return new WPTileProvider(tileFactory, colourScheme, null, null, contourLines, contourSeparation, lightOrigin, false);
         } else {
             return null;
         }

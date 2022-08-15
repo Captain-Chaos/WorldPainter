@@ -59,13 +59,11 @@ public class BorderChunkFactory {
         result.chunk = PlatformManager.getInstance().createChunk(platform, chunkX, chunkZ, maxHeight);
         final int maxY = maxHeight - 1;
         final int biome;
-        switch (dimension.getDim()) {
+        switch (dimension.getAnchor().dim) {
             case DIM_NETHER:
-            case DIM_NETHER_CEILING:
                 biome = BIOME_HELL;
                 break;
             case DIM_END:
-            case DIM_END_CEILING:
                 biome = BIOME_THE_END;
                 break;
             default:

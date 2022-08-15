@@ -12,6 +12,7 @@ import javax.swing.*;
 import java.awt.*;
 
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 
 /**
  *
@@ -20,14 +21,14 @@ import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 public class WorldMorph {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            final WorldPainter view = new WorldPainter(createNewWorld().getDimension(0), ColourScheme.DEFAULT, null);
+            final WorldPainter view = new WorldPainter(createNewWorld().getDimension(NORMAL_DETAIL), ColourScheme.DEFAULT, null);
             JFrame frame = new JFrame("WorldMorph");
             frame.getContentPane().add(view, BorderLayout.CENTER);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
-            Timer timer = new Timer(2000, e -> view.setDimension(createNewWorld().getDimension(0)));
+            Timer timer = new Timer(2000, e -> view.setDimension(createNewWorld().getDimension(NORMAL_DETAIL)));
             timer.start();
         });
     }
@@ -36,7 +37,7 @@ public class WorldMorph {
         long seed = System.currentTimeMillis();
         TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(seed, Terrain.GRASS, JAVA_MCREGION.minZ, JAVA_MCREGION.standardMaxHeight, 16, 24, false, true, 20, 1.0);
         World2 world = new World2(JAVA_MCREGION, seed, tileFactory);
-        Dimension dim0 = world.getDimension(0);
+        Dimension dim0 = world.getDimension(NORMAL_DETAIL);
         for (int x = -2; x <= 2; x++) {
             for (int y = -2; y <= 2; y++) {
                 dim0.addTile(tileFactory.createTile(x, y));

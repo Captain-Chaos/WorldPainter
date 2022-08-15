@@ -14,9 +14,11 @@ import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Constants.DIM_END;
+import static org.pepsoft.worldpainter.Constants.DIM_NETHER;
 
 /**
  * Utility methods for working with WorldPainter worlds.
@@ -31,9 +33,11 @@ public final class WorldUtils {
      */
     public static void resizeWorld(final World2 world, final HeightTransform transform, final int newMinHeight, final int newMaxHeight, final boolean transformLayers, final ProgressReceiver progressReceiver) throws OperationCancelled {
         world.setMaxHeight(newMaxHeight);
-        final org.pepsoft.worldpainter.Dimension[] dimensions = world.getDimensions();
-        for (int i = 0; i < dimensions.length; i++) {
-            resizeDimension(dimensions[i], newMinHeight, newMaxHeight, transform, transformLayers, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) i / dimensions.length, 1f / dimensions.length) : null);
+        final Set<Dimension> dimensions = world.getDimensions();
+        final int total = dimensions.size();
+        int count = 0;
+        for (Dimension dimension: dimensions) {
+            resizeDimension(dimension, newMinHeight, newMaxHeight, transform, transformLayers, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) count++ / total, 1f / total) : null);
         }
     }
 
@@ -43,14 +47,12 @@ public final class WorldUtils {
     public static void resizeDimension(final Dimension dim, final int newMinHeight, final int newMaxHeight, final HeightTransform transform, final boolean transformLayers, final ProgressReceiver progressReceiver) throws OperationCancelled {
         final int oldMinHeight = dim.getMinHeight(), oldMaxHeight = dim.getMaxHeight();
         final int dimNewMinHeight, dimNewMaxHeight;
-        switch (dim.getDim()) {
+        switch (dim.getAnchor().dim) {
             case DIM_NETHER:
-            case DIM_NETHER_CEILING:
                 dimNewMinHeight = Math.max(newMinHeight, 0);
                 dimNewMaxHeight = Math.min(newMaxHeight, DEFAULT_MAX_HEIGHT_NETHER);
                 break;
             case DIM_END:
-            case DIM_END_CEILING:
                 dimNewMinHeight = Math.max(newMinHeight, 0);
                 dimNewMaxHeight = Math.min(newMaxHeight, DEFAULT_MAX_HEIGHT_END);
                 break;
@@ -90,7 +92,6 @@ public final class WorldUtils {
                         final int raiseBy = oldMinHeight - dimNewMinHeight;
                         final SuperflatPreset settings = ((SuperflatGenerator) dim.getGenerator()).getSettings();
                         final List<SuperflatPreset.Layer> layers = new ArrayList<>(settings.getLayers());
-                        final int currentHeight = layers.stream().mapToInt(SuperflatPreset.Layer::getThickness).sum();
                         if (raiseBy > 0) {
                             // Insert deepslate to raise the Superflat terrain up. Skip the lowest layer
                             // if that is bedrock, so that bedrock remains at the bottom. If the lowest

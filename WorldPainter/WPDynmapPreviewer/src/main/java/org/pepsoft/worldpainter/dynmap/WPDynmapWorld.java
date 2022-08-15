@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
+import static org.pepsoft.worldpainter.Constants.DIM_NETHER;
 
 /**
  * A {@link DynmapWorld} implementation which wraps a {@link MinecraftWorld} for
@@ -36,7 +37,7 @@ public class WPDynmapWorld extends DynmapWorld {
 
     @Override
     public boolean isNether() {
-        return dim == Constants.DIM_NETHER || dim == Constants.DIM_NETHER_CEILING;
+        return dim == DIM_NETHER;
     }
 
     @Override
@@ -93,13 +94,10 @@ public class WPDynmapWorld extends DynmapWorld {
     public String getEnvironment() {
         switch (dim) {
             case Constants.DIM_NORMAL:
-            case Constants.DIM_NORMAL_CEILING:
                 return "normal";
             case Constants.DIM_END:
-            case Constants.DIM_END_CEILING:
                 return "the_end";
-            case Constants.DIM_NETHER:
-            case Constants.DIM_NETHER_CEILING:
+            case DIM_NETHER:
                 return "nether";
             default:
                 throw new IllegalArgumentException("Dimension " + dim + " not supported");
@@ -121,7 +119,7 @@ public class WPDynmapWorld extends DynmapWorld {
         }
         World2 wpWorld = dimension.getWorld();
         Point spawnPoint = wpWorld.getSpawnPoint();
-        return forMinecraftWorld(minecraftWorld, wpWorld.getName() + " - " + dimension.getName(), dimension.getDim(), waterLevel, new Point3i(spawnPoint.x, spawnPoint.y, dimension.getIntHeightAt(spawnPoint.x, spawnPoint.y)));
+        return forMinecraftWorld(minecraftWorld, wpWorld.getName() + " - " + dimension.getName(), dimension.getAnchor().dim, waterLevel, new Point3i(spawnPoint.x, spawnPoint.y, dimension.getIntHeightAt(spawnPoint.x, spawnPoint.y)));
     }
 
     public static WPDynmapWorld forMinecraftMap(File worldDir, int dim) throws IOException {

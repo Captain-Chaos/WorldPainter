@@ -33,8 +33,8 @@ import java.util.List;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
-import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_17;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 
 /**
  * A utility class for generating previews of layers. It renders a layer to a
@@ -52,7 +52,7 @@ public class LayerPreviewCreator {
         final TileFactory tileFactory = subterranean
                 ? TileFactoryFactory.createNoiseTileFactory(seed, Terrain.BARE_GRASS, JAVA_ANVIL_1_17.minZ, previewHeight, 56, DEFAULT_WATER_LEVEL, false, true, 20f, 0.5)
                 : TileFactoryFactory.createNoiseTileFactory(seed, Terrain.BARE_GRASS, JAVA_ANVIL_1_17.minZ, previewHeight, 8, 14, false, true, 20f, 0.5);
-        final Dimension dimension = new World2(DefaultPlugin.JAVA_MCREGION, seed, tileFactory).getDimension(DIM_NORMAL);
+        final Dimension dimension = new World2(DefaultPlugin.JAVA_MCREGION, seed, tileFactory).getDimension(NORMAL_DETAIL);
         dimension.setSubsurfaceMaterial(Terrain.STONE);
         final MinecraftWorldObject minecraftWorldObject = new MinecraftWorldObject(layer.getName() + " Preview", new Box(-8, 136, -8, 136, 0, previewHeight), previewHeight, null, new Point3i(-64, -64, 0));
         long now = System.currentTimeMillis();
@@ -291,7 +291,7 @@ public class LayerPreviewCreator {
         }
         Configuration.setInstance(config);
         WPPluginManager.initialise(config.getUuid());
-        Dimension dimension = WorldFactory.createDefaultWorldWithoutTiles(config, 0L).getDimension(DIM_NORMAL);
+        Dimension dimension = WorldFactory.createDefaultWorldWithoutTiles(config, 0L).getDimension(NORMAL_DETAIL);
 
         for (Layer layer: LayerManager.getInstance().getLayers()) {
 //            Layer layer = Caverns.INSTANCE;

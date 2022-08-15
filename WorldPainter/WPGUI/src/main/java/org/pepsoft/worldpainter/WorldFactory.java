@@ -28,6 +28,7 @@ import java.util.TreeMap;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 import static org.pepsoft.worldpainter.World2.DEFAULT_OCEAN_SEED;
 import static org.pepsoft.worldpainter.util.MathUtils.getLargestDistanceFromOrigin;
@@ -53,7 +54,7 @@ public final class WorldFactory {
         final int radius = config.getDefaultWidth() * 64;
 //            final boolean circularWorld = true;
 //            final int radius = 750;
-        final Dimension dim0 = world.getDimension(0);
+        final Dimension dim0 = world.getDimension(NORMAL_DETAIL);
         final TileFactory tileFactory = dim0.getTileFactory();
         dim0.setEventsInhibited(true);
         try {
@@ -145,7 +146,7 @@ public final class WorldFactory {
         world.setGameType(config.getDefaultGameType());
         world.setAllowCheats(config.isDefaultAllowCheats());
         
-        final Dimension dim0 = world.getDimension(0);
+        final Dimension dim0 = world.getDimension(NORMAL_DETAIL);
         dim0.setEventsInhibited(true);
         try {
             dim0.setBorder(defaults.getBorder());
@@ -185,7 +186,7 @@ public final class WorldFactory {
         world.setMixedMaterial(1, new MixedMaterial("Stone/Gravel", new Row[] {new Row(Material.STONE, 750, 1.0f), new Row(Material.GRAVEL, 250, 1.0f)}, Minecraft1_2BiomeScheme.BIOME_PLAINS, null, 1.0f));
         final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings");
         world.setName(strings.getString("generated.world"));
-        final Dimension dim0 = world.getDimension(0);
+        final Dimension dim0 = world.getDimension(NORMAL_DETAIL);
         if (config.getDefaultMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL) {
             dim0.setGenerator(new SeededGenerator(LARGE_BIOMES, DEFAULT_OCEAN_SEED));
         }

@@ -15,13 +15,12 @@ import java.io.IOException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
@@ -126,9 +125,11 @@ public class ExportTester extends RegressionIT {
         verifyJavaWorld(mapDir, (world.getPlatform() == JAVA_MCREGION)? Constants.VERSION_MCREGION : Constants.VERSION_ANVIL);
         final Collection<Dimension> dimensions;
         if (world.getDimensionsToExport() != null) {
-            dimensions = world.getDimensionsToExport().stream().map(world::getDimension).collect(Collectors.toSet());
+            dimensions = world.getDimensions().stream()
+                    .filter(dimension -> world.getDimensionsToExport().contains(dimension.getAnchor().dim))
+                    .collect(toSet());
         } else {
-            dimensions = Arrays.asList(world.getDimensions());
+            dimensions = world.getDimensions();
         }
         for (Dimension dimension: dimensions) {
             // Gather some blocks which really should exist in the exported map. This is a bit of a gamble though

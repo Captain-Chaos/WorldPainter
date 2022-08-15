@@ -77,8 +77,8 @@ public class RegressionIT {
                 File anvil115worldDir = exportDimension(dimension, tmpBaseDir);
                 logger.info("Comparing dimension " + dimension.getName());
                 Rectangle area = new Rectangle(dimension.getLowestX() << 5, dimension.getLowestY() << 5, dimension.getWidth() << 5, dimension.getHeight() << 5);
-                try (MinecraftWorld anvil12World = new JavaMinecraftWorld(anvil12worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL, true, 256);
-                     MinecraftWorld anvil115World = new JavaMinecraftWorld(anvil115worldDir, dimension.getDim(), dimension.getMaxHeight(), JAVA_ANVIL_1_15, true, 256)) {
+                try (MinecraftWorld anvil12World = new JavaMinecraftWorld(anvil12worldDir, dimension.getAnchor().dim, dimension.getMaxHeight(), JAVA_ANVIL, true, 256);
+                     MinecraftWorld anvil115World = new JavaMinecraftWorld(anvil115worldDir, dimension.getAnchor().dim, dimension.getMaxHeight(), JAVA_ANVIL_1_15, true, 256)) {
                     MinecraftWorldUtils.assertEquals("Anvil 1.2", anvil12World, "Anvil 1.15", anvil115World, area);
                 }
             } finally {
@@ -114,7 +114,7 @@ public class RegressionIT {
 
         // Export
         logger.info("Exporting dimension {} of world {}", dimension.getName(), world.getName());
-        world.setDimensionsToExport(singleton(dimension.getDim()));
+        world.setDimensionsToExport(singleton(dimension.getAnchor().dim));
         JavaWorldExporter worldExporter = new JavaWorldExporter(world);
         String name = world.getName() + "-" + world.getPlatform().id;
         worldExporter.export(baseDir, name, null, null);
@@ -178,7 +178,7 @@ public class RegressionIT {
         int[] lowestChunkX = {Integer.MAX_VALUE}, highestChunkX = {Integer.MIN_VALUE};
         int[] lowestChunkZ = {Integer.MAX_VALUE}, highestChunkZ = {Integer.MIN_VALUE};
         Set<Material> materials = new HashSet<>();
-        ChunkStore chunkStore = platformProvider.getChunkStore(platform, worldDir, dimension.getDim());
+        ChunkStore chunkStore = platformProvider.getChunkStore(platform, worldDir, dimension.getAnchor().dim);
         chunkStore.visitChunks(chunk -> {
             if (chunk.getxPos() < lowestChunkX[0]) {
                 lowestChunkX[0] = chunk.getxPos();

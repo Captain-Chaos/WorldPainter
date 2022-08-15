@@ -19,6 +19,7 @@ import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.util.swing.RemoteJCheckBox;
 import org.pepsoft.util.swing.TiledImageViewerContainer;
 import org.pepsoft.util.undo.UndoManager;
+import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.biomeschemes.*;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager.CustomBiomeListener;
 import org.pepsoft.worldpainter.brushes.BitmapBrush;
@@ -109,6 +110,7 @@ import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.ProgressDialog.NO_FOCUS_STEALING;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Dimension.Anchor.*;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.Terrain.*;
@@ -357,7 +359,7 @@ public final class App extends JFrame implements RadiusControl,
             // Reloading the same world; no need to do anything other than
             // to reload the dimension
             if (dimension != null) {
-                setDimension(world.getDimension(dimension.getDim()));
+                setDimension(world.getDimension(dimension.getAnchor()));
             }
         } else {
             this.world = world;
@@ -383,7 +385,7 @@ public final class App extends JFrame implements RadiusControl,
                 dockingManager.loadLayoutFrom(new ByteArrayInputStream(config.getJideLayoutData().get(world.getName())));
             }
 
-            setDimension(world.getDimension(DIM_NORMAL));
+            setDimension(world.getDimension(NORMAL_DETAIL));
 
             if (config.isDefaultViewDistanceEnabled() != view.isDrawViewDistance()) {
                 ACTION_VIEW_DISTANCE.actionPerformed(null);
@@ -429,27 +431,8 @@ public final class App extends JFrame implements RadiusControl,
                 // Keep the view position of the opposite dimension, if any,
                 // in sync
                 if (world != null) {
-                    Dimension oppositeDimension = null;
-                    switch (this.dimension.getDim()) {
-                        case DIM_NORMAL:
-                            oppositeDimension = world.getDimension(DIM_NORMAL_CEILING);
-                            break;
-                        case DIM_NORMAL_CEILING:
-                            oppositeDimension = world.getDimension(DIM_NORMAL);
-                            break;
-                        case DIM_NETHER:
-                            oppositeDimension = world.getDimension(DIM_NETHER_CEILING);
-                            break;
-                        case DIM_NETHER_CEILING:
-                            oppositeDimension = world.getDimension(DIM_NETHER);
-                            break;
-                        case DIM_END:
-                            oppositeDimension = world.getDimension(DIM_END_CEILING);
-                            break;
-                        case DIM_END_CEILING:
-                            oppositeDimension = world.getDimension(DIM_END);
-                            break;
-                    }
+                    final Anchor anchor = this.dimension.getAnchor();
+                    final Dimension oppositeDimension = world.getDimension(new Anchor(anchor.dim, anchor.role, ! anchor.invert, 0));
                     if (oppositeDimension != null) {
                         oppositeDimension.setLastViewPosition(viewPosition);
                     }
@@ -496,12 +479,13 @@ public final class App extends JFrame implements RadiusControl,
         this.dimension = dimension;
         if (dimension != null) {
             setTitle("WorldPainter - " + world.getName() + " - " + dimension.getName()); // NOI18N
-            viewSurfaceMenuItem.setSelected(dimension.getDim() == DIM_NORMAL);
-            viewSurfaceCeilingMenuItem.setSelected(dimension.getDim() == DIM_NORMAL_CEILING);
-            viewNetherMenuItem.setSelected(dimension.getDim() == DIM_NETHER);
-            viewNetherCeilingMenuItem.setSelected(dimension.getDim() == DIM_NETHER_CEILING);
-            viewEndMenuItem.setSelected(dimension.getDim() == DIM_END);
-            viewEndCeilingMenuItem.setSelected(dimension.getDim() == DIM_END_CEILING);
+            final Anchor anchor = dimension.getAnchor();
+            viewSurfaceMenuItem.setSelected((anchor.dim == DIM_NORMAL) && (! anchor.invert));
+            viewSurfaceCeilingMenuItem.setSelected((anchor.dim == DIM_NORMAL) && anchor.invert);
+            viewNetherMenuItem.setSelected((anchor.dim == DIM_NETHER) && (! anchor.invert));
+            viewNetherCeilingMenuItem.setSelected((anchor.dim == DIM_NETHER) && anchor.invert);
+            viewEndMenuItem.setSelected((anchor.dim == DIM_END) && (! anchor.invert));
+            viewEndCeilingMenuItem.setSelected((anchor.dim == DIM_END) && anchor.invert);
 
             // Legacy: if this is an older world with an overlay enabled, ask
             // the user if we should fix the coordinates (ask because they might
@@ -526,7 +510,7 @@ public final class App extends JFrame implements RadiusControl,
             view.moveTo(dimension.getLastViewPosition());
             
             configureForPlatform();
-            currentUndoManager = undoManagers.get(dimension.getDim());
+            currentUndoManager = undoManagers.get(anchor.dim);
             if (currentUndoManager == null) {
                 if ((! "true".equals(System.getProperty("org.pepsoft.worldpainter.disableUndo"))) && config.isUndoEnabled()) {
                     currentUndoManager = new UndoManager(ACTION_UNDO, ACTION_REDO, Math.max(config.getUndoLevels() + 1, 2));
@@ -538,7 +522,7 @@ public final class App extends JFrame implements RadiusControl,
                     ACTION_REDO.setEnabled(false);
                 }
                 currentUndoManager.setStopAtClasses(PropertyChangeListener.class, Tile.Listener.class, Biome.class, BetterAction.class);
-                undoManagers.put(dimension.getDim(), currentUndoManager);
+                undoManagers.put(anchor.dim, currentUndoManager);
                 dimension.register(currentUndoManager);
             } else if ((!"true".equals(System.getProperty("org.pepsoft.worldpainter.disableUndo"))) && config.isUndoEnabled()) {
                 currentUndoManager.registerActions(ACTION_UNDO, ACTION_REDO);
@@ -936,15 +920,15 @@ public final class App extends JFrame implements RadiusControl,
         Configuration config = Configuration.getInstance();
         EventVO event = new EventVO(EVENT_KEY_ACTION_OPEN_WORLD).addTimestamp();
         event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, newWorld.getMaxHeight());
-        Dimension loadedDimension = newWorld.getDimension(0);
+        Dimension loadedDimension = newWorld.getDimension(NORMAL_DETAIL);
         event.setAttribute(ATTRIBUTE_KEY_TILES, loadedDimension.getTileCount());
         logLayers(loadedDimension, event, "");
-        loadedDimension = newWorld.getDimension(1);
+        loadedDimension = newWorld.getDimension(NETHER_DETAIL);
         if (loadedDimension != null) {
             event.setAttribute(ATTRIBUTE_KEY_NETHER_TILES, loadedDimension.getTileCount());
             logLayers(loadedDimension, event, "nether.");
         }
-        loadedDimension = newWorld.getDimension(2);
+        loadedDimension = newWorld.getDimension(END_DETAIL);
         if (loadedDimension != null) {
             event.setAttribute(ATTRIBUTE_KEY_END_TILES, loadedDimension.getTileCount());
             logLayers(loadedDimension, event, "end.");
@@ -1129,7 +1113,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         view.setInhibitUpdates(true);
         try {
-            ShiftWorldDialog dialog = new ShiftWorldDialog(parent, world, dimension.getDim());
+            ShiftWorldDialog dialog = new ShiftWorldDialog(parent, world, dimension.getAnchor());
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 currentUndoManager.armSavePoint();
@@ -1148,7 +1132,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         view.setInhibitUpdates(true);
         try {
-            RotateWorldDialog dialog = new RotateWorldDialog(parent, world, dimension.getDim());
+            RotateWorldDialog dialog = new RotateWorldDialog(parent, world, dimension.getAnchor());
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 currentUndoManager.armSavePoint();
@@ -1167,7 +1151,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         view.setInhibitUpdates(true);
         try {
-            ScaleWorldDialog dialog = new ScaleWorldDialog(parent, world, dimension.getDim());
+            ScaleWorldDialog dialog = new ScaleWorldDialog(parent, world, dimension.getAnchor());
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 currentUndoManager.armSavePoint();
@@ -1954,7 +1938,7 @@ public final class App extends JFrame implements RadiusControl,
             return;
         }
         Configuration config = Configuration.getInstance();
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, strings.getString("generated.world"), DEFAULT_OCEAN_SEED, config.getDefaultPlatform(), DIM_NORMAL, config.getDefaultMaxHeight(), null);
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, strings.getString("generated.world"), DEFAULT_OCEAN_SEED, config.getDefaultPlatform(), NORMAL_DETAIL, config.getDefaultMaxHeight(), null);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             clearWorld(); // Free up memory of the world and the undo buffer
@@ -1980,7 +1964,7 @@ public final class App extends JFrame implements RadiusControl,
             // Log an event
             EventVO event = new EventVO(EVENT_KEY_ACTION_NEW_WORLD).addTimestamp();
             event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, newWorld.getMaxHeight());
-            event.setAttribute(ATTRIBUTE_KEY_TILES, newWorld.getDimension(0).getTileCount());
+            event.setAttribute(ATTRIBUTE_KEY_TILES, newWorld.getDimension(NORMAL_DETAIL).getTileCount());
             config.logEvent(event);
 
             setWorld(newWorld, true);
@@ -2246,15 +2230,15 @@ public final class App extends JFrame implements RadiusControl,
             // Log an event
             EventVO event = new EventVO(EVENT_KEY_ACTION_SAVE_WORLD).addTimestamp();
             event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
-            Dimension loadedDimension = world.getDimension(0);
+            Dimension loadedDimension = world.getDimension(NORMAL_DETAIL);
             event.setAttribute(ATTRIBUTE_KEY_TILES, loadedDimension.getTileCount());
             logLayers(loadedDimension, event, "");
-            loadedDimension = world.getDimension(1);
+            loadedDimension = world.getDimension(NETHER_DETAIL);
             if (loadedDimension != null) {
                 event.setAttribute(ATTRIBUTE_KEY_NETHER_TILES, loadedDimension.getTileCount());
                 logLayers(loadedDimension, event, "nether.");
             }
-            loadedDimension = world.getDimension(2);
+            loadedDimension = world.getDimension(END_DETAIL);
             if (loadedDimension != null) {
                 event.setAttribute(ATTRIBUTE_KEY_END_TILES, loadedDimension.getTileCount());
                 logLayers(loadedDimension, event, "end.");
@@ -4264,38 +4248,38 @@ public final class App extends JFrame implements RadiusControl,
         menu.addSeparator();
         
         viewSurfaceMenuItem = new JCheckBoxMenuItem(strings.getString("view.surface"), true);
-        viewSurfaceMenuItem.addActionListener(e -> viewDimension(DIM_NORMAL));
+        viewSurfaceMenuItem.addActionListener(e -> viewDimension(NORMAL_DETAIL));
         viewSurfaceMenuItem.setMnemonic('s');
         viewSurfaceMenuItem.setAccelerator(KeyStroke.getKeyStroke(VK_U, PLATFORM_COMMAND_MASK));
         viewSurfaceMenuItem.setEnabled(false);
         menu.add(viewSurfaceMenuItem);
 
         viewSurfaceCeilingMenuItem = new JCheckBoxMenuItem("View Surface Ceiling", false);
-        viewSurfaceCeilingMenuItem.addActionListener(e -> viewDimension(DIM_NORMAL_CEILING));
+        viewSurfaceCeilingMenuItem.addActionListener(e -> viewDimension(NORMAL_DETAIL_CEILING));
         viewSurfaceCeilingMenuItem.setEnabled(false);
         menu.add(viewSurfaceCeilingMenuItem);
 
         viewNetherMenuItem = new JCheckBoxMenuItem(strings.getString("view.nether"), false);
-        viewNetherMenuItem.addActionListener(e -> viewDimension(DIM_NETHER));
+        viewNetherMenuItem.addActionListener(e -> viewDimension(NETHER_DETAIL));
         viewNetherMenuItem.setMnemonic('n');
         viewNetherMenuItem.setAccelerator(KeyStroke.getKeyStroke(VK_H, PLATFORM_COMMAND_MASK));
         viewNetherMenuItem.setEnabled(false);
         menu.add(viewNetherMenuItem);
 
         viewNetherCeilingMenuItem = new JCheckBoxMenuItem("View Nether Ceiling", false);
-        viewNetherCeilingMenuItem.addActionListener(e -> viewDimension(DIM_NETHER_CEILING));
+        viewNetherCeilingMenuItem.addActionListener(e -> viewDimension(NETHER_DETAIL_CEILING));
         viewNetherCeilingMenuItem.setEnabled(false);
         menu.add(viewNetherCeilingMenuItem);
 
         viewEndMenuItem = new JCheckBoxMenuItem(strings.getString("view.end"), false);
-        viewEndMenuItem.addActionListener(e -> viewDimension(DIM_END));
+        viewEndMenuItem.addActionListener(e -> viewDimension(END_DETAIL));
         viewEndMenuItem.setMnemonic('e');
         viewEndMenuItem.setAccelerator(KeyStroke.getKeyStroke(VK_D, PLATFORM_COMMAND_MASK));
         viewEndMenuItem.setEnabled(false);
         menu.add(viewEndMenuItem);
 
         viewEndCeilingMenuItem = new JCheckBoxMenuItem("View End Ceiling", false);
-        viewEndCeilingMenuItem.addActionListener(e -> viewDimension(DIM_END_CEILING));
+        viewEndCeilingMenuItem.addActionListener(e -> viewDimension(END_DETAIL_CEILING));
         viewEndCeilingMenuItem.setEnabled(false);
         menu.add(viewEndCeilingMenuItem);
 
@@ -4466,7 +4450,7 @@ public final class App extends JFrame implements RadiusControl,
                 biomesViewerFrame.requestFocus();
             } else {
                 int preferredAlgorithm = -1;
-                if ((dimension != null) && (dimension.getDim() == DIM_NORMAL) && (dimension.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL)) {
+                if ((dimension != null) && (dimension.getAnchor().dim == DIM_NORMAL) && (dimension.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL)) {
                     if (dimension.getGenerator().getType() == LARGE_BIOMES) {
                         preferredAlgorithm = BIOME_ALGORITHM_1_7_LARGE;
                     } else {
@@ -4582,8 +4566,8 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void addSurfaceCeiling() {
-        final Dimension surface = world.getDimension(DIM_NORMAL);
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), surface.getSeed() + 3, world.getPlatform(), DIM_NORMAL_CEILING, surface.getMaxHeight(), surface, surface.getTileCoords());
+        final Dimension surface = world.getDimension(NORMAL_DETAIL);
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), surface.getSeed() + 3, world.getPlatform(), NORMAL_DETAIL_CEILING, surface.getMaxHeight(), surface, surface.getTileCoords());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4611,12 +4595,12 @@ public final class App extends JFrame implements RadiusControl,
 
     private void removeSurfaceCeiling() {
         if (showConfirmDialog(this, "Are you sure you want to completely remove the Surface ceiling?\nThis action cannot be undone!", "Confirm Surface Ceiling Deletion", YES_NO_OPTION) == YES_OPTION) {
-            world.removeDimension(DIM_NORMAL_CEILING);
-            if ((dimension != null) && (dimension.getDim() == DIM_NORMAL_CEILING)) {
-                viewDimension(DIM_NORMAL);
+            world.removeDimension(NORMAL_DETAIL_CEILING);
+            if ((dimension != null) && (dimension.getAnchor().equals(NORMAL_DETAIL_CEILING))) {
+                viewDimension(NORMAL_DETAIL);
             } else {
                 configureForPlatform();
-                if (dimension.getDim() == DIM_NORMAL) {
+                if (dimension.getAnchor().dim == DIM_NORMAL) {
                     view.refreshTiles();
                 }
             }
@@ -4625,8 +4609,8 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void addNetherCeiling() {
-        final Dimension nether = world.getDimension(DIM_NETHER);
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), nether.getSeed() + 1, world.getPlatform(), DIM_NETHER_CEILING, nether.getMaxHeight(), nether, nether.getTileCoords());
+        final Dimension nether = world.getDimension(NETHER_DETAIL);
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), nether.getSeed() + 1, world.getPlatform(), NETHER_DETAIL_CEILING, nether.getMaxHeight(), nether, nether.getTileCoords());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4654,12 +4638,12 @@ public final class App extends JFrame implements RadiusControl,
 
     private void removeNetherCeiling() {
         if (showConfirmDialog(this, "Are you sure you want to completely remove the Nether ceiling?\nThis action cannot be undone!", "Confirm Nether Ceiling Deletion", YES_NO_OPTION) == YES_OPTION) {
-            world.removeDimension(DIM_NETHER_CEILING);
-            if ((dimension != null) && (dimension.getDim() == DIM_NETHER_CEILING)) {
-                viewDimension(DIM_NETHER);
+            world.removeDimension(NETHER_DETAIL_CEILING);
+            if ((dimension != null) && (dimension.getAnchor().equals(NETHER_DETAIL_CEILING))) {
+                viewDimension(NETHER_DETAIL);
             } else {
                 configureForPlatform();
-                if (dimension.getDim() == DIM_NETHER) {
+                if (dimension.getAnchor().dim == DIM_NETHER) {
                     view.refreshTiles();
                 }
             }
@@ -4668,8 +4652,8 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void addEndCeiling() {
-        final Dimension end = world.getDimension(DIM_END);
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), end.getSeed() + 1, world.getPlatform(), DIM_END_CEILING, end.getMaxHeight(), end, end.getTileCoords());
+        final Dimension end = world.getDimension(END_DETAIL);
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), end.getSeed() + 1, world.getPlatform(), END_DETAIL_CEILING, end.getMaxHeight(), end, end.getTileCoords());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4697,12 +4681,12 @@ public final class App extends JFrame implements RadiusControl,
 
     private void removeEndCeiling() {
         if (showConfirmDialog(this, "Are you sure you want to completely remove the End ceiling?\nThis action cannot be undone!", "Confirm End Ceiling Deletion", YES_NO_OPTION) == YES_OPTION) {
-            world.removeDimension(DIM_END_CEILING);
-            if ((dimension != null) && (dimension.getDim() == DIM_END_CEILING)) {
-                viewDimension(DIM_END);
+            world.removeDimension(END_DETAIL_CEILING);
+            if ((dimension != null) && (dimension.getAnchor().equals(END_DETAIL_CEILING))) {
+                viewDimension(END_DETAIL);
             } else {
                 configureForPlatform();
-                if (dimension.getDim() == DIM_END) {
+                if (dimension.getAnchor().dim == DIM_END) {
                     view.refreshTiles();
                 }
             }
@@ -4845,8 +4829,8 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void addNether() {
-        final Dimension surface = world.getDimension(DIM_NORMAL);
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), surface.getSeed() + 1, world.getPlatform(), DIM_NETHER, Math.min(world.getMaxHeight(), DEFAULT_MAX_HEIGHT_NETHER), surface);
+        final Dimension surface = world.getDimension(NORMAL_DETAIL);
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), surface.getSeed() + 1, world.getPlatform(), NETHER_DETAIL, Math.min(world.getMaxHeight(), DEFAULT_MAX_HEIGHT_NETHER), surface);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4876,12 +4860,12 @@ public final class App extends JFrame implements RadiusControl,
 
     private void removeNether() {
         if (showConfirmDialog(this, "Are you sure you want to completely remove the Nether dimension?\nThis action cannot be undone!", "Confirm Nether Deletion", YES_NO_OPTION) == YES_OPTION) {
-            world.removeDimension(DIM_NETHER);
-            if (world.getDimension(DIM_NETHER_CEILING) != null) {
-                world.removeDimension(DIM_NETHER_CEILING);
+            world.removeDimension(NETHER_DETAIL);
+            if (world.getDimension(NETHER_DETAIL_CEILING) != null) {
+                world.removeDimension(NETHER_DETAIL_CEILING);
             }
-            if ((dimension != null) && ((dimension.getDim() == DIM_NETHER) || (dimension.getDim() == DIM_NETHER_CEILING))) {
-                viewDimension(DIM_NORMAL);
+            if ((dimension != null) && (dimension.getAnchor().dim == DIM_NETHER)) {
+                viewDimension(NORMAL_DETAIL);
             } else {
                 configureForPlatform();
             }
@@ -4890,8 +4874,8 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void addEnd() {
-        final Dimension surface = world.getDimension(DIM_NORMAL);
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), surface.getSeed() + 2, world.getPlatform(), DIM_END, Math.min(world.getMaxHeight(), DEFAULT_MAX_HEIGHT_END), surface);
+        final Dimension surface = world.getDimension(NORMAL_DETAIL);
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), surface.getSeed() + 2, world.getPlatform(), END_DETAIL, Math.min(world.getMaxHeight(), DEFAULT_MAX_HEIGHT_END), surface);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -4919,12 +4903,12 @@ public final class App extends JFrame implements RadiusControl,
 
     private void removeEnd() {
         if (showConfirmDialog(this, "Are you sure you want to completely remove the End dimension?\nThis action cannot be undone!", "Confirm End Deletion", YES_NO_OPTION) == YES_OPTION) {
-            world.removeDimension(DIM_END);
-            if (world.getDimension(DIM_END_CEILING) != null) {
-                world.removeDimension(DIM_END_CEILING);
+            world.removeDimension(END_DETAIL);
+            if (world.getDimension(END_DETAIL_CEILING) != null) {
+                world.removeDimension(END_DETAIL_CEILING);
             }
-            if ((dimension != null) && ((dimension.getDim() == DIM_END) || (dimension.getDim() == DIM_END_CEILING))) {
-                viewDimension(DIM_NORMAL);
+            if ((dimension != null) && (dimension.getAnchor().dim == DIM_END)) {
+                viewDimension(NORMAL_DETAIL);
             } else {
                 configureForPlatform();
             }
@@ -4932,9 +4916,9 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    private void viewDimension(int dim) {
-        if (dim != dimension.getDim()) {
-            setDimension(world.getDimension(dim));
+    private void viewDimension(Anchor anchor) {
+        if (! anchor.equals(dimension.getAnchor())) {
+            setDimension(world.getDimension(anchor));
         }
     }
     
@@ -5372,11 +5356,11 @@ public final class App extends JFrame implements RadiusControl,
     private void configureForPlatform() {
         final Platform platform = world.getPlatform();
         boolean imported = (world != null) && (world.getImportedFrom() != null);
-        boolean nether = (world != null) && (world.getDimension(DIM_NETHER) != null);
-        boolean end = (world != null) && (world.getDimension(DIM_END) != null);
-        boolean surfaceCeiling = (world != null) && (world.getDimension(DIM_NORMAL_CEILING) != null);
-        boolean netherCeiling = (world != null) && (world.getDimension(DIM_NETHER_CEILING) != null);
-        boolean endCeiling = (world != null) && (world.getDimension(DIM_END_CEILING) != null);
+        boolean nether = (world != null) && (world.getDimension(NETHER_DETAIL) != null);
+        boolean end = (world != null) && (world.getDimension(END_DETAIL) != null);
+        boolean surfaceCeiling = (world != null) && (world.getDimension(NORMAL_DETAIL_CEILING) != null);
+        boolean netherCeiling = (world != null) && (world.getDimension(NETHER_DETAIL_CEILING) != null);
+        boolean endCeiling = (world != null) && (world.getDimension(END_DETAIL_CEILING) != null);
         biomeHelper = new BiomeHelper(selectedColourScheme, customBiomeManager, platform);
         addNetherMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_NETHER) && (! imported) && (! nether));
         removeNetherMenuItem.setEnabled(nether);
@@ -5395,16 +5379,15 @@ public final class App extends JFrame implements RadiusControl,
         addEndCeilingMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_END) && end && (! endCeiling));
         removeEndCeilingMenuItem.setEnabled(endCeiling);
         if (dimension != null) {
-            final boolean biomesSupported = (dimension.getDim() >= 0) && platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
+            final boolean biomesSupported = (! dimension.getAnchor().invert) && platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
             if ((! biomesSupported) && (paint instanceof DiscreteLayerPaint) && (((DiscreteLayerPaint) paint).getLayer() == Biome.INSTANCE)) {
                 deselectPaint();
             }
             biomesPanelFrame.setEnabled(biomesSupported);
             // TODO deselect biomes panel if it was selected
             layerControls.get(Biome.INSTANCE).setEnabled(biomesSupported);
-            switch (dimension.getDim()) {
+            switch (dimension.getAnchor().dim) {
                 case DIM_NORMAL:
-                case DIM_NORMAL_CEILING:
                     setSpawnPointToggleButton.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
                     ACTION_MOVE_TO_SPAWN.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
                     break;
@@ -5499,7 +5482,7 @@ public final class App extends JFrame implements RadiusControl,
         Terrain customTerrain = Terrain.getCustomTerrain(index);
         MixedMaterial mixedMaterial = getCustomMaterial(index);
         String name = mixedMaterial.getName();
-        Set<Terrain> allTerrains = ProgressDialog.executeTask(this, "Checking whether terrain is in use", () -> Arrays.stream(world.getDimensions())
+        Set<Terrain> allTerrains = ProgressDialog.executeTask(this, "Checking whether terrain is in use", () -> world.getDimensions().stream()
                 .parallel()
                 .flatMap(dim -> dim.getAllTerrains().parallelStream())
                 .collect(toSet()), NOT_CANCELABLE);
@@ -5635,7 +5618,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         sb.append(')');
         final String description = sb.toString();
-        String defaultname = world.getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getDim() == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + ".png"; // NOI18N
+        String defaultname = world.getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getAnchor().dim == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + ".png"; // NOI18N
         File selectedFile = FileUtils.selectFileForSave(App.this, "Export as image file", new File(defaultname), new FileFilter() {
             @Override
             public boolean accept(File f) {
@@ -5714,7 +5697,7 @@ public final class App extends JFrame implements RadiusControl,
         sb.append(')');
         final String description = sb.toString();
         final String defaultExtension = extensions.get(0);
-        String defaultname = world.getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getDim() == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + (highRes ? "_high-res-heightmap." + defaultExtension : "_heightmap." + defaultExtension); // NOI18N
+        String defaultname = world.getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getAnchor().dim == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + (highRes ? "_high-res-heightmap." + defaultExtension : "_heightmap." + defaultExtension); // NOI18N
         Configuration config = Configuration.getInstance();
         File dir = config.getHeightMapsDirectory();
         if ((dir == null) || (! dir.isDirectory())) {
@@ -6983,27 +6966,8 @@ public final class App extends JFrame implements RadiusControl,
         @Override
         public void performAction(ActionEvent e) {
             if ((dimension != null) && (world != null)) {
-                Dimension oppositeDimension = null;
-                switch (dimension.getDim()) {
-                    case DIM_NORMAL:
-                        oppositeDimension = world.getDimension(DIM_NORMAL_CEILING);
-                        break;
-                    case DIM_NORMAL_CEILING:
-                        oppositeDimension = world.getDimension(DIM_NORMAL);
-                        break;
-                    case DIM_NETHER:
-                        oppositeDimension = world.getDimension(DIM_NETHER_CEILING);
-                        break;
-                    case DIM_NETHER_CEILING:
-                        oppositeDimension = world.getDimension(DIM_NETHER);
-                        break;
-                    case DIM_END:
-                        oppositeDimension = world.getDimension(DIM_END_CEILING);
-                        break;
-                    case DIM_END_CEILING:
-                        oppositeDimension = world.getDimension(DIM_END);
-                        break;
-                }
+                final Anchor anchor = dimension.getAnchor();
+                final Dimension oppositeDimension = world.getDimension(new Anchor(anchor.dim, anchor.role, ! anchor.invert, 0));
                 if (oppositeDimension != null) {
                     setDimension(oppositeDimension);
                     return;

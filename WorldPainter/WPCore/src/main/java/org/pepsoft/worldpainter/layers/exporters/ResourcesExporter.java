@@ -35,7 +35,7 @@ import static org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.Resour
  */
 public class ResourcesExporter extends AbstractLayerExporter<Resources> implements FirstPassLayerExporter {
     public ResourcesExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
-        super(dimension, platform, (settings != null) ? settings : defaultSettings(platform, dimension.getDim(), dimension.getMaxHeight()), Resources.INSTANCE);
+        super(dimension, platform, (settings != null) ? settings : defaultSettings(platform, dimension.getAnchor().dim, dimension.getMaxHeight()), Resources.INSTANCE);
         final ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) super.settings;
         final Set<Material> allMaterials = resourcesSettings.getMaterials();
         final List<Material> activeMaterials = new ArrayList<>(allMaterials.size());
@@ -72,7 +72,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
         final int minimumLevel = ((ResourcesExporterSettings) super.settings).getMinimumLevel();
         final int xOffset = (chunk.getxPos() & 7) << 4;
         final int zOffset = (chunk.getzPos() & 7) << 4;
-        final boolean coverSteepTerrain = dimension.isCoverSteepTerrain(), nether = (dimension.getDim() == DIM_NETHER);
+        final boolean coverSteepTerrain = dimension.isCoverSteepTerrain(), nether = (dimension.getAnchor().dim == DIM_NETHER);
 //        int[] counts = new int[256];
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
@@ -239,7 +239,6 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
             final Map<Material, ResourceSettings> settings = new HashMap<>();
             switch (dim) {
                 case DIM_NORMAL:
-                case DIM_NORMAL_CEILING:
                     // TODO make these normal distributions or something else more similar to Minecraft
                     settings.put(DIRT,             new ResourceSettings(DIRT,             0            , maxHeight - 1, 57,     random.nextLong()));
                     settings.put(GRAVEL,           new ResourceSettings(GRAVEL,           platform.minZ, maxHeight - 1, 28,     random.nextLong()));
@@ -260,7 +259,6 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                     settings.put(ANCIENT_DEBRIS, new ResourceSettings(ANCIENT_DEBRIS, platform.minZ, maxHeight - 1, 0, random.nextLong()));
                     break;
                 case DIM_NETHER:
-                case DIM_NETHER_CEILING:
                     settings.put(QUARTZ_ORE,     new ResourceSettings(QUARTZ_ORE,     platform.minZ, maxHeight - 1, (platform != JAVA_MCREGION) ?
                                                                                                                     7 : 0, random.nextLong()));
                     settings.put(GOLD_ORE,       new ResourceSettings(GOLD_ORE,       platform.minZ, maxHeight - 1, ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) ?
@@ -281,7 +279,6 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                     settings.put(COPPER_ORE,       new ResourceSettings(COPPER_ORE,       0,             88,            0, random.nextLong()));
                     break;
                 case DIM_END:
-                case DIM_END_CEILING:
                     settings.put(DIRT,             new ResourceSettings(DIRT,             0            , maxHeight - 1, 0, random.nextLong()));
                     settings.put(GRAVEL,           new ResourceSettings(GRAVEL,           platform.minZ, maxHeight - 1, 0, random.nextLong()));
                     settings.put(GOLD_ORE,         new ResourceSettings(GOLD_ORE,         platform.minZ,            31, 0, random.nextLong()));

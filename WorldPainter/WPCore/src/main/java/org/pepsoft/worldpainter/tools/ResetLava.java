@@ -4,19 +4,17 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 import org.pepsoft.worldpainter.Dimension;
-import static org.pepsoft.worldpainter.Constants.*;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
+
+import java.io.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 
 /**
  *
@@ -32,7 +30,7 @@ public class ResetLava {
             world = (World2) in.readObject();
         }
         System.out.println("World loaded");
-        Dimension dim0 = world.getDimension(0);
+        Dimension dim0 = world.getDimension(NORMAL_DETAIL);
         for (Tile tile: dim0.getTiles()) {
             for (int x = 0; x < TILE_SIZE; x++) {
                 for (int y = 0; y < TILE_SIZE; y++) {

@@ -28,8 +28,8 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
-import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
 
 /**
@@ -117,12 +117,7 @@ public class DynMapPreviewer extends TiledImageViewer {
             tileProvider.setAzimuth(azimuth);
             tileProvider.setInclination(inclination);
             tileProvider.setCaves(caves);
-            if (getTileProviderCount() == 0) {
-                // First time
-                addTileProvider(tileProvider);
-            } else {
-                replaceTileProvider(0, tileProvider);
-            }
+            setTileProvider(tileProvider);
         } else {
             tileProvider = null;
             if (getTileProviderCount() > 0) {
@@ -235,7 +230,7 @@ public class DynMapPreviewer extends TiledImageViewer {
         DynMapPreviewer viewer = new DynMapPreviewer();
         WPObject object = CustomObjectManager.getInstance().loadObject(new File(args[0]));
         TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0L, Terrain.GRASS, JAVA_ANVIL_1_15.minZ, JAVA_ANVIL_1_15.standardMaxHeight, 58, DEFAULT_WATER_LEVEL, false, true, 20.0f, 1.0);
-        Dimension dimension = new World2(JAVA_ANVIL_1_15, 0L, tileFactory).getDimension(DIM_NORMAL);
+        Dimension dimension = new World2(JAVA_ANVIL_1_15, 0L, tileFactory).getDimension(NORMAL_DETAIL);
         viewer.setObject(object, dimension);
         frame.getContentPane().add(viewer, BorderLayout.CENTER);
         frame.setSize(800, 600);

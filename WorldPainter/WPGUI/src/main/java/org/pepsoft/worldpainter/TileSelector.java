@@ -222,10 +222,10 @@ public class TileSelector extends javax.swing.JPanel {
     public void setDimension(Dimension dimension) {
         this.dimension = dimension;
         if (dimension != null) {
-            int biomeAlgorithm = -1;
-            if ((dimension.getDim() == DIM_NORMAL) && ((dimension.getBorder() == null) || (! dimension.getBorder().isEndless()))) {
+            if ((dimension.getAnchor().dim == DIM_NORMAL) && ((dimension.getBorder() == null) || (! dimension.getBorder().isEndless()))) {
                 World2 world = dimension.getWorld();
                 if (world != null) {
+                    int biomeAlgorithm = -1;
                     Platform platform = world.getPlatform();
                     if (platform == JAVA_MCREGION) {
                         biomeAlgorithm = BIOME_ALGORITHM_1_1;
@@ -236,12 +236,17 @@ public class TileSelector extends javax.swing.JPanel {
                             biomeAlgorithm = BIOME_ALGORITHM_1_7_LARGE;
                         }
                     }
+                    if (biomeAlgorithm != -1) {
+                        viewer.setTileProvider(-1, new BiomesTileProvider(biomeAlgorithm, dimension.getMinecraftSeed(), colourScheme, 0, true));
+                    }
                 }
             }
-            WPTileProvider tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin, true, (biomeAlgorithm != -1) ? new BiomesTileProvider(biomeAlgorithm, dimension.getMinecraftSeed(), colourScheme, 0, true) : null);
+
+            WPTileProvider tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin, true);
 //            tileProvider.setZoom(zoom);
             viewer.setTileProvider(tileProvider);
-            viewer.setMarkerCoords(((dimension.getDim() == DIM_NORMAL) || (dimension.getDim() == DIM_NORMAL_CEILING)) ? dimension.getWorld().getSpawnPoint() : null);
+
+            viewer.setMarkerCoords((dimension.getAnchor().dim == DIM_NORMAL) ? dimension.getWorld().getSpawnPoint() : null);
             buttonSpawn.setEnabled(true);
 //            moveToCentre();
         } else {
@@ -254,7 +259,7 @@ public class TileSelector extends javax.swing.JPanel {
     }
     
     public void refresh() {
-        if ((dimension != null) && ((dimension.getDim() == DIM_NORMAL) || (dimension.getDim() == DIM_NORMAL_CEILING))) {
+        if ((dimension != null) && (dimension.getAnchor().dim == DIM_NORMAL)) {
             viewer.setMarkerCoords(dimension.getWorld().getSpawnPoint());
         }
         viewer.refresh();

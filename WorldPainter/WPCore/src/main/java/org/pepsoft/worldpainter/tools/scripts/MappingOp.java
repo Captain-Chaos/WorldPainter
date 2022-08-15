@@ -25,6 +25,7 @@
 package org.pepsoft.worldpainter.tools.scripts;
 
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.HeightMap;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.World2;
@@ -41,6 +42,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 
 /**
  *
@@ -111,31 +113,37 @@ public class MappingOp extends AbstractOperation<Void> {
     
     public MappingOp applyToSurface() {
         this.dimIndex = DIM_NORMAL;
+        this.dimInverted = false;
         return this;
     }
     
     public MappingOp applyToNether() {
         this.dimIndex = DIM_NETHER;
+        this.dimInverted = false;
         return this;
     }
     
     public MappingOp applyToEnd() {
         this.dimIndex = DIM_END;
+        this.dimInverted = false;
         return this;
     }
 
     public MappingOp applyToSurfaceCeiling() {
-        this.dimIndex = DIM_NORMAL_CEILING;
+        this.dimIndex = DIM_NORMAL;
+        this.dimInverted = true;
         return this;
     }
 
     public MappingOp applyToNetherCeiling() {
-        this.dimIndex = DIM_NETHER_CEILING;
+        this.dimIndex = DIM_NETHER;
+        this.dimInverted = true;
         return this;
     }
 
     public MappingOp applyToEndCeiling() {
-        this.dimIndex = DIM_END_CEILING;
+        this.dimIndex = DIM_END;
+        this.dimInverted = true;
         return this;
     }
 
@@ -324,7 +332,7 @@ public class MappingOp extends AbstractOperation<Void> {
                 }
             }
         }
-        final Dimension dimension = world.getDimension(dimIndex);
+        final Dimension dimension = world.getDimension(new Anchor(dimIndex, DETAIL, dimInverted, 0));
         if (dimension == null) {
             throw new ScriptException("Non existent dimension specified");
         }
@@ -459,6 +467,7 @@ public class MappingOp extends AbstractOperation<Void> {
     private long storedColour = -1L;
     private Mode mode = Mode.SET;
     private Filter filter;
+    private boolean dimInverted;
    
     enum Mode {
         SET, SET_WHEN_LOWER, SET_WHEN_HIGHER, SET_TERRAIN

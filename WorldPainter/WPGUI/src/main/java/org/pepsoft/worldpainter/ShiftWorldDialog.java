@@ -12,12 +12,12 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
+import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 
 import java.awt.*;
 
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
-import static org.pepsoft.worldpainter.Constants.*;
 
 /**
  *
@@ -25,39 +25,19 @@ import static org.pepsoft.worldpainter.Constants.*;
  */
 public class ShiftWorldDialog extends WorldPainterDialog implements ProgressReceiver {
     /** Creates new form RotateWorldDialog */
-    public ShiftWorldDialog(Window parent, World2 world, int dim) {
+    public ShiftWorldDialog(Window parent, World2 world, Anchor anchor) {
         super(parent);
         this.world = world;
-        this.dim = dim;
-        Dimension opposite = null;
-        switch (dim) {
-            case DIM_NORMAL:
-                opposite = world.getDimension(DIM_NORMAL_CEILING);
-                break;
-            case DIM_NORMAL_CEILING:
-                opposite = world.getDimension(DIM_NORMAL);
-                break;
-            case DIM_END:
-                opposite = world.getDimension(DIM_END_CEILING);
-                break;
-            case DIM_END_CEILING:
-                opposite = world.getDimension(DIM_END);
-                break;
-            case DIM_NETHER:
-                opposite = world.getDimension(DIM_NETHER_CEILING);
-                break;
-            case DIM_NETHER_CEILING:
-                opposite = world.getDimension(DIM_NETHER);
-                break;
-        }
+        this.anchor = anchor;
+        final Dimension opposite = world.getDimension(new Anchor(anchor.dim, anchor.role, ! anchor.invert, 0));
         if (opposite != null) {
-            oppositeDim = opposite.getDim();
+            oppositeAnchor = opposite.getAnchor();
         } else {
-            oppositeDim = Integer.MIN_VALUE;
+            oppositeAnchor = null;
         }
 
         initComponents();
-        jCheckBox1.setEnabled(oppositeDim != Integer.MIN_VALUE);
+        jCheckBox1.setEnabled(oppositeAnchor != null);
 
         getRootPane().setDefaultButton(buttonShift);
 
@@ -116,14 +96,14 @@ public class ShiftWorldDialog extends WorldPainterDialog implements ProgressRece
             @Override
             public void run() {
                 try {
-                    if ((oppositeDim == Integer.MIN_VALUE) || (! jCheckBox1.isSelected())) {
-                        world.transform(dim, transform, ShiftWorldDialog.this);
-                        world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SHIFTED_HORIZONTALLY, world.getDimension(dim).getName(), east, south);
+                    if ((oppositeAnchor == null) || (! jCheckBox1.isSelected())) {
+                        world.transform(anchor, transform, ShiftWorldDialog.this);
+                        world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SHIFTED_HORIZONTALLY, world.getDimension(anchor).getName(), east, south);
                     } else {
-                        world.transform(dim, transform, new SubProgressReceiver(ShiftWorldDialog.this, 0.0f, 0.5f));
-                        world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SHIFTED_HORIZONTALLY, world.getDimension(dim).getName(), east, south);
-                        world.transform(oppositeDim, transform, new SubProgressReceiver(ShiftWorldDialog.this, 0.5f, 0.5f));
-                        world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SHIFTED_HORIZONTALLY, world.getDimension(oppositeDim).getName(), east, south);
+                        world.transform(anchor, transform, new SubProgressReceiver(ShiftWorldDialog.this, 0.0f, 0.5f));
+                        world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SHIFTED_HORIZONTALLY, world.getDimension(anchor).getName(), east, south);
+                        world.transform(oppositeAnchor, transform, new SubProgressReceiver(ShiftWorldDialog.this, 0.5f, 0.5f));
+                        world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SHIFTED_HORIZONTALLY, world.getDimension(oppositeAnchor).getName(), east, south);
                     }
                     done();
                 } catch (Throwable t) {
@@ -306,7 +286,7 @@ public class ShiftWorldDialog extends WorldPainterDialog implements ProgressRece
     // End of variables declaration//GEN-END:variables
 
     private final World2 world;
-    private final int dim, oppositeDim;
+    private final Anchor anchor, oppositeAnchor;
 
     private static final long serialVersionUID = 1L;
 }

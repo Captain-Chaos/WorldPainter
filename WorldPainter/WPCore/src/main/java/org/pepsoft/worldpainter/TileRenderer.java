@@ -8,6 +8,7 @@ package org.pepsoft.worldpainter;
 import org.jetbrains.annotations.Contract;
 import org.pepsoft.util.ColourUtils;
 import org.pepsoft.util.IconUtils;
+import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.renderers.*;
@@ -19,7 +20,8 @@ import java.util.List;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 
 /**
  * This class is <strong>not</strong> thread-safe! It keeps render state and should only be used to render one tile at a
@@ -33,29 +35,8 @@ public final class TileRenderer {
         this.tileProvider = tileProvider;
         if ((tileProvider instanceof Dimension) && (((Dimension) tileProvider).getWorld() != null)) {
             platform = ((Dimension) tileProvider).getWorld().getPlatform();
-            switch (((Dimension) tileProvider).getDim()) {
-                case DIM_NORMAL:
-                    oppositeTileProvider = ((Dimension) tileProvider).getWorld().getDimension(DIM_NORMAL_CEILING);
-                    break;
-                case DIM_NORMAL_CEILING:
-                    oppositeTileProvider = ((Dimension) tileProvider).getWorld().getDimension(DIM_NORMAL);
-                    break;
-                case DIM_NETHER:
-                    oppositeTileProvider = ((Dimension) tileProvider).getWorld().getDimension(DIM_NETHER_CEILING);
-                    break;
-                case DIM_NETHER_CEILING:
-                    oppositeTileProvider = ((Dimension) tileProvider).getWorld().getDimension(DIM_NETHER);
-                    break;
-                case DIM_END:
-                    oppositeTileProvider = ((Dimension) tileProvider).getWorld().getDimension(DIM_END_CEILING);
-                    break;
-                case DIM_END_CEILING:
-                    oppositeTileProvider = ((Dimension) tileProvider).getWorld().getDimension(DIM_END);
-                    break;
-                default:
-                    oppositeTileProvider = null;
-                    break;
-            }
+            final Anchor anchor = ((Dimension) tileProvider).getAnchor();
+            oppositeTileProvider = ((Dimension) tileProvider).getWorld().getDimension(new Anchor(anchor.dim, anchor.role, ! anchor.invert, 0));
         } else {
             platform = Configuration.DEFAULT_PLATFORM;
             oppositeTileProvider = null;
@@ -294,8 +275,8 @@ public final class TileRenderer {
 //        }
     }
 
-    public static TileRenderer forWorld(World2 world, int dim, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int zoom) {
-        Dimension dimension = world.getDimension(dim);
+    public static TileRenderer forWorld(World2 world, Anchor anchor, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int zoom) {
+        Dimension dimension = world.getDimension(anchor);
         return new TileRenderer(dimension, colourScheme, customBiomeManager, zoom);
     }
 

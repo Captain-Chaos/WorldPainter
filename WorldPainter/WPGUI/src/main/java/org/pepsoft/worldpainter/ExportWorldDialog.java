@@ -12,6 +12,7 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -33,6 +34,7 @@ import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_PEACEFUL;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Dimension.Anchor.*;
 import static org.pepsoft.worldpainter.GameType.*;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
@@ -51,7 +53,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
         this.world = world;
         selectedTiles = world.getTilesToExport();
         selectedDimension = (selectedTiles != null) ? world.getDimensionsToExport().iterator().next() : DIM_NORMAL;
-        final Dimension dim0 = world.getDimension(0);
+        final Dimension dim0 = world.getDimension(NORMAL_DETAIL);
         this.colourScheme = colourScheme;
         this.hiddenLayers = hiddenLayers;
         this.contourLines = contourLines;
@@ -90,44 +92,44 @@ public class ExportWorldDialog extends WorldPainterDialog {
         surfacePropertiesEditor.setColourScheme(colourScheme);
         surfacePropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
         surfacePropertiesEditor.setDimension(dim0);
-        dimensionPropertiesEditors.put(DIM_NORMAL, surfacePropertiesEditor);
-        if (world.getDimension(DIM_NETHER) != null) {
+        dimensionPropertiesEditors.put(NORMAL_DETAIL, surfacePropertiesEditor);
+        if (world.getDimension(NETHER_DETAIL) != null) {
             netherPropertiesEditor.setColourScheme(colourScheme);
             netherPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
-            netherPropertiesEditor.setDimension(world.getDimension(DIM_NETHER));
-            dimensionPropertiesEditors.put(DIM_NETHER, netherPropertiesEditor);
+            netherPropertiesEditor.setDimension(world.getDimension(NETHER_DETAIL));
+            dimensionPropertiesEditors.put(NETHER_DETAIL, netherPropertiesEditor);
         } else {
             jTabbedPane1.setEnabledAt(2, false);
         }
-        if (world.getDimension(DIM_END) != null) {
+        if (world.getDimension(END_DETAIL) != null) {
             endPropertiesEditor.setColourScheme(colourScheme);
             endPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
-            endPropertiesEditor.setDimension(world.getDimension(DIM_END));
-            dimensionPropertiesEditors.put(DIM_END, endPropertiesEditor);
+            endPropertiesEditor.setDimension(world.getDimension(END_DETAIL));
+            dimensionPropertiesEditors.put(END_DETAIL, endPropertiesEditor);
         } else {
             jTabbedPane1.setEnabledAt(4, false);
         }
-        if (world.getDimension(DIM_NORMAL_CEILING) != null) {
+        if (world.getDimension(NORMAL_DETAIL_CEILING) != null) {
             surfaceCeilingPropertiesEditor.setColourScheme(colourScheme);
             surfaceCeilingPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
-            surfaceCeilingPropertiesEditor.setDimension(world.getDimension(DIM_NORMAL_CEILING));
-            dimensionPropertiesEditors.put(DIM_NORMAL_CEILING, surfaceCeilingPropertiesEditor);
+            surfaceCeilingPropertiesEditor.setDimension(world.getDimension(NORMAL_DETAIL_CEILING));
+            dimensionPropertiesEditors.put(NORMAL_DETAIL_CEILING, surfaceCeilingPropertiesEditor);
         } else {
             jTabbedPane1.setEnabledAt(1, false);
         }
-        if (world.getDimension(DIM_NETHER_CEILING) != null) {
+        if (world.getDimension(NETHER_DETAIL_CEILING) != null) {
             netherCeilingPropertiesEditor.setColourScheme(colourScheme);
             netherCeilingPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
-            netherCeilingPropertiesEditor.setDimension(world.getDimension(DIM_NETHER_CEILING));
-            dimensionPropertiesEditors.put(DIM_NETHER_CEILING, netherCeilingPropertiesEditor);
+            netherCeilingPropertiesEditor.setDimension(world.getDimension(NETHER_DETAIL_CEILING));
+            dimensionPropertiesEditors.put(NETHER_DETAIL_CEILING, netherCeilingPropertiesEditor);
         } else {
             jTabbedPane1.setEnabledAt(3, false);
         }
-        if (world.getDimension(DIM_END_CEILING) != null) {
+        if (world.getDimension(END_DETAIL_CEILING) != null) {
             endCeilingPropertiesEditor.setColourScheme(colourScheme);
             endCeilingPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
-            endCeilingPropertiesEditor.setDimension(world.getDimension(DIM_END_CEILING));
-            dimensionPropertiesEditors.put(DIM_END_CEILING, endCeilingPropertiesEditor);
+            endCeilingPropertiesEditor.setDimension(world.getDimension(END_DETAIL_CEILING));
+            dimensionPropertiesEditors.put(END_DETAIL_CEILING, endCeilingPropertiesEditor);
         } else {
             jTabbedPane1.setEnabledAt(5, false);
         }
@@ -248,16 +250,16 @@ public class ExportWorldDialog extends WorldPainterDialog {
         StringBuilder sb = new StringBuilder("<html>Please confirm that you want to export the world<br>notwithstanding the following warnings:<br><ul>");
         boolean showWarning = false;
         for (Dimension dimension: world.getDimensions()) {
-            if (dimension.getDim() < 0) {
+            if (dimension.getAnchor().invert) {
                 // Skip ceilings
                 continue;
             }
-            final DimensionPropertiesEditor editor = dimensionPropertiesEditors.get(dimension.getDim());
+            final DimensionPropertiesEditor editor = dimensionPropertiesEditors.get(dimension.getAnchor());
             final Generator generatorType = editor.getSelectedGeneratorType();
             if ((editor.isPopulateSelected() || dimension.getAllLayers(true).contains(Populate.INSTANCE)) && (! platform.capabilities.contains(POPULATE))) {
                 sb.append("<li>Population not supported for<br>map format " + platform.displayName + "; it will not have an effect");
                 showWarning = true;
-            } else if ((! radioButtonExportSelection.isSelected()) || (selectedDimension == dimension.getDim())) {
+            } else if ((! radioButtonExportSelection.isSelected()) || (selectedDimension == dimension.getAnchor().dim)) {
                 // The dimension is going to be exported
                 if ((generatorType == Generator.FLAT) && (editor.isPopulateSelected() || dimension.getAllLayers(true).contains(Populate.INSTANCE))) {
                     sb.append("<li>The Superflat world type is selected and Populate is in use.<br>Minecraft will <em>not</em> populate generated chunks for Superflat maps.");
@@ -394,31 +396,31 @@ public class ExportWorldDialog extends WorldPainterDialog {
             jTabbedPane1.setSelectedIndex(0);
             return false;
         }
-        if (world.getDimension(DIM_NETHER) != null) {
+        if (world.getDimension(NETHER_DETAIL) != null) {
             if (! netherPropertiesEditor.saveSettings()) {
                 jTabbedPane1.setSelectedIndex(2);
                 return false;
             }
         }
-        if (world.getDimension(DIM_END) != null) {
+        if (world.getDimension(END_DETAIL) != null) {
             if (! endPropertiesEditor.saveSettings()) {
                 jTabbedPane1.setSelectedIndex(4);
                 return false;
             }
         }
-        if (world.getDimension(DIM_NORMAL_CEILING) != null) {
+        if (world.getDimension(NORMAL_DETAIL_CEILING) != null) {
             if (! surfaceCeilingPropertiesEditor.saveSettings()) {
                 jTabbedPane1.setSelectedIndex(1);
                 return false;
             }
         }
-        if (world.getDimension(DIM_NETHER_CEILING) != null) {
+        if (world.getDimension(NETHER_DETAIL_CEILING) != null) {
             if (! netherCeilingPropertiesEditor.saveSettings()) {
                 jTabbedPane1.setSelectedIndex(3);
                 return false;
             }
         }
-        if (world.getDimension(DIM_END_CEILING) != null) {
+        if (world.getDimension(END_DETAIL_CEILING) != null) {
             if (! endCeilingPropertiesEditor.saveSettings()) {
                 jTabbedPane1.setSelectedIndex(5);
                 return false;
@@ -479,7 +481,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
             return;
         }
         if (App.getInstance().changeWorldHeight(this)) {
-            dimensionPropertiesEditors.forEach((dim, editor) -> editor.setDimension(world.getDimension(dim)));
+            dimensionPropertiesEditors.forEach((anchor, editor) -> editor.setDimension(world.getDimension(anchor)));
             platformChanged();
         }
     }
@@ -788,7 +790,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
 
         checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
 
-        dimensionPropertiesEditors.forEach((dim, editor) -> editor.setPlatform(newPlatform));
+        dimensionPropertiesEditors.forEach((anchor, editor) -> editor.setPlatform(newPlatform));
 
         pack();
         setControlStates();
@@ -849,7 +851,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
     private final TileRenderer.LightOrigin lightOrigin;
     private final CustomBiomeManager customBiomeManager;
     private final WorldPainter view;
-    private final Map<Integer, DimensionPropertiesEditor> dimensionPropertiesEditors = new HashMap<>();
+    private final Map<Anchor, DimensionPropertiesEditor> dimensionPropertiesEditors = new HashMap<>();
     private final List<Platform> supportedPlatforms = new ArrayList<>();
     private int selectedDimension;
     private Set<Point> selectedTiles;

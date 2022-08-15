@@ -28,6 +28,7 @@ import java.util.List;
 
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 
@@ -269,7 +270,7 @@ public class BiomesViewerFrame extends JFrame {
             "Generated World",
             ((Number) seedSpinner.getValue()).longValue(),
             ((Integer) schemeChooser.getSelectedItem() == BIOME_ALGORITHM_1_1) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL,
-            DIM_NORMAL,
+            NORMAL_DETAIL,
             Configuration.getInstance().getDefaultMaxHeight(),
             null,
             imageViewer.getSelectedTiles());
@@ -291,7 +292,7 @@ public class BiomesViewerFrame extends JFrame {
                 }
             });
             if (newWorld != null) {
-                final Dimension dimension = newWorld.getDimension(DIM_NORMAL);
+                final Dimension dimension = newWorld.getDimension(NORMAL_DETAIL);
                 switch ((Integer) schemeChooser.getSelectedItem()) {
                     case BIOME_ALGORITHM_1_1:
                     case BIOME_ALGORITHM_1_2_AND_1_3_DEFAULT:

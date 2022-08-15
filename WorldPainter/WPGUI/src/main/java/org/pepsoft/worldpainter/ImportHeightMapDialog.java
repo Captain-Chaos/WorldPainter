@@ -571,11 +571,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             if (image != null) {
                 TileProvider previewProvider = createImporter().getPreviewProvider(colourScheme, contourLines, contourSeparation, lightOrigin);
                 if (previewProvider != null) {
-                    if (tiledImageViewer2.getTileProviderCount() == 0) {
-                        tiledImageViewer2.addTileProvider(previewProvider);
-                    } else {
-                        tiledImageViewer2.replaceTileProvider(0, previewProvider);
-                    }
+                    tiledImageViewer2.setTileProvider(previewProvider);
                     if (recentre) {
                         tiledImageViewer2.moveTo(image.getWidth() / 2, image.getHeight() / 2);
                     }

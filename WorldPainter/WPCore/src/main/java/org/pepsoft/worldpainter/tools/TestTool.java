@@ -17,6 +17,7 @@ import java.util.Random;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 //import org.pepsoft.worldpainter.gardenofeden.Inn;
 
 /**
@@ -33,7 +34,7 @@ public class TestTool {
         world.setName("TestWorld");
         world.setSpawnPoint(new Point(64, 64));
         world.setGameType(GameType.CREATIVE);
-        Dimension dimension = world.getDimension(0);
+        Dimension dimension = world.getDimension(NORMAL_DETAIL);
         dimension.addTile(tileFactory.createTile(0, 0));
         Garden garden = dimension.getGarden();
 //        Inn inn = new Inn(garden, seed, null, new Point(64, 64), 1, 9, 9, EAST, 3, RandomOne.of(ThemeManager.getInstance().getThemes()), false, true, true, true, true, true, true, true, true, true, true, Inn.createName(seed));

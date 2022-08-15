@@ -156,8 +156,8 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
         if (dimension != null) {
             threeDeeView = new ThreeDeeView(dimension, colourScheme, customBiomeManager, rotation, zoom);
             scrollPane.setViewportView(threeDeeView);
-            MOVE_TO_SPAWN_ACTION.setEnabled(dimension.getDim() == DIM_NORMAL);
-            glassPane.setRotation(DIRECTIONS[rotation], dimension.getDim() < 0);
+            MOVE_TO_SPAWN_ACTION.setEnabled(dimension.getAnchor().dim == DIM_NORMAL);
+            glassPane.setRotation(DIRECTIONS[rotation], dimension.getAnchor().invert);
         }
     }
 
@@ -202,7 +202,7 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
             scrollPane.setViewportView(threeDeeView);
 //            scrollPane.getViewport().setViewPosition(new Point((threeDeeView.getWidth() - scrollPane.getWidth()) / 2, (threeDeeView.getHeight() - scrollPane.getHeight()) / 2));
             threeDeeView.moveToTile(centreMostTile);
-            glassPane.setRotation(DIRECTIONS[rotation], dimension.getDim() < 0);
+            glassPane.setRotation(DIRECTIONS[rotation], dimension.getAnchor().invert);
         }
         
         private static final long serialVersionUID = 1L;
@@ -224,7 +224,7 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
             scrollPane.setViewportView(threeDeeView);
 //            scrollPane.getViewport().setViewPosition(new Point((threeDeeView.getWidth() - scrollPane.getWidth()) / 2, (threeDeeView.getHeight() - scrollPane.getHeight()) / 2));
             threeDeeView.moveToTile(centreMostTile);
-            glassPane.setRotation(DIRECTIONS[rotation], dimension.getDim() < 0);
+            glassPane.setRotation(DIRECTIONS[rotation], dimension.getAnchor().invert);
         }
         
         private static final long serialVersionUID = 1L;
@@ -251,7 +251,7 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
             }
             sb.append(')');
             final String description = sb.toString();
-            String defaultname = dimension.getWorld().getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getDim() == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + "_3d.png";
+            String defaultname = dimension.getWorld().getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getAnchor().dim == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + "_3d.png";
             File selectedFile = FileUtils.selectFileForSave(ThreeDeeFrame.this, "Export as image file", new File(defaultname), new FileFilter() {
                 @Override
                 public boolean accept(File f) {
@@ -319,7 +319,7 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
         
         @Override
         public void performAction(ActionEvent e) {
-            if (dimension.getDim() == DIM_NORMAL) {
+            if (dimension.getAnchor().dim == DIM_NORMAL) {
                 Point spawn = dimension.getWorld().getSpawnPoint();
                 threeDeeView.moveTo(spawn.x, spawn.y);
             }

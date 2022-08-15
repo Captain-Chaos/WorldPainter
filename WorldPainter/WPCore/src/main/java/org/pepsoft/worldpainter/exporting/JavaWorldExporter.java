@@ -11,6 +11,7 @@ import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
 import org.pepsoft.worldpainter.util.FileInUseException;
@@ -26,8 +27,10 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.SuperflatPreset.Structure.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Dimension.Anchor.*;
 import static org.pepsoft.worldpainter.Dimension.Border.ENDLESS_BARRIER;
 import static org.pepsoft.worldpainter.Dimension.Border.ENDLESS_WATER;
+import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.Platform.Capability.GENERATOR_PER_DIMENSION;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.*;
 
@@ -81,7 +84,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
         long start = System.currentTimeMillis();
         
         // Export dimensions
-        Dimension dim0 = world.getDimension(0);
+        Dimension dim0 = world.getDimension(NORMAL_DETAIL);
         JavaLevel level = JavaLevel.create(platform, world.getMaxHeight());
         level.setSeed(dim0.getMinecraftSeed());
         level.setName(name);
@@ -100,10 +103,10 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
             level.setAllowCommands(world.isAllowCheats());
         }
         for (Dimension dimension: world.getDimensions()) {
-            if (dimension.getDim() < 0) {
+            if (dimension.getAnchor().invert) {
                 // Ceiling dimension
                 continue;
-            } else if ((! platform.capabilities.contains(GENERATOR_PER_DIMENSION)) && (dimension.getDim() != DIM_NORMAL)) {
+            } else if ((! platform.capabilities.contains(GENERATOR_PER_DIMENSION)) && (dimension.getAnchor().dim != DIM_NORMAL)) {
                 // This platform only supports generator settings for the surface dimension, and this is not the surface dimension
                 continue;
             }
@@ -112,7 +115,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                 final SuperflatPreset.Builder superflatPresetBuilder;
                 final int biome;
                 final Structure[] structures;
-                switch (dimension.getDim()) {
+                switch (dimension.getAnchor().dim) {
                     case DIM_NETHER:
                         biome = BIOME_HELL;
                         structures = null; // TODO are there Nether structures we could put here?
@@ -184,9 +187,9 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                     superflatPresetBuilder.addLayer(MC_AIR, dimension.getMaxHeight() - platform.minZ - totalDepth - 1);
                     superflatPresetBuilder.addLayer((dimension.getRoofType() == Dimension.WallType.BEDROCK) ? MC_BEDROCK : MC_BARRIER, 1);
                 }
-                level.setGenerator(dimension.getDim(), new SuperflatGenerator(superflatPresetBuilder.build()));
+                level.setGenerator(dimension.getAnchor().dim, new SuperflatGenerator(superflatPresetBuilder.build()));
             } else {
-                level.setGenerator(dimension.getDim(), dimension.getGenerator());
+                level.setGenerator(dimension.getAnchor().dim, dimension.getGenerator());
             }
         }
         level.setMapFeatures(world.isMapFeatures());
@@ -219,10 +222,9 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
             if (selectedTiles == null) {
                 selectedDimension = -1;
                 boolean first = true;
-                for (Dimension dimension: world.getDimensions()) {
-                    if ((dimension.getDim() < 0) || ((selectedDimensions != null) && (! selectedDimensions.contains(dimension.getDim())))) {
-                        // This dimension will be exported as part of another dimension, or it has not been selected to
-                        // be exported, so skip it
+                for (Dimension dimension: world.getDimensionsWithRole(DETAIL, false, 0)) {
+                    if ((selectedDimensions != null) && (! selectedDimensions.contains(dimension.getAnchor().dim))) {
+                        // This dimension has not been selected to be exported, so skip it
                         continue;
                     }
                     if (first) {
@@ -230,11 +232,11 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                     } else if (progressReceiver != null) {
                         progressReceiver.reset();
                     }
-                    stats.put(dimension.getDim(), exportDimension(worldDir, dimension, progressReceiver));
+                    stats.put(dimension.getAnchor().dim, exportDimension(worldDir, dimension, progressReceiver));
                 }
             } else {
                 selectedDimension = selectedDimensions.iterator().next();
-                stats.put(selectedDimension, exportDimension(worldDir, world.getDimension(selectedDimension), progressReceiver));
+                stats.put(selectedDimension, exportDimension(worldDir, world.getDimension(new Anchor(selectedDimension, DETAIL, false, 0)), progressReceiver));
             }
 
             // Update the session.lock file, hopefully kicking out any Minecraft instances which may have tried to open the
@@ -248,7 +250,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
             if (selectedTiles == null) {
                 world.addHistoryEntry(HistoryEntry.WORLD_EXPORTED_FULL, name, worldDir);
             } else {
-                world.addHistoryEntry(HistoryEntry.WORLD_EXPORTED_PARTIAL, name, worldDir, world.getDimension(selectedDimension).getName());
+                world.addHistoryEntry(HistoryEntry.WORLD_EXPORTED_PARTIAL, name, worldDir, world.getDimension(new Anchor(selectedDimension, DETAIL, false, 0)).getName());
             }
 
             // Log an event
@@ -263,15 +265,15 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                 event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
                 event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
                 event.setAttribute(ATTRIBUTE_KEY_GENERATOR, dim0.getGenerator().getType().name());
-                Dimension dimension = world.getDimension(0);
+                Dimension dimension = world.getDimension(NORMAL_DETAIL);
                 event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTileCount());
                 logLayers(dimension, event, "");
-                dimension = world.getDimension(1);
+                dimension = world.getDimension(NETHER_DETAIL);
                 if (dimension != null) {
                     event.setAttribute(ATTRIBUTE_KEY_NETHER_TILES, dimension.getTileCount());
                     logLayers(dimension, event, "nether.");
                 }
-                dimension = world.getDimension(2);
+                dimension = world.getDimension(END_DETAIL);
                 if (dimension != null) {
                     event.setAttribute(ATTRIBUTE_KEY_END_TILES, dimension.getTileCount());
                     logLayers(dimension, event, "end.");
@@ -293,24 +295,22 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
     }
 
     protected ChunkFactory.Stats exportDimension(File worldDir, Dimension dimension, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-        File dimensionDir;
-        Dimension ceiling;
-        switch (dimension.getDim()) {
+        final Anchor anchor = dimension.getAnchor();
+        final File dimensionDir;
+        switch (anchor.dim) {
             case DIM_NORMAL:
                 dimensionDir = worldDir;
-                ceiling = dimension.getWorld().getDimension(DIM_NORMAL_CEILING);
                 break;
             case DIM_NETHER:
                 dimensionDir = new File(worldDir, "DIM-1");
-                ceiling = dimension.getWorld().getDimension(DIM_NETHER_CEILING);
                 break;
             case DIM_END:
                 dimensionDir = new File(worldDir, "DIM1");
-                ceiling = dimension.getWorld().getDimension(DIM_END_CEILING);
                 break;
             default:
-                throw new IllegalArgumentException("Dimension " + dimension.getDim() + " not supported");
+                throw new IllegalArgumentException("Dimension " + anchor.dim + " not supported");
         }
+        final Dimension ceiling = dimension.getWorld().getDimension(new Anchor(anchor.dim, DETAIL, true, 0));
         for (DataType dataType: platformProvider.getDataTypes(platform)) {
             File regionDir = new File(dimensionDir, dataType.name().toLowerCase());
             if (! regionDir.exists()) {

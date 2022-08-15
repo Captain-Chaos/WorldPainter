@@ -48,7 +48,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         } else {
             waterLevel = DEFAULT_WATER_LEVEL;
         }
-        upsideDown = dimension.getDim() < 0; // Ceiling dimension
+        upsideDown = dimension.getAnchor().invert; // Ceiling dimension
         zSortedTiles = new TreeMap<>();
         for (Tile tile: dimension.getTiles()) {
             final Rectangle tileBaseBounds = getTileBounds(tile.getX(), tile.getY(), 0, 0, 0);

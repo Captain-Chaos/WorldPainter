@@ -36,6 +36,7 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Dimension.Anchor.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.*;
 import static org.pepsoft.worldpainter.importing.MapImporter.ReadOnlyOption.*;
@@ -77,7 +78,7 @@ public class JavaMapImporter extends MapImporter {
         final World2 world = importWorld(level);
         final long minecraftSeed = world.getAttribute(SEED).orElse(new Random().nextLong());
         tileFactory.setSeed(minecraftSeed);
-        Dimension dimension = new Dimension(world, minecraftSeed, tileFactory, DIM_NORMAL);
+        Dimension dimension = new Dimension(world, minecraftSeed, tileFactory, NORMAL_DETAIL);
         dimension.setEventsInhibited(true);
         try {
             dimension.setCoverSteepTerrain(false);
@@ -129,7 +130,7 @@ public class JavaMapImporter extends MapImporter {
             terrainRanges.put(-1, Terrain.NETHERRACK);
             theme.setTerrainRanges(terrainRanges);
             theme.setLayerMap(null);
-            dimension = new Dimension(world, minecraftSeed + 1, netherTileFactory, DIM_NETHER);
+            dimension = new Dimension(world, minecraftSeed + 1, netherTileFactory, NETHER_DETAIL);
             dimension.setEventsInhibited(true);
             try {
                 dimension.setCoverSteepTerrain(false);
@@ -158,7 +159,7 @@ public class JavaMapImporter extends MapImporter {
             terrainRanges.put(-1, Terrain.END_STONE);
             theme.setTerrainRanges(terrainRanges);
             theme.setLayerMap(Collections.emptyMap());
-            dimension = new Dimension(world, minecraftSeed + 2, endTileFactory, DIM_END);
+            dimension = new Dimension(world, minecraftSeed + 2, endTileFactory, END_DETAIL);
             dimension.setEventsInhibited(true);
             try {
                 dimension.setCoverSteepTerrain(false);
@@ -189,7 +190,7 @@ public class JavaMapImporter extends MapImporter {
             event.setAttribute(ATTRIBUTE_KEY_MAP_FEATURES, world.isMapFeatures());
             event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
-            event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getDimension(DIM_NORMAL).getGenerator().getType().name());
+            event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getDimension(NORMAL_DETAIL).getGenerator().getType().name());
             event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTileCount());
             config.logEvent(event);
         }
@@ -247,7 +248,7 @@ public class JavaMapImporter extends MapImporter {
         final AtomicInteger nextCustomBiomeId = new AtomicInteger(FIRST_UNALLOCATED_ID);
         final Set<String> allBiomes = synchronizedSet(new HashSet<>());
         final Set<Integer> invalidBiomeIds = synchronizedSet(new HashSet<>());
-        try (ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension.getDim())) {
+        try (ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension.getAnchor().dim)) {
             final int total = chunkStore.getChunkCount();
             final AtomicInteger count = new AtomicInteger();
             final StringBuffer reportBuilder = new StringBuffer();

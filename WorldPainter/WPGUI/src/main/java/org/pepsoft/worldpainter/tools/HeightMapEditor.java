@@ -348,11 +348,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
     private void installHeightMap(boolean updateTreeModel) {
         switch (viewMode) {
             case HEIGHT_MAP:
-                if (tiledImageViewer1.getTileProviderCount() == 0) {
-                    tiledImageViewer1.setTileProvider(new HeightMapTileProvider(focusHeightMap));
-                } else {
-                    tiledImageViewer1.replaceTileProvider(0, new HeightMapTileProvider(focusHeightMap));
-                }
+                tiledImageViewer1.setTileProvider(new HeightMapTileProvider(focusHeightMap));
                 tiledImageViewer1.setGridColour(Color.GRAY);
                 break;
             case TERRAIN:
@@ -401,11 +397,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                         return tile;
                     }
                 };
-                if (tiledImageViewer1.getTileProviderCount() == 0) {
-                    tiledImageViewer1.setTileProvider(0, new WPTileProvider(tileProvider, ColourScheme.DEFAULT, null, Collections.singleton(Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST, false, null));
-                } else {
-                    tiledImageViewer1.replaceTileProvider(0, new WPTileProvider(tileProvider, ColourScheme.DEFAULT, null, Collections.singleton(Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST, false, null));
-                }
+                tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, ColourScheme.DEFAULT, null, Collections.singleton(Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST, false));
                 tiledImageViewer1.setGridColour(Color.BLACK);
                 break;
         }

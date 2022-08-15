@@ -38,6 +38,7 @@ import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
 import static org.pepsoft.worldpainter.TileRenderer.TERRAIN_AS_LAYER;
+import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_WHITE;
 
 /**
  *
@@ -66,14 +67,14 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     @Override
     public final void setDimension(Dimension dimension) {
         Dimension oldDimension = this.dimension;
-        if ((oldDimension != null) && ((oldDimension.getDim() == DIM_NORMAL) || (oldDimension.getDim() == DIM_NORMAL_CEILING))) {
+        if ((oldDimension != null) && (oldDimension.getAnchor().dim == DIM_NORMAL)) {
             oldDimension.getWorld().removePropertyChangeListener("spawnPoint", this);
         }
         this.dimension = dimension;
         if (dimension != null) {
             drawContours = dimension.isContoursEnabled();
             contourSeparation = dimension.getContourSeparation();
-            if ((dimension.getDim() == DIM_NORMAL) || (dimension.getDim() == DIM_NORMAL_CEILING)) {
+            if (dimension.getAnchor().dim == DIM_NORMAL) {
                 dimension.getWorld().addPropertyChangeListener("spawnPoint", this);
             }
 
@@ -90,7 +91,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             setOverlayOffsetY(dimension.getOverlayOffsetY());
             setOverlay(null);
             setDrawOverlay(dimension.isOverlayEnabled());
-            setMarkerCoords(((dimension.getDim() == DIM_NORMAL) || (dimension.getDim() == DIM_NORMAL_CEILING)) ? dimension.getWorld().getSpawnPoint() : null);
+            setMarkerCoords((dimension.getAnchor().dim == DIM_NORMAL) ? dimension.getWorld().getSpawnPoint() : null);
         } else {
             setOverlay(null);
             setMarkerCoords(null);
@@ -351,12 +352,12 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
 
     public void refreshTiles() {
         if (dimension != null) {
-            int biomeAlgorithm = -1;
             if (drawBiomes
-                    && (dimension.getDim() == DIM_NORMAL)
+                    && (dimension.getAnchor().dim == DIM_NORMAL)
                     && ((dimension.getBorder() == null) || (! dimension.getBorder().isEndless()))) {
                 World2 world = dimension.getWorld();
                 if (world != null) {
+                    int biomeAlgorithm = -1;
                     Platform platform = world.getPlatform();
                     if (platform == JAVA_MCREGION) {
                         biomeAlgorithm = BIOME_ALGORITHM_1_1;
@@ -367,17 +368,17 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                             biomeAlgorithm = BIOME_ALGORITHM_1_7_LARGE;
                         }
                     }
+                    if (biomeAlgorithm != -1) {
+                        setTileProvider(LAYER_BIOMES, new BiomesTileProvider(biomeAlgorithm, dimension.getMinecraftSeed(), colourScheme, 0, true));
+                    }
                 }
             }
-            tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, drawContours, contourSeparation, lightOrigin, drawBorders, (biomeAlgorithm != -1) ? new BiomesTileProvider(biomeAlgorithm, dimension.getMinecraftSeed(), colourScheme, 0, true) : null, true);
-            if (getTileProviderCount() == 0) {
-                addTileProvider(tileProvider);
-            } else {
-                replaceTileProvider(0, tileProvider);
-            }
+
+            tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, drawContours, contourSeparation, lightOrigin, drawBorders, true, null);
+            setTileProvider(LAYER_DETAILS, tileProvider);
         } else {
             if (getTileProviderCount() > 0) {
-                removeTileProvider(0);
+                removeAllTileProviders();
             }
             tileProvider = null;
         }
@@ -468,7 +469,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     }
     
     public void moveToSpawn() {
-        if ((dimension != null) && (dimension.getDim() == DIM_NORMAL)) {
+        if ((dimension != null) && (dimension.getAnchor().dim == DIM_NORMAL)) {
             moveToMarker();
         }
     }
@@ -536,7 +537,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     public void setDrawBiomes(boolean drawBiomes) {
         if (drawBiomes != this.drawBiomes) {
             this.drawBiomes = drawBiomes;
-            if ((dimension != null) && (dimension.getDim() == DIM_NORMAL)) {
+            if ((dimension != null) && (dimension.getAnchor().dim == DIM_NORMAL)) {
                 refreshTiles();
             }
             firePropertyChange("drawBiomes", ! drawBiomes, drawBiomes);
@@ -915,4 +916,8 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private static final Font NORMAL_FONT = new Font("SansSerif", Font.PLAIN, 10);
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WorldPainter.class);
     private static final long serialVersionUID = 1L;
+
+    private static final int LAYER_BIOMES  = -2;
+    private static final int LAYER_MASTER  = -1;
+    private static final int LAYER_DETAILS =  0;
 }

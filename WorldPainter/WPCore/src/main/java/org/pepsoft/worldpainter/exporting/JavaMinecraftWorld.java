@@ -5,8 +5,8 @@
 
 package org.pepsoft.worldpainter.exporting;
 
-import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 
 import java.awt.*;
 import java.io.File;
@@ -43,8 +43,8 @@ public class JavaMinecraftWorld extends CachingMinecraftWorld {
     }
 
     public JavaMinecraftWorld(File worldDir, Dimension dimension, Platform platform, boolean readOnly, int cacheSize) {
-        super(worldDir, dimension.getDim(), dimension.getMaxHeight(), platform, readOnly, cacheSize);
-        if ((dimension.getWorld().getTilesToExport() != null) && dimension.getWorld().getDimensionsToExport().contains(dimension.getDim())) {
+        super(worldDir, dimension.getAnchor().dim, dimension.getMaxHeight(), platform, readOnly, cacheSize);
+        if ((dimension.getWorld().getTilesToExport() != null) && dimension.getWorld().getDimensionsToExport().contains(dimension.getAnchor().dim)) {
             lowestX = Integer.MAX_VALUE;
             highestX = Integer.MIN_VALUE;
             lowestZ = Integer.MAX_VALUE;
@@ -73,7 +73,7 @@ public class JavaMinecraftWorld extends CachingMinecraftWorld {
             lowestZ = northEastChunk.y >> 4;
             highestZ = southWestChunk.y >> 4;
         }
-        switch (dimension.getDim()) {
+        switch (dimension.getAnchor().dim) {
             case DIM_NORMAL:
                 dimensionDir = worldDir;
                 break;
@@ -84,7 +84,7 @@ public class JavaMinecraftWorld extends CachingMinecraftWorld {
                 dimensionDir = new File(worldDir, "DIM1");
                 break;
             default:
-                throw new IllegalArgumentException("Dimension " + dimension.getDim() + " not supported");
+                throw new IllegalArgumentException("Dimension " + dimension.getAnchor().dim + " not supported");
         }
         if (! worldDir.isDirectory()) {
             throw new IllegalArgumentException(worldDir + " does not exist or is not a directory");

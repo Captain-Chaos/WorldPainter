@@ -482,7 +482,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             // resources
             ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
             if (resourcesSettings == null) {
-                resourcesSettings = ResourcesExporterSettings.defaultSettings(platform, dimension.getDim(), dimension.getMaxHeight());
+                resourcesSettings = ResourcesExporterSettings.defaultSettings(platform, dimension.getAnchor().dim, dimension.getMaxHeight());
             }
             if (jCheckBox8.isSelected()) {
                 int minimumLevel = jSlider4.getValue();
@@ -904,7 +904,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             // resources
             ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
             if (resourcesSettings == null) {
-                resourcesSettings = ResourcesExporterSettings.defaultSettings(platform, dimension.getDim(), dimension.getMaxHeight());
+                resourcesSettings = ResourcesExporterSettings.defaultSettings(platform, dimension.getAnchor().dim, dimension.getMaxHeight());
                 resourcesSettings.setMinimumLevel(0);
             }
             jCheckBox8.setSelected(resourcesSettings.isApplyEverywhere());
@@ -1068,8 +1068,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     
     private void setControlStates() {
         final boolean enabled = isEnabled();
-        final boolean dim0 = (dimension != null) && (dimension.getDim() == Constants.DIM_NORMAL);
-        final boolean ceiling = (dimension != null) && (dimension.getDim() < 0);
+        final boolean dim0 = (dimension != null) && (dimension.getAnchor().dim == Constants.DIM_NORMAL);
+        final boolean ceiling = (dimension != null) && dimension.getAnchor().invert;
         final boolean decorations = checkBoxDecorateCaverns.isSelected() || checkBoxDecorateCaves.isSelected() || checkBoxDecorateChasms.isSelected();
         setEnabled(radioButtonLavaBorder, enabled && (! ceiling));
         setEnabled(radioButtonNoBorder, enabled && (! ceiling));

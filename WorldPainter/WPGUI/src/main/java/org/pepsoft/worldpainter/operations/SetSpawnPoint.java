@@ -4,13 +4,14 @@
  */
 package org.pepsoft.worldpainter.operations;
 
-import org.pepsoft.worldpainter.Constants;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.WorldPainter;
 
 import javax.swing.*;
 import java.awt.*;
+
+import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
 /**
  *
@@ -25,8 +26,8 @@ public class SetSpawnPoint extends MouseOrTabletOperation {
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
         if (first) {
             Dimension dimension = getDimension();
-            if ((dimension.getDim() != Constants.DIM_NORMAL) && (dimension.getDim() != Constants.DIM_NORMAL_CEILING)) {
-                throw new IllegalArgumentException("Cannot set spawn point on dimensions other than 0");
+            if (dimension.getAnchor().dim != DIM_NORMAL) {
+                throw new IllegalArgumentException("Cannot set spawn point on dimensions other than DIM_NORMAL");
             }
             World2 world = dimension.getWorld();
             int spawnHeight = dimension.getIntHeightAt(centreX, centreY);

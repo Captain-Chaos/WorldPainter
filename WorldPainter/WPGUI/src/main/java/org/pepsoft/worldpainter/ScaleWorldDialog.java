@@ -9,6 +9,7 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
+import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 
 import javax.swing.*;
@@ -18,7 +19,7 @@ import static java.lang.String.format;
 import static javax.swing.JOptionPane.OK_OPTION;
 import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
-import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.util.MinecraftUtil.blocksToWalkingTime;
 
 /**
@@ -30,40 +31,20 @@ public class ScaleWorldDialog extends WorldPainterDialog {
     /**
      * Creates new form ScaleWorldDialog
      */
-    public ScaleWorldDialog(Window parent, World2 world, int dim) {
+    public ScaleWorldDialog(Window parent, World2 world, Anchor anchor) {
         super(parent);
         this.world = world;
-        this.dim = dim;
-        final Dimension dimension = world.getDimension(dim);
-        Dimension opposite = null;
-        switch (dim) {
-            case DIM_NORMAL:
-                opposite = world.getDimension(DIM_NORMAL_CEILING);
-                break;
-            case DIM_NORMAL_CEILING:
-                opposite = world.getDimension(DIM_NORMAL);
-                break;
-            case DIM_END:
-                opposite = world.getDimension(DIM_END_CEILING);
-                break;
-            case DIM_END_CEILING:
-                opposite = world.getDimension(DIM_END);
-                break;
-            case DIM_NETHER:
-                opposite = world.getDimension(DIM_NETHER_CEILING);
-                break;
-            case DIM_NETHER_CEILING:
-                opposite = world.getDimension(DIM_NETHER);
-                break;
-        }
+        this.anchor = anchor;
+        final Dimension dimension = world.getDimension(anchor);
+        final Dimension opposite = world.getDimension(new Anchor(anchor.dim, anchor.role, ! anchor.invert, 0));
         if (opposite != null) {
-            oppositeDim = opposite.getDim();
+            oppositeAnchor = opposite.getAnchor();
         } else {
-            oppositeDim = Integer.MIN_VALUE;
+            oppositeAnchor = null;
         }
 
         initComponents();
-        checkBoxIncludeCeiling.setEnabled(oppositeDim != Integer.MIN_VALUE);
+        checkBoxIncludeCeiling.setEnabled(oppositeAnchor != null);
         final int width = dimension.getWidth() * TILE_SIZE, height = dimension.getHeight() * TILE_SIZE;
         labelCurrentSize.setText(format("%d x %d blocks", width, height));
         labelCurrentWalkingTime.setText(getWalkingTime(width, height));
@@ -92,14 +73,14 @@ public class ScaleWorldDialog extends WorldPainterDialog {
 
             @Override
             public Void execute(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-                if ((oppositeDim == Integer.MIN_VALUE) || (! checkBoxIncludeCeiling.isSelected())) {
-                    world.transform(dim, transform, progressReceiver);
-                    world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SCALED, world.getDimension(dim).getName(), percentage);
+                if ((oppositeAnchor == null) || (! checkBoxIncludeCeiling.isSelected())) {
+                    world.transform(anchor, transform, progressReceiver);
+                    world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SCALED, world.getDimension(anchor).getName(), percentage);
                 } else {
-                    world.transform(dim, transform, new SubProgressReceiver(progressReceiver, 0.0f, 0.5f));
-                    world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SCALED, world.getDimension(dim).getName(), percentage);
-                    world.transform(oppositeDim, transform, new SubProgressReceiver(progressReceiver, 0.5f, 0.5f));
-                    world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SCALED, world.getDimension(oppositeDim).getName(), percentage);
+                    world.transform(anchor, transform, new SubProgressReceiver(progressReceiver, 0.0f, 0.5f));
+                    world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SCALED, world.getDimension(anchor).getName(), percentage);
+                    world.transform(oppositeAnchor, transform, new SubProgressReceiver(progressReceiver, 0.5f, 0.5f));
+                    world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SCALED, world.getDimension(oppositeAnchor).getName(), percentage);
                 }
                 return null;
             }
@@ -108,7 +89,7 @@ public class ScaleWorldDialog extends WorldPainterDialog {
     }
     
     private void updateNewSize() {
-        final Dimension dimension = world.getDimension(dim);
+        final Dimension dimension = world.getDimension(anchor);
         final float scale = (int) spinnerScaleFactor.getValue() / 100f;
         final int newWidth = Math.round(dimension.getWidth() * TILE_SIZE * scale), newHeight = Math.round(dimension.getHeight() * TILE_SIZE * scale);
         labelNewSize.setText(format("%d x %d blocks", newWidth, newHeight));
@@ -336,5 +317,5 @@ public class ScaleWorldDialog extends WorldPainterDialog {
     // End of variables declaration//GEN-END:variables
 
     private final World2 world;
-    private final int dim, oppositeDim;
+    private final Anchor anchor, oppositeAnchor;
 }

@@ -41,8 +41,8 @@ public class ChangeHeightDialog extends WorldPainterDialog {
     public ChangeHeightDialog(Window parent, World2 world) {
         super(parent);
         this.world = world;
-        lowestHeight = stream(world.getDimensions()).mapToInt(Dimension::getLowestIntHeight).min().getAsInt();
-        highestHeight = stream(world.getDimensions()).mapToInt(Dimension::getHightestIntHeight).max().getAsInt();
+        lowestHeight = world.getDimensions().stream().mapToInt(Dimension::getLowestIntHeight).min().getAsInt();
+        highestHeight = world.getDimensions().stream().mapToInt(Dimension::getHightestIntHeight).max().getAsInt();
 
         initComponents();
         labelOldExtents.setText(lowestHeight + " - " + highestHeight);

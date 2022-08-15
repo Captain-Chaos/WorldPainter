@@ -15,7 +15,6 @@ import java.awt.image.ImageObserver;
 import java.awt.image.VolatileImage;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
-import java.util.List;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -24,23 +23,21 @@ import static org.pepsoft.util.GUIUtils.getUIScale;
 import static org.pepsoft.util.GUIUtils.getUIScaleInt;
 
 /**
- * A generic visual component which can display one or more layers of large or
- * even endless tile-based images, with support for scrolling and scaling the
- * images.
+ * A generic visual component which can display one or more layers of large or even endless tile-based images, with
+ * support for scrolling and scaling the images.
  * 
- * <p>The tiles are provided by {@link TileProvider tile providers}. The tiles
- * are requested asynchronously on multiple threads and are cached. This means
- * that tile providers have to do no caching themselves and are free to
- * calculate or generate each tile on request, even if that is relatively slow.
- * 
- * <p>When zooming in, this viewer performs all the scaling itself. When zooming
- * out, for tile providers which indicate that they support zooming, the scaling
- * is delegated to the tile providers.
+ * <p>The tiles are provided by {@link TileProvider tile providers}. The tiles are requested asynchronously on multiple
+ * threads and are cached. This means that tile providers have to do no caching themselves and are free to calculate or
+ * generate each tile on request, even if that is relatively slow.
  *
- * <p>This class does not provide scrollbars, however it can be encapsulated in
- * a {@link TiledImageViewerContainer} which will surround it with scrollbars,
- * with support for the tile providers'
- * {@link TileProvider#getExtent() extents}.
+ * <p>The tile providers are ordered on numbered layers. The numbering does not have to be continuous, and only one tile
+ * provider can be configured per layer. Lower numbered layers are rendered below higher numbered layers.
+ * 
+ * <p>When zooming in, this viewer performs all the scaling itself. When zooming out, for tile providers which indicate
+ * that they support zooming, the scaling is delegated to the tile providers.
+ *
+ * <p>This class does not provide scrollbars, however it can be encapsulated in a {@link TiledImageViewerContainer}
+ * which will surround it with scrollbars, with support for the tile providers' {@link TileProvider#getExtent() extents}.
  * 
  * @author pepijn
  */
@@ -86,17 +83,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * @return An unmodifyable view of the currently configured list of tile
      * providers.
      */
-    public List<TileProvider> getTileProviders() {
-        return Collections.unmodifiableList(tileProviders);
-    }
-
-    /**
-     * Add a new tile provider to the end of the list of tile providers.
-     *
-     * @param tileProvider The tile provider to add.
-     */
-    public void addTileProvider(TileProvider tileProvider) {
-        addTileProvider(tileProviders.size(), tileProvider);
+    public Collection<TileProvider> getTileProviders() {
+        return Collections.unmodifiableCollection(tileProviders.values());
     }
 
     /**
@@ -109,94 +97,67 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     }
 
     /**
-     * Set the first tile provider. Mainly meant as a convenience method for
-     * clients that will only ever use one tile provider at a time. Will add the
-     * tile provider if there are none yet configured, or replace the first tile
-     * provider on the list if one or more tile providers are already set.
+     * Set or replace a tile provider on layer 0 and reuse the existing provider's cached tile images as stale tile
+     * images for the new provider. Mainly meant as a convenience method for clients that will only ever use one tile
+     * provider at a time.
      *
-     * @param tileProvider The tile provider to set.
+     * @param tileProvider The tile provider to place at the specified layer.
      */
     public void setTileProvider(TileProvider tileProvider) {
-        if (tileProviders.isEmpty()) {
-            addTileProvider(tileProvider);
-        } else {
-            setTileProvider(0, tileProvider);
-        }
+        setTileProvider(0, tileProvider);
     }
 
     /**
-     * Replace a tile provider and remove all cached tile images for the
-     * existing provider.
+     * Set or replace a tile provider on a specific layer and reuse the existing provider's cached tile images as stale
+     * tile images for the new provider.
      *
-     * @param index The index of the tile provider to replace.
-     * @param tileProvider The tile provider with which to replace the existing
-     *                     provider at the specified index.
+     * @param layer The layer at which to place the tile provider.
+     * @param tileProvider The tile provider to place at the specified layer.
      */
-    public void setTileProvider(int index, TileProvider tileProvider) {
-        removeTileProvider(index);
-        addTileProvider(index, tileProvider);
-    }
-
-    /**
-     * Replace a tile provider and reuse the existing provider's cached tile
-     * images as stale tile images for the new provider.
-     *
-     * @param oldTileProvider The tile provider to replace.
-     * @param newTileProvider The tile provider with which to replace it.
-     */
-    public void replaceTileProvider(TileProvider oldTileProvider, TileProvider newTileProvider) {
-        replaceTileProvider(tileProviders.indexOf(oldTileProvider), newTileProvider);
-    }
-    
-    /**
-     * Replace a tile provider and reuse the existing provider's cached tile
-     * images as stale tile images for the new provider.
-     *
-     * @param index The index of the tile provider to replace.
-     * @param newTileProvider The tile provider with which to replace it.
-     */
-    public void replaceTileProvider(int index, TileProvider newTileProvider) {
+    public void setTileProvider(int layer, TileProvider tileProvider) {
         synchronized (TILE_CACHE_LOCK) {
-            TileProvider tileProvider = tileProviders.remove(index);
-            Point offset = offsets.remove(tileProvider);
-            tileProvider.removeTileListener(this);
-            Map<Point, Reference<? extends Image>> dirtyTileCache = dirtyTileCaches.remove(tileProvider);
-            Map<Point, Reference<? extends Image>> tileCache = tileCaches.remove(tileProvider);
-            // Add all live tile images from the tile cache to the dirty tile
-            // cache, for use as dirty tile for the new tile provider
-            for (Map.Entry<Point, Reference<? extends Image>> entry: tileCache.entrySet()) {
-                Reference<? extends Image> tileImageRef = entry.getValue();
-                if (tileImageRef != RENDERING) {
-                    Image tileImage = tileImageRef.get();
-                    if (tileImage != null) {
-                        dirtyTileCache.put(entry.getKey(), tileImageRef);
+            final TileProvider oldTileProvider = tileProviders.remove(layer);
+            Point offset = new Point();
+            Map<Point, Reference<? extends Image>> dirtyTileCache = new HashMap<>();
+            if (oldTileProvider != null) {
+                offset = offsets.remove(oldTileProvider);
+                oldTileProvider.removeTileListener(this);
+                dirtyTileCache = dirtyTileCaches.remove(oldTileProvider);
+                Map<Point, Reference<? extends Image>> tileCache = tileCaches.remove(oldTileProvider);
+                // Add all live tile images from the tile cache to the dirty tile cache, for use as dirty tile for the
+                // new tile provider
+                for (Map.Entry<Point, Reference<? extends Image>> entry: tileCache.entrySet()) {
+                    Reference<? extends Image> tileImageRef = entry.getValue();
+                    if (tileImageRef != RENDERING) {
+                        Image tileImage = tileImageRef.get();
+                        if (tileImage != null) {
+                            dirtyTileCache.put(entry.getKey(), tileImageRef);
+                        }
                     }
                 }
-            }
-            // We're not completely sure how, but sometimes we reach here
-            // without the renderers having been started, so check whether there
-            // actually is a queue
-            if (queue != null) {
-                // Prune the queue of jobs related to this tile provider
-                for (Iterator<Runnable> i = queue.iterator(); i.hasNext(); ) {
-                    if (((TileRenderJob) i.next()).tileProvider == tileProvider) {
-                        i.remove();
+                // We're not completely sure how, but sometimes we reach here without the renderers having been started,
+                // so check whether there actually is a queue
+                if (queue != null) {
+                    // Prune the queue of jobs related to this tile provider
+                    for (Iterator<Runnable> i = queue.iterator(); i.hasNext(); ) {
+                        if (((TileRenderJob) i.next()).tileProvider == oldTileProvider) {
+                            i.remove();
+                        }
                     }
                 }
             }
             
-            if (newTileProvider.isZoomSupported()) {
-                newTileProvider.setZoom((zoom <= 0) ? zoom : 0);
+            if (tileProvider.isZoomSupported()) {
+                tileProvider.setZoom((zoom <= 0) ? zoom : 0);
             }
-            newTileProvider.addTileListener(this);
-            tileProviders.add(index, newTileProvider);
-            offsets.put(newTileProvider, offset);
-            tileCaches.put(newTileProvider, new HashMap<>());
-            dirtyTileCaches.put(newTileProvider, dirtyTileCache);
+            tileProvider.addTileListener(this);
+            tileProviders.put(layer, tileProvider);
+            offsets.put(tileProvider, offset);
+            tileCaches.put(tileProvider, new HashMap<>());
+            dirtyTileCaches.put(tileProvider, dirtyTileCache);
 
-            // We're not completely sure how, but sometimes we reach here
-            // without the renderers having been started, so start them now (if
-            // we're visible of course)
+            // We're not completely sure how, but sometimes we reach here without the renderers having been started, so
+            // start them now (if we're visible of course)
             startRenderersIfApplicable();
         }
         fireViewChangedEvent();
@@ -206,38 +167,35 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     /**
      * Remove a tile provider.
      *
-     * @param tileProvider The tile provider to remove.
+     * @param layer The layer on the tile provider to remove is placed.
      */
-    public void removeTileProvider(TileProvider tileProvider) {
-        removeTileProvider(tileProviders.indexOf(tileProvider));
-    }
-    
-    /**
-     * Remove a tile provider.
-     *
-     * @param index The index of the tile provider to remove.
-     */
-    public void removeTileProvider(int index) {
+    public void removeTileProvider(int layer) {
+        boolean providerRemoved = false;
         synchronized (TILE_CACHE_LOCK) {
-            TileProvider tileProvider = tileProviders.remove(index);
-            offsets.remove(tileProvider);
-            tileProvider.removeTileListener(this);
-            tileCaches.remove(tileProvider);
-            dirtyTileCaches.remove(tileProvider);
-            // We're not completely sure how, but sometimes we reach here
-            // without the renderers having been started, so check whether there
-            // actually is a queue
-            if (queue != null) {
-                // Prune the queue of jobs related to this tile provider
-                for (Iterator<Runnable> i = queue.iterator(); i.hasNext(); ) {
-                    if (((TileRenderJob) i.next()).tileProvider == tileProvider) {
-                        i.remove();
+            final TileProvider tileProvider = tileProviders.remove(layer);
+            if (tileProvider != null) {
+                offsets.remove(tileProvider);
+                tileProvider.removeTileListener(this);
+                tileCaches.remove(tileProvider);
+                dirtyTileCaches.remove(tileProvider);
+                // We're not completely sure how, but sometimes we reach here
+                // without the renderers having been started, so check whether there
+                // actually is a queue
+                if (queue != null) {
+                    // Prune the queue of jobs related to this tile provider
+                    for (Iterator<Runnable> i = queue.iterator(); i.hasNext(); ) {
+                        if (((TileRenderJob) i.next()).tileProvider == tileProvider) {
+                            i.remove();
+                        }
                     }
                 }
+                providerRemoved = true;
             }
         }
-        fireViewChangedEvent();
-        repaint();
+        if (providerRemoved) {
+            fireViewChangedEvent();
+            repaint();
+        }
     }
 
     /**
@@ -245,7 +203,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      */
     public void removeAllTileProviders() {
         synchronized (TILE_CACHE_LOCK) {
-            for (TileProvider tileProvider: tileProviders) {
+            for (TileProvider tileProvider: tileProviders.values()) {
                 tileProvider.removeTileListener(this);
             }
             tileProviders.clear();
@@ -255,31 +213,6 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             }
             tileCaches.clear();
             dirtyTileCaches.clear();
-        }
-        fireViewChangedEvent();
-        repaint();
-    }
-
-    /**
-     * Add or insert a new tile provider at a specific index in the list.
-     *
-     * @param index The index at which to add or insert the new tile provider.
-     * @param tileProvider The tile provider to add or insert.
-     */
-    public void addTileProvider(int index, TileProvider tileProvider) {
-        if (tileProvider == null) {
-            throw new NullPointerException();
-        }
-        tileProviders.add(index, tileProvider);
-        offsets.put(tileProvider, new Point());
-        synchronized (TILE_CACHE_LOCK) {
-            if (tileProvider.isZoomSupported()) {
-                tileProvider.setZoom((zoom <= 0) ? zoom : 0);
-            }
-            tileProvider.addTileListener(this);
-            tileCaches.put(tileProvider, new HashMap<>());
-            dirtyTileCaches.put(tileProvider, new HashMap<>());
-            startRenderersIfApplicable();
         }
         fireViewChangedEvent();
         repaint();
@@ -326,7 +259,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      */
     public Rectangle getExtent() {
         Rectangle extent = null;
-        for (TileProvider tileProvider: tileProviders) {
+        for (TileProvider tileProvider: tileProviders.values()) {
             Rectangle providerExtent = tileProvider.getExtent();
             if (providerExtent != null) {
                 providerExtent = getTileBounds(tileProvider, providerExtent.x, providerExtent.y, providerExtent.width, providerExtent.height, zoom);
@@ -394,11 +327,11 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                 queue.clear();
             }
             synchronized (TILE_CACHE_LOCK) {
-                for (TileProvider tileProvider: tileProviders) {
+                for (TileProvider tileProvider: tileProviders.values()) {
                     if (tileProvider.isZoomSupported()) {
                         // Only use the tile provider's own zoom support for
                         // zooming out:
-                        tileProvider.setZoom((zoom <= 0) ? zoom : 0);
+                        tileProvider.setZoom(((zoom + providerZoom.getOrDefault(tileProvider, 0)) <= 0) ? (zoom + providerZoom.getOrDefault(tileProvider, 0)) : 0);
                     }
                     dirtyTileCaches.put(tileProvider, new HashMap<>());
                     tileCaches.put(tileProvider, new HashMap<>());
@@ -575,7 +508,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     public void refresh(boolean keepDirtyTiles) {
         queue.clear();
         synchronized (TILE_CACHE_LOCK) {
-            for (TileProvider tileProvider: tileProviders) {
+            for (TileProvider tileProvider: tileProviders.values()) {
                 if (keepDirtyTiles) {
                     Map<Point, Reference<? extends Image>> dirtyTileCache = tileCaches.get(tileProvider);
                     // Remove all dirty tiles which don't exist any more
@@ -1010,6 +943,10 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         }
     }
 
+    public void setProviderZoom(TileProvider tileProvider, int zoom) {
+        providerZoom.put(tileProvider, zoom);
+    }
+
     /**
      * Determine whether a tile is currently visible in the viewport.
      *
@@ -1291,8 +1228,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         GraphicsConfiguration gc = getGraphicsConfiguration();
-        for (TileProvider tileProvider: tileProviders) {
-            final int effectiveZoom = (tileProvider.isZoomSupported() && (zoom < 0)) ? 0 : zoom;
+        for (TileProvider tileProvider: tileProviders.values()) {
+            final int effectiveZoom = (tileProvider.isZoomSupported() && ((zoom + providerZoom.getOrDefault(tileProvider, 0)) < 0)) ? 0 : (zoom + providerZoom.getOrDefault(tileProvider, 0));
             final Point topLeftTileCoords = viewToWorld(tileProvider, clipBounds.getLocation(), effectiveZoom);
             final int leftTile = topLeftTileCoords.x >> TILE_SIZE_BITS;
             final int topTile = topLeftTileCoords.y >> TILE_SIZE_BITS;
@@ -1482,7 +1419,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         Rectangle tileBounds = getTileBounds(tileProvider, x, y, effectiveZoom);
         Image tile = getTile(tileProvider, x, y, effectiveZoom, gc);
         if (tile != null) {
-            if (zoom > 0) {
+            if ((zoom + providerZoom.getOrDefault(tileProvider, 0)) > 0) {
                 g2.drawImage(tile, tileBounds.x, tileBounds.y, tileBounds.width, tileBounds.height, this);
             } else {
                 g2.drawImage(tile, tileBounds.x, tileBounds.y, this);
@@ -1799,7 +1736,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     /**
      * The currently configured tile providers.
      */
-    private final List<TileProvider> tileProviders = new ArrayList<>();
+    private final SortedMap<Integer, TileProvider> tileProviders = new TreeMap<>();
     /**
      * The fresh and stale tile caches for each tile provider.
      */
@@ -1878,6 +1815,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     private BufferedImage backgroundImage;
     private BackgroundImageMode backgroundImageMode = BackgroundImageMode.CENTRE_REPEAT;
     private volatile boolean inhibitUpdates;
+    private Map<TileProvider, Integer> providerZoom = new WeakHashMap<>();
 
     public static final int TILE_SIZE = 128, TILE_SIZE_BITS = 7, TILE_SIZE_MASK = 0x7f;
     public static final IntegerAttributeKey ADVANCED_SETTING_MAX_TILE_RENDER_THREADS = new IntegerAttributeKey("display.maxTileRenderThreads", 8);

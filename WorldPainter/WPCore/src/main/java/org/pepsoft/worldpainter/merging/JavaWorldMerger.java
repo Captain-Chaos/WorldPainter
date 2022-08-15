@@ -35,6 +35,7 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.DataType.REGION;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Dimension.Anchor.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.platforms.PlatformUtils.determineNativePlatforms;
 
@@ -227,7 +228,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
 
             // Dimension sanity checks
             for (Dimension dimension: world.getDimensions()) {
-                final int dim = dimension.getDim();
+                final int dim = dimension.getAnchor().dim;
                 if ((dim < 0) || ((world.getDimensionsToExport() != null) && (! world.getDimensionsToExport().contains(dim)))) {
                     // Skip ceiling dimensions, or dimensions that are not going to be merged
                     continue;
@@ -281,7 +282,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         // Modify it if necessary and write it to the new level
         final Set<Integer> selectedDimensions = world.getDimensionsToExport();
         if ((selectedDimensions == null) || selectedDimensions.contains(DIM_NORMAL)) {
-            Dimension surfaceDimension = world.getDimension(DIM_NORMAL);
+            Dimension surfaceDimension = world.getDimension(NORMAL_DETAIL);
             level.setSeed(surfaceDimension.getMinecraftSeed());
             Point spawnPoint = world.getSpawnPoint();
             level.setSpawnX(spawnPoint.x);
@@ -317,14 +318,14 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         // instances which may have the map open:
         level.save(worldDir);
 
-        if ((selectedDimensions == null) ? (world.getDimension(DIM_NORMAL) != null) : selectedDimensions.contains(DIM_NORMAL)) {
-            mergeDimension(worldDir, backupDir, world.getDimension(DIM_NORMAL), progressReceiver); // TODO: this should be a SubProgressReceiver if we are exporting more than one dimension, or we should reset it
+        if ((selectedDimensions == null) ? (world.getDimension(NORMAL_DETAIL) != null) : selectedDimensions.contains(DIM_NORMAL)) {
+            mergeDimension(worldDir, backupDir, world.getDimension(NORMAL_DETAIL), progressReceiver); // TODO: this should be a SubProgressReceiver if we are exporting more than one dimension, or we should reset it
         }
-        if ((selectedDimensions == null) ? (world.getDimension(DIM_NETHER) != null) : selectedDimensions.contains(DIM_NETHER)) {
-            mergeDimension(worldDir, backupDir, world.getDimension(DIM_NETHER), progressReceiver); // TODO: this should be a SubProgressReceiver if we are exporting more than one dimension, or we should reset it
+        if ((selectedDimensions == null) ? (world.getDimension(NETHER_DETAIL) != null) : selectedDimensions.contains(DIM_NETHER)) {
+            mergeDimension(worldDir, backupDir, world.getDimension(NETHER_DETAIL), progressReceiver); // TODO: this should be a SubProgressReceiver if we are exporting more than one dimension, or we should reset it
         }
-        if ((selectedDimensions == null) ? (world.getDimension(DIM_END) != null) : selectedDimensions.contains(DIM_END)) {
-            mergeDimension(worldDir, backupDir, world.getDimension(DIM_END), progressReceiver); // TODO: this should be a SubProgressReceiver if we are exporting more than one dimension, or we should reset it
+        if ((selectedDimensions == null) ? (world.getDimension(END_DETAIL) != null) : selectedDimensions.contains(DIM_END)) {
+            mergeDimension(worldDir, backupDir, world.getDimension(END_DETAIL), progressReceiver); // TODO: this should be a SubProgressReceiver if we are exporting more than one dimension, or we should reset it
         }
 
         // TODO: move player positions if necessary
@@ -370,9 +371,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             event.setAttribute(ATTRIBUTE_KEY_MAP_FEATURES, world.isMapFeatures());
             event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
             event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
-            event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getDimension(DIM_NORMAL).getGenerator().getType().name());
+            event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getDimension(NORMAL_DETAIL).getGenerator().getType().name());
             if ((selectedDimensions == null) || selectedDimensions.contains(DIM_NORMAL)) {
-                Dimension surfaceDimension = world.getDimension(0);
+                Dimension surfaceDimension = world.getDimension(NORMAL_DETAIL);
                 event.setAttribute(ATTRIBUTE_KEY_TILES, surfaceDimension.getTileCount());
                 logLayers(surfaceDimension, event, "");
             }
@@ -399,7 +400,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             progressReceiver.setMessage("merging " + dimension.getName() + " dimension");
         }
         final File dimensionDir, backupDimensionDir;
-        switch (dimension.getDim()) {
+        switch (dimension.getAnchor().dim) {
             case org.pepsoft.worldpainter.Constants.DIM_NORMAL:
                 dimensionDir = worldDir;
                 backupDimensionDir = backupWorldDir;
@@ -413,7 +414,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 backupDimensionDir = new File(backupWorldDir, "DIM1");
                 break;
             default:
-                throw new IllegalArgumentException("Dimension " + dimension.getDim() + " not supported");
+                throw new IllegalArgumentException("Dimension " + dimension.getAnchor().dim + " not supported");
         }
         final Set<DataType> dataTypes = platformProvider.getDataTypes(platform);
         for (DataType dataType: dataTypes) {
@@ -550,7 +551,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                             logger.debug("Merged region " + regionCoords.x + "," + regionCoords.y);
                                         }
                                     } finally {
-                                        minecraftWorld.save(worldDir, dimension.getDim());
+                                        minecraftWorld.save(worldDir, dimension.getAnchor().dim);
                                     }
                                     synchronized (fixups) {
                                         if (!regionFixups.isEmpty()) {
@@ -628,7 +629,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                     }
                                 } finally {
                                     if ((exportResults != null) && exportResults.chunksGenerated) {
-                                        minecraftWorld.save(worldDir, dimension.getDim());
+                                        minecraftWorld.save(worldDir, dimension.getAnchor().dim);
                                     }
                                 }
                                 synchronized (fixups) {
@@ -729,7 +730,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         if (tileSelection) {
             // Sanity check
             assert world.getDimensionsToExport().size() == 1;
-            assert world.getDimensionsToExport().contains(dimension.getDim());
+            assert world.getDimensionsToExport().contains(dimension.getAnchor().dim);
             for (Point tileCoords: selectedTiles) {
                 Tile tile = dimension.getTile(tileCoords);
                 boolean nonReadOnlyChunksFound = false;

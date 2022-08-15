@@ -19,7 +19,7 @@ import java.util.*;
  */
 public final class DimensionSnapshot extends Dimension { // This cannot be an RODelegatingDimension because all the properties of the dimension need to be frozen
     public DimensionSnapshot(Dimension dimension, Snapshot snapshot) {
-        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getDim());
+        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getAnchor());
         this.dimension = dimension;
         this.snapshot = snapshot;
         super.setBorder(dimension.getBorder());
