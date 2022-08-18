@@ -168,7 +168,7 @@ public class GlassPane extends javax.swing.JPanel {
     private final Map<Layer, JLabel> hiddenLayers = new HashMap<>();
     private JLabel soloLayerLabel;
     
-    private static final NumberFormat SCALE_FORMAT = new DecimalFormat("0.# blocks");
+    private static final NumberFormat SCALE_FORMAT = new DecimalFormat("#,##0.# blocks");
     private static final BufferedImage PROHIBITED_SIGN_BACKGROUND = IconUtils.loadScaledImage("org/pepsoft/worldpainter/icons/prohibited_sign_background.png");
     private static final BufferedImage PROHIBITED_SIGN_FOREGROUND = IconUtils.loadScaledImage("org/pepsoft/worldpainter/icons/prohibited_sign_foreground.png");
     private static final long serialVersionUID = 1L;
