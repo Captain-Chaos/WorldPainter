@@ -7,10 +7,10 @@ import org.pepsoft.worldpainter.layers.NotPresent;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
@@ -58,7 +58,7 @@ public class ScalingHelper {
                 return new float[] { minHeight, maxHeight };
             }
 
-            private final Map<Point, Tile> additionalTiles = new HashMap<>();
+            private final Map<Point, Tile> additionalTiles = new ConcurrentHashMap<>();
         }.smoothed().scaled(scale).clamped(minHeight, maxHeight);
         final Set<Layer> allLayers = new HashSet<>();
         for (Tile tile: tiles.values()) {
