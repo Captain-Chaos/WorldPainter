@@ -43,10 +43,12 @@ import java.util.*;
 import static java.util.Objects.requireNonNull;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
+import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_17;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_18;
 import static org.pepsoft.worldpainter.DimensionPropertiesEditor.Mode.DEFAULT_SETTINGS;
 import static org.pepsoft.worldpainter.Generator.CUSTOM;
+import static org.pepsoft.worldpainter.Generator.FLAT;
 import static org.pepsoft.worldpainter.Platform.Capability.GENERATOR_PER_DIMENSION;
 import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
 import static org.pepsoft.worldpainter.layers.exporters.AbstractCavesExporter.CaveDecorationSettings.Decoration.BROWN_MUSHROOM;
@@ -571,6 +573,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                     case CUSTOMIZED:
                     case NETHER:
                     case END:
+                    case AMPLIFIED:
                         dimension.setGenerator(new SeededGenerator(generatorType, dimension.getMinecraftSeed()));
                         break;
                     case CUSTOM:
@@ -1048,22 +1051,14 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         // world generation settings
         final MapGenerator generator = dimension.getGenerator();
-        comboBoxGenerator.setSelectedItem((generator != null) ? generator.getType() : null);
+        savedGeneratorType = generator.getType();
+        endlessBorder = (dimension.getBorder() != null) && dimension.getBorder().isEndless();
+        comboBoxGenerator.setSelectedItem(endlessBorder ? FLAT : ((generator != null) ? generator.getType() : null));
         generatorName = (generator instanceof CustomGenerator) ? ((CustomGenerator) generator).getName() : null;
         customGeneratorSettings = (generator instanceof CustomGenerator) ? ((CustomGenerator) generator).getSettings() : null;
         superflatPreset = (generator instanceof SuperflatGenerator) ? ((SuperflatGenerator) generator).getSettings() : null;
 
         setControlStates();
-    }
-    
-    private int clamp(int minValue, int value, int maxValue) {
-        if (value < minValue) {
-            return minValue;
-        } else if (value > maxValue) {
-            return maxValue;
-        } else {
-            return value;
-        }
     }
     
     private void setControlStates() {
@@ -1175,8 +1170,22 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     }
 
     private void borderChanged() {
+        final boolean previousEndlessBorder = endlessBorder;
         Dimension.Border border = getSelectedBorder();
         endlessBorder = (border != null) && border.isEndless();
+        if (endlessBorder != previousEndlessBorder) {
+            programmaticChange = true;
+            try {
+                if (endlessBorder) {
+                    savedGeneratorType = (Generator) comboBoxGenerator.getSelectedItem();
+                    comboBoxGenerator.setSelectedItem(FLAT);
+                } else {
+                    comboBoxGenerator.setSelectedItem(savedGeneratorType);
+                }
+            } finally {
+                programmaticChange = false;
+            }
+        }
     }
 
     private void updateGeneratorButtonTooltip() {
@@ -4311,6 +4320,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private SuperflatPreset superflatPreset;
     private boolean endlessBorder, programmaticChange;
     private Tag customGeneratorSettings;
+    private Generator savedGeneratorType;
 
     private static final Logger logger = LoggerFactory.getLogger(DimensionPropertiesEditor.class);
     private static final long serialVersionUID = 1L;
