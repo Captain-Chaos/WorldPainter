@@ -228,10 +228,11 @@ public final class TileRenderer {
                     for (int y = 0; y < TILE_SIZE; y++) {
                         if (notAllChunksPresent && (tile.getBitLayerValue(NotPresent.INSTANCE, x, y))) {
                             renderBuffer[x | (y << TILE_SIZE_BITS)] = notPresentColour;
-                        } else if ((!noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)] && CEILING_PATTERN[x & 0x7][y & 0x7]) {
+                        } else if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)] && CEILING_PATTERN[x & 0x7][y & 0x7]) {
                             renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000;
                         } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
                             renderBuffer[x | (y << TILE_SIZE_BITS)] = 0x00000000;
+                            // TODO still render ReadOnly, and layers which might still be exported over Void
                         } else {
                             int colour = getPixelColour(tile, x, y, layers, renderers, contourLines, hideTerrain, hideFluids, bottomless, topLayersRelativeToTerrain, seed);
                             colour = ColourUtils.multiply(colour, getTerrainBrightenAmount());

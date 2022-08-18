@@ -1253,6 +1253,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 if (dimension.getBitLayerValueAt(org.pepsoft.worldpainter.layers.Void.INSTANCE, chunkX | x, chunkZ | z)) {
                     // Void. Just empty the entire column
                     // TODO: only empty from the terrain height on downwards? or find some other way of preserving overhanging trees, that kind of thing?
+                    // TODO: this prevents you from placing objects in the void; fix that!
                     for (int y = existingChunk.getHighestNonAirBlock(x, z); y >= minHeight; y--) {
                         existingChunk.setMaterial(x, y, z, AIR);
                         existingChunk.setBlockLightLevel(x, y, z, 0);

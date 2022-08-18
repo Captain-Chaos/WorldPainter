@@ -328,8 +328,8 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
             // Undo any changes we made (such as applying any combined layers)
             if (dimension.undoChanges()) {
-                // TODO: some kind of cleverer undo mechanism (undo history
-                // cloning?) so we don't mess up the user's redo history
+                // TODO: some kind of cleverer undo mechanism (undo history cloning?) so we don't mess up the user's
+                //  redo history
                 dimension.clearRedo();
                 dimension.armSavePoint();
             }
@@ -337,8 +337,8 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             if (ceiling != null) {
                 // Undo any changes we made (such as applying any combined layers)
                 if (ceiling.undoChanges()) {
-                    // TODO: some kind of cleverer undo mechanism (undo history
-                    // cloning?) so we don't mess up the user's redo history
+                    // TODO: some kind of cleverer undo mechanism (undo history cloning?) so we don't mess up the user's
+                    //  redo history
                     ceiling.clearRedo();
                     ceiling.armSavePoint();
                 }
@@ -409,7 +409,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             }
         }
 
-        // If there are combined layers, apply them and gather any newly added layers, recursively
+        // If there are combined layers, replace them with their constituent layers, recursively
         boolean done;
         do {
             done = true;
