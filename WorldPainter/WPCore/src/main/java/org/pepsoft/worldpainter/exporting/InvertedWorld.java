@@ -96,17 +96,8 @@ public class InvertedWorld implements MinecraftWorld {
     }
 
     @Override
-    public void addEntity(int x, int y, int height, Entity entity) {
-        Entity worldEntity = (Entity) entity.clone();
-        double[] pos = worldEntity.getPos();
-        pos[1] = maxZ - pos[1];
-        worldEntity.setPos(pos);
-        world.addEntity(x, y, maxZ - height, worldEntity);
-    }
-
-    @Override
     public void addEntity(double x, double y, double height, Entity entity) {
-        Entity worldEntity = (Entity) entity.clone();
+        Entity worldEntity = entity.clone();
         double[] pos = worldEntity.getPos();
         pos[1] = maxZ - pos[1];
         worldEntity.setPos(pos);

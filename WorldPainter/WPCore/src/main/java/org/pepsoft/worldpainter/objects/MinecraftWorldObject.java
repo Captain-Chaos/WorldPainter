@@ -182,11 +182,6 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     }
 
     @Override
-    public void addEntity(int x, int y, int height, Entity entity) {
-        // Do nothing
-    }
-
-    @Override
     public void addEntity(double x, double y, double height, Entity entity) {
         // Do nothing
     }

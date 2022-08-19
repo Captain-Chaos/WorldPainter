@@ -4,6 +4,8 @@
  */
 package org.pepsoft.worldpainter.objects;
 
+import org.jnbt.ByteTag;
+import org.jnbt.CompoundTag;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
@@ -13,10 +15,10 @@ import org.pepsoft.worldpainter.Dimension;
 import javax.vecmath.Point3i;
 import java.io.File;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+import static org.pepsoft.minecraft.Constants.TAG_FACING;
+import static org.pepsoft.minecraft.Constants.TAG_FACING_;
 
 /**
  * A three dimensional object, consisting of Minecraft blocks, which can be
@@ -241,6 +243,108 @@ public interface WPObject extends Serializable, Cloneable {
             }
         }
         return true;
+    }
+
+    /**
+     * Dumps the object to the console.
+     */
+    default void dump() {
+        final Point3i dim = getDimensions();
+        final Map<Point3i, List<Entity>> entities = new HashMap<>();
+        if (getEntities() != null) {
+            for (Entity entity : getEntities()) {
+                final Point3i pos = new Point3i(
+                        (int) Math.floor(entity.getRelPos()[0]),
+                        (int) Math.floor(entity.getRelPos()[2]),
+                        (int) Math.floor(entity.getRelPos()[1])
+                );
+                entities.computeIfAbsent(pos, k -> new ArrayList<>()).add(entity);
+            }
+        }
+        for (int z = 0; z < dim.z; z++) {
+            final List<Entity> entitiesEncountered = new ArrayList<>(entities.size());
+            System.out.println("X-->");
+            for (int y = 0; y < dim.y; y++) {
+                for (int row = 0; row < 4; row++) {
+                    switch (row) {
+                        case 0:
+                            for (int x = 0; x < dim.x; x++) {
+                                System.out.print("+------");
+                            }
+                            System.out.print('+');
+                            break;
+                        case 1:
+                            for (int x = 0; x < dim.x; x++) {
+                                if (getMask(x, y, z)) {
+                                    System.out.printf("|%6.6s", getMaterial(x, y, z).simpleName);
+                                } else {
+                                    System.out.print("|      ");
+                                }
+                            }
+                            System.out.print('|');
+                            break;
+                        case 2:
+                            for (int x = 0; x < dim.x; x++) {
+                                final Point3i pos = new Point3i(x, y, z);
+                                if (entities.containsKey(pos)) {
+                                    final Entity entity = entities.get(pos).get(0);
+                                    entitiesEncountered.add(entity);
+                                    final String id = entity.getId();
+                                    System.out.printf("|%d:%4.4s", entitiesEncountered.size(), id.substring(id.indexOf(':') + 1));
+                                } else {
+                                    System.out.print("|      ");
+                                }
+                            }
+                            System.out.print('|');
+                            break;
+                        case 3:
+                            for (int x = 0; x < dim.x; x++) {
+                                final Point3i pos = new Point3i(x, y, z);
+                                if (entities.containsKey(pos) && (entities.get(pos).size() > 1)) {
+                                    final Entity entity = entities.get(pos).get(1);
+                                    entitiesEncountered.add(entity);
+                                    final String id = entity.getId();
+                                    System.out.printf("|%d:%4.4s", entitiesEncountered.size(), id.substring(id.indexOf(':') + 1));
+                                } else {
+                                    System.out.print("|      ");
+                                }
+                            }
+                            System.out.print('|');
+                            break;
+                    }
+                    if ((y * 4 + row) == 0) {
+                        System.out.print(" Y");
+                    } else if ((y * 4 + row) == 1) {
+                        System.out.print(" |");
+                    } else if ((y * 4 + row) == 2) {
+                        System.out.print(" v");
+                    }
+                    System.out.println();
+                }
+            }
+            for (int x = 0; x < dim.x; x++) {
+                System.out.print("+------");
+            }
+            System.out.println("+ Z: " + z);
+            for (int i = 0; i < entitiesEncountered.size(); i++) {
+                final Entity entity = entitiesEncountered.get(i);
+                final StringBuilder sb = new StringBuilder();
+                sb.append(entity.getId());
+                sb.append(", relPos: ");
+                sb.append(Arrays.toString(entity.getRelPos()));
+                CompoundTag nbt = entity.toNBT();
+                if (nbt.containsTag(TAG_FACING_)) {
+                    sb.append(", facing: ");
+                    sb.append(((ByteTag) nbt.getTag(TAG_FACING_)).getValue());
+                }
+                if (nbt.containsTag(TAG_FACING)) {
+                    sb.append(", Facing: ");
+                    sb.append(((ByteTag) nbt.getTag(TAG_FACING)).getValue());
+                }
+                System.out.println("*" + (i + 1) + ": " + sb);
+            }
+            System.out.println();
+        }
     }
 
     // Standard attribute values

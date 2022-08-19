@@ -729,6 +729,8 @@ public final class Constants {
     public static final String TAG_LARGE_BIOMES_           = "large_biomes";
     public static final String TAG_SPAWN_FORCED            = "SpawnForced";
     public static final String TAG_SPAWN_DIMENSION         = "SpawnDimension";
+    public static final String TAG_FACING                  = "Facing";
+    public static final String TAG_FACING_                 = "facing";
 
     /**
      * Possibly unofficial, SpoutCraft-specific

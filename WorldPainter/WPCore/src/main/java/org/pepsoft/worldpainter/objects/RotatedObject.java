@@ -8,7 +8,6 @@ import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.util.AttributeKey;
-import org.pepsoft.util.MathUtils;
 import org.pepsoft.worldpainter.Platform;
 
 import javax.vecmath.Point3i;
@@ -110,36 +109,33 @@ public class RotatedObject extends AbstractObject {
     
     @Override
     public List<Entity> getEntities() {
+        if (steps == 0) {
+            return object.getEntities();
+        }
         List<Entity> objectEntities = object.getEntities();
         if (objectEntities != null) {
             List<Entity> entities = new ArrayList<>(objectEntities.size());
             for (Entity origEntity: objectEntities) {
-                Entity rotEntity = (Entity) origEntity.clone();
-                if (steps != 0) {
-                    double[] origRelPos = origEntity.getRelPos();
-                    double[] rotRelPos = rotEntity.getRelPos();
-                    switch (steps) {
-                        case 1:
-                            rotRelPos[0] = dimensions.x - origRelPos[2];
-                            rotRelPos[2] = origRelPos[0];
-                            break;
-                        case 2:
-                            rotRelPos[0] = dimensions.x - origRelPos[0];
-                            rotRelPos[2] = dimensions.y - origRelPos[2];
-                            break;
-                        case 3:
-                            rotRelPos[0] = origRelPos[2];
-                            rotRelPos[2] = dimensions.y - origRelPos[0];
-                            break;
-                        default:
-                            throw new InternalError();
-                    }
-                    rotEntity.setRelPos(rotRelPos);
-                    float[] rot = origEntity.getRot();
-                    rot[0] = MathUtils.mod(rot[0] + steps * 90.0f, 360.0f);
-                    rotEntity.setRot(rot);
-                    // TODO: adjust velocity
+                Entity rotEntity = origEntity.rotate(steps);
+                double[] origRelPos = origEntity.getRelPos();
+                double[] rotRelPos = rotEntity.getRelPos();
+                switch (steps) {
+                    case 1:
+                        rotRelPos[0] = dimensions.x - origRelPos[2];
+                        rotRelPos[2] = origRelPos[0];
+                        break;
+                    case 2:
+                        rotRelPos[0] = dimensions.x - origRelPos[0];
+                        rotRelPos[2] = dimensions.y - origRelPos[2];
+                        break;
+                    case 3:
+                        rotRelPos[0] = origRelPos[2];
+                        rotRelPos[2] = dimensions.y - origRelPos[0];
+                        break;
+                    default:
+                        throw new InternalError();
                 }
+                rotEntity.setRelPos(rotRelPos);
                 entities.add(rotEntity);
             }
             return entities;

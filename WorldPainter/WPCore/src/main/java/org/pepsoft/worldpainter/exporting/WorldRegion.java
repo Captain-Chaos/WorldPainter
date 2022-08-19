@@ -132,15 +132,10 @@ public class WorldRegion implements MinecraftWorld {
     }
 
     @Override
-    public void addEntity(int x, int y, int height, Entity entity) {
-        addEntity(x + 0.5, y + 0.5, height + 1.5, entity);
-    }
-
-    @Override
     public void addEntity(double x, double y, double height, Entity entity) {
-        Chunk chunk = getChunkForEditing(((int) x) >> 4, ((int) y) >> 4);
+        Chunk chunk = getChunkForEditing((int) Math.floor(x) >> 4, (int) Math.floor(y) >> 4);
         if (chunk != null) {
-            Entity clone = (Entity) entity.clone();
+            Entity clone = entity.clone();
             clone.setPos(new double[] {x, height, y});
             chunk.getEntities().add(clone);
         }

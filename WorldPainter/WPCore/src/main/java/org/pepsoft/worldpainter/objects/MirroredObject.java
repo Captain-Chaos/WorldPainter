@@ -9,7 +9,6 @@ import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.util.AttributeKey;
-import org.pepsoft.util.MathUtils;
 import org.pepsoft.worldpainter.Platform;
 
 import javax.vecmath.Point3i;
@@ -71,21 +70,14 @@ public class MirroredObject extends AbstractObject {
         if (objectEntities != null) {
             List<Entity> entities = new ArrayList<>(objectEntities.size());
             for (Entity objectEntity: objectEntities) {
-                Entity entity = (Entity) objectEntity.clone();
+                Entity entity = objectEntity.mirror(mirrorYAxis);
                 double[] relPos = entity.getRelPos();
-                double[] vel = entity.getVel();
                 if (mirrorYAxis) {
                     relPos[2] = dimensions.y - relPos[2];
-                    vel[2] = -vel[2];
                 } else {
                     relPos[0] = dimensions.x - relPos[0];
-                    vel[0] = -vel[0];
                 }
                 entity.setRelPos(relPos);
-                entity.setVel(vel);
-                float[] rot = entity.getRot();
-                rot[0] = MathUtils.mod(rot[0] + 180.0f, 360.0f);
-                entity.setRot(rot);
                 entities.add(entity);
             }
             return entities;

@@ -7,11 +7,13 @@ package org.pepsoft.minecraft;
 
 import org.jnbt.CompoundTag;
 import org.jnbt.StringTag;
+import org.pepsoft.util.MathUtils;
 
 import java.util.HashMap;
 import java.util.UUID;
 
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.util.ArrayUtils.indexOf;
 
 /**
  *
@@ -71,6 +73,11 @@ public class Entity extends AbstractNBTItem {
             throw new IllegalArgumentException();
         }
         setDoubleList(TAG_POS, pos);
+        if (containsTag(TAG_TILE_X)) {
+            setInt(TAG_TILE_X, (int) Math.floor(pos[0]));
+            setInt(TAG_TILE_Y, (int) Math.floor(pos[1]));
+            setInt(TAG_TILE_Z, (int) Math.floor(pos[2]));
+        }
     }
 
     public final float[] getRot() {
@@ -112,6 +119,97 @@ public class Entity extends AbstractNBTItem {
         setString(TAG_UUID, null);
     }
 
+    /**
+     * Return a clone of this entity that has been rotated clockwise by {@code steps} times 90 degrees.
+     */
+    public Entity rotate(int steps) {
+        final Entity rotEntity = clone();
+        if (steps != 0) {
+            final float[] rot = rotEntity.getRot();
+            rot[0] = MathUtils.mod(rot[0] + steps * 90.0f, 360.0f);
+            rotEntity.setRot(rot);
+            if (containsTag(TAG_FACING_)) {
+                int facing = getByte(TAG_FACING_);
+                if ((facing >= 0) && (facing <= 3)) {
+                    facing = (facing + steps) & 0x3;
+                    rotEntity.setByte(TAG_FACING_, (byte) facing);
+                }
+            }
+            if (containsTag(TAG_FACING)) {
+                int facing = getByte(TAG_FACING);
+                if ((facing >= 2) && (facing <= 5)) {
+                    facing = FACING_VALUES[(indexOf(FACING_VALUES, facing) + steps) & 0x3];
+                    rotEntity.setByte(TAG_FACING, (byte) facing);
+                }
+            }
+            // TODO are there other properties to adjust?
+            // TODO adjust velocity
+        }
+        return rotEntity;
+    }
+
+    /**
+     * Return a clone of this entity that has been mirrored in the indicated axis.
+     */
+    public Entity mirror(boolean mirrorYAxis) {
+        final Entity mirEntity = clone();
+        final double[] vel = mirEntity.getVel();
+        if (mirrorYAxis) {
+            vel[2] = -vel[2];
+        } else {
+            vel[0] = -vel[0];
+        }
+        mirEntity.setVel(vel);
+        final float[] rot = mirEntity.getRot();
+        if (mirrorYAxis) {
+            rot[0] = MathUtils.mod(180.0f - rot[0], 360.0f);
+        } else {
+            rot[0] = MathUtils.mod(-rot[0], 360.0f);
+        }
+        mirEntity.setRot(rot);
+        if (containsTag(TAG_FACING_)) {
+            int facing = getByte(TAG_FACING_);
+            if (mirrorYAxis) {
+                switch (facing) {
+                    case 0: facing = 2; break;
+                    case 2: facing = 0; break;
+                }
+            } else {
+                switch (facing) {
+                    case 1: facing = 3; break;
+                    case 3: facing = 1; break;
+                }
+            }
+            mirEntity.setByte(TAG_FACING_, (byte) facing);
+        }
+        if (containsTag(TAG_FACING)) {
+            int facing = getByte(TAG_FACING);
+            if (mirrorYAxis) {
+                switch (facing) {
+                    case 2: facing = 3; break;
+                    case 3: facing = 2; break;
+                }
+            } else {
+                switch (facing) {
+                    case 4: facing = 5; break;
+                    case 5: facing = 4; break;
+                }
+            }
+            mirEntity.setByte(TAG_FACING, (byte) facing);
+        }
+        // TODO are there other properties to adjust?
+        return mirEntity;
+    }
+
+    @Override
+    public Entity clone() {
+        final Entity clone = (Entity) super.clone();
+        if (relPos != null) {
+            clone.relPos = relPos.clone();
+        }
+        return clone;
+    }
+
     public static Entity fromNBT(CompoundTag entityTag) {
         return fromNBT(entityTag, null);
     }
@@ -132,5 +230,6 @@ public class Entity extends AbstractNBTItem {
 
     private double[] relPos;
 
+    private static final int[] FACING_VALUES = { 3, 4, 2, 5 };
     private static final long serialVersionUID = 1L;
 }

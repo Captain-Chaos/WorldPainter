@@ -648,15 +648,8 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
     }
 
     @Override
-    public void addEntity(int x, int y, int height, Entity entity) {
-        entity = (Entity) entity.clone();
-        entity.setPos(new double[] {x, height, y});
-        getEntities().add(entity);
-    }
-
-    @Override
     public void addEntity(double x, double y, double height, Entity entity) {
-        entity = (Entity) entity.clone();
+        entity = entity.clone();
         entity.setPos(new double[] {x, height, y});
         getEntities().add(entity);
     }

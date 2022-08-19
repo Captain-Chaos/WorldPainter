@@ -67,8 +67,6 @@ public interface MinecraftWorld extends ChunkProvider {
 
     int getMaxHeight();
 
-    void addEntity(int x, int y, int height, Entity entity);
-
     void addEntity(double x, double y, double height, Entity entity);
 
     void addTileEntity(int x, int y, int height, TileEntity tileEntity);
