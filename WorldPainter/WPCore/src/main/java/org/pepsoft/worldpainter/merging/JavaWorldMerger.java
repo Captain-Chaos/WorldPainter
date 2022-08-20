@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.DataType.REGION;
 import static org.pepsoft.minecraft.Material.*;
+import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Dimension.Anchor.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
@@ -999,12 +1000,12 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                 mergeChunk(existingChunk, newChunk, dimension);
                                 minecraftWorld.addChunk(existingChunk);
                             } catch (NullPointerException e) {
-                                reportBuilder.append("Null pointer exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from region " + regionCoords + "; skipping chunk" + EOL);
-                                logger.error("Null pointer exception while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from region " + regionCoords + "; skipping chunk", e);
+                                reportBuilder.append("Null pointer exception while merging chunks @ " + chunkXInRegion + ", " + chunkYInRegion + " in region " + regionCoords + "; skipping chunk" + EOL);
+                                logger.error("Null pointer exception while merging chunks @ " + chunkXInRegion + ", " + chunkYInRegion + " in region " + regionCoords + "; skipping chunk", e);
                                 continue;
                             } catch (ArrayIndexOutOfBoundsException e) {
-                                reportBuilder.append("Array index out of bounds while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from region " + regionCoords + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
-                                logger.error("Array index out of bounds while reading chunk in existing map " + chunkXInRegion + ", " + chunkYInRegion + " from region " + regionCoords + "; skipping chunk", e);
+                                reportBuilder.append("Array index out of bounds while merging chunks @ " + chunkXInRegion + ", " + chunkYInRegion + " in region " + regionCoords + " (message: \"" + e.getMessage() + "\"); skipping chunk" + EOL);
+                                logger.error("Array index out of bounds while merging chunks @ " + chunkXInRegion + ", " + chunkYInRegion + " in region " + regionCoords + "; skipping chunk", e);
                                 continue;
                             }
                         } else {
@@ -1486,9 +1487,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 // Also copy the 3D biome, if any (but only once per 4x4 column)
                 if (((x % 4) == 1) && ((z % 4) == 1) && ((dy < -2) || (dy > 1))) {
                     if (existingChunk.is3DBiomesAvailable()) {
-                        existingChunk.set3DBiome(x >> 2, y >> 2, z >> 2, ((y - dy) < existingChunk.getMinHeight()) ? existingChunk.get3DBiome(x >> 2, existingChunk.getMinHeight() >> 2, z >> 2) : existingChunk.get3DBiome(x >> 2, existingChunk.getMaxHeight() >> 2, z >> 2));
+                        existingChunk.set3DBiome(x >> 2, y >> 2, z >> 2, ((y - dy) < existingChunk.getMinHeight()) ? existingChunk.get3DBiome(x >> 2, existingChunk.getMinHeight() >> 2, z >> 2) : existingChunk.get3DBiome(x >> 2, (existingChunk.getMaxHeight() >> 2) - 1, z >> 2));
                     } else if (existingChunk.isNamedBiomesAvailable()) {
-                        existingChunk.setNamedBiome(x >> 2, y >> 2, z >> 2, ((y - dy) < existingChunk.getMinHeight()) ? existingChunk.getNamedBiome(x >> 2, existingChunk.getMinHeight() >> 2, z >> 2) : existingChunk.getNamedBiome(x >> 2, existingChunk.getMaxHeight() >> 2, z >> 2));
+                        existingChunk.setNamedBiome(x >> 2, y >> 2, z >> 2, ((y - dy) < existingChunk.getMinHeight()) ? existingChunk.getNamedBiome(x >> 2, existingChunk.getMinHeight() >> 2, z >> 2) : existingChunk.getNamedBiome(x >> 2, (existingChunk.getMaxHeight() >> 2) - 1, z >> 2));
                     }
                 }
             }
@@ -1513,10 +1514,12 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 // Also copy the 3D biome, if any (but only once per 4x4 column)
                 if (((x % 4) == 1) && ((z % 4) == 1) && ((dy < -2) || (dy > 1))) {
                     final int dyBiome = (dy + 2) >> 2;
+                    final int biomeMinHeight = existingChunk.getMinHeight() >> 2;
+                    final int biomeMaxHeight = existingChunk.getMaxHeight() >> 2;
                     if (existingChunk.is3DBiomesAvailable()) {
-                        existingChunk.set3DBiome(x >> 2, y >> 2, z >> 2, existingChunk.get3DBiome(x >> 2, (y >> 2) - dyBiome, z >> 2));
+                        existingChunk.set3DBiome(x >> 2, y >> 2, z >> 2, existingChunk.get3DBiome(x >> 2, clamp(biomeMinHeight, (y >> 2) - dyBiome, biomeMaxHeight - 1), z >> 2));
                     } else if (existingChunk.isNamedBiomesAvailable()) {
-                        existingChunk.setNamedBiome(x >> 2, y >> 2, z >> 2, existingChunk.getNamedBiome(x >> 2, (y >> 2) - dyBiome, z >> 2));
+                        existingChunk.setNamedBiome(x >> 2, y >> 2, z >> 2, existingChunk.getNamedBiome(x >> 2, clamp(biomeMinHeight, (y >> 2) - dyBiome, biomeMaxHeight - 1), z >> 2));
                     }
                 }
             }
