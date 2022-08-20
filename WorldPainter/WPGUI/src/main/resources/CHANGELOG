@@ -1,14 +1,21 @@
--- Version 2.13.0, released ...
+-- Version 2.13.0, released 20-8-2022
 
- * Scaling the world is now supported!
+ * Scaling (resizing) the world is now supported!
    + The new Scale screen can be reached from the Edit menu or the Global Operations tool
-   + This is new and relatively untested functionality. Please save your work, carefully examine the results and report any problems you encounter
-   + Each dimension is scaled separately, but ceiling dimensions can automatically be scaled along with their associated dimension
-   + Just like rotating and shifting, scaling cannot be undone! In addition, if you are scaling up and do not have enough memory, the operation may fail and remove all tiles! So be sure to save your work to disk first
-   + Scaling can result in artefacts, especially at large scales. If the resulting world edges don't fall on chunk boundaries, scaling may also result in land being added along the edges
+   + This is new and relatively untested functionality. Please save your work first, carefully examine the results and report any problems you encounter
+   + Each dimension is scaled separately, but ceiling dimensions can automatically be scaled along with their associated surface dimension
+   + Just like rotating and shifting, scaling cannot be undone! In addition, if you are scaling up and do not have enough memory, the operation may fail and result in loss of tiles! Please save your work first
+   + Scaling can result in artefacts, especially at larger scales. This is especially true for terrain type and discrete layers such as Annotations, which are scaled with nearest neighbour interpolation and will become blocky
+   + If the resulting world edges don't fall on chunk boundaries, scaling may result in land being added along the edges
+ * When selecting an endless border it is once again made clear that this changes the world type to Superflat, and thereby makes Populate not work
  * For new installations on UNIX/Linux systems the location of the configuration directory now follows the XDG specification
+ * Bug fix: fix a number of problems with Exporting entities (this includes mobs, but also things like paintings) from Custom Objects
+   + NOTE: it may be necessary to reload objects from disk from the Custom Object layer's settings screen, before they will behave correctly on Export
+   + Most notably, offsets and random rotation and mirroring should now work correctly for entities. However entity attitudes and poses are stored by Minecraft in extremely varied and inconsistent ways, so it may still not be the case for all of them. Please report entities that are still not Exported correctly when offset, rotated or mirrored
+ * Bug fix: fix an error that occurred when Merging changes in terrain height to maps with 3D biomes
  * Bug fix: the new Mud terrain type has been added to terrain selection lists
  * Bug fix: the preview of Custom Object layers is now updated after changing the properties of individual Custom Objects
+ * Bug fix: Exporting a dimension with a ceiling dimension that has missing tiles will no longer result in an error
 
 -- Version 2.12.0, released 2-8-2022
 
