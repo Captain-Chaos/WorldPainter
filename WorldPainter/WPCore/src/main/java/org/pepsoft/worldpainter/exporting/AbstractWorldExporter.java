@@ -369,7 +369,12 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         } else {
             allLayers = new HashSet<>();
             for (Point coords: selectedTiles) {
-                allLayers.addAll(dimension.getTile(coords).getLayers());
+                final Tile tile = dimension.getTile(coords);
+                // The tile could be null if e.g. this is the ceiling dimension, which doesn't have to have tiles
+                // everywhere the surface does
+                if (tile != null) {
+                    allLayers.addAll(tile.getLayers());
+                }
             }
         }
         allLayers.addAll(dimension.getMinimumLayers());
