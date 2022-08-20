@@ -5,6 +5,7 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.Direction;
+import org.pepsoft.worldpainter.heightMaps.TransformingHeightMap;
 
 import javax.vecmath.Point3i;
 import java.awt.*;
@@ -52,6 +53,8 @@ public abstract class CoordinateTransform {
     
     public abstract float transform(float angle);
 
+    public abstract HeightMap transform(HeightMap heightMap);
+
     public boolean isScaling() {
         return false;
     }
@@ -90,6 +93,11 @@ public abstract class CoordinateTransform {
                 @Override
                 public float transform(float angle) {
                     return angle;
+                }
+
+                @Override
+                public HeightMap transform(HeightMap heightMap) {
+                    return heightMap.scaled(scale);
                 }
 
                 @Override
@@ -148,6 +156,11 @@ public abstract class CoordinateTransform {
             }
             return angle;
         }
+
+        @Override
+        public HeightMap transform(HeightMap heightMap) {
+            return TransformingHeightMap.build().withHeightMap(heightMap).withName(heightMap.getName()).withRotation(HALF_PI).now();
+        }
     };
 
     public static final CoordinateTransform ROTATE_180_DEGREES = new CoordinateTransform() {
@@ -190,6 +203,11 @@ public abstract class CoordinateTransform {
                 angle -= TWO_PI;
             }
             return angle;
+        }
+
+        @Override
+        public HeightMap transform(HeightMap heightMap) {
+            return TransformingHeightMap.build().withHeightMap(heightMap).withName(heightMap.getName()).withRotation(PI).now();
         }
     };
 
@@ -236,6 +254,11 @@ public abstract class CoordinateTransform {
             }
             return angle;
         }
+
+        @Override
+        public HeightMap transform(HeightMap heightMap) {
+            return TransformingHeightMap.build().withHeightMap(heightMap).withName(heightMap.getName()).withRotation(PI * 3 / 2).now();
+        }
     };
 
     public static final CoordinateTransform NOOP = new CoordinateTransform() {
@@ -277,6 +300,11 @@ public abstract class CoordinateTransform {
         @Override
         public float transform(float angle) {
             return angle;
+        }
+
+        @Override
+        public HeightMap transform(HeightMap heightMap) {
+            return heightMap;
         }
 
         @Override

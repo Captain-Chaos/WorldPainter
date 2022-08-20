@@ -6,9 +6,11 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.Point;
-import javax.vecmath.Point3i;
 import org.pepsoft.minecraft.Direction;
+import org.pepsoft.worldpainter.heightMaps.TransformingHeightMap;
+
+import javax.vecmath.Point3i;
+import java.awt.*;
 
 /**
  *
@@ -49,6 +51,11 @@ public final class Translation extends CoordinateTransform {
     public float transform(float angle) {
         return angle;
     }
-    
+
+    @Override
+    public HeightMap transform(HeightMap heightMap) {
+        return TransformingHeightMap.build().withHeightMap(heightMap).withName(heightMap.getName()).withOffset(dx, dy).now();
+    }
+
     private final int dx, dy;
 }

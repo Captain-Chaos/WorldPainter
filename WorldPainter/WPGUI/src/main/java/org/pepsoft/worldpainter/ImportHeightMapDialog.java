@@ -188,7 +188,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             if (scale != 100) {
                 ((BitmapHeightMap) heightMap).setSmoothScaling(true);
             }
-            heightMap = new TransformingHeightMap(heightMap.getName() + " transformed", heightMap, scale / 100.0f, scale / 100.0f, offsetX, offsetY, 0);
+            heightMap = new TransformingHeightMap(heightMap.getName() + " transformed", heightMap, scale / 100.0f, scale / 100.0f, offsetX, offsetY, 0.0f);
         }
         if (checkBoxInvert.isSelected()) {
             heightMap = new DifferenceHeightMap(new ConstantHeightMap((float) (Math.pow(2, bitDepth) - 1)), heightMap);

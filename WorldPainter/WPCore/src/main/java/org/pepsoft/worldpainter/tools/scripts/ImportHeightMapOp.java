@@ -104,7 +104,7 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
             if (scale != 100) {
                 heightMap.setSmoothScaling(true);
             }
-            adjustedHeightMap = new TransformingHeightMap(heightMap.getName() + " transformed", heightMap, scale / 100.0f, scale / 100.0f, offsetX, offsetY, 0);
+            adjustedHeightMap = new TransformingHeightMap(heightMap.getName() + " transformed", heightMap, scale / 100.0f, scale / 100.0f, offsetX, offsetY, 0.0f);
         }
         importer.setHeightMap(adjustedHeightMap);
         importer.setImageFile(heightMap.getImageFile());

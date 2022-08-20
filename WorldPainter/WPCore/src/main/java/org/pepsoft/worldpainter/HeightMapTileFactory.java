@@ -152,6 +152,11 @@ public class HeightMapTileFactory extends AbstractTileFactory {
         theme.apply(tile, x, y);
     }
 
+    @Override
+    public void transform(CoordinateTransform transform) {
+        heightMap = transform.transform(heightMap);
+    }
+
     protected final void setRandomise(boolean randomise) {
         this.randomise = randomise;
     }

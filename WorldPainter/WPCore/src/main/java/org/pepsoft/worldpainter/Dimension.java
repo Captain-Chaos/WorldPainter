@@ -1620,6 +1620,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 }
             }
 
+            tileFactory.transform(transform);
+
             if (overlayCoords != null) {
                 overlayCoords = transform.transform(overlayCoords);
                 overlayOffsetX = overlayCoords.x - (lowestX << TILE_SIZE_BITS);

@@ -19,4 +19,5 @@ public interface TileFactory extends Serializable, TileProvider {
     void setSeed(long seed);
     Tile createTile(int x, int y);
     void applyTheme(Tile tile, int x, int y);
+    void transform(CoordinateTransform transform);
 }
