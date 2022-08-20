@@ -4778,6 +4778,7 @@ public final class App extends JFrame implements RadiusControl,
             toolBar.add(ACTION_CHANGE_HEIGHT);
             toolBar.add(ACTION_ROTATE_WORLD);
             toolBar.add(ACTION_SHIFT_WORLD);
+            toolBar.add(ACTION_SCALE_WORLD);
         }
         toolBar.add(ACTION_EDIT_TILES);
         toolBar.addSeparator();
