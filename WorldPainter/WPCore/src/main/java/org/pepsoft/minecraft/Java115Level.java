@@ -65,6 +65,8 @@ public class Java115Level extends JavaLevel {
                     return new SeededGenerator(BUFFET, getSeed());
                 } else if ("CUSTOMIZED".equalsIgnoreCase(generatorName)) {
                     return new SeededGenerator(CUSTOMIZED, getSeed());
+                } else if ("amplified".equalsIgnoreCase(generatorName)) {
+                    return new SeededGenerator(AMPLIFIED, getSeed());
                 } else {
                     return new CustomGenerator(getGeneratorName(), null);
                 }
@@ -126,6 +128,14 @@ public class Java115Level extends JavaLevel {
                         setString(TAG_GENERATOR_NAME_, customGenerator.getName());
                         if (customGenerator.getSettings() != null) {
                             setGeneratorOptions(customGenerator.getSettings());
+                        }
+                        break;
+                    case AMPLIFIED:
+                        if (getVersion() == VERSION_MCREGION) {
+                            throw new IllegalArgumentException("Amplified not supported for Minecraft 1.1 maps");
+                        } else {
+                            setString(TAG_GENERATOR_NAME_, "amplified");
+                            setInt(TAG_GENERATOR_VERSION_, 0);
                         }
                         break;
                     case BUFFET:
