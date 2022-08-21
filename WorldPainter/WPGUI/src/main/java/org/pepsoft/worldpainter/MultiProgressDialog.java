@@ -11,6 +11,7 @@
 
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.minecraft.exception.IncompatibleMaterialException;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.util.swing.ProgressComponent.Listener;
@@ -114,6 +115,9 @@ public abstract class MultiProgressDialog<T> extends javax.swing.JDialog impleme
             } else if (cause instanceof InvalidMapException) {
                 DesktopUtils.beep();
                 JOptionPane.showMessageDialog(MultiProgressDialog.this, cause.getMessage(), "Invalid Map", JOptionPane.ERROR_MESSAGE);
+            } else if (cause instanceof IncompatibleMaterialException) {
+                DesktopUtils.beep();
+                JOptionPane.showMessageDialog(MultiProgressDialog.this, cause.getMessage(), "Incompatible Material", JOptionPane.ERROR_MESSAGE);
             } else {
                 DesktopUtils.beep();
                 ErrorDialog dialog = new ErrorDialog(MultiProgressDialog.this);
