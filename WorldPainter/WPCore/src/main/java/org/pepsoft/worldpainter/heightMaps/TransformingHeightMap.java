@@ -35,7 +35,6 @@ public class TransformingHeightMap extends DelegatingHeightMap {
     public TransformingHeightMap(String name, HeightMap baseHeightMap, float scaleX, float scaleY, int offsetX, int offsetY, float rotation) {
         super("baseHeightMap");
         setName(name);
-        setHeightMap(0, baseHeightMap);
         this.scaleX = scaleX;
         this.scaleY = scaleY;
         this.offsetX = offsetX;
@@ -57,6 +56,7 @@ public class TransformingHeightMap extends DelegatingHeightMap {
                 transform.rotate(-rotation);
             }
         }
+        setHeightMap(0, baseHeightMap);
     }
 
     public HeightMap getBaseHeightMap() {
