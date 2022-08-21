@@ -1140,7 +1140,7 @@ public final class Constants {
     public static final String ID_END_PORTAL_FRAME = "minecraft:end_portal_frame";
     public static final String ID_ENDER_EYE        = "minecraft:ender_eye";
 
-    // Legacy (pre-MC 1.13) tile entity IDs
+    // Legacy (Minecraft 1.1) tile entity IDs
 
     public static final String LEGACY_ID_CHEST        = "Chest";
     public static final String LEGACY_ID_VILLAGER     = "Villager";
@@ -1168,6 +1168,17 @@ public final class Constants {
     public static final String LEGACY_ID_BANNER       = "Banner";
     public static final String LEGACY_ID_STRUCTURE    = "Structure";
     public static final String LEGACY_ID_SHULKER_BOX  = "shulker_box"; // TODO: really?
+
+    // Legacy (Minecraft 1.12) tile entity IDs
+
+    public static final String ID_SAPLING     = "minecraft:sapling";
+    public static final String ID_REEDS       = "minecraft:reeds";
+    public static final String ID_BED         = "minecraft:bed";
+    public static final String ID_LOG         = "minecraft:log";
+    public static final String ID_BANNER      = "minecraft:banner";
+    public static final String ID_SKULL       = "minecraft:skull";
+    public static final String ID_NOTEBLOCK   = "minecraft:noteblock";
+    public static final String ID_MOB_SPAWNER = "minecraft:mob_spawner";
 
     public static final int GAME_TYPE_SURVIVAL  = 0;
     public static final int GAME_TYPE_CREATIVE  = 1;
