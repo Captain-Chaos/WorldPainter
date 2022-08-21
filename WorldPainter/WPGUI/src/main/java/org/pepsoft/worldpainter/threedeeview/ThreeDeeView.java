@@ -454,8 +454,13 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
 
     private void scheduleTileForRendering(final Tile tile) {
 //        System.out.println("Scheduling tile for rendering: " + tile.getX() + ", " + tile.getY());
+        final JViewport parent = (JViewport) getParent();
+        if (parent == null) {
+            // This has been observed in the wild; possible after the 3D view has been removed from the 3D frame?
+            return;
+        }
         if (SwingUtilities.isEventDispatchThread()) {
-            Rectangle visibleArea = ((JViewport) getParent()).getViewRect();
+            Rectangle visibleArea = parent.getViewRect();
             Rectangle tileBounds = zoom(getTileBounds(tile));
             if (tileBounds.intersects(visibleArea)) {
                 // The tile is (partially) visible, so it should be repainted
@@ -481,7 +486,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
             }
         } else {
             SwingUtilities.invokeLater(() -> {
-                Rectangle visibleArea = ((JViewport) getParent()).getViewRect();
+                Rectangle visibleArea = parent.getViewRect();
                 Rectangle tileBounds = zoom(getTileBounds(tile));
                 if (tileBounds.intersects(visibleArea)) {
                     // The tile is (partially) visible, so it should be repainted
