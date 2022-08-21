@@ -286,14 +286,18 @@ public class SimpleTheme implements Theme, Cloneable {
                 for (int z = minHeight; z < maxHeight; z++) {
                     levels[z - minHeight] = filter.getLevel(0, 0, z, 15);
                 }
-                if (layer.getDataSize() == Layer.DataSize.BIT) {
-                    bitLayers.add(layer);
-                    bitLayerLevels.add(levels);
-                } else if (layer.getDataSize() == Layer.DataSize.NIBBLE) {
-                    layers.add(layer);
-                    layerLevels.add(levels);
-                } else {
-                    throw new IllegalArgumentException("Layer with unsupported data size " + layer.getDataSize() + " encountered");
+                switch (layer.getDataSize()) {
+                    case BIT:
+                    case BIT_PER_CHUNK:
+                        bitLayers.add(layer);
+                        bitLayerLevels.add(levels);
+                        break;
+                    case NIBBLE:
+                        layers.add(layer);
+                        layerLevels.add(levels);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Layer with unsupported data size " + layer.getDataSize() + " encountered");
                 }
             }
             if (! layers.isEmpty()) {
