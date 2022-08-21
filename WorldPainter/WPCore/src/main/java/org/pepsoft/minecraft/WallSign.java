@@ -4,21 +4,17 @@
  */
 package org.pepsoft.minecraft;
 
-import org.jnbt.CompoundTag;
-
 import static org.pepsoft.minecraft.Constants.*;
 
 /**
- *
  * @author pepijn
+ * @deprecated Use {@link Sign}.
  */
+@Deprecated
 public class WallSign extends TileEntity {
-    public WallSign() {
-        super(LEGACY_ID_SIGN); // TODO add MC 1.15 support
-    }
-
-    public WallSign(CompoundTag tag) {
-        super(tag);
+    private WallSign() {
+        super((String) null);
+        // Prevent instantiation
     }
     
     public String[] getText() {

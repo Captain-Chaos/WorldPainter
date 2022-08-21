@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 
 /**
  *
@@ -21,7 +21,7 @@ import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
  */
 public class Chest extends TileEntity implements ItemContainer {
     public Chest(Platform platform) {
-        super(platform.capabilities.contains(NAME_BASED) ? ID_CHEST : LEGACY_ID_CHEST);
+        super((platform == JAVA_MCREGION) ? LEGACY_ID_CHEST : ID_CHEST);
     }
 
     public Chest(CompoundTag tag) {

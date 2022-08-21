@@ -16,13 +16,17 @@ import static org.pepsoft.minecraft.Constants.*;
  * @author pepijn
  */
 public class InventoryItem extends AbstractNBTItem {
-    public InventoryItem() {
-        super(new CompoundTag("", new HashMap<>()));
+    public InventoryItem(int id, int damage, int count, int slot) {
+        this();
+        setId(id);
+        setDamage(damage);
+        setCount(count);
+        setSlot(slot);
     }
 
-    public InventoryItem(int type, int damage, int count, int slot) {
+    public InventoryItem(String id, int damage, int count, int slot) {
         this();
-        setType(type);
+        setId(id);
         setDamage(damage);
         setCount(count);
         setSlot(slot);
@@ -33,6 +37,10 @@ public class InventoryItem extends AbstractNBTItem {
         setId(id);
         setCount(count);
         setSlot(slot);
+    }
+
+    private InventoryItem() {
+        super(new CompoundTag("", new HashMap<>()));
     }
 
     public InventoryItem(CompoundTag tag) {
@@ -71,12 +79,12 @@ public class InventoryItem extends AbstractNBTItem {
         setShort(TAG_ID_, (short) type);
     }
 
-    public final String getId() {
-        return getString(TAG_ID_);
-    }
-
     public final void setId(String id) {
         setString(TAG_ID_, id);
+    }
+
+    public final void setId(int id) {
+        setShort(TAG_ID_, (short) id);
     }
 
     public final CompoundTag getTag() {
