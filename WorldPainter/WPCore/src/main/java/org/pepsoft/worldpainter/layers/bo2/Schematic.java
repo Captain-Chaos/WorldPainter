@@ -42,14 +42,16 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
         addBlocks = getByteArray("AddBlocks");
         data = getByteArray("Data");
         List<CompoundTag> entityTags = getList("Entities");
-        if (entityTags.isEmpty()) {
+        // entitites has been observed to be missing sporadically in the wild, so check for that, and guess that it also
+        // applies to tileEntities
+        if ((entityTags == null) || entityTags.isEmpty()) {
             entities = null;
         } else {
             entities = new ArrayList<>(entityTags.size());
             entities.addAll(entityTags.stream().map((CompoundTag entityTag) -> Entity.fromNBT(entityTag, ((ListTag<DoubleTag>) entityTag.getTag(TAG_POS)).getValue().stream().mapToDouble(DoubleTag::getValue).toArray())).collect(Collectors.toList()));
         }
         List<CompoundTag> tileEntityTags = getList("TileEntities");
-        if (tileEntityTags.isEmpty()) {
+        if ((tileEntityTags == null) || tileEntityTags.isEmpty()) {
             tileEntities = null;
         } else {
             tileEntities = new ArrayList<>(tileEntityTags.size());
