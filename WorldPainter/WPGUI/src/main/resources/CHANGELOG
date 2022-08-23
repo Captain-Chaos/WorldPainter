@@ -1,3 +1,16 @@
+-- Version 2.13.1, released 23-8-2022
+
+ * Bug fix: work around a bug in Java which was causing non-surface dimensions to overwrite the surface dimension upon loading existing .world files
+   + If you have saved such a .world file after loading it with the surface being missing, that change is now permanent! You will have to load a backup of the .world file. Apologies for the inconvenience
+ * Bug fix: export the Large Biomes world type correctly for Minecraft 1.17, preventing an error upon loading such maps in Minecraft
+ * Add a toolbar button for scaling the dimension
+ * Support the Populate layer in the theme settings
+ * Loading the custom block definition files introduced in version 2.11 has been made more forgiving
+   + An error in the file no longer caused the WorldPainter configuration to be reset
+   + All columns but "name" have been made optional. If you leave out the column (or individual values), WorldPainter will make a crude guess
+ * Bug fix: make the Amplified world type work for more Minecraft versions
+ * Various other small bug fixes
+
 -- Version 2.13.0, released 20-8-2022
 
  * Scaling (resizing) the world is now supported!
