@@ -25,7 +25,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.requireNonNull;
 import static java.util.zip.ZipFile.OPEN_READ;
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.minecraft.Material.*;
+import static org.pepsoft.minecraft.Material.DIRT_PATH;
+import static org.pepsoft.minecraft.MaterialImporter.*;
 import static org.pepsoft.worldpainter.Constants.UNKNOWN_MATERIAL_COLOUR;
 
 @SuppressWarnings("ConstantConditions")
@@ -69,15 +70,6 @@ public class UpdateMaterials {
                 csvOut.next();
             } while (! csvIn.isEndOfFile());
         }
-    }
-
-    /**
-     * Guess whether a material receives light unto itself, despite being opaque to surrounding blocks.
-     */
-    private static boolean guessReceivesLight(String name) {
-        return NON_TRANSMITTING_TRANSPARENT_BLOCKS.contains(name)
-                || name.endsWith("_slab")
-                || name.endsWith("_stairs");
     }
 
     private static void enrichMaterialsWithColours() throws IOException, ClassNotFoundException {
@@ -187,34 +179,6 @@ public class UpdateMaterials {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static boolean guessVeryInsubstantial(String name) {
-        return guessVegetation(name) || name.contains("leaves");
-    }
-
-    private static boolean guessInsubstantial(String name) {
-        return guessVegetation(name);
-    }
-
-    private static boolean guessVegetation(String name) {
-        return (! name.endsWith("_block"))
-                && (! guessTreeRelated(name))
-                && (name.contains("leaf")
-                || name.contains("vine")
-                || name.contains("fungus")
-                || name.contains("roots")
-                || name.contains("azalea")
-                || name.contains("flowering")
-                || name.contains("lichen")
-                || name.contains("moss")
-                || name.contains("stem")
-                || name.contains("blossom"));
-    }
-
-    private static boolean guessNatural(String material) {
-        return (guessVegetation(material) || guessTreeRelated(material))
-                && (! material.contains("stripped"));
     }
 
     public static ColourAndOrigin determineColour(Material material, JarFile jarFile) {
@@ -360,6 +324,4 @@ public class UpdateMaterials {
         public final int colour;
         public final String origin;
     }
-
-    private static final Set<String> NON_TRANSMITTING_TRANSPARENT_BLOCKS = ImmutableSet.of(MC_DIRT_PATH, MC_GRASS_PATH);
 }
