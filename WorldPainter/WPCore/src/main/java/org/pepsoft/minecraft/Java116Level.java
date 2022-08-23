@@ -187,7 +187,7 @@ public class Java116Level extends JavaLevel {
                         break;
                     case LARGE_BIOMES:
                         generatorType = MC_NOISE;
-                        settingsTag = new StringTag(TAG_SETTINGS_, MC_LARGE_BIOMES);
+                        settingsTag = new StringTag(TAG_SETTINGS_, MC_OVERWORLD);
                         biomeSourceType = MC_VANILLA_LAYERED;
                         biomeSourcePreset = null;
                         biomeSourceLargeBiomes = TRUE;
@@ -195,8 +195,9 @@ public class Java116Level extends JavaLevel {
                     case AMPLIFIED:
                         generatorType = MC_NOISE;
                         settingsTag = new StringTag(TAG_SETTINGS_, MC_AMPLIFIED);
-                        biomeSourceType = MC_MULTI_NOISE;
+                        biomeSourceType = MC_VANILLA_LAYERED;
                         biomeSourcePreset = null;
+                        biomeSourceLargeBiomes = FALSE;
                         break;
                     case FLAT:
                         generatorType = MC_FLAT;
