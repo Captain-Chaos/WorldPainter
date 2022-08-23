@@ -95,6 +95,11 @@ public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
     }
 
     @Override
+    public boolean isTilePresent(int x, int y) {
+        return getTile(x, y) != null;
+    }
+
+    @Override
     public int getTileCount() {
         return dimension.getTileCount();
     }
