@@ -41,7 +41,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
-import static org.pepsoft.worldpainter.Platform.Capability.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Platform.Capability.LEAF_DISTANCES;
+import static org.pepsoft.worldpainter.Platform.Capability.PRECALCULATED_LIGHT;
 import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
 
 /**
