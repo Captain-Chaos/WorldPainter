@@ -2006,7 +2006,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private final World2 world;
     private final long seed;
     @Deprecated
-    private final int dim = 0;
+    private int dim = 0;
     final Map<Point, Tile> tiles = new HashMap<>();
     private final TileFactory tileFactory;
     private int lowestX = Integer.MAX_VALUE, highestX = Integer.MIN_VALUE, lowestY = Integer.MAX_VALUE, highestY = Integer.MIN_VALUE;
