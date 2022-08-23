@@ -559,8 +559,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             gardenExporter.secondPass(dimension, tile, minecraftWorld, secondPassProcessedSeeds);
         });
 
-        // TODO: trying to do this for every region should work but is not very
-        //  elegant
+        // TODO: trying to do this for every region should work but is not very elegant
         if ((dimension.getAnchor().dim == 0) && world.isCreateGoodiesChest()) {
             Point goodiesPoint = (Point) world.getSpawnPoint().clone();
             goodiesPoint.translate(3, 3);
@@ -992,7 +991,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
     }
 
     private boolean isWorldChunk(Dimension dimension, int x, int y) {
-        return dimension.getTile(x >> 3, y >> 3) != null;
+        return dimension.isTilePresent(x >> 3, y >> 3);
     }
 
     private boolean isBorderChunk(Dimension dimension, int x, int y) {
@@ -1001,7 +1000,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         if ((dimension.getBorder() == null) || (borderSize == 0)) {
             // There is no border configured, so definitely no border chunk
             return false;
-        } else if (dimension.getTile(tileX, tileY) != null) {
+        } else if (dimension.isTilePresent(tileX, tileY)) {
             // There is a tile here, so definitely no border chunk
             return false;
         } else {
@@ -1009,7 +1008,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             // in which case we are on a border tile
             for (int dx = -borderSize; dx <= borderSize; dx++) {
                 for (int dy = -borderSize; dy <= borderSize; dy++) {
-                    if (dimension.getTile(tileX + dx, tileY + dy) != null) {
+                    if (dimension.isTilePresent(tileX + dx, tileY + dy)) {
                         // Tile found, we are a border chunk!
                         return true;
                     }
@@ -1022,8 +1021,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
     }
 
     private Chest createGoodiesChest(Platform platform) {
-        // TODOMC13 migrate to Minecraft 1.15
-        // TODOMC13 this makes Minecraft 1.15 crash!
         List<InventoryItem> list = new ArrayList<>();
         if (platform == JAVA_MCREGION) {
             list.add(new InventoryItem((short) ITM_DIAMOND_SWORD, 0, 1, 0));
@@ -1100,31 +1097,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             list.add(new InventoryItem(ID_CRAFTING_TABLE, 1, 21));
             list.add(new InventoryItem(ID_END_PORTAL_FRAME, 12, 22));
             list.add(new InventoryItem(ID_ENDER_EYE, 12, 23));
-        } else {
-            list.add(new InventoryItem(ITM_DIAMOND_SWORD, 0, 1, 0));
-            list.add(new InventoryItem(ITM_DIAMOND_SHOVEL, 0, 1, 1));
-            list.add(new InventoryItem(ITM_DIAMOND_PICKAXE, 0, 1, 2));
-            list.add(new InventoryItem(ITM_DIAMOND_AXE, 0, 1, 3));
-            list.add(new InventoryItem(BLK_SAPLING, 0, 64, 4));
-            list.add(new InventoryItem(BLK_SAPLING, 1, 64, 5));
-            list.add(new InventoryItem(BLK_SAPLING, 2, 64, 6));
-            list.add(new InventoryItem(BLK_BROWN_MUSHROOM, 0, 64, 7));
-            list.add(new InventoryItem(BLK_RED_MUSHROOM, 0, 64, 8));
-            list.add(new InventoryItem(ITM_BONE, 0, 64, 9));
-            list.add(new InventoryItem(ITM_WATER_BUCKET, 0, 1, 10));
-            list.add(new InventoryItem(ITM_WATER_BUCKET, 0, 1, 11));
-            list.add(new InventoryItem(ITM_COAL, 0, 64, 12));
-            list.add(new InventoryItem(ITM_IRON_INGOT, 0, 64, 13));
-            list.add(new InventoryItem(BLK_CACTUS, 0, 64, 14));
-            list.add(new InventoryItem(ITM_SUGAR_CANE, 0, 64, 15));
-            list.add(new InventoryItem(BLK_TORCH, 0, 64, 16));
-            list.add(new InventoryItem(ITM_BED, 0, 1, 17));
-            list.add(new InventoryItem(BLK_OBSIDIAN, 0, 64, 18));
-            list.add(new InventoryItem(ITM_FLINT_AND_STEEL, 0, 1, 19));
-            list.add(new InventoryItem(BLK_WOOD, 0, 64, 20));
-            list.add(new InventoryItem(BLK_CRAFTING_TABLE, 0, 1, 21));
-            list.add(new InventoryItem(BLK_END_PORTAL_FRAME, 0, 12, 22));
-            list.add(new InventoryItem(ITM_EYE_OF_ENDER, 0, 12, 23));
         }
         Chest chest = new Chest(platform);
         chest.setItems(list);
