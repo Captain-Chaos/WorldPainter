@@ -212,7 +212,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
                 }
             }
         }
-        if (dimension.getAnchor().dim != DIM_NORMAL) {
+        if (! dimension.getAnchor().equals(NORMAL_DETAIL)) {
             history.add(new HistoryEntry(HistoryEntry.WORLD_DIMENSION_ADDED, dimension.getName()));
         }
     }
