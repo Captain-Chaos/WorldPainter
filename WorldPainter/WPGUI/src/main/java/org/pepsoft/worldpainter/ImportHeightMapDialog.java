@@ -10,6 +10,7 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.ProgressReceiver;
@@ -44,6 +45,7 @@ import java.util.*;
 
 import static com.google.common.primitives.Ints.asList;
 import static java.awt.image.DataBuffer.*;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
@@ -135,6 +137,9 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             throw new IllegalStateException();
         }
         final HeightMapImporter importer = createImporter();
+        if (importer == null) {
+            return null;
+        }
         World2 world = ProgressDialog.executeTask(this, new ProgressTask<World2>() {
             @Override
             public String getName() {
@@ -180,6 +185,16 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     }
 
     private HeightMapImporter createImporter() {
+        // TODO keep this? It shouldn't be necessary!
+        if ((selectedFile == null) || (! selectedFile.exists())) {
+            DesktopUtils.beep();
+            JOptionPane.showMessageDialog(this, "Please select an image file to import.", "No File Selected", ERROR_MESSAGE);
+            return null;
+        } else if (image == null) {
+            DesktopUtils.beep();
+            JOptionPane.showMessageDialog(this, "Please select a valid image file to import.", "No Valid Image Selected", ERROR_MESSAGE);
+            return null;
+        }
         HeightMap heightMap = BitmapHeightMap.build().withName(selectedFile.getName()).withImage(image).withFile(selectedFile).now();
         final int scale = (Integer) spinnerScale.getValue();
         final int offsetX = (Integer) spinnerOffsetX.getValue();
@@ -485,6 +500,9 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             throw new IllegalStateException();
         }
         final HeightMapImporter importer = createImporter();
+        if (importer == null) {
+            return;
+        }
         importer.setOnlyRaise(checkBoxOnlyRaise.isSelected());
         ProgressDialog.executeTask(this, new ProgressTask<Void>() {
             @Override
