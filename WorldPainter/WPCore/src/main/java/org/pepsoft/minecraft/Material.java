@@ -8,7 +8,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.pepsoft.util.CSVDataSource;
 import org.pepsoft.util.Pair;
-import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +30,7 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.HorizontalOrientationScheme.CARDINAL_DIRECTIONS;
 import static org.pepsoft.minecraft.HorizontalOrientationScheme.STAIR_CORNER;
 import static org.pepsoft.minecraft.Material.PropertyType.*;
+import static org.pepsoft.minecraft.MaterialImporter.importCustomMaterials;
 import static org.pepsoft.util.ObjectMapperHolder.OBJECT_MAPPER;
 import static org.pepsoft.worldpainter.Constants.UNKNOWN_MATERIAL_COLOUR;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
@@ -1615,64 +1615,7 @@ public final class Material implements Serializable {
             throw new RuntimeException("I/O error while reading Minecraft materials database materials.csv from classpath", e);
         }
 
-        final File customMaterialsDir = new File(Configuration.getConfigDir(), "materials");
-        if (customMaterialsDir.isDirectory()) {
-            final File[] customSpecFiles = customMaterialsDir.listFiles(pathname -> pathname.isFile() && pathname.getName().toLowerCase().endsWith(".csv"));
-            if (customSpecFiles != null) {
-                for (File customSpecFile: customSpecFiles) {
-                    int count = 0;
-                    final Set<String> namespaces = new HashSet<>();
-                    try (Reader in = new InputStreamReader(new FileInputStream(customSpecFile), UTF_8)) {
-                        CSVDataSource csvDataSource = new CSVDataSource();
-                        csvDataSource.openForReading(in);
-                        do {
-                            Map<String, Object> materialSpecs = new HashMap<>();
-                            String name = csvDataSource.getString("name");
-                            materialSpecs.put("name", name);
-                            String str = csvDataSource.getString("discriminator");
-                            if (! isNullOrEmpty(str)) {
-                                materialSpecs.put("discriminator", ImmutableSet.copyOf(str.split(",")));
-                            }
-                            str = csvDataSource.getString("properties");
-                            if (! isNullOrEmpty(str)) {
-                                materialSpecs.put("properties", stream(str.split(",")).map(PropertyDescriptor::fromString).collect(toMap(d -> d.name, identity())));
-                            }
-                            materialSpecs.put("opacity", csvDataSource.getInt("opacity"));
-                            materialSpecs.put("receivesLight", csvDataSource.getBoolean("receivesLight"));
-                            materialSpecs.put("terrain", false);
-                            materialSpecs.put("insubstantial", csvDataSource.getBoolean("insubstantial"));
-                            materialSpecs.put("veryInsubstantial", csvDataSource.getBoolean("insubstantial")); // Copy "insubstantial"
-                            materialSpecs.put("resource", csvDataSource.getBoolean("resource"));
-                            materialSpecs.put("tileEntity", csvDataSource.getBoolean("tileEntity"));
-                            str = csvDataSource.getString("tileEntityId");
-                            if (! isNullOrEmpty(str)) {
-                                materialSpecs.put("tileEntityId", str);
-                            }
-                            materialSpecs.put("treeRelated", csvDataSource.getBoolean("treeRelated"));
-                            materialSpecs.put("vegetation", csvDataSource.getBoolean("vegetation"));
-                            materialSpecs.put("blockLight", csvDataSource.getInt("blockLight"));
-                            materialSpecs.put("natural", csvDataSource.getBoolean("natural"));
-                            materialSpecs.put("watery", csvDataSource.getBoolean("watery"));
-                            str = csvDataSource.getString("colour");
-                            if (! isNullOrEmpty(str)) {
-                                materialSpecs.put("colour", Integer.parseUnsignedInt(str, 16));
-                            }
-
-                            MATERIAL_SPECS.computeIfAbsent(name, s -> new HashSet<>()).add(materialSpecs);
-                            final int p = name.indexOf(':');
-                            final String namespace = name.substring(0, p);
-                            namespaces.add(namespace);
-                            SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, s -> new HashSet<>()).add(name.substring(p + 1));
-                            csvDataSource.next();
-                            count++;
-                        } while (! csvDataSource.isEndOfFile());
-                    } catch (RuntimeException | IOException e) {
-                        throw new RuntimeException("I/O error while reading Minecraft materials database materials.csv from classpath", e);
-                    }
-                    logger.info("Loaded {} custom block(s) with namespace(s) {} from {}", count, namespaces, customSpecFile.getName());
-                }
-            }
-        }
+        importCustomMaterials(MATERIAL_SPECS, SIMPLE_NAMES_BY_NAMESPACE);
     }
 
     private static final Set<String> SNOW_ON = ImmutableSet.of(MC_SNOW_BLOCK, MC_POWDER_SNOW);

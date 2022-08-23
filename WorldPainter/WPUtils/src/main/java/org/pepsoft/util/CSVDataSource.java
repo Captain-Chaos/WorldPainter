@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 
@@ -96,7 +97,19 @@ public class CSVDataSource {
      * @return The value of the specified column in the current row.
      */
     public String getString(String columnName) {
+        checkColumnName(columnName);
         return getString(columnsByName.get(columnName));
+    }
+
+    /**
+     * Get a string-typed value by column name.
+     *
+     * @param columnName The name of the column.
+     * @param defaultValue The value to return if the specified column is not present, or the value is not set.
+     * @return The value of the specified column in the current row.
+     */
+    public String getString(String columnName, String defaultValue) {
+        return columnsByName.containsKey(columnName) ? getString(columnsByName.get(columnName), defaultValue) : defaultValue;
     }
 
     /**
@@ -110,6 +123,18 @@ public class CSVDataSource {
     }
 
     /**
+     * Get a string-typed value by column index.
+     *
+     * @param columnIndex The index of the column.
+     * @return The value of the specified column in the current row, or {@code defaultValue} if the column does not
+     * exist or the value is not set.
+     */
+    public String getString(int columnIndex, String defaultValue) {
+        final String value = currentRow.get(columnIndex);
+        return isNullOrEmpty(value) ? defaultValue : value;
+    }
+
+    /**
      * Set a string-typed value by column name. {@code null} values are
      * supported but are converted into empty strings.
      *
@@ -117,6 +142,7 @@ public class CSVDataSource {
      * @param value The value to store in the column.
      */
     public void setString(String columnName, String value) {
+        checkColumnName(columnName);
         setString(columnsByName.get(columnName), value);
     }
 
@@ -132,19 +158,55 @@ public class CSVDataSource {
     }
 
     public int getInt(String columnName) {
-        return Integer.parseInt(getString(columnName));
+        checkColumnName(columnName);
+        try {
+            return Integer.parseInt(getString(columnName));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Not a valid integer value for column " + columnName + ": \"" + getString(columnName) + "\"", e);
+        }
+    }
+
+    public int getInt(String columnName, int defaultValue) {
+        if (! columnsByName.containsKey(columnName)) {
+            return defaultValue;
+        } else {
+            final String stringValue = getString(columnName);
+            try {
+                return (stringValue != null) ? Integer.parseInt(stringValue) : defaultValue;
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Not a valid integer value for column " + columnName + ": \"" + getString(columnName) + "\"", e);
+            }
+        }
     }
 
     public void setInt(String columnName, int value) {
+        checkColumnName(columnName);
         setString(columnName, Integer.toString(value));
     }
 
     public boolean getBoolean(String columnName) {
+        checkColumnName(columnName);
         return Boolean.parseBoolean(getString(columnName));
     }
 
+    public boolean getBoolean(String columnName, boolean defaultValue) {
+        if (! columnsByName.containsKey(columnName)) {
+            return defaultValue;
+        } else {
+            final String stringValue = getString(columnName);
+            return (stringValue != null) ? Boolean.parseBoolean(stringValue) : defaultValue;
+        }
+    }
+
     public void setBoolean(String columnName, boolean value) {
+        checkColumnName(columnName);
         setString(columnName, Boolean.toString(value));
+    }
+
+    private void checkColumnName(String columnName) {
+        if (! columnsByName.containsKey(columnName)) {
+            throw new IllegalArgumentException("There is no column named \"" + columnName + "\"");
+        }
     }
 
     private void readHeaders() throws IOException {

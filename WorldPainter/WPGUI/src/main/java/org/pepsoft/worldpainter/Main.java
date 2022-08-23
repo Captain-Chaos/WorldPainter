@@ -12,6 +12,7 @@ import ch.qos.logback.core.util.StatusPrinter;
 import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.utils.Lm;
 import org.intellij.lang.annotations.Language;
+import org.pepsoft.minecraft.MaterialImporter;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.GUIUtils;
@@ -50,6 +51,7 @@ import java.util.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static org.pepsoft.util.GUIUtils.getUIScale;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_PLUGINS;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SAFE_MODE;
@@ -511,6 +513,10 @@ public class Main {
                 if (myConfig.isAutosaveEnabled() && autosaveInhibited) {
                     JOptionPane.showMessageDialog(app, "Another instance of WorldPainter is already running.\nAutosave will therefore be disabled in this instance of WorldPainter!", "Autosave Disabled", JOptionPane.WARNING_MESSAGE);
                 }
+                for (String error: MaterialImporter.errors) {
+                    DesktopUtils.beep();
+                    JOptionPane.showMessageDialog(app, error, "Custom Object Definition Error", ERROR_MESSAGE);
+                }
                 if (! DonationDialog.maybeShowDonationDialog(app)) {
                     MerchDialog.maybeShowMerchDialog(app);
                 }
@@ -532,7 +538,7 @@ public class Main {
 
         // Report the error
         logger.error("Exception while initialising configuration", e);
-        JOptionPane.showMessageDialog(null, "Could not read configuration file! Resetting configuration.\n\nException type: " + e.getClass().getSimpleName() + "\nMessage: " + e.getMessage(), "Configuration Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(null, "Could not read configuration file! Resetting configuration.\n\nException type: " + e.getClass().getSimpleName() + "\nMessage: " + e.getMessage(), "Configuration Error", ERROR_MESSAGE);
     }
 
     @Language("HTML")
