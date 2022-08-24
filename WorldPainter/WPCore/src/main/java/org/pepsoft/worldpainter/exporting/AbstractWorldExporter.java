@@ -745,11 +745,9 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                     secondPass(ceilingSecondaryPassLayers, ceiling, new InvertedWorld(minecraftWorld, ceiling.getMaxHeight() - ceiling.getCeilingHeight(), platform), ceilingExporters, ceilingTiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.05f) : null);
                 }
 
-                // Post processing. Fix covered grass blocks, things like that
+                // Post-processing. Fix covered grass blocks, things like that
                 long t3 = System.currentTimeMillis();
-                final BlockBasedExportSettings exportSettings = (BlockBasedExportSettings) ((dimension.getExportSettings() instanceof BlockBasedExportSettings)
-                        ? dimension.getExportSettings()
-                        : platformProvider.getDefaultExportSettings(platform));
+                final BlockBasedExportSettings exportSettings = getExportSettings(dimension, platform);
                 PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.55f, 0.1f) : null);
 
                 // Third pass. Calculate lighting and/or leaf distances (if requested, and supported by the platform)
@@ -882,7 +880,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
         // Make sure to honour the read-only layer: TODO: this means nothing at the moment. Is it still relevant?
         try (CachingMinecraftWorld minecraftWorld = new CachingMinecraftWorld(worldDir, dimension.getAnchor().dim, dimension.getMaxHeight(), platform, false, 512)) {
-            final ExportSettings exportSettings = (dimension.getExportSettings() != null) ? dimension.getExportSettings() : platformProvider.getDefaultExportSettings(platform);
+            final ExportSettings exportSettings = getExportSettings(dimension, platform);
             for (Entry<Point, List<Fixup>> entry: fixups.entrySet()) {
                 if (progressReceiver != null) {
                     progressReceiver.setMessage("Performing fixups for region " + entry.getKey().x + "," + entry.getKey().y);
@@ -1106,12 +1104,45 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         return chest;
     }
 
+    private BlockBasedExportSettings getExportSettings(Dimension dimension, Platform platform) {
+        final ExportSettings dimensionExportSettings = dimension.getExportSettings();
+        if (dimensionExportSettings instanceof BlockBasedExportSettings) {
+            return (BlockBasedExportSettings) dimensionExportSettings;
+        } else {
+            final BlockBasedExportSettings platformDefaultExportSettings = (BlockBasedExportSettings) platformProvider.getDefaultExportSettings(platform); // We wouldn't be here if the platform wasn't block-based, so the cast is safe
+            return (platformDefaultExportSettings != null) ? platformDefaultExportSettings : DEFAULT_EXPORT_SETTINGS;
+        }
+    }
+
     protected final World2 world;
     protected final BlockBasedPlatformProvider platformProvider;
     protected final Semaphore performingFixups = new Semaphore(1);
     protected final Platform platform;
 
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
+
+
+    private static final BlockBasedExportSettings DEFAULT_EXPORT_SETTINGS = new BlockBasedExportSettings() {
+        @Override
+        public boolean isCalculateSkyLight() {
+            return true;
+        }
+
+        @Override
+        public boolean isCalculateBlockLight() {
+            return true;
+        }
+
+        @Override
+        public boolean isCalculateLeafDistance() {
+            return true;
+        }
+
+        @Override
+        public boolean isRemoveFloatingLeaves() {
+            return false;
+        }
+    };
 
     private static final Object TIMING_FILE_LOCK = new Object();
     private static final Logger logger = LoggerFactory.getLogger(AbstractWorldExporter.class);
