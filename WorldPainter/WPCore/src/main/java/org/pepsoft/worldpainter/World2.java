@@ -28,7 +28,7 @@ import java.util.*;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Material.WOOL_MAGENTA;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
+import static org.pepsoft.worldpainter.Dimension.Anchor.*;
 import static org.pepsoft.worldpainter.Generator.END;
 import static org.pepsoft.worldpainter.Generator.NETHER;
 import static org.pepsoft.worldpainter.World2.Warning.MISSING_CUSTOM_TERRAINS;
@@ -175,7 +175,30 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     public void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
         propertyChangeSupport.removePropertyChangeListener(propertyName, listener);
     }
-    
+
+    /**
+     * @deprecated Use {@link #getDimension(Anchor)}.
+     */
+    @Deprecated
+    public Dimension getDimension(int dim) {
+        switch (dim) {
+            case -3:
+                return getDimension(END_DETAIL_CEILING);
+            case -2:
+                return getDimension(NETHER_DETAIL_CEILING);
+            case -1:
+                return getDimension(NORMAL_DETAIL_CEILING);
+            case DIM_NORMAL:
+                return getDimension(NORMAL_DETAIL);
+            case DIM_NETHER:
+                return getDimension(NETHER_DETAIL);
+            case DIM_END:
+                return getDimension(END_DETAIL);
+            default:
+                return null;
+        }
+    }
+
     public Dimension getDimension(Anchor anchor) {
         return dimensionsByAnchor.get(anchor);
     }
