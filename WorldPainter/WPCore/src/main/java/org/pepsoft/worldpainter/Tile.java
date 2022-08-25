@@ -1346,6 +1346,50 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         }
     }
 
+    synchronized void prepareForSaving() {
+        // Make sure all buffers are current, otherwise we may save out of date
+        // data to disk
+        ensureAllReadable();
+
+        // Take the opportunity to save memory and disk space by throwing away "empty" layer buffers. Since this is
+        // functionally a null operation there is no need to notify listeners, make the buffer writable or otherwise
+        // notify the undo manager
+        for (Iterator<Map.Entry<Layer, BitSet>> i = bitLayerData.entrySet().iterator(); i.hasNext(); ) {
+            final Map.Entry<Layer, BitSet> entry = i.next();
+            if (entry.getValue().isEmpty()) {
+                i.remove();
+                cachedLayers = null;
+            }
+        }
+        layerLoop:
+        for (Iterator<Map.Entry<Layer, byte[]>> i = layerData.entrySet().iterator(); i.hasNext(); ) {
+            Map.Entry<Layer, byte[]> entry = i.next();
+            final Layer layer = entry.getKey();
+            final byte[] buffer = entry.getValue();
+            if (layer.getDataSize() == NIBBLE) {
+                final byte defaultByte = (byte) (layer.getDefaultValue() << 4 | layer.getDefaultValue());
+                for (byte bufferByte: buffer) {
+                    if (bufferByte != defaultByte) {
+                        continue layerLoop;
+                    }
+                }
+                // If we reach here all bytes were default bytes
+                i.remove();
+                cachedLayers = null;
+            } else if (layer.getDataSize() == BYTE) {
+                final byte defaultByte = (byte) layer.getDefaultValue();
+                for (byte bufferByte: buffer) {
+                    if (bufferByte != defaultByte) {
+                        continue layerLoop;
+                    }
+                }
+                // If we reach here all bytes were default bytes
+                i.remove();
+                cachedLayers = null;
+            }
+        }
+    }
+
     private boolean getBitPerBlockLayerValue(BitSet bitSet, int x, int y) {
         return bitSet.get(x | (y << TILE_SIZE_BITS));
     }
@@ -1565,48 +1609,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
     }
     
     private synchronized void writeObject(ObjectOutputStream out) throws IOException {
-        // Make sure all buffers are current, otherwise we may save out of date
-        // data to disk
-        ensureAllReadable();
-
-        // Take the opportunity to save memory and disk space by throwing away "empty" layer buffers. Since this is
-        // functionally a null operation there is no need to notify listeners, make the buffer writable or otherwise
-        // notify the undo manager
-        for (Iterator<Map.Entry<Layer, BitSet>> i = bitLayerData.entrySet().iterator(); i.hasNext(); ) {
-            final Map.Entry<Layer, BitSet> entry = i.next();
-            if (entry.getValue().isEmpty()) {
-                i.remove();
-                cachedLayers = null;
-            }
-        }
-        layerLoop:
-        for (Iterator<Map.Entry<Layer, byte[]>> i = layerData.entrySet().iterator(); i.hasNext(); ) {
-            Map.Entry<Layer, byte[]> entry = i.next();
-            final Layer layer = entry.getKey();
-            final byte[] buffer = entry.getValue();
-            if (layer.getDataSize() == NIBBLE) {
-                final byte defaultByte = (byte) (layer.getDefaultValue() << 4 | layer.getDefaultValue());
-                for (byte bufferByte: buffer) {
-                    if (bufferByte != defaultByte) {
-                        continue layerLoop;
-                    }
-                }
-                // If we reach here all bytes were default bytes
-                i.remove();
-                cachedLayers = null;
-            } else if (layer.getDataSize() == BYTE) {
-                final byte defaultByte = (byte) layer.getDefaultValue();
-                for (byte bufferByte: buffer) {
-                    if (bufferByte != defaultByte) {
-                        continue layerLoop;
-                    }
-                }
-                // If we reach here all bytes were default bytes
-                i.remove();
-                cachedLayers = null;
-            }
-        }
-
+        prepareForSaving();
         out.defaultWriteObject();
     }
 

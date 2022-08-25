@@ -1,5 +1,7 @@
 package org.pepsoft.worldpainter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jetbrains.annotations.NotNull;
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.SeededGenerator;
 import org.pepsoft.minecraft.SuperflatGenerator;
@@ -17,10 +19,10 @@ import org.pepsoft.worldpainter.vo.EventVO;
 
 import java.io.*;
 import java.util.*;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipException;
+import java.util.zip.*;
 
+import static com.fasterxml.jackson.core.JsonGenerator.Feature.AUTO_CLOSE_TARGET;
+import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
@@ -62,21 +64,35 @@ public class WorldIO {
      */
     public void save(OutputStream out) throws IOException {
         try (ObjectOutputStream wrappedOut = new ObjectOutputStream(new GZIPOutputStream(out))) {
-            Map<String, Object> metadata = new HashMap<>();
-            metadata.put(World2.METADATA_KEY_WP_VERSION, Version.VERSION);
-            metadata.put(World2.METADATA_KEY_WP_BUILD, Version.BUILD);
-            metadata.put(World2.METADATA_KEY_TIMESTAMP, new Date());
-            if (WPPluginManager.getInstance() != null) {
-                List<String[]> pluginArray = new ArrayList<>();
-                WPPluginManager.getInstance().getAllPlugins().stream()
-                    .filter(plugin -> ! plugin.getClass().getName().startsWith("org.pepsoft.worldpainter"))
-                    .forEach(plugin -> pluginArray.add(new String[]{plugin.getName(), plugin.getVersion()}));
-                if (! pluginArray.isEmpty()) {
-                    metadata.put(World2.METADATA_KEY_PLUGINS, pluginArray.toArray(new String[pluginArray.size()][]));
-                }
-            }
-            wrappedOut.writeObject(metadata);
+            wrappedOut.writeObject(getMetadata());
             wrappedOut.writeObject(world);
+        }
+    }
+
+    /**
+     * Save the world to a binary stream, such that it can later be loaded using {@link #load(InputStream)}. The stream
+     * is closed before returning.
+     *
+     * <p>This version uses a format that compresses every region separately, for faster access to individual regions
+     * without having to laod the entire world.
+     *
+     * @param out The stream to which to save the world.
+     * @throws IOException If an I/O error occurred saving the world.
+     */
+    // TODO this saves multiple copies of layers, etc.! Either solve that on loading, or else use this only for
+    //  exporting
+    public void saveCompartmentalised(OutputStream out) throws IOException {
+        try (ZipOutputStream wrappedOut = new ZipOutputStream(out)) {
+            final ObjectMapper objectMapper = new ObjectMapper()
+                    .disable(AUTO_CLOSE_TARGET)
+                    .disable(WRITE_DATES_AS_TIMESTAMPS);
+            wrappedOut.putNextEntry(new ZipEntry("metadata.json"));
+            try {
+                objectMapper.writeValue(wrappedOut, getMetadata());
+            } finally {
+                wrappedOut.closeEntry();
+            }
+            world.save(wrappedOut);
         }
     }
 
@@ -122,6 +138,25 @@ public class WorldIO {
         if (metadata != null) {
             world.setMetadata(metadata);
         }
+    }
+
+    @NotNull
+    private Map<String, Object> getMetadata() {
+        final Map<String, Object> metadata = new HashMap<>();
+        metadata.put(World2.METADATA_KEY_NAME, world.getName());
+        metadata.put(World2.METADATA_KEY_WP_VERSION, Version.VERSION);
+        metadata.put(World2.METADATA_KEY_WP_BUILD, Version.BUILD);
+        metadata.put(World2.METADATA_KEY_TIMESTAMP, new Date());
+        if (WPPluginManager.getInstance() != null) {
+            final List<String[]> pluginArray = new ArrayList<>();
+            WPPluginManager.getInstance().getAllPlugins().stream()
+                    .filter(plugin -> ! plugin.getClass().getName().startsWith("org.pepsoft.worldpainter"))
+                    .forEach(plugin -> pluginArray.add(new String[]{plugin.getName(), plugin.getVersion()}));
+            if (! pluginArray.isEmpty()) {
+                metadata.put(World2.METADATA_KEY_PLUGINS, pluginArray.toArray(new String[pluginArray.size()][]));
+            }
+        }
+        return metadata;
     }
 
     private World2 migrate(Object object) {

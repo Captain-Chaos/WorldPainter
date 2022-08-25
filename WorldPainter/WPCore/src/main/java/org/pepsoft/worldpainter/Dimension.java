@@ -35,13 +35,12 @@ import javax.vecmath.Point3i;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
@@ -97,6 +96,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     public World2 getWorld() {
         return world;
+    }
+
+    public void setWorld(World2 world) {
+        this.world = world;
     }
 
     public Anchor getAnchor() {
@@ -1740,6 +1743,59 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return mostPrevalentBiome;
     }
 
+    public synchronized void save(ZipOutputStream out) throws IOException {
+        setEventsInhibited(true);
+        try {
+            // First serialise everything but the tiles to a separate file
+            final String path = anchor + "/";
+            out.putNextEntry(new ZipEntry(path + "dim-data.bin"));
+            try {
+                final Map<Point, Tile> savedTiles = tiles;
+                final World2 savedWorld = world;
+                try {
+                    tiles = null;
+                    world = null;
+                    final ObjectOutputStream dataout = new ObjectOutputStream(out);
+                    dataout.writeObject(this);
+                    dataout.flush();
+                } finally {
+                    tiles = savedTiles;
+                    world = savedWorld;
+                }
+            } finally {
+                out.closeEntry();
+            }
+
+            // Then serialise the tiles, grouped by region
+            final int regionX1 = lowestX >> 2, regionX2 = highestX >> 2, regionY1 = lowestY >> 2, regionY2 = highestY >> 2;
+            for (int regionX = regionX1; regionX <= regionX2; regionX++) {
+                for (int regionY = regionY1; regionY <= regionY2; regionY++) {
+                    final List<Tile> tileList = new ArrayList<>();
+                    for (int tileX = 0; tileX < 4; tileX++) {
+                        for (int tileY = 0; tileY < 4; tileY++) {
+                            final Tile tile = tiles.get(new Point((regionX << 2) | tileX, (regionY << 2) | tileY));
+                            if (tile != null) {
+                                tile.prepareForSaving();
+                                tileList.add(tile);
+                            }
+                        }
+                    }
+
+                    out.putNextEntry(new ZipEntry(path + "region-data-" + regionX + "," + regionY + ".bin"));
+                    try {
+                        final ObjectOutputStream dataout = new ObjectOutputStream(out);
+                        dataout.writeObject(tileList);
+                        dataout.flush();
+                    } finally {
+                        out.closeEntry();
+                    }
+                }
+            }
+        } finally {
+            setEventsInhibited(false);
+        }
+    }
+
     // Tile.Listener
 
     @Override
@@ -1857,6 +1913,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         rememberedChangeNo = -1;
         biomeHistogramRef = ThreadLocal.withInitial(() -> new int[255]);
 
+        if (tiles == null) {
+            tiles = new HashMap<>();
+        }
         for (Tile tile: tiles.values()) {
             tile.addListener(this);
             Set<Seed> seeds = tile.getSeeds();
@@ -2003,11 +2062,11 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
-    private final World2 world;
+    private World2 world;
     private final long seed;
     @Deprecated
     private int dim = 0;
-    final Map<Point, Tile> tiles = new HashMap<>();
+    Map<Point, Tile> tiles = new HashMap<>();
     private final TileFactory tileFactory;
     private int lowestX = Integer.MAX_VALUE, highestX = Integer.MIN_VALUE, lowestY = Integer.MAX_VALUE, highestY = Integer.MIN_VALUE;
     private Terrain subsurfaceMaterial = Terrain.STONE_MIX;
@@ -2354,6 +2413,20 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         @Override
         public int hashCode() {
             return 31 * (31 * (31 * dim + role.hashCode()) + (invert ? 1 : 0)) + layer;
+        }
+
+        /**
+         * Parse a string previously produced by {@link #toString()} into a new {@code Anchor} instance.
+         */
+        public static Anchor fromString(String str) {
+            final String[] parts = str.split(" ");
+            final int dim = Integer.parseInt(parts[0]);
+            final Role role = Role.valueOf(parts[1]);
+            final boolean invert = (parts.length > 2) && parts[2].equals("CEILING");
+            final int layer = invert
+                    ? ((parts.length > 3) ? Integer.parseInt(parts[3]) : 0)
+                    : ((parts.length > 2) ? Integer.parseInt(parts[2]) : 0);
+            return new Anchor(dim, role, invert, layer);
         }
 
         /**

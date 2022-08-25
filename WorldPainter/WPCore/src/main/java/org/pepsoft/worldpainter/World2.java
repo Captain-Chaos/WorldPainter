@@ -24,6 +24,8 @@ import java.beans.PropertyChangeSupport;
 import java.io.*;
 import java.util.List;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Material.WOOL_MAGENTA;
@@ -541,6 +543,29 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         return MemoryUtils.getSize(this, new HashSet<>(Arrays.asList(UndoManager.class, Dimension.Listener.class, PropertyChangeSupport.class, Layer.class, Terrain.class)));
     }
 
+    public synchronized void save(ZipOutputStream out) throws IOException {
+        // First serialise everything but the dimensions to a separate file
+        out.putNextEntry(new ZipEntry("world-data.bin"));
+        try {
+            final Map<Anchor, Dimension> savedDimensions = dimensionsByAnchor;
+            try {
+                dimensionsByAnchor = null;
+                final ObjectOutputStream dataout = new ObjectOutputStream(out);
+                dataout.writeObject(this);
+                dataout.flush();
+            } finally {
+                dimensionsByAnchor = savedDimensions;
+            }
+        } finally {
+            out.closeEntry();
+        }
+
+        // Then serialise the dimensions individually
+        for (Dimension dimension: dimensionsByAnchor.values()) {
+            dimension.save(out);
+        }
+    }
+
     /**
      * Get the set of warnings generated during loading, if any.
      * 
@@ -562,6 +587,10 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         propertyChangeSupport = new PropertyChangeSupport(this);
+
+        if (dimensionsByAnchor == null) {
+            dimensionsByAnchor = new HashMap<>();
+        }
 
         // Legacy maps
         if (wpVersion < 1) {
@@ -759,7 +788,6 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             generatorOptions = null;
         }
         if (wpVersion < 10) {
-            dimensionsByAnchor = new HashMap<>();
             dimensions.values().forEach(dimension -> dimensionsByAnchor.put(dimension.getAnchor(), dimension));
             dimensions = null;
         }
@@ -858,6 +886,11 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
      * <p>May be {@code null} if no non-standard plugins were present.
      */
     public static final String METADATA_KEY_PLUGINS = "org.pepsoft.worldpainter.plugins";
+
+    /**
+     * A string containing the name of the world.
+     */
+    public static final String METADATA_KEY_NAME = "name";
 
     private static final int CURRENT_WP_VERSION = 10;
 

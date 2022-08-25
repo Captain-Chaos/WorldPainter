@@ -57,33 +57,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
     }
 
     @SuppressWarnings("ConstantConditions") // Clarity
-    @Override
-    public Map<Integer, ChunkFactory.Stats> export(File baseDir, String name, File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
-        // Sanity checks
-        final Set<Point> selectedTiles = world.getTilesToExport();
-        final Set<Integer> selectedDimensions = world.getDimensionsToExport();
-        if ((selectedTiles != null) && ((selectedDimensions == null) || (selectedDimensions.size() != 1))) {
-            throw new IllegalArgumentException("If a tile selection is active then exactly one dimension must be selected");
-        }
-
-        // Backup existing level
-        File worldDir = new File(baseDir, FileUtils.sanitiseName(name));
-        logger.info("Exporting world " + world.getName() + " to map at " + worldDir + " in " + platform.displayName + " format");
-        if (worldDir.isDirectory()) {
-            if (backupDir != null) {
-                logger.info("Directory already exists; backing up to " + backupDir);
-                if (!worldDir.renameTo(backupDir)) {
-                    throw new FileInUseException("Could not move " + worldDir + " to " + backupDir);
-                }
-            } else {
-                throw new IllegalStateException("Directory already exists and no backup directory specified");
-            }
-        }
-        
-        // Record start of export
-        long start = System.currentTimeMillis();
-        
-        // Export dimensions
+    protected JavaLevel createWorld(File worldDir, String name) throws IOException {
         Dimension dim0 = world.getDimension(NORMAL_DETAIL);
         JavaLevel level = JavaLevel.create(platform, world.getMaxHeight());
         level.setSeed(dim0.getMinecraftSeed());
@@ -208,6 +182,37 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
         // Save the level.dat file. This will also create a session.lock file, hopefully kicking out any Minecraft
         // instances which may have the map open:
         level.save(worldDir);
+        return level;
+    }
+
+    @Override
+    public Map<Integer, ChunkFactory.Stats> export(File baseDir, String name, File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
+        // Sanity checks
+        final Set<Point> selectedTiles = world.getTilesToExport();
+        final Set<Integer> selectedDimensions = world.getDimensionsToExport();
+        if ((selectedTiles != null) && ((selectedDimensions == null) || (selectedDimensions.size() != 1))) {
+            throw new IllegalArgumentException("If a tile selection is active then exactly one dimension must be selected");
+        }
+
+        // Backup existing level
+        File worldDir = new File(baseDir, FileUtils.sanitiseName(name));
+        logger.info("Exporting world " + world.getName() + " to map at " + worldDir + " in " + platform.displayName + " format");
+        if (worldDir.isDirectory()) {
+            if (backupDir != null) {
+                logger.info("Directory already exists; backing up to " + backupDir);
+                if (!worldDir.renameTo(backupDir)) {
+                    throw new FileInUseException("Could not move " + worldDir + " to " + backupDir);
+                }
+            } else {
+                throw new IllegalStateException("Directory already exists and no backup directory specified");
+            }
+        }
+        
+        // Record start of export
+        long start = System.currentTimeMillis();
+        
+        // Create the level.dat file
+        final JavaLevel level = createWorld(worldDir, name);
 
         // Lock the level.dat file, to keep Minecraft out until we are done
         File levelDatFile = new File(worldDir, "level.dat");
@@ -264,7 +269,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                 event.setAttribute(ATTRIBUTE_KEY_MAP_FEATURES, world.isMapFeatures());
                 event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
                 event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
-                event.setAttribute(ATTRIBUTE_KEY_GENERATOR, dim0.getGenerator().getType().name());
+                event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getDimension(NORMAL_DETAIL).getGenerator().getType().name());
                 Dimension dimension = world.getDimension(NORMAL_DETAIL);
                 event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTileCount());
                 logLayers(dimension, event, "");
