@@ -4,7 +4,6 @@ import org.dynmap.DynmapWorld;
 import org.dynmap.utils.MapChunkCache;
 import org.dynmap.utils.MapIterator;
 import org.dynmap.utils.VisibilityLimit;
-import org.pepsoft.worldpainter.objects.WPObject;
 
 /**
  * Implementation of {@link MapChunkCache} used by {@link WPObjectDynmapWorld}.
@@ -12,9 +11,8 @@ import org.pepsoft.worldpainter.objects.WPObject;
  * <p>Created by Pepijn Schmitz on 09-06-15.
  */
 class WPObjectMapChunkCache extends MapChunkCache {
-    WPObjectMapChunkCache(WPObjectDynmapWorld world, WPObject object) {
+    WPObjectMapChunkCache(WPObjectDynmapWorld world) {
         this.world = world;
-        this.object = object;
     }
 
     @Override
@@ -49,7 +47,7 @@ class WPObjectMapChunkCache extends MapChunkCache {
 
     @Override
     public MapIterator getIterator(int x, int y, int z) {
-        return new WPObjectMapIterator(object, x, y, z);
+        return new WPObjectMapIterator(world, x, y, z);
     }
 
     @Override
@@ -73,5 +71,4 @@ class WPObjectMapChunkCache extends MapChunkCache {
     }
 
     private final WPObjectDynmapWorld world;
-    private final WPObject object;
 }

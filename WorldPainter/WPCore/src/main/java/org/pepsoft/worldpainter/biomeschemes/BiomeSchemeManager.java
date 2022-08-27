@@ -118,6 +118,39 @@ public class BiomeSchemeManager {
     }
 
     /**
+     * Get the most recent version of Minecraft this class has been able to find.
+     *
+     * @return The most recent version of Minecraft this class has been able to find, or {@code null} if no Minecraft
+     * jar is available.
+     */
+    public static Version getLatestMinecraftVersion() {
+        synchronized (initialisationLock) {
+            if (! initialised) {
+                initialise();
+            }
+        }
+
+        return ALL_JARS.lastKey();
+    }
+
+    /**
+     * Get a Minecraft jar of a specific version.
+     *
+     * @param version The Minecraft version for which to return a jar.
+     * @return The Minecraft jar of the specified version, or {@code null} if no Minecraft jar is available for the
+     * specified version.
+     */
+    public static File getMinecraftJar(Version version) {
+        synchronized (initialisationLock) {
+            if (! initialised) {
+                initialise();
+            }
+        }
+
+        return ALL_JARS.get(version);
+    }
+
+    /**
      * Get the highest version Minecraft jar available.
      *
      * @return The highest version Minecraft jar available, or {@code null} if

@@ -1,6 +1,7 @@
 package org.dynmap;
 
 import org.dynmap.common.DynmapServerInterface;
+import org.pepsoft.util.Version;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.dynmap.WPDynmapServer;
@@ -15,6 +16,10 @@ import static org.pepsoft.worldpainter.Constants.V_1_12_2;
  * Created by Pepijn Schmitz on 01-09-15.
  */
 public class DynmapCore {
+    public DynmapCore(Version minecraftVersion) {
+        this.minecraftVersion = minecraftVersion;
+    }
+
     public File getDataFolder() {
         return new File(Configuration.getConfigDir(), "dynmap");
     }
@@ -32,7 +37,7 @@ public class DynmapCore {
     }
 
     public String getDynmapPluginPlatformVersion() {
-        return "1.8";
+        return "1.19.1";
     }
 
     public boolean getLeafTransparency() {
@@ -47,7 +52,8 @@ public class DynmapCore {
         return true;
     }
 
-    private WPDynmapServer server = new WPDynmapServer();
+    private final WPDynmapServer server = new WPDynmapServer();
+    private final Version minecraftVersion;
 
     // Copied from dynmap
     public enum CompassMode {

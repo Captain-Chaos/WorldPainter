@@ -2,27 +2,32 @@ package org.pepsoft.worldpainter.dynmap;
 
 import org.dynmap.Color;
 import org.dynmap.DynmapWorld;
+import org.dynmap.Log;
 import org.dynmap.MapTypeState;
 import org.dynmap.hdmap.*;
+import org.dynmap.hdmap.TexturePack.BlockTransparency;
 import org.dynmap.markers.impl.MarkerAPIImpl;
+import org.dynmap.renderer.DynmapBlockState;
 import org.dynmap.renderer.RenderPatch;
-import org.dynmap.renderer.RenderPatchFactory;
+import org.dynmap.renderer.RenderPatchFactory.SideVisible;
 import org.dynmap.utils.*;
 
 import java.awt.*;
 import java.awt.image.*;
 
 /**
- * A dynmap based isometric 3D renderer of HDMap tiles. Largely copied from the
- * IsoHDPerspective class from dynmap. <em>Not</em> thread-safe; the intention
- * is to create an instance per thread.
+ * A dynmap based isometric 3D renderer of HDMap tiles. Largely copied from the IsoHDPerspective class from dynmap
+ * 3.3.1. <em>Not</em> thread-safe; the intention is to create an instance per thread.
  *
- * <p>Created by Pepijn Schmitz on 05-06-15.
+ * <p>Adapted by Pepijn Schmitz on 05-06-15.
  */
-class DynMapRenderer {
-    DynMapRenderer(HDPerspective perspective, HDMap map, int scale, double inclination, double azimuth) {
+public class DynMapRenderer {
+    public DynMapRenderer(HDPerspective perspective, HDMap map, int scale, double inclination, double azimuth) {
         this.perspective = perspective;
         this.map = map;
+        if (custom_meshes_by_globalstateindex == null) {
+            custom_meshes_by_globalstateindex = new RenderPatch[DynmapBlockState.getGlobalIndexMax()][];
+        }
         basemodscale = scale;
         /* Generate transform matrix for world-to-tile coordinate mapping */
         /* First, need to fix basic coordinate mismatches before rotation - we want zero azimuth to have north to top
@@ -51,7 +56,7 @@ class DynMapRenderer {
         // Create buffers
         argb_buf = new int[TILE_WIDTH * TILE_HEIGHT];
         /* Create integer-base data buffer */
-        DataBuffer db = new DataBufferInt (argb_buf, TILE_WIDTH * TILE_HEIGHT);
+        DataBuffer db = new DataBufferInt(argb_buf, TILE_WIDTH * TILE_HEIGHT);
         /* Create writable raster */
         WritableRaster raster = Raster.createPackedRaster(db, TILE_WIDTH, TILE_HEIGHT, TILE_WIDTH, BAND_MASKS, null);
         /* RGB color model */
@@ -99,35 +104,40 @@ class DynMapRenderer {
         double xbase = tile.tx * TILE_WIDTH;
         double ybase = tile.ty * TILE_HEIGHT;
         boolean shaderdone[] = new boolean[1];
-        double height = maxheight;
-        if(height < 0) {    /* Not set - assume world height - 1 */
-            if (isnether)
-                height = 127;
-            else
-                height = tile.getDynmapWorld().worldheight - 1;
-        }
+        double height;
+        if (isnether)
+            height = 127;
+        else
+            height = tile.getDynmapWorld().worldheight - 1;
+        double miny = tile.getDynmapWorld().minY;
 
         for(int x = 0; x < TILE_WIDTH * sizescale; x++) {
             ps.px = x;
             for(int y = 0; y < TILE_HEIGHT * sizescale; y++) {
-                ps.top.x = ps.bottom.x = xbase + ((double)x)/sizescale + 0.5;    /* Start at center of pixel at Y=height+0.5, bottom at Y=-0.5 */
-                ps.top.y = ps.bottom.y = ybase + ((double)y)/sizescale + 0.5;
-                ps.top.z = height + 0.5; ps.bottom.z = minheight - 0.5;
+                ps.top.x = ps.bottom.x = xbase + (x + 0.5) / sizescale;    /* Start at center of pixel at Y=height+0.5, bottom at Y=-0.5 */
+                ps.top.y = ps.bottom.y = ybase + (y + 0.5) / sizescale;
+                ps.top.z = height + 0.5; ps.bottom.z = miny - 0.5;
                 map_to_world.transform(ps.top);            /* Transform to world coordinates */
                 map_to_world.transform(ps.bottom);
                 ps.direction.set(ps.bottom);
                 ps.direction.subtract(ps.top);
                 ps.py = y / sizescale;
                 shaderstate.reset(ps);
-                ps.raytrace(cache, shaderstate, shaderdone);
+                try {
+                    ps.raytrace(cache, shaderstate, shaderdone);
+                } catch (Exception ex) {
+                    Log.severe("Error while raytracing tile: perspective=" + perspective + ", coord=" + mapiter.getX() + "," + mapiter.getY() + "," + mapiter.getZ() + ", blockid=" + mapiter.getBlockType() + ", lighting=" + mapiter.getBlockSkyLight() + ":" + mapiter.getBlockEmittedLight() + ", biome=" + mapiter.getBiome().toString(), ex);
+                    ex.printStackTrace();
+                }
                 if(! shaderdone[0]) {
                     shaderstate.rayFinished(ps);
-                } else {
+                }
+                else {
                     shaderdone[0] = false;
                 }
                 shaderstate.getRayColor(rslt, 0);
                 int c_argb = rslt.getARGB();
-                argb_buf[(TILE_HEIGHT *sizescale-y-1)* TILE_WIDTH *sizescale + x] = c_argb;
+                argb_buf[(TILE_HEIGHT * sizescale-y-1) * TILE_WIDTH * sizescale + x] = c_argb;
             }
         }
 
@@ -136,12 +146,12 @@ class DynMapRenderer {
 
     public Rectangle getTileCoords(int minx, int miny, int minz, int maxx, int maxy, int maxz) {
         Vector3D blocks[] = new Vector3D[] { new Vector3D(), new Vector3D() };
-        blocks[0].x = minx;
-        blocks[0].y = miny;
-        blocks[0].z = minz;
-        blocks[1].x = maxx;
-        blocks[1].y = maxy;
-        blocks[1].z = maxz;
+        blocks[0].x = minx - 1;
+        blocks[0].y = miny - 1;
+        blocks[0].z = minz - 1;
+        blocks[1].x = maxx + 1;
+        blocks[1].y = maxy + 1;
+        blocks[1].z = maxz + 1;
 
         Vector3D corner = new Vector3D();
         Vector3D tcorner = new Vector3D();
@@ -174,9 +184,6 @@ class DynMapRenderer {
         return ((int)(f + 1000000000.0)) - 1000000000;
     }
 
-    public final double maxheight = -1;
-    public final double minheight = 0;
-
     private final HDPerspective perspective;
     private final HDMap map;
 
@@ -205,11 +212,14 @@ class DynMapRenderer {
     /* ARGB band masks */
     private static final int [] BAND_MASKS = {0xFF0000, 0xFF00, 0xff, 0xff000000};
 
-    class OurPerspectiveState implements HDPerspectiveState {
-        int blocktypeid = 0;
-        int blockdata = 0;
-        int blockrenderdata = -1;
-        int lastblocktypeid = 0;
+    private static final Object PATCH_ACCESS_LOCK = new Object();
+
+    // Cache for custom meshes by state (shared, reusable)
+    private static RenderPatch[][] custom_meshes_by_globalstateindex = null;
+
+    private class OurPerspectiveState implements HDPerspectiveState {
+        DynmapBlockState blocktype = DynmapBlockState.AIR;
+        DynmapBlockState lastblocktype = DynmapBlockState.AIR;
         Vector3D top, bottom, direction;
         int px, py;
         BlockStep laststep = BlockStep.Y_MINUS;
@@ -217,7 +227,7 @@ class DynMapRenderer {
         BlockStep stepx, stepy, stepz;
 
         /* Scaled models for non-cube blocks */
-        private final HDBlockModels.HDScaledBlockModels scalemodels;
+        private final HDScaledBlockModels scalemodels;
         private final int modscale;
 
         /* Section-level raytrace variables */
@@ -248,11 +258,12 @@ class DynMapRenderer {
         Vector3D v0 = new Vector3D();
         Vector3D vS = new Vector3D();
         Vector3D d_cross_uv = new Vector3D();
-        double patch_t[] = new double[HDBlockModels.getMaxPatchCount()];
-        double patch_u[] = new double[HDBlockModels.getMaxPatchCount()];
-        double patch_v[] = new double[HDBlockModels.getMaxPatchCount()];
-        BlockStep patch_step[] = new BlockStep[HDBlockModels.getMaxPatchCount()];
-        int patch_id[] = new int[HDBlockModels.getMaxPatchCount()];
+        // Double max patch count to be safe for patches + water patches
+        double patch_t[] = new double[2* HDBlockModels.getMaxPatchCount()];
+        double patch_u[] = new double[2*HDBlockModels.getMaxPatchCount()];
+        double patch_v[] = new double[2*HDBlockModels.getMaxPatchCount()];
+        BlockStep patch_step[] = new BlockStep[2*HDBlockModels.getMaxPatchCount()];
+        int patch_id[] = new int[2*HDBlockModels.getMaxPatchCount()];
         int cur_patch = -1;
         double cur_patch_u;
         double cur_patch_v;
@@ -263,36 +274,31 @@ class DynMapRenderer {
         final boolean isnether;
         boolean skiptoair;
         final int worldheight;
-        final int heightmask;
         final LightLevels llcache[];
 
         /* Cache for custom model patch lists */
         private final DynLongHashMap custom_meshes;
+        private final DynLongHashMap custom_fluid_meshes;
 
         public OurPerspectiveState(MapIterator mi, boolean isnether, int scaled) {
             mapiter = mi;
             this.isnether = isnether;
             worldheight = mapiter.getWorldHeight();
-            int shift;
-            for(shift = 0; (1<<shift) < worldheight; shift++) {}
-            heightmask = (1<<shift) - 1;
             llcache = new LightLevels[4];
             for(int i = 0; i < llcache.length; i++)
                 llcache[i] = new LightLevels();
-            custom_meshes = new DynLongHashMap();
+            custom_meshes = new DynLongHashMap(4096);
+            custom_fluid_meshes = new DynLongHashMap(4096);
             modscale = basemodscale << scaled;
             scalemodels = HDBlockModels.getModelsForScale(basemodscale << scaled);
         }
 
-        void updateSemitransparentLight(LightLevels ll) {
+        private void updateSemitransparentLight(LightLevels ll) {
             int emitted = 0, sky = 0;
-            for (BlockStep s: SEMI_STEPS) {
-                mapiter.stepPosition(s);
-                int v = mapiter.getBlockEmittedLight();
-                if (v > emitted) emitted = v;
-                v = mapiter.getBlockSkyLight();
-                if (v > sky) sky = v;
-                mapiter.unstepPosition(s);
+            for(int i = 0; i < SEMI_STEPS.length; i++) {
+                int emit_sky_light = mapiter.getBlockLight(SEMI_STEPS[i]);
+                if ((emit_sky_light >> 8) > emitted) emitted = (emit_sky_light >> 8);
+                if ((emit_sky_light & 0xF) > sky) sky = (emit_sky_light & 0xF);
             }
             ll.sky = sky;
             ll.emitted = emitted;
@@ -300,25 +306,19 @@ class DynMapRenderer {
         /**
          * Update sky and emitted light
          */
-        void updateLightLevel(int blktypeid, LightLevels ll) {
+        private void updateLightLevel(DynmapBlockState blk, LightLevels ll) {
             /* Look up transparency for current block */
-            TexturePack.BlockTransparency bt = TexturePack.HDTextureMap.getTransparency(blktypeid);
+            BlockTransparency bt = HDBlockStateTextureMap.getTransparency(blk);
             switch(bt) {
                 case TRANSPARENT:
                     ll.sky = mapiter.getBlockSkyLight();
                     ll.emitted = mapiter.getBlockEmittedLight();
                     break;
                 case OPAQUE:
-                    if(TexturePack.HDTextureMap.getTransparency(lastblocktypeid) != TexturePack.BlockTransparency.SEMITRANSPARENT) {
-                        mapiter.unstepPosition(laststep);  /* Back up to block we entered on */
-                        if(mapiter.getY() < worldheight) {
-                            ll.sky = mapiter.getBlockSkyLight();
-                            ll.emitted = mapiter.getBlockEmittedLight();
-                        } else {
-                            ll.sky = 15;
-                            ll.emitted = 0;
-                        }
-                        mapiter.stepPosition(laststep);
+                    if (HDBlockStateTextureMap.getTransparency(lastblocktype) != BlockTransparency.SEMITRANSPARENT) {
+                        int emit_sky_light = mapiter.getBlockLight(laststep.opposite());
+                        ll.sky = emit_sky_light & 0xF;
+                        ll.emitted = emit_sky_light >> 8;
                     }
                     else {
                         mapiter.unstepPosition(laststep);  /* Back up to block we entered on */
@@ -338,12 +338,14 @@ class DynMapRenderer {
         /**
          * Get light level - only available if shader requested it
          */
+    
         public final void getLightLevels(LightLevels ll) {
-            updateLightLevel(blocktypeid, ll);
+            updateLightLevel(blocktype, ll);
         }
         /**
          * Get sky light level - only available if shader requested it
          */
+    
         public final void getLightLevelsAtStep(BlockStep step, LightLevels ll) {
             if(((step == BlockStep.Y_MINUS) && (y == 0)) ||
                     ((step == BlockStep.Y_PLUS) && (y == worldheight))) {
@@ -353,37 +355,34 @@ class DynMapRenderer {
             BlockStep blast = laststep;
             mapiter.stepPosition(step);
             laststep = blast;
-            updateLightLevel(mapiter.getBlockTypeID(), ll);
+            updateLightLevel(mapiter.getBlockType(), ll);
             mapiter.unstepPosition(step);
             laststep = blast;
         }
         /**
          * Get current block type ID
          */
-        public final int getBlockTypeID() { return blocktypeid; }
-        /**
-         * Get current block data
-         */
-        public final int getBlockData() { return blockdata; }
-        /**
-         * Get current block render data
-         */
-        public final int getBlockRenderData() { return blockrenderdata; }
+    
+        public final DynmapBlockState getBlockState() { return blocktype; }
         /**
          * Get direction of last block step
          */
+    
         public final BlockStep getLastBlockStep() { return laststep; }
         /**
          * Get perspective scale
          */
+    
         public final double getScale() { return modscale; }
         /**
          * Get start of current ray, in world coordinates
          */
+    
         public final Vector3D getRayStart() { return top; }
         /**
          * Get end of current ray, in world coordinates
          */
+    
         public final Vector3D getRayEnd() { return bottom; }
         /**
          * Get pixel X coordinate
@@ -406,7 +405,7 @@ class DynMapRenderer {
         /**
          * Initialize raytrace state variables
          */
-        void raytrace_init() {
+        private void raytrace_init() {
             /* Compute total delta on each axis */
             dx = Math.abs(direction.x);
             dy = Math.abs(direction.y);
@@ -504,96 +503,132 @@ class DynMapRenderer {
             skiptoair = isnether;
         }
 
-        boolean handleSubModel(short[] model, HDShaderState shaderstate, boolean[] shaderdone) {
+        private boolean handleSubModel(short[] model, HDShaderState shaderstate, boolean[] shaderdone) {
             boolean firststep = true;
 
             while(!raytraceSubblock(model, firststep)) {
-                boolean done = true;
+                boolean done;
                 if(!shaderdone[0])
                     shaderdone[0] = shaderstate.processBlock(this);
-                done = done && shaderdone[0];
+                done = shaderdone[0];
                 /* If all are done, we're out */
                 if(done)
                     return true;
                 nonairhit = true;
                 firststep = false;
             }
+            // Set current block as last block for any incomplete shaders
+            if(!shaderdone[0])
+                // Update with current block as last block
+                shaderstate.setLastBlockState(blocktype);
             return false;
         }
 
-        boolean handlePatches(RenderPatch[] patches, HDShaderState shaderstate, boolean[] shaderdone) {
-            int hitcnt = 0;
-            /* Loop through patches : compute intercept values for each */
-            for (RenderPatch patch: patches) {
-                PatchDefinition pd = (PatchDefinition) patch;
-                /* Compute origin of patch */
-                v0.x = (double) x + pd.x0;
-                v0.y = (double) y + pd.y0;
-                v0.z = (double) z + pd.z0;
-                /* Compute cross product of direction and V vector */
-                d_cross_uv.set(direction);
-                d_cross_uv.crossProduct(pd.v);
-                /* Compute determinant - inner product of this with U */
-                double det = pd.u.innerProduct(d_cross_uv);
-                /* If parallel to surface, no intercept */
-                switch (pd.sidevis) {
-                    case TOP:
-                        if (det < 0.000001) {
-                            continue;
-                        }
-                        break;
-                    case BOTTOM:
-                        if (det > -0.000001) {
-                            continue;
-                        }
-                        break;
-                    case BOTH:
-                    case FLIP:
-                        if ((det > -0.000001) && (det < 0.000001)) {
-                            continue;
-                        }
-                        break;
-                }
-                double inv_det = 1.0 / det; /* Calculate inverse determinant */
-                /* Compute distance from patch to ray origin */
-                vS.set(top);
-                vS.subtract(v0);
-                /* Compute u - slope times inner product of offset and cross product */
-                double u = inv_det * vS.innerProduct(d_cross_uv);
-                if ((u <= pd.umin) || (u >= pd.umax)) {
-                    continue;
-                }
-                /* Compute cross product of offset and U */
-                vS.crossProduct(pd.u);
-                /* Compute V using slope times inner product of direction and cross product */
-                double v = inv_det * direction.innerProduct(vS);
-                if ((v <= pd.vmin) || (v >= pd.vmax) || ((u + v) >= pd.uplusvmax)) {
-                    continue;
-                }
-                /* Compute parametric value of intercept */
-                double t = inv_det * pd.v.innerProduct(vS);
-                if (t > 0.000001) { /* We've got a hit */
-                    patch_t[hitcnt] = t;
-                    patch_u[hitcnt] = u;
-                    patch_v[hitcnt] = v;
-                    patch_id[hitcnt] = pd.textureindex;
-                    if (det > 0) {
-                        patch_step[hitcnt] = pd.step.opposite();
-                    } else {
-                        if (pd.sidevis == RenderPatchFactory.SideVisible.FLIP) {
-                            patch_u[hitcnt] = 1 - u;
-                        }
-                        patch_step[hitcnt] = pd.step;
+        private int handlePatch(PatchDefinition pd, int hitcnt) {
+            /* Compute origin of patch */
+            v0.x = (double)x + pd.x0;
+            v0.y = (double)y + pd.y0;
+            v0.z = (double)z + pd.z0;
+            /* Compute cross product of direction and V vector */
+            d_cross_uv.set(direction);
+            d_cross_uv.crossProduct(pd.v);
+            /* Compute determinant - inner product of this with U */
+            double det = pd.u.innerProduct(d_cross_uv);
+            /* If parallel to surface, no intercept */
+            switch(pd.sidevis) {
+                case TOP:
+                case TOPFLIP:
+                case TOPFLIPV:
+                    if (det < 0.000001) {
+                        return hitcnt;
                     }
-                    hitcnt++;
+                    break;
+                case BOTTOM:
+                    if (det > -0.000001) {
+                        return hitcnt;
+                    }
+                    break;
+                case BOTH:
+                case FLIP:
+                    if((det > -0.000001) && (det < 0.000001)) {
+                        return hitcnt;
+                    }
+                    break;
+            }
+            double inv_det = 1.0 / det; /* Calculate inverse determinant */
+            /* Compute distance from patch to ray origin */
+            vS.set(top);
+            vS.subtract(v0);
+            /* Compute u - slope times inner product of offset and cross product */
+            double u = inv_det * vS.innerProduct(d_cross_uv);
+            if ((u <= pd.umin) || (u >= pd.umax)) {
+                return hitcnt;
+            }
+            /* Compute cross product of offset and U */
+            vS.crossProduct(pd.u);
+            /* Compute V using slope times inner product of direction and cross product */
+            double v = inv_det * direction.innerProduct(vS);
+            // Check constrains: v must be below line from (umin, vmax) to (umax, vmaxatumax)
+            double urel = (u - pd.umin) / (pd.umax - pd.umin);
+            double vmaxatu = pd.vmax + (pd.vmaxatumax - pd.vmax) * urel;
+            // Check constrains: v must be above line from (umin, vmin) to (umax, vminatumax)
+            double vminatu = pd.vmin + (pd.vminatumax - pd.vmin) * urel;
+            if ((v <= vminatu) || (v >= vmaxatu)) {
+                return hitcnt;
+            }
+            /* Compute parametric value of intercept */
+            double t = inv_det * pd.v.innerProduct(vS);
+            if (t > 0.000001) { /* We've got a hit */
+                patch_t[hitcnt] = t;
+                patch_u[hitcnt] = u;
+                patch_v[hitcnt] = v;
+                patch_id[hitcnt] = pd.textureindex;
+                if(det > 0) {
+                    patch_step[hitcnt] = pd.step.opposite();
+                    if (pd.sidevis == SideVisible.TOPFLIP) {
+                        patch_u[hitcnt] = 1 - u;
+                    }
+                    else if (pd.sidevis == SideVisible.TOPFLIPV) {
+                        patch_v[hitcnt] = 1 - v;
+                    }
+                }
+                else {
+                    if (pd.sidevis == SideVisible.FLIP) {
+                        patch_u[hitcnt] = 1 - u;
+                    }
+                    patch_step[hitcnt] = pd.step;
+                }
+                hitcnt++;
+            }
+            return hitcnt;
+        }
+
+        private boolean handlePatches(RenderPatch[] patches, HDShaderState shaderstate, boolean[] shaderdone, DynmapBlockState fluidstate, RenderPatch[] fluidpatches) {
+            int hitcnt = 0;
+            int water_hit = Integer.MAX_VALUE; // hit index of first water hit
+            /* Loop through patches : compute intercept values for each */
+            for(int i = 0; i < patches.length; i++) {
+                hitcnt = handlePatch((PatchDefinition)patches[i], hitcnt);
+            }
+            if ((fluidpatches != null) && (fluidpatches.length > 0)) {
+                int prev_hitcnt = hitcnt;
+                for(int i = 0; i < fluidpatches.length; i++) {
+                    hitcnt = handlePatch((PatchDefinition)fluidpatches[i], hitcnt);
+                }
+                if (prev_hitcnt < hitcnt) { // At least one water hit?
+                    water_hit = prev_hitcnt;    // Remember index
                 }
             }
             /* If no hits, we're done */
             if(hitcnt == 0) {
+                // Set current block as last block for any incomplete shaders
+                if(! shaderdone[0])
+                    // Update with current block as last block
+                    shaderstate.setLastBlockState(blocktype);
                 return false;
             }
             BlockStep old_laststep = laststep;  /* Save last step */
-
+            DynmapBlockState cur_bt = blocktype;
             for(int i = 0; i < hitcnt; i++) {
                 /* Find closest hit (lowest parametric value) */
                 double best_t = Double.MAX_VALUE;
@@ -609,11 +644,19 @@ class DynMapRenderer {
                 cur_patch_v = patch_v[best_patch];
                 laststep = patch_step[best_patch];
                 cur_patch_t = best_t;
+                // If the water patch, switch to water state and patch index
+                if (best_patch >= water_hit) {
+                    blocktype = fluidstate;
+                }
                 /* Process the shaders */
-                boolean done = true;
+                boolean done;
                 if(!shaderdone[0])
                     shaderdone[0] = shaderstate.processBlock(this);
-                done = done && shaderdone[0];
+                done = shaderdone[0];
+                // If water, restore block type
+                if (best_patch >= water_hit) {
+                    blocktype = cur_bt;
+                }
                 cur_patch = -1;
                 /* If all are done, we're out */
                 if(done) {
@@ -626,61 +669,96 @@ class DynMapRenderer {
             }
             laststep = old_laststep;
 
+            // Set current block as last block for any incomplete shaders
+            if(!shaderdone[0])
+                // Update with current block as last block
+                shaderstate.setLastBlockState(blocktype);
+
             return false;
         }
 
-        /**
-         * Process visit of ray to block
-         */
-        boolean visit_block(HDShaderState shaderstate, boolean[] shaderdone) {
-            lastblocktypeid = blocktypeid;
-            blocktypeid = mapiter.getBlockTypeID();
-            if(skiptoair) {	/* If skipping until we see air */
-                if(blocktypeid == 0) {	/* If air, we're done */
-                    skiptoair = false;
-                }
+        private RenderPatch[] getPatches(DynmapBlockState bt, boolean isFluid) {
+            RenderPatch[] patches;
+            synchronized (PATCH_ACCESS_LOCK) {
+                patches = scalemodels.getPatchModel(bt);
             }
-            else if(nonairhit || (blocktypeid != 0)) {
-                blockdata = mapiter.getBlockData();
-                blockrenderdata = HDBlockModels.getBlockRenderData(blocktypeid, mapiter);
-
-                RenderPatch[] patches = scalemodels.getPatchModel(blocktypeid,  blockdata,  blockrenderdata);
-                /* If no patches, see if custom model */
-                if(patches == null) {
-                    HDBlockModels.CustomBlockModel cbm = scalemodels.getCustomBlockModel(blocktypeid,  blockdata);
-                    if(cbm != null) {   /* If found, see if cached already */
+            /* If no patches, see if custom model */
+            if (patches == null) {
+                CustomBlockModel cbm = scalemodels.getCustomBlockModel(bt);
+                if (cbm != null) {   /* If found, see if cached already */
+                    if (isFluid) {
+                        patches = this.getCustomFluidMesh();
+                        if (patches == null) {
+                            patches = cbm.getMeshForBlock(mapiter);
+                            this.setCustomFluidMesh(patches);
+                        }
+                    }
+                    // Else, if block state specific model
+                    else if (cbm.isOnlyBlockStateSensitive()) {
+                        patches = this.getCustomMeshForState(bt);	// Look up mesh by state
+                        if (patches == null) {	// Miss, generate it
+                            patches = cbm.getMeshForBlock(mapiter);
+                            this.setCustomMeshForState(bt, patches);
+                        }
+                    }
+                    else {	// Else, block specific
                         patches = this.getCustomMesh();
-                        if(patches == null) {
+                        if (patches == null) {
                             patches = cbm.getMeshForBlock(mapiter);
                             this.setCustomMesh(patches);
                         }
                     }
                 }
+            }
+            return patches;
+        }
+        /**
+         * Process visit of ray to block
+         */
+        private boolean visit_block(HDShaderState shaderstate, boolean[] shaderdone) {
+            lastblocktype = blocktype;
+            blocktype = mapiter.getBlockType();
+            if (skiptoair) {	/* If skipping until we see air */
+                if (blocktype.isAir()) {	/* If air, we're done */
+                    skiptoair = false;
+                }
+            }
+            else if(nonairhit || blocktype.isNotAir()) {
+                short[] model;
+                RenderPatch[] patches = getPatches(blocktype, false);
                 /* Look up to see if block is modelled */
                 if(patches != null) {
-                    return handlePatches(patches, shaderstate, shaderdone);
+                    RenderPatch[] fluidpatches = null;
+                    // If so, check for waterlogged
+                    DynmapBlockState fluidstate = blocktype.getLiquidState();
+                    if (fluidstate != null) {
+                        fluidpatches = getPatches(fluidstate, true);
+                    }
+                    return handlePatches(patches, shaderstate, shaderdone, fluidstate, fluidpatches);
                 }
-                short[] model = scalemodels.getScaledModel(blocktypeid, blockdata, blockrenderdata);
-                if(model != null) {
+                else if ((model = scalemodels.getScaledModel(blocktype)) != null) {
                     return handleSubModel(model, shaderstate, shaderdone);
                 }
                 else {
-                    boolean done = true;
+                    boolean done;
                     subalpha = -1;
                     if(!shaderdone[0]) {
                         shaderdone[0] = shaderstate.processBlock(this);
+                        // Update with current block as last block
+                        shaderstate.setLastBlockState(blocktype);
                     }
-                    done = done && shaderdone[0];
-                    /* If all are done, we're out */
-                    if(done)
+                    done = shaderdone[0];
+                    if (done)
                         return true;
                     nonairhit = true;
                 }
             }
             return false;
         }
+
         /* Skip empty : return false if exited */
-        boolean raytraceSkipEmpty(MapChunkCache cache) {
+        private boolean raytraceSkipEmpty(MapChunkCache cache) {
+            int minsy = cache.getWorld().minY >> 4;
             while(cache.isEmptySection(sx, sy, sz)) {
                 /* If Y step is next best */
                 if((st_next_y <= st_next_x) && (st_next_y <= st_next_z)) {
@@ -688,7 +766,7 @@ class DynMapRenderer {
                     t = st_next_y;
                     st_next_y += sdt_dy;
                     laststep = stepy;
-                    if(sy < 0)
+                    if (sy < minsy)
                         return false;
                 }
                 /* If X step is next best */
@@ -708,10 +786,11 @@ class DynMapRenderer {
             }
             return true;
         }
+
         /**
          * Step block iterator: false if done
          */
-        boolean raytraceStepIterator() {
+        private boolean raytraceStepIterator(int miny, int maxy) {
             /* If Y step is next best */
             if ((t_next_y <= t_next_x) && (t_next_y <= t_next_z)) {
                 y += y_inc;
@@ -720,7 +799,7 @@ class DynMapRenderer {
                 laststep = stepy;
                 mapiter.stepPosition(laststep);
                 /* If outside 0-(height-1) range */
-                if((y & (~heightmask)) != 0) {
+                if ((y < miny) || (y > maxy)) {
                     return false;
                 }
             }
@@ -742,10 +821,14 @@ class DynMapRenderer {
             }
             return true;
         }
+
         /**
          * Trace ray, based on "Voxel Tranversal along a 3D line"
          */
-        void raytrace(MapChunkCache cache, HDShaderState shaderstate, boolean[] shaderdone) {
+        private void raytrace(MapChunkCache cache, HDShaderState shaderstate, boolean[] shaderdone) {
+            int minY = cache.getWorld().minY;
+            int height = cache.getWorld().worldheight;
+
             /* Initialize raytrace state variables */
             raytrace_init();
 
@@ -755,7 +838,7 @@ class DynMapRenderer {
 
             raytrace_section_init();
 
-            if (y < 0)
+            if (y < minY)
                 return;
 
             mapiter.initialize(x, y, z);
@@ -764,13 +847,13 @@ class DynMapRenderer {
                 if (visit_block(shaderstate, shaderdone)) {
                     return;
                 }
-                if (!raytraceStepIterator()) {
+                if (!raytraceStepIterator(minY, height)) {
                     return;
                 }
             }
         }
 
-        void raytrace_section_init() {
+        private void raytrace_section_init() {
             t = t - 0.000001;
             double xx = top.x + t * direction.x;
             double yy = top.y + t * direction.y;
@@ -814,7 +897,7 @@ class DynMapRenderer {
             }
         }
 
-        boolean raytraceSubblock(short[] model, boolean firsttime) {
+        private boolean raytraceSubblock(short[] model, boolean firsttime) {
             if(firsttime) {
                 mt = t + 0.00000001;
                 xx = top.x + mt * direction.x;
@@ -894,6 +977,7 @@ class DynMapRenderer {
             }
             return true;
         }
+
         public final int[] getSubblockCoord() {
             if(cur_patch >= 0) {    /* If patch hit */
                 double tt = cur_patch_t;
@@ -920,21 +1004,48 @@ class DynMapRenderer {
             }
             return subblock_xyz;
         }
+
+        // Is the hit on a cullable face?
+        public final boolean isOnFace() {
+            double tt;
+            if(cur_patch >= 0) {    /* If patch hit */
+                tt = cur_patch_t;
+            }
+            else if(subalpha < 0) {
+                tt = t + 0.0000001;
+            }
+            else {  // Full blocks always on face
+                return true;
+            }
+            double xx = top.x + tt * direction.x;
+            double yy = top.y + tt * direction.y;
+            double zz = top.z + tt * direction.z;
+            double xoff = xx - fastFloor(xx);
+            double yoff = yy - fastFloor(yy);
+            double zoff = zz - fastFloor(zz);
+            return ((xoff < 0.00001) || (xoff > 0.99999) || (yoff < 0.00001) || (yoff > 0.99999) || (zoff < 0.00001) || (zoff > 0.99999));
+        }
+
         /**
          * Get current texture index
          */
+    
         public int getTextureIndex() {
             return cur_patch;
         }
+
         /**
          * Get current U of patch intercept
          */
+    
         public double getPatchU() {
             return cur_patch_u;
         }
+
         /**
          * Get current V of patch intercept
          */
+    
         public double getPatchV() {
             return cur_patch_v;
         }
@@ -942,6 +1053,7 @@ class DynMapRenderer {
          * Light level cache
          * @param idx of light level (0-3)
          */
+    
         public final LightLevels getCachedLightLevels(int idx) {
             return llcache[idx];
         }
@@ -953,11 +1065,37 @@ class DynMapRenderer {
             return (RenderPatch[])custom_meshes.get(key);
         }
         /**
+         * Get custom mesh for block, if defined (null if not)
+         */
+        public final RenderPatch[] getCustomMeshForState(DynmapBlockState bs) {
+            return custom_meshes_by_globalstateindex[bs.globalStateIndex];
+        }
+        /**
          * Save custom mesh for block
          */
         public final void setCustomMesh(RenderPatch[] mesh) {
             long key = this.mapiter.getBlockKey();  /* Get key for current block */
             custom_meshes.put(key,  mesh);
+        }
+        /**
+         * Set custom mesh for block, if defined (null if not)
+         */
+        public final void setCustomMeshForState(DynmapBlockState bs, RenderPatch[] mesh) {
+            custom_meshes_by_globalstateindex[bs.globalStateIndex] = mesh;
+        }
+        /**
+         * Get custom fluid mesh for block, if defined (null if not)
+         */
+        public final RenderPatch[] getCustomFluidMesh() {
+            long key = this.mapiter.getBlockKey();  /* Get key for current block */
+            return (RenderPatch[])custom_fluid_meshes.get(key);
+        }
+        /**
+         * Save custom mesh for block
+         */
+        public final void setCustomFluidMesh(RenderPatch[] mesh) {
+            long key = this.mapiter.getBlockKey();  /* Get key for current block */
+            custom_fluid_meshes.put(key,  mesh);
         }
     }
 }

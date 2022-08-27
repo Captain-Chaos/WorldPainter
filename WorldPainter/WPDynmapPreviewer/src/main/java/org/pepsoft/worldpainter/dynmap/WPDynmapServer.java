@@ -138,6 +138,11 @@ public class WPDynmapServer extends DynmapServerInterface {
     }
 
     @Override
+    public int isSignAt(String s, int i, int i1, int i2) {
+        return 0;
+    }
+
+    @Override
     public double getServerTPS() {
         return 0;
     }
