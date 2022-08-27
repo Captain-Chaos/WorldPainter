@@ -48,6 +48,8 @@ import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_NETHER;
 import static org.pepsoft.util.swing.SpinnerUtils.setMinimum;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
+import static org.pepsoft.worldpainter.Dimension.Role.MASTER;
 import static org.pepsoft.worldpainter.HeightTransform.IDENTITY;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.Terrain.*;
@@ -116,7 +118,12 @@ public class NewWorldDialog extends WorldPainterDialog {
         ((DefaultEditor) spinnerWidth.getEditor()).getTextField().setColumns(4);
         ((DefaultEditor) spinnerLength.getEditor()).getTextField().setColumns(4);
 
-        if ((anchor.dim == DIM_NORMAL) && anchor.invert) {
+        if (anchor.role == MASTER) {
+            setTitle("Add Master");
+            fieldName.setEnabled(false);
+            comboBoxTarget.setEnabled(false);
+            comboBoxMaxHeight.setEnabled(false);
+        } else if ((anchor.dim == DIM_NORMAL) && anchor.invert) {
             setTitle("Add Surface Ceiling");
             fieldName.setEnabled(false);
             comboBoxTarget.setEnabled(false);
@@ -526,6 +533,9 @@ public class NewWorldDialog extends WorldPainterDialog {
                 }
                 dimension.setGenerator(generator);
             }
+            if (anchor.role == MASTER) {
+                dimension.setScale(16.0f);
+            }
             if (baseDimension != null) {
                 resourcesSettings.setMinimumLevel(((ResourcesExporterSettings) baseDimension.getLayerSettings(Resources.INSTANCE)).getMinimumLevel());
             } else {
@@ -554,7 +564,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         spinnerRange.setEnabled(hilly);
         spinnerScale.setEnabled(hilly);
         spinnerLength.setEnabled((tiles == null) && (! checkBoxCircular.isSelected()));
-        boolean seedLocked = (tiles != null) || (! platform.capabilities.contains(SEED));
+        boolean seedLocked = (tiles != null) || (! platform.capabilities.contains(SEED)) || anchor.invert || (anchor.role != DETAIL);
         radioButtonOceanSeed.setEnabled(surfaceDimension && (! seedLocked));
         radioButtonLandSeed.setEnabled(surfaceDimension && (! seedLocked));
         radioButtonCustomSeed.setEnabled(surfaceDimension && (! seedLocked));

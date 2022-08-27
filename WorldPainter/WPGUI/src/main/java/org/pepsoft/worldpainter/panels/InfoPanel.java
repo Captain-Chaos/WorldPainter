@@ -71,12 +71,13 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
         if (worldCoords == null) {
             return;
         }
-        setTextIfDifferent(labelCoords, worldCoords.x + "," + worldCoords.y);
         Dimension dim = view.getDimension();
         if (dim == null) {
             clearFields();
             return;
         }
+        final float scale = dim.getScale();
+        setTextIfDifferent(labelCoords, NUMBER_FORMAT.format(Math.round(worldCoords.x * scale)) + ", " + NUMBER_FORMAT.format(Math.round(worldCoords.y * scale)));
         Tile tile = dim.getTile(worldCoords.x >> TILE_SIZE_BITS, worldCoords.y >> TILE_SIZE_BITS);
         if (tile == null) {
             clearFields();
@@ -467,6 +468,7 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
     private static final Set<Layer> HIDDEN_LAYERS = new HashSet<>(Arrays.asList(Biome.INSTANCE, SelectionChunk.INSTANCE,
             SelectionBlock.INSTANCE, FloodWithLava.INSTANCE, NotPresent.INSTANCE));
     private static final Icon ICON_BLANK = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/transparent.png");
+    private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
     private static final Logger logger = LoggerFactory.getLogger(InfoPanel.class);
 
     static class LayerTableModel implements TableModel {

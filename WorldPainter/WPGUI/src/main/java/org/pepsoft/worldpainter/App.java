@@ -86,6 +86,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.MessageFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.*;
@@ -96,6 +97,7 @@ import static com.jidesoft.docking.DockContext.DOCK_SIDE_EAST;
 import static com.jidesoft.docking.DockContext.DOCK_SIDE_WEST;
 import static com.jidesoft.docking.DockableFrame.*;
 import static java.awt.event.KeyEvent.*;
+import static java.lang.Math.round;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toSet;
@@ -111,6 +113,8 @@ import static org.pepsoft.util.swing.ProgressDialog.NO_FOCUS_STEALING;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Dimension.Anchor.*;
+import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
+import static org.pepsoft.worldpainter.Dimension.Role.MASTER;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.Terrain.*;
@@ -481,12 +485,13 @@ public final class App extends JFrame implements RadiusControl,
         if (dimension != null) {
             setTitle("WorldPainter - " + world.getName() + " - " + dimension.getName()); // NOI18N
             final Anchor anchor = dimension.getAnchor();
-            viewSurfaceMenuItem.setSelected((anchor.dim == DIM_NORMAL) && (! anchor.invert));
-            viewSurfaceCeilingMenuItem.setSelected((anchor.dim == DIM_NORMAL) && anchor.invert);
-            viewNetherMenuItem.setSelected((anchor.dim == DIM_NETHER) && (! anchor.invert));
-            viewNetherCeilingMenuItem.setSelected((anchor.dim == DIM_NETHER) && anchor.invert);
-            viewEndMenuItem.setSelected((anchor.dim == DIM_END) && (! anchor.invert));
-            viewEndCeilingMenuItem.setSelected((anchor.dim == DIM_END) && anchor.invert);
+            viewSurfaceMenuItem.setSelected((anchor.role == DETAIL) && (anchor.dim == DIM_NORMAL) && (! anchor.invert));
+            viewSurfaceMasterMenuItem.setSelected(anchor.role == MASTER);
+            viewSurfaceCeilingMenuItem.setSelected((anchor.role == DETAIL) && (anchor.dim == DIM_NORMAL) && anchor.invert);
+            viewNetherMenuItem.setSelected((anchor.role == DETAIL) && (anchor.dim == DIM_NETHER) && (! anchor.invert));
+            viewNetherCeilingMenuItem.setSelected((anchor.role == DETAIL) && (anchor.dim == DIM_NETHER) && anchor.invert);
+            viewEndMenuItem.setSelected((anchor.role == DETAIL) && (anchor.dim == DIM_END) && (! anchor.invert));
+            viewEndCeilingMenuItem.setSelected((anchor.role == DETAIL) && (anchor.dim == DIM_END) && anchor.invert);
 
             // Legacy: if this is an older world with an overlay enabled, ask the user if we should fix the coordinates
             // (ask because they might have fixed the problem manually in 1.9.0 or 1.9.1, in which we neglected to do it
@@ -505,8 +510,10 @@ public final class App extends JFrame implements RadiusControl,
                 }
                 dimension.setFixOverlayCoords(false);
             }
-            
+
             view.setDimension(dimension);
+            masterDimension = anchor.equals(NORMAL_DETAIL) ? world.getDimension(new Anchor(DIM_NORMAL, MASTER, false, 0)) : null;
+            view.setMasterDimension(masterDimension);
             view.moveTo(dimension.getLastViewPosition());
             
             configureForPlatform();
@@ -598,8 +605,12 @@ public final class App extends JFrame implements RadiusControl,
             for (Tile tile: dimension.getTiles()) {
                 tile.addListener(this);
             }
+
+            updateZoomLabel();
+            updateRadiusLabel();
         } else {
             view.setDimension(null);
+            view.setMasterDimension(null);
             setTitle("WorldPainter"); // NOI18N
 
             // Clear action states
@@ -635,19 +646,35 @@ public final class App extends JFrame implements RadiusControl,
             } finally {
                 programmaticChange = false;
             }
+
+            masterDimension = null;
         }
     }
 
     public void updateStatusBar(int x, int y) {
-        setTextIfDifferent(locationLabel, MessageFormat.format(strings.getString("location.0.1"), x, y));
+        Dimension dimension = this.dimension;
         if (dimension == null) {
+            setTextIfDifferent(locationLabel, " ");
             setTextIfDifferent(heightLabel, " ");
             setTextIfDifferent(waterLabel, " ");
             setTextIfDifferent(materialLabel, " ");
             setTextIfDifferent(biomeLabel, " ");
             return;
         }
+        final float scale = dimension.getScale();
+        setTextIfDifferent(locationLabel, MessageFormat.format(strings.getString("location.0.1"), NUMBER_FORMAT.format(round(x * scale)), NUMBER_FORMAT.format(round(y * scale))));
         Tile tile = dimension.getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+        int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
+        if ((masterDimension != null)
+                && ((tile == null) || tile.getBitLayerValue(NotPresent.INSTANCE, xInTile, yInTile))
+                && masterDimension.isTilePresent(x >> (TILE_SIZE_BITS + 4), y >> (TILE_SIZE_BITS + 4))) {
+            dimension = masterDimension;
+            x = x >> 4;
+            y = y >> 4;
+            xInTile = x & TILE_SIZE_MASK;
+            yInTile = y & TILE_SIZE_MASK;
+            tile = dimension.getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+        }
         if (tile == null) {
             // Not on a tile
             setTextIfDifferent(heightLabel, " ");
@@ -661,7 +688,6 @@ public final class App extends JFrame implements RadiusControl,
             setTextIfDifferent(biomeLabel, " ");
             return;
         }
-        final int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
         if (tile.getBitLayerValue(NotPresent.INSTANCE, xInTile, yInTile)) {
             // Marked as not present
             setTextIfDifferent(heightLabel, " ");
@@ -671,11 +697,11 @@ public final class App extends JFrame implements RadiusControl,
             setTextIfDifferent(biomeLabel, " ");
             return;
         }
-        int height = tile.getIntHeight(xInTile, yInTile);
+        final int height = tile.getIntHeight(xInTile, yInTile);
         setTextIfDifferent(heightLabel, MessageFormat.format(strings.getString("height.0.of.1"), height, dimension.getMaxHeight() - 1));
-        setTextIfDifferent(slopeLabel, MessageFormat.format("Slope: {0}°", (int) Math.round(Math.atan(dimension.getSlope(x, y)) * 180 / Math.PI)));
+        setTextIfDifferent(slopeLabel, MessageFormat.format("Slope: {0}°", (int) round(Math.atan(dimension.getSlope(x, y)) * 180 / Math.PI)));
         if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint)) {
-            Layer layer = ((LayerPaint) paint).getLayer();
+            final Layer layer = ((LayerPaint) paint).getLayer();
             switch (layer.getDataSize()) {
                 case BIT:
                 case BIT_PER_CHUNK:
@@ -685,7 +711,7 @@ public final class App extends JFrame implements RadiusControl,
                     int value, strength;
                     if (! layer.equals(Annotations.INSTANCE)) {
                         value = tile.getLayerValue(layer, xInTile, yInTile);
-                        strength = (value > 0) ? ((value - 1) * 100  / 14 + 1): 0;
+                        strength = (value > 0) ? ((value - 1) * 100 / 14 + 1) : 0;
                         if ((strength == 51) || (strength == 101)) {
                             strength--;
                         }
@@ -697,7 +723,7 @@ public final class App extends JFrame implements RadiusControl,
                 case BYTE:
                     if (! layer.equals(Biome.INSTANCE)) {
                         value = tile.getLayerValue(layer, xInTile, yInTile);
-                        strength = (value > 0) ? ((value - 1) * 100  / 254 + 1): 0;
+                        strength = (value > 0) ? ((value - 1) * 100 / 254 + 1) : 0;
                         setTextIfDifferent(waterLabel, MessageFormat.format(strings.getString("layer.0.level.1"), layer.getName(), strength));
                     } else {
                         setTextIfDifferent(waterLabel, " ");
@@ -737,6 +763,15 @@ public final class App extends JFrame implements RadiusControl,
             } else if (biome != -1) {
                 setTextIfDifferent(biomeLabel, MessageFormat.format(strings.getString("biome.0"), biomeHelper.getBiomeName(biome)));
             }
+        }
+    }
+
+    private void updateRadiusLabel() {
+        if ((dimension != null) && (activeOperation instanceof RadiusOperation)) {
+            final float scale = dimension.getScale();
+            setTextIfDifferent(radiusLabel, MessageFormat.format(strings.getString("radius.0"), round(radius * scale)));
+        } else {
+            setTextIfDifferent(radiusLabel, " ");
         }
     }
 
@@ -784,7 +819,7 @@ public final class App extends JFrame implements RadiusControl,
                 ((RadiusOperation) activeOperation).setRadius(radius);
             }
             view.setRadius(radius);
-            radiusLabel.setText(MessageFormat.format(strings.getString("radius.0"), radius));
+            updateRadiusLabel();
         }
     }
 
@@ -1320,7 +1355,7 @@ public final class App extends JFrame implements RadiusControl,
             ((RadiusOperation) activeOperation).setRadius(radius);
         }
         view.setRadius(radius);
-        radiusLabel.setText(MessageFormat.format(strings.getString("radius.0"), radius));
+        updateRadiusLabel();
     }
 
     @Override
@@ -1331,7 +1366,7 @@ public final class App extends JFrame implements RadiusControl,
                 ((RadiusOperation) activeOperation).setRadius(radius);
             }
             view.setRadius(radius);
-            radiusLabel.setText(MessageFormat.format(strings.getString("radius.0"), radius));
+            updateRadiusLabel();
         }
     }
     
@@ -1354,7 +1389,7 @@ public final class App extends JFrame implements RadiusControl,
                 ((RadiusOperation) activeOperation).setRadius(radius);
             }
             view.setRadius(radius);
-            radiusLabel.setText(MessageFormat.format(strings.getString("radius.0"), radius));
+            updateRadiusLabel();
         }
     }
 
@@ -1366,7 +1401,7 @@ public final class App extends JFrame implements RadiusControl,
                 ((RadiusOperation) activeOperation).setRadius(radius);
             }
             view.setRadius(radius);
-            radiusLabel.setText(MessageFormat.format(strings.getString("radius.0"), radius));
+            updateRadiusLabel();
         }
     }
     
@@ -2501,9 +2536,10 @@ public final class App extends JFrame implements RadiusControl,
 
     private void updateZoomLabel() {
         double factor = Math.pow(2.0, view.getZoom());
-        int zoomPercentage = (int) (100 * factor);
+        final float scale = (dimension != null) ? dimension.getScale() : 1.0f;
+        int zoomPercentage = (int) (100 * factor / scale);
         zoomLabel.setText(MessageFormat.format(strings.getString("zoom.0"), zoomPercentage));
-        glassPane.setScale((float) factor);
+        glassPane.setScale((float) factor / scale);
     }
 
     private void initComponents() {
@@ -2543,7 +2579,7 @@ public final class App extends JFrame implements RadiusControl,
         if ((bestCursorSize.width != 0) && (bestCursorSize.height == bestCursorSize.width)) {
             int hotspot = 15;
             if (bestCursorSize.width != 32) {
-                hotspot = Math.round(15 * ((float) bestCursorSize.width / 32));
+                hotspot = round(15 * ((float) bestCursorSize.width / 32));
             }
             final Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(cursorImage, new Point(hotspot, hotspot), "Custom Crosshair");
             glassPane.setCursor(cursor);
@@ -4041,6 +4077,14 @@ public final class App extends JFrame implements RadiusControl,
 
         JMenu dimensionsMenu = new JMenu("Dimensions");
 
+        addSurfaceMasterMenuItem = new JMenuItem("Add Master dimension...");
+        addSurfaceMasterMenuItem.addActionListener(e -> addSurfaceMaster());
+        dimensionsMenu.add(addSurfaceMasterMenuItem);
+
+        removeSurfaceMasterMenuItem = new JMenuItem("Remove Master dimension...");
+        removeSurfaceMasterMenuItem.addActionListener(e -> removeSurfaceMaster());
+        dimensionsMenu.add(removeSurfaceMasterMenuItem);
+
         addSurfaceCeilingMenuItem = new JMenuItem("Add Ceiling to Surface...");
         addSurfaceCeilingMenuItem.addActionListener(e -> addSurfaceCeiling());
         dimensionsMenu.add(addSurfaceCeilingMenuItem);
@@ -4260,6 +4304,11 @@ public final class App extends JFrame implements RadiusControl,
         viewSurfaceCeilingMenuItem.addActionListener(e -> viewDimension(NORMAL_DETAIL_CEILING));
         viewSurfaceCeilingMenuItem.setEnabled(false);
         menu.add(viewSurfaceCeilingMenuItem);
+
+        viewSurfaceMasterMenuItem = new JCheckBoxMenuItem("View Master", false);
+        viewSurfaceMasterMenuItem.addActionListener(e -> viewDimension(new Anchor(DIM_NORMAL, MASTER, false, 0)));
+        viewSurfaceMasterMenuItem.setEnabled(false);
+        menu.add(viewSurfaceMasterMenuItem);
 
         viewNetherMenuItem = new JCheckBoxMenuItem(strings.getString("view.nether"), false);
         viewNetherMenuItem.addActionListener(e -> viewDimension(NETHER_DETAIL));
@@ -4919,6 +4968,50 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
+    private void addSurfaceMaster() {
+        final Dimension surface = world.getDimension(NORMAL_DETAIL);
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), surface.getSeed(), world.getPlatform(), new Anchor(DIM_NORMAL, MASTER, false, 0), surface.getMaxHeight(), surface);
+        dialog.setVisible(true);
+        if (! dialog.isCancelled()) {
+            if (! dialog.checkMemoryRequirements(this)) {
+                return;
+            }
+            Dimension surfaceMaster = ProgressDialog.executeTask(this, new ProgressTask<Dimension>() {
+                @Override
+                public String getName() {
+                    return "Creating Surface Master";
+                }
+
+                @Override
+                public Dimension execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                    return dialog.getSelectedDimension(world, progressReceiver);
+                }
+            });
+            if (surfaceMaster == null) {
+                // Cancelled by user
+                return;
+            }
+            world.addDimension(surfaceMaster);
+            setDimension(surfaceMaster);
+        }
+    }
+
+    private void removeSurfaceMaster() {
+        if (showConfirmDialog(this, "Are you sure you want to completely remove the Surface master?\nThis action cannot be undone!", "Confirm Surface Master Deletion", YES_NO_OPTION) == YES_OPTION) {
+            final Anchor anchor = new Anchor(DIM_NORMAL, MASTER, false, 0);
+            world.removeDimension(anchor);
+            if ((dimension != null) && (dimension.getAnchor().equals(anchor))) {
+                viewDimension(NORMAL_DETAIL);
+            } else {
+                configureForPlatform();
+                if (dimension.getAnchor().dim == DIM_NORMAL) {
+                    view.refreshTiles();
+                }
+            }
+            showMessageDialog(this, "The Surface master was successfully deleted", "Success", INFORMATION_MESSAGE);
+        }
+    }
+
     private void viewDimension(Anchor anchor) {
         if (! anchor.equals(dimension.getAnchor())) {
             setDimension(world.getDimension(anchor));
@@ -5310,7 +5403,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private Icon setBrushThumbnail(Brush brush) {
-        final Icon thumbnail = createBrushThumbnail(brush.clone(), Math.round(32 * getUIScale()));
+        final Icon thumbnail = createBrushThumbnail(brush.clone(), round(32 * getUIScale()));
         final JToggleButton button = brushButtons.get(brush);
         button.putClientProperty(KEY_THUMBNAIL, thumbnail);
         updateBrushRotation(brush, button);
@@ -5324,7 +5417,7 @@ public final class App extends JFrame implements RadiusControl,
         for (int dx = -radius + 1; dx < radius; dx++) {
             for (int dy = -radius + 1; dy < radius; dy++) {
                 final float strength = brush.getFullStrength(dx, dy);
-                final int alpha = Math.round(strength * 255f);
+                final int alpha = round(strength * 255f);
                 image.setRGB(dx + radius - 1, dy + radius - 1, alpha << 24);
             }
         }
@@ -5361,6 +5454,7 @@ public final class App extends JFrame implements RadiusControl,
         boolean imported = (world != null) && (world.getImportedFrom() != null);
         boolean nether = (world != null) && (world.getDimension(NETHER_DETAIL) != null);
         boolean end = (world != null) && (world.getDimension(END_DETAIL) != null);
+        boolean surfaceMaster = (world != null) && (world.getDimension(new Anchor(DIM_NORMAL, MASTER, false, 0)) != null);
         boolean surfaceCeiling = (world != null) && (world.getDimension(NORMAL_DETAIL_CEILING) != null);
         boolean netherCeiling = (world != null) && (world.getDimension(NETHER_DETAIL_CEILING) != null);
         boolean endCeiling = (world != null) && (world.getDimension(END_DETAIL_CEILING) != null);
@@ -5369,12 +5463,15 @@ public final class App extends JFrame implements RadiusControl,
         removeNetherMenuItem.setEnabled(nether);
         addEndMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_END) && (! imported) && (! end));
         removeEndMenuItem.setEnabled(end);
-        viewSurfaceMenuItem.setEnabled(nether || end || surfaceCeiling);
+        viewSurfaceMasterMenuItem.setEnabled(surfaceMaster);
+        viewSurfaceMenuItem.setEnabled(surfaceMaster || nether || end || surfaceCeiling);
         viewSurfaceCeilingMenuItem.setEnabled(surfaceCeiling);
         viewNetherMenuItem.setEnabled(nether);
         viewNetherCeilingMenuItem.setEnabled(netherCeiling);
         viewEndMenuItem.setEnabled(end);
         viewEndCeilingMenuItem.setEnabled(endCeiling);
+        addSurfaceMasterMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_NORMAL) && (! imported) && (! surfaceMaster));
+        removeSurfaceMasterMenuItem.setEnabled(surfaceMaster);
         addSurfaceCeilingMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_NORMAL) && (! imported) && (! surfaceCeiling));
         removeSurfaceCeilingMenuItem.setEnabled(surfaceCeiling);
         addNetherCeilingMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_NETHER) && nether && (! netherCeiling));
@@ -7007,7 +7104,7 @@ public final class App extends JFrame implements RadiusControl,
     private World2 world;
     private long lastSavedState = -1, lastAutosavedState = -1, lastSaveTimestamp = -1;
     private volatile long lastChangeTimestamp = -1;
-    private Dimension dimension;
+    private Dimension dimension, masterDimension;
     private WorldPainter view;
     private Operation activeOperation;
     private File lastSelectedFile;
@@ -7026,8 +7123,8 @@ public final class App extends JFrame implements RadiusControl,
     private GlassPane glassPane;
     private JCheckBox terrainCheckBox, terrainSoloCheckBox;
     private JToggleButton setSpawnPointToggleButton;
-    private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addSurfaceCeilingMenuItem, removeSurfaceCeilingMenuItem, addNetherCeilingMenuItem, removeNetherCeilingMenuItem, addEndCeilingMenuItem, removeEndCeilingMenuItem;
-    private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem, viewSurfaceCeilingMenuItem, viewNetherCeilingMenuItem, viewEndCeilingMenuItem;
+    private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addSurfaceCeilingMenuItem, removeSurfaceCeilingMenuItem, addNetherCeilingMenuItem, removeNetherCeilingMenuItem, addEndCeilingMenuItem, removeEndCeilingMenuItem, addSurfaceMasterMenuItem, removeSurfaceMasterMenuItem;
+    private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem, viewSurfaceCeilingMenuItem, viewNetherCeilingMenuItem, viewEndCeilingMenuItem, viewSurfaceMasterMenuItem;
     private final JToggleButton[] customMaterialButtons = new JToggleButton[CUSTOM_TERRAIN_COUNT];
     private final ColourScheme selectedColourScheme;
     private BiomeHelper biomeHelper;
@@ -7133,6 +7230,7 @@ public final class App extends JFrame implements RadiusControl,
     private static final String HELP_ROOT_URL = "https://www.worldpainter.net/help/";
 
     private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
+    private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
 
     private static final String IMPORT_WARNING_KEY = "org.pepsoft.worldpainter.importWarning";
 

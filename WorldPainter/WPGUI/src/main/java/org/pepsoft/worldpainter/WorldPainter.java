@@ -376,6 +376,14 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
 
             tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, drawContours, contourSeparation, lightOrigin, drawBorders, true, null);
             setTileProvider(LAYER_DETAILS, tileProvider);
+
+            if (masterDimension != null) {
+                masterTileProvider = new WPTileProvider(masterDimension, colourScheme, customBiomeManager, hiddenLayers, false, contourSeparation, lightOrigin, drawBorders, false, FADE_TO_WHITE);
+                setTileProvider(LAYER_MASTER, masterTileProvider);
+                setProviderZoom(masterTileProvider, 4);
+            } else {
+                removeTileProvider(LAYER_MASTER);
+            }
         } else {
             if (getTileProviderCount() > 0) {
                 removeAllTileProviders();
@@ -889,10 +897,28 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         }
         return null;
     }
-    
+
+    public Dimension getMasterDimension() {
+        return masterDimension;
+    }
+
+    public void setMasterDimension(Dimension masterDimension) {
+        if (this.masterDimension != null) {
+            removeTileProvider(LAYER_MASTER);
+            masterTileProvider = null;
+        }
+        this.masterDimension = masterDimension;
+        if (masterDimension != null) {
+            masterTileProvider = new WPTileProvider(masterDimension, colourScheme, customBiomeManager, hiddenLayers, false, contourSeparation, lightOrigin, drawBorders, false, FADE_TO_WHITE);
+            setTileProvider(LAYER_MASTER, masterTileProvider);
+            setProviderZoom(masterTileProvider, 4);
+        }
+        repaint();
+    }
+
     private HashSet<Layer> hiddenLayers = new HashSet<>();
     private final CustomBiomeManager customBiomeManager;
-    private Dimension dimension;
+    private Dimension dimension, masterDimension; // TODO make this more generic
     private int mouseX, mouseY, radius, effectiveRadius, overlayOffsetX, overlayOffsetY, contourSeparation, brushRotation;
     private boolean drawBrush, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance, drawMinecraftBorder = true,
         drawBorders = true, drawBiomes = true;
@@ -902,7 +928,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private ColourScheme colourScheme;
     private BufferedImage overlay;
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
-    private WPTileProvider tileProvider;
+    private WPTileProvider tileProvider, masterTileProvider;
     private Shape customBrushShape;
 
     private static final int VIEW_DISTANCE_RADIUS = 192; // 12 chunks (default of Minecraft 1.18.2)

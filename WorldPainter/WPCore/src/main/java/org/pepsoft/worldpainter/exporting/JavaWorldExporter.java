@@ -21,7 +21,10 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.*;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.SuperflatPreset.Structure.*;
@@ -77,10 +80,11 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
             level.setAllowCommands(world.isAllowCheats());
         }
         for (Dimension dimension: world.getDimensions()) {
-            if (dimension.getAnchor().invert) {
-                // Ceiling dimension
+            final Anchor anchor = dimension.getAnchor();
+            if (anchor.invert || (anchor.role != DETAIL)) {
+                // Ceiling dimension or wrong role
                 continue;
-            } else if ((! platform.capabilities.contains(GENERATOR_PER_DIMENSION)) && (dimension.getAnchor().dim != DIM_NORMAL)) {
+            } else if ((! platform.capabilities.contains(GENERATOR_PER_DIMENSION)) && (anchor.dim != DIM_NORMAL)) {
                 // This platform only supports generator settings for the surface dimension, and this is not the surface dimension
                 continue;
             }
@@ -89,7 +93,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                 final SuperflatPreset.Builder superflatPresetBuilder;
                 final int biome;
                 final Structure[] structures;
-                switch (dimension.getAnchor().dim) {
+                switch (anchor.dim) {
                     case DIM_NETHER:
                         biome = BIOME_HELL;
                         structures = null; // TODO are there Nether structures we could put here?
@@ -161,9 +165,9 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                     superflatPresetBuilder.addLayer(MC_AIR, dimension.getMaxHeight() - platform.minZ - totalDepth - 1);
                     superflatPresetBuilder.addLayer((dimension.getRoofType() == Dimension.WallType.BEDROCK) ? MC_BEDROCK : MC_BARRIER, 1);
                 }
-                level.setGenerator(dimension.getAnchor().dim, new SuperflatGenerator(superflatPresetBuilder.build()));
+                level.setGenerator(anchor.dim, new SuperflatGenerator(superflatPresetBuilder.build()));
             } else {
-                level.setGenerator(dimension.getAnchor().dim, dimension.getGenerator());
+                level.setGenerator(anchor.dim, dimension.getGenerator());
             }
         }
         level.setMapFeatures(world.isMapFeatures());
@@ -315,7 +319,6 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
             default:
                 throw new IllegalArgumentException("Dimension " + anchor.dim + " not supported");
         }
-        final Dimension ceiling = dimension.getWorld().getDimension(new Anchor(anchor.dim, DETAIL, true, 0));
         for (DataType dataType: platformProvider.getDataTypes(platform)) {
             File regionDir = new File(dimensionDir, dataType.name().toLowerCase());
             if (! regionDir.exists()) {
@@ -326,35 +329,6 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
         }
 
         ChunkFactory.Stats collectedStats = parallelExportRegions(dimension, worldDir, progressReceiver);
-
-        // Calculate total size of dimension
-        Set<Point> regions = new HashSet<>();
-        if (worldExportSettings.getTilesToExport() != null) {
-            for (Point tile: worldExportSettings.getTilesToExport()) {
-                regions.add(new Point(tile.x >> 2, tile.y >> 2));
-            }
-        } else {
-            for (Point tileCoords: dimension.getTileCoords()) {
-                // Also add regions for any bedrock wall and/or border
-                // tiles, if present
-                int r = (((dimension.getBorder() != null) && (! dimension.getBorder().isEndless())) ? dimension.getBorderSize() : 0)
-                        + (((dimension.getBorder() == null) || (! dimension.getBorder().isEndless())) && (dimension.getWallType() != null) ? 1 : 0);
-                for (int dx = -r; dx <= r; dx++) {
-                    for (int dy = -r; dy <= r; dy++) {
-                        regions.add(new Point((tileCoords.x + dx) >> 2, (tileCoords.y + dy) >> 2));
-                    }
-                }
-            }
-            if (ceiling != null) {
-                for (Point tileCoords: ceiling.getTileCoords()) {
-                    regions.add(new Point(tileCoords.x >> 2, tileCoords.y >> 2));
-                }
-            }
-        }
-        for (Point region: regions) {
-            File file = new File(dimensionDir, "region/r." + region.x + "." + region.y + ((platform == JAVA_ANVIL) ? ".mca" : ".mcr"));
-            collectedStats.size += file.length();
-        }
 
         if (progressReceiver != null) {
             progressReceiver.setProgress(1.0f);

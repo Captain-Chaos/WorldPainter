@@ -4,8 +4,6 @@
  */
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.util.undo.BufferKey;
-import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.gardenofeden.Seed;
 import org.pepsoft.worldpainter.layers.Layer;
 
@@ -25,14 +23,14 @@ import java.util.Set;
  *
  * @author pepijn
  */
-public class RODelegatingTile extends Tile {
+public class RODelegatingTile extends ReadOnlyTile {
     public RODelegatingTile(Tile tile) {
         super(tile.getX(), tile.getY(), tile.getMinHeight(), tile.getMaxHeight(), false);
         this.tile = tile;
     }
 
     @Override
-    public synchronized int getFloodedCount(int x, int y, int r, boolean lava) {
+    public int getFloodedCount(int x, int y, int r, boolean lava) {
         return tile.getFloodedCount(x, y, r, lava);
     }
 
@@ -42,23 +40,8 @@ public class RODelegatingTile extends Tile {
     }
 
     @Override
-    public synchronized float getSlope(int x, int y) {
+    public float getSlope(int x, int y) {
         return tile.getSlope(x, y);
-    }
-
-    @Override
-    public void addListener(Listener listener) {
-        // Do nothing
-    }
-
-    @Override
-    public void unregister() {
-        // Do nothing
-    }
-
-    @Override
-    public final void setMinMaxHeight(int minHeight, int maxHeight, HeightTransform heightTransform) {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -87,17 +70,12 @@ public class RODelegatingTile extends Tile {
     }
 
     @Override
-    public final void setRawHeight(int x, int y, int rawHeight) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Terrain getTerrain(int x, int y) {
         return tile.getTerrain(x, y); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public synchronized Set<Terrain> getAllTerrains() {
+    public Set<Terrain> getAllTerrains() {
         return tile.getAllTerrains();
     }
 
@@ -157,128 +135,13 @@ public class RODelegatingTile extends Tile {
     }
 
     @Override
-    public final void clearLayerData(Layer layer) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public final void clearLayerData(int x, int y, Set<Layer> excludedLayers) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public HashSet<Seed> getSeeds() {
         return tile.getSeeds(); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public final boolean plantSeed(Seed seed) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public final void removeSeed(Seed seed) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void removeListener(Listener listener) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public final Tile transform(CoordinateTransform transform) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public boolean repair(int minHeight, int maxHeight, PrintStream out) {
         return true;
-    }
-
-    @Override
-    public void savePointArmed() {
-        // Do nothing
-    }
-
-    @Override
-    public void savePointCreated() {
-        // Do nothing
-    }
-
-    @Override
-    public void undoPerformed() {
-        // Do nothing
-    }
-
-    @Override
-    public void redoPerformed() {
-        // Do nothing
-    }
-
-    @Override
-    public void bufferChanged(BufferKey<?> key) {
-        // Do nothing
-    }
-
-    @Override
-    final void ensureAllReadable() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    void convertBiomeData() {
-        // Do nothing
-    }
-
-    @Override
-    protected final void ensureReadable(TileBuffer buffer) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isEventsInhibited() {
-        return false;
-    }
-
-    @Override
-    public void register(UndoManager undoManager) {
-        // Do nothing
-    }
-
-    @Override
-    public final void setBitLayerValue(Layer layer, int x, int y, boolean value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void inhibitEvents() {
-        // Do nothing
-    }
-
-    @Override
-    public void releaseEvents() {
-        // Do nothing
-    }
-
-    @Override
-    public final void setHeight(int x, int y, float height) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public final void setLayerValue(Layer layer, int x, int y, int value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public final void setTerrain(int x, int y, Terrain terrain) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public final void setWaterLevel(int x, int y, int waterLevel) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

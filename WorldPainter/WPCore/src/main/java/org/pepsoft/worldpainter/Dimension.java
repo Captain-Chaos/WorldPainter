@@ -577,6 +577,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public float getSlope(int x, int y) {
+        return doGetSlope(x, y);
+    }
+
+    protected final float doGetSlope(int x, int y) {
         final int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
         if ((xInTile > 0) && (xInTile < (TILE_SIZE - 1)) && (yInTile > 0) && (yInTile < (TILE_SIZE - 1))) {
             // Inside one tile; delegate to tile
@@ -745,7 +749,11 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      *     (when {@code false}).
      * @return The number of blocks in the specified square that are flooded.
      */
-    public synchronized int getFloodedCount(final int x, final int y, final int r, final boolean lava) {
+    public int getFloodedCount(final int x, final int y, final int r, final boolean lava) {
+        return doGetFloodedCount(x, y, r, lava);
+    }
+
+    protected final synchronized int doGetFloodedCount(final int x, final int y, final int r, final boolean lava) {
         final int tileX = x >> TILE_SIZE_BITS, tileY = y >> TILE_SIZE_BITS;
         if (((x - r) >> TILE_SIZE_BITS == tileX) && ((x + r) >> TILE_SIZE_BITS == tileX) && ((y - r) >> TILE_SIZE_BITS == tileY) && ((y + r) >> TILE_SIZE_BITS == tileY)) {
             // The requested area is completely contained in one tile, optimise
@@ -787,7 +795,11 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      *     smaller. If the layer is not set at the specified coordinates, 0 is
      *     returned.
      */
-    public synchronized float getDistanceToEdge(final Layer layer, final int x, final int y, final float maxDistance) {
+    public float getDistanceToEdge(final Layer layer, final int x, final int y, final float maxDistance) {
+        return doGetDistanceToEdge(layer, x, y, maxDistance);
+    }
+
+    protected final synchronized float doGetDistanceToEdge(final Layer layer, final int x, final int y, final float maxDistance) {
         final int r = (int) Math.ceil(maxDistance);
         final int tileX = x >> TILE_SIZE_BITS, tileY = y >> TILE_SIZE_BITS;
         if (((x - r) >> TILE_SIZE_BITS == tileX) && ((x + r) >> TILE_SIZE_BITS == tileX) && ((y - r) >> TILE_SIZE_BITS == tileY) && ((y + r) >> TILE_SIZE_BITS == tileY)) {
@@ -1312,6 +1324,19 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             this.roofType = roofType;
             changeNo++;
             propertyChangeSupport.firePropertyChange("roofType", oldRoofType, roofType);
+        }
+    }
+
+    public float getScale() {
+        return scale;
+    }
+
+    public void setScale(float scale) {
+        if (scale != this.scale) {
+            float oldScale = this.scale;
+            this.scale = scale;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("scale", oldScale, scale);
         }
     }
 
@@ -2035,6 +2060,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                     break;
             }
         }
+        if (wpVersion < 7) {
+            scale = 1.0f;
+        }
         wpVersion = CURRENT_WP_VERSION;
 
         // Make sure that any custom layers which somehow ended up in the world
@@ -2097,6 +2125,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private MapGenerator generator;
     private WallType wallType, roofType;
     private Anchor anchor;
+    private float scale = 1.0f;
     private transient List<Listener> listeners = new ArrayList<>();
     private transient boolean eventsInhibited;
     private transient Set<Tile> dirtyTiles = new HashSet<>();
@@ -2117,7 +2146,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     private static final long TOP_LAYER_DEPTH_SEED_OFFSET = 180728193;
     private static final float ROOT_EIGHT = (float) Math.sqrt(8.0);
-    private static final int CURRENT_WP_VERSION = 6;
+    private static final int CURRENT_WP_VERSION = 7;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Dimension.class);
     private static final long serialVersionUID = 2011062401L;
 

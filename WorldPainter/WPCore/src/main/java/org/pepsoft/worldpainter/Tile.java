@@ -285,7 +285,11 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         heightMapChanged();
     }
 
-    public synchronized float getSlope(int x, int y) {
+    public float getSlope(int x, int y) {
+        return doGetSlope(x, y);
+    }
+
+    protected final synchronized float doGetSlope(int x, int y) {
         return Math.max(Math.max(Math.abs(getHeight(x + 1, y) - getHeight(x - 1, y)) / 2,
             Math.abs(getHeight(x + 1, y + 1) - getHeight(x - 1, y - 1)) / SQRT_OF_EIGHT),
             Math.max(Math.abs(getHeight(x, y + 1) - getHeight(x, y - 1)) / 2,
@@ -414,7 +418,11 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
      * @return The list of all layers provided or in use on the tile, sorted by
      *     layer priority.
      */
-    public synchronized List<Layer> getLayers(Set<Layer> additionalLayers) {
+    public List<Layer> getLayers(Set<Layer> additionalLayers) {
+        return doGetLayers(additionalLayers);
+    }
+
+    protected final synchronized List<Layer> doGetLayers(Set<Layer> additionalLayers) {
         SortedSet<Layer> layers = new TreeSet<>(additionalLayers);
         layers.addAll(getLayers());
         return new ArrayList<>(layers);

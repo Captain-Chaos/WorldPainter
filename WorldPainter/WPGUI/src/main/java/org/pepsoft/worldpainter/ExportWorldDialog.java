@@ -245,13 +245,9 @@ public class ExportWorldDialog extends WorldPainterDialog {
         final Platform platform = world.getPlatform();
         final StringBuilder sb = new StringBuilder("<html>Please confirm that you want to export the world<br>notwithstanding the following warnings:<br><ul>");
         boolean showWarning = false;
-        for (Dimension dimension: world.getDimensions()) {
-            if (dimension.getAnchor().invert) {
-                // Skip ceilings
-                continue;
-            }
-            final DimensionPropertiesEditor editor = dimensionPropertiesEditors.get(dimension.getAnchor());
+        for (DimensionPropertiesEditor editor: dimensionPropertiesEditors.values()) {
             final Generator generatorType = editor.getSelectedGeneratorType();
+            final Dimension dimension = editor.getDimension();
             if ((editor.isPopulateSelected() || dimension.getAllLayers(true).contains(Populate.INSTANCE)) && (! platform.capabilities.contains(POPULATE))) {
                 sb.append("<li>Population not supported for<br>map format " + platform.displayName + "; it will not have an effect");
                 showWarning = true;

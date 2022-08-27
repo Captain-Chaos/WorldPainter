@@ -599,14 +599,17 @@ public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
      * and {@link #getTiles} must be overridden. These implementations assume a 1:1 coordinate mapping.
      */
     @Override
-    public T getTile(Point coords) {
+    public synchronized T getTile(Point coords) {
         // In theory this is not correct, since the dimension might have gained or lost tiles in the mean time. However
         // the expected usage pattern of the functionality is such that that should not happen in practice, and creating
         // tile snapshots of all tiles when the dimension snapshot is created would be a performance hit
         final Reference<T> cachedTileRef = tileCache.get(coords);
+        if (cachedTileRef == NO_TILE_PRESENT) {
+            return null;
+        }
         T cachedTile = (cachedTileRef != null) ? cachedTileRef.get() : null;
         if (cachedTile == null) {
-            final Tile tile = dimension.getTile(coords);
+            final Tile tile = doGetTile(coords);
             if (tile != null) {
                 cachedTile = wrapTile(tile);
                 tileCache.put(coords, new SoftReference<>(cachedTile));
@@ -620,19 +623,24 @@ public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
      * and {@link #getTile(Point)} must be overridden. These implementations assume a 1:1 coordinate mapping.
      */
     @Override
-    public Collection<T> getTiles() {
-        final Collection<? extends Tile> tiles = dimension.getTiles();
-        final List<T> wrappedTiles = new ArrayList<>(tiles.size());
-        for (Tile tile: tiles) {
-            final Reference<T> cachedTileRef = tileCache.get(new Point(tile.getX(), tile.getY()));
-            final T cachedTile = (cachedTileRef != null) ? cachedTileRef.get() : null;
-            if (cachedTile != null) {
-                wrappedTiles.add(cachedTile);
-            } else {
-                wrappedTiles.add(wrapTile(tile));
+    public synchronized Collection<T> getTiles() {
+        if (allTiles == null) {
+            final Collection<? extends Tile> tiles = dimension.getTiles();
+            allTiles = new HashSet<>();
+            for (Tile tile: tiles) {
+                final Reference<T> cachedTileRef = tileCache.get(new Point(tile.getX(), tile.getY()));
+                if (cachedTileRef == NO_TILE_PRESENT) {
+                    continue;
+                }
+                final T cachedTile = (cachedTileRef != null) ? cachedTileRef.get() : null;
+                if (cachedTile != null) {
+                    allTiles.add(cachedTile);
+                } else {
+                    allTiles.add(wrapTile(tile));
+                }
             }
         }
-        return wrappedTiles;
+        return allTiles;
     }
 
     @Override
@@ -735,10 +743,20 @@ public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
         throw new UnsupportedOperationException();
     }
 
-    protected abstract T wrapTile(Tile tile);
+    protected Tile doGetTile(Point coords) {
+        return dimension.getTile(coords);
+    }
+
+    @SuppressWarnings("unchecked") // Responsibility of implementor
+    protected T wrapTile(Tile tile) {
+        return (T) tile;
+    }
 
     protected final Dimension dimension;
     protected final Map<Point, Reference<T>> tileCache = new HashMap<>();
 
+    private Set<T> allTiles;
+
+    private static final Reference<? extends Tile> NO_TILE_PRESENT = new SoftReference<>(null);
     private static final long serialVersionUID = 1L;
 }
