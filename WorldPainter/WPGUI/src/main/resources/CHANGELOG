@@ -1,3 +1,7 @@
+-- Version 2.13.3, released 27-8-2022
+
+ * Bug fix: make undo work properly again for ceiling dimensions
+
 -- Version 2.13.2, released 25-8-2022
 
  * Scripting: reintroduce World2.getDimension(int) method (but deprecated) so existing scripts keep working
