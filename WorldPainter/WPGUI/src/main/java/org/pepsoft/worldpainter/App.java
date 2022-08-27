@@ -510,7 +510,7 @@ public final class App extends JFrame implements RadiusControl,
             view.moveTo(dimension.getLastViewPosition());
             
             configureForPlatform();
-            currentUndoManager = undoManagers.get(anchor.dim);
+            currentUndoManager = undoManagers.get(anchor);
             if (currentUndoManager == null) {
                 if ((! "true".equals(System.getProperty("org.pepsoft.worldpainter.disableUndo"))) && config.isUndoEnabled()) {
                     currentUndoManager = new UndoManager(ACTION_UNDO, ACTION_REDO, Math.max(config.getUndoLevels() + 1, 2));
@@ -522,9 +522,9 @@ public final class App extends JFrame implements RadiusControl,
                     ACTION_REDO.setEnabled(false);
                 }
                 currentUndoManager.setStopAtClasses(PropertyChangeListener.class, Tile.Listener.class, Biome.class, BetterAction.class);
-                undoManagers.put(anchor.dim, currentUndoManager);
+                undoManagers.put(anchor, currentUndoManager);
                 dimension.register(currentUndoManager);
-            } else if ((!"true".equals(System.getProperty("org.pepsoft.worldpainter.disableUndo"))) && config.isUndoEnabled()) {
+            } else if ((! "true".equals(System.getProperty("org.pepsoft.worldpainter.disableUndo"))) && config.isUndoEnabled()) {
                 currentUndoManager.registerActions(ACTION_UNDO, ACTION_REDO);
             }
             dimension.armSavePoint();
@@ -7016,7 +7016,7 @@ public final class App extends JFrame implements RadiusControl,
     private final Map<Brush, JToggleButton> brushButtons = new HashMap<>();
     private boolean programmaticChange;
     private UndoManager currentUndoManager;
-    private final Map<Integer, UndoManager> undoManagers = new HashMap<>();
+    private final Map<Anchor, UndoManager> undoManagers = new HashMap<>();
     private JSlider levelSlider, brushRotationSlider;
     private float level = 0.51f, toolLevel = 0.51f;
     private Set<Layer> hiddenLayers = new HashSet<>();
