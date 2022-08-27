@@ -1,3 +1,8 @@
+-- Version 2.13.2, released 25-8-2022
+
+ * Scripting: reintroduce World2.getDimension(int) method (but deprecated) so existing scripts keep working
+ * Plugins: support platforms without export settings
+
 -- Version 2.13.1, released 23-8-2022
 
  * Bug fix: work around a bug in Java which was causing non-surface dimensions to overwrite the surface dimension upon loading existing .world files
