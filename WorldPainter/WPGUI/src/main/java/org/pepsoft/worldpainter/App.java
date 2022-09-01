@@ -485,13 +485,9 @@ public final class App extends JFrame implements RadiusControl,
         if (dimension != null) {
             setTitle("WorldPainter - " + world.getName() + " - " + dimension.getName()); // NOI18N
             final Anchor anchor = dimension.getAnchor();
-            viewSurfaceMenuItem.setSelected((anchor.role == DETAIL) && (anchor.dim == DIM_NORMAL) && (! anchor.invert));
-            viewSurfaceMasterMenuItem.setSelected(anchor.role == MASTER);
-            viewSurfaceCeilingMenuItem.setSelected((anchor.role == DETAIL) && (anchor.dim == DIM_NORMAL) && anchor.invert);
-            viewNetherMenuItem.setSelected((anchor.role == DETAIL) && (anchor.dim == DIM_NETHER) && (! anchor.invert));
-            viewNetherCeilingMenuItem.setSelected((anchor.role == DETAIL) && (anchor.dim == DIM_NETHER) && anchor.invert);
-            viewEndMenuItem.setSelected((anchor.role == DETAIL) && (anchor.dim == DIM_END) && (! anchor.invert));
-            viewEndCeilingMenuItem.setSelected((anchor.role == DETAIL) && (anchor.dim == DIM_END) && anchor.invert);
+            viewSurfaceMenuItem.setSelected(anchor.dim == DIM_NORMAL);
+            viewNetherMenuItem.setSelected(anchor.dim == DIM_NETHER);
+            viewEndMenuItem.setSelected(anchor.dim == DIM_END);
 
             // Legacy: if this is an older world with an overlay enabled, ask the user if we should fix the coordinates
             // (ask because they might have fixed the problem manually in 1.9.0 or 1.9.1, in which we neglected to do it
@@ -3983,7 +3979,6 @@ public final class App extends JFrame implements RadiusControl,
             menuItem = new JMenuItem(strings.getString("height.map") + "...");
             menuItem.addActionListener(event -> importHeightMap());
             menuItem.setMnemonic('h');
-            menuItem.setAccelerator(KeyStroke.getKeyStroke(VK_M, PLATFORM_COMMAND_MASK));
             subMenu.add(menuItem);
 
             menu.add(subMenu);
@@ -4077,21 +4072,21 @@ public final class App extends JFrame implements RadiusControl,
 
         JMenu dimensionsMenu = new JMenu("Dimensions");
 
-        addSurfaceMasterMenuItem = new JMenuItem("Add Master dimension...");
-        addSurfaceMasterMenuItem.addActionListener(e -> addSurfaceMaster());
-        dimensionsMenu.add(addSurfaceMasterMenuItem);
+        addMasterMenuItem = new JMenuItem("Add master dimension...");
+        addMasterMenuItem.addActionListener(e -> addMaster());
+        dimensionsMenu.add(addMasterMenuItem);
 
-        removeSurfaceMasterMenuItem = new JMenuItem("Remove Master dimension...");
-        removeSurfaceMasterMenuItem.addActionListener(e -> removeSurfaceMaster());
-        dimensionsMenu.add(removeSurfaceMasterMenuItem);
+        removeMasterMenuItem = new JMenuItem("Remove master dimension...");
+        removeMasterMenuItem.addActionListener(e -> removeMaster());
+        dimensionsMenu.add(removeMasterMenuItem);
 
-        addSurfaceCeilingMenuItem = new JMenuItem("Add Ceiling to Surface...");
-        addSurfaceCeilingMenuItem.addActionListener(e -> addSurfaceCeiling());
-        dimensionsMenu.add(addSurfaceCeilingMenuItem);
+        addCeilingMenuItem = new JMenuItem("Add ceiling dimension...");
+        addCeilingMenuItem.addActionListener(e -> addCeiling());
+        dimensionsMenu.add(addCeilingMenuItem);
 
-        removeSurfaceCeilingMenuItem = new JMenuItem("Remove Ceiling from Surface...");
-        removeSurfaceCeilingMenuItem.addActionListener(e -> removeSurfaceCeiling());
-        dimensionsMenu.add(removeSurfaceCeilingMenuItem);
+        removeCeilingMenuItem = new JMenuItem("Remove ceiling dimension...");
+        removeCeilingMenuItem.addActionListener(e -> removeCeiling());
+        dimensionsMenu.add(removeCeilingMenuItem);
 
         addNetherMenuItem = new JMenuItem(strings.getString("add.nether") + "...");
         addNetherMenuItem.addActionListener(e -> addNether());
@@ -4102,14 +4097,6 @@ public final class App extends JFrame implements RadiusControl,
         removeNetherMenuItem.addActionListener(e -> removeNether());
         dimensionsMenu.add(removeNetherMenuItem);
 
-        addNetherCeilingMenuItem = new JMenuItem("Add Ceiling to Nether...");
-        addNetherCeilingMenuItem.addActionListener(e -> addNetherCeiling());
-        dimensionsMenu.add(addNetherCeilingMenuItem);
-
-        removeNetherCeilingMenuItem = new JMenuItem("Remove Ceiling from Nether...");
-        removeNetherCeilingMenuItem.addActionListener(e -> removeNetherCeiling());
-        dimensionsMenu.add(removeNetherCeilingMenuItem);
-
         addEndMenuItem = new JMenuItem(strings.getString("add.end") + "...");
         addEndMenuItem.addActionListener(e -> addEnd());
         addEndMenuItem.setMnemonic('d');
@@ -4118,14 +4105,6 @@ public final class App extends JFrame implements RadiusControl,
         removeEndMenuItem = new JMenuItem("Remove End...");
         removeEndMenuItem.addActionListener(e -> removeEnd());
         dimensionsMenu.add(removeEndMenuItem);
-
-        addEndCeilingMenuItem = new JMenuItem("Add Ceiling to End...");
-        addEndCeilingMenuItem.addActionListener(e -> addEndCeiling());
-        dimensionsMenu.add(addEndCeilingMenuItem);
-
-        removeEndCeilingMenuItem = new JMenuItem("Remove Ceiling from End...");
-        removeEndCeilingMenuItem.addActionListener(e -> removeEndCeiling());
-        dimensionsMenu.add(removeEndCeilingMenuItem);
         menu.add(dimensionsMenu);
 
         JMenu importMenu = new JMenu("Import");
@@ -4297,18 +4276,7 @@ public final class App extends JFrame implements RadiusControl,
         viewSurfaceMenuItem.addActionListener(e -> viewDimension(NORMAL_DETAIL));
         viewSurfaceMenuItem.setMnemonic('s');
         viewSurfaceMenuItem.setAccelerator(KeyStroke.getKeyStroke(VK_U, PLATFORM_COMMAND_MASK));
-        viewSurfaceMenuItem.setEnabled(false);
         menu.add(viewSurfaceMenuItem);
-
-        viewSurfaceCeilingMenuItem = new JCheckBoxMenuItem("View Surface Ceiling", false);
-        viewSurfaceCeilingMenuItem.addActionListener(e -> viewDimension(NORMAL_DETAIL_CEILING));
-        viewSurfaceCeilingMenuItem.setEnabled(false);
-        menu.add(viewSurfaceCeilingMenuItem);
-
-        viewSurfaceMasterMenuItem = new JCheckBoxMenuItem("View Master", false);
-        viewSurfaceMasterMenuItem.addActionListener(e -> viewDimension(new Anchor(DIM_NORMAL, MASTER, false, 0)));
-        viewSurfaceMasterMenuItem.setEnabled(false);
-        menu.add(viewSurfaceMasterMenuItem);
 
         viewNetherMenuItem = new JCheckBoxMenuItem(strings.getString("view.nether"), false);
         viewNetherMenuItem.addActionListener(e -> viewDimension(NETHER_DETAIL));
@@ -4317,11 +4285,6 @@ public final class App extends JFrame implements RadiusControl,
         viewNetherMenuItem.setEnabled(false);
         menu.add(viewNetherMenuItem);
 
-        viewNetherCeilingMenuItem = new JCheckBoxMenuItem("View Nether Ceiling", false);
-        viewNetherCeilingMenuItem.addActionListener(e -> viewDimension(NETHER_DETAIL_CEILING));
-        viewNetherCeilingMenuItem.setEnabled(false);
-        menu.add(viewNetherCeilingMenuItem);
-
         viewEndMenuItem = new JCheckBoxMenuItem(strings.getString("view.end"), false);
         viewEndMenuItem.addActionListener(e -> viewDimension(END_DETAIL));
         viewEndMenuItem.setMnemonic('e');
@@ -4329,11 +4292,7 @@ public final class App extends JFrame implements RadiusControl,
         viewEndMenuItem.setEnabled(false);
         menu.add(viewEndMenuItem);
 
-        viewEndCeilingMenuItem = new JCheckBoxMenuItem("View End Ceiling", false);
-        viewEndCeilingMenuItem.addActionListener(e -> viewDimension(END_DETAIL_CEILING));
-        viewEndCeilingMenuItem.setEnabled(false);
-        menu.add(viewEndCeilingMenuItem);
-
+        menu.add(ACTION_SWITCH_TO_FROM_MASTER);
         menu.add(ACTION_SWITCH_TO_FROM_CEILING);
 
         menu.addSeparator();
@@ -4616,18 +4575,27 @@ public final class App extends JFrame implements RadiusControl,
         return menu;
     }
 
-    private void addSurfaceCeiling() {
-        final Dimension surface = world.getDimension(NORMAL_DETAIL);
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), surface.getSeed() + 3, world.getPlatform(), NORMAL_DETAIL_CEILING, surface.getMaxHeight(), surface, surface.getTileCoords());
+    private void addCeiling() {
+        final Anchor currentAnchor = dimension.getAnchor();
+        if (currentAnchor.invert) {
+            throw new IllegalStateException("Current dimension is already a ceiling");
+        } else if (currentAnchor.layer != 0) {
+            throw new UnsupportedOperationException("Layers other than 0 not yet supported");
+        }
+        final Anchor newAnchor = new Anchor(currentAnchor.dim, currentAnchor.role, true, currentAnchor.layer);
+        if (world.isDimensionPresent(newAnchor)) {
+            throw new IllegalStateException("Ceiling dimension already exists");
+        }
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), dimension.getSeed() + newAnchor.hashCode(), world.getPlatform(), newAnchor, dimension.getMaxHeight(), dimension, dimension.getTileCoords());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
                 return;
             }
-            Dimension surfaceCeiling = ProgressDialog.executeTask(this, new ProgressTask<Dimension>() {
+            Dimension ceiling = ProgressDialog.executeTask(this, new ProgressTask<Dimension>() {
                 @Override
                 public String getName() {
-                    return "Creating Surface Ceiling";
+                    return "Creating ceiling dimension";
                 }
 
                 @Override
@@ -4635,113 +4603,36 @@ public final class App extends JFrame implements RadiusControl,
                     return dialog.getSelectedDimension(world, progressReceiver);
                 }
             });
-            if (surfaceCeiling == null) {
+            if (ceiling == null) {
                 // Cancelled by user
                 return;
             }
-            world.addDimension(surfaceCeiling);
-            setDimension(surfaceCeiling);
+            world.addDimension(ceiling);
+            setDimension(ceiling);
         }
     }
 
-    private void removeSurfaceCeiling() {
-        if (showConfirmDialog(this, "Are you sure you want to completely remove the Surface ceiling?\nThis action cannot be undone!", "Confirm Surface Ceiling Deletion", YES_NO_OPTION) == YES_OPTION) {
-            world.removeDimension(NORMAL_DETAIL_CEILING);
-            if ((dimension != null) && (dimension.getAnchor().equals(NORMAL_DETAIL_CEILING))) {
-                viewDimension(NORMAL_DETAIL);
+    private void removeCeiling() {
+        final Anchor currentAnchor = dimension.getAnchor();
+        if (currentAnchor.layer != 0) {
+            throw new UnsupportedOperationException("Layers other than 0 not yet supported");
+        }
+        final Anchor ceilingAnchor = new Anchor(currentAnchor.dim, currentAnchor.role, true, currentAnchor.layer);
+        if (! world.isDimensionPresent(ceilingAnchor)) {
+            throw new IllegalStateException("There is no ceiling dimension");
+        }
+        final Dimension ceiling = world.getDimension(ceilingAnchor);
+        if (showConfirmDialog(this, "Are you sure you want to completely remove the " + ceiling.getName() + " dimension?\nThis action cannot be undone!", "Confirm " + ceiling.getName() + " Deletion", YES_NO_OPTION) == YES_OPTION) {
+            world.removeDimension(ceilingAnchor);
+            if ((dimension != null) && (dimension.getAnchor().equals(ceilingAnchor))) {
+                viewDimension(new Anchor(ceilingAnchor.dim, ceilingAnchor.role, false, ceilingAnchor.layer));
             } else {
                 configureForPlatform();
-                if (dimension.getAnchor().dim == DIM_NORMAL) {
+                if (dimension.getAnchor().dim == ceilingAnchor.dim) {
                     view.refreshTiles();
                 }
             }
-            showMessageDialog(this, "The Surface ceiling was successfully deleted", "Success", INFORMATION_MESSAGE);
-        }
-    }
-
-    private void addNetherCeiling() {
-        final Dimension nether = world.getDimension(NETHER_DETAIL);
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), nether.getSeed() + 1, world.getPlatform(), NETHER_DETAIL_CEILING, nether.getMaxHeight(), nether, nether.getTileCoords());
-        dialog.setVisible(true);
-        if (! dialog.isCancelled()) {
-            if (! dialog.checkMemoryRequirements(this)) {
-                return;
-            }
-            Dimension netherCeiling = ProgressDialog.executeTask(this, new ProgressTask<Dimension>() {
-                @Override
-                public String getName() {
-                    return "Creating Nether Ceiling";
-                }
-
-                @Override
-                public Dimension execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                    return dialog.getSelectedDimension(world, progressReceiver);
-                }
-            });
-            if (netherCeiling == null) {
-                // Cancelled by user
-                return;
-            }
-            world.addDimension(netherCeiling);
-            setDimension(netherCeiling);
-        }
-    }
-
-    private void removeNetherCeiling() {
-        if (showConfirmDialog(this, "Are you sure you want to completely remove the Nether ceiling?\nThis action cannot be undone!", "Confirm Nether Ceiling Deletion", YES_NO_OPTION) == YES_OPTION) {
-            world.removeDimension(NETHER_DETAIL_CEILING);
-            if ((dimension != null) && (dimension.getAnchor().equals(NETHER_DETAIL_CEILING))) {
-                viewDimension(NETHER_DETAIL);
-            } else {
-                configureForPlatform();
-                if (dimension.getAnchor().dim == DIM_NETHER) {
-                    view.refreshTiles();
-                }
-            }
-            showMessageDialog(this, "The Nether ceiling was successfully deleted", "Success", INFORMATION_MESSAGE);
-        }
-    }
-
-    private void addEndCeiling() {
-        final Dimension end = world.getDimension(END_DETAIL);
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), end.getSeed() + 1, world.getPlatform(), END_DETAIL_CEILING, end.getMaxHeight(), end, end.getTileCoords());
-        dialog.setVisible(true);
-        if (! dialog.isCancelled()) {
-            if (! dialog.checkMemoryRequirements(this)) {
-                return;
-            }
-            Dimension endCeiling = ProgressDialog.executeTask(this, new ProgressTask<Dimension>() {
-                @Override
-                public String getName() {
-                    return "Creating End Ceiling";
-                }
-
-                @Override
-                public Dimension execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                    return dialog.getSelectedDimension(world, progressReceiver);
-                }
-            });
-            if (endCeiling == null) {
-                // Cancelled by user
-                return;
-            }
-            world.addDimension(endCeiling);
-            setDimension(endCeiling);
-        }
-    }
-
-    private void removeEndCeiling() {
-        if (showConfirmDialog(this, "Are you sure you want to completely remove the End ceiling?\nThis action cannot be undone!", "Confirm End Ceiling Deletion", YES_NO_OPTION) == YES_OPTION) {
-            world.removeDimension(END_DETAIL_CEILING);
-            if ((dimension != null) && (dimension.getAnchor().equals(END_DETAIL_CEILING))) {
-                viewDimension(END_DETAIL);
-            } else {
-                configureForPlatform();
-                if (dimension.getAnchor().dim == DIM_END) {
-                    view.refreshTiles();
-                }
-            }
-            showMessageDialog(this, "The End ceiling was successfully deleted", "Success", INFORMATION_MESSAGE);
+            showMessageDialog(this, "The " + ceiling.getName() + " was successfully deleted", "Success", INFORMATION_MESSAGE);
         }
     }
 
@@ -4913,7 +4804,7 @@ public final class App extends JFrame implements RadiusControl,
     private void removeNether() {
         if (showConfirmDialog(this, "Are you sure you want to completely remove the Nether dimension?\nThis action cannot be undone!", "Confirm Nether Deletion", YES_NO_OPTION) == YES_OPTION) {
             world.removeDimension(NETHER_DETAIL);
-            if (world.getDimension(NETHER_DETAIL_CEILING) != null) {
+            if (world.isDimensionPresent(NETHER_DETAIL_CEILING)) {
                 world.removeDimension(NETHER_DETAIL_CEILING);
             }
             if ((dimension != null) && (dimension.getAnchor().dim == DIM_NETHER)) {
@@ -4956,7 +4847,7 @@ public final class App extends JFrame implements RadiusControl,
     private void removeEnd() {
         if (showConfirmDialog(this, "Are you sure you want to completely remove the End dimension?\nThis action cannot be undone!", "Confirm End Deletion", YES_NO_OPTION) == YES_OPTION) {
             world.removeDimension(END_DETAIL);
-            if (world.getDimension(END_DETAIL_CEILING) != null) {
+            if (world.isDimensionPresent(END_DETAIL_CEILING)) {
                 world.removeDimension(END_DETAIL_CEILING);
             }
             if ((dimension != null) && (dimension.getAnchor().dim == DIM_END)) {
@@ -4968,18 +4859,27 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    private void addSurfaceMaster() {
-        final Dimension surface = world.getDimension(NORMAL_DETAIL);
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), surface.getSeed(), world.getPlatform(), new Anchor(DIM_NORMAL, MASTER, false, 0), surface.getMaxHeight(), surface);
+    private void addMaster() {
+        final Anchor currentAnchor = dimension.getAnchor();
+        if (currentAnchor.role == MASTER) {
+            throw new IllegalStateException("Current dimension is already a master");
+        } else if (currentAnchor.layer != 0) {
+            throw new UnsupportedOperationException("Layers other than 0 not yet supported");
+        }
+        final Anchor newAnchor = new Anchor(currentAnchor.dim, MASTER, false, currentAnchor.layer);
+        if (world.isDimensionPresent(newAnchor)) {
+            throw new IllegalStateException("Master dimension already exists");
+        }
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), dimension.getSeed() + newAnchor.hashCode(), world.getPlatform(), newAnchor, dimension.getMaxHeight(), dimension, dimension.getTileCoords());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
                 return;
             }
-            Dimension surfaceMaster = ProgressDialog.executeTask(this, new ProgressTask<Dimension>() {
+            Dimension master = ProgressDialog.executeTask(this, new ProgressTask<Dimension>() {
                 @Override
                 public String getName() {
-                    return "Creating Surface Master";
+                    return "Creating master dimension";
                 }
 
                 @Override
@@ -4987,28 +4887,36 @@ public final class App extends JFrame implements RadiusControl,
                     return dialog.getSelectedDimension(world, progressReceiver);
                 }
             });
-            if (surfaceMaster == null) {
+            if (master == null) {
                 // Cancelled by user
                 return;
             }
-            world.addDimension(surfaceMaster);
-            setDimension(surfaceMaster);
+            world.addDimension(master);
+            setDimension(master);
         }
     }
 
-    private void removeSurfaceMaster() {
-        if (showConfirmDialog(this, "Are you sure you want to completely remove the Surface master?\nThis action cannot be undone!", "Confirm Surface Master Deletion", YES_NO_OPTION) == YES_OPTION) {
-            final Anchor anchor = new Anchor(DIM_NORMAL, MASTER, false, 0);
-            world.removeDimension(anchor);
-            if ((dimension != null) && (dimension.getAnchor().equals(anchor))) {
-                viewDimension(NORMAL_DETAIL);
+    private void removeMaster() {
+        final Anchor currentAnchor = dimension.getAnchor();
+        if (currentAnchor.layer != 0) {
+            throw new UnsupportedOperationException("Layers other than 0 not yet supported");
+        }
+        final Anchor masterAnchor = new Anchor(currentAnchor.dim, MASTER, false, currentAnchor.layer);
+        if (! world.isDimensionPresent(masterAnchor)) {
+            throw new IllegalStateException("There is no master dimension");
+        }
+        final Dimension master = world.getDimension(masterAnchor);
+        if (showConfirmDialog(this, "Are you sure you want to completely remove the " + master.getName() + " dimension?\nThis action cannot be undone!", "Confirm " + master.getName() + " Deletion", YES_NO_OPTION) == YES_OPTION) {
+            world.removeDimension(masterAnchor);
+            if ((dimension != null) && (dimension.getAnchor().equals(masterAnchor))) {
+                viewDimension(new Anchor(masterAnchor.dim, DETAIL, false, masterAnchor.layer));
             } else {
                 configureForPlatform();
-                if (dimension.getAnchor().dim == DIM_NORMAL) {
+                if (dimension.getAnchor().dim == masterAnchor.dim) {
                     view.refreshTiles();
                 }
             }
-            showMessageDialog(this, "The Surface master was successfully deleted", "Success", INFORMATION_MESSAGE);
+            showMessageDialog(this, "The " + master.getName() + " was successfully deleted", "Success", INFORMATION_MESSAGE);
         }
     }
 
@@ -5451,42 +5359,32 @@ public final class App extends JFrame implements RadiusControl,
 
     private void configureForPlatform() {
         final Platform platform = world.getPlatform();
-        boolean imported = (world != null) && (world.getImportedFrom() != null);
-        boolean nether = (world != null) && (world.getDimension(NETHER_DETAIL) != null);
-        boolean end = (world != null) && (world.getDimension(END_DETAIL) != null);
-        boolean surfaceMaster = (world != null) && (world.getDimension(new Anchor(DIM_NORMAL, MASTER, false, 0)) != null);
-        boolean surfaceCeiling = (world != null) && (world.getDimension(NORMAL_DETAIL_CEILING) != null);
-        boolean netherCeiling = (world != null) && (world.getDimension(NETHER_DETAIL_CEILING) != null);
-        boolean endCeiling = (world != null) && (world.getDimension(END_DETAIL_CEILING) != null);
+        final boolean imported = (world != null) && (world.getImportedFrom() != null);
+        final boolean nether = (world != null) && (world.isDimensionPresent(NETHER_DETAIL));
+        final boolean end = (world != null) && (world.isDimensionPresent(END_DETAIL));
+        final Anchor anchor = dimension.getAnchor();
         biomeHelper = new BiomeHelper(selectedColourScheme, customBiomeManager, platform);
         addNetherMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_NETHER) && (! imported) && (! nether));
         removeNetherMenuItem.setEnabled(nether);
         addEndMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_END) && (! imported) && (! end));
         removeEndMenuItem.setEnabled(end);
-        viewSurfaceMasterMenuItem.setEnabled(surfaceMaster);
-        viewSurfaceMenuItem.setEnabled(surfaceMaster || nether || end || surfaceCeiling);
-        viewSurfaceCeilingMenuItem.setEnabled(surfaceCeiling);
         viewNetherMenuItem.setEnabled(nether);
-        viewNetherCeilingMenuItem.setEnabled(netherCeiling);
         viewEndMenuItem.setEnabled(end);
-        viewEndCeilingMenuItem.setEnabled(endCeiling);
-        addSurfaceMasterMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_NORMAL) && (! imported) && (! surfaceMaster));
-        removeSurfaceMasterMenuItem.setEnabled(surfaceMaster);
-        addSurfaceCeilingMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_NORMAL) && (! imported) && (! surfaceCeiling));
-        removeSurfaceCeilingMenuItem.setEnabled(surfaceCeiling);
-        addNetherCeilingMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_NETHER) && nether && (! netherCeiling));
-        removeNetherCeilingMenuItem.setEnabled(netherCeiling);
-        addEndCeilingMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_END) && end && (! endCeiling));
-        removeEndCeilingMenuItem.setEnabled(endCeiling);
+        ACTION_SWITCH_TO_FROM_MASTER.setEnabled(world.isDimensionPresent(new Anchor(anchor.dim, (anchor.role == MASTER) ? DETAIL : MASTER, false, 0)));
+        ACTION_SWITCH_TO_FROM_CEILING.setEnabled(world.isDimensionPresent(new Anchor(anchor.dim, DETAIL, true, 0)));
+        addMasterMenuItem.setEnabled((anchor.role == DETAIL) && (anchor.layer == 0) && (! world.isDimensionPresent(new Anchor(anchor.dim, MASTER, false, 0))));
+        removeMasterMenuItem.setEnabled((anchor.role == MASTER) || (world.isDimensionPresent(new Anchor(anchor.dim, MASTER, false, 0))));
+        addCeilingMenuItem.setEnabled((anchor.role == DETAIL) && (anchor.layer == 0) && (! anchor.invert) && (! world.isDimensionPresent(new Anchor(anchor.dim, anchor.role, true, 0))));
+        removeCeilingMenuItem.setEnabled(anchor.invert || (world.isDimensionPresent(new Anchor(anchor.dim, anchor.role, true, 0))));
         if (dimension != null) {
-            final boolean biomesSupported = (! dimension.getAnchor().invert) && platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
+            final boolean biomesSupported = (! anchor.invert) && platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
             if ((! biomesSupported) && (paint instanceof DiscreteLayerPaint) && (((DiscreteLayerPaint) paint).getLayer() == Biome.INSTANCE)) {
                 deselectPaint();
             }
             biomesPanelFrame.setEnabled(biomesSupported);
             // TODO deselect biomes panel if it was selected
             layerControls.get(Biome.INSTANCE).setEnabled(biomesSupported);
-            switch (dimension.getAnchor().dim) {
+            switch (anchor.dim) {
                 case DIM_NORMAL:
                     setSpawnPointToggleButton.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
                     ACTION_MOVE_TO_SPAWN.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
@@ -7067,8 +6965,29 @@ public final class App extends JFrame implements RadiusControl,
         public void performAction(ActionEvent e) {
             if ((dimension != null) && (world != null)) {
                 final Anchor anchor = dimension.getAnchor();
-                final Dimension oppositeDimension = world.getDimension(new Anchor(anchor.dim, anchor.role, ! anchor.invert, 0));
-                if (oppositeDimension != null) {
+                final Dimension oppositeDimension = world.getDimension(new Anchor(anchor.dim, DETAIL, ! anchor.invert, 0));
+                if ((oppositeDimension != dimension) && (oppositeDimension != null)) {
+                    setDimension(oppositeDimension);
+                    return;
+                }
+            }
+            DesktopUtils.beep();
+        }
+
+        private static final long serialVersionUID = 1L;
+    };
+
+    private final BetterAction ACTION_SWITCH_TO_FROM_MASTER = new BetterAction("switchMaster", "Switch to/from Master") {
+        {
+            setAcceleratorKey(KeyStroke.getKeyStroke(VK_M, PLATFORM_COMMAND_MASK));
+        }
+
+        @Override
+        public void performAction(ActionEvent e) {
+            if ((dimension != null) && (world != null)) {
+                final Anchor anchor = dimension.getAnchor();
+                final Dimension oppositeDimension = world.getDimension(new Anchor(anchor.dim, (anchor.role == MASTER) ? DETAIL : MASTER, false, 0));
+                if ((oppositeDimension != dimension) && (oppositeDimension != null)) {
                     setDimension(oppositeDimension);
                     return;
                 }
@@ -7123,8 +7042,8 @@ public final class App extends JFrame implements RadiusControl,
     private GlassPane glassPane;
     private JCheckBox terrainCheckBox, terrainSoloCheckBox;
     private JToggleButton setSpawnPointToggleButton;
-    private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addSurfaceCeilingMenuItem, removeSurfaceCeilingMenuItem, addNetherCeilingMenuItem, removeNetherCeilingMenuItem, addEndCeilingMenuItem, removeEndCeilingMenuItem, addSurfaceMasterMenuItem, removeSurfaceMasterMenuItem;
-    private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem, viewSurfaceCeilingMenuItem, viewNetherCeilingMenuItem, viewEndCeilingMenuItem, viewSurfaceMasterMenuItem;
+    private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addCeilingMenuItem, removeCeilingMenuItem, addMasterMenuItem, removeMasterMenuItem;
+    private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem;
     private final JToggleButton[] customMaterialButtons = new JToggleButton[CUSTOM_TERRAIN_COUNT];
     private final ColourScheme selectedColourScheme;
     private BiomeHelper biomeHelper;

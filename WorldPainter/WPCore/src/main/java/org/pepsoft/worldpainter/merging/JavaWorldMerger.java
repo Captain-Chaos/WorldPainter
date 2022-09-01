@@ -320,13 +320,13 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         // instances which may have the map open:
         level.save(worldDir);
 
-        if ((selectedDimensions == null) ? (world.getDimension(NORMAL_DETAIL) != null) : selectedDimensions.contains(DIM_NORMAL)) {
+        if ((selectedDimensions == null) ? (world.isDimensionPresent(NORMAL_DETAIL)) : selectedDimensions.contains(DIM_NORMAL)) {
             mergeDimension(worldDir, backupDir, world.getDimension(NORMAL_DETAIL), progressReceiver); // TODO: this should be a SubProgressReceiver if we are exporting more than one dimension, or we should reset it
         }
-        if ((selectedDimensions == null) ? (world.getDimension(NETHER_DETAIL) != null) : selectedDimensions.contains(DIM_NETHER)) {
+        if ((selectedDimensions == null) ? (world.isDimensionPresent(NETHER_DETAIL)) : selectedDimensions.contains(DIM_NETHER)) {
             mergeDimension(worldDir, backupDir, world.getDimension(NETHER_DETAIL), progressReceiver); // TODO: this should be a SubProgressReceiver if we are exporting more than one dimension, or we should reset it
         }
-        if ((selectedDimensions == null) ? (world.getDimension(END_DETAIL) != null) : selectedDimensions.contains(DIM_END)) {
+        if ((selectedDimensions == null) ? (world.isDimensionPresent(END_DETAIL)) : selectedDimensions.contains(DIM_END)) {
             mergeDimension(worldDir, backupDir, world.getDimension(END_DETAIL), progressReceiver); // TODO: this should be a SubProgressReceiver if we are exporting more than one dimension, or we should reset it
         }
 

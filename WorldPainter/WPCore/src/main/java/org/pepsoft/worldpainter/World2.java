@@ -202,6 +202,10 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
+    public boolean isDimensionPresent(Anchor anchor) {
+        return dimensionsByAnchor.containsKey(anchor);
+    }
+
     public Dimension getDimension(Anchor anchor) {
         return dimensionsByAnchor.get(anchor);
     }
