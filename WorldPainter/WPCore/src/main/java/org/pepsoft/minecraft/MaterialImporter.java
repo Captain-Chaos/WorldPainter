@@ -3,11 +3,15 @@ package org.pepsoft.minecraft;
 import com.google.common.collect.ImmutableSet;
 import org.pepsoft.util.CSVDataSource;
 import org.pepsoft.worldpainter.Configuration;
+import org.pepsoft.worldpainter.StartupMessages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -81,7 +85,7 @@ public class MaterialImporter {
                     } catch (RuntimeException | IOException e) {
                         final String message = String.format("%s while reading custom block definition(s) from %s\nMessage: %s", e.getClass().getSimpleName(), customSpecFile.getName(), e.getMessage());
                         logger.error(message, e);
-                        errors.add(message);
+                        StartupMessages.addError(message);
                     }
                 }
             }
@@ -141,8 +145,6 @@ public class MaterialImporter {
                 || name.endsWith("_slab")
                 || name.endsWith("_stairs");
     }
-
-    public static final List<String> errors = new ArrayList<>();
 
     private static final Set<String> NON_TRANSMITTING_TRANSPARENT_BLOCKS = ImmutableSet.of(MC_DIRT_PATH, MC_GRASS_PATH);
     private static final Logger logger = LoggerFactory.getLogger(MaterialImporter.class);

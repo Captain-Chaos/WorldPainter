@@ -12,7 +12,6 @@ import ch.qos.logback.core.util.StatusPrinter;
 import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.utils.Lm;
 import org.intellij.lang.annotations.Language;
-import org.pepsoft.minecraft.MaterialImporter;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.GUIUtils;
@@ -52,6 +51,7 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.WARNING_MESSAGE;
 import static org.pepsoft.util.GUIUtils.getUIScale;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_PLUGINS;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SAFE_MODE;
@@ -273,6 +273,10 @@ public class Main {
             }
         }
 
+        if (config.isAutosaveEnabled() && autosaveInhibited) {
+            StartupMessages.addWarning("Another instance of WorldPainter is already running.\nAutosave will therefore be disabled in this instance of WorldPainter!");
+        }
+
         // Store the acceleration type in the config object so the Preferences
         // dialog can edit it
         config.setAccelerationType(accelerationType);
@@ -482,14 +486,14 @@ public class Main {
             // itself up
             SwingUtilities.invokeLater(() -> {
                 if (Version.isSnapshot() && ! myConfig.isMessageDisplayed(SNAPSHOT_MESSAGE_KEY)) {
-                    String result = JOptionPane.showInputDialog(app, SNAPSHOT_MESSAGE, "Snapshot Release", JOptionPane.WARNING_MESSAGE);
+                    String result = JOptionPane.showInputDialog(app, SNAPSHOT_MESSAGE, "Snapshot Release", WARNING_MESSAGE);
                     if (result == null) {
                         // Cancel was pressed
                         System.exit(0);
                     }
                     while (! result.toLowerCase().replace(" ", "").equals("iunderstand")) {
                         DesktopUtils.beep();
-                        result = JOptionPane.showInputDialog(app, SNAPSHOT_MESSAGE, "Snapshot Release", JOptionPane.WARNING_MESSAGE);
+                        result = JOptionPane.showInputDialog(app, SNAPSHOT_MESSAGE, "Snapshot Release", WARNING_MESSAGE);
                         if (result == null) {
                             // Cancel was pressed
                             System.exit(0);
@@ -505,20 +509,23 @@ public class Main {
                 } else if ((! autosaveInhibited) && myConfig.isAutosaveEnabled() && autosaveFile.isFile()) {
                     logger.info("Recovering autosaved world");
                     app.open(autosaveFile);
-                    DesktopUtils.beep();
-                    JOptionPane.showMessageDialog(app, "WorldPainter was not shut down correctly.\nYour world has been recovered from the most recent autosave.\nMake sure to Save it if you want to keep it!", "World Recovered", JOptionPane.WARNING_MESSAGE);
+                    StartupMessages.addWarning("WorldPainter was not shut down correctly.\nYour world has been recovered from the most recent autosave.\nMake sure to Save it if you want to keep it!");
                 } else {
                     app.open(file);
                 }
-                if (myConfig.isAutosaveEnabled() && autosaveInhibited) {
-                    JOptionPane.showMessageDialog(app, "Another instance of WorldPainter is already running.\nAutosave will therefore be disabled in this instance of WorldPainter!", "Autosave Disabled", JOptionPane.WARNING_MESSAGE);
-                }
-                for (String error: MaterialImporter.errors) {
+                for (String error: StartupMessages.getErrors()) {
                     DesktopUtils.beep();
-                    JOptionPane.showMessageDialog(app, error, "Custom Object Definition Error", ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(app, error, "Startup Error", ERROR_MESSAGE);
                 }
-                if (! DonationDialog.maybeShowDonationDialog(app)) {
-                    MerchDialog.maybeShowMerchDialog(app);
+                for (String error: StartupMessages.getWarnings()) {
+                    DesktopUtils.beep();
+                    JOptionPane.showMessageDialog(app, error, "Startup Warning", WARNING_MESSAGE);
+                }
+                if (StartupMessages.getErrors().isEmpty() && StartupMessages.getWarnings().isEmpty()) {
+                    // Don't bother the user with this if we've already bothered them with errors and/or warnings
+                    if (! DonationDialog.maybeShowDonationDialog(app)) {
+                        MerchDialog.maybeShowMerchDialog(app);
+                    }
                 }
             });
         });
@@ -538,7 +545,7 @@ public class Main {
 
         // Report the error
         logger.error("Exception while initialising configuration", e);
-        JOptionPane.showMessageDialog(null, "Could not read configuration file! Resetting configuration.\n\nException type: " + e.getClass().getSimpleName() + "\nMessage: " + e.getMessage(), "Configuration Error", ERROR_MESSAGE);
+        StartupMessages.addError("Could not read configuration file! Configuration was reset.\n\nException type: " + e.getClass().getSimpleName() + "\nMessage: " + e.getMessage());
     }
 
     @Language("HTML")

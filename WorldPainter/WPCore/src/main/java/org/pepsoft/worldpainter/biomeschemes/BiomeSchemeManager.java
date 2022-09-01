@@ -21,7 +21,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Comparator.comparing;
 import static org.pepsoft.worldpainter.Constants.*;
 
 /**
@@ -131,9 +130,7 @@ public class BiomeSchemeManager {
             }
         }
 
-        return ALL_JARS.entrySet().stream()
-                .max(comparing(Map.Entry::getKey))
-                .map(Map.Entry::getValue).orElse(null);
+        return ALL_JARS.isEmpty() ? null : ALL_JARS.get(ALL_JARS.lastKey());
     }
 
     /**
@@ -154,7 +151,7 @@ public class BiomeSchemeManager {
 
         return ALL_JARS.entrySet().stream()
                 .filter(e -> e.getKey().compareTo(version) <= 0)
-                .max(comparing(Map.Entry::getKey))
+                .max(Map.Entry.comparingByKey())
                 .map(Map.Entry::getValue).orElse(null);
     }
 
@@ -176,7 +173,7 @@ public class BiomeSchemeManager {
 
         return ALL_JARS.entrySet().stream()
                 .filter(e -> e.getKey().compareTo(version) >= 0)
-                .max(comparing(Map.Entry::getKey))
+                .max(Map.Entry.comparingByKey())
                 .map(Map.Entry::getValue).orElse(null);
     }
 
@@ -204,7 +201,7 @@ public class BiomeSchemeManager {
         }
 
         List<Integer> availableBiomeAlgorithms = new ArrayList<>(BIOME_JARS.keySet());
-        Collections.sort(availableBiomeAlgorithms, Comparator.reverseOrder());
+        availableBiomeAlgorithms.sort(Comparator.reverseOrder());
         return availableBiomeAlgorithms;
     }
 
@@ -249,12 +246,8 @@ public class BiomeSchemeManager {
                         Checksum hash = FileUtils.getMD5(file);
                         if (DESCRIPTORS.containsKey(hash)) {
                             for (BiomeSchemeDescriptor descriptor: DESCRIPTORS.get(hash)) {
-                                SortedMap<Version, BiomeJar> jars = BIOME_JARS.get(descriptor.biomeScheme);
-                                if (jars == null) {
-                                    jars = new TreeMap<>();
-                                    BIOME_JARS.put(descriptor.biomeScheme, jars);
-                                }
-                                jars.put(descriptor.minecraftVersion, new BiomeJar(file, hash, descriptor));
+                                BIOME_JARS.computeIfAbsent(descriptor.biomeScheme, k -> new TreeMap<>())
+                                        .put(descriptor.minecraftVersion, new BiomeJar(file, hash, descriptor));
                                 // Also store it as a resources jar
                                 ALL_JARS.put(descriptor.minecraftVersion, file);
                             }

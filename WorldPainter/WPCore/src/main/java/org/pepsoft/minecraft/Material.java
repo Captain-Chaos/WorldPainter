@@ -94,7 +94,7 @@ public final class Material implements Serializable {
             simpleName = ("block_" + blockType).intern();
             identity = new Identity(namespace + ":" + simpleName, singletonMap("data_value", Integer.toString(data)));
         }
-        name = identity.name.intern();
+        name = identity.name;
         stringRep = createStringRep();
         legacyStringRep = createLegacyStringRep();
         horizontalOrientationSchemes = determineHorizontalOrientations(identity);
@@ -217,7 +217,7 @@ public final class Material implements Serializable {
         }
 
         this.identity = identity;
-        name = identity.name.intern();
+        name = identity.name;
         int p = name.indexOf(':');
         if (p != -1) {
             namespace = name.substring(0, p).intern();
@@ -1185,29 +1185,29 @@ public final class Material implements Serializable {
      */
     @SuppressWarnings("unchecked") // Guaranteed by the code
     public static Material getPrototype(String name) {
-        final Set<Map<String, Object>> specs = MATERIAL_SPECS.get(name);
-        if (specs != null) {
-            final Map<String, Object> spec = specs.iterator().next();
-            if (spec.containsKey("properties")) {
-                final Map<String, PropertyDescriptor> propertyDescriptors = (Map<String, PropertyDescriptor>) spec.get("properties");
-                final Map<String, String> properties = propertyDescriptors.entrySet().stream()
-                        .collect(toMap(Map.Entry::getKey, entry -> {
-                            final PropertyDescriptor descriptor = entry.getValue();
-                            switch (descriptor.type) {
-                                case BOOLEAN:
-                                    return "false";
-                                case INTEGER:
-                                    return Integer.toString(descriptor.minValue);
-                                case ENUM:
-                                    return descriptor.enumValues[0];
-                                default:
-                                    throw new IllegalArgumentException("Unknown property type: " + descriptor.type);
-                            }
-                        }));
-                return get(name, properties);
+        return PROTOTYPES.computeIfAbsent(name, key -> {
+            final Set<Map<String, Object>> specs = MATERIAL_SPECS.get(name);
+            if (specs != null) {
+                final Map<String, Object> spec = specs.iterator().next();
+                if (spec.containsKey("properties")) {
+                    return get(name, ((Map<String, PropertyDescriptor>) spec.get("properties")).entrySet().stream()
+                            .collect(toMap(Map.Entry::getKey, entry -> {
+                                final PropertyDescriptor descriptor = entry.getValue();
+                                switch (descriptor.type) {
+                                    case BOOLEAN:
+                                        return "false";
+                                    case INTEGER:
+                                        return Integer.toString(descriptor.minValue);
+                                    case ENUM:
+                                        return descriptor.enumValues[0];
+                                    default:
+                                        throw new IllegalArgumentException("Unknown property type: " + descriptor.type);
+                                }
+                            })));
+                }
             }
-        }
-        return get(name, (Map<String, String>) null);
+            return get(new Identity(name, null));
+        });
     }
 
     /**
@@ -1527,6 +1527,7 @@ public final class Material implements Serializable {
     private static final Map<Integer, Map<String, Object>> LEGACY_BLOCK_SPECS_BY_COMBINED_ID = new HashMap<>();
     private static final Map<String, Set<Map<String, Object>>> LEGACY_BLOCK_SPECS_BY_NAME = new HashMap<>();
     private static final Map<String, Set<Map<String, Object>>> MATERIAL_SPECS = new HashMap<>();
+    private static final Map<String, Material> PROTOTYPES = new ConcurrentHashMap<>();
 
     /**
      * To save space we only store the 256-ish vanilla blocks as pre-created
@@ -2072,7 +2073,7 @@ public final class Material implements Serializable {
             if (name.indexOf(':') == -1) {
                 throw new IllegalArgumentException("name \"" + name + "\"");
             }
-            this.name = name;
+            this.name = name.intern();
             this.properties = ((properties != null) && (! properties.isEmpty())) ? ImmutableMap.copyOf(properties) : null;
         }
 
