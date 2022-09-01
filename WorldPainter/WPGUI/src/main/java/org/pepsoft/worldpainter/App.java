@@ -165,6 +165,7 @@ public final class App extends JFrame implements RadiusControl,
             }
         } else {
             selectedColourScheme = ColourScheme.DEFAULT;
+//            selectedColourScheme = new DynMapColourScheme("default", true);
         }
         operations = OperationManager.getInstance().getOperations();
         setMaxRadius(config.getMaximumBrushSize());
