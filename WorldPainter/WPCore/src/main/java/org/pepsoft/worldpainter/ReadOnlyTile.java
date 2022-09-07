@@ -10,7 +10,7 @@ import java.util.Set;
 
 /**
  * Abstract base class for a read-only tile. All methods that would make changes throw an
- * {@link UnsupportedOperationException}. ALl methods concerning listeners, undo support, etc. do nothing.
+ * {@link UnsupportedOperationException}. All methods concerning listeners, undo support, etc. do nothing.
  */
 public abstract class ReadOnlyTile extends Tile {
     protected ReadOnlyTile(int x, int y, int minHeight, int maxHeight, boolean init) {
