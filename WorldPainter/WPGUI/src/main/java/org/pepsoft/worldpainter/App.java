@@ -4870,7 +4870,7 @@ public final class App extends JFrame implements RadiusControl,
         if (world.isDimensionPresent(newAnchor)) {
             throw new IllegalStateException("Master dimension already exists");
         }
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), dimension.getSeed() + newAnchor.hashCode(), world.getPlatform(), newAnchor, dimension.getMaxHeight(), dimension, dimension.getTileCoords());
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), dimension.getSeed(), world.getPlatform(), newAnchor, dimension.getMaxHeight(), dimension, dimension.getTileCoords());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
