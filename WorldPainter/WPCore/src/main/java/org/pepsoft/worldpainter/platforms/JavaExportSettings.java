@@ -32,9 +32,10 @@ public class JavaExportSettings extends BlockBasedExportSettings {
         calculateLeafDistance = true;
         removeFloatingLeaves = false;
         makeAllLeavesPersistent = false;
+        leavePlants = false;
     }
 
-    public JavaExportSettings(FloatMode waterMode, FloatMode lavaMode, FloatMode sandMode, FloatMode gravelMode, FloatMode cementNode, boolean flowWater, boolean flowLava, boolean calculateSkyLight, boolean calculateBlockLight, boolean calculateLeafDistance, boolean removeFloatingLeaves, boolean makeAllLeavesPersistent) {
+    public JavaExportSettings(FloatMode waterMode, FloatMode lavaMode, FloatMode sandMode, FloatMode gravelMode, FloatMode cementNode, boolean flowWater, boolean flowLava, boolean calculateSkyLight, boolean calculateBlockLight, boolean calculateLeafDistance, boolean removeFloatingLeaves, boolean makeAllLeavesPersistent, boolean removePlants) {
         if ((waterMode == null) || (lavaMode == null) || (sandMode == null) || (gravelMode == null) || (cementNode == null)) {
             throw new NullPointerException();
         }
@@ -53,6 +54,7 @@ public class JavaExportSettings extends BlockBasedExportSettings {
         this.calculateLeafDistance = calculateLeafDistance;
         this.removeFloatingLeaves = removeFloatingLeaves;
         this.makeAllLeavesPersistent = makeAllLeavesPersistent;
+        this.leavePlants = ! removePlants;
     }
 
     public FloatMode getWaterMode() {
@@ -108,12 +110,12 @@ public class JavaExportSettings extends BlockBasedExportSettings {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         JavaExportSettings that = (JavaExportSettings) o;
-        return flowWater == that.flowWater && flowLava == that.flowLava && calculateSkyLight == that.calculateSkyLight && calculateBlockLight == that.calculateBlockLight && calculateLeafDistance == that.calculateLeafDistance && waterMode == that.waterMode && lavaMode == that.lavaMode && sandMode == that.sandMode && gravelMode == that.gravelMode && cementMode == that.cementMode && removeFloatingLeaves == that.removeFloatingLeaves && makeAllLeavesPersistent == that.makeAllLeavesPersistent;
+        return flowWater == that.flowWater && flowLava == that.flowLava && calculateSkyLight == that.calculateSkyLight && calculateBlockLight == that.calculateBlockLight && calculateLeafDistance == that.calculateLeafDistance && waterMode == that.waterMode && lavaMode == that.lavaMode && sandMode == that.sandMode && gravelMode == that.gravelMode && cementMode == that.cementMode && removeFloatingLeaves == that.removeFloatingLeaves && makeAllLeavesPersistent == that.makeAllLeavesPersistent && leavePlants == that.leavePlants;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(waterMode, lavaMode, sandMode, gravelMode, cementMode, flowWater, flowLava, calculateSkyLight, calculateBlockLight, calculateLeafDistance, removeFloatingLeaves, makeAllLeavesPersistent);
+        return Objects.hash(waterMode, lavaMode, sandMode, gravelMode, cementMode, flowWater, flowLava, calculateSkyLight, calculateBlockLight, calculateLeafDistance, removeFloatingLeaves, makeAllLeavesPersistent, leavePlants);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -126,11 +128,16 @@ public class JavaExportSettings extends BlockBasedExportSettings {
         version = CURRENT_VERSION;
     }
 
+    public boolean isRemovePlants() {
+        return ! leavePlants;
+    }
+
     final FloatMode waterMode, lavaMode, sandMode, gravelMode, cementMode;
     final boolean flowWater, flowLava;
     boolean calculateSkyLight, calculateBlockLight, calculateLeafDistance;
     final boolean removeFloatingLeaves, makeAllLeavesPersistent;
     int version = CURRENT_VERSION;
+    final boolean leavePlants;
 
     private static final int CURRENT_VERSION = 1;
     private static final long serialVersionUID = 1L;

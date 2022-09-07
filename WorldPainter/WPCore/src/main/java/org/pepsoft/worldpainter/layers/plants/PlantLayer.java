@@ -51,6 +51,14 @@ public class PlantLayer extends CustomLayer {
         this.generateTilledDirt = generateFarmland;
     }
 
+    public boolean isOnlyOnValidBlocks() {
+        return onlyOnValidBlocks;
+    }
+
+    public void setOnlyOnValidBlocks(boolean onlyOnValidBlocks) {
+        this.onlyOnValidBlocks = onlyOnValidBlocks;
+    }
+
     public Map<Plant, PlantSettings> getConfiguredPlants() {
         return IntStream.range(0, settings.length)
                 .filter(i -> (settings[i] != null) && (settings[i].occurrence > 0))
@@ -176,7 +184,10 @@ public class PlantLayer extends CustomLayer {
                 }
             }
         }
-        version = 1;
+        if (version < 2) {
+            onlyOnValidBlocks = true;
+        }
+        version = 2;
     }
 
     public static class PlantSettings implements Serializable, Cloneable {
@@ -199,7 +210,8 @@ public class PlantLayer extends CustomLayer {
     
     private PlantSettings[] settings = new PlantSettings[ALL_PLANTS.length];
     private boolean generateTilledDirt = true; // Now referred to as generateFarmland
-    private int version = 1;
+    private int version = 2;
+    private boolean onlyOnValidBlocks = true;
 
     private static final long serialVersionUID = -2758775044863488107L;
 }

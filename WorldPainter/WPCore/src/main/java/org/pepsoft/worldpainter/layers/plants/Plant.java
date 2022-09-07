@@ -46,18 +46,17 @@ public abstract class Plant implements WPObject {
      * Determine whether the block at a particular location in a particular map is a valid foundation on which to place
      * this plant. This will always be invoked by {@link PlantLayerExporter} before exporting a plant.
      *
-     * @param world The map in which to check the foundation.
-     * @param x The X coordinate (in the WorldPainter coordinate system) to check.
-     * @param y The Y coordinate (in the WorldPainter coordinate system) to check.
-     * @param height The Z coordinate (in the WorldPainter coordinate system) to check.
+     * @param world           The map in which to check the foundation.
+     * @param x               The X coordinate (in the WorldPainter coordinate system) to check.
+     * @param y               The Y coordinate (in the WorldPainter coordinate system) to check.
+     * @param height          The Z coordinate (in the WorldPainter coordinate system) to check.
+     * @param checkBlockBelow Whether the block underneath the plant should be checked for validity.
      * @return The applicable category if this plant may be placed on the block at the specified location; {@code null}
      * otherwise.
      */
-    public Category isValidFoundation(MinecraftWorld world, int x, int y, int height) {
-        // TODO is water/not water actually being checked somewhere?
-        // TODO allow Nether plants on regular blocks too
+    public Category isValidFoundation(MinecraftWorld world, int x, int y, int height, boolean checkBlockBelow) {
         for (Category category: categories) {
-            if (category.isValidFoundation(world, x, y, height)) {
+            if (category.isValidFoundation(world, x, y, height, checkBlockBelow)) {
                 return category;
             }
         }

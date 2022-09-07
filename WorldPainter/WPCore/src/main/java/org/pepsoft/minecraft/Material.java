@@ -60,7 +60,7 @@ public final class Material implements Serializable {
      * @param data The data value of the legacy block for which to create a
      *             material.
      */
-    @SuppressWarnings("unchecked") // Guaranteed by contents of file
+    @SuppressWarnings({"unchecked", "StringEquality"}) // Guaranteed by contents of file; interned string
     private Material(int blockType, int data) {
         this.blockType = blockType;
         this.data = data;
@@ -148,6 +148,7 @@ public final class Material implements Serializable {
         solid = ! veryInsubstantial;
         hasPropertySnowy = hasProperty(MC_SNOWY);
         canSupportSnow = determineCanSupportSnow();
+        modded = (namespace != MINECRAFT);
 
         if (namespace != null) {
             SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, s -> new HashSet<>()).add(simpleName);
@@ -163,7 +164,7 @@ public final class Material implements Serializable {
      *
      * @param identity The identity of the material to create.
      */
-    @SuppressWarnings("unchecked") // Guaranteed by contents of file
+    @SuppressWarnings({"unchecked", "StringEquality"}) // Guaranteed by contents of file; interned string
     private Material(Identity identity) {
         // See if this modern material matches a legacy one to set a block type
         // and data value for backwards compatibility
@@ -283,6 +284,7 @@ public final class Material implements Serializable {
         solid = ! veryInsubstantial;
         hasPropertySnowy = hasProperty(MC_SNOWY);
         canSupportSnow = determineCanSupportSnow();
+        modded = (namespace != MINECRAFT);
 
         SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, s -> new HashSet<>()).add(simpleName);
         if (! DEFAULT_MATERIALS_BY_NAME.containsKey(name)) {
@@ -1505,6 +1507,12 @@ public final class Material implements Serializable {
      * instance.
      */
     public final transient Map<String, PropertyDescriptor> propertyDescriptors;
+
+    /**
+     * Whether the material is vanilla or modded. In the case of Minecraft this indicates that the namespace is not
+     * {@code minecraft}.
+     */
+    public final transient boolean modded;
 
     // Optimised versions of hasProperty(...):
 

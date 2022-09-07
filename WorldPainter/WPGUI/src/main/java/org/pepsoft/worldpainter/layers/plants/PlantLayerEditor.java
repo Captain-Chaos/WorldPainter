@@ -6,9 +6,12 @@
 
 package org.pepsoft.worldpainter.layers.plants;
 
+import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
+import org.pepsoft.worldpainter.exporting.ExportSettings;
 import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+import org.pepsoft.worldpainter.platforms.JavaExportSettings;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -27,6 +30,7 @@ import java.util.jar.JarFile;
 
 import static java.lang.Math.max;
 import static java.util.Arrays.asList;
+import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
 import static org.pepsoft.worldpainter.layers.plants.Category.*;
 import static org.pepsoft.worldpainter.layers.plants.Plants.ALL_PLANTS;
 import static org.pepsoft.worldpainter.util.I18nHelper.m;
@@ -90,6 +94,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         fieldName.setText(layer.getName());
         selectedColour = layer.getColour();
         checkBoxGenerateTilledDirt.setSelected(layer.isGenerateFarmland());
+        checkBoxOnlyValidBlocks.setSelected(layer.isOnlyOnValidBlocks());
         for (int i = 0; i < ALL_PLANTS.length; i++) {
             PlantLayer.PlantSettings settings = layer.getSettings(i);
             if (settings != null) {
@@ -370,6 +375,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         layer.setName(fieldName.getText().trim());
         layer.setColour(selectedColour);
         layer.setGenerateFarmland(checkBoxGenerateTilledDirt.isSelected());
+        layer.setOnlyOnValidBlocks(checkBoxOnlyValidBlocks.isSelected());
         for (int i = 0; i < ALL_PLANTS.length; i++) {
             PlantLayer.PlantSettings settings = new PlantLayer.PlantSettings();
             settings.occurrence = (short) ((int) ((Integer) spinners[i].getValue()));
@@ -406,7 +412,6 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
     private void initComponents() {
 
         buttonColour = new javax.swing.JButton();
-        jLabel3 = new javax.swing.JLabel();
         labelColour = new javax.swing.JLabel();
         buttonClear = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
@@ -414,6 +419,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         checkBoxGenerateTilledDirt = new javax.swing.JCheckBox();
         fieldName = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
+        checkBoxOnlyValidBlocks = new javax.swing.JCheckBox();
 
         buttonColour.setText("...");
         buttonColour.addActionListener(new java.awt.event.ActionListener() {
@@ -421,8 +427,6 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
                 buttonColourActionPerformed(evt);
             }
         });
-
-        jLabel3.setText("<html>Note that plants will only be placed<br>where Minecraft allows it!</html>");
 
         labelColour.setText("                 ");
         labelColour.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
@@ -448,29 +452,36 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
 
         jLabel2.setText("Colour:");
 
+        checkBoxOnlyValidBlocks.setSelected(true);
+        checkBoxOnlyValidBlocks.setText("only place on valid blocks");
+        checkBoxOnlyValidBlocks.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxOnlyValidBlocksActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(checkBoxGenerateTilledDirt)
+            .addComponent(panelPlantControls, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(panelPlantControls, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(0, 0, 0))
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(buttonClear))
-                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                    .addComponent(jLabel1)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(18, 18, 18)
-                    .addComponent(jLabel2)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addComponent(labelColour)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addComponent(buttonColour)))
+                .addComponent(checkBoxGenerateTilledDirt)
+                .addGap(18, 18, 18)
+                .addComponent(checkBoxOnlyValidBlocks))
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(labelColour)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(buttonColour))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(buttonClear))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -482,15 +493,13 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
                     .addComponent(labelColour)
                     .addComponent(buttonColour))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(checkBoxGenerateTilledDirt)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(panelPlantControls, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(buttonClear))
-                .addGap(0, 0, 0))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(checkBoxGenerateTilledDirt)
+                    .addComponent(checkBoxOnlyValidBlocks))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(panelPlantControls, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(buttonClear))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -502,15 +511,29 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         clear();
     }//GEN-LAST:event_buttonClearActionPerformed
 
+    private void checkBoxOnlyValidBlocksActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxOnlyValidBlocksActionPerformed
+        if (! checkBoxOnlyValidBlocks.isSelected()) {
+            final ExportSettings exportSettings = context.getDimension().getExportSettings();
+            if ((exportSettings == null) || ((exportSettings instanceof JavaExportSettings) && ((JavaExportSettings) exportSettings).isRemovePlants())) {
+                DesktopUtils.beep();
+                JOptionPane.showMessageDialog(SwingUtilities.windowForComponent(this), "You must also turn off \"Plants: remove from invalid blocks\"\n" +
+                                "on the Post Processing tab of the Export screen! Otherwise\n" +
+                                "plants on invalid blocks will be removed during post-\n" +
+                                "processing.",
+                        "Reminder: Turn Off Remove Plants", INFORMATION_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_checkBoxOnlyValidBlocksActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonClear;
     private javax.swing.JButton buttonColour;
     private javax.swing.JCheckBox checkBoxGenerateTilledDirt;
+    private javax.swing.JCheckBox checkBoxOnlyValidBlocks;
     private javax.swing.JTextField fieldName;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel labelColour;
     private javax.swing.JPanel panelPlantControls;
     // End of variables declaration//GEN-END:variables

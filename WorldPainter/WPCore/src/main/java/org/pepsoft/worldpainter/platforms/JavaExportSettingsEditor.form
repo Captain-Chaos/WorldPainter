@@ -38,14 +38,12 @@
                   <Component id="jLabel5" alignment="0" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel6" alignment="0" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel7" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="jLabel8" alignment="0" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="checkBoxRemovePlants" min="-2" max="-2" attributes="0"/>
                   <Component id="checkBoxMakeAllLeavesPersistent" min="-2" max="-2" attributes="0"/>
-                  <Group type="102" attributes="0">
-                      <EmptySpace min="21" pref="21" max="-2" attributes="0"/>
-                      <Component id="checkBoxRemoveFloatingLeaves" min="-2" max="-2" attributes="0"/>
-                  </Group>
                   <Component id="checkBoxLeafDistance" min="-2" max="-2" attributes="0"/>
                   <Group type="102" attributes="0">
                       <Component id="checkBoxSkyLight" min="-2" max="-2" attributes="0"/>
@@ -84,6 +82,10 @@
                       <Component id="radioButtonGravelSupport" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="radioButtonGravelDrop" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Group type="102" attributes="0">
+                      <EmptySpace min="21" pref="21" max="-2" attributes="0"/>
+                      <Component id="checkBoxRemoveFloatingLeaves" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace max="32767" attributes="0"/>
@@ -145,6 +147,11 @@
               <Component id="checkBoxRemoveFloatingLeaves" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="checkBoxMakeAllLeavesPersistent" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="checkBoxRemovePlants" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jLabel8" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
               <EmptySpace max="32767" attributes="0"/>
           </Group>
       </Group>
@@ -326,6 +333,16 @@
     <Component class="javax.swing.JCheckBox" name="checkBoxMakeAllLeavesPersistent">
       <Properties>
         <Property name="text" type="java.lang.String" value="&lt;html&gt;make &lt;i&gt;all&lt;/i&gt; leaves persistent&lt;/html&gt;"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="checkBoxRemovePlants">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="remove from invalid blocks"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel8">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Plants:"/>
       </Properties>
     </Component>
   </SubComponents>

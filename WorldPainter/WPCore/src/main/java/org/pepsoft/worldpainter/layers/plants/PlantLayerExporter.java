@@ -54,6 +54,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
         final int maxY = minecraftWorld.getMaxHeight() - 1;
         final boolean generateTilledDirt = layer.isGenerateFarmland();
         final boolean blockRulesEnforced = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.enforceBlockRules"));
+        final boolean onlyOnValidBlocks = layer.isOnlyOnValidBlocks();
         final Bo2ObjectProvider objectProvider = layer.getObjectProvider(platform);
         for (int tileX = tileX1; tileX <= tileX2; tileX++) {
             for (int tileY = tileY1; tileY <= tileY2; tileY++) {
@@ -72,7 +73,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                             if (height < maxY) {
                                 final int worldX = (tileX << TILE_SIZE_BITS) | x, worldY = (tileY << TILE_SIZE_BITS) | y;
                                 Plant plant = (Plant) objectProvider.getObject();
-                                Category category = plant.isValidFoundation(minecraftWorld, worldX, worldY, height);
+                                Category category = plant.isValidFoundation(minecraftWorld, worldX, worldY, height, onlyOnValidBlocks);
                                 if (category == null) {
                                     // The plant disagrees that it can be planted here
                                     if (! blockRulesEnforced) {
@@ -146,7 +147,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider(platform);
             objectProvider.setSeed(seed + 1);
             final Plant plant = (Plant) objectProvider.getObject();
-            Category category = plant.isValidFoundation(minecraftWorld, location.x, location.y, location.z - 1);
+            Category category = plant.isValidFoundation(minecraftWorld, location.x, location.y, location.z - 1, layer.isOnlyOnValidBlocks());
             if ((category != null)
                     && (location.z < (minecraftWorld.getMaxHeight() - 1))) {
                 if (category == FLOATING_PLANTS) {

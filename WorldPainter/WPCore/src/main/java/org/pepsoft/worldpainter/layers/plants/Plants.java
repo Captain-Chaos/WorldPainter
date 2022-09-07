@@ -29,8 +29,9 @@ public class Plants {
     public static final Plant FERN = new SimplePlant("Fern", Material.FERN, PLANTS_AND_FLOWERS);
     public static final Plant DEAD_SHRUB = new SimplePlant("Dead Shrub", Material.DEAD_SHRUBS, PLANTS_AND_FLOWERS) {
         @Override
-        public Category isValidFoundation(MinecraftWorld world, int x, int y, int z) {
-            return world.getMaterialAt(x, y, z).isNamedOneOf(MC_SAND, MC_RED_SAND, MC_DIRT, MC_TERRACOTTA, MC_PODZOL, MC_COARSE_DIRT) ? PLANTS_AND_FLOWERS : null;
+        public Category isValidFoundation(MinecraftWorld world, int x, int y, int z, boolean checkBlockBelow) {
+            final Material material = world.getMaterialAt(x, y, z);
+            return ((! checkBlockBelow) || material.modded || material.isNamedOneOf(MC_SAND, MC_RED_SAND, MC_DIRT, MC_TERRACOTTA, MC_PODZOL, MC_COARSE_DIRT)) ? PLANTS_AND_FLOWERS : null;
         }
     };
     public static final Plant DANDELION = new SimplePlant("Dandelion", Material.DANDELION, PLANTS_AND_FLOWERS);
@@ -85,8 +86,9 @@ public class Plants {
         public Plant realise(int growth, Platform platform) {
             return new SimplePlant("Nether Wart", Material.NETHER_WART.withProperty(AGE, growth - 1), categories) {
                 @Override
-                public Category isValidFoundation(MinecraftWorld world, int x, int y, int height) {
-                    return world.getMaterialAt(x, y, height).isNamed(MC_SOUL_SAND) ? NETHER : null;
+                public Category isValidFoundation(MinecraftWorld world, int x, int y, int height, boolean checkBlockBelow) {
+                    final Material material = world.getMaterialAt(x, y, height);
+                    return ((! checkBlockBelow) || material.modded || material.isNamed(MC_SOUL_SAND)) ? NETHER : null;
                 }
             };
         }
@@ -165,14 +167,16 @@ public class Plants {
     };
     public static final Plant PUMPKIN = new SimplePlant("Pumpkin", Material.PUMPKIN, "block/pumpkin_side.png", PLANTS_AND_FLOWERS) {
         @Override
-        public Category isValidFoundation(MinecraftWorld world, int x, int y, int height) {
-            return world.getMaterialAt(x, y, height).solid ? PLANTS_AND_FLOWERS : null;
+        public Category isValidFoundation(MinecraftWorld world, int x, int y, int height, boolean checkBlockBelow) {
+            final Material material = world.getMaterialAt(x, y, height);
+            return ((! checkBlockBelow) || material.modded || material.solid) ? PLANTS_AND_FLOWERS : null;
         }
     };
     public static final Plant MELON = new SimplePlant("Melon", Material.MELON, "block/melon_side.png", PLANTS_AND_FLOWERS) {
         @Override
-        public Category isValidFoundation(MinecraftWorld world, int x, int y, int height) {
-            return world.getMaterialAt(x, y, height).solid ? PLANTS_AND_FLOWERS : null;
+        public Category isValidFoundation(MinecraftWorld world, int x, int y, int height, boolean checkBlockBelow) {
+            final Material material = world.getMaterialAt(x, y, height);
+            return ((! checkBlockBelow) || material.modded || material.solid) ? PLANTS_AND_FLOWERS : null;
         }
     };
     public static final Plant CARVED_PUMPKIN = new SimplePlant("Carved Pumpkin", Material.CARVED_PUMPKIN_SOUTH_FACE, MUSHROOMS) { // TODO not really mushrooms, but for now those are presented as "Various"
@@ -180,8 +184,9 @@ public class Plants {
         public Plant realise(int growth, Platform platform) {
             return new SimplePlant("Carved Pumpkin", Material.CARVED_PUMPKIN_SOUTH_FACE.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), categories) {
                 @Override
-                public Category isValidFoundation(MinecraftWorld world, int x, int y, int height) {
-                    return world.getMaterialAt(x, y, height).solid ? MUSHROOMS : null;
+                public Category isValidFoundation(MinecraftWorld world, int x, int y, int height, boolean checkBlockBelow) {
+                    final Material material = world.getMaterialAt(x, y, height);
+                    return ((! checkBlockBelow) || material.modded || material.solid) ? MUSHROOMS : null;
                 }
             };
         }
@@ -191,8 +196,9 @@ public class Plants {
         public Plant realise(int growth, Platform platform) {
             return new SimplePlant("Jack-o'-lantern", Material.JACK_O_LANTERN_SOUTH_FACE.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), categories) {
                 @Override
-                public Category isValidFoundation(MinecraftWorld world, int x, int y, int height) {
-                    return world.getMaterialAt(x, y, height).solid ? MUSHROOMS : null;
+                public Category isValidFoundation(MinecraftWorld world, int x, int y, int height, boolean checkBlockBelow) {
+                    final Material material = world.getMaterialAt(x, y, height);
+                    return ((! checkBlockBelow) || material.modded || material.solid) ? MUSHROOMS : null;
                 }
             };
         }

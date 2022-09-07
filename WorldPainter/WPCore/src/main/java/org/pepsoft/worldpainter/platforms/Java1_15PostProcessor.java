@@ -55,16 +55,15 @@ public class Java1_15PostProcessor extends PostProcessor {
         final FloatMode cementMode = settings.cementMode;
         final FloatMode waterMode = settings.waterMode;
         final FloatMode lavaMode = settings.lavaMode;
-        final boolean flowLava = settings.flowLava, flowWater = settings.flowWater, makeAllLeavesPersistent = settings.makeAllLeavesPersistent;
+        final boolean flowLava = settings.flowLava, flowWater = settings.flowWater,
+                makeAllLeavesPersistent = settings.makeAllLeavesPersistent, leavePlants = settings.leavePlants;
         if (minecraftWorld instanceof MinecraftWorldObject) {
-            // Special support for MinecraftWorldObjects to constrain the area
-            // further
+            // Special support for MinecraftWorldObjects to constrain the area further
             Box objectVolume = ((MinecraftWorldObject) minecraftWorld).getVolume();
             objectVolume.intersect(volume);
             if (objectVolume.isEmpty()) {
-                // The specified area does not intersect the volume encompassed
-                // by the minecraftWorld. Weird, but it means we have nothing to
-                // do
+                // The specified area does not intersect the volume encompassed by the minecraftWorld. Weird, but it
+                // means we have nothing to do
                 return;
             } else {
                 x1 = objectVolume.getX1();
@@ -127,8 +126,7 @@ public class Java1_15PostProcessor extends PostProcessor {
                             }
                         }
                     }
-                    // Special case for backwards compatibility: turn legacy
-                    // upper large flower blocks into modern ones
+                    // Special case for backwards compatibility: turn legacy upper large flower blocks into modern ones
                     if ((material.blockType == BLK_LARGE_FLOWERS) && ((material.data & 0x8) == 0x8) && (materialBelow.blockType == BLK_LARGE_FLOWERS)) {
                         material = materialBelow.withProperty(HALF, "upper");
                         minecraftWorld.setMaterialAt(x, y, z, material);
@@ -217,36 +215,6 @@ public class Java1_15PostProcessor extends PostProcessor {
                                 }
                             }
                             break;
-                        case MC_DEAD_BUSH:
-                            if ((materialBelow != SAND) && (materialBelow != RED_SAND) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT) && (! materialBelow.name.endsWith("_terracotta")) && (materialBelow != TERRACOTTA)) {
-                                // Dead shrubs can only exist on materials present in Mesa biome
-                                material = clearBlock(minecraftWorld, x, y, z);
-                            }
-                            break;
-                        case MC_GRASS:
-                        case MC_FERN:
-                        case MC_DANDELION:
-                        case MC_POPPY:
-                        case MC_BLUE_ORCHID:
-                        case MC_ALLIUM:
-                        case MC_AZURE_BLUET:
-                        case MC_RED_TULIP:
-                        case MC_ORANGE_TULIP:
-                        case MC_WHITE_TULIP:
-                        case MC_PINK_TULIP:
-                        case MC_OXEYE_DAISY:
-                            if (materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_FARMLAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK)) {
-                                // Tall grass and flowers can only exist on Grass or Dirt blocks
-                                material = clearBlock(minecraftWorld, x, y, z);
-                            }
-                            break;
-                        case MC_RED_MUSHROOM:
-                        case MC_BROWN_MUSHROOM:
-                            if ((materialBelow != GRASS_BLOCK) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT) && (materialBelow != MYCELIUM) && (materialBelow != STONE) && (materialBelow != GRANITE) && (materialBelow != DIORITE) && (materialBelow != ANDESITE)) {
-                                // Mushrooms can only exist on Grass, Dirt, Mycelium or Stone (in caves) blocks
-                                material = clearBlock(minecraftWorld, x, y, z);
-                            }
-                            break;
                         case MC_SNOW:
                             if ((materialBelow == ICE) || materialBelow.isNamed(MC_SNOW) || (materialBelow == AIR) || (materialBelow == PACKED_ICE)) {
                                 // Snow can't be on ice, or another snow block, or air (well it could be, but it makes
@@ -255,57 +223,9 @@ public class Java1_15PostProcessor extends PostProcessor {
                                 material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
-                        case MC_WHEAT:
-                            if (materialBelow.isNotNamed(MC_FARMLAND)) {
-                                // Wheat can only exist on Tilled Dirt blocks
-                                material = clearBlock(minecraftWorld, x, y, z);
-                            }
-                            break;
-                        case MC_SUNFLOWER:
-                        case MC_LILAC:
-                        case MC_TALL_GRASS:
-                        case MC_LARGE_FERN:
-                        case MC_ROSE_BUSH:
-                        case MC_PEONY:
-                            // TODOMC13 recognise legacy "top half" block and replace it with the proper block
-                            if (material.getProperty(HALF).equals("lower")) {
-                                // Lower half of double high plant; check there's grass or dirt below
-                                if (materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_FARMLAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK)) {
-                                    // Double high plants can (presumably; TODO: check) only exist on grass or dirt
-                                    // The upper block will be removed below in the next iteration
-                                    material = clearBlock(minecraftWorld, x, y, z);
-                                }
-                            }
-                            break;
-                        case MC_CACTUS:
-                            if ((materialBelow != SAND) && (materialBelow != RED_SAND) && materialBelow.isNotNamed(MC_CACTUS)) {
-                                // Cactus blocks can only be on top of sand or other cactus blocks
-                                material = clearBlock(minecraftWorld, x, y, z);
-                            }
-                            break;
-                        case MC_SUGAR_CANE:
-                            if (materialBelow.isNotNamed(MC_GRASS_BLOCK) && (materialBelow != DIRT) && materialBelow.isNotNamed(MC_PODZOL) && (materialBelow != PERMADIRT) && (materialBelow != SAND) && (materialBelow != RED_SAND) && materialBelow.isNotNamed(MC_SUGAR_CANE)) {
-                                // Sugar cane blocks can only be on top of grass, dirt, sand or other sugar cane blocks
-                                material = clearBlock(minecraftWorld, x, y, z);
-                            }
-                            break;
-                        case MC_NETHER_WART:
-                            if (materialBelow != SOUL_SAND) {
-                                // Nether wart blocks can only be on top of soul sand
-                                material = clearBlock(minecraftWorld, x, y, z);
-                            }
-                            break;
-                        case MC_CHORUS_FLOWER:
-                        case MC_CHORUS_PLANT:
-                            if ((materialBelow != END_STONE) && (materialBelow.isNotNamed(MC_CHORUS_PLANT))) {
-                                // Chorus flower and plant blocks can only be on top of end stone or other chorus plant blocks
-                                material = clearBlock(minecraftWorld, x, y, z);
-                            }
-                            break;
                         case MC_FIRE:
-                            // We don't know which blocks are flammable, but at
-                            // least check whether the fire is not floating in
-                            // the air
+                            // We don't know which blocks are flammable, but at least check whether the fire is not
+                            // floating in the air
                             if ((materialBelow == AIR)
                                     && (materialAbove == AIR)
                                     && (minecraftWorld.getMaterialAt(x - 1, y, z) == AIR)
@@ -315,39 +235,121 @@ public class Java1_15PostProcessor extends PostProcessor {
                                 material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;
-                        case MC_KELP:
-                        case MC_KELP_PLANT:
-                        case MC_TALL_SEAGRASS:
-                            if (! ((materialBelow.solid && materialBelow.opaque && materialBelow.natural) || materialBelow.isNamedOneOf(MC_KELP, MC_KELP_PLANT, MC_TALL_SEAGRASS))) {
-                                material = clearBlock(minecraftWorld, x, y, z);
-                            }
-                            break;
-                        case MC_SEAGRASS:
-                        case MC_SEA_PICKLE:
-                        case MC_TUBE_CORAL:
-                        case MC_BRAIN_CORAL:
-                        case MC_BUBBLE_CORAL:
-                        case MC_FIRE_CORAL:
-                        case MC_HORN_CORAL:
-                        case MC_DEAD_TUBE_CORAL:
-                        case MC_DEAD_BRAIN_CORAL:
-                        case MC_DEAD_BUBBLE_CORAL:
-                        case MC_DEAD_FIRE_CORAL:
-                        case MC_DEAD_HORN_CORAL:
-                        case MC_TUBE_CORAL_FAN:
-                        case MC_BRAIN_CORAL_FAN:
-                        case MC_BUBBLE_CORAL_FAN:
-                        case MC_FIRE_CORAL_FAN:
-                        case MC_HORN_CORAL_FAN:
-                        case MC_DEAD_TUBE_CORAL_FAN:
-                        case MC_DEAD_BRAIN_CORAL_FAN:
-                        case MC_DEAD_BUBBLE_CORAL_FAN:
-                        case MC_DEAD_FIRE_CORAL_FAN:
-                        case MC_DEAD_HORN_CORAL_FAN:
-                            if (! (materialBelow.solid && materialBelow.opaque && materialBelow.natural)) {
-                                material = clearBlock(minecraftWorld, x, y, z);
-                            }
-                            break;
+                    }
+                    if (! leavePlants) {
+                        switch (material.name) {
+                            case MC_DEAD_BUSH:
+                                if ((! materialBelow.modded) && (materialBelow != SAND) && (materialBelow != RED_SAND) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT) && (! materialBelow.name.endsWith("_terracotta")) && (materialBelow != TERRACOTTA)) {
+                                    // Dead shrubs can only exist on materials present in Mesa biome
+                                    material = clearBlock(minecraftWorld, x, y, z);
+                                }
+                                break;
+                            case MC_GRASS:
+                            case MC_FERN:
+                            case MC_DANDELION:
+                            case MC_POPPY:
+                            case MC_BLUE_ORCHID:
+                            case MC_ALLIUM:
+                            case MC_AZURE_BLUET:
+                            case MC_RED_TULIP:
+                            case MC_ORANGE_TULIP:
+                            case MC_WHITE_TULIP:
+                            case MC_PINK_TULIP:
+                            case MC_OXEYE_DAISY:
+                                if ((! materialBelow.modded) && materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_FARMLAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK)) {
+                                    // Tall grass and flowers can only exist on Grass or Dirt blocks
+                                    material = clearBlock(minecraftWorld, x, y, z);
+                                }
+                                break;
+                            case MC_RED_MUSHROOM:
+                            case MC_BROWN_MUSHROOM:
+                                if ((! materialBelow.modded) && (materialBelow != GRASS_BLOCK) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT) && (materialBelow != MYCELIUM) && (materialBelow != STONE) && (materialBelow != GRANITE) && (materialBelow != DIORITE) && (materialBelow != ANDESITE)) {
+                                    // Mushrooms can only exist on Grass, Dirt, Mycelium or Stone (in caves) blocks
+                                    material = clearBlock(minecraftWorld, x, y, z);
+                                }
+                                break;
+                            case MC_WHEAT:
+                                if ((! materialBelow.modded) && materialBelow.isNotNamed(MC_FARMLAND)) {
+                                    // Wheat can only exist on Tilled Dirt blocks
+                                    material = clearBlock(minecraftWorld, x, y, z);
+                                }
+                                break;
+                            case MC_SUNFLOWER:
+                            case MC_LILAC:
+                            case MC_TALL_GRASS:
+                            case MC_LARGE_FERN:
+                            case MC_ROSE_BUSH:
+                            case MC_PEONY:
+                                if (material.getProperty(HALF).equals("lower")) {
+                                    // Lower half of double high plant; check there's grass or dirt below
+                                    if ((! materialBelow.modded) && materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_FARMLAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK)) {
+                                        // Double high plants can (presumably) only exist on grass or dirt // TODO: check
+                                        // The upper block will be removed below in the next iteration
+                                        material = clearBlock(minecraftWorld, x, y, z);
+                                    }
+                                }
+                                break;
+                            case MC_CACTUS:
+                                if ((! materialBelow.modded) && (materialBelow != SAND) && (materialBelow != RED_SAND) && materialBelow.isNotNamed(MC_CACTUS)) {
+                                    // Cactus blocks can only be on top of sand or other cactus blocks
+                                    material = clearBlock(minecraftWorld, x, y, z);
+                                }
+                                break;
+                            case MC_SUGAR_CANE:
+                                if ((! materialBelow.modded) && materialBelow.isNotNamed(MC_GRASS_BLOCK) && (materialBelow != DIRT) && materialBelow.isNotNamed(MC_PODZOL) && (materialBelow != PERMADIRT) && (materialBelow != SAND) && (materialBelow != RED_SAND) && materialBelow.isNotNamed(MC_SUGAR_CANE)) {
+                                    // Sugar cane blocks can only be on top of grass, dirt, sand or other sugar cane
+                                    // blocks
+                                    material = clearBlock(minecraftWorld, x, y, z);
+                                }
+                                break;
+                            case MC_NETHER_WART:
+                                if ((! materialBelow.modded) && (materialBelow != SOUL_SAND)) {
+                                    // Nether wart blocks can only be on top of soul sand
+                                    material = clearBlock(minecraftWorld, x, y, z);
+                                }
+                                break;
+                            case MC_CHORUS_FLOWER:
+                            case MC_CHORUS_PLANT:
+                                if ((! materialBelow.modded) && (materialBelow != END_STONE) && (materialBelow.isNotNamed(MC_CHORUS_PLANT))) {
+                                    // Chorus flower and plant blocks can only be on top of end stone or other chorus
+                                    // plant blocks
+                                    material = clearBlock(minecraftWorld, x, y, z);
+                                }
+                                break;
+                            case MC_KELP:
+                            case MC_KELP_PLANT:
+                            case MC_TALL_SEAGRASS:
+                                if ((! materialBelow.modded) && (! ((materialBelow.solid && materialBelow.opaque && materialBelow.natural) || materialBelow.isNamedOneOf(MC_KELP, MC_KELP_PLANT, MC_TALL_SEAGRASS)))) {
+                                    material = clearBlock(minecraftWorld, x, y, z);
+                                }
+                                break;
+                            case MC_SEAGRASS:
+                            case MC_SEA_PICKLE:
+                            case MC_TUBE_CORAL:
+                            case MC_BRAIN_CORAL:
+                            case MC_BUBBLE_CORAL:
+                            case MC_FIRE_CORAL:
+                            case MC_HORN_CORAL:
+                            case MC_DEAD_TUBE_CORAL:
+                            case MC_DEAD_BRAIN_CORAL:
+                            case MC_DEAD_BUBBLE_CORAL:
+                            case MC_DEAD_FIRE_CORAL:
+                            case MC_DEAD_HORN_CORAL:
+                            case MC_TUBE_CORAL_FAN:
+                            case MC_BRAIN_CORAL_FAN:
+                            case MC_BUBBLE_CORAL_FAN:
+                            case MC_FIRE_CORAL_FAN:
+                            case MC_HORN_CORAL_FAN:
+                            case MC_DEAD_TUBE_CORAL_FAN:
+                            case MC_DEAD_BRAIN_CORAL_FAN:
+                            case MC_DEAD_BUBBLE_CORAL_FAN:
+                            case MC_DEAD_FIRE_CORAL_FAN:
+                            case MC_DEAD_HORN_CORAL_FAN:
+                                if ((! materialBelow.modded) && (! (materialBelow.solid && materialBelow.opaque && materialBelow.natural))) {
+                                    material = clearBlock(minecraftWorld, x, y, z);
+                                }
+                                break;
+                        }
                     }
                     if (material.vegetation && material.isPropertySet(MC_HALF)) {
                         // Check that all lower and upper halves of plants have their corresponding opposite half

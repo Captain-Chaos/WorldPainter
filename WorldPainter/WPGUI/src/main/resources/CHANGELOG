@@ -1,3 +1,15 @@
+-- Version 2.13.4, released ...
+
+ * Plants will now be placed on mod blocks by Custom Plants layers, and not be removed from mod blocks during post-processing
+   + This also covers plants placed by Custom Objects layers
+ * In addition, two new settings will allow plants to optionally be placed on ALL blocks:
+   + On the Post Processing tab of the Export screen, removal of plants from invalid blocks can now be turned off
+     - This applies to plants placed with Custom Plants layers (but see below), or with Custom Object layers
+     - Of course this makes it your responsibility to ensure that plants are placed only on correct blocks!
+   + Custom Plants layers now have an "only on valid blocks" setting which you can turn off
+     - Turning it off will place plants on any block, but water plants will still not be placed on dry land and vice versa
+     - You also need to change the post processing setting described above, otherwise the post-processing step will remove the plants after all. WorldPainter will remind you of this when you turn the setting off
+
 -- Version 2.13.3, released 27-8-2022
 
  * Bug fix: make undo work properly again for ceiling dimensions
