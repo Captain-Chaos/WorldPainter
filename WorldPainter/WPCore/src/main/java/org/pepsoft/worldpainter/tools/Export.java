@@ -60,7 +60,7 @@ public class Export extends AbstractTool {
             }
         }
         logger.info("Exporting to " + exportDir);
-        WorldExporter exporter = platformManager.getExporter(world);
+        WorldExporter exporter = platformManager.getExporter(world, null);
         exporter.export(exportDir, world.getName(), exporter.selectBackupDir(exportDir, world.getName()), new TextProgressReceiver());
         System.out.println();
         logger.info("World " + world.getName() + " exported successfully");

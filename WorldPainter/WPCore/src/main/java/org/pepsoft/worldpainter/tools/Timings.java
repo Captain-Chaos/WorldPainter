@@ -21,6 +21,7 @@ import java.util.Random;
 import java.util.zip.GZIPInputStream;
 
 import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
+import static org.pepsoft.worldpainter.exporting.WorldExportSettings.EXPORT_EVERYTHING;
 
 /**
  *
@@ -45,7 +46,7 @@ public class Timings {
                     world.setPlatform(DefaultPlugin.JAVA_MCREGION);
                 }
             }
-            final JavaWorldExporter exporter = new JavaWorldExporter(world);
+            final JavaWorldExporter exporter = new JavaWorldExporter(world, EXPORT_EVERYTHING);
             System.out.println("Starting export of world " + world.getName() + " " + i + " (seed: " + world.getDimension(NORMAL_DETAIL).getSeed() + ")");
             File baseDir = new File(System.getProperty("user.dir"));
             String name = world.getName() + ' ' + i;

@@ -14,6 +14,7 @@ package org.pepsoft.worldpainter;
 import org.pepsoft.util.AttributeKey;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.exporting.WorldExportSettings;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.merging.JavaWorldMerger;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
@@ -31,11 +32,11 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.worldpainter.App.MERGE_WARNING_KEY;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Dimension.Anchor.*;
@@ -60,8 +61,10 @@ public class MergeWorldDialog extends WorldPainterDialog {
         this.lightOrigin = lightOrigin;
         this.customBiomeManager = customBiomeManager;
         this.view = view;
-        selectedTiles = world.getTilesToExport();
-        selectedDimension = (selectedTiles != null) ? world.getDimensionsToExport().iterator().next() : DIM_NORMAL;
+        final WorldExportSettings exportSettings = (world.getExportSettings() != null) ? world.getExportSettings() : null;
+        selectedTiles = exportSettings.getTilesToExport();
+        selectedDimension = (selectedTiles != null) ? exportSettings.getDimensionsToExport().iterator().next() : DIM_NORMAL;
+        savedSteps = exportSettings.getStepsToSkip();
         
         initComponents();
 
@@ -87,10 +90,10 @@ public class MergeWorldDialog extends WorldPainterDialog {
             checkBoxSurface.setSelected(selectedDimension == DIM_NORMAL);
             checkBoxNether.setSelected(selectedDimension == DIM_NETHER);
             checkBoxEnd.setSelected(selectedDimension == DIM_END);
-        } else if (world.getDimensionsToExport() != null) {
-            checkBoxSurface.setSelected(world.getDimensionsToExport().contains(DIM_NORMAL));
-            checkBoxNether.setSelected(world.getDimensionsToExport().contains(DIM_NETHER));
-            checkBoxEnd.setSelected(world.getDimensionsToExport().contains(DIM_END));
+        } else if (exportSettings.getDimensionsToExport() != null) {
+            checkBoxSurface.setSelected(exportSettings.getDimensionsToExport().contains(DIM_NORMAL));
+            checkBoxNether.setSelected(exportSettings.getDimensionsToExport().contains(DIM_NETHER));
+            checkBoxEnd.setSelected(exportSettings.getDimensionsToExport().contains(DIM_END));
         } else {
             checkBoxSurface.setSelected(world.getDimension(NORMAL_DETAIL) != null);
             checkBoxNether.setSelected(world.getDimension(NETHER_DETAIL) != null);
@@ -172,6 +175,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
             return;
         }
 
+        final WorldExportSettings exportSettings;
         if (radioButtonExportEverything.isSelected()) {
             Set<Integer> dimensionsToExport = new HashSet<>();
             if (checkBoxSurface.isSelected()) {
@@ -190,14 +194,14 @@ public class MergeWorldDialog extends WorldPainterDialog {
                     break;
                 }
             }
-            world.setDimensionsToExport(allDimensionsSelected ? null : dimensionsToExport);
-            world.setTilesToExport(null);
+            exportSettings = allDimensionsSelected
+                    ? ((savedSteps != null) ? new WorldExportSettings(null, null, savedSteps) : null)
+                    : new WorldExportSettings(dimensionsToExport, null, savedSteps);
         } else {
-            world.setDimensionsToExport(Collections.singleton(selectedDimension));
-            world.setTilesToExport(selectedTiles);
+            exportSettings = new WorldExportSettings(singleton(selectedDimension), selectedTiles, savedSteps);
         }
         final boolean replaceChunks = radioButtonReplaceChunks.isSelected();
-        final JavaWorldMerger merger = new JavaWorldMerger(world, mapDir, platform);
+        final JavaWorldMerger merger = new JavaWorldMerger(world, exportSettings, mapDir, platform);
         try {
             if (replaceChunks) {
                 merger.setReplaceChunks(true);
@@ -306,6 +310,9 @@ public class MergeWorldDialog extends WorldPainterDialog {
 
         synchronized (merger) {
             if (! merger.isAborted()) {
+                if (! radioButtonExportEverything.isSelected()) {
+                    world.setExportSettings(exportSettings);
+                }
                 world.setAttribute(ATTRIBUTE_MERGE_SETTINGS, new MergeSettings(
                         radioButtonReplaceChunks.isSelected(),
                         checkBoxAboveMergeBlocks.isSelected(),
@@ -852,6 +859,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
     private final TileRenderer.LightOrigin lightOrigin;
     private final CustomBiomeManager customBiomeManager;
     private final WorldPainter view;
+    private final Set<WorldExportSettings.Step> savedSteps;
     private File mapDir;
     private Platform platform;
     private volatile File backupDir;

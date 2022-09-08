@@ -50,7 +50,7 @@ public interface WorldExporter {
 
     /**
      * Export the world previously configured for export by the call to
-     * {@link org.pepsoft.worldpainter.plugins.PlatformProvider#getExporter(World2)}
+     * {@link org.pepsoft.worldpainter.plugins.PlatformProvider#getExporter(World2, WorldExportSettings)}
      * to a directory with the specified name in the specified directory.
      *
      * @param baseDir The directory in which to create the map directory.

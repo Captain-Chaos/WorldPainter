@@ -46,8 +46,8 @@ import static org.pepsoft.worldpainter.platforms.PlatformUtils.determineNativePl
  */
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend") // Readability
 public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be made a BlockBasedPlatformProviderWorldMerger?
-    public JavaWorldMerger(World2 world, File mapDir, Platform platform) {
-        super(world, platform);
+    public JavaWorldMerger(World2 world, WorldExportSettings exportSettings, File mapDir, Platform platform) {
+        super(world, exportSettings, platform);
         if (mapDir == null) {
             throw new NullPointerException();
         }
@@ -230,7 +230,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             // Dimension sanity checks
             for (Dimension dimension: world.getDimensions()) {
                 final int dim = dimension.getAnchor().dim;
-                if ((dim < 0) || ((world.getDimensionsToExport() != null) && (! world.getDimensionsToExport().contains(dim)))) {
+                if ((dim < 0) || ((worldExportSettings.getDimensionsToExport() != null) && (! worldExportSettings.getDimensionsToExport().contains(dim)))) {
                     // Skip ceiling dimensions, or dimensions that are not going to be merged
                     continue;
                 }
@@ -281,7 +281,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         }
         
         // Modify it if necessary and write it to the new level
-        final Set<Integer> selectedDimensions = world.getDimensionsToExport();
+        final Set<Integer> selectedDimensions = worldExportSettings.getDimensionsToExport();
         if ((selectedDimensions == null) || selectedDimensions.contains(DIM_NORMAL)) {
             Dimension surfaceDimension = world.getDimension(NORMAL_DETAIL);
             level.setSeed(surfaceDimension.getMinecraftSeed());
@@ -426,12 +426,13 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 }
             }
         }
-        
+
+        Object savedChanges = null;
         dimension.rememberChanges();
         try {
 
-            final Set<Point> selectedTiles = world.getTilesToExport();
-            setupDimensionForExport(dimension, selectedTiles);
+            final Set<Point> selectedTiles = worldExportSettings.getTilesToExport();
+            savedChanges = setupDimensionForExport(dimension, selectedTiles);
             // TODO add ceiling support
 
             // Sort tiles into regions
@@ -708,6 +709,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         } finally {
             
             // Undo any changes we made (such as applying any combined layers)
+            restoreDimensionAfterExport(dimension, savedChanges);
             if (dimension.undoChanges()) {
                 // TODO: some kind of cleverer undo mechanism (undo history
                 //  cloning?) so we don't mess up the user's redo history
@@ -725,13 +727,13 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
      * @return A map of region coordinates to maps of tile coordinates to tiles.
      */
     private Map<Point, Map<Point, Tile>> getTilesByRegion(Dimension dimension) {
-        final Set<Point> selectedTiles = world.getTilesToExport();
+        final Set<Point> selectedTiles = worldExportSettings.getTilesToExport();
         final boolean tileSelection = selectedTiles != null;
         final Map<Point, Map<Point, Tile>> tilesByRegion = new HashMap<>();
         if (tileSelection) {
             // Sanity check
-            assert world.getDimensionsToExport().size() == 1;
-            assert world.getDimensionsToExport().contains(dimension.getAnchor().dim);
+            assert worldExportSettings.getDimensionsToExport().size() == 1;
+            assert worldExportSettings.getDimensionsToExport().contains(dimension.getAnchor().dim);
             for (Point tileCoords: selectedTiles) {
                 Tile tile = dimension.getTile(tileCoords);
                 boolean nonReadOnlyChunksFound = false;

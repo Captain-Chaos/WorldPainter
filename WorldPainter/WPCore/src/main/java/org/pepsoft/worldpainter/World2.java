@@ -14,6 +14,7 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.Dimension.Anchor;
+import org.pepsoft.worldpainter.exporting.WorldExportSettings;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -319,14 +320,6 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
-    public Set<Point> getTilesToExport() {
-        return tilesToExport;
-    }
-
-    public void setTilesToExport(Set<Point> tilesToExport) {
-        this.tilesToExport = tilesToExport;
-    }
-
     public boolean isAskToRotate() {
         return askToRotate;
     }
@@ -410,6 +403,19 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
+    public WorldExportSettings getExportSettings() {
+        return exportSettings;
+    }
+
+    public void setExportSettings(WorldExportSettings exportSettings) {
+        if (! Objects.equals(exportSettings, this.exportSettings)) {
+            final WorldExportSettings oldExportSettings = this.exportSettings;
+            this.exportSettings = exportSettings;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("exportSettings", oldExportSettings, exportSettings);
+        }
+    }
+
     public List<HistoryEntry> getHistory() {
         synchronized (history) {
             return history;
@@ -447,19 +453,6 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             this.mergedWith = mergedWith;
             changeNo++;
             propertyChangeSupport.firePropertyChange("mergedWith", oldMergedWith, mergedWith);
-        }
-    }
-
-    public Set<Integer> getDimensionsToExport() {
-        return dimensionsToExport;
-    }
-
-    public void setDimensionsToExport(Set<Integer> dimensionsToExport) {
-        if ((dimensionsToExport == null) ? (this.dimensionsToExport != null) : (! dimensionsToExport.equals(this.dimensionsToExport))) {
-            Set<Integer> oldMergedDimensions = this.dimensionsToExport;
-            this.dimensionsToExport = dimensionsToExport;
-            changeNo++;
-            propertyChangeSupport.firePropertyChange("mergedDimensions", oldMergedDimensions, dimensionsToExport);
         }
     }
 
@@ -791,6 +784,15 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             dimensions.values().forEach(dimension -> dimensionsByAnchor.put(dimension.getAnchor(), dimension));
             dimensions = null;
         }
+        if (wpVersion < 11) {
+            if (((dimensionsToExport != null) && (! dimensionsToExport.isEmpty())) || ((tilesToExport != null) && (! tilesToExport.isEmpty()))) {
+                exportSettings = new WorldExportSettings(((dimensionsToExport != null) && (! dimensionsToExport.isEmpty())) ? dimensionsToExport : null,
+                        ((tilesToExport != null) && (! tilesToExport.isEmpty())) ? tilesToExport : null,
+                        null);
+            }
+            dimensionsToExport = null;
+            tilesToExport = null;
+        }
         wpVersion = CURRENT_WP_VERSION;
 
         // The number of custom terrains increases now and again; correct old
@@ -825,6 +827,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private boolean customBiomes;
     @Deprecated
     private int dimensionToExport;
+    @Deprecated
     private Set<Point> tilesToExport;
     private boolean askToRotate, allowMerging = true;
     private Direction upIs = Direction.NORTH;
@@ -838,6 +841,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private List<HistoryEntry> history = new ArrayList<>();
     private BorderSettings borderSettings = new BorderSettings();
     private File mergedWith;
+    @Deprecated
     private Set<Integer> dimensionsToExport;
     private Platform platform;
     private GameType gameTypeObj = GameType.SURVIVAL;
@@ -845,6 +849,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     @Deprecated
     private SuperflatPreset superflatPreset;
     private Map<Anchor, Dimension> dimensionsByAnchor = new HashMap<>();
+    private WorldExportSettings exportSettings;
     private transient Set<Warning> warnings;
     private transient Map<String, Object> metadata;
     private transient long changeNo;
@@ -892,7 +897,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
      */
     public static final String METADATA_KEY_NAME = "name";
 
-    private static final int CURRENT_WP_VERSION = 10;
+    private static final int CURRENT_WP_VERSION = 11;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(World2.class);
     private static final long serialVersionUID = 2011062401L;

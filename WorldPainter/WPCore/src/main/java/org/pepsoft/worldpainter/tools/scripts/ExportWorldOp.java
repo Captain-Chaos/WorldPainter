@@ -76,7 +76,7 @@ public class ExportWorldOp extends AbstractOperation<Void> {
         if (! baseDir.isDirectory()) {
             throw new ScriptException("Directory " + directory + " does not exist or is not a directory");
         }
-        JavaWorldExporter exporter = new JavaWorldExporter(world);
+        JavaWorldExporter exporter = new JavaWorldExporter(world, null);
         try {
             File backupDir = exporter.selectBackupDir(baseDir, world.getName());
         

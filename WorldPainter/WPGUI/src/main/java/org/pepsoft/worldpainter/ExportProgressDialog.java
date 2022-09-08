@@ -18,6 +18,7 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.TaskbarProgressReceiver;
 import org.pepsoft.util.swing.ProgressTask;
+import org.pepsoft.worldpainter.exporting.WorldExportSettings;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
@@ -39,11 +40,12 @@ import static org.pepsoft.worldpainter.DefaultPlugin.*;
  */
 public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, ChunkFactory.Stats>> implements WindowListener {
     /** Creates new form ExportWorldDialog */
-    public ExportProgressDialog(Window parent, World2 world, File baseDir, String name) {
+    public ExportProgressDialog(Window parent, World2 world, WorldExportSettings exportSettings, File baseDir, String name) {
         super(parent, "Exporting");
         this.world = world;
         this.baseDir = baseDir;
         this.name = name;
+        this.exportSettings = exportSettings;
         addWindowListener(this);
 
         JButton minimiseButton = new JButton("Minimize");
@@ -143,7 +145,7 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
             public Map<Integer, ChunkFactory.Stats> execute(ProgressReceiver progressReceiver) throws OperationCancelled {
                 progressReceiver = new TaskbarProgressReceiver(App.getInstance(), progressReceiver);
                 progressReceiver.setMessage("Exporting world " + name);
-                WorldExporter exporter = PlatformManager.getInstance().getExporter(world);
+                WorldExporter exporter = PlatformManager.getInstance().getExporter(world, exportSettings);
                 try {
                     backupDir = exporter.selectBackupDir(baseDir, name);
                     return exporter.export(baseDir, name, backupDir, progressReceiver);
@@ -184,6 +186,7 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
     private final World2 world;
     private final String name;
     private final File baseDir;
+    private final WorldExportSettings exportSettings;
     private volatile File backupDir;
     
     private static final long serialVersionUID = 1L;

@@ -6,6 +6,7 @@ import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.exporting.PostProcessor;
+import org.pepsoft.worldpainter.exporting.WorldExportSettings;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
 import org.pepsoft.worldpainter.plugins.PlatformProvider.MapInfo;
 import org.slf4j.Logger;
@@ -46,8 +47,8 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
         return ((BlockBasedPlatformProvider) getImplementation(platform)).getChunkStore(platform, worldDir, dimension);
     }
 
-    public WorldExporter getExporter(World2 world) {
-        return getImplementation(world.getPlatform()).getExporter(world);
+    public WorldExporter getExporter(World2 world, WorldExportSettings exportSettings) {
+        return getImplementation(world.getPlatform()).getExporter(world, exportSettings);
     }
 
     public File getDefaultExportDir(Platform platform) {

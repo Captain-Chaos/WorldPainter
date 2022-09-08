@@ -10,6 +10,7 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.exporting.JavaMinecraftWorld;
 import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
+import org.pepsoft.worldpainter.exporting.WorldExportSettings;
 import org.pepsoft.worldpainter.layers.NotPresent;
 import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
@@ -31,6 +32,7 @@ import static org.junit.Assert.assertTrue;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 import static org.pepsoft.worldpainter.GameType.CREATIVE;
+import static org.pepsoft.worldpainter.exporting.WorldExportSettings.EXPORT_EVERYTHING;
 
 /**
  * Created by Pepijn Schmitz on 09-01-17.
@@ -96,7 +98,7 @@ public class RegressionIT {
 
         // Export
         logger.info("Exporting world {}", world.getName());
-        JavaWorldExporter worldExporter = new JavaWorldExporter(world);
+        JavaWorldExporter worldExporter = new JavaWorldExporter(world, EXPORT_EVERYTHING);
         String name = world.getName() + "-" + world.getPlatform().id;
         worldExporter.export(baseDir, name, null, null);
 
@@ -114,8 +116,7 @@ public class RegressionIT {
 
         // Export
         logger.info("Exporting dimension {} of world {}", dimension.getName(), world.getName());
-        world.setDimensionsToExport(singleton(dimension.getAnchor().dim));
-        JavaWorldExporter worldExporter = new JavaWorldExporter(world);
+        JavaWorldExporter worldExporter = new JavaWorldExporter(world, new WorldExportSettings(singleton(dimension.getAnchor().dim), null, null));
         String name = world.getName() + "-" + world.getPlatform().id;
         worldExporter.export(baseDir, name, null, null);
 
@@ -128,7 +129,7 @@ public class RegressionIT {
         assertEquals(expectedVersion, level.getVersion());
     }
 
-    protected void verifyJavaDimension(File worldDir, Dimension dimension, Set<Material> expectedMaterials) {
+    protected void verifyJavaDimension(File worldDir, Dimension dimension, Set<Material> expectedMaterials, WorldExportSettings exportSettings) {
         World2 world = dimension.getWorld();
         logger.info("Verifying dimension {} of map {}", dimension.getName(), world.getName());
 
@@ -137,12 +138,12 @@ public class RegressionIT {
         if (! dimension.containsOneOf(NotPresent.INSTANCE)) {
             checkBounds = true;
             int lowestTileX, highestTileX, lowestTileY, highestTileY;
-            if (dimension.getWorld().getTilesToExport() != null) {
+            if (exportSettings.getTilesToExport() != null) {
                 lowestTileX = Integer.MAX_VALUE;
                 highestTileX = Integer.MIN_VALUE;
                 lowestTileY = Integer.MAX_VALUE;
                 highestTileY = Integer.MIN_VALUE;
-                for (Point tile : dimension.getWorld().getTilesToExport()) {
+                for (Point tile: exportSettings.getTilesToExport()) {
                     if (tile.x < lowestTileX) {
                         lowestTileX = tile.x;
                     }

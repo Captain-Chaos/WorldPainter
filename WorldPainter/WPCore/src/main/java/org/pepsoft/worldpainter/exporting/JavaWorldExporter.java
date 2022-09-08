@@ -39,8 +39,8 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.*;
  * @author pepijn
  */
 public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this be made a BlockBasedPlatformProviderWorldExporter?
-    public JavaWorldExporter(World2 world) {
-        super(world, world.getPlatform());
+    public JavaWorldExporter(World2 world, WorldExportSettings exportSettings) {
+        super(world, exportSettings, world.getPlatform());
         this.platformProvider = (JavaPlatformProvider) super.platformProvider;
         if ((! (platform == JAVA_ANVIL))
                 && (! (platform == JAVA_MCREGION))
@@ -51,8 +51,8 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
         }
     }
 
-    protected JavaWorldExporter(World2 world, Platform platform) {
-        super(world, platform);
+    protected JavaWorldExporter(World2 world, WorldExportSettings exportSettings, Platform platform) {
+        super(world, exportSettings, platform);
         this.platformProvider = (JavaPlatformProvider) super.platformProvider;
     }
 
@@ -188,8 +188,8 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
     @Override
     public Map<Integer, ChunkFactory.Stats> export(File baseDir, String name, File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
         // Sanity checks
-        final Set<Point> selectedTiles = world.getTilesToExport();
-        final Set<Integer> selectedDimensions = world.getDimensionsToExport();
+        final Set<Point> selectedTiles = worldExportSettings.getTilesToExport();
+        final Set<Integer> selectedDimensions = worldExportSettings.getDimensionsToExport();
         if ((selectedTiles != null) && ((selectedDimensions == null) || (selectedDimensions.size() != 1))) {
             throw new IllegalArgumentException("If a tile selection is active then exactly one dimension must be selected");
         }
@@ -329,8 +329,8 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
 
         // Calculate total size of dimension
         Set<Point> regions = new HashSet<>();
-        if (world.getTilesToExport() != null) {
-            for (Point tile: world.getTilesToExport()) {
+        if (worldExportSettings.getTilesToExport() != null) {
+            for (Point tile: worldExportSettings.getTilesToExport()) {
                 regions.add(new Point(tile.x >> 2, tile.y >> 2));
             }
         } else {

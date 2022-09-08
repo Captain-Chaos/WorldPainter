@@ -18,6 +18,7 @@ import java.util.Random;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
 import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
+import static org.pepsoft.worldpainter.exporting.WorldExportSettings.EXPORT_EVERYTHING;
 //import org.pepsoft.worldpainter.gardenofeden.Inn;
 
 /**
@@ -48,7 +49,7 @@ public class TestTool {
 //        Inn inn = new Inn(garden, seed, null, new Point(32, 32), 1, 13, 12, NORTH, 4, RandomOne.of(ThemeManager.getInstance().getThemes()), false, true, true, true, true, true, true, true, true);
 //        garden.plantSeed(inn);
         while (! garden.tick());
-        JavaWorldExporter worldExporter = new JavaWorldExporter(world);
+        JavaWorldExporter worldExporter = new JavaWorldExporter(world, EXPORT_EVERYTHING);
         File exportDir = new File(args[0]);
         worldExporter.export(exportDir, "TestWorld", worldExporter.selectBackupDir(exportDir, world.getName()), null);
     }

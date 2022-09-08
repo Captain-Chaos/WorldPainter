@@ -5,6 +5,7 @@ import org.pepsoft.minecraft.Constants;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.plugins.PluginManager;
+import org.pepsoft.worldpainter.exporting.WorldExportSettings;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ import java.util.regex.Pattern;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.exporting.WorldExportSettings.EXPORT_EVERYTHING;
 import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
 
 @Ignore
@@ -124,9 +126,10 @@ public class ExportTester extends RegressionIT {
     private void verifyJavaMap(World2 world, File mapDir) throws IOException {
         verifyJavaWorld(mapDir, (world.getPlatform() == JAVA_MCREGION)? Constants.VERSION_MCREGION : Constants.VERSION_ANVIL);
         final Collection<Dimension> dimensions;
-        if (world.getDimensionsToExport() != null) {
+        final WorldExportSettings exportSettings = (world.getExportSettings() != null) ? world.getExportSettings() : EXPORT_EVERYTHING;
+        if (exportSettings.getDimensionsToExport() != null) {
             dimensions = world.getDimensions().stream()
-                    .filter(dimension -> world.getDimensionsToExport().contains(dimension.getAnchor().dim))
+                    .filter(dimension -> exportSettings.getDimensionsToExport().contains(dimension.getAnchor().dim))
                     .collect(toSet());
         } else {
             dimensions = world.getDimensions();
@@ -145,7 +148,7 @@ public class ExportTester extends RegressionIT {
                     }
                 }
             }
-            verifyJavaDimension(mapDir, dimension, expectedMaterials);
+            verifyJavaDimension(mapDir, dimension, expectedMaterials, exportSettings);
         }
     }
 

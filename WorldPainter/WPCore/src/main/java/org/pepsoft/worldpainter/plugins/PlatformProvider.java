@@ -4,6 +4,7 @@ import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.exporting.ExportSettings;
 import org.pepsoft.worldpainter.exporting.ExportSettingsEditor;
+import org.pepsoft.worldpainter.exporting.WorldExportSettings;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
 import org.pepsoft.worldpainter.mapexplorer.MapRecognizer;
 
@@ -21,10 +22,12 @@ public interface PlatformProvider extends Provider<Platform> {
      * Obtain a {@link WorldExporter} for the platform currently configured in
      * the specified world.
      *
-     * @param world2 The world to export.
-     * @return A world exporter which will export the specified world.
+     * @param world          The world to export.
+     * @param exportSettings The export settings to use for this export. If this is {@code null} then the export
+     *                       settings stored on the {@code world} object will be used, if any.
+     * @return A world exporter which will export the specified world with the specified settings.
      */
-    WorldExporter getExporter(World2 world2);
+    WorldExporter getExporter(World2 world, WorldExportSettings exportSettings);
 
     /**
      * Get the default directory to select on the Export screen for a

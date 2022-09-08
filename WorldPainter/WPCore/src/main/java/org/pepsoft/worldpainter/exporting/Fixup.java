@@ -16,10 +16,11 @@ public interface Fixup extends Serializable {
      * Perform the fixup. May do nothing if it is determined that the operation
      * no longer applies or is blocked due to earlier fixups.
      *
-     * @param world The world in which to perform the fixup.
-     * @param dimension The dimension for which to perform the fixup.
-     * @param platform The platform for which the export is being performed.
-     * @param exportSettings The export settings to apply, if any. May be {@code null}.
+     * @param world               The world in which to perform the fixup.
+     * @param dimension           The dimension for which to perform the fixup.
+     * @param platform            The platform for which the export is being performed.
+     * @param worldExportSettings The world export settings to apply, if any. May be {@code null}.
+     * @param exportSettings      The dimension export settings to apply, if any. May be {@code null}.
      */
-    void fixup(MinecraftWorld world, Dimension dimension, Platform platform, ExportSettings exportSettings);
+    void fixup(MinecraftWorld world, Dimension dimension, Platform platform, WorldExportSettings worldExportSettings, ExportSettings exportSettings);
 }

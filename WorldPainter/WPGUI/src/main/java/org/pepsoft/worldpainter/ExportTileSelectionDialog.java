@@ -31,10 +31,10 @@ import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
  *
  * @author pepijn
  */
-public class ExportTileSelectionDialog extends javax.swing.JDialog implements WindowListener {
+public class ExportTileSelectionDialog extends WorldPainterDialog implements WindowListener {
     /** Creates new form ExportTileSelectionDialog */
-    public ExportTileSelectionDialog(java.awt.Dialog parent, World2 world, int selectedDimension, Set<Point> selectedTiles, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Set<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
-        super(parent, true);
+    public ExportTileSelectionDialog(Window parent, World2 world, int selectedDimension, Set<Point> selectedTiles, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Set<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
+        super(parent);
         this.world = world;
         initComponents();
         
@@ -224,7 +224,7 @@ public class ExportTileSelectionDialog extends javax.swing.JDialog implements Wi
     }//GEN-LAST:event_jComboBox1ActionPerformed
 
     private void buttonCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCloseActionPerformed
-        dispose();
+        ok();
     }//GEN-LAST:event_buttonCloseActionPerformed
 
     private void buttonSetSpawnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSetSpawnActionPerformed

@@ -105,6 +105,10 @@ public class JavaExportSettings extends BlockBasedExportSettings {
         return makeAllLeavesPersistent;
     }
 
+    public JavaExportSettings withMakeAllLeavesPersistent(final boolean makeAllLeavesPersistent) {
+        return new JavaExportSettings(waterMode, lavaMode, sandMode, gravelMode, cementMode, flowWater, flowLava, calculateSkyLight, calculateBlockLight, calculateLeafDistance, removeFloatingLeaves, makeAllLeavesPersistent, ! leavePlants);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

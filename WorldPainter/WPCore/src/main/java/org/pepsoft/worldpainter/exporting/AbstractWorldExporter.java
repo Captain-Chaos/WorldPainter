@@ -16,6 +16,9 @@ import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.gardenofeden.GardenExporter;
 import org.pepsoft.worldpainter.gardenofeden.Seed;
 import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsLayer;
+import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
+import org.pepsoft.worldpainter.platforms.JavaExportSettings;
 import org.pepsoft.worldpainter.plugins.BlockBasedPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
@@ -45,6 +48,7 @@ import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Platform.Capability.LEAF_DISTANCES;
 import static org.pepsoft.worldpainter.Platform.Capability.PRECALCULATED_LIGHT;
+import static org.pepsoft.worldpainter.exporting.WorldExportSettings.Step.*;
 import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
 
 /**
@@ -53,12 +57,15 @@ import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
  * <p>Created by Pepijn on 11-12-2016.
  */
 public abstract class AbstractWorldExporter implements WorldExporter {
-    protected AbstractWorldExporter(World2 world, Platform platform) {
+    protected AbstractWorldExporter(World2 world, WorldExportSettings worldExportSettings, Platform platform) {
         if (world == null) {
             throw new NullPointerException();
         }
         this.world = world;
         this.platform = platform;
+        this.worldExportSettings = (worldExportSettings != null)
+                ? worldExportSettings
+                : (world.getExportSettings() != null ? world.getExportSettings() : new WorldExportSettings());
         platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
     }
 
@@ -107,6 +114,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         final Dimension ceiling = dimension.getWorld().getDimension(new Anchor(anchor.dim, anchor.role, true, 0));
 
         final ChunkFactory.Stats collectedStats = new ChunkFactory.Stats();
+        Object savedSettings = null, savedCeilingSettings = null;
         dimension.rememberChanges();
         if (ceiling != null) {
             ceiling.rememberChanges();
@@ -115,13 +123,13 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             // Determine regions to export
             int lowestRegionX = Integer.MAX_VALUE, highestRegionX = Integer.MIN_VALUE, lowestRegionZ = Integer.MAX_VALUE, highestRegionZ = Integer.MIN_VALUE;
             final Set<Point> regions = new HashSet<>(), exportedRegions = new HashSet<>();
-            final boolean tilesSelected = world.getTilesToExport() != null;
+            final boolean tilesSelected = worldExportSettings.getTilesToExport() != null;
             final Set<Point> selectedTiles;
             if (tilesSelected) {
                 // Sanity check
-                assert world.getDimensionsToExport().size() == 1;
-                assert world.getDimensionsToExport().contains(anchor.dim);
-                selectedTiles = world.getTilesToExport();
+                assert worldExportSettings.getDimensionsToExport().size() == 1;
+                assert worldExportSettings.getDimensionsToExport().contains(anchor.dim);
+                selectedTiles = worldExportSettings.getTilesToExport();
                 for (Point tile: selectedTiles) {
                     int regionX = tile.x >> 2;
                     int regionZ = tile.y >> 2;
@@ -187,9 +195,9 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 }
             }
 
-            setupDimensionForExport(dimension, selectedTiles);
+            savedSettings = setupDimensionForExport(dimension, selectedTiles);
             if (ceiling != null) {
-                setupDimensionForExport(ceiling, selectedTiles);
+                savedCeilingSettings = setupDimensionForExport(ceiling, selectedTiles);
             }
 
             // Sort the regions to export the first two rows together, and then
@@ -330,6 +338,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         } finally {
 
             // Undo any changes we made (such as applying any combined layers)
+            restoreDimensionAfterExport(dimension, savedSettings);
             if (dimension.undoChanges()) {
                 // TODO: some kind of cleverer undo mechanism (undo history cloning?) so we don't mess up the user's
                 //  redo history
@@ -339,6 +348,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
             if (ceiling != null) {
                 // Undo any changes we made (such as applying any combined layers)
+                restoreDimensionAfterExport(ceiling, savedCeilingSettings);
                 if (ceiling.undoChanges()) {
                     // TODO: some kind of cleverer undo mechanism (undo history cloning?) so we don't mess up the user's
                     //  redo history
@@ -364,7 +374,22 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
     }
 
-    protected void setupDimensionForExport(Dimension dimension, Set<Point> selectedTiles) {
+    protected Object setupDimensionForExport(Dimension dimension, Set<Point> selectedTiles) {
+        final Map<String, Object> savedSettings = new HashMap<>();
+
+        // Make all leaves persistent if directed by the world export settings
+        if ((worldExportSettings.getStepsToSkip() != null) && worldExportSettings.getStepsToSkip().contains(LEAVES)) {
+            ExportSettings exportSettings = dimension.getExportSettings();
+            savedSettings.put("exportSettings", exportSettings);
+            if (exportSettings == null) {
+                exportSettings = platformProvider.getDefaultExportSettings(platform);
+            }
+            if (exportSettings instanceof JavaExportSettings) {
+                exportSettings = ((JavaExportSettings) exportSettings).withMakeAllLeavesPersistent(true);
+                dimension.setExportSettings(exportSettings);
+            }
+        }
+
         // Gather all layers used on the map/selected tiles
         final Set<Layer> allLayers;
         if (selectedTiles == null) {
@@ -381,6 +406,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             }
         }
         allLayers.addAll(dimension.getMinimumLayers());
+
         // If there are combined layers, apply them and gather any newly added layers, recursively
         boolean done;
         do {
@@ -400,6 +426,25 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 }
             }
         } while (! done);
+
+        return savedSettings;
+    }
+
+    /**
+     * Restores changes that were performed by {@link #setupDimensionForExport(Dimension, Set)} that are not covered
+     * by the undo mechanism.
+     *
+     * @param dimension     The dimension to restore.
+     * @param savedSettings The object that was returned from {@link #setupDimensionForExport(Dimension, Set)}.
+     */
+    @SuppressWarnings("unchecked") // Responsibility of caller
+    protected void restoreDimensionAfterExport(Dimension dimension, Object savedSettings) {
+        if (savedSettings != null) {
+            final Map<String, Object> map = (Map<String, Object>) savedSettings;
+            if (map.containsKey("exportSettings")) {
+                dimension.setExportSettings((ExportSettings) map.get("exportSettings"));
+            }
+        }
     }
 
     protected Map<Layer, LayerExporter> getExportersForRegion(Dimension dimension, Point regionCoords) {
@@ -437,6 +482,9 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
         // Remove layers which have been excluded for export
         allLayers.removeIf(layer -> (layer instanceof CustomLayer) && (! ((CustomLayer) layer).isExport()));
+
+        // Remove layers which should be disabled due to the world export settings
+        applyWorldExportSettings(allLayers);
 
         // Create all the exporters
         for (Layer layer: allLayers) {
@@ -602,7 +650,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         if (progressReceiver != null) {
             progressReceiver.setMessage("Calculating initial " + nouns);
         }
-        BlockPropertiesCalculator calculator = new BlockPropertiesCalculator(minecraftWorld, platform, exportSettings);
+        BlockPropertiesCalculator calculator = new BlockPropertiesCalculator(minecraftWorld, platform, worldExportSettings, exportSettings);
 
         // Calculate primary light
         int lowMark = Integer.MAX_VALUE, highMark = Integer.MIN_VALUE;
@@ -664,12 +712,12 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 for (int tileY = lowestTileY; tileY <= highestTileY; tileY++) {
                     Point tileCoords = new Point(tileX, tileY);
                     Tile tile = dimension.getTile(tileCoords);
-                    if ((tile != null) && ((! tileSelection) || dimension.getWorld().getTilesToExport().contains(tileCoords))) {
+                    if ((tile != null) && ((! tileSelection) || worldExportSettings.getTilesToExport().contains(tileCoords))) {
                         tiles.put(tileCoords, tile);
                     }
                     if (ceiling != null) {
                         tile = ceiling.getTile(tileCoords);
-                        if ((tile != null) && ((! tileSelection) || dimension.getWorld().getTilesToExport().contains(tileCoords))) {
+                        if ((tile != null) && ((! tileSelection) || worldExportSettings.getTilesToExport().contains(tileCoords))) {
                             ceilingTiles.put(tileCoords, tile);
                         }
                     }
@@ -687,6 +735,9 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
             // Remove layers which have been excluded for export
             allLayers.removeIf(layer -> (layer instanceof CustomLayer) && (! ((CustomLayer) layer).isExport()));
+
+            // Remove layers which should be disabled due to the world export settings
+            applyWorldExportSettings(allLayers);
 
             List<Layer> secondaryPassLayers = new ArrayList<>(), ceilingSecondaryPassLayers = new ArrayList<>();
             for (Layer layer: allLayers) {
@@ -707,6 +758,9 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
                 // Remove layers which have been excluded for export
                 allCeilingLayers.removeIf(layer -> (layer instanceof CustomLayer) && (! ((CustomLayer) layer).isExport()));
+
+                // Remove layers which should be disabled due to the world export settings
+                applyWorldExportSettings(allCeilingLayers);
 
                 for (Layer layer: allCeilingLayers) {
                     final Class<? extends LayerExporter> exporterType = layer.getExporterType();
@@ -752,8 +806,13 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
                 // Third pass. Calculate lighting and/or leaf distances (if requested, and supported by the platform)
                 long t4 = System.currentTimeMillis();
-                final boolean lightingNeeded = (exportSettings.isCalculateBlockLight() || exportSettings.isCalculateSkyLight()) && platform.capabilities.contains(PRECALCULATED_LIGHT);
-                final boolean leafDistanceNeeded = exportSettings.isCalculateLeafDistance() && platform.capabilities.contains(LEAF_DISTANCES);
+                final Set<WorldExportSettings.Step> stepsToSkip = worldExportSettings.getStepsToSkip();
+                final boolean lightingNeeded = (exportSettings.isCalculateBlockLight() || exportSettings.isCalculateSkyLight())
+                        && platform.capabilities.contains(PRECALCULATED_LIGHT)
+                        && ((stepsToSkip == null) || (! stepsToSkip.contains(LIGHTING)));
+                final boolean leafDistanceNeeded = exportSettings.isCalculateLeafDistance()
+                        && platform.capabilities.contains(LEAF_DISTANCES)
+                        && ((stepsToSkip == null) || (! stepsToSkip.contains(LEAVES)));
                 if (lightingNeeded || leafDistanceNeeded) {
                     blockPropertiesPass(minecraftWorld, regionCoords, exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.35f) : null);
                 }
@@ -890,7 +949,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                     logger.debug("Performing " + regionFixups.size() + " fixups for region " + entry.getKey().x + "," + entry.getKey().y);
                 }
                 for (Fixup fixup: regionFixups) {
-                    fixup.fixup(minecraftWorld, dimension, platform, exportSettings);
+                    fixup.fixup(minecraftWorld, dimension, platform, worldExportSettings, exportSettings);
                     if (progressReceiver != null) {
                         progressReceiver.setProgress((float) ++count / total);
                     }
@@ -952,6 +1011,20 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             private final ThreadGroup threadGroup = new ThreadGroup(operation);
             private int nextID = 1;
         });
+    }
+
+    private void applyWorldExportSettings(Collection<? extends Layer> layers) {
+        final Set<WorldExportSettings.Step> stepsToSkip = worldExportSettings.getStepsToSkip();
+        if ((stepsToSkip != null) && (! stepsToSkip.isEmpty())) {
+            layers.removeIf(layer -> {
+                final boolean rc = (stepsToSkip.contains(CAVES) && ((layer instanceof Caverns) || (layer instanceof Chasms) || (layer instanceof Caves) || (layer instanceof TunnelLayer)))
+                        || (stepsToSkip.contains(RESOURCES) && ((layer instanceof Resources) || (layer instanceof UndergroundPocketsLayer)));
+                if (rc) {
+                    logger.debug("Disabling layer {} due to world export settings", layer);
+                }
+                return rc;
+            });
+        }
     }
 
     /**
@@ -1118,6 +1191,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
     protected final BlockBasedPlatformProvider platformProvider;
     protected final Semaphore performingFixups = new Semaphore(1);
     protected final Platform platform;
+    protected final WorldExportSettings worldExportSettings;
 
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
 

@@ -20,6 +20,8 @@ import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Platform.Capability.LEAF_DISTANCES;
 import static org.pepsoft.worldpainter.Platform.Capability.PRECALCULATED_LIGHT;
+import static org.pepsoft.worldpainter.exporting.WorldExportSettings.Step.LEAVES;
+import static org.pepsoft.worldpainter.exporting.WorldExportSettings.Step.LIGHTING;
 
 /**
  * A block properties calculator for MinecraftWorlds. This can calculate properties of blocks that are influenced by
@@ -45,12 +47,18 @@ import static org.pepsoft.worldpainter.Platform.Capability.PRECALCULATED_LIGHT;
  * @author pepijn
  */
 public class BlockPropertiesCalculator {
-    public BlockPropertiesCalculator(MinecraftWorld world, Platform platform, BlockBasedExportSettings exportSettings) {
+    public BlockPropertiesCalculator(MinecraftWorld world, Platform platform, WorldExportSettings worldExportSettings, BlockBasedExportSettings exportSettings) {
         this.world = world;
         this.platform = platform;
-        skyLight = exportSettings.isCalculateSkyLight() && platform.capabilities.contains(PRECALCULATED_LIGHT);
-        blockLight = exportSettings.isCalculateBlockLight() && platform.capabilities.contains(PRECALCULATED_LIGHT);
-        leafDistance = exportSettings.isCalculateLeafDistance() && platform.capabilities.contains(LEAF_DISTANCES);
+        skyLight = ((worldExportSettings == null) || (worldExportSettings.getStepsToSkip() == null) || (! worldExportSettings.getStepsToSkip().contains(LIGHTING)))
+                && exportSettings.isCalculateSkyLight()
+                && platform.capabilities.contains(PRECALCULATED_LIGHT);
+        blockLight = ((worldExportSettings == null) || (worldExportSettings.getStepsToSkip() == null) || (! worldExportSettings.getStepsToSkip().contains(LIGHTING)))
+                && exportSettings.isCalculateBlockLight()
+                && platform.capabilities.contains(PRECALCULATED_LIGHT);
+        leafDistance = ((worldExportSettings == null) || (worldExportSettings.getStepsToSkip() == null) || (! worldExportSettings.getStepsToSkip().contains(LEAVES)))
+                && exportSettings.isCalculateLeafDistance()
+                && platform.capabilities.contains(LEAF_DISTANCES);
         removeFloatingLeaves = leafDistance && exportSettings.isRemoveFloatingLeaves();
         if ((! skyLight) && (! blockLight) && (! leafDistance)) {
             throw new IllegalArgumentException("Nothing to do");

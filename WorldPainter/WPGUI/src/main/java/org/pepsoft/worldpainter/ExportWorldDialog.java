@@ -14,6 +14,7 @@ package org.pepsoft.worldpainter;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.exporting.WorldExportSettings;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Populate;
@@ -29,15 +30,15 @@ import java.io.IOException;
 import java.util.List;
 import java.util.*;
 
-import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_PEACEFUL;
-import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Dimension.Anchor.*;
 import static org.pepsoft.worldpainter.GameType.*;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
+import static org.pepsoft.worldpainter.exporting.WorldExportSettings.EXPORT_EVERYTHING;
 import static org.pepsoft.worldpainter.util.BackupUtils.cleanUpBackups;
 import static org.pepsoft.worldpainter.util.MaterialUtils.gatherBlocksWithoutIds;
 
@@ -45,14 +46,12 @@ import static org.pepsoft.worldpainter.util.MaterialUtils.gatherBlocksWithoutIds
  *
  * @author pepijn
  */
-@SuppressWarnings({"unused", "FieldCanBeLocal", "rawtypes", "Convert2Lambda", "Anonymous2MethodRef"}) // Managed by NetBeans
+@SuppressWarnings({"unused", "FieldCanBeLocal", "rawtypes", "Convert2Lambda", "Anonymous2MethodRef", "ConstantConditions"}) // Managed by NetBeans
 public class ExportWorldDialog extends WorldPainterDialog {
     /** Creates new form ExportWorldDialog */
-    public ExportWorldDialog(java.awt.Frame parent, World2 world, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Set<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, WorldPainter view) {
+    public ExportWorldDialog(Window parent, World2 world, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Set<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, WorldPainter view) {
         super(parent);
         this.world = world;
-        selectedTiles = world.getTilesToExport();
-        selectedDimension = (selectedTiles != null) ? world.getDimensionsToExport().iterator().next() : DIM_NORMAL;
         final Dimension dim0 = world.getDimension(NORMAL_DETAIL);
         this.colourScheme = colourScheme;
         this.hiddenLayers = hiddenLayers;
@@ -141,10 +140,6 @@ public class ExportWorldDialog extends WorldPainterDialog {
         comboBoxGameType.setEnabled(comboBoxGameType.getItemCount() > 1);
         comboBoxGameType.setRenderer(new EnumListCellRenderer());
         checkBoxAllowCheats.setSelected(world.isAllowCheats());
-        if (selectedTiles != null) {
-            radioButtonExportSelection.setText("export " + selectedTiles.size() + " selected tiles");
-            radioButtonExportSelection.setSelected(true);
-        }
         checkBoxMapFeatures.setSelected(world.isMapFeatures());
         comboBoxDifficulty.setSelectedIndex(world.getDifficulty());
 
@@ -224,7 +219,14 @@ public class ExportWorldDialog extends WorldPainterDialog {
         return true;
     }
 
-    private void export() {
+    protected final void export(WorldExportSettings exportSettings) {
+        exportSettings = (exportSettings != null)
+                ? exportSettings
+                : ((world.getExportSettings() != null) ? world.getExportSettings() : new WorldExportSettings());
+        final boolean exportAllDimensions = exportSettings.getDimensionsToExport() == null;
+        final Set<Point> selectedTiles = exportAllDimensions ? null : exportSettings.getTilesToExport();
+        final int selectedDimension = exportAllDimensions ? DIM_NORMAL : exportSettings.getDimensionsToExport().iterator().next();
+
         // Check for errors
         if (! new File(fieldDirectory.getText().trim()).isDirectory()) {
             fieldDirectory.requestFocusInWindow();
@@ -238,16 +240,10 @@ public class ExportWorldDialog extends WorldPainterDialog {
             JOptionPane.showMessageDialog(this, "You have not specified a name for the map.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        if ((! radioButtonExportEverything.isSelected()) && ((selectedTiles == null) || selectedTiles.isEmpty())) {
-            radioButtonExportEverything.requestFocusInWindow();
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, "No tiles have been selected for export.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        final Platform platform = world.getPlatform();
 
         // Check for warnings
-        StringBuilder sb = new StringBuilder("<html>Please confirm that you want to export the world<br>notwithstanding the following warnings:<br><ul>");
+        final Platform platform = world.getPlatform();
+        final StringBuilder sb = new StringBuilder("<html>Please confirm that you want to export the world<br>notwithstanding the following warnings:<br><ul>");
         boolean showWarning = false;
         for (Dimension dimension: world.getDimensions()) {
             if (dimension.getAnchor().invert) {
@@ -259,7 +255,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
             if ((editor.isPopulateSelected() || dimension.getAllLayers(true).contains(Populate.INSTANCE)) && (! platform.capabilities.contains(POPULATE))) {
                 sb.append("<li>Population not supported for<br>map format " + platform.displayName + "; it will not have an effect");
                 showWarning = true;
-            } else if ((! radioButtonExportSelection.isSelected()) || (selectedDimension == dimension.getAnchor().dim)) {
+            } else if (exportAllDimensions || (selectedDimension == dimension.getAnchor().dim)) {
                 // The dimension is going to be exported
                 if ((generatorType == Generator.FLAT) && (editor.isPopulateSelected() || dimension.getAllLayers(true).contains(Populate.INSTANCE))) {
                     sb.append("<li>The Superflat world type is selected and Populate is in use.<br>Minecraft will <em>not</em> populate generated chunks for Superflat maps.");
@@ -272,37 +268,19 @@ public class ExportWorldDialog extends WorldPainterDialog {
                 showWarning = true;
             }
         }
-        if (radioButtonExportSelection.isSelected()) {
-            if (selectedDimension == DIM_NORMAL) {
-                boolean spawnInSelection = false;
-                Point spawnPoint = world.getSpawnPoint();
-                for (Point tile: selectedTiles) {
-                    if ((spawnPoint.x >= (tile.x << 7)) && (spawnPoint.x < ((tile.x + 1) << 7)) && (spawnPoint.y >= (tile.y << 7)) && (spawnPoint.y < ((tile.y + 1) << 7))) {
-                        spawnInSelection = true;
-                        break;
-                    }
-                }
-                if (! spawnInSelection) {
-                    sb.append("<li>The spawn point is not inside the selected area.");
-                    showWarning = true;
+        if ((selectedTiles != null) && (selectedDimension == DIM_NORMAL)) {
+            boolean spawnInSelection = false;
+            Point spawnPoint = world.getSpawnPoint();
+            for (Point tile: selectedTiles) {
+                if ((spawnPoint.x >= (tile.x << 7)) && (spawnPoint.x < ((tile.x + 1) << 7)) && (spawnPoint.y >= (tile.y << 7)) && (spawnPoint.y < ((tile.y + 1) << 7))) {
+                    spawnInSelection = true;
+                    break;
                 }
             }
-            String dim;
-            switch (selectedDimension) {
-                case DIM_NORMAL:
-                    dim = "Surface";
-                    break;
-                case DIM_NETHER:
-                    dim = "Nether";
-                    break;
-                case DIM_END:
-                    dim = "End";
-                    break;
-                default:
-                    throw new InternalError();
+            if (!spawnInSelection) {
+                sb.append("<li>The spawn point is not inside the selected area.");
+                showWarning = true;
             }
-            sb.append("<li>A tile selection is active! Only " + selectedTiles.size() + " tiles of the<br>" + dim + " dimension are going to be exported.");
-            showWarning = showWarning || (! disableTileSelectionWarning);
         }
         int disabledLayerCount = 0;
         for (Dimension dimension: world.getDimensions()) {
@@ -343,7 +321,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
         if (! saveDimensionSettings()) {
             return;
         }
-        if (! checkCompatibility(platform)) {
+        if (! checkCompatibility(world.getPlatform())) {
             return;
         }
 
@@ -351,19 +329,13 @@ public class ExportWorldDialog extends WorldPainterDialog {
         world.setGameType((GameType) comboBoxGameType.getSelectedItem());
         world.setAllowCheats(checkBoxAllowCheats.isSelected());
         world.setMapFeatures(checkBoxMapFeatures.isSelected());
-        if (radioButtonExportEverything.isSelected()) {
-            world.setDimensionsToExport(null);
-            world.setTilesToExport(null);
-        } else {
-            world.setDimensionsToExport(singleton(selectedDimension));
-            world.setTilesToExport(selectedTiles);
-        }
         world.setDifficulty(comboBoxDifficulty.getSelectedIndex());
         
         fieldDirectory.setEnabled(false);
         fieldName.setEnabled(false);
         buttonSelectDirectory.setEnabled(false);
         buttonExport.setEnabled(false);
+        buttonTestExport.setEnabled(false);
         buttonCancel.setEnabled(false);
         surfacePropertiesEditor.setEnabled(false);
         netherPropertiesEditor.setEnabled(false);
@@ -371,17 +343,13 @@ public class ExportWorldDialog extends WorldPainterDialog {
         checkBoxGoodies.setEnabled(false);
         comboBoxGameType.setEnabled(false);
         checkBoxAllowCheats.setEnabled(false);
-        radioButtonExportEverything.setEnabled(false);
-        radioButtonExportSelection.setEnabled(false);
-        labelSelectTiles.setForeground(null);
-        labelSelectTiles.setCursor(null);
         checkBoxMapFeatures.setEnabled(false);
         comboBoxDifficulty.setEnabled(false);
 
         Configuration config = Configuration.getInstance();
         config.setExportDirectory(world.getPlatform(), baseDir);
 
-        ExportProgressDialog dialog = new ExportProgressDialog(this, world, baseDir, name);
+        ExportProgressDialog dialog = new ExportProgressDialog(this, world, exportSettings, baseDir, name);
         view.setInhibitUpdates(true);
         try {
             dialog.setVisible(true);
@@ -428,29 +396,31 @@ public class ExportWorldDialog extends WorldPainterDialog {
         }
         return true;
     }
+    
+    private void testExport() {
+        final TestExportDialog dialog = new TestExportDialog(this, world, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin);
+        dialog.setVisible(true);
+        if (! dialog.isCancelled()) {
+            export(world.getExportSettings());
+        }
+    }
 
     private void setControlStates() {
         boolean notHardcore = comboBoxGameType.getSelectedItem() != HARDCORE;
         final boolean platformSupported = supportedPlatforms.contains(world.getPlatform());
-        if (radioButtonExportSelection.isSelected() && platformSupported) {
-            labelSelectTiles.setForeground(Color.BLUE);
-            labelSelectTiles.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        } else {
-            labelSelectTiles.setForeground(null);
-            labelSelectTiles.setCursor(null);
-        }
         checkBoxAllowCheats.setEnabled((world.getPlatform() != JAVA_MCREGION) && notHardcore);
         comboBoxDifficulty.setEnabled(notHardcore);
         fieldDirectory.setEnabled(platformSupported);
         buttonSelectDirectory.setEnabled(platformSupported);
         buttonExport.setEnabled(platformSupported);
+        buttonTestExport.setEnabled(platformSupported);
         if (! platformSupported) {
             buttonExport.setToolTipText(labelPlatformWarning.getToolTipText());
+            buttonTestExport.setToolTipText(labelPlatformWarning.getToolTipText());
         } else {
             buttonExport.setToolTipText(null);
+            buttonTestExport.setToolTipText(null);
         }
-        radioButtonExportEverything.setEnabled(platformSupported);
-        radioButtonExportSelection.setEnabled(platformSupported);
     }
 
     private void selectDir() {
@@ -464,18 +434,6 @@ public class ExportWorldDialog extends WorldPainterDialog {
         }
     }
     
-    private void selectTiles() {
-        if (radioButtonExportSelection.isSelected()) {
-            ExportTileSelectionDialog dialog = new ExportTileSelectionDialog(this, world, selectedDimension, selectedTiles, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin);
-            dialog.setVisible(true);
-            selectedDimension = dialog.getSelectedDimension();
-            selectedTiles = dialog.getSelectedTiles();
-            radioButtonExportSelection.setText("export " + selectedTiles.size() + " selected tiles");
-            setControlStates();
-            disableTileSelectionWarning = true;
-        }
-    }
-
     private void changePlatform() {
         if (! saveDimensionSettings()) {
             return;
@@ -518,9 +476,6 @@ public class ExportWorldDialog extends WorldPainterDialog {
         endCeilingPropertiesEditor = new org.pepsoft.worldpainter.DimensionPropertiesEditor();
         checkBoxGoodies = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
-        radioButtonExportEverything = new javax.swing.JRadioButton();
-        radioButtonExportSelection = new javax.swing.JRadioButton();
-        labelSelectTiles = new javax.swing.JLabel();
         checkBoxAllowCheats = new javax.swing.JCheckBox();
         jLabel5 = new javax.swing.JLabel();
         comboBoxGameType = new javax.swing.JComboBox<>();
@@ -530,6 +485,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
         checkBoxMapFeatures = new javax.swing.JCheckBox();
         jLabel4 = new javax.swing.JLabel();
         labelPlatformWarning = new javax.swing.JLabel();
+        buttonTestExport = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Exporting");
@@ -577,30 +533,6 @@ public class ExportWorldDialog extends WorldPainterDialog {
 
         jLabel1.setText("Map format:");
 
-        buttonGroup2.add(radioButtonExportEverything);
-        radioButtonExportEverything.setSelected(true);
-        radioButtonExportEverything.setText("export everything");
-        radioButtonExportEverything.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonExportEverythingActionPerformed(evt);
-            }
-        });
-
-        buttonGroup2.add(radioButtonExportSelection);
-        radioButtonExportSelection.setText("export selected tiles");
-        radioButtonExportSelection.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonExportSelectionActionPerformed(evt);
-            }
-        });
-
-        labelSelectTiles.setText("<html><u>select tiles</u></html>");
-        labelSelectTiles.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                labelSelectTilesMouseClicked(evt);
-            }
-        });
-
         checkBoxAllowCheats.setSelected(true);
         checkBoxAllowCheats.setText("allow cheats:");
         checkBoxAllowCheats.setToolTipText("Whether to allow cheats (single player commands)");
@@ -637,6 +569,13 @@ public class ExportWorldDialog extends WorldPainterDialog {
         labelPlatformWarning.setText("<html><b>unknown format</b></html>");
         labelPlatformWarning.setToolTipText("<html>This map format is unknown and cannot be Exported. Most likely it<br>\nis supported by a plugin that is not installed or cannot be loaded.</html>");
 
+        buttonTestExport.setText("Test Export");
+        buttonTestExport.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonTestExportActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -664,6 +603,8 @@ public class ExportWorldDialog extends WorldPainterDialog {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(checkBoxMapFeatures)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(buttonTestExport)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonExport)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCancel))
@@ -671,22 +612,16 @@ public class ExportWorldDialog extends WorldPainterDialog {
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel2)
-                            .addComponent(jLabel3))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(checkBoxGoodies)
-                        .addGap(18, 18, 18)
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(labelPlatform, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(labelPlatformWarning, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(radioButtonExportEverything)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(radioButtonExportSelection)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(labelSelectTiles, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(jLabel3)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(checkBoxGoodies)
+                                .addGap(18, 18, 18)
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(labelPlatform, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(labelPlatformWarning, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -707,9 +642,6 @@ public class ExportWorldDialog extends WorldPainterDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(checkBoxGoodies)
-                    .addComponent(radioButtonExportEverything)
-                    .addComponent(radioButtonExportSelection)
-                    .addComponent(labelSelectTiles, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1)
                     .addComponent(labelPlatform, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(labelPlatformWarning, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -723,7 +655,8 @@ public class ExportWorldDialog extends WorldPainterDialog {
                     .addComponent(jLabel6)
                     .addComponent(comboBoxDifficulty, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4)
-                    .addComponent(checkBoxMapFeatures))
+                    .addComponent(checkBoxMapFeatures)
+                    .addComponent(buttonTestExport))
                 .addContainerGap())
         );
 
@@ -735,28 +668,12 @@ public class ExportWorldDialog extends WorldPainterDialog {
     }//GEN-LAST:event_buttonCancelActionPerformed
 
     private void buttonExportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonExportActionPerformed
-        export();
+        export(EXPORT_EVERYTHING);
     }//GEN-LAST:event_buttonExportActionPerformed
 
     private void buttonSelectDirectoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSelectDirectoryActionPerformed
         selectDir();
     }//GEN-LAST:event_buttonSelectDirectoryActionPerformed
-
-    private void radioButtonExportEverythingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonExportEverythingActionPerformed
-        setControlStates();
-    }//GEN-LAST:event_radioButtonExportEverythingActionPerformed
-
-    private void labelSelectTilesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_labelSelectTilesMouseClicked
-        selectTiles();
-    }//GEN-LAST:event_labelSelectTilesMouseClicked
-
-    private void radioButtonExportSelectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonExportSelectionActionPerformed
-        if (radioButtonExportSelection.isSelected()) {
-            selectTiles();
-        } else {
-            setControlStates();
-        }
-    }//GEN-LAST:event_radioButtonExportSelectionActionPerformed
 
     private void platformChanged() {
         Platform newPlatform = world.getPlatform();
@@ -811,11 +728,16 @@ public class ExportWorldDialog extends WorldPainterDialog {
         changePlatform();
     }//GEN-LAST:event_labelPlatformMouseClicked
 
+    private void buttonTestExportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonTestExportActionPerformed
+        testExport();
+    }//GEN-LAST:event_buttonTestExportActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
     private javax.swing.JButton buttonExport;
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JButton buttonSelectDirectory;
+    private javax.swing.JButton buttonTestExport;
     private javax.swing.JCheckBox checkBoxAllowCheats;
     private javax.swing.JCheckBox checkBoxGoodies;
     private javax.swing.JCheckBox checkBoxMapFeatures;
@@ -834,11 +756,8 @@ public class ExportWorldDialog extends WorldPainterDialog {
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel labelPlatform;
     private javax.swing.JLabel labelPlatformWarning;
-    private javax.swing.JLabel labelSelectTiles;
     private org.pepsoft.worldpainter.DimensionPropertiesEditor netherCeilingPropertiesEditor;
     private org.pepsoft.worldpainter.DimensionPropertiesEditor netherPropertiesEditor;
-    private javax.swing.JRadioButton radioButtonExportEverything;
-    private javax.swing.JRadioButton radioButtonExportSelection;
     private org.pepsoft.worldpainter.DimensionPropertiesEditor surfaceCeilingPropertiesEditor;
     private org.pepsoft.worldpainter.DimensionPropertiesEditor surfacePropertiesEditor;
     // End of variables declaration//GEN-END:variables
@@ -853,9 +772,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
     private final WorldPainter view;
     private final Map<Anchor, DimensionPropertiesEditor> dimensionPropertiesEditors = new HashMap<>();
     private final List<Platform> supportedPlatforms = new ArrayList<>();
-    private int selectedDimension;
-    private Set<Point> selectedTiles;
-    private boolean disableTileSelectionWarning, disableDisabledLayersWarning;
+    private boolean disableDisabledLayersWarning;
 
     private static final long serialVersionUID = 1L;
 }

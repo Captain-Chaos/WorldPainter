@@ -2,6 +2,7 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.TextProgressReceiver;
+import org.pepsoft.worldpainter.exporting.WorldExportSettings;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.slf4j.Logger;
@@ -25,7 +26,6 @@ public class ExportPerformanceTester extends AbstractTool {
         final WorldIO worldIO = new WorldIO();
         worldIO.load(new FileInputStream(args[0]));
         final World2 world = worldIO.getWorld();
-        world.setDimensionsToExport(singleton(DIM_NORMAL));
         for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
             MixedMaterial material = world.getMixedMaterial(i);
             Terrain.setCustomMaterial(i, material);
@@ -42,7 +42,7 @@ public class ExportPerformanceTester extends AbstractTool {
         System.setProperty("org.pepsoft.worldpainter.threads", Integer.toString(threadCount));
 
         logger.info("Testing export of {} with {} thread(s)", world.getName(), threadCount);
-        final WorldExporter exporter = PlatformManager.getInstance().getExporter(world);
+        final WorldExporter exporter = PlatformManager.getInstance().getExporter(world, new WorldExportSettings(singleton(DIM_NORMAL), null, null));
         final File baseDir = new File(System.getProperty("user.dir"), "tmp-exported-worlds");
         final File backupDir = exporter.selectBackupDir(baseDir, world.getName());
         long start = System.currentTimeMillis();

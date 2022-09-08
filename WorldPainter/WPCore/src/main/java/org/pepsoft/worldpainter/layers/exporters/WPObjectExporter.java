@@ -25,6 +25,8 @@ import java.util.UUID;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
+import static org.pepsoft.worldpainter.exporting.WorldExportSettings.Step.LEAVES;
+import static org.pepsoft.worldpainter.exporting.WorldExportSettings.Step.LIGHTING;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
@@ -594,7 +596,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         }
 
         @Override
-        public void fixup(MinecraftWorld world, Dimension dimension, Platform platform, ExportSettings exportSettings) {
+        public void fixup(MinecraftWorld world, Dimension dimension, Platform platform, WorldExportSettings worldExportSettings, ExportSettings exportSettings) {
             // Recheck whether there is room
             if (isRoom(world, dimension, object, x, y, z, placement)) {
                 if (logger.isTraceEnabled()) {
@@ -609,11 +611,10 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 Rectangle area = new Rectangle(x + offset.x, y + offset.y, dim.x, dim.y);
                 frostExporter.addFeatures(area, null, world);
 
-                // Fixups are done *after* post processing, so post process
-                // again
+                // Fixups are done *after* post processing, so post process again
                 Box bounds = getBounds(object, x, y, z);
-                // Include the layer below and above the object for post
-                // processing, as those blocks may also have been affected
+                // Include the layer below and above the object for post processing, as those blocks may also have been
+                // affected
                 bounds.setZ1(Math.max(bounds.getZ1() - 1, world.getMinHeight()));
                 bounds.setZ2(Math.min(bounds.getZ2() + 1, world.getMaxHeight() - 1));
                 try {
@@ -624,19 +625,19 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 }
                 
                 // Fixups are done *after* calculating the block properties, so we have to do that again (if requested)
-                if (((BlockBasedExportSettings) exportSettings).isCalculateSkyLight() || ((BlockBasedExportSettings) exportSettings).isCalculateBlockLight() || ((BlockBasedExportSettings) exportSettings).isCalculateLeafDistance()) {
-                    recalculateBlockProperties(world, bounds, platform, (BlockBasedExportSettings) exportSettings);
+                if (((((BlockBasedExportSettings) exportSettings).isCalculateSkyLight() || ((BlockBasedExportSettings) exportSettings).isCalculateBlockLight()) && ((worldExportSettings == null) || (worldExportSettings.getStepsToSkip() == null) || (! worldExportSettings.getStepsToSkip().contains(LIGHTING))))
+                        || (((BlockBasedExportSettings) exportSettings).isCalculateLeafDistance() && ((worldExportSettings == null) || (worldExportSettings.getStepsToSkip() == null) || (! worldExportSettings.getStepsToSkip().contains(LEAVES))))) {
+                    recalculateBlockProperties(world, bounds, platform, worldExportSettings, (BlockBasedExportSettings) exportSettings);
                 }
             } else if (logger.isTraceEnabled()) {
                 logger.trace("No room for custom object " + object.getName() + " @ " + x + "," + y + "," + z + " in fixup");
             }
         }
 
-        private void recalculateBlockProperties(final MinecraftWorld world, final Box lightBox, final Platform platform, final BlockBasedExportSettings exportSettings) {
-            BlockPropertiesCalculator blockPropertiesCalculator = new BlockPropertiesCalculator(world, platform, exportSettings);
-            // Transpose coordinates from WP to MC coordinate system. Also
-            // expand the box to light around it and try to account for uneven
-            // terrain underneath the object
+        private void recalculateBlockProperties(final MinecraftWorld world, final Box lightBox, final Platform platform, final WorldExportSettings worldExportSettings, final BlockBasedExportSettings exportSettings) {
+            BlockPropertiesCalculator blockPropertiesCalculator = new BlockPropertiesCalculator(world, platform, worldExportSettings, exportSettings);
+            // Transpose coordinates from WP to MC coordinate system. Also expand the box to light around it and try to
+            // account for uneven terrain underneath the object
             Box dirtyArea = new Box(lightBox.getX1() - 1, lightBox.getX2() + 1, MathUtils.clamp(world.getMinHeight(), lightBox.getZ1() - 4, world.getMaxHeight() - 1), lightBox.getZ2(), lightBox.getY1() - 1, lightBox.getY2() + 1);
             if (dirtyArea.getVolume() == 0) {
                 if (logger.isTraceEnabled()) {

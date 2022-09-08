@@ -52,6 +52,8 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="checkBoxMapFeatures" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="32767" attributes="0"/>
+                      <Component id="buttonTestExport" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Component id="buttonExport" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="buttonCancel" min="-2" max="-2" attributes="0"/>
@@ -61,23 +63,17 @@
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="jLabel2" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="jLabel3" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Group type="102" attributes="0">
+                              <Component id="checkBoxGoodies" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace type="separate" max="-2" attributes="0"/>
+                              <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="labelPlatform" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="labelPlatformWarning" min="-2" max="-2" attributes="0"/>
+                          </Group>
                       </Group>
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
-                  </Group>
-                  <Group type="102" attributes="0">
-                      <Component id="checkBoxGoodies" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="labelPlatform" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="labelPlatformWarning" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="32767" attributes="0"/>
-                      <Component id="radioButtonExportEverything" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="radioButtonExportSelection" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="labelSelectTiles" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace min="-2" max="-2" attributes="0"/>
@@ -103,9 +99,6 @@
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="checkBoxGoodies" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="radioButtonExportEverything" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="radioButtonExportSelection" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="labelSelectTiles" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="labelPlatform" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="labelPlatformWarning" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -121,6 +114,7 @@
                   <Component id="comboBoxDifficulty" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel4" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="checkBoxMapFeatures" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="buttonTestExport" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -247,37 +241,6 @@
         <Property name="text" type="java.lang.String" value="Map format:"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JRadioButton" name="radioButtonExportEverything">
-      <Properties>
-        <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
-          <ComponentRef name="buttonGroup2"/>
-        </Property>
-        <Property name="selected" type="boolean" value="true"/>
-        <Property name="text" type="java.lang.String" value="export everything"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="radioButtonExportEverythingActionPerformed"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JRadioButton" name="radioButtonExportSelection">
-      <Properties>
-        <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
-          <ComponentRef name="buttonGroup2"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="export selected tiles"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="radioButtonExportSelectionActionPerformed"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JLabel" name="labelSelectTiles">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="&lt;html&gt;&lt;u&gt;select tiles&lt;/u&gt;&lt;/html&gt;"/>
-      </Properties>
-      <Events>
-        <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="labelSelectTilesMouseClicked"/>
-      </Events>
-    </Component>
     <Component class="javax.swing.JCheckBox" name="checkBoxAllowCheats">
       <Properties>
         <Property name="selected" type="boolean" value="true"/>
@@ -350,6 +313,14 @@
         <Property name="text" type="java.lang.String" value="&lt;html&gt;&lt;b&gt;unknown format&lt;/b&gt;&lt;/html&gt;"/>
         <Property name="toolTipText" type="java.lang.String" value="&lt;html&gt;This map format is unknown and cannot be Exported. Most likely it&lt;br&gt;&#xa;is supported by a plugin that is not installed or cannot be loaded.&lt;/html&gt;"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="buttonTestExport">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Test Export"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonTestExportActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>

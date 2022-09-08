@@ -121,10 +121,10 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
     }
 
     @Override
-    public WorldExporter getExporter(World2 world) {
+    public WorldExporter getExporter(World2 world, WorldExportSettings exportSettings) {
         Platform platform = world.getPlatform();
         ensurePlatformSupported(platform);
-        return new JavaWorldExporter(world);
+        return new JavaWorldExporter(world, exportSettings);
     }
 
     @Override
