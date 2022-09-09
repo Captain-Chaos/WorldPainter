@@ -1,3 +1,7 @@
+-- Version 2.14.1, released 9-9-2022
+
+ * Bug fix: fix an error when trying to Merge a world that has no export setings set
+
 -- Version 2.14.0, released 9-9-2022
 
  * Fast test exports have been made easier with the addition of a Test Export button to the Export screen
