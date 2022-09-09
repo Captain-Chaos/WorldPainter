@@ -41,7 +41,10 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
             checkBoxSmooth.setVisible(false);
             labelWesterosCraftFeature.setVisible(false);
         }
-        
+        final int maxThickness = platform.maxMaxHeight - platform.minZ;
+        ((SpinnerNumberModel) spinnerThickness.getModel()).setMaximum(maxThickness);
+        ((SpinnerNumberModel) spinnerThickness.getModel()).setMinimum(-maxThickness);
+
         setLabelColour();
         setControlStates();
         
@@ -70,6 +73,8 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
             }
             settingsChanged();
         });
+
+        programmaticChange = false;
     }
 
     // LayerEditor
@@ -166,6 +171,9 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
     }
 
     private void settingsChanged() {
+        if (programmaticChange) {
+            return;
+        }
         setControlStates();
         context.settingsChanged();
     }
@@ -556,4 +564,5 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
 
     private final Platform platform;
     private int selectedColour = Color.RED.getRGB();
+    private boolean programmaticChange = true;
 }
