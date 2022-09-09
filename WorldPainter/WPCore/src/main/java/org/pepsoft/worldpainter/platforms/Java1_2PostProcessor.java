@@ -87,7 +87,9 @@ public class Java1_2PostProcessor extends PostProcessor {
         for (int x = x1; x <= x2; x ++) {
             for (int y = y1; y <= y2; y++) {
                 int blockTypeBelow = (minZ <= 0) ? BLK_AIR : minecraftWorld.getBlockTypeAt(x, y, minZ - 1);
+                int dataBelow = (minZ <= 0) ? 0 : minecraftWorld.getDataAt(x, y, minZ - 1);
                 int blockTypeAbove = minecraftWorld.getBlockTypeAt(x, y, minZ);
+                int dataAbove = minecraftWorld.getDataAt(x, y, minZ);
                 // TODO: only do this for non-bottomless worlds:
 //                if ((minZ == 0) && (blockTypeAbove != BLK_BEDROCK) && (blockTypeAbove != BLK_AIR) && (blockTypeAbove != BLK_STATIONARY_WATER) && (blockTypeAbove != BLK_STATIONARY_LAVA)) {
 //                    logger.warn("Non-bedrock block @ " + x + "," + y + ",0: " + BLOCKS[blockTypeAbove].name);
@@ -95,13 +97,16 @@ public class Java1_2PostProcessor extends PostProcessor {
                 final int columnMaxZ = Math.min(minecraftWorld.getHighestNonAirBlock(x, y), maxZ);
                 for (int z = minZ; z <= columnMaxZ; z++) {
                     int blockType = blockTypeAbove;
+                    int data = dataAbove;
                     blockTypeAbove = (z < worldMaxZ) ? minecraftWorld.getBlockTypeAt(x, y, z + 1) : BLK_AIR;
+                    dataAbove = (z < worldMaxZ) ? minecraftWorld.getDataAt(x, y, z + 1) : 0;
                     if (((blockTypeBelow == BLK_GRASS) || (blockTypeBelow == BLK_MYCELIUM) || (blockTypeBelow == BLK_TILLED_DIRT)) && ((blockType == BLK_WATER) || (blockType == BLK_STATIONARY_WATER) || (blockType == BLK_ICE) || ((blockType <= HIGHEST_KNOWN_BLOCK_ID) && (BLOCK_TRANSPARENCY[blockType] == 15)))) {
                         // Covered grass, mycelium or tilled earth block, should be dirt. Note that unknown blocks are
                         // treated as transparent for this check so that grass underneath custom plants doesn't turn to
                         // dirt, for instance
                         minecraftWorld.setMaterialAt(x, y, z - 1, Material.DIRT);
                         blockTypeBelow = BLK_DIRT;
+                        dataBelow = 0;
                     }
                     switch (blockType) {
                         case BLK_SAND:
@@ -110,11 +115,13 @@ public class Java1_2PostProcessor extends PostProcessor {
                                     case DROP:
                                         dropBlock(minecraftWorld, x, y, z);
                                         blockType = BLK_AIR;
+                                        data = 0;
                                         break;
                                     case SUPPORT:
                                         // All unsupported sand should be supported by sandstone
-                                        minecraftWorld.setMaterialAt(x, y, z, (minecraftWorld.getDataAt(x, y, z) == 1) ? Material.RED_SANDSTONE : Material.SANDSTONE);
+                                        minecraftWorld.setMaterialAt(x, y, z, (data == 1) ? Material.RED_SANDSTONE : Material.SANDSTONE);
                                         blockType = minecraftWorld.getBlockTypeAt(x, y, z);
+                                        data = 0;
                                         break;
                                     default:
                                         // Do nothing
@@ -128,11 +135,13 @@ public class Java1_2PostProcessor extends PostProcessor {
                                     case DROP:
                                         dropBlock(minecraftWorld, x, y, z);
                                         blockType = BLK_AIR;
+                                        data = 0;
                                         break;
                                     case SUPPORT:
                                         // All unsupported gravel should be supported by stone
                                         minecraftWorld.setMaterialAt(x, y, z, Material.STONE);
                                         blockType = BLK_STONE;
+                                        data = 0;
                                         break;
                                     default:
                                         // Do nothing
@@ -146,6 +155,7 @@ public class Java1_2PostProcessor extends PostProcessor {
                                     case DROP:
                                         dropBlock(minecraftWorld, x, y, z);
                                         blockType = BLK_AIR;
+                                        data = 0;
                                         break;
                                     case SUPPORT:
                                         throw new UnsupportedOperationException("Don't know how to support cement yet");
@@ -192,10 +202,10 @@ public class Java1_2PostProcessor extends PostProcessor {
                                 // snow blocks correctly)
                                 minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                 blockType = BLK_AIR;
+                                data = 0;
                             }
                             break;
                         case BLK_LARGE_FLOWERS:
-                            int data = minecraftWorld.getDataAt(x, y, z);
                             if ((data & 0x8) == 0x8) {
                                 // Bit 4 set; top half of double high plant; check there's a lower half beneath If the
                                 // block below is another double high plant block we don't need to check whether it is
@@ -208,6 +218,7 @@ public class Java1_2PostProcessor extends PostProcessor {
                                     }
                                     minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                     blockType = BLK_AIR;
+                                    data = 0;
                                 }
                             } else {
                                 // Otherwise: lower half of double high plant; check there's a top half above
@@ -219,6 +230,7 @@ public class Java1_2PostProcessor extends PostProcessor {
                                         }
                                         minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                         blockType = BLK_AIR;
+                                        data = 0;
                                     }
                                 } else {
                                     // There's a non-double high plant block above; replace this block with air
@@ -227,6 +239,7 @@ public class Java1_2PostProcessor extends PostProcessor {
                                     }
                                     minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                     blockType = BLK_AIR;
+                                    data = 0;
                                 }
                             }
                             break;
@@ -241,11 +254,11 @@ public class Java1_2PostProcessor extends PostProcessor {
                                     && (minecraftWorld.getBlockTypeAt(x, y + 1, z) == BLK_AIR)) {
                                 minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                 blockType = BLK_AIR;
+                                data = 0;
                             }
                             break;
                         case BLK_LEAVES:
                         case BLK_LEAVES2:
-                            data = minecraftWorld.getDataAt(x, y, z);
                             if (makeAllLeavesPersistent && ((data & 0x4) == 0)) {
                                 minecraftWorld.setDataAt(x, y, z, data | 0x4);
                             }
@@ -253,13 +266,14 @@ public class Java1_2PostProcessor extends PostProcessor {
 
                     }
                     if (! leavePlants) {
-                        final Material materialBelow = Material.getByCombinedIndex((blockTypeBelow << 4) | minecraftWorld.getDataAt(x, y, z - 1));
+                        final Material materialBelow = Material.getByCombinedIndex((blockTypeBelow << 4) | dataBelow);
                         switch (blockType) {
                             case BLK_DEAD_SHRUBS:
                                 if ((! materialBelow.modded) && (blockTypeBelow != BLK_SAND) && (blockTypeBelow != BLK_DIRT) && (blockTypeBelow != BLK_STAINED_CLAY) && (blockTypeBelow != BLK_HARDENED_CLAY)) {
                                     // Dead shrubs can only exist on Sand
                                     minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                     blockType = BLK_AIR;
+                                    data = 0;
                                 }
                                 break;
                             case BLK_TALL_GRASS:
@@ -269,6 +283,7 @@ public class Java1_2PostProcessor extends PostProcessor {
                                     // Tall grass and flowers can only exist on Grass or Dirt blocks
                                     minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                     blockType = BLK_AIR;
+                                    data = 0;
                                 }
                                 break;
                             case BLK_RED_MUSHROOM:
@@ -277,6 +292,7 @@ public class Java1_2PostProcessor extends PostProcessor {
                                     // Mushrooms can only exist on Grass, Dirt, Mycelium or Stone (in caves) blocks
                                     minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                     blockType = BLK_AIR;
+                                    data = 0;
                                 }
                                 break;
                             case BLK_WHEAT:
@@ -284,10 +300,10 @@ public class Java1_2PostProcessor extends PostProcessor {
                                     // Wheat can only exist on Tilled Dirt blocks
                                     minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                     blockType = BLK_AIR;
+                                    data = 0;
                                 }
                                 break;
                             case BLK_LARGE_FLOWERS:
-                                int data = minecraftWorld.getDataAt(x, y, z);
                                 if ((data & 0x8) == 0) {
                                     // Lower half of double high plant; check there's grass or dirt below
                                     if ((! materialBelow.modded) && (blockTypeBelow != BLK_GRASS) && (blockTypeBelow != BLK_DIRT)) {
@@ -298,6 +314,7 @@ public class Java1_2PostProcessor extends PostProcessor {
                                         }
                                         minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                         blockType = BLK_AIR;
+                                        data = 0;
                                     }
                                 }
                                 break;
@@ -306,6 +323,7 @@ public class Java1_2PostProcessor extends PostProcessor {
                                     // Cactus blocks can only be on top of sand or other cactus blocks
                                     minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                     blockType = BLK_AIR;
+                                    data = 0;
                                 }
                                 break;
                             case BLK_SUGAR_CANE:
@@ -314,6 +332,7 @@ public class Java1_2PostProcessor extends PostProcessor {
                                     // blocks
                                     minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                     blockType = BLK_AIR;
+                                    data = 0;
                                 }
                                 break;
                             case BLK_NETHER_WART:
@@ -321,6 +340,7 @@ public class Java1_2PostProcessor extends PostProcessor {
                                     // Nether wart blocks can only be on top of soul sand
                                     minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                     blockType = BLK_AIR;
+                                    data = 0;
                                 }
                                 break;
                             case BLK_CHORUS_FLOWER:
@@ -330,11 +350,13 @@ public class Java1_2PostProcessor extends PostProcessor {
                                     // plant blocks
                                     minecraftWorld.setMaterialAt(x, y, z, Material.AIR);
                                     blockType = BLK_AIR;
+                                    data = 0;
                                 }
                                 break;
                         }
                     }
                     blockTypeBelow = blockType;
+                    dataBelow = data;
                 }
             }
             if (progressReceiver != null) {
