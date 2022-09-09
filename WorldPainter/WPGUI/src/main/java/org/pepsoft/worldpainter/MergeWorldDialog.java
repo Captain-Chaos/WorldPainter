@@ -41,6 +41,7 @@ import static org.pepsoft.worldpainter.App.MERGE_WARNING_KEY;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Dimension.Anchor.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
+import static org.pepsoft.worldpainter.exporting.WorldExportSettings.EXPORT_EVERYTHING;
 import static org.pepsoft.worldpainter.util.BackupUtils.cleanUpBackups;
 
 /**
@@ -61,7 +62,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
         this.lightOrigin = lightOrigin;
         this.customBiomeManager = customBiomeManager;
         this.view = view;
-        final WorldExportSettings exportSettings = (world.getExportSettings() != null) ? world.getExportSettings() : null;
+        final WorldExportSettings exportSettings = (world.getExportSettings() != null) ? world.getExportSettings() : EXPORT_EVERYTHING;
         selectedTiles = exportSettings.getTilesToExport();
         selectedDimension = (selectedTiles != null) ? exportSettings.getDimensionsToExport().iterator().next() : DIM_NORMAL;
         savedSteps = exportSettings.getStepsToSkip();

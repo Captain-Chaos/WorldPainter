@@ -222,7 +222,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
     protected final void export(WorldExportSettings exportSettings) {
         exportSettings = (exportSettings != null)
                 ? exportSettings
-                : ((world.getExportSettings() != null) ? world.getExportSettings() : new WorldExportSettings());
+                : ((world.getExportSettings() != null) ? world.getExportSettings() : EXPORT_EVERYTHING);
         final boolean exportAllDimensions = exportSettings.getDimensionsToExport() == null;
         final Set<Point> selectedTiles = exportAllDimensions ? null : exportSettings.getTilesToExport();
         final int selectedDimension = exportAllDimensions ? DIM_NORMAL : exportSettings.getDimensionsToExport().iterator().next();
