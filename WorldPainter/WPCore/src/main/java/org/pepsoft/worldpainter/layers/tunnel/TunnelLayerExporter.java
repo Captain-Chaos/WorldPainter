@@ -5,26 +5,27 @@
  */
 package org.pepsoft.worldpainter.layers.tunnel;
 
+import com.google.common.collect.ImmutableSet;
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.MixedMaterial;
-import org.pepsoft.worldpainter.Platform;
-import org.pepsoft.worldpainter.Tile;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
+import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.NotPresentBlock;
 import org.pepsoft.worldpainter.layers.Void;
 import org.pepsoft.worldpainter.layers.exporters.AbstractCavesExporter;
 import org.pepsoft.worldpainter.util.BiomeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.vecmath.Point3i;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static java.awt.Font.PLAIN;
@@ -35,6 +36,7 @@ import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
 import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
 import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.CARVE;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.CUSTOM_DIMENSION;
 
 /**
  *
@@ -71,11 +73,16 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
 
     @Override
     public List<Fixup> carve(Rectangle area, Rectangle exportedArea, MinecraftWorld world) {
+        final List<Fixup> fixups = new ArrayList<>();
         final int floodLevel = layer.getFloodLevel(), biome = (layer.getTunnelBiome() != null) ? layer.getTunnelBiome() : -1;
         final boolean removeWater = layer.isRemoveWater(), floodWithLava = layer.isFloodWithLava();
         final boolean set3DBiomes = (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) && (layer.getTunnelBiome() != null);
         final BiomeUtils biomeUtils = new BiomeUtils(dimension);
-        final MixedMaterial floorMaterial = layer.getFloorMaterial(), wallMaterial = layer.getWallMaterial(), roofMaterial = layer.getRoofMaterial();
+        final Dimension floorDimension = ((layer.getFloorMode() == CUSTOM_DIMENSION) && (layer.getFloorDimensionId() != null))
+                ? dimension.getWorld().getDimension(new Dimension.Anchor(dimension.getAnchor().dim, Dimension.Role.CAVE_FLOOR, dimension.getAnchor().invert, layer.getFloorDimensionId()))
+                : null;
+        final boolean customDimension = floorDimension != null;
+        final MixedMaterial floorMaterial = (! customDimension) ? layer.getFloorMaterial() : null, wallMaterial = layer.getWallMaterial(), roofMaterial = layer.getRoofMaterial();
         if (floorNoise != null) {
             floorNoise.setSeed(dimension.getSeed());
         }
@@ -84,30 +91,36 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
         }
         // TODO: increase efficiency and correctness by doing this _after_ the carving and then only for blocks which
         //  adjoin a solid block
-        if ((floorMaterial != null) || (wallMaterial != null) || (roofMaterial != null)) {
+        if ((customDimension) || (floorMaterial != null) || (wallMaterial != null) || (roofMaterial != null)) {
             // First pass:  place floor, wall and roof materials
             visitChunksForLayerInAreaForEditing(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) ->
-                whereTunnelIsRealisedDo(dimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
+                whereTunnelIsRealisedDo(dimension, floorDimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
                     if (dimension.getBitLayerValueAt(Void.INSTANCE, x, y)) {
                         return true;
                     }
                     int waterLevel = tile.getWaterLevel(xInTile, yInTile);
                     boolean flooded = waterLevel > terrainHeight;
                     final int startZ = Math.min(removeWater ? Math.max(terrainHeight, waterLevel) : terrainHeight, actualRoofLevel);
-                    for (int z = startZ; z > actualFloorLevel; z--) {
-                        if ((floorLedgeHeight == 0) && (floorMaterial != null)) {
-                            setIfSolid(world, chunk, x, y, z - 1, minZ, maxZ, floorMaterial, flooded, terrainHeight, waterLevel, removeWater);
+                    final int endZ = customDimension ? Math.max(actualFloorLevel - floorDimension.getTopLayerDepth(x, y, actualFloorLevel), minHeight) : actualFloorLevel;
+                    final Terrain customTerrain = customDimension ? floorDimension.getTerrainAt(x, y) : null;
+                    for (int z = startZ; z > endZ; z--) {
+                        if (floorLedgeHeight == 0) {
+                            if (customDimension) {
+                                setIfSolid(world, chunk, x, y, z - 1, minZ, maxZ, customTerrain.getMaterial(platform, MATERIAL_SEED, x, y, z - 1, floorDimension.getIntHeightAt(x, y)), flooded, terrainHeight, waterLevel, removeWater);
+                            } else if (floorMaterial != null) {
+                                setIfSolid(world, chunk, x, y, z - 1, minZ, maxZ, floorMaterial.getMaterial(MATERIAL_SEED, x, y, z - 1), flooded, terrainHeight, waterLevel, removeWater);
+                            }
                         }
                         if (wallMaterial != null) {
                             if (floorLedgeHeight > 0) {
-                                setIfSolid(world, chunk, x, y, z - 1, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
+                                setIfSolid(world, chunk, x, y, z - 1, minZ, maxZ, wallMaterial.getMaterial(MATERIAL_SEED, x, y, z - 1), flooded, terrainHeight, waterLevel, removeWater);
                             }
                             if (roofLedgeHeight > 0) {
-                                setIfSolid(world, chunk, x, y, z + 1, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
+                                setIfSolid(world, chunk, x, y, z + 1, minZ, maxZ, wallMaterial.getMaterial(MATERIAL_SEED, x, y, z + 1), flooded, terrainHeight, waterLevel, removeWater);
                             }
                         }
                         if ((roofLedgeHeight == 0) && (roofMaterial != null)) {
-                            setIfSolid(world, chunk, x, y, z + 1, minZ, maxZ, roofMaterial, flooded, terrainHeight, waterLevel, removeWater);
+                            setIfSolid(world, chunk, x, y, z + 1, minZ, maxZ, roofMaterial.getMaterial(MATERIAL_SEED, x, y, z + 1), flooded, terrainHeight, waterLevel, removeWater);
                         }
                     }
                     if (wallMaterial != null) {
@@ -115,25 +128,25 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                         waterLevel = dimension.getWaterLevelAt(x - 1, y);
                         flooded = waterLevel > terrainHeight;
                         for (int z = Math.min(removeWater ? Math.max(terrainHeight, waterLevel) : terrainHeight, actualRoofLevel); z > actualFloorLevel; z--) {
-                            setIfSolid(world, chunk, x - 1, y, z, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
+                            setIfSolid(world, chunk, x - 1, y, z, minZ, maxZ, wallMaterial.getMaterial(MATERIAL_SEED, x - 1, y, z), flooded, terrainHeight, waterLevel, removeWater);
                         }
                         terrainHeight = dimension.getIntHeightAt(x, y - 1);
                         waterLevel = dimension.getWaterLevelAt(x, y - 1);
                         flooded = waterLevel > terrainHeight;
                         for (int z = Math.min(removeWater ? Math.max(terrainHeight, waterLevel) : terrainHeight, actualRoofLevel); z > actualFloorLevel; z--) {
-                            setIfSolid(world, chunk, x, y - 1, z, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
+                            setIfSolid(world, chunk, x, y - 1, z, minZ, maxZ, wallMaterial.getMaterial(MATERIAL_SEED, x, y - 1, z), flooded, terrainHeight, waterLevel, removeWater);
                         }
                         terrainHeight = dimension.getIntHeightAt(x + 1, y);
                         waterLevel = dimension.getWaterLevelAt(x + 1, y);
                         flooded = waterLevel > terrainHeight;
                         for (int z = Math.min(removeWater ? Math.max(terrainHeight, waterLevel) : terrainHeight, actualRoofLevel); z > actualFloorLevel; z--) {
-                            setIfSolid(world, chunk, x + 1, y, z, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
+                            setIfSolid(world, chunk, x + 1, y, z, minZ, maxZ, wallMaterial.getMaterial(MATERIAL_SEED, x + 1, y, z), flooded, terrainHeight, waterLevel, removeWater);
                         }
                         terrainHeight = dimension.getIntHeightAt(x, y + 1);
                         waterLevel = dimension.getWaterLevelAt(x, y + 1);
                         flooded = waterLevel > terrainHeight;
                         for (int z = Math.min(removeWater ? Math.max(terrainHeight, waterLevel) : terrainHeight, actualRoofLevel); z > actualFloorLevel; z--) {
-                            setIfSolid(world, chunk, x, y + 1, z, minZ, maxZ, wallMaterial, flooded, terrainHeight, waterLevel, removeWater);
+                            setIfSolid(world, chunk, x, y + 1, z, minZ, maxZ, wallMaterial.getMaterial(MATERIAL_SEED, x, y + 1, z), flooded, terrainHeight, waterLevel, removeWater);
                         }
                     }
                     return true;
@@ -142,7 +155,7 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
 
         // First/second pass: excavate interior
         visitChunksForLayerInAreaForEditing(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) ->
-            whereTunnelIsRealisedDo(dimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
+            whereTunnelIsRealisedDo(dimension, floorDimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
                 if (dimension.getBitLayerValueAt(Void.INSTANCE, x, y)) {
                     return true;
                 }
@@ -175,47 +188,117 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                 }
                 return true;
             }));
-        return null;
+
+        // Carve floor dimension
+        if (floorDimension != null) {
+            // TODO add support for combined layers
+            // TODO add support for first pass exporters
+            final List<Layer> floorLayers = new ArrayList<>(floorDimension.getAllLayers(false));
+            floorLayers.addAll(floorDimension.getMinimumLayers());
+            Collections.sort(floorLayers);
+            final SecondPassLayerExporter[] floorExporters = floorLayers.stream()
+                    .filter(layer -> ! SKIP_LAYERS.contains(layer))
+                    .map(layer -> {
+                        final Class<? extends LayerExporter> exporterType = layer.getExporterType();
+                        if ((exporterType != null) && SecondPassLayerExporter.class.isAssignableFrom(exporterType)) {
+                            final SecondPassLayerExporter exporter = (SecondPassLayerExporter) layer.getExporter(floorDimension, platform, floorDimension.getLayerSettings(layer));
+                            if (exporter.getStages().contains(CARVE)) {
+                                return exporter;
+                            } else {
+                                logger.debug("Skipping layer {} for stage CARVE while processing TunnelLayer floor dimension", layer.getName());
+                                return null;
+                            }
+                        }
+                        throw new UnsupportedOperationException("Layer " + layer.getName() + " of type " + layer.getClass().getSimpleName() + " not yet supported for cave floor dimensions");
+                    })
+                    .filter(Objects::nonNull)
+                    .toArray(SecondPassLayerExporter[]::new);
+            for (SecondPassLayerExporter exporter: floorExporters) {
+                final List<Fixup> layerFixups = exporter.carve(area, exportedArea, world);
+                if (layerFixups != null) {
+                    fixups.addAll(layerFixups);
+                }
+            }
+        }
+
+        return fixups.isEmpty() ? null : fixups;
     }
 
     @Override
     public List<Fixup> addFeatures(Rectangle area, Rectangle exportedArea, MinecraftWorld world) {
-        // Render floor layers
-        List<Fixup> fixups = new ArrayList<>();
-        final List<TunnelLayer.LayerSettings> floorLayers = layer.getFloorLayers();
-        if ((floorLayers != null) && (! floorLayers.isEmpty())) {
-            final IncidentalLayerExporter[] floorExporters = new IncidentalLayerExporter[floorLayers.size()];
-            final TunnelLayer.LayerSettings[] floorLayerSettings = new TunnelLayer.LayerSettings[floorLayers.size()];
-            final NoiseHeightMap[] floorLayerNoise = new NoiseHeightMap[floorLayers.size()];
-            int index = 0;
-            for (TunnelLayer.LayerSettings layerSettings: floorLayers) {
-                floorExporters[index] = (IncidentalLayerExporter) layerSettings.getLayer().getExporter(new TunnelFloorDimension(dimension, layer), platform, null);
-                floorLayerSettings[index] = layerSettings;
-                if (layerSettings.getVariation() != null) {
-                    floorLayerNoise[index] = new NoiseHeightMap(layerSettings.getVariation(), index);
-                    floorLayerNoise[index].setSeed(dimension.getSeed());
-                }
-                index++;
-            }
-            visitChunksForLayerInAreaForEditing(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) ->
-                whereTunnelIsRealisedDo(dimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
-                    final int z = actualFloorLevel + 1;
-                    final Point3i location = new Point3i(x, y, z);
-                    for (int i = 0; i < floorExporters.length; i++) {
-                        if ((z >= floorLayerSettings[i].getMinLevel()) && (z <= floorLayerSettings[i].getMaxLevel())) {
-                            final int intensity = floorLayerNoise[i] != null
-                                    ? clamp(0, Math.round(floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z) - floorLayerNoise[i].getHeight() / 2), 100)
-                                    : floorLayerSettings[i].getIntensity();
-                            if (intensity > 0) {
-                                Fixup fixup = floorExporters[i].apply(location, intensity, exportedArea, world);
-                                if (fixup != null) {
-                                    fixups.add(fixup);
-                                }
+        final Dimension floorDimension = ((layer.getFloorMode() == CUSTOM_DIMENSION) && (layer.getFloorDimensionId() != null))
+                ? dimension.getWorld().getDimension(new Dimension.Anchor(dimension.getAnchor().dim, Dimension.Role.CAVE_FLOOR, dimension.getAnchor().invert, layer.getFloorDimensionId()))
+                : null;
+        final List<Fixup> fixups = new ArrayList<>();
+
+        // Render floor dimension
+        if (floorDimension != null) {
+            // TODO add support for combined layers
+            // TODO add support for first pass exporters
+            final List<Layer> floorLayers = new ArrayList<>(floorDimension.getAllLayers(false));
+            floorLayers.addAll(floorDimension.getMinimumLayers());
+            Collections.sort(floorLayers);
+            final SecondPassLayerExporter[] floorExporters = floorLayers.stream()
+                    .filter(layer -> ! SKIP_LAYERS.contains(layer))
+                    .map(layer -> {
+                        final Class<? extends LayerExporter> exporterType = layer.getExporterType();
+                        if ((exporterType != null) && SecondPassLayerExporter.class.isAssignableFrom(exporterType)) {
+                            final SecondPassLayerExporter exporter = (SecondPassLayerExporter) layer.getExporter(floorDimension, platform, floorDimension.getLayerSettings(layer));
+                            if (exporter.getStages().contains(ADD_FEATURES)) {
+                                return exporter;
+                            } else {
+                                logger.debug("Skipping layer {} for stage ADD_FEATURES while processing TunnelLayer floor dimension", layer.getName());
+                                return null;
                             }
                         }
+                        throw new UnsupportedOperationException("Layer " + layer.getName() + " of type " + layer.getClass().getSimpleName() + " not yet supported for cave floor dimensions");
+                    })
+                    .filter(Objects::nonNull)
+                    .toArray(SecondPassLayerExporter[]::new);
+            for (SecondPassLayerExporter exporter: floorExporters) {
+                final List<Fixup> layerFixups = exporter.addFeatures(area, exportedArea, world);
+                if (layerFixups != null) {
+                    fixups.addAll(layerFixups);
+                }
+            }
+        } else {
+
+            // Or render floor layers
+            final List<TunnelLayer.LayerSettings> floorLayers = layer.getFloorLayers();
+            if ((floorLayers != null) && (! floorLayers.isEmpty())) {
+                final IncidentalLayerExporter[] floorExporters = new IncidentalLayerExporter[floorLayers.size()];
+                final TunnelLayer.LayerSettings[] floorLayerSettings = new TunnelLayer.LayerSettings[floorLayers.size()];
+                final NoiseHeightMap[] floorLayerNoise = new NoiseHeightMap[floorLayers.size()];
+                int index = 0;
+                for (TunnelLayer.LayerSettings layerSettings: floorLayers) {
+                    floorExporters[index] = (IncidentalLayerExporter) layerSettings.getLayer().getExporter(new TunnelFloorDimension(dimension, layer), platform, null);
+                    floorLayerSettings[index] = layerSettings;
+                    if (layerSettings.getVariation() != null) {
+                        floorLayerNoise[index] = new NoiseHeightMap(layerSettings.getVariation(), index);
+                        floorLayerNoise[index].setSeed(dimension.getSeed());
                     }
-                    return true;
-                }));
+                    index++;
+                }
+                visitChunksForLayerInAreaForEditing(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) ->
+                        whereTunnelIsRealisedDo(dimension, floorDimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
+                            final int z = actualFloorLevel + 1;
+                            final Point3i location = new Point3i(x, y, z);
+                            for (int i = 0; i < floorExporters.length; i++) {
+                                if ((z >= floorLayerSettings[i].getMinLevel()) && (z <= floorLayerSettings[i].getMaxLevel())) {
+                                    final int intensity = floorLayerNoise[i] != null
+                                            ? clamp(0, Math.round(floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z) - floorLayerNoise[i].getHeight() / 2), 100)
+                                            : floorLayerSettings[i].getIntensity();
+                                    if (intensity > 0) {
+                                        Fixup fixup = floorExporters[i].apply(location, intensity, exportedArea, world);
+                                        if (fixup != null) {
+                                            fixups.add(fixup);
+                                        }
+                                    }
+                                }
+                            }
+                            return true;
+                        }));
+            }
         }
 
         // Render roof layers
@@ -236,7 +319,7 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
             }
             final MinecraftWorld invertedWorld = new InvertedWorld(world, 0, platform);
             visitChunksForLayerInAreaForEditing(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) ->
-                    whereTunnelIsRealisedDo(dimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
+                    whereTunnelIsRealisedDo(dimension, floorDimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
                         final int z = actualRoofLevel;
                         final Point3i location = new Point3i(x, y, maxHeight + minHeight - 1 - z);
                         for (int i = 0; i < roofExporters.length; i++) {
@@ -313,15 +396,14 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
 
             if (x <= tunnelExtent) {
                 // Draw the tunnel
-                int actualFloorLevel = calculateLevel(floorMode, floorLevel, terrainHeight, floorMin, floorMax, minHeight + 1, height - 1, (floorNoise != null) ? ((int) floorNoise.getHeight(x, 0) - floorNoiseOffset) : 0);
-                int actualRoofLevel = calculateLevel(roofMode, roofLevel, terrainHeight, roofMin, roofMax, minHeight + 1, height - 1, (roofNoise != null) ? ((int) roofNoise.getHeight(x, 0) - roofNoiseOffset) : 0);
-                if (actualRoofLevel > actualFloorLevel) {
+                if (floorMode == CUSTOM_DIMENSION) {
+                    int actualFloorLevel = 32; // Is this good enough?
+                    int actualRoofLevel = calculateRoofLevel(roofMode, roofLevel, terrainHeight, roofMin, roofMax, minHeight + 1, height - 1, (roofNoise != null) ? ((int) roofNoise.getHeight(x, 0) - roofNoiseOffset) : 0, actualFloorLevel);
                     final float distanceToWall = tunnelExtent - x;
-                    final int floorLedgeHeight = calculateLedgeHeight(floorWallDepth, distanceToWall);
                     final int roofLedgeHeight = calculateLedgeHeight(roofWallDepth, distanceToWall);
-                    actualFloorLevel += floorLedgeHeight;
                     actualRoofLevel = Math.min(actualRoofLevel - roofLedgeHeight, Math.max(terrainHeight, DEFAULT_WATER_LEVEL));
-                    for (int z = actualFloorLevel + 1; z <= actualRoofLevel; z++) {
+                    int tint = 0x7f;
+                    for (int z = actualRoofLevel; z >= minHeight; z--) {
                         if (z <= floodLevel) {
                             if (floodWithLava) {
                                 preview.setRGB(x, height - 1 - z + minHeight, 0xff8000);
@@ -331,10 +413,40 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                         } else {
                             if (z > terrainHeight) {
                                 if (removeWater) {
-                                    preview.setRGB(x, height - 1 - z + minHeight, 0x7f7fff);
+                                    preview.setRGB(x, height - 1 - z + minHeight, (tint << 16) | (tint << 8) | 0xff);
                                 }
                             } else {
-                                preview.setRGB(x, height - 1 - z + minHeight, 0x7f7f7f);
+                                preview.setRGB(x, height - 1 - z + minHeight, (tint << 16) | (tint << 8) | tint);
+                            }
+                        }
+                        if (tint > 0) {
+                            tint = Math.max(tint - 2, 0);
+                        }
+                    }
+                } else {
+                    int actualFloorLevel = calculateFloorLevel(floorMode, floorLevel, terrainHeight, floorMin, floorMax, minHeight + 1, height - 1, (floorNoise != null) ? ((int) floorNoise.getHeight(x, 0) - floorNoiseOffset) : 0);
+                    int actualRoofLevel = calculateRoofLevel(roofMode, roofLevel, terrainHeight, roofMin, roofMax, minHeight + 1, height - 1, (roofNoise != null) ? ((int) roofNoise.getHeight(x, 0) - roofNoiseOffset) : 0, actualFloorLevel);
+                    if (actualRoofLevel > actualFloorLevel) {
+                        final float distanceToWall = tunnelExtent - x;
+                        final int floorLedgeHeight = calculateLedgeHeight(floorWallDepth, distanceToWall);
+                        final int roofLedgeHeight = calculateLedgeHeight(roofWallDepth, distanceToWall);
+                        actualFloorLevel += floorLedgeHeight;
+                        actualRoofLevel = Math.min(actualRoofLevel - roofLedgeHeight, Math.max(terrainHeight, DEFAULT_WATER_LEVEL));
+                        for (int z = actualFloorLevel + 1; z <= actualRoofLevel; z++) {
+                            if (z <= floodLevel) {
+                                if (floodWithLava) {
+                                    preview.setRGB(x, height - 1 - z + minHeight, 0xff8000);
+                                } else {
+                                    preview.setRGB(x, height - 1 - z + minHeight, 0x0000ff);
+                                }
+                            } else {
+                                if (z > terrainHeight) {
+                                    if (removeWater) {
+                                        preview.setRGB(x, height - 1 - z + minHeight, 0x7f7fff);
+                                    }
+                                } else {
+                                    preview.setRGB(x, height - 1 - z + minHeight, 0x7f7f7f);
+                                }
                             }
                         }
                     }
@@ -356,7 +468,22 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
         return preview;
     }
 
-    static int calculateLevel(TunnelLayer.Mode mode, int level, int terrainHeight, int minLevel, int maxLevel, int minZ, int maxZ, int offset) {
+    static int calculateRoofLevel(TunnelLayer.Mode mode, int level, int terrainHeight, int minLevel, int maxLevel, int minZ, int maxZ, int offset, int floorLevel) {
+        switch (mode) {
+            case CONSTANT_DEPTH:
+                return clamp(minZ, clamp(minLevel, terrainHeight - level, maxLevel) + offset, maxZ);
+            case FIXED_HEIGHT:
+                return clamp(minZ, level + offset, maxZ);
+            case INVERTED_DEPTH:
+                return clamp(minZ, clamp(minLevel, level - (terrainHeight - level), maxLevel) + offset, maxZ);
+            case FIXED_HEIGHT_ABOVE_FLOOR:
+                return clamp(minZ, clamp(minLevel, floorLevel + level, maxLevel) + offset, maxZ);
+            default:
+                throw new InternalError();
+        }
+    }
+
+    static int calculateFloorLevel(TunnelLayer.Mode mode, int level, int terrainHeight, int minLevel, int maxLevel, int minZ, int maxZ, int offset) {
         switch (mode) {
             case CONSTANT_DEPTH:
                 return clamp(minZ, clamp(minLevel, terrainHeight - level, maxLevel) + offset, maxZ);
@@ -367,6 +494,10 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
             default:
                 throw new InternalError();
         }
+    }
+
+    static int calculateFloorLevel(Dimension floorDimension, int x, int y, int minZ, int maxZ) {
+        return clamp(minZ, floorDimension.getIntHeightAt(x, y), maxZ);
     }
 
     static int calculateLedgeHeight(int wallDepth, float distanceToWall) {
@@ -382,8 +513,9 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
         boolean visitColumn(Chunk chunk, int x, int y, int xInTile, int yInTile, int terrainHeight, int actualFloorLevel, int floorLedgeHeight, int actualRoofLevel, int roofLedgeHeight);
     }
 
-    private boolean whereTunnelIsRealisedDo(Dimension dimension, Tile tile, int chunkX, int chunkZ, Supplier<Chunk> chunkSupplier, ColumnVisitor visitor) {
+    private boolean whereTunnelIsRealisedDo(Dimension dimension, Dimension floorDimension, Tile tile, int chunkX, int chunkZ, Supplier<Chunk> chunkSupplier, ColumnVisitor visitor) {
         final TunnelLayer.Mode floorMode = layer.getFloorMode(), roofMode = layer.getRoofMode();
+        final boolean customDimension = floorDimension != null;
         final int floorWallDepth = layer.getFloorWallDepth(), roofWallDepth = layer.getRoofWallDepth(),
                 floorLevel = layer.getFloorLevel(), roofLevel = layer.getRoofLevel(),
                 maxWallDepth = Math.max(floorWallDepth, roofWallDepth) + 1,
@@ -396,8 +528,10 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                 final int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
                 if (tile.getBitLayerValue(layer, xInTile, yInTile)) {
                     int terrainHeight = tile.getIntHeight(xInTile, yInTile);
-                    int actualFloorLevel = calculateLevel(floorMode, floorLevel, terrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0);
-                    int actualRoofLevel = calculateLevel(roofMode, roofLevel, terrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0);
+                    int actualFloorLevel = customDimension
+                            ? calculateFloorLevel(floorDimension, x, y, minZ, maxZ)
+                            : calculateFloorLevel(floorMode, floorLevel, terrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0);
+                    int actualRoofLevel = calculateRoofLevel(roofMode, roofLevel, terrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0, actualFloorLevel);
                     if (actualRoofLevel <= actualFloorLevel) {
                         continue;
                     }
@@ -428,20 +562,20 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
      * <p>If the specified coordinates lie on the specified {@link Chunk}, block will be set directly on it; otherwise
      * it will be set via the {@link MinecraftWorld}.
      */
-    private void setIfSolid(MinecraftWorld world, Chunk chunk, int x, int y, int z, int minZ, int maxZ, MixedMaterial material, boolean flooded, int terrainHeight, int waterLevel, boolean removeWater) {
+    private void setIfSolid(MinecraftWorld world, Chunk chunk, int x, int y, int z, int minZ, int maxZ, Material material, boolean flooded, int terrainHeight, int waterLevel, boolean removeWater) {
         if ((z >= minZ) && (z <= maxZ)) {
             if (removeWater || (! flooded) || (z <= terrainHeight) || (z > waterLevel)) {
                 if (((x >> 4) == chunk.getxPos()) && ((y >> 4) == chunk.getzPos())) {
                     final Material existingBlock = chunk.getMaterial(x & 0xf, z, y & 0xf);
                     if ((existingBlock != Material.AIR) && (!existingBlock.insubstantial)) {
                         // The coordinates are within bounds and the existing block is solid
-                        chunk.setMaterial(x & 0xf, z, y & 0xf, material.getMaterial(MATERIAL_SEED, x, y, z));
+                        chunk.setMaterial(x & 0xf, z, y & 0xf, material);
                     }
                 } else {
                     final Material existingBlock = world.getMaterialAt(x, y, z);
                     if ((existingBlock != Material.AIR) && (! existingBlock.insubstantial)) {
                         // The coordinates are within bounds and the existing block is solid
-                        world.setMaterialAt(x, y, z, material.getMaterial(MATERIAL_SEED, x, y, z));
+                        world.setMaterialAt(x, y, z, material);
                     }
                 }
             }
@@ -457,4 +591,6 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
 
     private static final Font HEIGHT_MARKER_FONT = new Font("SansSerif", PLAIN, 10);
     private static final long MATERIAL_SEED = 0x688b2af137c77e0cL;
+    private static final Set<Layer> SKIP_LAYERS = ImmutableSet.of(NotPresentBlock.INSTANCE);
+    private static final Logger logger = LoggerFactory.getLogger(TunnelLayerExporter.class);
 }

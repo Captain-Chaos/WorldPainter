@@ -23,7 +23,6 @@ import static java.util.Collections.unmodifiableSet;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
-import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_WHITE;
 
 /**
  * WorldPainter tile provider for {@link TiledImageViewer}s. Provides tiles based on a {@link TileProvider}, e.g. a
@@ -522,10 +521,20 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     }
 
     private void applyEffects(Graphics2D g2) {
-        if (effect == FADE_TO_WHITE) {
-            g2.setComposite(AlphaComposite.SrcOver.derive(0.5f));
-            g2.setColor(Color.WHITE);
-            g2.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
+        if (effect == null) {
+            return;
+        }
+        switch (effect) {
+            case FADE_TO_FIFTY_PERCENT:
+                g2.setComposite(AlphaComposite.SrcOver.derive(0.5f));
+                g2.setColor(Color.WHITE);
+                g2.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
+                break;
+            case FADE_TO_TWENTYFIVE_PERCENT:
+                g2.setComposite(AlphaComposite.SrcOver.derive(0.75f));
+                g2.setColor(Color.WHITE);
+                g2.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
+                break;
         }
     }
 
@@ -569,6 +578,6 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     }
 
     public enum Effect {
-        FADE_TO_WHITE
+        FADE_TO_FIFTY_PERCENT, FADE_TO_TWENTYFIVE_PERCENT
     }
 }

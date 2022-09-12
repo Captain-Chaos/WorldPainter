@@ -21,6 +21,7 @@ import org.pepsoft.worldpainter.gardenofeden.Seed;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
+import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.operations.Filter;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.selection.SelectionBlock;
@@ -59,16 +60,17 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.*;
  * @author pepijn
  */
 public class Dimension extends InstanceKeeper implements TileProvider, Serializable, Tile.Listener, Cloneable {
-    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, Anchor anchor) {
-        this(world, minecraftSeed, tileFactory, anchor, true);
+    public Dimension(World2 world, String name, long minecraftSeed, TileFactory tileFactory, Anchor anchor) {
+        this(world, name, minecraftSeed, tileFactory, anchor, true);
     }
 
-    public Dimension(World2 world, long minecraftSeed, TileFactory tileFactory, Anchor anchor, boolean init) {
+    public Dimension(World2 world, String name, long minecraftSeed, TileFactory tileFactory, Anchor anchor, boolean init) {
         if (world == null) {
             throw new NullPointerException("world");
         }
         this.world = world;
         this.seed = tileFactory.getSeed();
+        this.name = name;
         this.minecraftSeed = minecraftSeed;
         this.tileFactory = tileFactory;
         this.anchor = anchor;
@@ -107,31 +109,15 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public String getName() {
-        switch (anchor.role) {
-            case DETAIL:
-                switch (anchor.dim) {
-                    case 0:
-                        return "Surface" + (anchor.invert ? " Ceiling" : "");
-                    case 1:
-                        return "Nether" + (anchor.invert ? " Ceiling" : "");
-                    case 2:
-                        return "End" + (anchor.invert ? " Ceiling" : "");
-                    default:
-                        return "Dimension " + anchor.dim + (anchor.invert ? " Ceiling" : "");
-                }
-            case MASTER:
-                switch (anchor.dim) {
-                    case 0:
-                        return "Surface Master" + (anchor.invert ? " Ceiling" : "");
-                    case 1:
-                        return "Nether Master" + (anchor.invert ? " Ceiling" : "");
-                    case 2:
-                        return "End Master" + (anchor.invert ? " Ceiling" : "");
-                    default:
-                        return "Master " + anchor.dim + (anchor.invert ? " Ceiling" : "");
-                }
-            default:
-                throw new InternalError("Unknown role " + anchor.role);
+        return name;
+    }
+
+    public void setName(String name) {
+        if (! Objects.equals(name, this.name)) {
+            final String oldName = this.name;
+            this.name = name;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("name", oldName, name);
         }
     }
 
@@ -858,7 +844,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     public void clearLayerData(Layer layer) {
         tiles.values().stream().filter(tile -> tile.hasLayer(layer)).forEach(tile -> {
-            if (eventsInhibited && (!tile.isEventsInhibited())) {
+            if (eventsInhibited && (! tile.isEventsInhibited())) {
                 tile.inhibitEvents();
                 dirtyTiles.add(tile);
             }
@@ -2062,6 +2048,25 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
         if (wpVersion < 7) {
             scale = 1.0f;
+            final StringBuilder sb = new StringBuilder();
+            switch (anchor.dim) {
+                case 0:
+                    sb.append("Surface");
+                    break;
+                case 1:
+                    sb.append("Nether");
+                    break;
+                case 2:
+                    sb.append("End");
+                    break;
+                default:
+                    sb.append("Dimension " + anchor.dim);
+                    break;
+            }
+            if (anchor.invert) {
+                sb.append(" Ceiling");
+            }
+            name = sb.toString();
         }
         wpVersion = CURRENT_WP_VERSION;
 
@@ -2126,6 +2131,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private WallType wallType, roofType;
     private Anchor anchor;
     private float scale = 1.0f;
+    private String name;
     private transient List<Listener> listeners = new ArrayList<>();
     private transient boolean eventsInhibited;
     private transient Set<Tile> dirtyTiles = new HashSet<>();
@@ -2205,27 +2211,29 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
 
         public void andDo(TileVisitor visitor, ProgressReceiver progressReceiver) throws OperationCancelled {
-            if ((! selection) && (filter instanceof DefaultFilter) && ((DefaultFilter) filter).isInSelection()) {
-                // The filter is set to "in selection", so we only need to process
-                // the tiles intersecting the selection
-                selection = true;
-            }
-            int totalTiles = tiles.size(), tileCount = 0;
+            final boolean checkSelection = (! selection) && (filter instanceof DefaultFilter) && ((DefaultFilter) filter).isInSelection();
+            final Layer layerPresent = (filter instanceof DefaultFilter) ? ((DefaultFilter) filter).getOnlyOnLayer() : null;
+            final Layer layerNotPresent = (filter instanceof DefaultFilter) ? ((DefaultFilter) filter).getExceptOnLayer() : null;
+            final boolean checkLayerPresent = layerPresent != null, checkLayerNotPresent = layerNotPresent != null;
+            final int totalTiles = tiles.size();
+            int tileCount = 0;
             int tileX1 = Integer.MIN_VALUE, tileX2 = Integer.MAX_VALUE;
             int tileY1 = Integer.MIN_VALUE, tileY2 = Integer.MAX_VALUE;
             if (brush != null) {
-                int effectiveRadius = brush.getEffectiveRadius();
-                int x1 = x - effectiveRadius, x2 = x + effectiveRadius;
-                int y1 = y - effectiveRadius, y2 = y + effectiveRadius;
+                final int effectiveRadius = brush.getEffectiveRadius();
+                final int x1 = x - effectiveRadius, x2 = x + effectiveRadius;
+                final int y1 = y - effectiveRadius, y2 = y + effectiveRadius;
                 tileX1 = x1 >> TILE_SIZE_BITS;
                 tileX2 = x2 >> TILE_SIZE_BITS;
                 tileY1 = y1 >> TILE_SIZE_BITS;
                 tileY2 = y2 >> TILE_SIZE_BITS;
             }
             for (Tile tile: tiles.values()) {
-                int tileX = tile.getX(), tileY = tile.getY();
+                final int tileX = tile.getX(), tileY = tile.getY();
                 if ((tileX >= tileX1) && (tileX <= tileX2) && (tileY >= tileY1) && (tileY <= tileY2)
-                        && ((! selection) || (tile.containsOneOf(SelectionBlock.INSTANCE, SelectionChunk.INSTANCE)))) {
+                        && ((! checkSelection) || tile.containsOneOf(SelectionBlock.INSTANCE, SelectionChunk.INSTANCE))
+                        && ((! checkLayerPresent) || tile.containsOneOf(layerPresent))
+                        && ((! checkLayerNotPresent) || (! tile.containsOneOf(layerNotPresent)))) {
                     tile.inhibitEvents();
                     try {
                         visitor.visit(tile);
@@ -2412,14 +2420,14 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public static final class Anchor implements Serializable {
-        public Anchor(int dim, Role role, boolean invert, int layer) {
+        public Anchor(int dim, Role role, boolean invert, int id) {
             if (role == null) {
                 throw new NullPointerException("role");
             }
             this.dim = dim;
             this.role = role;
             this.invert = invert;
-            this.layer = layer;
+            this.id = id;
         }
 
         @Override
@@ -2427,7 +2435,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             return dim
                     + " " + role
                     + (invert ? " CEILING" : "")
-                    + ((layer != 0) ? (" " + layer) : "");
+                    + ((id != 0) ? (" " + id) : "");
         }
 
         @Override
@@ -2436,12 +2444,12 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                     && (((Anchor) o).dim == dim)
                     && (((Anchor) o).role == role)
                     && (((Anchor) o).invert == invert)
-                    && (((Anchor) o).layer == layer);
+                    && (((Anchor) o).id == id);
         }
 
         @Override
         public int hashCode() {
-            return 31 * (31 * (31 * dim + role.hashCode()) + (invert ? 1 : 0)) + layer;
+            return 31 * (31 * (31 * dim + role.hashCode()) + (invert ? 1 : 0)) + id;
         }
 
         /**
@@ -2452,10 +2460,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             final int dim = Integer.parseInt(parts[0]);
             final Role role = Role.valueOf(parts[1]);
             final boolean invert = (parts.length > 2) && parts[2].equals("CEILING");
-            final int layer = invert
+            final int id = invert
                     ? ((parts.length > 3) ? Integer.parseInt(parts[3]) : 0)
                     : ((parts.length > 2) ? Integer.parseInt(parts[2]) : 0);
-            return new Anchor(dim, role, invert, layer);
+            return new Anchor(dim, role, invert, id);
         }
 
         /**
@@ -2476,9 +2484,11 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         public final boolean invert;
 
         /**
-         * The layer this anchor occupies in the specified game dimension and role.
+         * A unique identifier that identifies this anchor within the same ({@link #dim}, {@link #role},
+         * {@link #invert}) combo. ID 0 should always exist and be the "main" or "default" anchor. Other values may or
+         * may not imply an ordering.
          */
-        public final int layer;
+        public final int id;
 
         /**
          * Convenience constant for the default dimension (surface detail dimension, not inverted, layer zero).
@@ -2525,6 +2535,12 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         /**
          * A master dimension that is exported where no detail dimension exists, at 1:16 scale.
          */
-        MASTER
+        MASTER,
+
+        /**
+         * A dimension associated with a {@link TunnelLayer} floor. The {@link Anchor#id} field is used to associate
+         * it with a particular layer.
+         */
+        CAVE_FLOOR
     }
 }

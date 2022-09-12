@@ -236,6 +236,14 @@ public class TunnelLayer extends CustomLayer {
         this.tunnelBiome = biome;
     }
 
+    public Integer getFloorDimensionId() {
+        return floorDimensionId;
+    }
+
+    public void setFloorDimensionId(Integer floorDimensionId) {
+        this.floorDimensionId = floorDimensionId;
+    }
+
     // CustomLayer
 
     @Override
@@ -338,8 +346,8 @@ public class TunnelLayer extends CustomLayer {
         renderer = new TunnelLayerRenderer(this);
     }
 
-    private Mode roofMode = Mode.FIXED_HEIGHT, floorMode = Mode.FIXED_HEIGHT;
-    private int roofLevel = 88, floorLevel = 80, floorWallDepth = 4, roofWallDepth = 4, roofMin = Integer.MIN_VALUE, roofMax = Integer.MAX_VALUE, floorMin = Integer.MIN_VALUE, floorMax = Integer.MAX_VALUE, floodLevel = Integer.MIN_VALUE;
+    private Mode roofMode = Mode.FIXED_HEIGHT_ABOVE_FLOOR, floorMode = Mode.FIXED_HEIGHT;
+    private int roofLevel = 8, floorLevel = 80, floorWallDepth = 4, roofWallDepth = 4, roofMin = Integer.MIN_VALUE, roofMax = Integer.MAX_VALUE, floorMin = Integer.MIN_VALUE, floorMax = Integer.MAX_VALUE, floodLevel = Integer.MIN_VALUE;
     private boolean stalactites, stalagmites, floodWithLava, removeWater;
     private MixedMaterial floorMaterial, wallMaterial, roofMaterial;
     private NoiseSettings floorNoise, roofNoise, wallNoise;
@@ -347,12 +355,13 @@ public class TunnelLayer extends CustomLayer {
     private Integer tunnelBiome;
     private int wpVersion = CURRENT_WP_VERSION;
     private List<LayerSettings> orderedFloorLayers, orderedRoofLayers;
+    private Integer floorDimensionId;
     private transient TunnelLayerRenderer renderer = new TunnelLayerRenderer(this);
 
     private static final int CURRENT_WP_VERSION = 2;
     private static final long serialVersionUID = 1L;
     
-    public enum Mode { FIXED_HEIGHT, CONSTANT_DEPTH, INVERTED_DEPTH }
+    public enum Mode { FIXED_HEIGHT, CONSTANT_DEPTH, INVERTED_DEPTH, CUSTOM_DIMENSION, FIXED_HEIGHT_ABOVE_FLOOR }
     
     public static class LayerSettings implements Serializable, Cloneable {
         public LayerSettings(int minLevel, int maxLevel) {

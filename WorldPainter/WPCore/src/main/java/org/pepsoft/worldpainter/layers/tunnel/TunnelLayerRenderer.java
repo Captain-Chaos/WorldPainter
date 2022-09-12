@@ -58,6 +58,10 @@ public class TunnelLayerRenderer extends TransparentColourRenderer implements Di
             case INVERTED_DEPTH:
                 floorLevel = layer.getFloorLevel() - (terrainHeight - layer.getFloorLevel());
                 break;
+            case CUSTOM_DIMENSION:
+                floorLevel = 32;
+                // TODO
+                break;
             default:
                 throw new InternalError();
         }
@@ -74,6 +78,9 @@ public class TunnelLayerRenderer extends TransparentColourRenderer implements Di
                 break;
             case INVERTED_DEPTH:
                 roofLevel = layer.getRoofLevel()- (terrainHeight - layer.getRoofLevel());
+                break;
+            case FIXED_HEIGHT_ABOVE_FLOOR:
+                roofLevel = floorLevel + layer.getRoofLevel();
                 break;
             default:
                 throw new InternalError();

@@ -352,7 +352,22 @@ public class NewWorldDialog extends WorldPainterDialog {
         final TileFactory tileFactory = createTileFactory(worldpainterSeed);
 
         final Dimension dimension;
-        dimension = new Dimension(world, minecraftSeed, tileFactory, anchor);
+        final String name;
+        switch (anchor.dim) {
+            case DIM_NORMAL:
+                name = "Surface";
+                break;
+            case DIM_NETHER:
+                name = "Nether";
+                break;
+            case DIM_END:
+                name = "End";
+                break;
+            default:
+                name = "Dimension " + anchor.dim;
+                break;
+        }
+        dimension = new Dimension(world, name, minecraftSeed, tileFactory, anchor);
         dimension.setEventsInhibited(true);
         try {
             ExecutorService executorService = MDCThreadPoolExecutor.newFixedThreadPool(Runtime.getRuntime().availableProcessors());

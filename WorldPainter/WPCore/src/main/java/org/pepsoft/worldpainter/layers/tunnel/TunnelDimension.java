@@ -49,8 +49,8 @@ abstract class TunnelDimension extends RODelegatingDimension<TunnelDimension.Tun
         if (dimension.getBitLayerValueAt(layer, x, y)) {
             // Potentially in cave/tunnel
             final int intTerrainHeight = Math.round(terrainHeight);
-            int actualFloorLevel = TunnelLayerExporter.calculateLevel(floorMode, floorLevel, intTerrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0);
-            int actualRoofLevel = TunnelLayerExporter.calculateLevel(roofMode, roofLevel, intTerrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0);
+            int actualFloorLevel = TunnelLayerExporter.calculateFloorLevel(floorMode, floorLevel, intTerrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0); // TODO: apply floor dimension
+            int actualRoofLevel = TunnelLayerExporter.calculateRoofLevel(roofMode, roofLevel, intTerrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0, actualFloorLevel);
             if (actualRoofLevel <= actualFloorLevel) {
                 return determineHeight(true, actualFloorLevel, actualRoofLevel, terrainHeight);
             }
@@ -77,8 +77,8 @@ abstract class TunnelDimension extends RODelegatingDimension<TunnelDimension.Tun
         if (dimension.getBitLayerValueAt(layer, x, y)) {
             // Potentially in cave/tunnel
             final int intTerrainHeight = Math.round(terrainHeight);
-            int actualFloorLevel = TunnelLayerExporter.calculateLevel(floorMode, floorLevel, intTerrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0);
-            int actualRoofLevel = TunnelLayerExporter.calculateLevel(roofMode, roofLevel, intTerrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0);
+            int actualFloorLevel = TunnelLayerExporter.calculateFloorLevel(floorMode, floorLevel, intTerrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0); // TODO: apply actual floor dimension
+            int actualRoofLevel = TunnelLayerExporter.calculateRoofLevel(roofMode, roofLevel, intTerrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0, actualFloorLevel);
             if (actualRoofLevel <= actualFloorLevel) {
                 return dimension.getWaterLevelAt(x, y);
             }
@@ -152,8 +152,8 @@ abstract class TunnelDimension extends RODelegatingDimension<TunnelDimension.Tun
             if (tile.getBitLayerValue(layer, x, y)) {
                 // Potentially in cave/tunnel
                 final int intTerrainHeight = Math.round(terrainHeight);
-                int actualFloorLevel = TunnelLayerExporter.calculateLevel(floorMode, floorLevel, intTerrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(xOffset | x, yOffset | y) - floorNoiseOffset) : 0);
-                int actualRoofLevel = TunnelLayerExporter.calculateLevel(roofMode, roofLevel, intTerrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(xOffset | x, yOffset | y) - roofNoiseOffset) : 0);
+                int actualFloorLevel = TunnelLayerExporter.calculateFloorLevel(floorMode, floorLevel, intTerrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(xOffset | x, yOffset | y) - floorNoiseOffset) : 0); // TODO: apply floor dimension
+                int actualRoofLevel = TunnelLayerExporter.calculateRoofLevel(roofMode, roofLevel, intTerrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(xOffset | x, yOffset | y) - roofNoiseOffset) : 0, actualFloorLevel);
                 if (actualRoofLevel <= actualFloorLevel) {
                     return determineHeight(true, actualFloorLevel, actualRoofLevel, terrainHeight);
                 }

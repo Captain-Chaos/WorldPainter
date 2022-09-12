@@ -38,7 +38,7 @@ import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
 import static org.pepsoft.worldpainter.TileRenderer.TERRAIN_AS_LAYER;
-import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_WHITE;
+import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_FIFTY_PERCENT;
 
 /**
  *
@@ -377,12 +377,12 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, drawContours, contourSeparation, lightOrigin, drawBorders, true, null);
             setTileProvider(LAYER_DETAILS, tileProvider);
 
-            if (masterDimension != null) {
-                masterTileProvider = new WPTileProvider(masterDimension, colourScheme, customBiomeManager, hiddenLayers, false, contourSeparation, lightOrigin, drawBorders, false, FADE_TO_WHITE);
-                setTileProvider(LAYER_MASTER, masterTileProvider);
-                setProviderZoom(masterTileProvider, 4);
+            if (backgroundDimension != null) {
+                backgroundTileProvider = new WPTileProvider(backgroundDimension, colourScheme, customBiomeManager, hiddenLayers, false, contourSeparation, lightOrigin, drawBorders, false, FADE_TO_FIFTY_PERCENT);
+                setTileProvider(LAYER_BACKGROUND, backgroundTileProvider);
+                setProviderZoom(backgroundTileProvider, 4);
             } else {
-                removeTileProvider(LAYER_MASTER);
+                removeTileProvider(LAYER_BACKGROUND);
             }
         } else {
             if (getTileProviderCount() > 0) {
@@ -898,27 +898,27 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         return null;
     }
 
-    public Dimension getMasterDimension() {
-        return masterDimension;
+    public Dimension getBackgroundDimension() {
+        return backgroundDimension;
     }
 
-    public void setMasterDimension(Dimension masterDimension) {
-        if (this.masterDimension != null) {
-            removeTileProvider(LAYER_MASTER);
-            masterTileProvider = null;
+    public void setBackgroundDimension(Dimension backgroundDimension, int zoomLevel, WPTileProvider.Effect effect) {
+        if (this.backgroundDimension != null) {
+            removeTileProvider(LAYER_BACKGROUND);
+            backgroundTileProvider = null;
         }
-        this.masterDimension = masterDimension;
-        if (masterDimension != null) {
-            masterTileProvider = new WPTileProvider(masterDimension, colourScheme, customBiomeManager, hiddenLayers, false, contourSeparation, lightOrigin, drawBorders, false, FADE_TO_WHITE);
-            setTileProvider(LAYER_MASTER, masterTileProvider);
-            setProviderZoom(masterTileProvider, 4);
+        this.backgroundDimension = backgroundDimension;
+        if (backgroundDimension != null) {
+            backgroundTileProvider = new WPTileProvider(backgroundDimension, colourScheme, customBiomeManager, hiddenLayers, false, contourSeparation, lightOrigin, drawBorders, false, effect);
+            setTileProvider(LAYER_BACKGROUND, backgroundTileProvider);
+            setProviderZoom(backgroundTileProvider, zoomLevel);
         }
         repaint();
     }
 
     private HashSet<Layer> hiddenLayers = new HashSet<>();
     private final CustomBiomeManager customBiomeManager;
-    private Dimension dimension, masterDimension; // TODO make this more generic
+    private Dimension dimension, backgroundDimension; // TODO make this more generic
     private int mouseX, mouseY, radius, effectiveRadius, overlayOffsetX, overlayOffsetY, contourSeparation, brushRotation;
     private boolean drawBrush, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance, drawMinecraftBorder = true,
         drawBorders = true, drawBiomes = true;
@@ -928,7 +928,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private ColourScheme colourScheme;
     private BufferedImage overlay;
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
-    private WPTileProvider tileProvider, masterTileProvider;
+    private WPTileProvider tileProvider, backgroundTileProvider;
     private Shape customBrushShape;
 
     private static final int VIEW_DISTANCE_RADIUS = 192; // 12 chunks (default of Minecraft 1.18.2)
@@ -943,7 +943,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WorldPainter.class);
     private static final long serialVersionUID = 1L;
 
-    private static final int LAYER_BIOMES  = -2;
-    private static final int LAYER_MASTER  = -1;
-    private static final int LAYER_DETAILS =  0;
+    private static final int LAYER_BIOMES     = -2;
+    private static final int LAYER_BACKGROUND = -1;
+    private static final int LAYER_DETAILS    =  0;
 }

@@ -13,6 +13,7 @@ package org.pepsoft.worldpainter;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.Dimension.LayerAnchor;
 import org.pepsoft.worldpainter.exporting.ExportSettings;
 import org.pepsoft.worldpainter.exporting.ExportSettingsEditor;
@@ -46,6 +47,8 @@ import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_17;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_18;
+import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
+import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.DimensionPropertiesEditor.Mode.DEFAULT_SETTINGS;
 import static org.pepsoft.worldpainter.Generator.CUSTOM;
 import static org.pepsoft.worldpainter.Generator.FLAT;
@@ -150,6 +153,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 break;
             case EDITOR:
                 jTabbedPane1.remove(5);
+                if (dimension.getAnchor().role == CAVE_FLOOR) {
+                    jTabbedPane1.remove(3);
+                    jTabbedPane1.remove(2);
+                }
                 break;
             default:
                 throw new IllegalArgumentException("mode " + mode);
@@ -1050,8 +1057,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         }
 
         // world generation settings
-        final MapGenerator generator = dimension.getGenerator();
         endlessBorder = (dimension.getBorder() != null) && dimension.getBorder().isEndless();
+        final MapGenerator generator = dimension.getGenerator();
         comboBoxGenerator.setSelectedItem(endlessBorder ? FLAT : ((generator != null) ? generator.getType() : null));
         if (generator != null) {
             savedGeneratorType = generator.getType();
@@ -1065,19 +1072,20 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     
     private void setControlStates() {
         final boolean enabled = isEnabled();
-        final boolean dim0 = (dimension != null) && (dimension.getAnchor().dim == Constants.DIM_NORMAL);
-        final boolean ceiling = (dimension != null) && dimension.getAnchor().invert;
+        final Anchor anchor = (dimension != null) ? dimension.getAnchor() : null;
+        final boolean dim0 = (anchor != null) && (anchor.dim == Constants.DIM_NORMAL) && (anchor.role == DETAIL) && (! anchor.invert);
+        final boolean ceiling = (anchor != null) && anchor.invert;
+        final boolean caveFloor = (anchor != null) && (anchor.role == CAVE_FLOOR);
         final boolean decorations = checkBoxDecorateCaverns.isSelected() || checkBoxDecorateCaves.isSelected() || checkBoxDecorateChasms.isSelected();
-        setEnabled(radioButtonLavaBorder, enabled && (! ceiling));
-        setEnabled(radioButtonNoBorder, enabled && (! ceiling));
-        setEnabled(radioButtonVoidBorder, enabled && (! ceiling));
-        setEnabled(radioButtonWaterBorder, enabled && (! ceiling));
-        setEnabled(radioButtonBarrierBorder, enabled && (! ceiling));
-        setEnabled(spinnerBorderLevel, enabled && (! ceiling) && (radioButtonLavaBorder.isSelected() || radioButtonWaterBorder.isSelected()));
-        setEnabled(radioButtonFixedBorder, enabled && (! ceiling) && (! radioButtonNoBorder.isSelected()));
-        setEnabled(radioButtonEndlessBorder, enabled && (platform.capabilities.contains(GENERATOR_PER_DIMENSION) || dim0) && (! ceiling) && (! radioButtonNoBorder.isSelected()));
-        setEnabled(spinnerBorderSize, enabled && (! ceiling) && (! radioButtonNoBorder.isSelected()) && radioButtonFixedBorder.isSelected());
-        setEnabled(checkBoxWall, enabled && (! ceiling) && (radioButtonNoBorder.isSelected() || radioButtonFixedBorder.isSelected()));
+        setEnabled(radioButtonLavaBorder, enabled && (! ceiling) && (! caveFloor));
+        setEnabled(radioButtonNoBorder, enabled && (! ceiling) && (! caveFloor));
+        setEnabled(radioButtonVoidBorder, enabled && (! ceiling) && (! caveFloor));
+        setEnabled(radioButtonWaterBorder, enabled && (! ceiling) && (! caveFloor));
+        setEnabled(radioButtonBarrierBorder, enabled && (! ceiling) && (! caveFloor));
+        setEnabled(spinnerBorderLevel, enabled && (! ceiling) && (! caveFloor) && (radioButtonLavaBorder.isSelected() || radioButtonWaterBorder.isSelected()));
+        setEnabled(radioButtonFixedBorder, enabled && (! ceiling) && (! caveFloor) && (! radioButtonNoBorder.isSelected()));
+        setEnabled(radioButtonEndlessBorder, enabled && (platform.capabilities.contains(GENERATOR_PER_DIMENSION) || dim0) && (! ceiling) && (! caveFloor) && (! radioButtonNoBorder.isSelected()));
+        setEnabled(spinnerBorderSize, enabled && (! ceiling) && (! caveFloor) && (! radioButtonNoBorder.isSelected()) && radioButtonFixedBorder.isSelected());
         setEnabled(sliderCavesEverywhereLevel, enabled && checkBoxCavesEverywhere.isSelected());
         setEnabled(sliderCavernsEverywhereLevel, enabled && checkBoxCavernsEverywhere.isSelected());
         setEnabled(sliderChasmsEverywhereLevel, enabled && checkBoxChasmsEverywhere.isSelected());
@@ -1117,15 +1125,15 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 setEnabled(comboBoxUndergroundLayerAnchor, false);
             }
         }
-        setEnabled(comboBoxGenerator, enabled && (! endlessBorder));
+        setEnabled(comboBoxGenerator, enabled && (! endlessBorder) && (! ceiling) && (! caveFloor));
         setEnabled(buttonGeneratorOptions, enabled
-                && (! endlessBorder)
+                && (! endlessBorder) && (! ceiling) && (! caveFloor)
                 && ((comboBoxGenerator.getSelectedItem() == Generator.FLAT)
                     || ((comboBoxGenerator.getSelectedItem() == CUSTOM) && (customGeneratorSettings == null))));
-        setEnabled(checkBoxWall, enabled && (! endlessBorder));
+        setEnabled(checkBoxWall, enabled && (! endlessBorder) && (! ceiling) && (! caveFloor));
         setEnabled(radioButtonBedrockWall, enabled && (! endlessBorder) && checkBoxWall.isSelected());
         setEnabled(radioButtonBarrierWall, enabled && (! endlessBorder) && checkBoxWall.isSelected());
-        setEnabled(checkBoxRoof, enabled);
+        setEnabled(checkBoxRoof, enabled && (! ceiling) && (! caveFloor));
         setEnabled(radioButtonBedrockRoof, enabled && checkBoxRoof.isSelected());
         setEnabled(radioButtonBarrierRoof, enabled && checkBoxRoof.isSelected());
         setEnabled(checkBoxDecorateCaverns, enabled);
@@ -1135,6 +1143,14 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setEnabled(checkBoxDecorationGlowLichen, enabled && decorations && (platform == JAVA_ANVIL_1_17 || platform == JAVA_ANVIL_1_18));
         setEnabled(checkBoxDecorationLushCaves, enabled && decorations && (platform == JAVA_ANVIL_1_17 || platform == JAVA_ANVIL_1_18));
         setEnabled(checkBoxDecorationDripstoneCaves, enabled && decorations && (platform == JAVA_ANVIL_1_17 || platform == JAVA_ANVIL_1_18));
+        setEnabled(checkBoxCoverSteepTerrain, enabled && (! caveFloor)); // TODO make this work
+        setEnabled(comboBoxSurfaceLayerAnchor, enabled && (! caveFloor));
+        setEnabled(comboBoxSubsurfaceMaterial, enabled && (! caveFloor));
+        setEnabled(comboBoxUndergroundLayerAnchor, enabled && (! caveFloor));
+        setEnabled(checkBoxBottomless, enabled && (! caveFloor));
+        setEnabled(spinnerMcBorderCentreX, enabled && dim0);
+        setEnabled(spinnerMcBorderCentreY, enabled && dim0);
+        setEnabled(spinnerMcBorderSize, enabled && dim0);
     }
     
     private void setEnabled(Component component, boolean enabled) {

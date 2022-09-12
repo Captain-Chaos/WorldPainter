@@ -102,6 +102,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toSet;
 import static javax.swing.JOptionPane.*;
+import static javax.swing.KeyStroke.getKeyStroke;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.util.GUIUtils.getUIScale;
@@ -113,13 +114,14 @@ import static org.pepsoft.util.swing.ProgressDialog.NO_FOCUS_STEALING;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Dimension.Anchor.*;
-import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
-import static org.pepsoft.worldpainter.Dimension.Role.MASTER;
+import static org.pepsoft.worldpainter.Dimension.Role.*;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.Terrain.*;
 import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
 import static org.pepsoft.worldpainter.TileRenderer.TERRAIN_AS_LAYER;
+import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_FIFTY_PERCENT;
+import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_TWENTYFIVE_PERCENT;
 import static org.pepsoft.worldpainter.World2.*;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
 
@@ -234,44 +236,6 @@ public final class App extends JFrame implements RadiusControl,
             }
         };
         addWindowListener(windowAdapter);
-
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("rotateLightLeft", ACTION_ROTATE_LIGHT_LEFT);
-        actionMap.put("rotateLightRight", ACTION_ROTATE_LIGHT_RIGHT);
-        actionMap.put("intensity10", ACTION_INTENSITY_10_PERCENT);
-        actionMap.put("intensity20", ACTION_INTENSITY_20_PERCENT);
-        actionMap.put("intensity30", ACTION_INTENSITY_30_PERCENT);
-        actionMap.put("intensity40", ACTION_INTENSITY_40_PERCENT);
-        actionMap.put("intensity50", ACTION_INTENSITY_50_PERCENT);
-        actionMap.put("intensity60", ACTION_INTENSITY_60_PERCENT);
-        actionMap.put("intensity70", ACTION_INTENSITY_70_PERCENT);
-        actionMap.put("intensity80", ACTION_INTENSITY_80_PERCENT);
-        actionMap.put("intensity90", ACTION_INTENSITY_90_PERCENT);
-        actionMap.put("intensity100", ACTION_INTENSITY_100_PERCENT);
-
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(ACTION_ROTATE_LIGHT_LEFT.getAcceleratorKey(), "rotateLightLeft");
-        inputMap.put(ACTION_ROTATE_LIGHT_RIGHT.getAcceleratorKey(), "rotateLightRight");
-        inputMap.put(ACTION_INTENSITY_10_PERCENT.getAcceleratorKey(), "intensity10");
-        inputMap.put(ACTION_INTENSITY_20_PERCENT.getAcceleratorKey(), "intensity20");
-        inputMap.put(ACTION_INTENSITY_30_PERCENT.getAcceleratorKey(), "intensity30");
-        inputMap.put(ACTION_INTENSITY_40_PERCENT.getAcceleratorKey(), "intensity40");
-        inputMap.put(ACTION_INTENSITY_50_PERCENT.getAcceleratorKey(), "intensity50");
-        inputMap.put(ACTION_INTENSITY_60_PERCENT.getAcceleratorKey(), "intensity60");
-        inputMap.put(ACTION_INTENSITY_70_PERCENT.getAcceleratorKey(), "intensity70");
-        inputMap.put(ACTION_INTENSITY_80_PERCENT.getAcceleratorKey(), "intensity80");
-        inputMap.put(ACTION_INTENSITY_90_PERCENT.getAcceleratorKey(), "intensity90");
-        inputMap.put(ACTION_INTENSITY_100_PERCENT.getAcceleratorKey(), "intensity100");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD1, 0), "intensity10");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD2, 0), "intensity20");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD3, 0), "intensity30");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD4, 0), "intensity40");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD5, 0), "intensity50");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD6, 0), "intensity60");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD7, 0), "intensity70");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD8, 0), "intensity80");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD9, 0), "intensity90");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD0, 0), "intensity100");
 
         // Log some information about the graphics environment
         GraphicsDevice graphicsDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
@@ -508,10 +472,25 @@ public final class App extends JFrame implements RadiusControl,
             }
 
             view.setDimension(dimension);
-            masterDimension = anchor.equals(NORMAL_DETAIL) ? world.getDimension(new Anchor(DIM_NORMAL, MASTER, false, 0)) : null;
-            view.setMasterDimension(masterDimension);
+            outsideDimensionLabel = "Minecraft Generated";
+            if (anchor.equals(NORMAL_DETAIL)) {
+                backgroundDimension = world.getDimension(new Anchor(DIM_NORMAL, MASTER, false, 0));
+                showBackgroundStatus = backgroundDimension != null;
+                backgroundZoom = 4;
+                view.setBackgroundDimension(backgroundDimension, backgroundZoom, FADE_TO_FIFTY_PERCENT);
+            } else if (anchor.role == CAVE_FLOOR) {
+                backgroundDimension = world.getDimension(new Anchor(anchor.dim, DETAIL, anchor.invert, 0));
+                showBackgroundStatus = false;
+                backgroundZoom = 0;
+                outsideDimensionLabel = "Outside Cave/Tunnel";
+                view.setBackgroundDimension(backgroundDimension, backgroundZoom, FADE_TO_TWENTYFIVE_PERCENT);
+            } else {
+                backgroundDimension = null;
+                showBackgroundStatus = false;
+                view.setBackgroundDimension(null, -1, null);
+            }
             view.moveTo(dimension.getLastViewPosition());
-            
+
             configureForPlatform();
             currentUndoManager = undoManagers.get(anchor);
             if (currentUndoManager == null) {
@@ -606,7 +585,7 @@ public final class App extends JFrame implements RadiusControl,
             updateRadiusLabel();
         } else {
             view.setDimension(null);
-            view.setMasterDimension(null);
+            view.setBackgroundDimension(null, -1, null);
             setTitle("WorldPainter"); // NOI18N
 
             // Clear action states
@@ -643,7 +622,7 @@ public final class App extends JFrame implements RadiusControl,
                 programmaticChange = false;
             }
 
-            masterDimension = null;
+            backgroundDimension = null;
         }
     }
 
@@ -661,12 +640,12 @@ public final class App extends JFrame implements RadiusControl,
         setTextIfDifferent(locationLabel, MessageFormat.format(strings.getString("location.0.1"), NUMBER_FORMAT.format(round(x * scale)), NUMBER_FORMAT.format(round(y * scale))));
         Tile tile = dimension.getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
-        if ((masterDimension != null)
-                && ((tile == null) || tile.getBitLayerValue(NotPresent.INSTANCE, xInTile, yInTile))
-                && masterDimension.isTilePresent(x >> (TILE_SIZE_BITS + 4), y >> (TILE_SIZE_BITS + 4))) {
-            dimension = masterDimension;
-            x = x >> 4;
-            y = y >> 4;
+        if (showBackgroundStatus
+                && ((tile == null) || tile.getBitLayerValue(NotPresent.INSTANCE, xInTile, yInTile) || tile.getBitLayerValue(NotPresentBlock.INSTANCE, xInTile, yInTile))
+                && backgroundDimension.isTilePresent(x >> (TILE_SIZE_BITS + backgroundZoom), y >> (TILE_SIZE_BITS + backgroundZoom))) {
+            dimension = backgroundDimension;
+            x = x >> backgroundZoom;
+            y = y >> backgroundZoom;
             xInTile = x & TILE_SIZE_MASK;
             yInTile = y & TILE_SIZE_MASK;
             tile = dimension.getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
@@ -679,17 +658,17 @@ public final class App extends JFrame implements RadiusControl,
             if (dimension.isBorderTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)) {
                 setTextIfDifferent(materialLabel, "Border");
             } else {
-                setTextIfDifferent(materialLabel, "Minecraft Generated");
+                setTextIfDifferent(materialLabel, outsideDimensionLabel);
             }
             setTextIfDifferent(biomeLabel, " ");
             return;
         }
-        if (tile.getBitLayerValue(NotPresent.INSTANCE, xInTile, yInTile)) {
+        if (tile.getBitLayerValue(NotPresent.INSTANCE, xInTile, yInTile) || tile.getBitLayerValue(NotPresentBlock.INSTANCE, xInTile, yInTile)) {
             // Marked as not present
             setTextIfDifferent(heightLabel, " ");
             setTextIfDifferent(slopeLabel, " ");
             setTextIfDifferent(waterLabel, " ");
-            setTextIfDifferent(materialLabel, "Minecraft Generated");
+            setTextIfDifferent(materialLabel, outsideDimensionLabel);
             setTextIfDifferent(biomeLabel, " ");
             return;
         }
@@ -2598,6 +2577,8 @@ public final class App extends JFrame implements RadiusControl,
         }
         dockingManager.setGroupAllowedOnSidePane(false);
         dockingManager.setTabbedPaneCustomizer(tabbedPane -> tabbedPane.setTabPlacement(JTabbedPane.LEFT));
+        // Stop JIDE from swallowing the Esc key
+        dockingManager.getMainContainer().unregisterKeyboardAction(getKeyStroke(VK_ESCAPE, 0));
         Workspace workspace = dockingManager.getWorkspace();
         workspace.setLayout(new BorderLayout());
         workspace.add(viewContainer, BorderLayout.CENTER);
@@ -2781,32 +2762,68 @@ public final class App extends JFrame implements RadiusControl,
         actionMap.put(ACTION_ROTATE_BRUSH_RIGHT_30_DEGREES.getName(), ACTION_ROTATE_BRUSH_RIGHT_30_DEGREES);
         actionMap.put(ACTION_ROTATE_BRUSH_RIGHT_45_DEGREES.getName(), ACTION_ROTATE_BRUSH_RIGHT_45_DEGREES);
         actionMap.put(ACTION_ROTATE_BRUSH_RIGHT_90_DEGREES.getName(), ACTION_ROTATE_BRUSH_RIGHT_90_DEGREES);
+        actionMap.put("rotateLightLeft", ACTION_ROTATE_LIGHT_LEFT);
+        actionMap.put("rotateLightRight", ACTION_ROTATE_LIGHT_RIGHT);
+        actionMap.put("intensity10", ACTION_INTENSITY_10_PERCENT);
+        actionMap.put("intensity20", ACTION_INTENSITY_20_PERCENT);
+        actionMap.put("intensity30", ACTION_INTENSITY_30_PERCENT);
+        actionMap.put("intensity40", ACTION_INTENSITY_40_PERCENT);
+        actionMap.put("intensity50", ACTION_INTENSITY_50_PERCENT);
+        actionMap.put("intensity60", ACTION_INTENSITY_60_PERCENT);
+        actionMap.put("intensity70", ACTION_INTENSITY_70_PERCENT);
+        actionMap.put("intensity80", ACTION_INTENSITY_80_PERCENT);
+        actionMap.put("intensity90", ACTION_INTENSITY_90_PERCENT);
+        actionMap.put("intensity100", ACTION_INTENSITY_100_PERCENT);
+        actionMap.put(ACTION_EXIT_DIMENSION.getName(), ACTION_EXIT_DIMENSION);
 
         int platformCommandMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
         InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(VK_SUBTRACT, 0),                                     ACTION_NAME_DECREASE_RADIUS);
-        inputMap.put(KeyStroke.getKeyStroke(VK_MINUS,    0),                                     ACTION_NAME_DECREASE_RADIUS);
-        inputMap.put(KeyStroke.getKeyStroke(VK_ADD,      0),                                     ACTION_NAME_INCREASE_RADIUS);
-        inputMap.put(KeyStroke.getKeyStroke(VK_EQUALS,   SHIFT_DOWN_MASK),                       ACTION_NAME_INCREASE_RADIUS);
-        inputMap.put(KeyStroke.getKeyStroke(VK_SUBTRACT, SHIFT_DOWN_MASK),                       ACTION_NAME_DECREASE_RADIUS_BY_ONE);
-        inputMap.put(KeyStroke.getKeyStroke(VK_MINUS,    SHIFT_DOWN_MASK),                       ACTION_NAME_DECREASE_RADIUS_BY_ONE);
-        inputMap.put(KeyStroke.getKeyStroke(VK_ADD,      SHIFT_DOWN_MASK),                       ACTION_NAME_INCREASE_RADIUS_BY_ONE);
-        inputMap.put(KeyStroke.getKeyStroke(VK_Z,        platformCommandMask | SHIFT_DOWN_MASK), ACTION_NAME_REDO);
-        inputMap.put(KeyStroke.getKeyStroke(VK_MINUS,    platformCommandMask),                   ACTION_NAME_ZOOM_OUT);
-        inputMap.put(KeyStroke.getKeyStroke(VK_EQUALS,   platformCommandMask | SHIFT_DOWN_MASK), ACTION_NAME_ZOOM_IN);
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD0,  platformCommandMask),                   ACTION_ZOOM_RESET.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_SUBTRACT, ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_LEFT.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_MINUS,    ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_LEFT.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_ADD,      ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_EQUALS,   ALT_DOWN_MASK | SHIFT_DOWN_MASK),       ACTION_ROTATE_BRUSH_RIGHT.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_0,        ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RESET.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD0,  ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RESET.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_3,        ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_30_DEGREES.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD3,  ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_30_DEGREES.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_4,        ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_45_DEGREES.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD4,  ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_45_DEGREES.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_9,        ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_90_DEGREES.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD9,  ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_90_DEGREES.getName());
+        inputMap.put(getKeyStroke(VK_SUBTRACT, 0),                                     ACTION_NAME_DECREASE_RADIUS);
+        inputMap.put(getKeyStroke(VK_MINUS,    0),                                     ACTION_NAME_DECREASE_RADIUS);
+        inputMap.put(getKeyStroke(VK_ADD,      0),                                     ACTION_NAME_INCREASE_RADIUS);
+        inputMap.put(getKeyStroke(VK_EQUALS,   SHIFT_DOWN_MASK),                       ACTION_NAME_INCREASE_RADIUS);
+        inputMap.put(getKeyStroke(VK_SUBTRACT, SHIFT_DOWN_MASK),                       ACTION_NAME_DECREASE_RADIUS_BY_ONE);
+        inputMap.put(getKeyStroke(VK_MINUS,    SHIFT_DOWN_MASK),                       ACTION_NAME_DECREASE_RADIUS_BY_ONE);
+        inputMap.put(getKeyStroke(VK_ADD,      SHIFT_DOWN_MASK),                       ACTION_NAME_INCREASE_RADIUS_BY_ONE);
+        inputMap.put(getKeyStroke(VK_Z,        platformCommandMask | SHIFT_DOWN_MASK), ACTION_NAME_REDO);
+        inputMap.put(getKeyStroke(VK_MINUS,    platformCommandMask),                   ACTION_NAME_ZOOM_OUT);
+        inputMap.put(getKeyStroke(VK_EQUALS,   platformCommandMask | SHIFT_DOWN_MASK), ACTION_NAME_ZOOM_IN);
+        inputMap.put(getKeyStroke(VK_NUMPAD0,  platformCommandMask),                   ACTION_ZOOM_RESET.getName());
+        inputMap.put(getKeyStroke(VK_SUBTRACT, ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_LEFT.getName());
+        inputMap.put(getKeyStroke(VK_MINUS,    ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_LEFT.getName());
+        inputMap.put(getKeyStroke(VK_ADD,      ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT.getName());
+        inputMap.put(getKeyStroke(VK_EQUALS,   ALT_DOWN_MASK | SHIFT_DOWN_MASK),       ACTION_ROTATE_BRUSH_RIGHT.getName());
+        inputMap.put(getKeyStroke(VK_0,        ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RESET.getName());
+        inputMap.put(getKeyStroke(VK_NUMPAD0,  ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RESET.getName());
+        inputMap.put(getKeyStroke(VK_3,        ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_30_DEGREES.getName());
+        inputMap.put(getKeyStroke(VK_NUMPAD3,  ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_30_DEGREES.getName());
+        inputMap.put(getKeyStroke(VK_4,        ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_45_DEGREES.getName());
+        inputMap.put(getKeyStroke(VK_NUMPAD4,  ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_45_DEGREES.getName());
+        inputMap.put(getKeyStroke(VK_9,        ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_90_DEGREES.getName());
+        inputMap.put(getKeyStroke(VK_NUMPAD9,  ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_90_DEGREES.getName());
+        inputMap.put(ACTION_ROTATE_LIGHT_LEFT.getAcceleratorKey(),                     "rotateLightLeft");
+        inputMap.put(ACTION_ROTATE_LIGHT_RIGHT.getAcceleratorKey(),                    "rotateLightRight");
+        inputMap.put(ACTION_INTENSITY_10_PERCENT.getAcceleratorKey(),                  "intensity10");
+        inputMap.put(ACTION_INTENSITY_20_PERCENT.getAcceleratorKey(),                  "intensity20");
+        inputMap.put(ACTION_INTENSITY_30_PERCENT.getAcceleratorKey(),                  "intensity30");
+        inputMap.put(ACTION_INTENSITY_40_PERCENT.getAcceleratorKey(),                  "intensity40");
+        inputMap.put(ACTION_INTENSITY_50_PERCENT.getAcceleratorKey(),                  "intensity50");
+        inputMap.put(ACTION_INTENSITY_60_PERCENT.getAcceleratorKey(),                  "intensity60");
+        inputMap.put(ACTION_INTENSITY_70_PERCENT.getAcceleratorKey(),                  "intensity70");
+        inputMap.put(ACTION_INTENSITY_80_PERCENT.getAcceleratorKey(),                  "intensity80");
+        inputMap.put(ACTION_INTENSITY_90_PERCENT.getAcceleratorKey(),                  "intensity90");
+        inputMap.put(ACTION_INTENSITY_100_PERCENT.getAcceleratorKey(),                 "intensity100");
+        inputMap.put(getKeyStroke(VK_NUMPAD1, 0),                                      "intensity10");
+        inputMap.put(getKeyStroke(VK_NUMPAD2, 0),                                      "intensity20");
+        inputMap.put(getKeyStroke(VK_NUMPAD3, 0),                                      "intensity30");
+        inputMap.put(getKeyStroke(VK_NUMPAD4, 0),                                      "intensity40");
+        inputMap.put(getKeyStroke(VK_NUMPAD5, 0),                                      "intensity50");
+        inputMap.put(getKeyStroke(VK_NUMPAD6, 0),                                      "intensity60");
+        inputMap.put(getKeyStroke(VK_NUMPAD7, 0),                                      "intensity70");
+        inputMap.put(getKeyStroke(VK_NUMPAD8, 0),                                      "intensity80");
+        inputMap.put(getKeyStroke(VK_NUMPAD9, 0),                                      "intensity90");
+        inputMap.put(getKeyStroke(VK_NUMPAD0, 0),                                      "intensity100");
+        inputMap.put(ACTION_EXIT_DIMENSION.getAcceleratorKey(),                        ACTION_EXIT_DIMENSION.getName());
 
         programmaticChange = true;
         try {
@@ -3834,6 +3851,11 @@ public final class App extends JFrame implements RadiusControl,
         dimension.setEventsInhibited(true);
         try {
             dimension.clearLayerData(layer);
+            if ((layer instanceof TunnelLayer) && (((TunnelLayer) layer).getFloorDimensionId() != null)) {
+                final Anchor anchor = dimension.getAnchor();
+                world.removeDimension(new Anchor(anchor.dim, CAVE_FLOOR, anchor.invert, ((TunnelLayer) layer).getFloorDimensionId()));
+            }
+            dimension.clearUndo();
         } finally {
             dimension.setEventsInhibited(false);
         }
@@ -4164,7 +4186,7 @@ public final class App extends JFrame implements RadiusControl,
         menuItem = new JMenuItem(strings.getString("global.operations") + "...");
         menuItem.addActionListener(event -> showGlobalOperations());
         menuItem.setMnemonic('g');
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(VK_G, PLATFORM_COMMAND_MASK));
+        menuItem.setAccelerator(getKeyStroke(VK_G, PLATFORM_COMMAND_MASK));
         menu.add(menuItem);
         
         menuItem = new JMenuItem(ACTION_EDIT_TILES);
@@ -4275,20 +4297,20 @@ public final class App extends JFrame implements RadiusControl,
         viewSurfaceMenuItem = new JCheckBoxMenuItem(strings.getString("view.surface"), true);
         viewSurfaceMenuItem.addActionListener(e -> viewDimension(NORMAL_DETAIL));
         viewSurfaceMenuItem.setMnemonic('s');
-        viewSurfaceMenuItem.setAccelerator(KeyStroke.getKeyStroke(VK_U, PLATFORM_COMMAND_MASK));
+        viewSurfaceMenuItem.setAccelerator(getKeyStroke(VK_U, PLATFORM_COMMAND_MASK));
         menu.add(viewSurfaceMenuItem);
 
         viewNetherMenuItem = new JCheckBoxMenuItem(strings.getString("view.nether"), false);
         viewNetherMenuItem.addActionListener(e -> viewDimension(NETHER_DETAIL));
         viewNetherMenuItem.setMnemonic('n');
-        viewNetherMenuItem.setAccelerator(KeyStroke.getKeyStroke(VK_H, PLATFORM_COMMAND_MASK));
+        viewNetherMenuItem.setAccelerator(getKeyStroke(VK_H, PLATFORM_COMMAND_MASK));
         viewNetherMenuItem.setEnabled(false);
         menu.add(viewNetherMenuItem);
 
         viewEndMenuItem = new JCheckBoxMenuItem(strings.getString("view.end"), false);
         viewEndMenuItem.addActionListener(e -> viewDimension(END_DETAIL));
         viewEndMenuItem.setMnemonic('e');
-        viewEndMenuItem.setAccelerator(KeyStroke.getKeyStroke(VK_D, PLATFORM_COMMAND_MASK));
+        viewEndMenuItem.setAccelerator(getKeyStroke(VK_D, PLATFORM_COMMAND_MASK));
         viewEndMenuItem.setEnabled(false);
         menu.add(viewEndMenuItem);
 
@@ -4306,7 +4328,7 @@ public final class App extends JFrame implements RadiusControl,
             ACTION_OVERLAY.setSelected(view.isDrawOverlay());
         });
         menuItem.setMnemonic('c');
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(VK_V, PLATFORM_COMMAND_MASK));
+        menuItem.setAccelerator(getKeyStroke(VK_V, PLATFORM_COMMAND_MASK));
         menu.add(menuItem);
         
         menu.addSeparator();
@@ -4361,7 +4383,7 @@ public final class App extends JFrame implements RadiusControl,
             }
         });
         menuItem.setMnemonic('3');
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(VK_3, PLATFORM_COMMAND_MASK));
+        menuItem.setAccelerator(getKeyStroke(VK_3, PLATFORM_COMMAND_MASK));
         menu.add(menuItem);
 
         menu.addSeparator();
@@ -4579,10 +4601,10 @@ public final class App extends JFrame implements RadiusControl,
         final Anchor currentAnchor = dimension.getAnchor();
         if (currentAnchor.invert) {
             throw new IllegalStateException("Current dimension is already a ceiling");
-        } else if (currentAnchor.layer != 0) {
+        } else if (currentAnchor.id != 0) {
             throw new UnsupportedOperationException("Layers other than 0 not yet supported");
         }
-        final Anchor newAnchor = new Anchor(currentAnchor.dim, currentAnchor.role, true, currentAnchor.layer);
+        final Anchor newAnchor = new Anchor(currentAnchor.dim, currentAnchor.role, true, currentAnchor.id);
         if (world.isDimensionPresent(newAnchor)) {
             throw new IllegalStateException("Ceiling dimension already exists");
         }
@@ -4614,10 +4636,10 @@ public final class App extends JFrame implements RadiusControl,
 
     private void removeCeiling() {
         final Anchor currentAnchor = dimension.getAnchor();
-        if (currentAnchor.layer != 0) {
+        if (currentAnchor.id != 0) {
             throw new UnsupportedOperationException("Layers other than 0 not yet supported");
         }
-        final Anchor ceilingAnchor = new Anchor(currentAnchor.dim, currentAnchor.role, true, currentAnchor.layer);
+        final Anchor ceilingAnchor = new Anchor(currentAnchor.dim, currentAnchor.role, true, currentAnchor.id);
         if (! world.isDimensionPresent(ceilingAnchor)) {
             throw new IllegalStateException("There is no ceiling dimension");
         }
@@ -4625,7 +4647,7 @@ public final class App extends JFrame implements RadiusControl,
         if (showConfirmDialog(this, "Are you sure you want to completely remove the " + ceiling.getName() + " dimension?\nThis action cannot be undone!", "Confirm " + ceiling.getName() + " Deletion", YES_NO_OPTION) == YES_OPTION) {
             world.removeDimension(ceilingAnchor);
             if ((dimension != null) && (dimension.getAnchor().equals(ceilingAnchor))) {
-                viewDimension(new Anchor(ceilingAnchor.dim, ceilingAnchor.role, false, ceilingAnchor.layer));
+                viewDimension(new Anchor(ceilingAnchor.dim, ceilingAnchor.role, false, ceilingAnchor.id));
             } else {
                 configureForPlatform();
                 if (dimension.getAnchor().dim == ceilingAnchor.dim) {
@@ -4863,10 +4885,10 @@ public final class App extends JFrame implements RadiusControl,
         final Anchor currentAnchor = dimension.getAnchor();
         if (currentAnchor.role == MASTER) {
             throw new IllegalStateException("Current dimension is already a master");
-        } else if (currentAnchor.layer != 0) {
+        } else if (currentAnchor.id != 0) {
             throw new UnsupportedOperationException("Layers other than 0 not yet supported");
         }
-        final Anchor newAnchor = new Anchor(currentAnchor.dim, MASTER, false, currentAnchor.layer);
+        final Anchor newAnchor = new Anchor(currentAnchor.dim, MASTER, false, currentAnchor.id);
         if (world.isDimensionPresent(newAnchor)) {
             throw new IllegalStateException("Master dimension already exists");
         }
@@ -4898,10 +4920,10 @@ public final class App extends JFrame implements RadiusControl,
 
     private void removeMaster() {
         final Anchor currentAnchor = dimension.getAnchor();
-        if (currentAnchor.layer != 0) {
+        if (currentAnchor.id != 0) {
             throw new UnsupportedOperationException("Layers other than 0 not yet supported");
         }
-        final Anchor masterAnchor = new Anchor(currentAnchor.dim, MASTER, false, currentAnchor.layer);
+        final Anchor masterAnchor = new Anchor(currentAnchor.dim, MASTER, false, currentAnchor.id);
         if (! world.isDimensionPresent(masterAnchor)) {
             throw new IllegalStateException("There is no master dimension");
         }
@@ -4909,7 +4931,7 @@ public final class App extends JFrame implements RadiusControl,
         if (showConfirmDialog(this, "Are you sure you want to completely remove the " + master.getName() + " dimension?\nThis action cannot be undone!", "Confirm " + master.getName() + " Deletion", YES_NO_OPTION) == YES_OPTION) {
             world.removeDimension(masterAnchor);
             if ((dimension != null) && (dimension.getAnchor().equals(masterAnchor))) {
-                viewDimension(new Anchor(masterAnchor.dim, DETAIL, false, masterAnchor.layer));
+                viewDimension(new Anchor(masterAnchor.dim, DETAIL, false, masterAnchor.id));
             } else {
                 configureForPlatform();
                 if (dimension.getAnchor().dim == masterAnchor.dim) {
@@ -5372,9 +5394,9 @@ public final class App extends JFrame implements RadiusControl,
         viewEndMenuItem.setEnabled(end);
         ACTION_SWITCH_TO_FROM_MASTER.setEnabled(world.isDimensionPresent(new Anchor(anchor.dim, (anchor.role == MASTER) ? DETAIL : MASTER, false, 0)));
         ACTION_SWITCH_TO_FROM_CEILING.setEnabled(world.isDimensionPresent(new Anchor(anchor.dim, DETAIL, true, 0)));
-        addMasterMenuItem.setEnabled((anchor.role == DETAIL) && (anchor.layer == 0) && (! world.isDimensionPresent(new Anchor(anchor.dim, MASTER, false, 0))));
+        addMasterMenuItem.setEnabled((anchor.role == DETAIL) && (anchor.id == 0) && (! world.isDimensionPresent(new Anchor(anchor.dim, MASTER, false, 0))));
         removeMasterMenuItem.setEnabled((anchor.role == MASTER) || (world.isDimensionPresent(new Anchor(anchor.dim, MASTER, false, 0))));
-        addCeilingMenuItem.setEnabled((anchor.role == DETAIL) && (anchor.layer == 0) && (! anchor.invert) && (! world.isDimensionPresent(new Anchor(anchor.dim, anchor.role, true, 0))));
+        addCeilingMenuItem.setEnabled((anchor.role == DETAIL) && (anchor.id == 0) && (! anchor.invert) && (! world.isDimensionPresent(new Anchor(anchor.dim, anchor.role, true, 0))));
         removeCeilingMenuItem.setEnabled(anchor.invert || (world.isDimensionPresent(new Anchor(anchor.dim, anchor.role, true, 0))));
         if (dimension != null) {
             final boolean biomesSupported = (! anchor.invert) && platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
@@ -6247,6 +6269,15 @@ public final class App extends JFrame implements RadiusControl,
         glassPane.setVisible(true);
     }
 
+    private void exitDimension() {
+        final Anchor anchor = dimension.getAnchor();
+        if ((dimension != null) && (anchor.role == CAVE_FLOOR)) {
+            setDimension(world.getDimension(new Anchor(anchor.dim, DETAIL, anchor.invert, 0)));
+        } else {
+            DesktopUtils.beep();
+        }
+    }
+
     static Icon findIcon(Container container) {
         if (container instanceof JComponent) {
             Icon icon = (Icon) ((JComponent) container).getClientProperty(KEY_ICON);
@@ -6284,7 +6315,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_NEW_WORLD = new BetterAction("newWorld", strings.getString("new.world") + "...", ICON_NEW_WORLD, false) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_N, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_N, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("create.a.new.world"));
         }
         
@@ -6298,7 +6329,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private final BetterAction ACTION_OPEN_WORLD = new BetterAction("openWorld", strings.getString("open.world") + "...", ICON_OPEN_WORLD, false) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_O, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_O, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("open.an.existing.worldpainter.world"));
         }
         
@@ -6312,7 +6343,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_SAVE_WORLD = new BetterAction("saveWorld", strings.getString("save.world") + "...", ICON_SAVE_WORLD, false) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_S, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_S, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("save.the.world.as.a.worldpainter.file.to.the.previously.used.file"));
         }
         
@@ -6326,7 +6357,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private final BetterAction ACTION_SAVE_WORLD_AS = new BetterAction("saveWorldAs", strings.getString("save.world.as") + "...", ICON_SAVE_WORLD, false) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_S, PLATFORM_COMMAND_MASK | SHIFT_DOWN_MASK));
+            setAcceleratorKey(getKeyStroke(VK_S, PLATFORM_COMMAND_MASK | SHIFT_DOWN_MASK));
             setShortDescription(strings.getString("save.the.world.as.a.worldpainter.file"));
         }
         
@@ -6340,7 +6371,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_EXPORT_WORLD = new BetterAction("exportAsMinecraftMap", strings.getString("export.as.minecraft.map") + "...", ICON_EXPORT_WORLD, false) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_E, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_E, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("export.the.world.to.a.minecraft.map"));
         }
         
@@ -6373,7 +6404,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_IMPORT_MAP = new BetterAction("importMinecraftMap", strings.getString("existing.minecraft.map") + "...", false) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_I, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_I, PLATFORM_COMMAND_MASK));
             setShortDescription("Import the landscape of an existing Minecraft map. Use Merge to merge your changes.");
         }
 
@@ -6387,7 +6418,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private final BetterAction ACTION_MERGE_WORLD = new BetterAction("mergeWorld", strings.getString("merge.world") + "...", false) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_R, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_R, PLATFORM_COMMAND_MASK));
             setShortDescription("Merge the changes in a previously Imported world back to the original Minecraft map.");
         }
 
@@ -6414,7 +6445,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private final BetterAction ACTION_ZOOM_IN = new BetterAction("zoomIn", strings.getString("zoom.in"), ICON_ZOOM_IN) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_ADD, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_ADD, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("zoom.in"));
         }
         
@@ -6437,7 +6468,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private final BetterAction ACTION_ZOOM_RESET = new BetterAction("resetZoom", strings.getString("reset.zoom"), ICON_ZOOM_RESET) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_0, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_0, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("reset.the.zoom.level.to.1.1"));
             setEnabled(false);
         }
@@ -6477,7 +6508,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_ZOOM_OUT = new BetterAction("zoomOut", strings.getString("zoom.out"), ICON_ZOOM_OUT) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_SUBTRACT, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_SUBTRACT, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("zoom.out"));
         }
         
@@ -6561,7 +6592,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_UNDO = new BetterAction("undo", strings.getString("undo"), ICON_UNDO) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_Z, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_Z, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("undo.the.most.recent.action"));
         }
         
@@ -6579,7 +6610,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_REDO = new BetterAction("redo", strings.getString("redo"), ICON_REDO) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_Y, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_Y, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("redo.the.most.recent.action"));
         }
         
@@ -6597,7 +6628,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_EDIT_TILES = new BetterAction("editTiles", strings.getString("add.remove.tiles") + "...", ICON_EDIT_TILES) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_T, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_T, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("add.or.remove.tiles"));
         }
         
@@ -6663,7 +6694,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private final BetterAction ACTION_DIMENSION_PROPERTIES = new BetterAction("dimensionProperties", strings.getString("dimension.properties") + "...", ICON_DIMENSION_PROPERTIES) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_P, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_P, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("edit.the.properties.of.this.dimension"));
         }
         
@@ -6737,7 +6768,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private final BetterAction ACTION_ROTATE_LIGHT_RIGHT = new BetterAction("rotateLightClockwise", strings.getString("rotate.light.clockwise"), ICON_ROTATE_LIGHT_RIGHT) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_R, 0));
+            setAcceleratorKey(getKeyStroke(VK_R, 0));
             setShortDescription(strings.getString("rotate.the.direction.the.light.comes.from.clockwise"));
         }
         
@@ -6751,7 +6782,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_ROTATE_LIGHT_LEFT = new BetterAction("rotateLightAnticlockwise", strings.getString("rotate.light.anticlockwise"), ICON_ROTATE_LIGHT_LEFT) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_L, 0));
+            setAcceleratorKey(getKeyStroke(VK_L, 0));
             setShortDescription(strings.getString("rotate.the.direction.the.light.comes.from.anticlockwise"));
         }
         
@@ -6791,7 +6822,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_OPEN_DOCUMENTATION = new BetterAction("browseDocumentation", strings.getString("browse.documentation")) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_F1, 0));
+            setAcceleratorKey(getKeyStroke(VK_F1, 0));
         }
         
         @Override
@@ -6958,7 +6989,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private final BetterAction ACTION_SWITCH_TO_FROM_CEILING = new BetterAction("switchCeiling", "Switch to/from Ceiling") {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_C, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_C, PLATFORM_COMMAND_MASK));
         }
 
         @Override
@@ -6979,7 +7010,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private final BetterAction ACTION_SWITCH_TO_FROM_MASTER = new BetterAction("switchMaster", "Switch to/from Master") {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_M, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_M, PLATFORM_COMMAND_MASK));
         }
 
         @Override
@@ -7020,10 +7051,23 @@ public final class App extends JFrame implements RadiusControl,
         }
     };
 
+    private final BetterAction ACTION_EXIT_DIMENSION = new BetterAction("exitDimension", "Exit the current dimension") {
+        {
+            setAcceleratorKey(getKeyStroke(VK_ESCAPE, 0));
+        }
+
+        @Override
+        protected void performAction(ActionEvent e) {
+            exitDimension();
+        }
+    };
+
     private World2 world;
     private long lastSavedState = -1, lastAutosavedState = -1, lastSaveTimestamp = -1;
     private volatile long lastChangeTimestamp = -1;
-    private Dimension dimension, masterDimension;
+    private Dimension dimension, backgroundDimension;
+    private boolean showBackgroundStatus;
+    private int backgroundZoom;
     private WorldPainter view;
     private Operation activeOperation;
     private File lastSelectedFile;
@@ -7079,6 +7123,7 @@ public final class App extends JFrame implements RadiusControl,
     private long autosaveInhibitedUntil;
     private final Map<Layer, LayerControls> layerControls = new HashMap<>();
     private InfoPanel infoPanel;
+    private String outsideDimensionLabel;
 
     public static final Image ICON = IconUtils.loadScaledImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
     
@@ -7161,7 +7206,7 @@ public final class App extends JFrame implements RadiusControl,
         public IntensityAction(int percentage, int keyCode) {
             super("intensity" + percentage, MessageFormat.format(strings.getString("set.intensity.to.0"), percentage));
             this.percentage = percentage;
-            setAcceleratorKey(KeyStroke.getKeyStroke(keyCode, 0));
+            setAcceleratorKey(getKeyStroke(keyCode, 0));
         }
 
         @Override
