@@ -14,6 +14,7 @@ import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.NotPresent;
+import org.pepsoft.worldpainter.layers.NotPresentBlock;
 
 import javax.swing.*;
 import javax.swing.text.html.HTMLDocument;
@@ -74,7 +75,7 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
                 Tile existingTile = dimension.getTile(selectedTile);
                 if (existingTile != null) {
                     allowRemoveTiles = true;
-                    if (existingTile.hasLayer(NotPresent.INSTANCE)) {
+                    if (existingTile.hasLayer(NotPresent.INSTANCE) || existingTile.hasLayer(NotPresentBlock.INSTANCE)) {
                         allowAddTiles = true;
                     }
                 } else {
@@ -107,7 +108,7 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
                 if (selectedTile.y > newHighestTileY) {
                     newHighestTileY = selectedTile.y;
                 }
-            } else if (existingTile.hasLayer(NotPresent.INSTANCE)) {
+            } else if (existingTile.hasLayer(NotPresent.INSTANCE) || existingTile.hasLayer(NotPresentBlock.INSTANCE)) {
                 tilesToExpand.add(selectedTile);
             }
         }
@@ -159,6 +160,7 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
             for (Point expandTileCoords: tilesToExpand) {
                 Tile tile = dimension.getTileForEditing(expandTileCoords);
                 tile.clearLayerData(NotPresent.INSTANCE);
+                tile.clearLayerData(NotPresentBlock.INSTANCE);
             }
         } finally {
             dimension.setEventsInhibited(false);

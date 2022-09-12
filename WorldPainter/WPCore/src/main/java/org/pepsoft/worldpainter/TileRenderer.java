@@ -202,7 +202,7 @@ public final class TileRenderer {
         layerList.removeAll(hiddenLayers);
         final boolean hideTerrain = hiddenLayers.contains(TERRAIN_AS_LAYER);
         final boolean hideFluids = hiddenLayers.contains(FLUIDS_AS_LAYER);
-        final boolean _void = layerList.contains(org.pepsoft.worldpainter.layers.Void.INSTANCE), notAllChunksPresent = layerList.contains(NotPresent.INSTANCE);
+        final boolean _void = layerList.contains(org.pepsoft.worldpainter.layers.Void.INSTANCE), notAllBlocksPresent = layerList.contains(NotPresent.INSTANCE) || layerList.contains(NotPresentBlock.INSTANCE);
         final Layer[] layers = layerList.toArray(new Layer[layerList.size()]);
         final LayerRenderer[] renderers = new LayerRenderer[layers.length];
         for (int i = 0; i < layers.length; i++) {
@@ -226,7 +226,7 @@ public final class TileRenderer {
             if (zoom == 0) {
                 for (int x = 0; x < TILE_SIZE; x++) {
                     for (int y = 0; y < TILE_SIZE; y++) {
-                        if (notAllChunksPresent && (tile.getBitLayerValue(NotPresent.INSTANCE, x, y))) {
+                        if (notAllBlocksPresent && (tile.getBitLayerValue(NotPresent.INSTANCE, x, y) || tile.getBitLayerValue(NotPresentBlock.INSTANCE, x, y))) {
                             renderBuffer[x | (y << TILE_SIZE_BITS)] = notPresentColour;
                         } else if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)] && CEILING_PATTERN[x & 0x7][y & 0x7]) {
                             renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000;
@@ -250,9 +250,9 @@ public final class TileRenderer {
                 final int tileSize = TILE_SIZE / scale;
                 for (int x = 0; x < TILE_SIZE; x += scale) {
                     for (int y = 0; y < TILE_SIZE; y += scale) {
-                        if (notAllChunksPresent && (tile.getBitLayerValue(NotPresent.INSTANCE, x, y))) {
+                        if (notAllBlocksPresent && (tile.getBitLayerValue(NotPresent.INSTANCE, x, y) || tile.getBitLayerValue(NotPresentBlock.INSTANCE, x, y))) {
                             renderBuffer[x / scale + y * tileSize] = notPresentColour;
-                        } else if ((!noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)]) {
+                        } else if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)]) {
                             renderBuffer[x / scale + y * tileSize] = 0xff000000;
                         } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
                             renderBuffer[x / scale + y * tileSize] = 0x00000000;

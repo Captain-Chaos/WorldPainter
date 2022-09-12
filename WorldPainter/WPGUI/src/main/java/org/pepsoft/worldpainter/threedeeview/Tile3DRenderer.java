@@ -92,7 +92,8 @@ public class Tile3DRenderer {
                             throw new IllegalArgumentException();
                     }
                     if (tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, xInTile, yInTile)
-                            || tile.getBitLayerValue(NotPresent.INSTANCE, xInTile, yInTile)) {
+                            || tile.getBitLayerValue(NotPresent.INSTANCE, xInTile, yInTile)
+                            || tile.getBitLayerValue(NotPresentBlock.INSTANCE, xInTile, yInTile)) {
                         continue;
                     }
                     final int blockX = tileOffsetX + xInTile, blockY = tileOffsetY + yInTile;

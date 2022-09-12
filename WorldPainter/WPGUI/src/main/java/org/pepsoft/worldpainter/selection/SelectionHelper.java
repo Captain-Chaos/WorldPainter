@@ -695,5 +695,6 @@ outer:  for (int dx = -1; dx <= 1; dx++) {
     private static final double DISTANCE_TO_BLEND = 16.0 / Math.PI;
     private static final Random RANDOM = new Random();
     private static final Set<Layer> SKIP_LAYERS = new HashSet<>(Arrays.asList(Biome.INSTANCE, SelectionChunk.INSTANCE,
-            SelectionBlock.INSTANCE, NotPresent.INSTANCE, Annotations.INSTANCE, FloodWithLava.INSTANCE));
+            SelectionBlock.INSTANCE, NotPresent.INSTANCE, NotPresentBlock.INSTANCE, Annotations.INSTANCE,
+            FloodWithLava.INSTANCE));
 }

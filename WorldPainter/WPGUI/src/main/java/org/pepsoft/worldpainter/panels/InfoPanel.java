@@ -83,7 +83,7 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
             return;
         }
         final int x = worldCoords.x & TILE_SIZE_MASK, y = worldCoords.y & TILE_SIZE_MASK;
-        if (tile.getBitLayerValue(NotPresent.INSTANCE, x, y)) {
+        if (tile.getBitLayerValue(NotPresent.INSTANCE, x, y) || tile.getBitLayerValue(NotPresentBlock.INSTANCE, x, y)) {
             clearFields();
             return;
         }
