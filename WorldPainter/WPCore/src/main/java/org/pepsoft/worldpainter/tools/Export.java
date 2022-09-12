@@ -19,6 +19,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.cert.CertificateException;
 
+import static org.pepsoft.worldpainter.exporting.WorldExportSettings.EXPORT_EVERYTHING;
+
 /**
  *
  * @author pepijn
@@ -60,7 +62,7 @@ public class Export extends AbstractTool {
             }
         }
         logger.info("Exporting to " + exportDir);
-        WorldExporter exporter = platformManager.getExporter(world, null);
+        WorldExporter exporter = platformManager.getExporter(world, EXPORT_EVERYTHING);
         exporter.export(exportDir, world.getName(), exporter.selectBackupDir(exportDir, world.getName()), new TextProgressReceiver());
         System.out.println();
         logger.info("World " + world.getName() + " exported successfully");
