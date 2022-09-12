@@ -5,11 +5,11 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Window;
-import java.util.Collection;
-import javax.swing.DefaultListModel;
-import javax.swing.JOptionPane;
 import org.pepsoft.worldpainter.layers.CustomLayer;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.Collection;
 
 /**
  *
@@ -35,7 +35,7 @@ public class DeleteLayersDialog extends WorldPainterDialog {
     }
 
     private void deleteSelectedLayers() {
-        if (JOptionPane.showConfirmDialog(this, "Are you sure you want to delete " + jList1.getSelectedIndices().length + " layer(s)?", "Confirm Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+        if (JOptionPane.showConfirmDialog(this, "Are you sure you want to delete " + jList1.getSelectedIndices().length + " layer(s)?\nThis cannot be undone!", "Confirm Deletion", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             App app = App.getInstance();
             jList1.getSelectedValuesList().forEach(app::deleteCustomLayer);
             app.validate();
