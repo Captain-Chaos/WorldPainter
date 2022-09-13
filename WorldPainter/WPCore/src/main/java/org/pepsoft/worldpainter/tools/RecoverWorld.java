@@ -28,7 +28,6 @@ import java.util.zip.GZIPInputStream;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
-import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
@@ -196,22 +195,7 @@ public class RecoverWorld {
                 tileFactory = TileFactoryFactory.createNoiseTileFactory(dimension.getSeed(), Terrain.GRASS, minHeight, maxHeight, 58, DEFAULT_WATER_LEVEL, false, true, 20, 1.0);
             }
             final Dimension.Anchor anchor = dimension.getAnchor();
-            final String name;
-            switch (anchor.dim) {
-                case DIM_NORMAL:
-                    name = "Surface";
-                    break;
-                case DIM_NETHER:
-                    name = "Nether";
-                    break;
-                case DIM_END:
-                    name = "End";
-                    break;
-                default:
-                    name = "Dimension " + anchor.dim;
-                    break;
-            }
-            Dimension newDimension = new Dimension(newWorld, name, dimension.getMinecraftSeed(), tileFactory, anchor);
+            Dimension newDimension = new Dimension(newWorld, anchor.getDefaultName(), dimension.getMinecraftSeed(), tileFactory, anchor);
             try {
                 for (Map.Entry<Layer, ExporterSettings> settingsEntry: dimension.getAllLayerSettings().entrySet()) {
                     if (settingsEntry.getValue() != null) {

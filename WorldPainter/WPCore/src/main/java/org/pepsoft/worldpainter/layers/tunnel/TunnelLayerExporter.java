@@ -13,9 +13,8 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.NotPresentBlock;
 import org.pepsoft.worldpainter.layers.Void;
+import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.AbstractCavesExporter;
 import org.pepsoft.worldpainter.util.BiomeUtils;
 import org.slf4j.Logger;
@@ -76,12 +75,12 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
         final List<Fixup> fixups = new ArrayList<>();
         final int floodLevel = layer.getFloodLevel(), biome = (layer.getTunnelBiome() != null) ? layer.getTunnelBiome() : -1;
         final boolean removeWater = layer.isRemoveWater(), floodWithLava = layer.isFloodWithLava();
-        final boolean set3DBiomes = (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) && (layer.getTunnelBiome() != null);
-        final BiomeUtils biomeUtils = new BiomeUtils(dimension);
         final Dimension floorDimension = ((layer.getFloorMode() == CUSTOM_DIMENSION) && (layer.getFloorDimensionId() != null))
                 ? dimension.getWorld().getDimension(new Dimension.Anchor(dimension.getAnchor().dim, Dimension.Role.CAVE_FLOOR, dimension.getAnchor().invert, layer.getFloorDimensionId()))
                 : null;
         final boolean customDimension = floorDimension != null;
+        final boolean set3DBiomes = (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) && (customDimension || (layer.getTunnelBiome() != null));
+        final BiomeUtils biomeUtils = new BiomeUtils(dimension);
         final MixedMaterial floorMaterial = (! customDimension) ? layer.getFloorMaterial() : null, wallMaterial = layer.getWallMaterial(), roofMaterial = layer.getRoofMaterial();
         if (floorNoise != null) {
             floorNoise.setSeed(dimension.getSeed());
@@ -160,11 +159,23 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                     return true;
                 }
                 final int waterLevel = tile.getWaterLevel(xInTile, yInTile);
+                final int myFloodLevel;
+                final boolean myFloodWithLava;
+                final int myBiome;
+                if (customDimension) {
+                    myFloodLevel = floorDimension.getWaterLevelAt(x, y);
+                    myFloodWithLava = floorDimension.getBitLayerValueAt(FloodWithLava.INSTANCE, x, y);
+                    myBiome = floorDimension.getLayerValueAt(Biome.INSTANCE, x, y);
+                } else {
+                    myFloodLevel = floodLevel;
+                    myFloodWithLava = floodWithLava;
+                    myBiome = biome;
+                }
                 for (int z = Math.min(removeWater ? Math.max(terrainHeight, waterLevel) : terrainHeight, actualRoofLevel); z > actualFloorLevel; z--) {
                     if (removeWater || (z <= terrainHeight) || (z > waterLevel)) {
-                        if (z <= floodLevel) {
+                        if (z <= myFloodLevel) {
                             // TODO should this be moved to the ADD_FEATURES stage?
-                            chunk.setMaterial(x & 0xf, z, y & 0xf, floodWithLava ? Material.LAVA : Material.WATER);
+                            chunk.setMaterial(x & 0xf, z, y & 0xf, myFloodWithLava ? Material.LAVA : Material.WATER);
                         } else {
                             chunk.setMaterial(x & 0xf, z, y & 0xf, Material.AIR);
                         }
@@ -172,7 +183,7 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                         // 63 too many times, but it's simplest, and ensures that any of those blocks touched is
                         // changed:
                         if (set3DBiomes) {
-                            biomeUtils.set3DBiome(chunk, (x & 0xf) >> 2, z >> 2, (y & 0xf) >> 2, biome);
+                            biomeUtils.set3DBiome(chunk, (x & 0xf) >> 2, z >> 2, (y & 0xf) >> 2, myBiome);
                         }
                     }
                 }
@@ -180,8 +191,8 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                     // Bottomless world, and cave extends all the way to
                     // the bottom. Remove the floor block, as that is
                     // probably what the user wants
-                    if (floodLevel > minHeight) {
-                        chunk.setMaterial(x & 0xf, minHeight, y & 0xf, floodWithLava ? Material.STATIONARY_LAVA : Material.STATIONARY_WATER);
+                    if (myFloodLevel > minHeight) {
+                        chunk.setMaterial(x & 0xf, minHeight, y & 0xf, myFloodWithLava ? Material.STATIONARY_LAVA : Material.STATIONARY_WATER);
                     } else {
                         chunk.setMaterial(x & 0xf, minHeight, y & 0xf, Material.AIR);
                     }

@@ -2430,6 +2430,41 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             this.id = id;
         }
 
+        public String getDefaultName() {
+            final StringBuilder sb = new StringBuilder();
+            switch (dim) {
+                case DIM_NORMAL:
+                    sb.append("Surface");
+                    break;
+                case DIM_NETHER:
+                    sb.append("Nether");
+                    break;
+                case DIM_END:
+                    sb.append("End");
+                    break;
+                default:
+                    sb.append("Dimension ");
+                    sb.append(dim);
+                    break;
+            }
+            switch (role) {
+                case MASTER:
+                    sb.append(" Master");
+                    break;
+                case CAVE_FLOOR:
+                    sb.append(" Cave Floor");
+                    break;
+            }
+            if (invert) {
+                sb.append(" Ceiling");
+            }
+            if (id != 0) {
+                sb.append(' ');
+                sb.append(id);
+            }
+            return sb.toString();
+        }
+
         @Override
         public String toString() {
             return dim

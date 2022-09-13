@@ -5,6 +5,7 @@
 
 package org.pepsoft.worldpainter;
 
+import com.google.common.collect.Lists;
 import com.jidesoft.docking.*;
 import com.jidesoft.swing.JideLabel;
 import org.jetbrains.annotations.NonNls;
@@ -98,6 +99,7 @@ import static com.jidesoft.docking.DockContext.DOCK_SIDE_WEST;
 import static com.jidesoft.docking.DockableFrame.*;
 import static java.awt.event.KeyEvent.*;
 import static java.lang.Math.round;
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toSet;
@@ -3059,12 +3061,13 @@ public final class App extends JFrame implements RadiusControl,
         LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(ReadOnly.INSTANCE, 'o'));
         disableImportedWorldOperation();
 
-        final JPopupMenu customLayerMenu = createCustomLayerMenu(null);
-
         final JButton addLayerButton = new JButton(loadScaledIcon("plus"));
         addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
         addLayerButton.setMargin(App.BUTTON_INSETS);
-        addLayerButton.addActionListener(e -> customLayerMenu.show(layerPanel, addLayerButton.getX() + addLayerButton.getWidth(), addLayerButton.getY()));
+        addLayerButton.addActionListener(e -> {
+            final JPopupMenu customLayerMenu = createCustomLayerMenu(null);
+            customLayerMenu.show(layerPanel, addLayerButton.getX() + addLayerButton.getWidth(), addLayerButton.getY());
+        });
         JPanel spacer = new JPanel();
         constraints.gridwidth = 1;
         constraints.weightx = 0.0;
@@ -3321,6 +3324,17 @@ public final class App extends JFrame implements RadiusControl,
             customLayerMenu.addSeparator();
         }
 
+        menuItem = new JMenu("Copy layer from another dimension");
+        List<JMenuItem> copyMenuItems = getCopyLayerMenuItems((paletteName != null) ? paletteName : "Custom Layers");
+        if (! copyMenuItems.isEmpty()) {
+            for (JMenuItem copyMenuItem: copyMenuItems) {
+                ((JMenu) menuItem).add(copyMenuItem);
+            }
+        } else {
+            menuItem.setEnabled(false);
+        }
+        customLayerMenu.add(menuItem);
+
         menuItem = new JMenuItem("Import custom layer(s) from file...");
         menuItem.addActionListener(e -> importLayers(paletteName));
         customLayerMenu.add(menuItem);
@@ -3330,6 +3344,55 @@ public final class App extends JFrame implements RadiusControl,
         customLayerMenu.add(menuItem);
 
         return customLayerMenu;
+    }
+
+    private List<JMenuItem> getCopyLayerMenuItems(String targetPaletteName) {
+        if (targetPaletteName == null) {
+            throw new NullPointerException("targetPaletteName");
+        }
+        final List<JMenuItem> menuItems = new ArrayList<>();
+        for (Dimension dimension: world.getDimensions()) {
+            if (dimension == this.dimension) {
+                continue;
+            }
+            final Map<String, JMenu> menusForDimension = new HashMap<>();
+            for (CustomLayer layer: dimension.getCustomLayers()) {
+                if ((layer instanceof TunnelLayer) && (((TunnelLayer) layer).getFloorDimensionId() != null)) {
+                    // TunnelLayers with a floor dimension should be locked to one dimension in order to prevent all
+                    // kinds of complications
+                    continue;
+                }
+                final String palette = layer.getPalette();
+                final JMenuItem menuForPalette = menusForDimension.computeIfAbsent(palette, k -> new JMenu(palette));
+                final JMenuItem menuItem = new JMenuItem(layer.getName(), new ImageIcon(layer.getIcon()));
+                menuItem.addActionListener(event -> copyLayerToPalette(layer, targetPaletteName, true));
+                menuForPalette.add(menuItem);
+            }
+            final JMenu menuForDimension;
+            if (menusForDimension.size() == 1) {
+                menuForDimension = menusForDimension.values().iterator().next();
+                menuForDimension.setText(dimension.getName());
+            } else {
+                menuForDimension = new JMenu(dimension.getName());
+                for (JMenu menu: menusForDimension.values()) {
+                    menuForDimension.add(menu);
+                }
+            }
+            if (menuForDimension.getItemCount() > 0) {
+                menuItems.add(menuForDimension);
+            }
+        }
+        if (menuItems.size() == 1) {
+            return Lists.transform(asList(((JMenu) menuItems.get(0)).getMenuComponents()), e -> (JMenuItem) e);
+        } else {
+            return menuItems;
+        }
+    }
+
+    private void copyLayerToPalette(CustomLayer layer, String paletteName, boolean activate) {
+        final CustomLayer copy = layer.clone();
+        copy.setPalette(paletteName);
+        registerCustomLayer(copy, activate);
     }
 
     private JPanel createTerrainPanel() {
@@ -3727,6 +3790,14 @@ public final class App extends JFrame implements RadiusControl,
                 JMenuItem menuItem = new JMenuItem(strings.getString("edit") + "...");
                 menuItem.addActionListener(e1 -> edit());
                 popup.add(menuItem);
+                if ((layer instanceof TunnelLayer) && (((TunnelLayer) layer).getFloorDimensionId() != null)) {
+                    menuItem = new JMenuItem("Edit floor dimension");
+                    menuItem.addActionListener(e1 -> {
+                        final Anchor anchor = dimension.getAnchor();
+                        setDimension(world.getDimension(new Anchor(anchor.dim, CAVE_FLOOR, anchor.invert, ((TunnelLayer) layer).getFloorDimensionId())));
+                    });
+                    popup.add(menuItem);
+                }
                 menuItem = new JMenuItem("Duplicate...");
                 menuItem.addActionListener(e1 -> duplicate());
                 popup.add(menuItem);
@@ -3890,13 +3961,14 @@ public final class App extends JFrame implements RadiusControl,
     
     @Override
     public List<Component> createPopupMenuButton(String paletteName) {
-        final JPopupMenu customLayerMenu = createCustomLayerMenu(paletteName);
-        
         final JButton addLayerButton = new JButton(loadScaledIcon("plus"));
         final List<Component> addLayerButtonPanel = new ArrayList<>(3);
         addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
         addLayerButton.setMargin(new Insets(2, 2, 2, 2));
-        addLayerButton.addActionListener(e -> customLayerMenu.show(addLayerButton, addLayerButton.getWidth(), 0));
+        addLayerButton.addActionListener(e -> {
+            final JPopupMenu customLayerMenu = createCustomLayerMenu(paletteName);
+            customLayerMenu.show(addLayerButton, addLayerButton.getWidth(), 0);
+        });
         JPanel spacer = new JPanel();
         addLayerButtonPanel.add(spacer);
         spacer = new JPanel();
@@ -5623,7 +5695,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void exportImage() {
-        final Set<String> extensions = new HashSet<>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
+        final Set<String> extensions = new HashSet<>(asList(ImageIO.getReaderFileSuffixes()));
         StringBuilder sb = new StringBuilder(strings.getString("supported.image.formats"));
         sb.append(" (");
         boolean first = true;

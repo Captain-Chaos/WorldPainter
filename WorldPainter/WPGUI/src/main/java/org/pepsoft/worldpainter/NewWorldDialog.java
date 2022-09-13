@@ -48,6 +48,7 @@ import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_NETHER;
 import static org.pepsoft.util.swing.SpinnerUtils.setMinimum;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.Dimension.Role.MASTER;
 import static org.pepsoft.worldpainter.HeightTransform.IDENTITY;
@@ -118,13 +119,14 @@ public class NewWorldDialog extends WorldPainterDialog {
         ((DefaultEditor) spinnerWidth.getEditor()).getTextField().setColumns(4);
         ((DefaultEditor) spinnerLength.getEditor()).getTextField().setColumns(4);
 
+        if (! anchor.equals(NORMAL_DETAIL)) {
+            setTitle("Add " + anchor.getDefaultName());
+        }
         if (anchor.role == MASTER) {
-            setTitle("Add Master");
             fieldName.setEnabled(false);
             comboBoxTarget.setEnabled(false);
             comboBoxMaxHeight.setEnabled(false);
         } else if ((anchor.dim == DIM_NORMAL) && anchor.invert) {
-            setTitle("Add Surface Ceiling");
             fieldName.setEnabled(false);
             comboBoxTarget.setEnabled(false);
             comboBoxSurfaceMaterial.setSelectedItem(STONE_MIX);
@@ -134,7 +136,6 @@ public class NewWorldDialog extends WorldPainterDialog {
             comboBoxMaxHeight.setEnabled(false);
         } else if (anchor.dim == DIM_NETHER) {
             if (! anchor.invert) {
-                setTitle("Add Nether");
                 fieldName.setEnabled(false);
                 comboBoxTarget.setEnabled(false);
                 comboBoxSurfaceMaterial.setSelectedItem(NETHERLIKE);
@@ -143,7 +144,6 @@ public class NewWorldDialog extends WorldPainterDialog {
                 spinnerWaterLevel.setValue(lavaLevel);
                 checkBoxLava.setSelected(true);
             } else {
-                setTitle("Add Nether Ceiling");
                 fieldName.setEnabled(false);
                 comboBoxTarget.setEnabled(false);
                 comboBoxSurfaceMaterial.setSelectedItem(NETHERLIKE);
@@ -154,13 +154,11 @@ public class NewWorldDialog extends WorldPainterDialog {
             comboBoxMaxHeight.setEnabled(false);
         } else if (anchor.dim == DIM_END) {
             if (! anchor.invert) {
-                setTitle("Add End");
                 fieldName.setEnabled(false);
                 comboBoxTarget.setEnabled(false);
                 comboBoxSurfaceMaterial.setSelectedItem(END_STONE);
                 spinnerTerrainLevel.setValue(32);
             } else {
-                setTitle("Add End Ceiling");
                 fieldName.setEnabled(false);
                 comboBoxTarget.setEnabled(false);
                 comboBoxSurfaceMaterial.setSelectedItem(END_STONE);
@@ -352,22 +350,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         final TileFactory tileFactory = createTileFactory(worldpainterSeed);
 
         final Dimension dimension;
-        final String name;
-        switch (anchor.dim) {
-            case DIM_NORMAL:
-                name = "Surface";
-                break;
-            case DIM_NETHER:
-                name = "Nether";
-                break;
-            case DIM_END:
-                name = "End";
-                break;
-            default:
-                name = "Dimension " + anchor.dim;
-                break;
-        }
-        dimension = new Dimension(world, name, minecraftSeed, tileFactory, anchor);
+        dimension = new Dimension(world, anchor.getDefaultName(), minecraftSeed, tileFactory, anchor);
         dimension.setEventsInhibited(true);
         try {
             ExecutorService executorService = MDCThreadPoolExecutor.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
