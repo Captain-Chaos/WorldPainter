@@ -645,12 +645,13 @@ public class NewWorldDialog extends WorldPainterDialog {
         }
 
         final HeightMapTileFactory tileFactory;
+        final double additionalScale = (anchor.role == MASTER) ? 16.0 : 1.0;
         if ("true".equals(System.getProperty("org.pepsoft.worldpainter.fancyworlds"))) {
-            tileFactory = TileFactoryFactory.createFancyTileFactory(seed, terrain, minHeight, maxHeight, baseHeight, waterHeight, floodWithLava, range, scale);
+            tileFactory = TileFactoryFactory.createFancyTileFactory(seed, terrain, minHeight, maxHeight, baseHeight, waterHeight, floodWithLava, range, scale / additionalScale);
         } else {
     //        HeightMapTileFactory tileFactory = new ExperimentalTileFactory(maxHeight);
             if (radioButtonHilly.isSelected()) {
-                tileFactory = TileFactoryFactory.createNoiseTileFactory(seed, terrain, minHeight, maxHeight, baseHeight, waterHeight, floodWithLava, beaches, range, scale);
+                tileFactory = TileFactoryFactory.createNoiseTileFactory(seed, terrain, minHeight, maxHeight, baseHeight, waterHeight, floodWithLava, beaches, range, scale / additionalScale);
             } else {
                 tileFactory = TileFactoryFactory.createFlatTileFactory(seed, terrain, minHeight, maxHeight, baseHeight, waterHeight, floodWithLava, beaches);
             }
