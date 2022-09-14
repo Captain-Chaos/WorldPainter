@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import static java.awt.Font.PLAIN;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
@@ -256,7 +257,7 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
         return fixups.isEmpty() ? null : fixups;
     }
 
-//    private void excavateDisc(final MinecraftWorld world, final int x, final int y, final int z, int r, final Material materialAbove, final Material materialBesides, final Material materialBelow) {
+    //    private void excavateDisc(final MinecraftWorld world, final int x, final int y, final int z, int r, final Material materialAbove, final Material materialBesides, final Material materialBelow) {
 //        GeometryUtil.visitFilledCircle(r, new PlaneVisitor() {
 //            @Override
 //            public boolean visit(int dx, int dy, float d) {
@@ -281,7 +282,7 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
     public static BufferedImage generatePreview(TunnelLayer layer, int width, int height, int waterLevel, int minHeight, int baseHeight, int heightDifference) {
         final TunnelLayer.Mode floorMode = layer.getFloorMode(), roofMode = layer.getRoofMode();
         final int floorWallDepth = layer.getFloorWallDepth(), roofWallDepth = layer.getRoofWallDepth(),
-                floorLevel = layer.getFloorLevel(), roofLevel = layer.getRoofLevel(), tunnelExtent = width - 24,
+                floorLevel = layer.getFloorLevel(), roofLevel = layer.getRoofLevel(), tunnelExtent = width - 34,
                 floorMin = layer.getFloorMin(), floorMax = layer.getFloorMax(), roofMin = layer.getRoofMin(), roofMax = layer.getRoofMax(),
                 floodLevel = layer.getFloodLevel();
         final boolean removeWater = layer.isRemoveWater(), floodWithLava = layer.isFloodWithLava();
@@ -339,6 +340,18 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                     }
                 }
             }
+        }
+        // Add height markers
+        final Graphics2D g2 = preview.createGraphics();
+        try {
+            g2.setColor(Color.GRAY);
+            g2.setFont(HEIGHT_MARKER_FONT);
+            for (int y = (minHeight / 20) * 20; y < (height + minHeight); y += 20) {
+                g2.drawLine(width - 10, height + minHeight - y, width - 1, height + minHeight - y);
+                g2.drawString(Integer.toString(y), width - 30, height + minHeight - y + 4);
+            }
+        } finally {
+            g2.dispose();
         }
         return preview;
     }
@@ -442,5 +455,6 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
     static final long FLOOR_NOISE_SEED_OFFSET = 177766561L;
     static final long ROOF_NOISE_SEED_OFFSET = 184818453L;
 
+    private static final Font HEIGHT_MARKER_FONT = new Font("SansSerif", PLAIN, 10);
     private static final long MATERIAL_SEED = 0x688b2af137c77e0cL;
 }
