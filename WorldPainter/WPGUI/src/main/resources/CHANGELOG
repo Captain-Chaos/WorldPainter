@@ -1,3 +1,9 @@
+-- Version 2.14.2, released 17-9-2022
+
+ * Some window sizes have been adjusted in order to make them fit on low resolution screens more often (but still not always)
+ * Bug fix: change grass_block blocks to dirt when they are covered by dirt_path or grass_path blocks
+ * Various other bug fixes
+
 -- Version 2.14.1, released 9-9-2022
 
  * Bug fix: fix an error when trying to Merge a world that has no export setings set
