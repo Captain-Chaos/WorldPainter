@@ -428,8 +428,7 @@ public final class App extends JFrame implements RadiusControl,
             Point viewPosition = view.getViewCentreInWorldCoords();
             if (viewPosition != null) {
                 this.dimension.setLastViewPosition(viewPosition);
-                // Keep the view position of the opposite dimension, if any,
-                // in sync
+                // Keep the view position of the opposite dimension, if any, in sync
                 if (world != null) {
                     final Anchor anchor = this.dimension.getAnchor();
                     final Dimension oppositeDimension = world.getDimension(new Anchor(anchor.dim, anchor.role, ! anchor.invert, 0));
@@ -439,12 +438,14 @@ public final class App extends JFrame implements RadiusControl,
                 }
             }
 
-            currentUndoManager.unregisterActions();
-            currentUndoManager = null;
+            // No idea how currentUndoManager could be null here, but it has been observed in the wild:
+            if (currentUndoManager != null) {
+                currentUndoManager.unregisterActions();
+                currentUndoManager = null;
+            }
 
-            // Remove the existing custom object layers and save the list of
-            // custom layers to the dimension to preserve layers which aren't
-            // currently in use
+            // Remove the existing custom object layers and save the list of custom layers to the dimension to preserve
+            // layers which aren't currently in use
             if (! paletteManager.isEmpty()) {
                 List<CustomLayer> customLayers = new ArrayList<>();
                 boolean visibleLayersChanged = false;
@@ -487,10 +488,9 @@ public final class App extends JFrame implements RadiusControl,
             viewEndMenuItem.setSelected((anchor.dim == DIM_END) && (! anchor.invert));
             viewEndCeilingMenuItem.setSelected((anchor.dim == DIM_END) && anchor.invert);
 
-            // Legacy: if this is an older world with an overlay enabled, ask
-            // the user if we should fix the coordinates (ask because they might
-            // have fixed the problem manually in 1.9.0 or 1.9.1, in which we
-            // neglected to do it automatically)
+            // Legacy: if this is an older world with an overlay enabled, ask the user if we should fix the coordinates
+            // (ask because they might have fixed the problem manually in 1.9.0 or 1.9.1, in which we neglected to do it
+            // automatically)
             if (dimension.isFixOverlayCoords()) {
                 DesktopUtils.beep();
                 if (showConfirmDialog(this,
@@ -515,8 +515,8 @@ public final class App extends JFrame implements RadiusControl,
                 if ((! "true".equals(System.getProperty("org.pepsoft.worldpainter.disableUndo"))) && config.isUndoEnabled()) {
                     currentUndoManager = new UndoManager(ACTION_UNDO, ACTION_REDO, Math.max(config.getUndoLevels() + 1, 2));
                 } else {
-                    // Still install an undo manager, because some operations depend
-                    // on one level of undo being available
+                    // Still install an undo manager, because some operations depend on one level of undo being
+                    // available
                     currentUndoManager = new UndoManager(2);
                     ACTION_UNDO.setEnabled(false);
                     ACTION_REDO.setEnabled(false);
@@ -547,8 +547,7 @@ public final class App extends JFrame implements RadiusControl,
                         }
                         warnings.append(customLayer.getName()).append('\n');
                     } else {
-                        // Check for a custom terrain type and if necessary make
-                        // sure it has a button
+                        // Check for a custom terrain type and if necessary make sure it has a button
                         Terrain terrain = ((CombinedLayer) customLayer).getTerrain();
                         if ((terrain != null) && terrain.isCustom() && (customMaterialButtons[terrain.getCustomTerrainIndex()] == null)) {
                             addButtonForNewCustomTerrain(terrain.getCustomTerrainIndex(), getCustomMaterial(terrain.getCustomTerrainIndex()), false);
@@ -577,8 +576,7 @@ public final class App extends JFrame implements RadiusControl,
 //                selectionState.setValue(false);
 //            }
             
-            // Load custom biomes. But first remove any that are now regular
-            // biomes
+            // Load custom biomes. But first remove any that are now regular biomes
             List<CustomBiome> customBiomes = dimension.getCustomBiomes();
             if (customBiomes != null) {
                 customBiomes.removeIf(customBiome -> StaticBiomeInfo.INSTANCE.isBiomePresent(customBiome.getId()));
@@ -726,17 +724,19 @@ public final class App extends JFrame implements RadiusControl,
         } else {
             setTextIfDifferent(materialLabel, MessageFormat.format(strings.getString("material.0"), terrain.getName()));
         }
-        // TODO: apparently this was sometimes invoked at or soon after startup,
-        // with biomeNames being null, causing a NPE. How is this possible?
-        int biome = tile.getLayerValue(Biome.INSTANCE, xInTile, yInTile);
-        // TODO: is this too slow?
-        if (biome == 255) {
-            biome = dimension.getAutoBiome(x, y);
-            if (biome != -1) {
-                setTextIfDifferent(biomeLabel, "Auto biome: " + biomeHelper.getBiomeName(biome));
+        // TODO: apparently this was sometimes invoked at or soon after startup, with biomeHelper being null, causing a
+        //  NPE. How is this possible?
+        if (biomeHelper != null) {
+            int biome = tile.getLayerValue(Biome.INSTANCE, xInTile, yInTile);
+            // TODO: is this too slow?
+            if (biome == 255) {
+                biome = dimension.getAutoBiome(x, y);
+                if (biome != -1) {
+                    setTextIfDifferent(biomeLabel, "Auto biome: " + biomeHelper.getBiomeName(biome));
+                }
+            } else if (biome != -1) {
+                setTextIfDifferent(biomeLabel, MessageFormat.format(strings.getString("biome.0"), biomeHelper.getBiomeName(biome)));
             }
-        } else if (biome != -1) {
-            setTextIfDifferent(biomeLabel, MessageFormat.format(strings.getString("biome.0"), biomeHelper.getBiomeName(biome)));
         }
     }
 
@@ -2453,8 +2453,10 @@ public final class App extends JFrame implements RadiusControl,
         if (! dialog.isCancelled()) {
             clearWorld();
             World2 importedWorld = dialog.getImportedWorld();
-            setWorld(importedWorld, true);
-            lastSelectedFile = null;
+            if (importedWorld != null) {
+                setWorld(importedWorld, true);
+                lastSelectedFile = null;
+            }
         }
     }
     

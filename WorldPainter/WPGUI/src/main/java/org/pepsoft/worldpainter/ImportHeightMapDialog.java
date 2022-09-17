@@ -36,6 +36,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
@@ -255,7 +256,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
     private void setControlStates() {
         File file = new File(fieldFilename.getText());
-        if (file.isFile() && (!file.equals(selectedFile))) {
+        if (file.isFile() && (! file.equals(selectedFile))) {
             selectedFile = file;
             loadImage();
         }
@@ -270,11 +271,10 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         try {
             image = null; // Set image to null first to make more memory available for loading the new image
             image = ImageIO.read(selectedFile);
-            final int transferType = image.getSampleModel().getTransferType();
             if (image == null) {
                 labelImageDimensions.setForeground(Color.RED);
                 labelImageDimensions.setIcon(ICON_WARNING);
-                labelImageDimensions.setText("Not an image file, or damaged file!");
+                labelImageDimensions.setText("Not an image file of a supported type, or damaged file!");
                 selectedFile = null;
             } else if ((image.getType() == BufferedImage.TYPE_BYTE_BINARY) || (image.getType() == BufferedImage.TYPE_BYTE_INDEXED)) {
                 labelImageDimensions.setForeground(Color.RED);
@@ -286,79 +286,88 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                 labelImageDimensions.setIcon(ICON_WARNING);
                 labelImageDimensions.setText("Premultiplied alpha not supported! Please convert to non-premultiplied.");
                 selectedFile = null;
-            } else if ((transferType == TYPE_FLOAT) || (transferType == TYPE_DOUBLE)) {
-                labelImageDimensions.setForeground(Color.RED);
-                labelImageDimensions.setIcon(ICON_WARNING);
-                labelImageDimensions.setText("Floating point height maps not yet supported! Please convert to 32-bit integer.");
-                selectedFile = null;
             } else {
-                final int width = image.getWidth(), height = image.getHeight();
-                programmaticChange = true;
-                try {
-                    labelImageDimensions.setForeground(null);
-                    if (image.getColorModel().hasAlpha()) {
-                        spinnerScale.setValue(100);
-                        spinnerScale.setEnabled(false);
-                        spinnerScale.setToolTipText("<html>Scaling not supported for grey scale images with an alpha channel!<br>To enable scaling, please remove the alpha channel.</html>");
-                        labelImageDimensions.setIcon(ICON_WARNING);
-                        labelImageDimensions.setText("Scaling not supported for images with an alpha channel!");
-                    } else {
-                        spinnerScale.setEnabled(true);
-                        spinnerScale.setToolTipText(null);
-                        labelImageDimensions.setIcon(null);
-                    }
-                    bitDepth = image.getSampleModel().getSampleSize(0);
-                    final WritableRaster raster = image.getRaster();
-                    imageLowValue = Long.MAX_VALUE;
-                    imageHighValue = Long.MIN_VALUE;
-                    final boolean signed = transferType == TYPE_SHORT || transferType == TYPE_FLOAT || transferType == TYPE_DOUBLE;
-                    imageMinHeight = signed ? -(long) Math.pow(2, bitDepth - 1) : 0L;
-                    imageMaxHeight = signed ? (long) Math.pow(2, bitDepth - 1) - 1 : (long) Math.pow(2, bitDepth) - 1;
-                    final boolean invert = checkBoxInvert.isSelected();
-                    outer:
-                    for (int x = 0; x < width; x++) {
-                        for (int y = 0; y < height; y++) {
-                            final long value = invert
-                                    ? (imageMaxHeight - (signed ? raster.getSample(x, y, 0) : raster.getSample(x, y, 0) & 0xffffffffL))
-                                    : (signed ? raster.getSample(x, y, 0) : raster.getSample(x, y, 0) & 0xffffffffL);
-                            if (value < imageLowValue) {
-                                imageLowValue = value;
-                            }
-                            if (value > imageHighValue) {
-                                imageHighValue = value;
-                            }
-                            if ((imageLowValue == imageMinHeight) && (imageHighValue == imageMaxHeight)) {
-                                // No point in looking any further!
-                                break outer;
+                final SampleModel sampleModel = image.getSampleModel();
+                final int transferType = sampleModel.getTransferType();
+                if ((transferType == TYPE_FLOAT) || (transferType == TYPE_DOUBLE)) {
+                    labelImageDimensions.setForeground(Color.RED);
+                    labelImageDimensions.setIcon(ICON_WARNING);
+                    labelImageDimensions.setText("Floating point height maps not yet supported! Please convert to 32-bit integer.");
+                    selectedFile = null;
+                } else {
+                    final int width = image.getWidth(), height = image.getHeight();
+                    programmaticChange = true;
+                    try {
+                        labelImageDimensions.setForeground(null);
+                        if (image.getColorModel().hasAlpha()) {
+                            spinnerScale.setValue(100);
+                            spinnerScale.setEnabled(false);
+                            spinnerScale.setToolTipText("<html>Scaling not supported for grey scale images with an alpha channel!<br>To enable scaling, please remove the alpha channel.</html>");
+                            labelImageDimensions.setIcon(ICON_WARNING);
+                            labelImageDimensions.setText("Scaling not supported for images with an alpha channel!");
+                        } else {
+                            spinnerScale.setEnabled(true);
+                            spinnerScale.setToolTipText(null);
+                            labelImageDimensions.setIcon(null);
+                        }
+                        bitDepth = sampleModel.getSampleSize(0);
+                        final WritableRaster raster = image.getRaster();
+                        imageLowValue = Long.MAX_VALUE;
+                        imageHighValue = Long.MIN_VALUE;
+                        final boolean signed = transferType == TYPE_SHORT || transferType == TYPE_FLOAT || transferType == TYPE_DOUBLE;
+                        imageMinHeight = signed ? -(long) Math.pow(2, bitDepth - 1) : 0L;
+                        imageMaxHeight = signed ? (long) Math.pow(2, bitDepth - 1) - 1 : (long) Math.pow(2, bitDepth) - 1;
+                        final boolean invert = checkBoxInvert.isSelected();
+                        outer:
+                        for (int x = 0; x < width; x++) {
+                            for (int y = 0; y < height; y++) {
+                                final long value = invert
+                                        ? (imageMaxHeight - (signed ? raster.getSample(x, y, 0) : raster.getSample(x, y, 0) & 0xffffffffL))
+                                        : (signed ? raster.getSample(x, y, 0) : raster.getSample(x, y, 0) & 0xffffffffL);
+                                if (value < imageLowValue) {
+                                    imageLowValue = value;
+                                }
+                                if (value > imageHighValue) {
+                                    imageHighValue = value;
+                                }
+                                if ((imageLowValue == imageMinHeight) && (imageHighValue == imageMaxHeight)) {
+                                    // No point in looking any further!
+                                    break outer;
+                                }
                             }
                         }
+                        setMinimum(spinnerImageLow, imageMinHeight);
+                        setMaximum(spinnerImageLow, imageMaxHeight);
+                        setMinimum(spinnerImageHigh, imageMinHeight);
+                        setMaximum(spinnerImageHigh, imageMaxHeight);
+                        setMinimum(spinnerVoidBelow, imageMinHeight + 1);
+                        setMaximum(spinnerVoidBelow, imageMaxHeight);
+                        spinnerVoidBelow.setValue(imageMinHeight + 1);
+                    } finally {
+                        programmaticChange = false;
                     }
-                    setMinimum(spinnerImageLow, imageMinHeight);
-                    setMaximum(spinnerImageLow, imageMaxHeight);
-                    setMinimum(spinnerImageHigh, imageMinHeight);
-                    setMaximum(spinnerImageHigh, imageMaxHeight);
-                    setMinimum(spinnerVoidBelow, imageMinHeight + 1);
-                    setMaximum(spinnerVoidBelow, imageMaxHeight);
-                    spinnerVoidBelow.setValue(imageMinHeight + 1);
-                } finally {
-                    programmaticChange = false;
-                }
-                labelImageLowestLevel.setText(NUMBER_FORMAT.format(imageLowValue));
-                labelImageHighestLevel.setText(NUMBER_FORMAT.format(imageHighValue));
+                    labelImageLowestLevel.setText(NUMBER_FORMAT.format(imageLowValue));
+                    labelImageHighestLevel.setText(NUMBER_FORMAT.format(imageHighValue));
 
-                // Set levels to reasonable defaults
-                selectDefaultVerticalScaling();
+                    // Set levels to reasonable defaults
+                    selectDefaultVerticalScaling();
 
-                if (! image.getColorModel().hasAlpha()) {
-                    labelImageDimensions.setText(String.format("Image size: %d x %d, %d bits, lowest value: %d, highest value: %d", width, height, bitDepth, imageLowValue, imageHighValue));
+                    if (!image.getColorModel().hasAlpha()) {
+                        labelImageDimensions.setText(String.format("Image size: %d x %d, %d bits, lowest value: %d, highest value: %d", width, height, bitDepth, imageLowValue, imageHighValue));
+                    }
+                    updateWorldDimensions();
+                    updatePreview(true);
                 }
-                updateWorldDimensions();
-                updatePreview(true);
             }
         } catch (IOException e) {
             logger.error("I/O error loading image " + selectedFile, e);
             labelImageDimensions.setForeground(Color.RED);
             labelImageDimensions.setText(String.format("I/O error loading image (message: %s)!", e.getMessage()));
+            selectedFile = null;
+        } catch (IllegalArgumentException e) {
+            logger.error("IllegalArgumentException loading image " + selectedFile, e);
+            labelImageDimensions.setForeground(Color.RED);
+            labelImageDimensions.setText("Error in image data: " + e.getMessage());
             selectedFile = null;
         }
     }
@@ -1489,7 +1498,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     }//GEN-LAST:event_comboBoxPlatformActionPerformed
 
     private void checkBoxInvertActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxInvertActionPerformed
-        if (image != null) {
+        if (selectedFile != null) {
             loadImage();
         }
     }//GEN-LAST:event_checkBoxInvertActionPerformed

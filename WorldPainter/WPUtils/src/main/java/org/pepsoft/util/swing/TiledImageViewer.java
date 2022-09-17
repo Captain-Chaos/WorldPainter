@@ -1860,13 +1860,19 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             final int tileSize = tileProvider.getTileSize();
             VolatileImage tile;
             if (image instanceof VolatileImage) {
-                // This image was previously created by us, here, so really it
-                // should still be compatible
+                // This image was previously created by us, here, so really it should still be compatible
                 tile = (VolatileImage) image;
             } else {
                 GraphicsConfiguration gc = getGraphicsConfiguration();
-                tile = gc.createCompatibleVolatileImage(tileSize, tileSize, Transparency.TRANSLUCENT);
-                tile.validate(gc);
+                if (gc != null) {
+                    tile = gc.createCompatibleVolatileImage(tileSize, tileSize, Transparency.TRANSLUCENT);
+                    tile.validate(gc);
+                } else {
+                    // No idea how this is possible, but it has been observed in the wild. Perhaps it means the
+                    // TiledImageViewer has been removed from the hierarchy? Let's assume that and just give up
+                    logger.debug("Not rendering tile " + coords.x + "," + coords.y + " because there is no GraphicsConfiguration");
+                    return;
+                }
             }
             if (tileProvider.paintTile(tile, coords.x, coords.y, 0, 0)) {
                 synchronized (TILE_CACHE_LOCK) {
@@ -1876,23 +1882,21 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                     }
                 }
             } else {
-                // The tile failed to be painted for some reason; treat it as
-                // a permanent condition and register it as "no tile present"
+                // The tile failed to be painted for some reason; treat it as a permanent condition and register it as
+                // "no tile present"
                 synchronized (TILE_CACHE_LOCK) {
                     tileCache.put(coords, new SoftReference<>(NO_TILE));
                     if (dirtyTileCache.containsKey(coords)) {
                         dirtyTileCache.remove(coords);
                     }
                 }
-                // Repaint still needed, as a dirty tile may have been painted
-                // in its location
+                // Repaint still needed, as a dirty tile may have been painted in its location
             }
             try {
                 repaint(getTileBounds(tileProvider, coords.x, coords.y, effectiveZoom));
             } catch (UnknownTileProviderException e) {
-                // This means the tile provider is no longer configured on the
-                // viewer, meaning there's not much point in us painting the
-                // tile, so just give up silently
+                // This means the tile provider is no longer configured on the viewer, meaning there's not much point in
+                // us painting the tile, so just give up silently
             }
         }
 

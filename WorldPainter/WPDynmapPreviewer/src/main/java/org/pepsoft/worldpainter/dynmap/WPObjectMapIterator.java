@@ -141,7 +141,7 @@ class WPObjectMapIterator implements MapIterator {
         int offsetX = x + xoff;
         int offsetY = y + zoff;
         int offsetHeight = height + yoff;
-        if (object.getMask(offsetX - xOffset, offsetY - yOffset, offsetHeight)) {
+        if (getMask(offsetX, offsetY, offsetHeight)) {
             int blockType = object.getMaterial(offsetX - xOffset, offsetY - yOffset, offsetHeight).blockType;
             return (blockType >= 0) ? blockType : BLK_WOOL;
         } else {
@@ -153,7 +153,7 @@ class WPObjectMapIterator implements MapIterator {
         int offsetX = x + xoff;
         int offsetY = y + zoff;
         int offsetHeight = height + yoff;
-        if (object.getMask(offsetX - xOffset, offsetY - yOffset, offsetHeight)) {
+        if (getMask(offsetX, offsetY, offsetHeight)) {
             int data = object.getMaterial(offsetX - xOffset, offsetY - yOffset, offsetHeight).blockType;
             return (data >= 0) ? data : DATA_MAGENTA;
         } else {
@@ -178,11 +178,11 @@ class WPObjectMapIterator implements MapIterator {
     }
 
     private void updateMaterial() {
-        if (bounds.contains(x, y, height)) {
-            material = object.getMask(x - xOffset, y - yOffset, height) ? object.getMaterial(x - xOffset, y - yOffset, height) : Material.AIR;
-        } else {
-            material = Material.AIR;
-        }
+        material = getMask(x, y, height) ? object.getMaterial(x - xOffset, y - yOffset, height) : Material.AIR;
+    }
+
+    private boolean getMask(int x, int y, int height) {
+        return bounds.contains(x, y, height) && object.getMask(x - xOffset, y - yOffset, height);
     }
 
     private final WPObject object;

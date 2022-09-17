@@ -18,11 +18,11 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.FIRST_UN
  * @author pepijn
  */
 public class CustomBiomeManager {
-    public List<CustomBiome> getCustomBiomes() {
+    public synchronized List<CustomBiome> getCustomBiomes() {
         return customBiomes;
     }
 
-    public void setCustomBiomes(List<CustomBiome> customBiomes) {
+    public synchronized void setCustomBiomes(List<CustomBiome> customBiomes) {
         List<CustomBiome> oldCustomBiomes = this.customBiomes;
         this.customBiomes = customBiomes;
         if (oldCustomBiomes != null) {
@@ -41,7 +41,7 @@ public class CustomBiomeManager {
         }
     }
 
-    public int getNextId() {
+    public synchronized int getNextId() {
         if (customBiomes != null) {
             outer:
             for (int i = FIRST_UNALLOCATED_ID; i < 256; i++) {
@@ -61,7 +61,7 @@ public class CustomBiomeManager {
         }
     }
 
-    public boolean addCustomBiome(Window parent, CustomBiome customBiome) {
+    public synchronized boolean addCustomBiome(Window parent, CustomBiome customBiome) {
         if (isBiomePresent(customBiome.getId())) {
             if (parent != null) {
                 JOptionPane.showMessageDialog(parent, "The specified ID (" + customBiome.getId() + ") is already a regular biome (named " + Minecraft1_17Biomes.BIOME_NAMES[customBiome.getId()] + ")", "ID Already In Use", JOptionPane.ERROR_MESSAGE);
@@ -92,7 +92,7 @@ public class CustomBiomeManager {
      * 
      * @param customBiome The custom biome that has been modified.
      */
-    public void editCustomBiome(CustomBiome customBiome) {
+    public synchronized void editCustomBiome(CustomBiome customBiome) {
         for (CustomBiome existingCustomBiome: customBiomes) {
             if (existingCustomBiome.getId() == customBiome.getId()) {
                 for (CustomBiomeListener listener: listeners) {
@@ -109,7 +109,7 @@ public class CustomBiomeManager {
      * 
      * @param customBiome The custom biome to remove.
      */
-    public void removeCustomBiome(CustomBiome customBiome) {
+    public synchronized void removeCustomBiome(CustomBiome customBiome) {
         for (Iterator<CustomBiome> i = customBiomes.iterator(); i.hasNext(); ) {
             CustomBiome existingCustomBiome = i.next();
             if (existingCustomBiome.getId() == customBiome.getId()) {
@@ -123,11 +123,19 @@ public class CustomBiomeManager {
         throw new IllegalArgumentException("There is no custom biome installed with ID " + customBiome.getId());
     }
     
-    public void addListener(CustomBiomeListener listener) {
+    public synchronized void addListener(CustomBiomeListener listener) {
+        // No idea how this is possible, but it has happened in the wild that one of the entries in listeners was null.
+        // May have been a concurrency issue, but just to be sure:
+        if (listener == null) {
+            throw new NullPointerException("listener");
+        }
         listeners.add(listener);
     }
     
-    public void removeListener(CustomBiomeListener listener) {
+    public synchronized void removeListener(CustomBiomeListener listener) {
+        if (listener == null) {
+            throw new NullPointerException("listener");
+        }
         listeners.remove(listener);
     }
 

@@ -1054,9 +1054,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         savedGeneratorType = generator.getType();
         endlessBorder = (dimension.getBorder() != null) && dimension.getBorder().isEndless();
         comboBoxGenerator.setSelectedItem(endlessBorder ? FLAT : ((generator != null) ? generator.getType() : null));
-        generatorName = (generator instanceof CustomGenerator) ? ((CustomGenerator) generator).getName() : null;
-        customGeneratorSettings = (generator instanceof CustomGenerator) ? ((CustomGenerator) generator).getSettings() : null;
-        superflatPreset = (generator instanceof SuperflatGenerator) ? ((SuperflatGenerator) generator).getSettings() : null;
+        if (generator != null) {
+            generatorName = (generator instanceof CustomGenerator) ? ((CustomGenerator) generator).getName() : null;
+            customGeneratorSettings = (generator instanceof CustomGenerator) ? ((CustomGenerator) generator).getSettings() : null;
+            superflatPreset = (generator instanceof SuperflatGenerator) ? ((SuperflatGenerator) generator).getSettings() : null;
+        }
 
         setControlStates();
     }

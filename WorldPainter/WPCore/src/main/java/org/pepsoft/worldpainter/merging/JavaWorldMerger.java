@@ -15,6 +15,7 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.history.HistoryEntry;
+import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.ReadOnly;
@@ -826,7 +827,13 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         // Add layers that have been configured to be applied everywhere
         Set<Layer> minimumLayers = dimension.getMinimumLayers();
         allLayers.addAll(minimumLayers);
-        
+
+        // Remove layers which have been excluded for export
+        allLayers.removeIf(layer -> (layer instanceof CustomLayer) && (! ((CustomLayer) layer).isExport()));
+
+        // Remove layers which should be disabled due to the world export settings
+        applyWorldExportSettings(allLayers);
+
         List<Layer> secondaryPassLayers = new ArrayList<>();
         for (Layer layer: allLayers) {
             final Class<? extends LayerExporter> exporterType = layer.getExporterType();

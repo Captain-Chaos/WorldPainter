@@ -53,6 +53,9 @@ public final class StringTag extends Tag {
      */
     public StringTag(String name, String value) {
         super(name);
+        if (value == null) {
+            throw new NullPointerException("value");
+        }
         this.value = value;
     }
 

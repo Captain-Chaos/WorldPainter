@@ -556,7 +556,13 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         if (logger.isDebugEnabled()) {
             logger.debug("Start of second pass for region {},{}", regionCoords.x, regionCoords.y);
         }
-        final int stageCount = secondaryPassLayers.stream().mapToInt(layer -> ((SecondPassLayerExporter) exporters.get(layer)).getStages().size()).sum();
+        final int stageCount = secondaryPassLayers.stream().mapToInt(layer -> {
+            final SecondPassLayerExporter exporter = (SecondPassLayerExporter) exporters.get(layer);
+            if (exporter == null) {
+                throw new IllegalStateException("Exporter missing for layer " + layer + " of type " + layer.getClass().getSimpleName());
+            }
+            return exporter.getStages().size();
+        }).sum();
         int counter = 0;
         final Rectangle area = new Rectangle((regionCoords.x << 9) - 16, (regionCoords.y << 9) - 16, 544, 544);
         final Rectangle exportedArea = new Rectangle((regionCoords.x << 9), (regionCoords.y << 9), 512, 512);
@@ -1013,7 +1019,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         });
     }
 
-    private void applyWorldExportSettings(Collection<? extends Layer> layers) {
+    protected final void applyWorldExportSettings(Collection<? extends Layer> layers) {
         final Set<WorldExportSettings.Step> stepsToSkip = worldExportSettings.getStepsToSkip();
         if ((stepsToSkip != null) && (! stepsToSkip.isEmpty())) {
             layers.removeIf(layer -> {

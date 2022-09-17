@@ -87,7 +87,7 @@ public class Java1_15PostProcessor extends PostProcessor {
             for (int y = y1; y <= y2; y++) {
                 // Iterate over one column from bottom to top
                 Material materialBelow = (minZ <= worldMinZ) ? AIR : minecraftWorld.getMaterialAt(x, y, minZ - 1);
-                Material materialAbove = minecraftWorld.getMaterialAt(x, y, minZ);
+                Material materialAbove = (minZ < worldMinZ) ? AIR : minecraftWorld.getMaterialAt(x, y, minZ);
                 // TODO: only do this for non-bottomless worlds:
 //                if ((minZ == 0) && (blockTypeAbove != BLK_BEDROCK) && (blockTypeAbove != BLK_AIR) && (blockTypeAbove != BLK_STATIONARY_WATER) && (blockTypeAbove != BLK_STATIONARY_LAVA)) {
 //                    logger.warn("Non-bedrock block @ " + x + "," + y + ",0: " + BLOCKS[blockTypeAbove].name);
