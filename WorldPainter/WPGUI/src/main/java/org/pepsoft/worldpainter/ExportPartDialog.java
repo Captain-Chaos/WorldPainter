@@ -5,7 +5,7 @@
  */
 package org.pepsoft.worldpainter;
 
-import java.awt.Window;
+import java.awt.*;
 
 /**
  *
@@ -20,6 +20,7 @@ public class ExportPartDialog extends WorldPainterDialog {
         initComponents();
         getRootPane().setDefaultButton(buttonExport);
         scaleToUI();
+        pack();
         setLocationRelativeTo(parent);
     }
 

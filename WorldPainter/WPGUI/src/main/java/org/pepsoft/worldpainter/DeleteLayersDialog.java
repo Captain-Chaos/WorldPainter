@@ -31,6 +31,7 @@ public class DeleteLayersDialog extends WorldPainterDialog {
         setControlStates();
 
         scaleToUI();
+        pack();
         setLocationRelativeTo(parent);
     }
 

@@ -81,6 +81,7 @@ public class UndergroundPocketsDialog extends AbstractEditLayerDialog<Undergroun
         rootPane.setDefaultButton(buttonOK);
         scaleToUI();
         pack();
+        scaleWindowToUI();
         setLocationRelativeTo(parent);
     }
 

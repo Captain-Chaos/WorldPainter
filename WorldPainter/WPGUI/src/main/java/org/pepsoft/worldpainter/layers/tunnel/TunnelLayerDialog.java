@@ -93,6 +93,8 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         noiseSettingsEditorRoof.addChangeListener(this);
 
         scaleToUI();
+        pack();
+        scaleWindowToUI();
         setLocationRelativeTo(parent);
 
         // TODO this causes the preview only to become bigger, never smaller:

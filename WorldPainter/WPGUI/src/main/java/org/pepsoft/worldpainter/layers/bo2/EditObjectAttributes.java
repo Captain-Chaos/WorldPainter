@@ -160,9 +160,9 @@ public class EditObjectAttributes extends WorldPainterDialog {
             checkBoxReplace.setEnabled(false);
             checkBoxExtendFoundation.setMixed(true);
         }
-        pack();
         scaleToUI();
-        
+        pack();
+
         ActionMap actionMap = rootPane.getActionMap();
         actionMap.put("cancel", new AbstractAction("cancel") {
             @Override

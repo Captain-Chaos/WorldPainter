@@ -42,6 +42,7 @@ public class ShiftWorldDialog extends WorldPainterDialog implements ProgressRece
         getRootPane().setDefaultButton(buttonShift);
 
         scaleToUI();
+        pack();
         setLocationRelativeTo(parent);
     }
 

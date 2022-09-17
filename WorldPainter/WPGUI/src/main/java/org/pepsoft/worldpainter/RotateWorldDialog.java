@@ -42,6 +42,7 @@ public class RotateWorldDialog extends WorldPainterDialog implements ProgressRec
         getRootPane().setDefaultButton(buttonRotate);
 
         scaleToUI();
+        pack();
         setLocationRelativeTo(parent);
     }
 

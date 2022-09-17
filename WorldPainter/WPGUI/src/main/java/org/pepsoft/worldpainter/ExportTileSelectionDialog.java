@@ -101,7 +101,8 @@ public class ExportTileSelectionDialog extends WorldPainterDialog implements Win
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
         
         getRootPane().setDefaultButton(buttonClose);
-        
+
+        scaleWindowToUI();
         setLocationRelativeTo(parent);
         
         addWindowListener(this);

@@ -66,6 +66,7 @@ public class ScriptRunner extends WorldPainterDialog {
         
         getRootPane().setDefaultButton(jButton2);
         scaleToUI();
+        pack();
         setLocationRelativeTo(parent);
     }
 

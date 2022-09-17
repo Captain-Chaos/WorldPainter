@@ -42,6 +42,8 @@ public class ImportCustomItemsDialog extends WorldPainterDialog implements TreeS
 
         getRootPane().setDefaultButton(buttonOK);
         scaleToUI();
+        pack();
+        scaleWindowToUI();
         setLocationRelativeTo(parent);
     }
 

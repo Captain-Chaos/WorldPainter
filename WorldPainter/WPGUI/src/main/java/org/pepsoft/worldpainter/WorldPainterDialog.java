@@ -107,8 +107,18 @@ public class WorldPainterDialog extends JDialog {
      * <p>Should be called by subclasses <em>after</em> they have added all
      * their components.
      */
-    protected void scaleToUI() {
+    protected final void scaleToUI() {
         GUIUtils.scaleToUI(this);
+    }
+
+    /**
+     * Adjusts the size of the window to the UI scale. The window will not be scaled down, nor be made larger than the
+     * available space on the screen.
+     *
+     * <p>Should be called by subclasses <em>after</em> they have added and scaled all their components.
+     */
+    protected final void scaleWindowToUI() {
+        GUIUtils.scaleWindow(this);
     }
 
     private boolean cancelled = true;

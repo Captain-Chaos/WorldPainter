@@ -12,6 +12,7 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+import org.pepsoft.worldpainter.layers.plants.PlantLayer;
 import org.pepsoft.worldpainter.objects.MinecraftWorldObject;
 
 import javax.swing.*;
@@ -94,8 +95,11 @@ public class EditLayerDialog<L extends Layer> extends AbstractEditLayerDialog<L>
             }
         });
 
-        pack();
         scaleToUI();
+        pack();
+        if (! (layer instanceof PlantLayer)) {
+            scaleWindowToUI();
+        }
         setLocationRelativeTo(parent);
     }
 

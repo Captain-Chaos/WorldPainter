@@ -128,6 +128,7 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
         }
         setControlStates();
         scaleToUI();
+        pack();
         setLocationRelativeTo(parent);
         
         if (enableOverlay) {

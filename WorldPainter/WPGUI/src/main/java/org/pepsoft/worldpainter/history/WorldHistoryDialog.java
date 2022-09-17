@@ -29,6 +29,7 @@ public class WorldHistoryDialog extends WorldPainterDialog {
         jTable1.getColumnModel().getColumn(2).setPreferredWidth(800);
         getRootPane().setDefaultButton(jButton1);
         scaleToUI();
+        pack();
         setLocationRelativeTo(parent);
     }
 

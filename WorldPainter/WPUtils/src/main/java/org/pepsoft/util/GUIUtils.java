@@ -92,10 +92,6 @@ public class GUIUtils {
         if (UI_SCALE_FLOAT == 1.0f) {
             return;
         }
-        if ((container instanceof Window) && (UI_SCALE_FLOAT > 1.0f)) {
-            Window window = (Window) container;
-            window.setSize(Math.round(window.getWidth() * UI_SCALE_FLOAT), Math.round(window.getHeight() * UI_SCALE_FLOAT));
-        }
         for (Component component: container.getComponents()) {
             if (component instanceof JTable) {
                 JTable table = (JTable) component;
@@ -107,6 +103,14 @@ public class GUIUtils {
                 scaleToUI((Container) component);
             }
         }
+    }
+
+    public static void scaleWindow(Window window) {
+        final GraphicsConfiguration gc = window.getGraphicsConfiguration();
+        final Rectangle screenBounds = gc.getBounds();
+        final Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
+        window.setSize(Math.min(Math.round(window.getWidth() * UI_SCALE_FLOAT), screenBounds.width - insets.left - insets.right),
+                Math.min(Math.round(window.getHeight() * UI_SCALE_FLOAT), screenBounds.height - insets.top - insets.bottom));
     }
 
     /**
