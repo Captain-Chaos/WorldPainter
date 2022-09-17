@@ -1051,10 +1051,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         // world generation settings
         final MapGenerator generator = dimension.getGenerator();
-        savedGeneratorType = generator.getType();
         endlessBorder = (dimension.getBorder() != null) && dimension.getBorder().isEndless();
         comboBoxGenerator.setSelectedItem(endlessBorder ? FLAT : ((generator != null) ? generator.getType() : null));
         if (generator != null) {
+            savedGeneratorType = generator.getType();
             generatorName = (generator instanceof CustomGenerator) ? ((CustomGenerator) generator).getName() : null;
             customGeneratorSettings = (generator instanceof CustomGenerator) ? ((CustomGenerator) generator).getSettings() : null;
             superflatPreset = (generator instanceof SuperflatGenerator) ? ((SuperflatGenerator) generator).getSettings() : null;
