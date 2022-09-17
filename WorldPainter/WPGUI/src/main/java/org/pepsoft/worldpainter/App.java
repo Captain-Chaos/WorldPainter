@@ -46,8 +46,10 @@ import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayerDialog;
 import org.pepsoft.worldpainter.operations.*;
+import org.pepsoft.worldpainter.painting.LayerPaint;
 import org.pepsoft.worldpainter.painting.Paint;
-import org.pepsoft.worldpainter.painting.*;
+import org.pepsoft.worldpainter.painting.PaintFactory;
+import org.pepsoft.worldpainter.painting.TerrainPaint;
 import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.panels.InfoPanel;
@@ -5458,49 +5460,67 @@ public final class App extends JFrame implements RadiusControl,
         final boolean end = (world != null) && (world.isDimensionPresent(END_DETAIL));
         final Anchor anchor = dimension.getAnchor();
         biomeHelper = new BiomeHelper(selectedColourScheme, customBiomeManager, platform);
-        addNetherMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_NETHER) && (! imported) && (! nether));
-        removeNetherMenuItem.setEnabled(nether);
-        addEndMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_END) && (! imported) && (! end));
-        removeEndMenuItem.setEnabled(end);
-        viewNetherMenuItem.setEnabled(nether);
-        viewEndMenuItem.setEnabled(end);
-        ACTION_SWITCH_TO_FROM_MASTER.setEnabled(world.isDimensionPresent(new Anchor(anchor.dim, (anchor.role == MASTER) ? DETAIL : MASTER, false, 0)));
-        ACTION_SWITCH_TO_FROM_CEILING.setEnabled(world.isDimensionPresent(new Anchor(anchor.dim, DETAIL, true, 0)));
-        addMasterMenuItem.setEnabled((anchor.role == DETAIL) && (anchor.id == 0) && (! world.isDimensionPresent(new Anchor(anchor.dim, MASTER, false, 0))));
-        removeMasterMenuItem.setEnabled((anchor.role == MASTER) || (world.isDimensionPresent(new Anchor(anchor.dim, MASTER, false, 0))));
-        addCeilingMenuItem.setEnabled((anchor.role == DETAIL) && (anchor.id == 0) && (! anchor.invert) && (! world.isDimensionPresent(new Anchor(anchor.dim, anchor.role, true, 0))));
-        removeCeilingMenuItem.setEnabled(anchor.invert || (world.isDimensionPresent(new Anchor(anchor.dim, anchor.role, true, 0))));
-        if (dimension != null) {
-            final boolean biomesSupported = (! anchor.invert) && platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
-            if ((! biomesSupported) && (paint instanceof DiscreteLayerPaint) && (((DiscreteLayerPaint) paint).getLayer() == Biome.INSTANCE)) {
-                deselectPaint();
-            }
-            biomesPanelFrame.setEnabled(biomesSupported);
-            // TODO deselect biomes panel if it was selected
-            layerControls.get(Biome.INSTANCE).setEnabled(biomesSupported);
-            switch (anchor.dim) {
-                case DIM_NORMAL:
-                    setSpawnPointToggleButton.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
-                    ACTION_MOVE_TO_SPAWN.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
-                    break;
-                default:
-                    if (activeOperation instanceof SetSpawnPoint) {
-                        deselectTool();
-                    }
-                    setSpawnPointToggleButton.setEnabled(false);
-                    ACTION_MOVE_TO_SPAWN.setEnabled(false);
-                    break;
-            }
-        }
-        if (! platform.capabilities.contains(POPULATE)) {
-            layerControls.get(Populate.INSTANCE).disable("Automatic population not support by format " + platform);
+        setEnabled(addNetherMenuItem, platform.supportedDimensions.contains(DIM_NETHER) && (! imported) && (! nether));
+        setEnabled(removeNetherMenuItem, nether);
+        setEnabled(addEndMenuItem, platform.supportedDimensions.contains(DIM_END) && (! imported) && (! end));
+        setEnabled(removeEndMenuItem, end);
+        setEnabled(viewNetherMenuItem, nether);
+        setEnabled(viewEndMenuItem, end);
+        setEnabled(ACTION_SWITCH_TO_FROM_MASTER, world.isDimensionPresent(new Anchor(anchor.dim, (anchor.role == MASTER) ? DETAIL : MASTER, false, 0)));
+        setEnabled(ACTION_SWITCH_TO_FROM_CEILING, world.isDimensionPresent(new Anchor(anchor.dim, DETAIL, true, 0)));
+        setEnabled(addMasterMenuItem, (anchor.role == DETAIL) && (anchor.id == 0) && (! world.isDimensionPresent(new Anchor(anchor.dim, MASTER, false, 0))));
+        setEnabled(removeMasterMenuItem, (anchor.role == MASTER) || (world.isDimensionPresent(new Anchor(anchor.dim, MASTER, false, 0))));
+        setEnabled(addCeilingMenuItem, (anchor.role == DETAIL) && (anchor.id == 0) && (! anchor.invert) && (! world.isDimensionPresent(new Anchor(anchor.dim, anchor.role, true, 0))));
+        setEnabled(removeCeilingMenuItem, anchor.invert || (world.isDimensionPresent(new Anchor(anchor.dim, anchor.role, true, 0))));
+        final boolean biomesSupported = (! anchor.invert) && platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
+        setEnabled(Biome.INSTANCE, biomesSupported, "Biomes not supported by format " + platform);
+        setEnabled(biomesPanelFrame, biomesSupported);
+        // TODO deselect biomes panel if it was selected
+        if (anchor.equals(NORMAL_DETAIL)) {
+            setEnabled(setSpawnPointToggleButton, platform.capabilities.contains(SET_SPAWN_POINT));
+            setEnabled(ACTION_MOVE_TO_SPAWN, platform.capabilities.contains(SET_SPAWN_POINT));
         } else {
-            layerControls.get(Populate.INSTANCE).setEnabled(true);
+            if (activeOperation instanceof SetSpawnPoint) {
+                deselectTool();
+            }
+            setEnabled(setSpawnPointToggleButton, false);
+            setEnabled(ACTION_MOVE_TO_SPAWN, false);
         }
+        setEnabled(Populate.INSTANCE, (anchor.role != CAVE_FLOOR) && (! anchor.invert) && platform.capabilities.contains(POPULATE), "Automatic population not supported or not applicable");
         biomesPanel.loadBiomes(platform, selectedColourScheme);
-        extendedBlockIdsMenuItem.setEnabled((! platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION));
+        setEnabled(extendedBlockIdsMenuItem, (! platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION));
         brushOptions.setPlatform(platform);
         infoPanel.setPlatform(platform);
+        // TODO actually why not support these:
+        setEnabled(Caves.INSTANCE, anchor.role != CAVE_FLOOR, "Caves not supported in Custom Cave/Tunnel floor dimensions");
+        setEnabled(Caverns.INSTANCE, anchor.role != CAVE_FLOOR, "Caverns not supported in Custom Cave/Tunnel floor dimensions");
+        setEnabled(Chasms.INSTANCE, anchor.role != CAVE_FLOOR, "Chasms not supported in Custom Cave/Tunnel floor dimensions");
+        setEnabled(Resources.INSTANCE, anchor.role != CAVE_FLOOR, "Resources not supported in Custom Cave/Tunnel floor dimensions");
+        setEnabled(ReadOnly.INSTANCE, anchor.equals(NORMAL_DETAIL), "Read Only layer not applicable");
+    }
+
+    private void setEnabled(Layer layer, boolean enabled, String toolTipText) {
+        final LayerControls layerControls = this.layerControls.get(layer);
+        if (enabled && (! layerControls.isEnabled())) {
+            layerControls.setEnabled(true);
+        } else if ((! enabled) && layerControls.isEnabled()) {
+            if ((paint instanceof LayerPaint) && (((LayerPaint) paint).getLayer().equals(layer))) {
+                deselectPaint();
+            }
+            layerControls.disable(toolTipText);
+        }
+    }
+
+    private void setEnabled(Component component, boolean enabled) {
+        if (enabled != component.isEnabled()) {
+            component.setEnabled(enabled);
+        }
+    }
+
+    private void setEnabled(Action action, boolean enabled) {
+        if (enabled != action.isEnabled()) {
+            action.setEnabled(enabled);
+        }
     }
 
     private void addMaterialSelectionTo(final JToggleButton button, final int customMaterialIndex) {
