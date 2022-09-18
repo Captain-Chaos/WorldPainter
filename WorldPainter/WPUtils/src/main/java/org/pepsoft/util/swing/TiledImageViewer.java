@@ -118,9 +118,11 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         synchronized (TILE_CACHE_LOCK) {
             final TileProvider oldTileProvider = tileProviders.remove(layer);
             Point offset = new Point();
+            Integer zoom = null;
             Map<Point, Reference<? extends Image>> dirtyTileCache = new HashMap<>();
             if (oldTileProvider != null) {
                 offset = offsets.remove(oldTileProvider);
+                zoom = tileProviderZoom.remove(oldTileProvider);
                 oldTileProvider.removeTileListener(this);
                 dirtyTileCache = dirtyTileCaches.remove(oldTileProvider);
                 Map<Point, Reference<? extends Image>> tileCache = tileCaches.remove(oldTileProvider);
@@ -148,11 +150,18 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             }
             
             if (tileProvider.isZoomSupported()) {
-                tileProvider.setZoom((zoom <= 0) ? zoom : 0);
+                if (zoom != null) {
+                    tileProvider.setZoom(((this.zoom + zoom) <= 0) ? (this.zoom + zoom) : 0);
+                } else {
+                    tileProvider.setZoom((this.zoom <= 0) ? this.zoom : 0);
+                }
             }
             tileProvider.addTileListener(this);
             tileProviders.put(layer, tileProvider);
             offsets.put(tileProvider, offset);
+            if (zoom != null) {
+                tileProviderZoom.put(tileProvider, zoom);
+            }
             tileCaches.put(tileProvider, new HashMap<>());
             dirtyTileCaches.put(tileProvider, dirtyTileCache);
 
@@ -175,6 +184,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             final TileProvider tileProvider = tileProviders.remove(layer);
             if (tileProvider != null) {
                 offsets.remove(tileProvider);
+                tileProviderZoom.remove(tileProvider);
                 tileProvider.removeTileListener(this);
                 tileCaches.remove(tileProvider);
                 dirtyTileCaches.remove(tileProvider);
@@ -208,6 +218,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             }
             tileProviders.clear();
             offsets.clear();
+            tileProviderZoom.clear();
             if (queue != null) {
                 queue.clear();
             }
@@ -945,6 +956,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 
     public void setTileProviderZoom(TileProvider tileProvider, int zoom) {
         tileProviderZoom.put(tileProvider, zoom);
+        tileProvider.setZoom(((this.zoom + zoom) <= 0) ? (this.zoom + zoom) : 0);
+        repaint();
     }
 
     /**
@@ -1229,7 +1242,10 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         GraphicsConfiguration gc = getGraphicsConfiguration();
         for (TileProvider tileProvider: tileProviders.values()) {
-            final int effectiveZoom = (tileProvider.isZoomSupported() && ((zoom + tileProviderZoom.getOrDefault(tileProvider, 0)) < 0)) ? 0 : (zoom + tileProviderZoom.getOrDefault(tileProvider, 0));
+            final Integer tileProviderZoom = this.tileProviderZoom.getOrDefault(tileProvider, 0);
+            final int effectiveZoom = (tileProvider.isZoomSupported() && ((zoom + tileProviderZoom) < 0)) ? 0 : (zoom + tileProviderZoom);
+            logger.debug("Provider {}: zoomSupported: {}, this.zoom: {}, tileProviderZoom: {}, effectiveZoom: {}, tileProvider.getZoom(): {}",
+                    tileProvider, tileProvider.isZoomSupported(), zoom, tileProviderZoom, effectiveZoom, tileProvider.getZoom());
             final Point topLeftTileCoords = viewToWorld(tileProvider, clipBounds.getLocation(), effectiveZoom);
             final int leftTile = topLeftTileCoords.x >> TILE_SIZE_BITS;
             final int topTile = topLeftTileCoords.y >> TILE_SIZE_BITS;
