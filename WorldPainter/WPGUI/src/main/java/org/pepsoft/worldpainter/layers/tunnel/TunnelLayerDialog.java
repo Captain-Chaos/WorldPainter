@@ -561,7 +561,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             final Dimension floorDimension = getUpdatedFloorDimension();
             final App app = App.getInstance();
             app.setDimension(floorDimension);
-            JOptionPane.showMessageDialog(app, "Press Esc to finish editing Custom the Cave/Tunnel layer floor dimension.", "Editing Cave/Tunnnel Floor", JOptionPane.INFORMATION_MESSAGE); // TODO make that work
+            JOptionPane.showMessageDialog(app, "Press Esc to finish editing the Custom Cave/Tunnel layer floor dimension.", "Editing Cave/Tunnel Floor", JOptionPane.INFORMATION_MESSAGE);
         });
     }
 
