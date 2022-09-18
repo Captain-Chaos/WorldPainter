@@ -491,7 +491,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             // resources
             ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
             if (resourcesSettings == null) {
-                resourcesSettings = ResourcesExporterSettings.defaultSettings(platform, dimension.getAnchor().dim, dimension.getMaxHeight());
+                resourcesSettings = ResourcesExporterSettings.defaultSettings(platform, dimension.getAnchor(), dimension.getMaxHeight());
             }
             if (jCheckBox8.isSelected()) {
                 int minimumLevel = jSlider4.getValue();
@@ -914,7 +914,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             // resources
             ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
             if (resourcesSettings == null) {
-                resourcesSettings = ResourcesExporterSettings.defaultSettings(platform, dimension.getAnchor().dim, dimension.getMaxHeight());
+                resourcesSettings = ResourcesExporterSettings.defaultSettings(platform, dimension.getAnchor(), dimension.getMaxHeight());
                 resourcesSettings.setMinimumLevel(0);
             }
             jCheckBox8.setSelected(resourcesSettings.isApplyEverywhere());

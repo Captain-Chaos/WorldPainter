@@ -78,7 +78,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         this.maxHeight = tileFactory.getMaxHeight();
         ceilingHeight = maxHeight;
         if (init) {
-            layerSettings.put(Resources.INSTANCE, ResourcesExporterSettings.defaultSettings(world.getPlatform(), anchor.dim, maxHeight));
+            layerSettings.put(Resources.INSTANCE, ResourcesExporterSettings.defaultSettings(world.getPlatform(), anchor, maxHeight));
             topLayerDepthNoise = new PerlinNoise(seed + TOP_LAYER_DEPTH_SEED_OFFSET);
             if (anchor.role == DETAIL) {
                 switch (anchor.dim) {
@@ -1963,7 +1963,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 subsurfaceMaterial = Terrain.STONE;
 
                 // Load legacy settings
-                ResourcesExporterSettings settings = ResourcesExporterSettings.defaultSettings(JAVA_ANVIL, DIM_NORMAL, maxHeight);
+                ResourcesExporterSettings settings = ResourcesExporterSettings.defaultSettings(JAVA_ANVIL, NORMAL_DETAIL, maxHeight);
                 settings.setChance(GOLD_ORE,         1);
                 settings.setChance(IRON_ORE,         5);
                 settings.setChance(COAL,             9);
