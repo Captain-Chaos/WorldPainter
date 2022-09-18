@@ -28,8 +28,10 @@ import java.util.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Dimension.Role.*;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
+import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_FIFTY_PERCENT;
 
 /**
  *
@@ -237,7 +239,7 @@ public class TileSelector extends javax.swing.JPanel {
                         }
                     }
                     if (biomeAlgorithm != -1) {
-                        viewer.setTileProvider(-1, new BiomesTileProvider(biomeAlgorithm, dimension.getMinecraftSeed(), colourScheme, 0, true));
+                        viewer.setTileProvider(-2, new BiomesTileProvider(biomeAlgorithm, dimension.getMinecraftSeed(), colourScheme, 0, true));
                     }
                 }
             }
@@ -245,6 +247,25 @@ public class TileSelector extends javax.swing.JPanel {
             WPTileProvider tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin, true);
 //            tileProvider.setZoom(zoom);
             viewer.setTileProvider(tileProvider);
+
+            final Dimension backgroundDimension;
+            final int backgroundZoom;
+            final Dimension.Anchor anchor = dimension.getAnchor();
+            if (anchor.role == DETAIL) {
+                backgroundDimension = dimension.getWorld().getDimension(new Dimension.Anchor(anchor.dim, MASTER, anchor.invert, 0));
+                backgroundZoom = 4;
+            } else if (anchor.role == CAVE_FLOOR) {
+                backgroundDimension = dimension.getWorld().getDimension(new Dimension.Anchor(anchor.dim, DETAIL, anchor.invert, 0));
+                backgroundZoom = 0;
+            } else {
+                backgroundDimension = null;
+                backgroundZoom = 0;
+            }
+            if (backgroundDimension != null) {
+                WPTileProvider backgroundProvider = new WPTileProvider(backgroundDimension, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin, false, false, FADE_TO_FIFTY_PERCENT); // TODO handle borders
+                viewer.setTileProvider(-1, backgroundProvider);
+                viewer.setTileProviderZoom(backgroundProvider, backgroundZoom);
+            }
 
             viewer.setMarkerCoords((dimension.getAnchor().dim == DIM_NORMAL) ? dimension.getWorld().getSpawnPoint() : null);
             buttonSpawn.setEnabled(true);
