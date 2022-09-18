@@ -1,3 +1,8 @@
+-- Version 2.14.4, released ...
+
+ * Some improvements in error handling
+ * Various bug fixes
+
 -- Version 2.14.3, released 17-9-2022
 
  * Some window sizes have been adjusted in order to make them fit on low resolution screens more often (but still not always)
