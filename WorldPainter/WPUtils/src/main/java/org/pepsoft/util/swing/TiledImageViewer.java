@@ -331,7 +331,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                     if (tileProvider.isZoomSupported()) {
                         // Only use the tile provider's own zoom support for
                         // zooming out:
-                        tileProvider.setZoom(((zoom + providerZoom.getOrDefault(tileProvider, 0)) <= 0) ? (zoom + providerZoom.getOrDefault(tileProvider, 0)) : 0);
+                        tileProvider.setZoom(((zoom + tileProviderZoom.getOrDefault(tileProvider, 0)) <= 0) ? (zoom + tileProviderZoom.getOrDefault(tileProvider, 0)) : 0);
                     }
                     dirtyTileCaches.put(tileProvider, new HashMap<>());
                     tileCaches.put(tileProvider, new HashMap<>());
@@ -943,8 +943,8 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         }
     }
 
-    public void setProviderZoom(TileProvider tileProvider, int zoom) {
-        providerZoom.put(tileProvider, zoom);
+    public void setTileProviderZoom(TileProvider tileProvider, int zoom) {
+        tileProviderZoom.put(tileProvider, zoom);
     }
 
     /**
@@ -1229,7 +1229,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         GraphicsConfiguration gc = getGraphicsConfiguration();
         for (TileProvider tileProvider: tileProviders.values()) {
-            final int effectiveZoom = (tileProvider.isZoomSupported() && ((zoom + providerZoom.getOrDefault(tileProvider, 0)) < 0)) ? 0 : (zoom + providerZoom.getOrDefault(tileProvider, 0));
+            final int effectiveZoom = (tileProvider.isZoomSupported() && ((zoom + tileProviderZoom.getOrDefault(tileProvider, 0)) < 0)) ? 0 : (zoom + tileProviderZoom.getOrDefault(tileProvider, 0));
             final Point topLeftTileCoords = viewToWorld(tileProvider, clipBounds.getLocation(), effectiveZoom);
             final int leftTile = topLeftTileCoords.x >> TILE_SIZE_BITS;
             final int topTile = topLeftTileCoords.y >> TILE_SIZE_BITS;
@@ -1419,7 +1419,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         Rectangle tileBounds = getTileBounds(tileProvider, x, y, effectiveZoom);
         Image tile = getTile(tileProvider, x, y, effectiveZoom, gc);
         if (tile != null) {
-            if ((zoom + providerZoom.getOrDefault(tileProvider, 0)) > 0) {
+            if ((zoom + tileProviderZoom.getOrDefault(tileProvider, 0)) > 0) {
                 g2.drawImage(tile, tileBounds.x, tileBounds.y, tileBounds.width, tileBounds.height, this);
             } else {
                 g2.drawImage(tile, tileBounds.x, tileBounds.y, this);
@@ -1815,7 +1815,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     private BufferedImage backgroundImage;
     private BackgroundImageMode backgroundImageMode = BackgroundImageMode.CENTRE_REPEAT;
     private volatile boolean inhibitUpdates;
-    private Map<TileProvider, Integer> providerZoom = new WeakHashMap<>();
+    private Map<TileProvider, Integer> tileProviderZoom = new WeakHashMap<>();
 
     public static final int TILE_SIZE = 128, TILE_SIZE_BITS = 7, TILE_SIZE_MASK = 0x7f;
     public static final IntegerAttributeKey ADVANCED_SETTING_MAX_TILE_RENDER_THREADS = new IntegerAttributeKey("display.maxTileRenderThreads", 8);

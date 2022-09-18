@@ -380,7 +380,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             if (backgroundDimension != null) {
                 backgroundTileProvider = new WPTileProvider(backgroundDimension, colourScheme, customBiomeManager, hiddenLayers, false, contourSeparation, lightOrigin, drawBorders, false, FADE_TO_FIFTY_PERCENT);
                 setTileProvider(LAYER_BACKGROUND, backgroundTileProvider);
-                setProviderZoom(backgroundTileProvider, 4);
+                setTileProviderZoom(backgroundTileProvider, backgroundDimensionZoom);
             } else {
                 removeTileProvider(LAYER_BACKGROUND);
             }
@@ -908,10 +908,11 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             backgroundTileProvider = null;
         }
         this.backgroundDimension = backgroundDimension;
+        backgroundDimensionZoom = zoomLevel;
         if (backgroundDimension != null) {
             backgroundTileProvider = new WPTileProvider(backgroundDimension, colourScheme, customBiomeManager, hiddenLayers, false, contourSeparation, lightOrigin, drawBorders, false, effect);
             setTileProvider(LAYER_BACKGROUND, backgroundTileProvider);
-            setProviderZoom(backgroundTileProvider, zoomLevel);
+            setTileProviderZoom(backgroundTileProvider, backgroundDimensionZoom);
         }
         repaint();
     }
@@ -919,12 +920,12 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private HashSet<Layer> hiddenLayers = new HashSet<>();
     private final CustomBiomeManager customBiomeManager;
     private Dimension dimension, backgroundDimension; // TODO make this more generic
-    private int mouseX, mouseY, radius, effectiveRadius, overlayOffsetX, overlayOffsetY, contourSeparation, brushRotation;
-    private boolean drawBrush, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance, drawMinecraftBorder = true,
-        drawBorders = true, drawBiomes = true;
+    private int mouseX, mouseY, radius, effectiveRadius, overlayOffsetX, overlayOffsetY, contourSeparation,
+            brushRotation, backgroundDimensionZoom;
+    private boolean drawBrush, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance,
+            drawMinecraftBorder = true, drawBorders = true, drawBiomes = true;
     private BrushShape brushShape;
-    private float overlayScale = 1.0f;
-    private float overlayTransparency = 0.5f;
+    private float overlayScale = 1.0f, overlayTransparency = 0.5f;
     private ColourScheme colourScheme;
     private BufferedImage overlay;
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
