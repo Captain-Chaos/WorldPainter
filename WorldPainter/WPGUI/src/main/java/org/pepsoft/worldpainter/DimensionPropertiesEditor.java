@@ -1144,7 +1144,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setEnabled(checkBoxDecorationLushCaves, enabled && decorations && (platform == JAVA_ANVIL_1_17 || platform == JAVA_ANVIL_1_18));
         setEnabled(checkBoxDecorationDripstoneCaves, enabled && decorations && (platform == JAVA_ANVIL_1_17 || platform == JAVA_ANVIL_1_18));
         setEnabled(checkBoxCoverSteepTerrain, enabled && (! caveFloor)); // TODO make this work
-        setEnabled(comboBoxSurfaceLayerAnchor, enabled && (! caveFloor));
+        setEnabled(comboBoxSurfaceLayerAnchor, enabled);
         setEnabled(comboBoxSubsurfaceMaterial, enabled && (! caveFloor));
         setEnabled(comboBoxUndergroundLayerAnchor, enabled && (! caveFloor));
         setEnabled(checkBoxBottomless, enabled && (! caveFloor));

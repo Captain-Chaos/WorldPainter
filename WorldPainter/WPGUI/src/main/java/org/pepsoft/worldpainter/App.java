@@ -10,6 +10,7 @@ import com.jidesoft.docking.*;
 import com.jidesoft.swing.JideLabel;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.SeededGenerator;
@@ -93,6 +94,7 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.*;
+import java.util.function.Function;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -1642,7 +1644,7 @@ public final class App extends JFrame implements RadiusControl,
         popupMenu.add(menuItem);
 
         menuItem = new JMenuItem("Import from another world...");
-        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.TERRAIN));
+        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.TERRAIN, null));
         popupMenu.add(menuItem);
 
         if (button != null) {
@@ -3231,7 +3233,8 @@ public final class App extends JFrame implements RadiusControl,
             }
         });
         customLayerMenu.add(menuItem);
-        
+
+        final Anchor anchor = dimension.getAnchor();
         menuItem = new JMenuItem(strings.getString("add.a.custom.underground.pockets.layer") + "...");
         menuItem.addActionListener(e -> {
             UndergroundPocketsDialog dialog = new UndergroundPocketsDialog(App.this, world.getPlatform(), MixedMaterial.create(world.getPlatform(), Material.IRON_BLOCK), selectedColourScheme, world.getMaxHeight(), world.isExtendedBlockIds());
@@ -3244,6 +3247,9 @@ public final class App extends JFrame implements RadiusControl,
                 registerCustomLayer(layer, true);
             }
         });
+        if (anchor.role == CAVE_FLOOR) {
+            menuItem.setEnabled(false);
+        }
         customLayerMenu.add(menuItem);
         
         menuItem = new JMenuItem("Add a custom cave/tunnel layer...");
@@ -3268,6 +3274,9 @@ public final class App extends JFrame implements RadiusControl,
                 registerCustomLayer(layer, true);
             }
         });
+        if (anchor.role == CAVE_FLOOR) {
+            menuItem.setEnabled(false);
+        }
         customLayerMenu.add(menuItem);
         
         menuItem = new JMenuItem("Add a custom plants layer...");
@@ -3297,6 +3306,10 @@ public final class App extends JFrame implements RadiusControl,
                 registerCustomLayer(layer, true);
             }
         });
+        // TODO add support for combined layers
+        if (anchor.role == CAVE_FLOOR) {
+            menuItem.setEnabled(false);
+        }
         customLayerMenu.add(menuItem);
 
         List<Class<? extends CustomLayer>> allPluginLayers = new ArrayList<>();
@@ -3327,7 +3340,8 @@ public final class App extends JFrame implements RadiusControl,
         }
 
         menuItem = new JMenu("Copy layer from another dimension");
-        List<JMenuItem> copyMenuItems = getCopyLayerMenuItems((paletteName != null) ? paletteName : "Custom Layers");
+        final Function<Layer, Boolean> filter = getLayerFilterForCurrentDimension();
+        List<JMenuItem> copyMenuItems = getCopyLayerMenuItems((paletteName != null) ? paletteName : "Custom Layers", filter);
         if (! copyMenuItems.isEmpty()) {
             for (JMenuItem copyMenuItem: copyMenuItems) {
                 ((JMenu) menuItem).add(copyMenuItem);
@@ -3338,17 +3352,26 @@ public final class App extends JFrame implements RadiusControl,
         customLayerMenu.add(menuItem);
 
         menuItem = new JMenuItem("Import custom layer(s) from file...");
-        menuItem.addActionListener(e -> importLayers(paletteName));
+        menuItem.addActionListener(e -> importLayers(paletteName, filter));
         customLayerMenu.add(menuItem);
 
         menuItem = new JMenuItem("Import custom layer(s) from another world...");
-        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.LAYER));
+        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.LAYER, filter));
         customLayerMenu.add(menuItem);
 
         return customLayerMenu;
     }
 
-    private List<JMenuItem> getCopyLayerMenuItems(String targetPaletteName) {
+    @Nullable
+    private Function<Layer, Boolean> getLayerFilterForCurrentDimension() {
+        if ((dimension != null) && (dimension.getAnchor().role == CAVE_FLOOR)) {
+            return layer -> ! ((layer instanceof TunnelLayer) || (layer instanceof UndergroundPocketsLayer) || (layer instanceof CombinedLayer));
+        } else {
+            return null;
+        }
+    }
+
+    private List<JMenuItem> getCopyLayerMenuItems(String targetPaletteName, Function<Layer, Boolean> filter) {
         if (targetPaletteName == null) {
             throw new NullPointerException("targetPaletteName");
         }
@@ -3362,6 +3385,9 @@ public final class App extends JFrame implements RadiusControl,
                 if ((layer instanceof TunnelLayer) && (((TunnelLayer) layer).getFloorDimensionId() != null)) {
                     // TunnelLayers with a floor dimension should be locked to one dimension in order to prevent all
                     // kinds of complications
+                    continue;
+                }
+                if ((filter != null) && filter.apply(layer)) {
                     continue;
                 }
                 final String palette = layer.getPalette();
@@ -4206,7 +4232,7 @@ public final class App extends JFrame implements RadiusControl,
         JMenu importMenu = new JMenu("Import");
         menuItem = new JMenuItem("Custom items from existing world...");
         menuItem.setMnemonic('i');
-        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.ALL));
+        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.ALL, getLayerFilterForCurrentDimension()));
         importMenu.add(menuItem);
 
         menuItem = new JMenuItem(ACTION_IMPORT_LAYER);
@@ -5870,7 +5896,7 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
     
-    private void importLayers(String paletteName) {
+    private void importLayers(String paletteName, Function<Layer, Boolean> filter) {
         Configuration config = Configuration.getInstance();
         File layerDirectory = config.getLayerDirectory();
         if ((layerDirectory == null) || (! layerDirectory.isDirectory())) {
@@ -5898,6 +5924,10 @@ public final class App extends JFrame implements RadiusControl,
                                 showMessageDialog(this, "That layer is already present in the dimension.\nThe layer has not been added.", "Layer Already Present", WARNING_MESSAGE);
                                 return;
                             }
+                        }
+                        if ((filter != null) && (! filter.apply(layer))) {
+                            showMessageDialog(this, "That layer type is not supported for the current dimension.\nThe layer has not been added.", "Inapplicable Layer Type", WARNING_MESSAGE);
+                            return;
                         }
                         if (paletteName != null) {
                             layer.setPalette(paletteName);
@@ -6021,7 +6051,7 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    private void importCustomItemsFromWorld(CustomItemsTreeModel.ItemType itemType) {
+    private void importCustomItemsFromWorld(CustomItemsTreeModel.ItemType itemType, Function<Layer, Boolean> filter) {
         File dir;
         Configuration config = Configuration.getInstance();
         if (lastSelectedFile != null) {
@@ -6161,6 +6191,9 @@ public final class App extends JFrame implements RadiusControl,
                             }
                             if (existingCustomLayers.contains(selectedItem)) {
                                 errors.append("Custom Layer \"" + ((CustomLayer) selectedItem).getName() + "\" already exists\n");
+                            } else if ((filter != null) && (! filter.apply((CustomLayer) selectedItem))) {
+                                errors.append("Custom Layer \"" + ((CustomLayer) selectedItem).getName() + "\" type not supported for current dimension\n");
+                                showError = true;
                             } else {
                                 registerCustomLayer((CustomLayer) selectedItem, false);
                             }
@@ -6932,7 +6965,7 @@ public final class App extends JFrame implements RadiusControl,
     private final BetterAction ACTION_IMPORT_LAYER = new BetterAction("importLayer", "Import custom layer(s)") {
         @Override
         protected void performAction(ActionEvent e) {
-            importLayers(null);
+            importLayers(null, getLayerFilterForCurrentDimension());
         }
 
         private static final long serialVersionUID = 1L;

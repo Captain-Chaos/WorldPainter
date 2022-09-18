@@ -10,7 +10,9 @@ import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.MixedMaterial;
+import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 import org.pepsoft.worldpainter.layers.Void;
@@ -90,7 +92,7 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
         }
         // TODO: increase efficiency and correctness by doing this _after_ the carving and then only for blocks which
         //  adjoin a solid block
-        if ((customDimension) || (floorMaterial != null) || (wallMaterial != null) || (roofMaterial != null)) {
+        if ((floorMaterial != null) || (wallMaterial != null) || (roofMaterial != null)) {
             // First pass:  place floor, wall and roof materials
             visitChunksForLayerInAreaForEditing(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) ->
                 whereTunnelIsRealisedDo(dimension, floorDimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
@@ -100,15 +102,9 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                     int waterLevel = tile.getWaterLevel(xInTile, yInTile);
                     boolean flooded = waterLevel > terrainHeight;
                     final int startZ = Math.min(removeWater ? Math.max(terrainHeight, waterLevel) : terrainHeight, actualRoofLevel);
-                    final int endZ = customDimension ? Math.max(actualFloorLevel - floorDimension.getTopLayerDepth(x, y, actualFloorLevel), minHeight) : actualFloorLevel;
-                    final Terrain customTerrain = customDimension ? floorDimension.getTerrainAt(x, y) : null;
-                    for (int z = startZ; z > endZ; z--) {
-                        if (floorLedgeHeight == 0) {
-                            if (customDimension) {
-                                setIfSolid(world, chunk, x, y, z - 1, minZ, maxZ, customTerrain.getMaterial(platform, MATERIAL_SEED, x, y, z - 1, floorDimension.getIntHeightAt(x, y)), flooded, terrainHeight, waterLevel, removeWater);
-                            } else if (floorMaterial != null) {
-                                setIfSolid(world, chunk, x, y, z - 1, minZ, maxZ, floorMaterial.getMaterial(MATERIAL_SEED, x, y, z - 1), flooded, terrainHeight, waterLevel, removeWater);
-                            }
+                    for (int z = startZ; z > actualFloorLevel; z--) {
+                        if ((floorLedgeHeight == 0) && (floorMaterial != null)) {
+                            setIfSolid(world, chunk, x, y, z - 1, minZ, maxZ, floorMaterial.getMaterial(MATERIAL_SEED, x, y, z - 1), flooded, terrainHeight, waterLevel, removeWater);
                         }
                         if (wallMaterial != null) {
                             if (floorLedgeHeight > 0) {
@@ -165,7 +161,16 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                 if (customDimension) {
                     myFloodLevel = floorDimension.getWaterLevelAt(x, y);
                     myFloodWithLava = floorDimension.getBitLayerValueAt(FloodWithLava.INSTANCE, x, y);
-                    myBiome = floorDimension.getLayerValueAt(Biome.INSTANCE, x, y);
+                    if (set3DBiomes) {
+                        final int layerValue = floorDimension.getLayerValueAt(Biome.INSTANCE, x, y);
+                        if (layerValue == 255) {
+                            myBiome = floorDimension.getAutoBiome(x, y);
+                        } else {
+                            myBiome = layerValue;
+                        }
+                    } else {
+                        myBiome = -1;
+                    }
                 } else {
                     myFloodLevel = floodLevel;
                     myFloodWithLava = floodWithLava;
@@ -203,28 +208,55 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
         // Carve floor dimension
         if (floorDimension != null) {
             // TODO add support for combined layers
-            // TODO add support for first pass exporters
             final List<Layer> floorLayers = new ArrayList<>(floorDimension.getAllLayers(false));
             floorLayers.addAll(floorDimension.getMinimumLayers());
             Collections.sort(floorLayers);
-            final SecondPassLayerExporter[] floorExporters = floorLayers.stream()
+            final List<FirstPassLayerExporter> firstPassExporters = new ArrayList<>();
+            final List<SecondPassLayerExporter> secondPassExporters = new ArrayList<>();
+            floorLayers.stream()
                     .filter(layer -> ! SKIP_LAYERS.contains(layer))
-                    .map(layer -> {
+                    .sorted()
+                    .forEach(layer -> {
                         final Class<? extends LayerExporter> exporterType = layer.getExporterType();
-                        if ((exporterType != null) && SecondPassLayerExporter.class.isAssignableFrom(exporterType)) {
-                            final SecondPassLayerExporter exporter = (SecondPassLayerExporter) layer.getExporter(floorDimension, platform, floorDimension.getLayerSettings(layer));
-                            if (exporter.getStages().contains(CARVE)) {
-                                return exporter;
+                        if (exporterType != null) {
+                            if (FirstPassLayerExporter.class.isAssignableFrom(exporterType) || SecondPassLayerExporter.class.isAssignableFrom(exporterType)) {
+                                final LayerExporter exporter = layer.getExporter(floorDimension, platform, floorDimension.getLayerSettings(layer));
+                                if (exporter instanceof FirstPassLayerExporter) {
+                                    firstPassExporters.add((FirstPassLayerExporter) exporter);
+                                }
+                                if (exporter instanceof SecondPassLayerExporter) {
+                                    if (((SecondPassLayerExporter) exporter).getStages().contains(CARVE)) {
+                                        secondPassExporters.add((SecondPassLayerExporter) exporter);
+                                    }
+                                }
                             } else {
                                 logger.debug("Skipping layer {} for stage CARVE while processing TunnelLayer floor dimension", layer.getName());
-                                return null;
                             }
+                        } else {
+                            throw new UnsupportedOperationException("Layer " + layer.getName() + " of type " + layer.getClass().getSimpleName() + " not yet supported for cave floor dimensions");
                         }
-                        throw new UnsupportedOperationException("Layer " + layer.getName() + " of type " + layer.getClass().getSimpleName() + " not yet supported for cave floor dimensions");
-                    })
-                    .filter(Objects::nonNull)
-                    .toArray(SecondPassLayerExporter[]::new);
-            for (SecondPassLayerExporter exporter: floorExporters) {
+                    });
+            final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(floorDimension, null, platform, maxHeight);
+            visitChunksForLayerInAreaForEditing(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) -> {
+                final Tile floorTile = floorDimension.getTile(tile.getX(), tile.getY());
+                whereTunnelIsRealisedDo(dimension, floorDimension, tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
+                    if (dimension.getBitLayerValueAt(Void.INSTANCE, x, y)) {
+                        // TODO apply void
+                    } else {
+                        chunkFactory.applyTopLayer(floorTile, chunk, xInTile, yInTile);
+                    }
+                    return true;
+                });
+                // TODO this will actually go outside the TunnelLayer boundaries:
+                if (! firstPassExporters.isEmpty()) {
+                    final Chunk chunk = chunkSupplier.get();
+                    for (FirstPassLayerExporter exporter: firstPassExporters) {
+                        exporter.render(floorTile, chunk);
+                    }
+                }
+                return true;
+            });
+            for (SecondPassLayerExporter exporter: secondPassExporters) {
                 final List<Fixup> layerFixups = exporter.carve(area, exportedArea, world);
                 if (layerFixups != null) {
                     fixups.addAll(layerFixups);
@@ -257,12 +289,10 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                             final SecondPassLayerExporter exporter = (SecondPassLayerExporter) layer.getExporter(floorDimension, platform, floorDimension.getLayerSettings(layer));
                             if (exporter.getStages().contains(ADD_FEATURES)) {
                                 return exporter;
-                            } else {
-                                logger.debug("Skipping layer {} for stage ADD_FEATURES while processing TunnelLayer floor dimension", layer.getName());
-                                return null;
                             }
                         }
-                        throw new UnsupportedOperationException("Layer " + layer.getName() + " of type " + layer.getClass().getSimpleName() + " not yet supported for cave floor dimensions");
+                        logger.debug("Skipping layer {} for stage ADD_FEATURES while processing TunnelLayer floor dimension", layer.getName());
+                        return null;
                     })
                     .filter(Objects::nonNull)
                     .toArray(SecondPassLayerExporter[]::new);
