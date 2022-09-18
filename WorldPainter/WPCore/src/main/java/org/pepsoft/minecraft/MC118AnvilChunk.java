@@ -421,20 +421,18 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
             section = new Section((byte) level);
             section.singleBiome = biome;
             sections[level + UNDERGROUND_SECTIONS] = section;
-        }
-        if (section.singleBiome != null) {
+        } else if (section.singleBiome != null) {
             if (biome != section.singleBiome) {
                 section.biomes = new PackedArrayCube<>(4, 1, String.class);
                 section.biomes.fill(section.singleBiome);
                 section.biomes.setValue(x, z, y & 0x3, biome);
                 section.singleBiome = null;
-            } else {
-                return;
             }
         } else if (section.biomes == null) {
-            section.biomes = new PackedArrayCube<>(4, 1, String.class);
+            section.singleBiome = biome;
+        } else {
+            section.biomes.setValue(x, z, y & 0x3, biome);
         }
-        section.biomes.setValue(x, z, y & 0x3, biome);
     }
 
     @Override

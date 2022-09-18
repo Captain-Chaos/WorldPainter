@@ -322,7 +322,7 @@ public final class XDG {
                 }
             }
         } catch (IOException e) {
-            throw new MDCCapturingRuntimeException("I/O error reading " + script);
+            throw new MDCCapturingRuntimeException("I/O error reading " + script, e);
         }
     }
 

@@ -216,7 +216,7 @@ public class ScriptRunner extends WorldPainterDialog {
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("I/O error reading script " + script);
+            throw new RuntimeException("I/O error reading script " + script, e);
         }
         if (properties.isEmpty()) {
             return null;

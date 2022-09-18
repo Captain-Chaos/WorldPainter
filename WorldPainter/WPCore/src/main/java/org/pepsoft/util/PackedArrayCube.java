@@ -42,21 +42,21 @@ public class PackedArrayCube<T> {
             // Optimised special case
             for (int w = 0; w < arraySize; w += 16) {
                 final long arrayValue = data[w >> 4];
-                values[w] = palette[(int) (arrayValue & 0xf)];
-                values[w + 1] = palette[(int) ((arrayValue & 0xf0) >> 4)];
-                values[w + 2] = palette[(int) ((arrayValue & 0xf00) >> 8)];
-                values[w + 3] = palette[(int) ((arrayValue & 0xf000) >> 12)];
-                values[w + 4] = palette[(int) ((arrayValue & 0xf0000) >> 16)];
-                values[w + 5] = palette[(int) ((arrayValue & 0xf00000) >> 20)];
-                values[w + 6] = palette[(int) ((arrayValue & 0xf000000) >> 24)];
-                values[w + 7] = palette[(int) ((arrayValue & 0xf0000000L) >> 28)];
-                values[w + 8] = palette[(int) ((arrayValue & 0xf00000000L) >> 32)];
-                values[w + 9] = palette[(int) ((arrayValue & 0xf000000000L) >> 36)];
-                values[w + 10] = palette[(int) ((arrayValue & 0xf0000000000L) >> 40)];
-                values[w + 11] = palette[(int) ((arrayValue & 0xf00000000000L) >> 44)];
-                values[w + 12] = palette[(int) ((arrayValue & 0xf000000000000L) >> 48)];
-                values[w + 13] = palette[(int) ((arrayValue & 0xf0000000000000L) >> 52)];
-                values[w + 14] = palette[(int) ((arrayValue & 0xf00000000000000L) >> 56)];
+                values[w]      = palette[(int) (arrayValue  & 0x000000000000000fL)];
+                values[w +  1] = palette[(int) ((arrayValue & 0x00000000000000f0L) >>   4)];
+                values[w +  2] = palette[(int) ((arrayValue & 0x0000000000000f00L) >>   8)];
+                values[w +  3] = palette[(int) ((arrayValue & 0x000000000000f000L) >>  12)];
+                values[w +  4] = palette[(int) ((arrayValue & 0x00000000000f0000L) >>  16)];
+                values[w +  5] = palette[(int) ((arrayValue & 0x0000000000f00000L) >>  20)];
+                values[w +  6] = palette[(int) ((arrayValue & 0x000000000f000000L) >>  24)];
+                values[w +  7] = palette[(int) ((arrayValue & 0x00000000f0000000L) >>  28)];
+                values[w +  8] = palette[(int) ((arrayValue & 0x0000000f00000000L) >>  32)];
+                values[w +  9] = palette[(int) ((arrayValue & 0x000000f000000000L) >>  36)];
+                values[w + 10] = palette[(int) ((arrayValue & 0x00000f0000000000L) >>  40)];
+                values[w + 11] = palette[(int) ((arrayValue & 0x0000f00000000000L) >>  44)];
+                values[w + 12] = palette[(int) ((arrayValue & 0x000f000000000000L) >>  48)];
+                values[w + 13] = palette[(int) ((arrayValue & 0x00f0000000000000L) >>  52)];
+                values[w + 14] = palette[(int) ((arrayValue & 0x0f00000000000000L) >>  56)];
                 values[w + 15] = palette[(int) ((arrayValue & 0xf000000000000000L) >>> 60)];
             }
         } else if (dataArrayLengthInBytes != expectedPackedDataArrayLengthInBytes) {

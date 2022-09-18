@@ -8,6 +8,7 @@ package org.pepsoft.worldpainter;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
+import java.nio.file.InvalidPathException;
 
 /**
  *
@@ -52,16 +53,20 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
         while (rootCause.getCause() != null) {
             rootCause = rootCause.getCause();
         }
-        if ((rootCause instanceof NullPointerException)
-                && (rootCause.getStackTrace() != null)
-                && (rootCause.getStackTrace().length > 0)) {
-            if ((rootCause.getStackTrace()[0].getClassName().equals("javax.swing.SwingUtilities")
-                        && rootCause.getStackTrace()[0].getMethodName().equals("getWindowAncestor"))
-                    || (rootCause.getStackTrace()[0].getClassName().equals("javax.swing.plaf.basic.BasicProgressBarUI")
-                        && rootCause.getStackTrace()[0].getMethodName().equals("sizeChanged"))) {
+        if ((rootCause.getStackTrace() != null) && (rootCause.getStackTrace().length > 0)) {
+            final StackTraceElement topOfStack = rootCause.getStackTrace()[0];
+            if (rootCause instanceof NullPointerException) {
                 // This happens now and again with no WP code on the stack. Probably a bug in Java and most likely not
                 // something we can do anything about, so ignore it
-                return true;
+                return (topOfStack.getClassName().equals("javax.swing.SwingUtilities")
+                            && topOfStack.getMethodName().equals("getWindowAncestor"))
+                        || (topOfStack.getClassName().equals("javax.swing.plaf.basic.BasicProgressBarUI")
+                            && topOfStack.getMethodName().equals("sizeChanged"));
+            } else if (rootCause instanceof InvalidPathException) {
+                // This seems to be a bug in Java that occurs when the user enters a space as the filename. Not
+                // something we can do anything about, so ignore it
+                return topOfStack.getClassName().equals("sun.nio.fs.WindowsPathParser")
+                        && topOfStack.getMethodName().equals("normalize");
             }
         }
         return false;

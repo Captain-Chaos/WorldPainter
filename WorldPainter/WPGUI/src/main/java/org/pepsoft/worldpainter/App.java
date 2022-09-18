@@ -2133,14 +2133,22 @@ public final class App extends JFrame implements RadiusControl,
             }
             final File normalisedFile = new File(file.getParentFile(), name);
 
-            // Make sure the world name is always the same as the file name, to
-            // avoid confusion (unless the only difference is illegal filename
-            // characters changed into underscores
-            int p = name.lastIndexOf('.');
+            // Fail early if the temp save file already exists
+            final File tempFile = new File (normalisedFile.getParentFile(), normalisedFile.getName() + ".tmp");
+            if (tempFile.exists()) {
+                logger.error("Temporary save file {} already exists", tempFile);
+                DesktopUtils.beep();
+                JOptionPane.showMessageDialog(this, "A previous save attempt has failed\nand left temporary save file " + tempFile.getName() + " behind.\nPlease remove or rename that file and try again.", "Temporary Save File Exists", ERROR_MESSAGE);
+                return false;
+            }
+
+            // Make sure the world name is always the same as the file name, to avoid confusion (unless the only
+            // difference is illegal filename characters changed into underscores
+            final int p = name.lastIndexOf('.');
             if (p != -1) {
                 name = name.substring(0, p).trim();
             }
-            String worldName = world.getName();
+            final String worldName = world.getName();
             if (worldName.length() != name.length()) {
                 world.setName(name);
                 setTitle("WorldPainter - " + name + " - " + dimension.getName()); // NOI18N
@@ -2160,11 +2168,10 @@ public final class App extends JFrame implements RadiusControl,
 
             saveCustomBiomes();
 
-            // Remove the existing custom object layers and save the list of
-            // custom layers to the dimension to preserve layers which aren't
-            // currently in use
-            if (!paletteManager.isEmpty()) {
-                List<CustomLayer> customLayers = new ArrayList<>();
+            // Remove the existing custom object layers and save the list of custom layers to the dimension to preserve
+            // layers which aren't currently in use
+            if (! paletteManager.isEmpty()) {
+                final List<CustomLayer> customLayers = new ArrayList<>();
                 for (Palette palette : paletteManager.getPalettes()) {
                     customLayers.addAll(palette.getLayers());
                 }
@@ -2174,13 +2181,13 @@ public final class App extends JFrame implements RadiusControl,
             }
 
             if (dimension != null) {
-                Point viewPosition = view.getViewCentreInWorldCoords();
+                final Point viewPosition = view.getViewCentreInWorldCoords();
                 if (viewPosition != null) {
                     this.dimension.setLastViewPosition(viewPosition);
                 }
             }
 
-            Configuration config = Configuration.getInstance();
+            final Configuration config = Configuration.getInstance();
             ProgressDialog.executeTask(this, new ProgressTask<java.lang.Void>() {
                 @Override
                 public String getName() {
@@ -2189,14 +2196,13 @@ public final class App extends JFrame implements RadiusControl,
 
                 @Override
                 public java.lang.Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                    File tempFile = new File (normalisedFile.getParentFile(), normalisedFile.getName() + ".tmp");
                     if (tempFile.exists()) {
                         throw new RuntimeException("Temporary file " + tempFile.getName() + " already exists; delete it and try again");
                     }
                     try {
                         // Save the world to a temporary file first, to ensure that there is enough space
                         world.addHistoryEntry(HistoryEntry.WORLD_SAVED, normalisedFile);
-                        WorldIO worldIO = new WorldIO(world);
+                        final WorldIO worldIO = new WorldIO(world);
                         worldIO.save(new FileOutputStream(tempFile));
 
                         // If that succeeded, move the existing file out of the way by rotating (if enabled) or deleting
@@ -2205,9 +2211,9 @@ public final class App extends JFrame implements RadiusControl,
                             if (config.getWorldFileBackups() > 0) {
                                 progressReceiver.setMessage(strings.getString("creating.backup.s"));
                                 for (int i = config.getWorldFileBackups(); i > 0; i--) {
-                                    File nextBackupFile = (i > 1) ? BackupUtils.getBackupFile(normalisedFile, i - 1) : normalisedFile;
+                                    final File nextBackupFile = (i > 1) ? BackupUtils.getBackupFile(normalisedFile, i - 1) : normalisedFile;
                                     if (nextBackupFile.isFile()) {
-                                        File backupFile = BackupUtils.getBackupFile(normalisedFile, i);
+                                        final File backupFile = BackupUtils.getBackupFile(normalisedFile, i);
                                         if (backupFile.isFile()) {
                                             if (! backupFile.delete()) {
                                                 throw new RuntimeException("Could not delete old backup file " + backupFile.getName());
@@ -2244,7 +2250,7 @@ public final class App extends JFrame implements RadiusControl,
             }, NOT_CANCELABLE);
 
             // Log an event
-            EventVO event = new EventVO(EVENT_KEY_ACTION_SAVE_WORLD).addTimestamp();
+            final EventVO event = new EventVO(EVENT_KEY_ACTION_SAVE_WORLD).addTimestamp();
             event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
             Dimension loadedDimension = world.getDimension(NORMAL_DETAIL);
             event.setAttribute(ATTRIBUTE_KEY_TILES, loadedDimension.getTileCount());

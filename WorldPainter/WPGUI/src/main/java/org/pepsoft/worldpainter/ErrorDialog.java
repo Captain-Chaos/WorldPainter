@@ -26,6 +26,7 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -57,7 +58,7 @@ public class ErrorDialog extends javax.swing.JDialog {
 
     @SuppressWarnings("StringConcatenationInsideStringBufferAppend") // Readability
     public void setException(Throwable exception) {
-        UUID uuid = UUID.randomUUID();
+        final UUID uuid = UUID.randomUUID();
         logger.error("[" + uuid + "] " + exception.getClass().getSimpleName() + ": " + exception.getMessage(), exception);
 
         event = new EventVO(EVENT_KEY_EXCEPTION);
@@ -65,13 +66,21 @@ public class ErrorDialog extends javax.swing.JDialog {
         event.setAttribute(ATTRIBUTE_KEY_EXCEPTION, new ExceptionVO(exception));
         event.setAttribute(ATTRIBUTE_KEY_UUID, uuid.toString());
 
+        final Set<Class<? extends Throwable>> exceptionTypes = new HashSet<>();
+        exceptionTypes.add(exception.getClass());
         Throwable rootCause = exception;
+        String ioExceptionMessage = (exception instanceof IOException) ? exception.getMessage() : null;
         while (rootCause.getCause() != null) {
             rootCause = rootCause.getCause();
+            exceptionTypes.add(rootCause.getClass());
+            if (rootCause instanceof IOException) {
+                ioExceptionMessage = rootCause.getMessage();
+            }
         }
+        final boolean ioException = ioExceptionMessage != null;
 
-        Configuration config = Configuration.getInstance();
-        if (rootCause instanceof OutOfMemoryError) {
+        final Configuration config = Configuration.getInstance();
+        if (exceptionTypes.contains(OutOfMemoryError.class)) {
             setTitle("Out of Memory");
             jTextArea1.setText("Not enough memory available for that operation!\n\n"
                 + "WorldPainter is already using the recommended maximum\n"
@@ -82,20 +91,24 @@ public class ErrorDialog extends javax.swing.JDialog {
             jButton1.setToolTipText("Not necessary to send details of out of memory errors");
             jButton3.setEnabled(false);
         } else {
-            String message = rootCause.getMessage();
+            String message = (ioExceptionMessage != null) ? ioExceptionMessage : rootCause.getMessage();
             if ((message != null) && (message.length() > 250)) {
                 message = message.substring(0, 247) + "...";
             }
-            String requestedActionLine;
+            final String requestedActionLine;
             if (Main.privateContext != null) {
                 // We can submit the error
-                if ((config != null) && TRUE.equals(config.getPingAllowed())) {
+                if ((config != null) && TRUE.equals(config.getPingAllowed()) && (! ioException)) {
                     // Automatic submission is allowed; submit it automatically
                     mode = Mode.SEND_AUTOMATICALLY;
-                    requestedActionLine = "The details of this error are being automatically submitted to the creator of this program.\n\n";
+                    requestedActionLine = "The details of this error are being automatically submitted to the creator of this program.";
                 } else {
                     mode = Mode.SEND_MANUALLY;
-                    requestedActionLine = "Please help debug the problem by using the Send Report button below to send the details of this error to the creator of this program.\n\n";
+                    if (ioException) {
+                        requestedActionLine = "If you think this is a bug then please use the Send Report button below to send the details of this error to the creator of this program.";
+                    } else {
+                        requestedActionLine = "Please help debug the problem by using the Send Report button below to send the details of this error to the creator of this program.";
+                    }
                 }
             } else {
                 jButton1.setText("Email Details...");
@@ -105,13 +118,24 @@ public class ErrorDialog extends javax.swing.JDialog {
                     jButton1.setEnabled(true);
                 }
                 mode = Mode.REPORTING_DISABLED;
-                requestedActionLine = "Please help debug the problem by using the button below to email the details of this error to the creator of this program.\n\n";
+                if (ioException) {
+                    requestedActionLine = "If you think this is a bug then please use the button below to email the details of this error to the creator of this program.";
+                } else {
+                    requestedActionLine = "Please help debug the problem by using the button below to email the details of this error to the creator of this program.";
+                }
             }
-            String text = "An unexpected error has occurred.\n\n"
-                + "Type: " + rootCause.getClass().getName() + "\n"
-                + "Message: " + message + "\n\n"
-                + requestedActionLine
-                + "The program may now be in an unstable state. It is recommended to restart it as soon as possible.";
+            final String text;
+            if (ioException) {
+                text = "A read or write error has occurred.\n\n"
+                    + "Message: " + message + "\n\n"
+                    + requestedActionLine;
+            } else {
+                text = "An unexpected error has occurred.\n\n"
+                    + "Type: " + rootCause.getClass().getName() + "\n"
+                    + "Message: " + message + "\n\n"
+                    + requestedActionLine + "\n\n"
+                    + "The program may now be in an unstable state. It is recommended to restart it as soon as possible.";
+            }
             jTextArea1.setText(text);
         }
         pack();
