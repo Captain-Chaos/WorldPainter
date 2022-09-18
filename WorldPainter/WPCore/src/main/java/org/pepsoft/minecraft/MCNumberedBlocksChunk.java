@@ -33,7 +33,11 @@ public abstract class MCNumberedBlocksChunk extends NBTChunk {
                     // The block at the specified location is not a tile entity, or a different tile entity. Remove the
                     // data
                     i.remove();
-                    logger.warn("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because the block at that location is a " + BLOCK_TYPE_NAMES[existingBlockId]);
+                    if (existingBlockId < BLOCK_TYPE_NAMES.length) {
+                        logger.warn("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because the block at that location is a " + BLOCK_TYPE_NAMES[existingBlockId]);
+                    } else {
+                        logger.warn("Removing tile entity " + tileEntity.getId() + " @ " + tileEntity.getX() + "," + tileEntity.getZ() + "," + tileEntity.getY() + " because the block at that location has ID " + existingBlockId);
+                    }
                 }
             }
         }
