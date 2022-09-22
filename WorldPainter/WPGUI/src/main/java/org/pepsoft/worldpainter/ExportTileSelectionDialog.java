@@ -20,9 +20,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
@@ -38,12 +38,8 @@ public class ExportTileSelectionDialog extends WorldPainterDialog implements Win
         this.world = world;
         initComponents();
         
-        List<Integer> dimensions = new ArrayList<>();
+        SortedSet<Integer> dimensions = new TreeSet<>();
         for (Dimension dimension: world.getDimensions()) {
-            if (dimension.getAnchor().invert) {
-                // Ceiling dimensions shouldn't be separately selectable
-                continue;
-            }
             dimensions.add(dimension.getAnchor().dim);
         }
         jComboBox1.setModel(new DefaultComboBoxModel(dimensions.toArray()));
