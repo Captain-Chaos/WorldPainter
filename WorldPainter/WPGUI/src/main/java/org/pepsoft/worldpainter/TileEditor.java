@@ -253,7 +253,7 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
 
         jTextPane1.setEditable(false);
         jTextPane1.setContentType("text/html"); // NOI18N
-        jTextPane1.setText("WorldPainter works in tiles of 128 by 128 blocks. On this screen you can add, expand or remove tiles.<br><br>Select tiles to the right using the left mouse button, move the map with the middle or right buttons, then select an action below:<br><br><b>Note:</b> this will remove all undo information!");
+        jTextPane1.setText("WorldPainter works in tiles of 128 by 128 blocks.\nOn this screen you can add, expand or remove tiles.<br>\n<br>\nSelect tiles to the right using the left mouse button,\nmove the map with the middle or right buttons,\nthen select an action below:<br>\n<br>\nDrag to select tiles; hold Ctrl and drag to deselect tiles.<br>\n<br>\n<b>Note:</b> this will remove all undo information!");
         jTextPane1.setOpaque(false);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
