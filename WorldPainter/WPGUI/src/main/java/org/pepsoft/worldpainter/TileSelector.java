@@ -86,17 +86,20 @@ public class TileSelector extends javax.swing.JPanel {
                 if (e.getButton() != MouseEvent.BUTTON1) {
                     return;
                 }
+                final boolean deselect = e.isControlDown() || e.isMetaDown();
                 if ((selectionCorner1 != null) && (selectionCorner2 != null)) {
-                    int tileX1 = Math.min(selectionCorner1.x, selectionCorner2.x);
-                    int tileX2 = Math.max(selectionCorner1.x, selectionCorner2.x);
-                    int tileY1 = Math.min(selectionCorner1.y, selectionCorner2.y);
-                    int tileY2 = Math.max(selectionCorner1.y, selectionCorner2.y);
+                    final int tileX1 = Math.min(selectionCorner1.x, selectionCorner2.x);
+                    final int tileX2 = Math.max(selectionCorner1.x, selectionCorner2.x);
+                    final int tileY1 = Math.min(selectionCorner1.y, selectionCorner2.y);
+                    final int tileY2 = Math.max(selectionCorner1.y, selectionCorner2.y);
                     for (int x = tileX1; x <= tileX2; x++) {
                         for (int y = tileY1; y <= tileY2; y++) {
-                            Point tileLocation = new Point(x, y);
-                            if (viewer.isSelectedTile(tileLocation)) {
+                            final Point tileLocation = new Point(x, y);
+                            if (deselect && viewer.isSelectedTile(tileLocation)) {
                                 viewer.removeSelectedTile(tileLocation);
-                            } else if (allowNonExistentTileSelection || ((dimension != null) && dimension.isTilePresent(tileLocation.x, tileLocation.y))) {
+                            } else if ((! deselect)
+                                    && (allowNonExistentTileSelection || ((dimension != null) && dimension.isTilePresent(tileLocation.x, tileLocation.y)))
+                                    && (! viewer.isSelectedTile(tileLocation))) {
                                 viewer.addSelectedTile(tileLocation);
                             }
                         }

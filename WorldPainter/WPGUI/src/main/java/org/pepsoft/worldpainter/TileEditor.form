@@ -101,7 +101,7 @@
       <Properties>
         <Property name="editable" type="boolean" value="false"/>
         <Property name="contentType" type="java.lang.String" value="text/html" noResource="true"/>
-        <Property name="text" type="java.lang.String" value="WorldPainter works in tiles of 128 by 128 blocks. On this screen you can add, expand or remove tiles.&lt;br&gt;&lt;br&gt;Select tiles to the right using the left mouse button, move the map with the middle or right buttons, then select an action below:&lt;br&gt;&lt;br&gt;&lt;b&gt;Note:&lt;/b&gt; this will remove all undo information!"/>
+        <Property name="text" type="java.lang.String" value="WorldPainter works in tiles of 128 by 128 blocks.&#xa;On this screen you can add, expand or remove tiles.&lt;br&gt;&#xa;&lt;br&gt;&#xa;Select tiles to the right using the left mouse button,&#xa;move the map with the middle or right buttons,&#xa;then select an action below:&lt;br&gt;&#xa;&lt;br&gt;&#xa;Drag to select tiles; hold Ctrl and drag to deselect tiles.&lt;br&gt;&#xa;&lt;br&gt;&#xa;&lt;b&gt;Note:&lt;/b&gt; this will remove all undo information!"/>
         <Property name="opaque" type="boolean" value="false"/>
       </Properties>
     </Component>
