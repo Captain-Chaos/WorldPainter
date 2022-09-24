@@ -1,6 +1,8 @@
--- Version 2.14.4, released ...
+-- Version 2.14.4, released 24-9-2022
 
+ * When selecting tiles (for adding/removing, or for Exporting), dragging will now select all the tiles (rather than invert the selection). To deselect tiles, hold Ctrl or Command while dragging
  * Some improvements in error handling
+ * Bug fix: scale About screen properly on high-res monitors
  * Various bug fixes
 
 -- Version 2.14.3, released 17-9-2022
