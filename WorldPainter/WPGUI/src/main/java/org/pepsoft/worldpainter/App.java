@@ -7327,7 +7327,6 @@ public final class App extends JFrame implements RadiusControl,
     private static final String HELP_ROOT_URL = "https://www.worldpainter.net/help/";
 
     private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
-    private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
 
     private static final String IMPORT_WARNING_KEY = "org.pepsoft.worldpainter.importWarning";
 

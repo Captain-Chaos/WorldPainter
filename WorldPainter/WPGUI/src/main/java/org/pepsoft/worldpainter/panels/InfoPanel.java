@@ -28,6 +28,7 @@ import java.text.NumberFormat;
 import java.util.List;
 import java.util.*;
 
+import static org.pepsoft.worldpainter.App.NUMBER_FORMAT;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 
@@ -468,7 +469,6 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
     private static final Set<Layer> HIDDEN_LAYERS = new HashSet<>(Arrays.asList(Biome.INSTANCE, SelectionChunk.INSTANCE,
             SelectionBlock.INSTANCE, FloodWithLava.INSTANCE, NotPresent.INSTANCE));
     private static final Icon ICON_BLANK = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/transparent.png");
-    private static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
     private static final Logger logger = LoggerFactory.getLogger(InfoPanel.class);
 
     static class LayerTableModel implements TableModel {
