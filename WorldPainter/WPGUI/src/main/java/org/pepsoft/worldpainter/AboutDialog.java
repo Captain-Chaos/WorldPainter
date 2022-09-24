@@ -38,6 +38,7 @@ import java.util.ResourceBundle;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
+import static org.pepsoft.util.GUIUtils.scaleWindow;
 
 /**
  *
@@ -69,6 +70,7 @@ public class AboutDialog extends javax.swing.JDialog implements WindowListener {
 
         scaleToUI(this);
         jLabel1.setIcon(new ImageIcon(scaleToUI(((ImageIcon) jLabel1.getIcon()).getImage(), true)));
+        scaleWindow(this);
         setLocationRelativeTo(parent);
         addWindowListener(this);
     }

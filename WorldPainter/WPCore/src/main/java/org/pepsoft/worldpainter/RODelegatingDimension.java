@@ -600,7 +600,7 @@ public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
      */
     @Override
     public synchronized T getTile(Point coords) {
-        // In theory this is not correct, since the dimension might have gained or lost tiles in the mean time. However
+        // In theory this is not correct, since the dimension might have gained or lost tiles in the meantime. However,
         // the expected usage pattern of the functionality is such that that should not happen in practice, and creating
         // tile snapshots of all tiles when the dimension snapshot is created would be a performance hit
         final Reference<T> cachedTileRef = tileCache.get(coords);

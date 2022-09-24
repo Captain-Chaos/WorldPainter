@@ -127,10 +127,9 @@ public class AwtUtils {
     }
 
     /**
-     * Schedule a task for later execution on the even dispatch thread and
-     * return immediately. The task <em>may</em> be executed on a different
-     * thread, so it must be thread-safe. Since it will block the event thread
-     * it should be short and to the point.
+     * Schedule a task for later execution on the event dispatch thread and return immediately. The task <em>may</em> be
+     * executed on a different thread, so it must be thread-safe. Since it will block the event thread it should be
+     * short and to the point.
      *
      * @param task The task to execute.
      */
@@ -139,18 +138,15 @@ public class AwtUtils {
     }
 
     /**
-     * Schedule a task for later execution on the even dispatch thread and
-     * return immediately. The task <em>may</em> be executed on a different
-     * thread, so it must be thread-safe. Since it will block the event thread
-     * it should be short and to the point.
+     * Schedule a task for later execution on the event dispatch thread and return immediately. The task <em>may</em> be
+     * executed on a different thread, so it must be thread-safe. Since it will block the event thread it should be
+     * short and to the point.
      *
-     * <p>If a task with the same key is already scheduled and has not yet
-     * executed that will be superseded.
+     * <p>If a task with the same key is already scheduled and has not yet executed that will be superseded.
      *
-     * @param key The unique key of the task. Scheduling a task will supersede
-     *            a task with the same key that is already scheduled.
-     * @param delay The minimum number of milliseconds after which the task
-     *              should be executed.
+     * @param key The unique key of the task. Scheduling a task will supersede a task with the same key that is already
+     *            scheduled.
+     * @param delay The minimum number of milliseconds after which the task should be executed.
      * @param task The task to execute.
      */
     public static void doLaterOnEventThread(String key, int delay, Runnable task) {
