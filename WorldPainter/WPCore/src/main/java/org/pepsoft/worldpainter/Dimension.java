@@ -51,6 +51,7 @@ import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.Dimension.Anchor.*;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
+import static org.pepsoft.worldpainter.Dimension.Role.MASTER;
 import static org.pepsoft.worldpainter.Dimension.WallType.BEDROCK;
 import static org.pepsoft.worldpainter.Generator.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.*;
@@ -2529,6 +2530,11 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
          * Convenience constant for the default dimension (surface detail dimension, not inverted, layer zero).
          */
         public static final Anchor NORMAL_DETAIL = new Anchor(DIM_NORMAL, DETAIL, false, 0);
+
+        /**
+         * Convenience constant for the default Master dimension (surface master dimension, not inverted, layer zero).
+         */
+        public static final Anchor NORMAL_MASTER = new Anchor(DIM_NORMAL, MASTER, false, 0);
 
         /**
          * Convenience constant for the default Nether dimension (Nether detail dimension, not inverted, layer zero).

@@ -1244,8 +1244,10 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         for (TileProvider tileProvider: tileProviders.values()) {
             final Integer tileProviderZoom = this.tileProviderZoom.getOrDefault(tileProvider, 0);
             final int effectiveZoom = (tileProvider.isZoomSupported() && ((zoom + tileProviderZoom) < 0)) ? 0 : (zoom + tileProviderZoom);
-            logger.debug("Provider {}: zoomSupported: {}, this.zoom: {}, tileProviderZoom: {}, effectiveZoom: {}, tileProvider.getZoom(): {}",
-                    tileProvider, tileProvider.isZoomSupported(), zoom, tileProviderZoom, effectiveZoom, tileProvider.getZoom());
+            if (logger.isTraceEnabled()) {
+                logger.trace("Provider {}: zoomSupported: {}, this.zoom: {}, tileProviderZoom: {}, effectiveZoom: {}, tileProvider.getZoom(): {}",
+                        tileProvider, tileProvider.isZoomSupported(), zoom, tileProviderZoom, effectiveZoom, tileProvider.getZoom());
+            }
             final Point topLeftTileCoords = viewToWorld(tileProvider, clipBounds.getLocation(), effectiveZoom);
             final int leftTile = topLeftTileCoords.x >> TILE_SIZE_BITS;
             final int topTile = topLeftTileCoords.y >> TILE_SIZE_BITS;

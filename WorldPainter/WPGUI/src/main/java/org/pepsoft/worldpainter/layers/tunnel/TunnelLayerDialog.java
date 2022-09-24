@@ -50,27 +50,28 @@ import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
  */
 @SuppressWarnings({"unused", "FieldCanBeLocal"}) // Managed by NetBeans
 public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> implements ChangeListener, ListSelectionListener {
-    public TunnelLayerDialog(Window parent, Platform platform, TunnelLayer layer, boolean extendedBlockIds, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int minHeight, int maxHeight, int baseHeight, int waterLevel) {
+    public TunnelLayerDialog(Window parent, Platform platform, TunnelLayer layer, Dimension dimension, boolean extendedBlockIds, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int minHeight, int maxHeight, int baseHeight, int waterLevel) {
         super(parent);
         this.platform = platform;
         this.layer = layer;
+        this.dimension = dimension;
         this.baseHeight = baseHeight;
         this.waterLevel = waterLevel;
         this.minHeight = minHeight;
         this.maxHeight = maxHeight;
         
         initComponents();
-        tableFloorLayers.getSelectionModel().addListSelectionListener(this);
-        tableRoofLayers.getSelectionModel().addListSelectionListener(this);
-        mixedMaterialSelectorFloor.setExtendedBlockIds(extendedBlockIds);
-        mixedMaterialSelectorFloor.setColourScheme(colourScheme);
-        mixedMaterialSelectorRoof.setExtendedBlockIds(extendedBlockIds);
-        mixedMaterialSelectorRoof.setColourScheme(colourScheme);
-        mixedMaterialSelectorWall.setExtendedBlockIds(extendedBlockIds);
-        mixedMaterialSelectorWall.setColourScheme(colourScheme);
-        labelPreview.setPreferredSize(new java.awt.Dimension(128, 0));
         programmaticChange = true;
         try {
+            tableFloorLayers.getSelectionModel().addListSelectionListener(this);
+            tableRoofLayers.getSelectionModel().addListSelectionListener(this);
+            mixedMaterialSelectorFloor.setExtendedBlockIds(extendedBlockIds);
+            mixedMaterialSelectorFloor.setColourScheme(colourScheme);
+            mixedMaterialSelectorRoof.setExtendedBlockIds(extendedBlockIds);
+            mixedMaterialSelectorRoof.setColourScheme(colourScheme);
+            mixedMaterialSelectorWall.setExtendedBlockIds(extendedBlockIds);
+            mixedMaterialSelectorWall.setColourScheme(colourScheme);
+            labelPreview.setPreferredSize(new java.awt.Dimension(128, 0));
             ((SpinnerNumberModel) spinnerFloorLevel.getModel()).setMinimum(minHeight);
             ((SpinnerNumberModel) spinnerFloorLevel.getModel()).setMaximum(maxHeight - 1);
             ((SpinnerNumberModel) spinnerRoofLevel.getModel()).setMinimum(minHeight);
@@ -85,15 +86,16 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             ((SpinnerNumberModel) spinnerRoofMax.getModel()).setMaximum(maxHeight - 1);
             ((SpinnerNumberModel) spinnerFloodLevel.getModel()).setMinimum(minHeight);
             ((SpinnerNumberModel) spinnerFloodLevel.getModel()).setMaximum(maxHeight - 1);
+            comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager, "None", platform));
+            if (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) {
+                comboBoxBiome.setModel(new DefaultComboBoxModel<>(listOf(singletonList(null), getAllBiomes(platform, customBiomeManager)).toArray(new Integer[0])));
+            } else {
+                comboBoxBiome.setModel(new DefaultComboBoxModel<>(new Integer[] {null}));
+                comboBoxBiome.setEnabled(false);
+            }
+            radioButtonFloorCustomDimension.setEnabled(dimension.getAnchor().role == DETAIL);
         } finally {
             programmaticChange = false;
-        }
-        comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager, "None", platform));
-        if (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) {
-            comboBoxBiome.setModel(new DefaultComboBoxModel<>(listOf(singletonList(null), getAllBiomes(platform, customBiomeManager)).toArray(new Integer[0])));
-        } else {
-            comboBoxBiome.setModel(new DefaultComboBoxModel<>(new Integer[] {null}));
-            comboBoxBiome.setEnabled(false);
         }
         
         loadSettings();
@@ -558,31 +560,27 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         ok();
         // Let the caller add the layer to the right dimension first, then:
         SwingUtilities.invokeLater(() -> {
-            final Dimension floorDimension = getUpdatedFloorDimension();
             final App app = App.getInstance();
-            app.setDimension(floorDimension);
+            app.setDimension(dimension.getWorld().getDimension(new Anchor(dimension.getAnchor().dim, CAVE_FLOOR, false, layer.getFloorDimensionId())));
             JOptionPane.showMessageDialog(app, "Press Esc to finish editing the Custom Cave/Tunnel layer floor dimension.", "Editing Cave/Tunnel Floor", JOptionPane.INFORMATION_MESSAGE);
         });
     }
 
     private Dimension getUpdatedFloorDimension() {
-        final App app = App.getInstance();
-        final Dimension currentDimension = app.getDimension();
-        final int dim = currentDimension.getAnchor().dim;
-        final boolean invert = currentDimension.getAnchor().invert;
-        final World2 world = app.getWorld();
-        final Dimension correspondingDetailDimension = world.getDimension(new Anchor(dim, DETAIL, invert, 0));
+        final int dim = dimension.getAnchor().dim;
+        final boolean invert = dimension.getAnchor().invert;
+        final World2 world = dimension.getWorld();
         final Dimension floorDimension;
         if (layer.getFloorDimensionId() != null) {
             floorDimension = world.getDimension(new Anchor(dim, CAVE_FLOOR, false, layer.getFloorDimensionId()));
         } else {
-            final long seed = correspondingDetailDimension.getSeed() + 10;
-            final TileFactory tileFactory = new HeightMapTileFactory(seed, new ConstantHeightMap((int) spinnerFloorLevel.getValue()), world.getPlatform().minZ, world.getMaxHeight(), checkBoxFloodWithLava.isSelected(), SimpleTheme.createSingleTerrain(correspondingDetailDimension.getSubsurfaceMaterial(), correspondingDetailDimension.getMinHeight(), correspondingDetailDimension.getMaxHeight(), (int) spinnerFloodLevel.getValue()));
+            final long seed = dimension.getSeed() + 10;
+            final TileFactory tileFactory = new HeightMapTileFactory(seed, new ConstantHeightMap((int) spinnerFloorLevel.getValue()), world.getPlatform().minZ, world.getMaxHeight(), checkBoxFloodWithLava.isSelected(), SimpleTheme.createSingleTerrain(dimension.getSubsurfaceMaterial(), dimension.getMinHeight(), dimension.getMaxHeight(), (int) spinnerFloodLevel.getValue()));
             final int id = findNextId(world, dim, CAVE_FLOOR, invert);
             floorDimension = new Dimension(world, null, seed, tileFactory, new Anchor(dim, CAVE_FLOOR, invert, id));
             world.addDimension(floorDimension);
         }
-        updateFloorDimension(correspondingDetailDimension, floorDimension);
+        updateFloorDimension(dimension, floorDimension);
         return floorDimension;
     }
 
@@ -1631,6 +1629,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
 
     private final Platform platform;
     private final TunnelLayer layer;
+    private final Dimension dimension;
     private final int waterLevel, baseHeight, minHeight, maxHeight;
     private TunnelLayersTableModel floorLayersTableModel, roofLayersTableModel;
     private boolean programmaticChange;

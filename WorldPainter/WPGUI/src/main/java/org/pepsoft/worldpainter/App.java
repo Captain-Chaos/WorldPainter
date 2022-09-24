@@ -110,6 +110,7 @@ import static java.util.stream.Collectors.toSet;
 import static javax.swing.JOptionPane.*;
 import static javax.swing.KeyStroke.getKeyStroke;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.util.GUIUtils.getUIScale;
 import static org.pepsoft.util.GUIUtils.getUIScaleInt;
@@ -359,7 +360,13 @@ public final class App extends JFrame implements RadiusControl,
                 dockingManager.loadLayoutFrom(new ByteArrayInputStream(config.getJideLayoutData().get(world.getName())));
             }
 
-            setDimension(world.getDimension(NORMAL_DETAIL));
+            final Dimension surfaceDimension = world.getDimension(NORMAL_DETAIL);
+            final Dimension masterDimension = world.getDimension(NORMAL_MASTER);
+            if ((masterDimension != null) && (surfaceDimension.getTileCount() == 0)) {
+                setDimension(masterDimension);
+            } else {
+                setDimension(surfaceDimension);
+            }
 
             if (config.isDefaultViewDistanceEnabled() != view.isDrawViewDistance()) {
                 ACTION_VIEW_DISTANCE.actionPerformed(null);
@@ -589,6 +596,10 @@ public final class App extends JFrame implements RadiusControl,
 
             updateZoomLabel();
             updateRadiusLabel();
+
+            if (dimension.getTileCount() == 0) {
+                doLaterOnEventThread(this::addRemoveTiles);
+            }
         } else {
             view.setDimension(null);
             view.setBackgroundDimension(null, -1, null);
@@ -1986,6 +1997,19 @@ public final class App extends JFrame implements RadiusControl,
             setWorld(newWorld, true);
             lastSelectedFile = null;
             disableImportedWorldOperation();
+
+            if ((newWorld.getDimension(NORMAL_MASTER) != null) && (newWorld.getDimension(NORMAL_DETAIL).getTileCount() == 0)) {
+                doLaterOnEventThread(() -> {
+                    final String commandKeyName = PLATFORM_COMMAND_MASK == META_DOWN_MASK ? "⌘" : "Ctrl";
+                    JOptionPane.showMessageDialog(this,
+                            "You are now editing the Master Dimension. This will be exported\n" +
+                                    "at sixteen times the horizontal size.\n" +
+                                    "\n" +
+                                    "To add details at 1:1 scale, switch to the Surface Dimension by\n" +
+                                    "pressing " + commandKeyName + "+M or using the View menu and then add tiles by\n" +
+                                    "pressing " + commandKeyName + "+T or using the Edit menu.", "Editing Master Dimension", INFORMATION_MESSAGE);
+                });
+            }
         }
     }
 
@@ -3271,7 +3295,9 @@ public final class App extends JFrame implements RadiusControl,
                 baseHeight = 58;
                 waterLevel = DEFAULT_WATER_LEVEL;
             }
-            TunnelLayerDialog dialog = new TunnelLayerDialog(App.this, world.getPlatform(), layer, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
+            // TODO passing in dimension here is a crude mechanism. It is supposed to be the dimension on which this
+            //  layer will be used, but that is impossible to enforce. In practice this will usually be right though
+            TunnelLayerDialog dialog = new TunnelLayerDialog(App.this, world.getPlatform(), layer, dimension, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 if (paletteName != null) {
@@ -3939,7 +3965,10 @@ public final class App extends JFrame implements RadiusControl,
                         baseHeight = 58;
                         waterLevel = DEFAULT_WATER_LEVEL;
                     }
-                    dialog = (AbstractEditLayerDialog<L>) new TunnelLayerDialog(App.this, world.getPlatform(), (TunnelLayer) layer, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
+                    // TODO passing in dimension here is a crude mechanism. It is supposed to be the dimension on which
+                    //  this layer is being used, but that is a lot of work to determine. In practice this will usually
+                    //  be right though
+                    dialog = (AbstractEditLayerDialog<L>) new TunnelLayerDialog(App.this, world.getPlatform(), (TunnelLayer) layer, dimension, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
                 } else {
                     throw new IllegalArgumentException("Don't know how to create dialog for layer " + layer.getName());
                 }
@@ -4998,7 +5027,7 @@ public final class App extends JFrame implements RadiusControl,
         if (world.isDimensionPresent(newAnchor)) {
             throw new IllegalStateException("Master dimension already exists");
         }
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), dimension.getSeed(), world.getPlatform(), newAnchor, dimension.getMaxHeight(), dimension, dimension.getTileCoords());
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), dimension.getSeed(), world.getPlatform(), newAnchor, dimension.getMaxHeight(), dimension);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -5039,10 +5068,12 @@ public final class App extends JFrame implements RadiusControl,
             if ((dimension != null) && (dimension.getAnchor().equals(masterAnchor))) {
                 viewDimension(new Anchor(masterAnchor.dim, DETAIL, false, masterAnchor.id));
             } else {
-                configureForPlatform();
-                if (dimension.getAnchor().dim == masterAnchor.dim) {
-                    view.refreshTiles();
+                if (backgroundDimension == master) {
+                    showBackgroundStatus = false;
+                    view.setBackgroundDimension(null, 0, null);
+                    backgroundDimension = null;
                 }
+                configureForPlatform();
             }
             showMessageDialog(this, "The " + master.getName() + " was successfully deleted", "Success", INFORMATION_MESSAGE);
         }

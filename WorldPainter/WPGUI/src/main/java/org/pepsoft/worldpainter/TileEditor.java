@@ -24,6 +24,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
+import static org.pepsoft.worldpainter.Dimension.Role.MASTER;
 
 /**
  *
@@ -34,6 +36,12 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
     public TileEditor(java.awt.Frame parent, Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Set<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
         super(parent);
         this.dimension = dimension;
+        final Dimension.Anchor anchor = dimension.getAnchor();
+        if (anchor.role == DETAIL) {
+            backgroundDimension = dimension.getWorld().getDimension(new Dimension.Anchor(anchor.dim, MASTER, anchor.invert, 0));
+        } else {
+            backgroundDimension = null;
+        }
         initComponents();
         
         // Fix the incredibly ugly default font of the JTextPane
@@ -155,12 +163,21 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
         dimension.setEventsInhibited(true);
         dimension.clearUndo();
         try {
+            final ScaledDimension scaledBackground = (! tilesToAdd.isEmpty()) && (backgroundDimension != null) ? new ScaledDimension(backgroundDimension, backgroundDimension.getScale()) : null;
             for (Point newTileCoords: tilesToAdd) {
-                Tile newTile = dimension.getTileFactory().createTile(newTileCoords.x, newTileCoords.y);
+                Tile newTile = null;
+                if (backgroundDimension != null) {
+                    newTile = scaledBackground.getTile(newTileCoords);
+                    // TODO: handle copied custom layers
+                    // TODO: handle NotPresent areas
+                }
+                if (newTile == null) {
+                    newTile = dimension.getTileFactory().createTile(newTileCoords.x, newTileCoords.y);
+                }
                 dimension.addTile(newTile);
             }
             for (Point expandTileCoords: tilesToExpand) {
-                Tile tile = dimension.getTileForEditing(expandTileCoords);
+                final Tile tile = dimension.getTileForEditing(expandTileCoords);
                 tile.clearLayerData(NotPresent.INSTANCE);
                 tile.clearLayerData(NotPresentBlock.INSTANCE);
             }
@@ -314,7 +331,7 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
     private org.pepsoft.worldpainter.TileSelector tileSelector1;
     // End of variables declaration//GEN-END:variables
 
-    private final Dimension dimension;
+    private final Dimension dimension, backgroundDimension;
     
     private static final long serialVersionUID = 1L;
 }
