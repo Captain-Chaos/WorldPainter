@@ -14,6 +14,7 @@ import static org.junit.Assert.assertTrue;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.TestData.*;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.FIXED_HEIGHT;
 
 public class TunnelLayerExporterTest {
     @Test
@@ -100,9 +101,11 @@ public class TunnelLayerExporterTest {
 
     private TunnelLayer createTestLayer() {
         final TunnelLayer layer = new TunnelLayer("Test", 0xff0000);
+        layer.setFloorMode(FIXED_HEIGHT);
         layer.setFloorLevel(25);
         layer.setFloorWallDepth(0);
         layer.setFloorNoise(new NoiseSettings(SEED, 5, 1, 1.0f));
+        layer.setRoofMode(FIXED_HEIGHT);
         layer.setRoofLevel(75);
         layer.setRoofWallDepth(0);
         layer.setRoofNoise(new NoiseSettings(SEED + 1, 5, 1, 1.0f));
