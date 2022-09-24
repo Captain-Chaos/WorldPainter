@@ -86,6 +86,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.MessageFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.*;
@@ -1941,7 +1942,7 @@ public final class App extends JFrame implements RadiusControl,
         final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, strings.getString("generated.world"), DEFAULT_OCEAN_SEED, config.getDefaultPlatform(), NORMAL_DETAIL, config.getDefaultMaxHeight(), null);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
-            clearWorld(); // Free up memory of the world and the undo buffer
+            clearWorld(); // Free up memory of the world and the undo buffers
             if (! dialog.checkMemoryRequirements(this)) {
                 return;
             }
@@ -7084,6 +7085,8 @@ public final class App extends JFrame implements RadiusControl,
             throw new UnsupportedOperationException();
         }
     };
+
+    public static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
 
     private static Mode mode = Mode.WORLDPAINTER;
 
