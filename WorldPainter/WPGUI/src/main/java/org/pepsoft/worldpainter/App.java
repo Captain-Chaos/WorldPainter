@@ -3850,13 +3850,18 @@ public final class App extends JFrame implements RadiusControl,
                 JMenuItem menuItem = new JMenuItem(strings.getString("edit") + "...");
                 menuItem.addActionListener(e1 -> edit());
                 popup.add(menuItem);
-                if ((layer instanceof TunnelLayer) && (((TunnelLayer) layer).getFloorDimensionId() != null)) {
-                    menuItem = new JMenuItem("Edit floor dimension");
-                    menuItem.addActionListener(e1 -> {
-                        final Anchor anchor = dimension.getAnchor();
-                        setDimension(world.getDimension(new Anchor(anchor.dim, CAVE_FLOOR, anchor.invert, ((TunnelLayer) layer).getFloorDimensionId())));
-                    });
-                    popup.add(menuItem);
+                if ((layer instanceof TunnelLayer)) {
+                    final Integer floorDimensionId = ((TunnelLayer) layer).getFloorDimensionId();
+                    if (floorDimensionId != null) {
+                        menuItem = new JMenuItem("Edit floor dimension");
+                        menuItem.addActionListener(e1 -> {
+                            final Anchor anchor = dimension.getAnchor();
+                            final Dimension floorDimension = world.getDimension(new Anchor(anchor.dim, CAVE_FLOOR, anchor.invert, floorDimensionId));
+                            TunnelLayerDialog.updateFloorDimension(dimension, floorDimension, null, (TunnelLayer) layer);
+                            setDimension(floorDimension);
+                        });
+                        popup.add(menuItem);
+                    }
                 }
                 menuItem = new JMenuItem("Duplicate...");
                 menuItem.addActionListener(e1 -> duplicate());

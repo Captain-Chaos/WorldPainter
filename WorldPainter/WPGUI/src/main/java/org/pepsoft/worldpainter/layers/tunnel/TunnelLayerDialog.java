@@ -120,6 +120,34 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         doLaterOnEventThread(this::updatePreview);
     }
 
+    public static void updateFloorDimension(Dimension detailDimension, Dimension floorDimension, String name, TunnelLayer layer) {
+        if (name != null) {
+            floorDimension.setName(name);
+        }
+        final TileFactory tileFactory = floorDimension.getTileFactory();
+        floorDimension.setEventsInhibited(true);
+        try {
+            detailDimension.visitTiles().forFilter(Filter.build(detailDimension).onlyOn(layer).build()).andDo(tile -> {
+                Tile floorTile = floorDimension.getTileForEditing(tile.getX(), tile.getY());
+                if (floorTile == null) {
+                    floorTile = tileFactory.createTile(tile.getX(), tile.getY());
+                    floorDimension.addTile(floorTile);
+                } else {
+                    floorTile.clearLayerData(NotPresentBlock.INSTANCE);
+                }
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    for (int y = 0; y < TILE_SIZE; y++) {
+                        if (! tile.getBitLayerValue(layer, x, y)) {
+                            floorTile.setBitLayerValue(NotPresentBlock.INSTANCE, x, y, true);
+                        }
+                    }
+                }
+            });
+        } finally {
+            floorDimension.setEventsInhibited(false);
+        }
+    }
+
     // AbstractEditLayerDialog
 
     @Override
@@ -580,7 +608,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             floorDimension = new Dimension(world, null, seed, tileFactory, new Anchor(dim, CAVE_FLOOR, invert, id));
             world.addDimension(floorDimension);
         }
-        updateFloorDimension(dimension, floorDimension);
+        updateFloorDimension(dimension, floorDimension, textFieldName.getText() + " Floor", layer);
         return floorDimension;
     }
 
@@ -595,32 +623,6 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         return layer;
     }
 
-    private void updateFloorDimension(Dimension detailDimension, Dimension floorDimension) {
-        floorDimension.setName(textFieldName.getText() + " Floor");
-        final TileFactory tileFactory = floorDimension.getTileFactory();
-        floorDimension.setEventsInhibited(true);
-        try {
-            detailDimension.visitTiles().forFilter(Filter.build(detailDimension).onlyOn(layer).build()).andDo(tile -> {
-                Tile floorTile = floorDimension.getTileForEditing(tile.getX(), tile.getY());
-                if (floorTile == null) {
-                    floorTile = tileFactory.createTile(tile.getX(), tile.getY());
-                    floorDimension.addTile(floorTile);
-                } else {
-                    floorTile.clearLayerData(NotPresentBlock.INSTANCE);
-                }
-                for (int x = 0; x < TILE_SIZE; x++) {
-                    for (int y = 0; y < TILE_SIZE; y++) {
-                        if (! tile.getBitLayerValue(layer, x, y)) {
-                            floorTile.setBitLayerValue(NotPresentBlock.INSTANCE, x, y, true);
-                        }
-                    }
-                }
-            });
-        } finally {
-            floorDimension.setEventsInhibited(false);
-        }
-    }
-    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
