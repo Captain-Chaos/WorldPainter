@@ -169,7 +169,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                         chunk.setMaterial(x, minY, z, BEDROCK);
                     }
                     applySubSurface(tile, chunk, xInTile, yInTile);
-                    applyTopLayer(tile, chunk, xInTile, yInTile);
+                    applyTopLayer(tile, chunk, xInTile, yInTile, false);
                     if (! underWater) {
                         // Above the surface on dry land
                         WPObject object = null;
@@ -223,7 +223,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         return result;
     }
 
-    public void applyTopLayer(Tile tile, Chunk chunk, int xInTile, int yInTile) {
+    public void applyTopLayer(Tile tile, Chunk chunk, int xInTile, int yInTile, boolean onlyWhereSolid) {
         final Terrain terrain = tile.getTerrain(xInTile, yInTile);
         final int worldX = (tile.getX() << 7) | xInTile, worldY = (tile.getY() << 7) | yInTile, x = xInTile & 0xf, z = yInTile & 0xf;
         final float height = tile.getHeight(xInTile, yInTile);
@@ -254,6 +254,9 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         }
         int columnRenderHeight = Math.min(Math.max(intHeight, waterLevel), maxY);
         for (int y = Math.max(subsurfaceMaxHeight + 1, minY + (bedrock ? 1 : 0)); y <= columnRenderHeight; y++) {
+            if (onlyWhereSolid && (! chunk.getMaterial(x, y, z).solid)) {
+                continue;
+            }
             if (y < intHeight) {
                 // Top/terrain layer, but not surface block
                 chunk.setMaterial(x, y, z, terrain.getMaterial(platform, seed, worldX, worldY, y + topLayerLayerOffset, intHeight + topLayerLayerOffset));

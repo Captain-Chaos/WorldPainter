@@ -243,7 +243,7 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                     if (dimension.getBitLayerValueAt(Void.INSTANCE, x, y)) {
                         // TODO apply void
                     } else {
-                        chunkFactory.applyTopLayer(floorTile, chunk, xInTile, yInTile);
+                        chunkFactory.applyTopLayer(floorTile, chunk, xInTile, yInTile, true);
                     }
                     return true;
                 });
