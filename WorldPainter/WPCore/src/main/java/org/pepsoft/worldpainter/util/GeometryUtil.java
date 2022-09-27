@@ -6,6 +6,10 @@ package org.pepsoft.worldpainter.util;
 
 import org.pepsoft.util.MathUtils;
 
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author pepijn
@@ -101,6 +105,109 @@ public final class GeometryUtil {
             }
         }
         return true;
+    }
+
+    /**
+     * Visit all the points on the face of a filled circular disk in an integer coordinate space with the centre at 0,0.
+     * The order in which the points are visited is not defined. There is no way other than throwing an exception to
+     * abort the iteration.
+     *
+     * @param radius The radius of the circle to visit.
+     * @param visitor The visitor to invoke for each point.
+     */
+    public static void visitAllOfFilledCircle(float radius, AllPlaneVisitor visitor) {
+        int dx = (int) Math.ceil(radius), dy = 0;
+        int radiusError = 1 - dx;
+        while (dx >= dy) {
+            if (dy <= radius) {
+                visitor.visit(0, -dy, dy);
+                if (dy > 0) {
+                    visitor.visit(0, dy, dy);
+                }
+            }
+            for (int i = 1; i <= dx; i++) {
+                final float d = MathUtils.getDistance(i, dy);
+                if (d <= radius) {
+                    visitor.visit(-i, -dy, d);
+                    visitor.visit(-i, dy, d);
+                    visitor.visit(i, -dy, d);
+                    visitor.visit(i, dy, d);
+                }
+            }
+            if ((dx > 0) && (dx <= radius)) {
+                visitor.visit(0, -dx, dx);
+                visitor.visit(0, dx, dx);
+            }
+            for (int i = 1; i <= dy; i++) {
+                final float d = MathUtils.getDistance(i, dx);
+                if (d <= radius) {
+                    visitor.visit(-i, -dx, d);
+                    visitor.visit(-i, dx, d);
+                    visitor.visit(i, -dx, d);
+                    visitor.visit(i, dx, d);
+                }
+            }
+
+            dy++;
+            if (radiusError < 0) {
+                radiusError += 2 * dy + 1;
+            } else {
+                dx--;
+                radiusError += 2 * (dy - dx + 1);
+            }
+        }
+    }
+
+    /**
+     * Create a list of the relative coordinates of all the points on the face of a filled circular disk in an integer
+     * coordinate space with the centre at 0,0. The order in which the coordinates are returned is not defined.
+     *
+     * @param radius The radius of the circle.
+     * @return A list of coordinates on the face of the specified circle.
+     */
+    public static List<Point> getFilledCircleCoordinates(float radius) {
+        int dx = (int) Math.ceil(radius), dy = 0;
+        final List<Point> points = new ArrayList<>((dx * 2 + 1) * (dx * 2 + 1));
+        int radiusError = 1 - dx;
+        while (dx >= dy) {
+            if (dy <= radius) {
+                points.add(new Point(0, -dy));
+                if (dy > 0) {
+                    points.add(new Point(0, dy));
+                }
+            }
+            for (int i = 1; i <= dx; i++) {
+                final float d = MathUtils.getDistance(i, dy);
+                if (d <= radius) {
+                    points.add(new Point(-i, -dy));
+                    points.add(new Point(-i, dy));
+                    points.add(new Point(i, -dy));
+                    points.add(new Point(i, dy));
+                }
+            }
+            if ((dx > 0) && (dx <= radius)) {
+                points.add(new Point(0, -dx));
+                points.add(new Point(0, dx));
+            }
+            for (int i = 1; i <= dy; i++) {
+                final float d = MathUtils.getDistance(i, dx);
+                if (d <= radius) {
+                    points.add(new Point(-i, -dx));
+                    points.add(new Point(-i, dx));
+                    points.add(new Point(i, -dx));
+                    points.add(new Point(i, dx));
+                }
+            }
+
+            dy++;
+            if (radiusError < 0) {
+                radiusError += 2 * dy + 1;
+            } else {
+                dx--;
+                radiusError += 2 * (dy - dx + 1);
+            }
+        }
+        return points;
     }
 
     /**
@@ -273,15 +380,25 @@ public final class GeometryUtil {
         /**
          * Visit the specified location relative to the origin of the plane.
          * 
-         * @param dx The x coordinate to visit relative to the origin of the
-         *     plane.
-         * @param dy The y coordinate to visit relative to the origin of the
-         *     plane.
+         * @param dx The x coordinate to visit relative to the origin of the plane.
+         * @param dy The y coordinate to visit relative to the origin of the plane.
          * @param d The distance from the origin.
-         * @return {@code true} if the process should continue;
-         * {@code false} if no more points should be visited on the plane.
+         * @return {@code true} if the process should continue; {@code false} if no more points should be visited on the
+         * plane.
          */
         boolean visit(int dx, int dy, float d);
+    }
+
+    @FunctionalInterface
+    public interface AllPlaneVisitor {
+        /**
+         * Visit the specified location relative to the origin of the plane.
+         *
+         * @param dx The x coordinate to visit relative to the origin of the plane.
+         * @param dy The y coordinate to visit relative to the origin of the plane.
+         * @param d The distance from the origin.
+         */
+        void visit(int dx, int dy, float d);
     }
 
     @FunctionalInterface
