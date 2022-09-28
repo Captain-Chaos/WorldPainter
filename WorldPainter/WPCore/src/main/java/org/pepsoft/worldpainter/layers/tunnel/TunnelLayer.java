@@ -6,10 +6,13 @@
 package org.pepsoft.worldpainter.layers.tunnel;
 
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.NotPresentBlock;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+import org.pepsoft.worldpainter.operations.Filter;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -17,6 +20,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
 
 /**
  *
@@ -244,6 +250,37 @@ public class TunnelLayer extends CustomLayer {
         this.floorDimensionId = floorDimensionId;
     }
 
+    public Dimension updateFloorDimension(Dimension dimension, String name) {
+        final Anchor anchor = dimension.getAnchor();
+        final Dimension floorDimension = dimension.getWorld().getDimension(new Anchor(anchor.dim, CAVE_FLOOR, anchor.invert, floorDimensionId));
+        if (name != null) {
+            floorDimension.setName(name);
+        }
+        final TileFactory tileFactory = floorDimension.getTileFactory();
+        floorDimension.setEventsInhibited(true);
+        try {
+            dimension.visitTiles().forFilter(Filter.build(dimension).onlyOn(this).build()).andDo(tile -> {
+                Tile floorTile = floorDimension.getTileForEditing(tile.getX(), tile.getY());
+                if (floorTile == null) {
+                    floorTile = tileFactory.createTile(tile.getX(), tile.getY());
+                    floorDimension.addTile(floorTile);
+                } else {
+                    floorTile.clearLayerData(NotPresentBlock.INSTANCE);
+                }
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    for (int y = 0; y < TILE_SIZE; y++) {
+                        if (! tile.getBitLayerValue(this, x, y)) {
+                            floorTile.setBitLayerValue(NotPresentBlock.INSTANCE, x, y, true);
+                        }
+                    }
+                }
+            });
+        } finally {
+            floorDimension.setEventsInhibited(false);
+        }
+        return floorDimension;
+    }
+
     // CustomLayer
 
     @Override
@@ -362,7 +399,7 @@ public class TunnelLayer extends CustomLayer {
     private static final long serialVersionUID = 1L;
     
     public enum Mode { FIXED_HEIGHT, CONSTANT_DEPTH, INVERTED_DEPTH, CUSTOM_DIMENSION, FIXED_HEIGHT_ABOVE_FLOOR }
-    
+
     public static class LayerSettings implements Serializable, Cloneable {
         public LayerSettings(int minLevel, int maxLevel) {
             this.minLevel = minLevel;

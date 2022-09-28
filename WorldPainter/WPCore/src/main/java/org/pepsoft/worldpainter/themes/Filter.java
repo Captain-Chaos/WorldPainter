@@ -23,4 +23,6 @@ public interface Filter extends Serializable {
      * @return The level (0-15) at which the operation should be applied.
      */
     int getLevel(int x, int y, int z, int inputLevel);
+
+    Filter EVERYWHERE = (x, y, z, inputLevel) -> inputLevel;
 }

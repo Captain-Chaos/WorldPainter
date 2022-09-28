@@ -13,11 +13,11 @@ import org.pepsoft.worldpainter.Dimension.Role;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.exporting.IncidentalLayerExporter;
 import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
+import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 import org.pepsoft.worldpainter.layers.plants.PlantLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode;
-import org.pepsoft.worldpainter.operations.Filter;
 import org.pepsoft.worldpainter.themes.JSpinnerTableCellEditor;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 
@@ -33,15 +33,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static javax.swing.JOptionPane.*;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.CollectionUtils.listOf;
-import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
 import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayersTableModel.*;
+import static org.pepsoft.worldpainter.themes.Filter.EVERYWHERE;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
 
 /**
@@ -55,6 +56,8 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         this.platform = platform;
         this.layer = layer;
         this.dimension = dimension;
+        this.colourScheme = colourScheme;
+        this.customBiomeManager = customBiomeManager;
         this.baseHeight = baseHeight;
         this.waterLevel = waterLevel;
         this.minHeight = minHeight;
@@ -120,34 +123,6 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         doLaterOnEventThread(this::updatePreview);
     }
 
-    public static void updateFloorDimension(Dimension detailDimension, Dimension floorDimension, String name, TunnelLayer layer) {
-        if (name != null) {
-            floorDimension.setName(name);
-        }
-        final TileFactory tileFactory = floorDimension.getTileFactory();
-        floorDimension.setEventsInhibited(true);
-        try {
-            detailDimension.visitTiles().forFilter(Filter.build(detailDimension).onlyOn(layer).build()).andDo(tile -> {
-                Tile floorTile = floorDimension.getTileForEditing(tile.getX(), tile.getY());
-                if (floorTile == null) {
-                    floorTile = tileFactory.createTile(tile.getX(), tile.getY());
-                    floorDimension.addTile(floorTile);
-                } else {
-                    floorTile.clearLayerData(NotPresentBlock.INSTANCE);
-                }
-                for (int x = 0; x < TILE_SIZE; x++) {
-                    for (int y = 0; y < TILE_SIZE; y++) {
-                        if (! tile.getBitLayerValue(layer, x, y)) {
-                            floorTile.setBitLayerValue(NotPresentBlock.INSTANCE, x, y, true);
-                        }
-                    }
-                }
-            });
-        } finally {
-            floorDimension.setEventsInhibited(false);
-        }
-    }
-
     // AbstractEditLayerDialog
 
     @Override
@@ -188,10 +163,21 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             final World2 world = app.getWorld();
             world.removeDimension(new Anchor(dim, CAVE_FLOOR, false, layer.getFloorDimensionId()));
             layer.setFloorDimensionId(null);
-        } else if (radioButtonFloorCustomDimension.isSelected()) {
-            final Dimension floorDimension = getUpdatedFloorDimension();
-            if (layer.getFloorDimensionId() == null) {
+        } else if (radioButtonFloorCustomDimension.isSelected() && (layer.getFloorDimensionId() == null)) {
+            final Dimension floorDimension = createFloorDimension();
+            if (floorDimension != null) {
                 layer.setFloorDimensionId(floorDimension.getAnchor().id);
+                final Configuration config = Configuration.getInstance();
+                if (! config.isMessageDisplayedCountAtLeast(PAINT_TUNNEL_LAYER_KEY, 3)) {
+                    doLaterOnEventThread(() -> JOptionPane.showMessageDialog(App.getInstance(),
+                            "Use the paint tools to paint the Custom Cave/Tunnel Layer in the desired shape.\n" +
+                            "Then right-click on the [" + layer.getName() + "] button on the [" + layer.getPalette() + "] panel\n" +
+                            "and select \"Edit floor dimension\" to paint on, and vertically shape, the cave floor."));
+                    config.setMessageDisplayed(PAINT_TUNNEL_LAYER_KEY);
+                }
+            } else {
+                // Cancelled by user
+                return;
             }
         }
         saveSettingsTo(layer, true);
@@ -396,14 +382,14 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         spinnerFloorMax.setEnabled((! radioButtonFloorFixedLevel.isSelected()) && (! radioButtonFloorCustomDimension.isSelected()));
         noiseSettingsEditorFloor.setEnabled(! radioButtonFloorCustomDimension.isSelected());
         mixedMaterialSelectorFloor.setEnabled(! radioButtonFloorCustomDimension.isSelected());
-        buttonEditFloorDimension.setEnabled(radioButtonFloorCustomDimension.isSelected());
         jTabbedPane1.setEnabledAt(1, ! radioButtonFloorCustomDimension.isSelected());
 
         spinnerRoofMin.setEnabled(! radioButtonRoofFixedLevel.isSelected());
         spinnerRoofMax.setEnabled(! radioButtonRoofFixedLevel.isSelected());
-        spinnerFloodLevel.setEnabled(checkBoxFlood.isSelected());
-        checkBoxFloodWithLava.setEnabled(checkBoxFlood.isSelected());
-        
+        checkBoxFlood.setEnabled(! radioButtonFloorCustomDimension.isSelected());
+        checkBoxFloodWithLava.setEnabled(checkBoxFlood.isSelected() && (! radioButtonFloorCustomDimension.isSelected()));
+        spinnerFloodLevel.setEnabled(checkBoxFlood.isSelected() && (! radioButtonFloorCustomDimension.isSelected()));
+
         int selectedFloorRowCount = tableFloorLayers.getSelectedRowCount();
         buttonRemoveFloorLayer.setEnabled(selectedFloorRowCount > 0);
         buttonEditFloorLayer.setEnabled((selectedFloorRowCount == 1) && (floorLayersTableModel.getLayer(tableFloorLayers.getSelectedRow()) instanceof CustomLayer));
@@ -576,40 +562,47 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         }
     }
 
-    private void editFloorDimension() {
-        if ((layer.getFloorDimensionId() == null)
-                && (JOptionPane.showConfirmDialog(this,
-                "This will save the current layer settings. The\n" +
-                "floor dimension will then be initialised from\n" +
-                "the settings on this screen. Cancel now if you\n" +
-                "want to change those settings first. Proceed?", "Confirm Initialisation", YES_NO_OPTION) != YES_OPTION)) {
-            return;
-        }
-        ok();
-        // Let the caller add the layer to the right dimension first, then:
-        SwingUtilities.invokeLater(() -> {
-            final App app = App.getInstance();
-            app.setDimension(dimension.getWorld().getDimension(new Anchor(dimension.getAnchor().dim, CAVE_FLOOR, false, layer.getFloorDimensionId())));
-            JOptionPane.showMessageDialog(app, "Press Esc to finish editing the Custom Cave/Tunnel layer floor dimension.", "Editing Cave/Tunnel Floor", JOptionPane.INFORMATION_MESSAGE);
-        });
-    }
-
-    private Dimension getUpdatedFloorDimension() {
-        final int dim = dimension.getAnchor().dim;
-        final boolean invert = dimension.getAnchor().invert;
-        final World2 world = dimension.getWorld();
-        final Dimension floorDimension;
-        if (layer.getFloorDimensionId() != null) {
-            floorDimension = world.getDimension(new Anchor(dim, CAVE_FLOOR, false, layer.getFloorDimensionId()));
-        } else {
-            final long seed = dimension.getSeed() + 10;
-            final TileFactory tileFactory = new HeightMapTileFactory(seed, new ConstantHeightMap((int) spinnerFloorLevel.getValue()), world.getPlatform().minZ, world.getMaxHeight(), checkBoxFloodWithLava.isSelected(), SimpleTheme.createSingleTerrain(dimension.getSubsurfaceMaterial(), dimension.getMinHeight(), dimension.getMaxHeight(), (int) spinnerFloodLevel.getValue()));
+    private Dimension createFloorDimension() {
+        final int minHeight = dimension.getMinHeight();
+        final int maxHeight = dimension.getMaxHeight();
+        final FloorDimensionSettingsDialog dialog = new FloorDimensionSettingsDialog(this, colourScheme,
+                customBiomeManager, platform, minHeight, maxHeight, (int) spinnerFloorLevel.getValue(),
+                noiseSettingsEditorFloor.getNoiseSettings(), checkBoxFlood.isSelected() ? ((int) spinnerFloodLevel.getValue()) : minHeight,
+                checkBoxFloodWithLava.isSelected(), dimension.getSubsurfaceMaterial());
+        dialog.setVisible(true);
+        if (! dialog.isCancelled()) {
+            final int dim = dimension.getAnchor().dim;
+            final boolean invert = dimension.getAnchor().invert;
+            final World2 world = dimension.getWorld();
             final int id = findNextId(world, dim, CAVE_FLOOR, invert);
-            floorDimension = new Dimension(world, null, seed, tileFactory, new Anchor(dim, CAVE_FLOOR, invert, id));
+            layer.setFloorDimensionId(id);
+            final long seed = dimension.getSeed() + id;
+            HeightMap heightMap;
+            heightMap = new ConstantHeightMap(dialog.getLevel());
+            if (dialog.getVariation().getRange() != 0) {
+                heightMap = heightMap.minus(dialog.getVariation().getRange()).plus(new NoiseHeightMap(dialog.getVariation()));
+            }
+            final SimpleTheme theme = SimpleTheme.createSingleTerrain(dialog.getTerrain(), minHeight, maxHeight, dialog.getWaterLevel());
+            if (dialog.getBiome() != null) {
+                theme.setLayerMap(singletonMap(EVERYWHERE, Biome.INSTANCE));
+                theme.setDiscreteValues(singletonMap(Biome.INSTANCE, dialog.getBiome()));
+            }
+            final TileFactory tileFactory = new HeightMapTileFactory(seed, heightMap, minHeight, maxHeight, dialog.isFloodWithLava(), theme);
+            final Dimension floorDimension = new Dimension(world, null, seed, tileFactory, new Anchor(dim, CAVE_FLOOR, invert, id));
             world.addDimension(floorDimension);
+            layer.updateFloorDimension(dimension, textFieldName.getText() + " Floor");
+
+            // Also update the layer with the same settings, so that e.g. the preview works approximately right
+            layer.setFloorLevel(dialog.getLevel());
+            layer.setFloorNoise(dialog.getVariation());
+            layer.setFloodLevel(dialog.getWaterLevel());
+            layer.setFloodWithLava(dialog.isFloodWithLava());
+            layer.setBiome((dialog.getBiome() != null) ? dialog.getBiome() : -1);
+
+            return floorDimension;
+        } else {
+            return null;
         }
-        updateFloorDimension(dimension, floorDimension, textFieldName.getText() + " Floor", layer);
-        return floorDimension;
     }
 
     private int findNextId(World2 world, int dim, Role role, boolean invert) {
@@ -690,7 +683,6 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         comboBoxBiome = new javax.swing.JComboBox<>();
         radioButtonFloorCustomDimension = new javax.swing.JRadioButton();
         radioButtonRoofFixedHeight = new javax.swing.JRadioButton();
-        buttonEditFloorDimension = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel22 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -941,13 +933,6 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             }
         });
 
-        buttonEditFloorDimension.setText("Edit");
-        buttonEditFloorDimension.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonEditFloorDimensionActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -1042,13 +1027,9 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(radioButtonFloorInverse)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(radioButtonFloorCustomDimension)
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addGap(21, 21, 21)
-                                        .addComponent(buttonEditFloorDimension)))))))
-                .addGap(31, 31, 31)
-                .addComponent(labelPreview, javax.swing.GroupLayout.DEFAULT_SIZE, 147, Short.MAX_VALUE)
+                                .addComponent(radioButtonFloorCustomDimension)))))
+                .addGap(18, 18, 18)
+                .addComponent(labelPreview, javax.swing.GroupLayout.DEFAULT_SIZE, 160, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -1088,8 +1069,6 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                             .addComponent(radioButtonFloorFixedDepth)
                             .addComponent(radioButtonFloorInverse)
                             .addComponent(radioButtonFloorCustomDimension))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(buttonEditFloorDimension)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -1205,7 +1184,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                 .addComponent(jLabel22)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 502, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 470, Short.MAX_VALUE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(buttonNewFloorLayer)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1284,7 +1263,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                 .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 470, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 438, Short.MAX_VALUE)
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(buttonNewRoofLayer)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1533,18 +1512,9 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     }//GEN-LAST:event_buttonRemoveRoofLayerActionPerformed
 
     private void radioButtonFloorCustomDimensionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonFloorCustomDimensionActionPerformed
-        if (! radioButtonFloorCustomDimension.isSelected()) {
-            if (radioButtonRoofFixedHeight.isSelected()) {
-                radioButtonRoofFixedLevel.setSelected(true);
-            }
-        }
         updatePreview();
         setControlStates();
     }//GEN-LAST:event_radioButtonFloorCustomDimensionActionPerformed
-
-    private void buttonEditFloorDimensionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonEditFloorDimensionActionPerformed
-        editFloorDimension();
-    }//GEN-LAST:event_buttonEditFloorDimensionActionPerformed
 
     private void radioButtonRoofFixedHeightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonRoofFixedHeightActionPerformed
         updatePreview();
@@ -1555,7 +1525,6 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     private javax.swing.JButton buttonAddFloorLayer;
     private javax.swing.JButton buttonAddRoofLayer;
     private javax.swing.JButton buttonCancel;
-    private javax.swing.JButton buttonEditFloorDimension;
     private javax.swing.JButton buttonEditFloorLayer;
     private javax.swing.JButton buttonEditRoofLayer;
     private javax.swing.ButtonGroup buttonGroup1;
@@ -1633,8 +1602,11 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     private final TunnelLayer layer;
     private final Dimension dimension;
     private final int waterLevel, baseHeight, minHeight, maxHeight;
+    private final ColourScheme colourScheme;
+    private final CustomBiomeManager customBiomeManager;
     private TunnelLayersTableModel floorLayersTableModel, roofLayersTableModel;
     private boolean programmaticChange;
 
+    private static final String PAINT_TUNNEL_LAYER_KEY = "org.pepsoft.worldpainter.TunnelLayer.paintLayer";
     private static final long serialVersionUID = 1L;
 }

@@ -632,6 +632,6 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
 
     private static final Font HEIGHT_MARKER_FONT = new Font("SansSerif", PLAIN, 10);
     private static final long MATERIAL_SEED = 0x688b2af137c77e0cL;
-    private static final Set<Layer> SKIP_LAYERS = ImmutableSet.of(NotPresentBlock.INSTANCE);
+    private static final Set<Layer> SKIP_LAYERS = ImmutableSet.of(NotPresentBlock.INSTANCE, FloodWithLava.INSTANCE);
     private static final Logger logger = LoggerFactory.getLogger(TunnelLayerExporter.class);
 }

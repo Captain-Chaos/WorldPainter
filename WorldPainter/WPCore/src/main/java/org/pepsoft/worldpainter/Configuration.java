@@ -689,6 +689,10 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         return displayedMessages.containsKey(messageKey);
     }
 
+    public synchronized boolean isMessageDisplayedCountAtLeast(String messageKey, int count) {
+        return displayedMessages.containsKey(messageKey) && (displayedMessages.get(messageKey).size() >= count);
+    }
+
     public synchronized void setMessageDisplayed(String messageKey) {
         displayedMessages.computeIfAbsent(messageKey, k -> new ArrayList<>()).add(new MessageDisplayed(launchCount));
     }

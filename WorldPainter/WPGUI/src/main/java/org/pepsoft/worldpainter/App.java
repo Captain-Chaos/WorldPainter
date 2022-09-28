@@ -465,6 +465,7 @@ public final class App extends JFrame implements RadiusControl,
             viewSurfaceMenuItem.setSelected(anchor.dim == DIM_NORMAL);
             viewNetherMenuItem.setSelected(anchor.dim == DIM_NETHER);
             viewEndMenuItem.setSelected(anchor.dim == DIM_END);
+            ACTION_EDIT_TILES.setEnabled(anchor.role != CAVE_FLOOR);
 
             // Legacy: if this is an older world with an overlay enabled, ask the user if we should fix the coordinates
             // (ask because they might have fixed the problem manually in 1.9.0 or 1.9.1, in which we neglected to do it
@@ -2000,14 +2001,13 @@ public final class App extends JFrame implements RadiusControl,
 
             if ((newWorld.getDimension(NORMAL_MASTER) != null) && (newWorld.getDimension(NORMAL_DETAIL).getTileCount() == 0)) {
                 doLaterOnEventThread(() -> {
-                    final String commandKeyName = PLATFORM_COMMAND_MASK == META_DOWN_MASK ? "⌘" : "Ctrl";
                     JOptionPane.showMessageDialog(this,
                             "You are now editing the Master Dimension. This will be exported\n" +
                                     "at sixteen times the horizontal size.\n" +
                                     "\n" +
                                     "To add details at 1:1 scale, switch to the Surface Dimension by\n" +
-                                    "pressing " + commandKeyName + "+M or using the View menu and then add tiles by\n" +
-                                    "pressing " + commandKeyName + "+T or using the Edit menu.", "Editing Master Dimension", INFORMATION_MESSAGE);
+                                    "pressing " + COMMAND_KEY_NAME + "+M or using the View menu and then add tiles by\n" +
+                                    "pressing " + COMMAND_KEY_NAME + "+T or using the Edit menu.", "Editing Master Dimension", INFORMATION_MESSAGE);
                 });
             }
         }
@@ -3851,15 +3851,24 @@ public final class App extends JFrame implements RadiusControl,
                 menuItem.addActionListener(e1 -> edit());
                 popup.add(menuItem);
                 if ((layer instanceof TunnelLayer)) {
-                    final Integer floorDimensionId = ((TunnelLayer) layer).getFloorDimensionId();
+                    final TunnelLayer tunnelLayer = (TunnelLayer) layer;
+                    final Integer floorDimensionId = tunnelLayer.getFloorDimensionId();
                     if (floorDimensionId != null) {
                         menuItem = new JMenuItem("Edit floor dimension");
-                        menuItem.addActionListener(e1 -> {
-                            final Anchor anchor = dimension.getAnchor();
-                            final Dimension floorDimension = world.getDimension(new Anchor(anchor.dim, CAVE_FLOOR, anchor.invert, floorDimensionId));
-                            TunnelLayerDialog.updateFloorDimension(dimension, floorDimension, null, (TunnelLayer) layer);
-                            setDimension(floorDimension);
-                        });
+                        if (dimension.containsOneOf(layer)) {
+                            menuItem.addActionListener(e1 -> {
+                                setDimension(tunnelLayer.updateFloorDimension(dimension, null));
+                                final Configuration config = Configuration.getInstance();
+                                if (! config.isMessageDisplayedCountAtLeast(EDITING_FLOOR_DIMENSION_KEY, 3)) {
+                                    doLaterOnEventThread(() -> JOptionPane.showMessageDialog(App.this,
+                                            "Press Esc to finish editing the Custom Cave/Tunnel layer floor dimension,\n" +
+                                                    "or select the Surface dimension from the View menu or by pressing " + COMMAND_KEY_NAME + "+U", "Editing Cave/Tunnel Floor", JOptionPane.INFORMATION_MESSAGE));
+                                    config.setMessageDisplayed(EDITING_FLOOR_DIMENSION_KEY);
+                                }
+                            });
+                        } else {
+                            menuItem.setEnabled(false);
+                        }
                         popup.add(menuItem);
                     }
                 }
@@ -3905,7 +3914,7 @@ public final class App extends JFrame implements RadiusControl,
                 int previousColour = layer.getColour();
                 AbstractEditLayerDialog<CustomLayer> dialog = createDialog(layer);
                 dialog.setVisible(true);
-                if (!dialog.isCancelled()) {
+                if (! dialog.isCancelled()) {
                     button.setText(layer.getName());
                     button.setToolTipText(layer.getName() + ": " + layer.getDescription() + "; right-click for options");
                     int newColour = layer.getColour();
@@ -3919,7 +3928,7 @@ public final class App extends JFrame implements RadiusControl,
                     if (layer instanceof CombinedLayer) {
                         updateHiddenLayers();
                     }
-                    if ((layer instanceof TunnelLayer) && (!viewRefreshed)) {
+                    if ((layer instanceof TunnelLayer) && (! viewRefreshed)) {
                         view.refreshTilesForLayer(layer, false);
                     }
                 }
@@ -7355,6 +7364,7 @@ public final class App extends JFrame implements RadiusControl,
     private static final Icon ICON_LAYERS               = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/layers.png");
 
     private static final int PLATFORM_COMMAND_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+    private static final String COMMAND_KEY_NAME = (PLATFORM_COMMAND_MASK == META_DOWN_MASK) ? "⌘" : "Ctrl";
 
     private static final String CUSTOM_BRUSHES_DEFAULT_TITLE = "Custom Brushes";
 
@@ -7364,7 +7374,8 @@ public final class App extends JFrame implements RadiusControl,
 
     private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
 
-    private static final String IMPORT_WARNING_KEY = "org.pepsoft.worldpainter.importWarning";
+    private static final String IMPORT_WARNING_KEY          = "org.pepsoft.worldpainter.importWarning";
+    private static final String EDITING_FLOOR_DIMENSION_KEY = "org.pepsoft.worldpainter.TunnelLayer.editingFloorDimension";
 
     static final String MERGE_WARNING_KEY = "org.pepsoft.worldpainter.mergeWarning";
 
