@@ -3683,7 +3683,7 @@ public final class App extends JFrame implements RadiusControl,
             private void showPopup(MouseEvent e) {
                 JPopupMenu popup = new JPopupMenu();
                 JMenuItem menuItem = new JMenuItem(strings.getString("edit") + "...");
-                menuItem.addActionListener(e1 -> edit());
+                menuItem.addActionListener(e1 -> editCustomLayer(layer));
                 popup.add(menuItem);
                 menuItem = new JMenuItem("Duplicate...");
                 menuItem.addActionListener(e1 -> duplicate());
@@ -3723,30 +3723,6 @@ public final class App extends JFrame implements RadiusControl,
                 popup.show(button, e.getX(), e.getY());
             }
 
-            private void edit() {
-                int previousColour = layer.getColour();
-                AbstractEditLayerDialog<CustomLayer> dialog = createDialog(layer);
-                dialog.setVisible(true);
-                if (!dialog.isCancelled()) {
-                    button.setText(layer.getName());
-                    button.setToolTipText(layer.getName() + ": " + layer.getDescription() + "; right-click for options");
-                    int newColour = layer.getColour();
-                    boolean viewRefreshed = false;
-                    if (newColour != previousColour) {
-                        button.setIcon(new ImageIcon(layer.getIcon()));
-                        view.refreshTilesForLayer(layer, false);
-                        viewRefreshed = true;
-                    }
-                    dimension.changed();
-                    if (layer instanceof CombinedLayer) {
-                        updateHiddenLayers();
-                    }
-                    if ((layer instanceof TunnelLayer) && (!viewRefreshed)) {
-                        view.refreshTilesForLayer(layer, false);
-                    }
-                }
-            }
-
             private void duplicate() {
                 CustomLayer duplicate = layer.clone();
                 duplicate.setName("Copy of " + layer.getName());
@@ -3759,7 +3735,7 @@ public final class App extends JFrame implements RadiusControl,
                 colour = Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
                 duplicate.setColour(colour.getRGB());
                 AbstractEditLayerDialog<CustomLayer> dialog;
-                dialog = createDialog(duplicate);
+                dialog = createEditLayerDialog(duplicate);
                 dialog.setVisible(true);
                 if ( !dialog.isCancelled()) {
                     duplicate = dialog.getLayer();
@@ -3773,33 +3749,41 @@ public final class App extends JFrame implements RadiusControl,
                     App.this.validate(); // Doesn't happen automatically for some reason; Swing bug?
                 }
             }
-
-            @SuppressWarnings("unchecked") // Guaranteed by code
-            @NotNull
-            private <L extends CustomLayer> AbstractEditLayerDialog<L> createDialog(L layer) {
-                AbstractEditLayerDialog<L> dialog;
-                if ((layer instanceof Bo2Layer) || (layer instanceof GroundCoverLayer) || (layer instanceof CombinedLayer) || (layer instanceof PlantLayer)) {
-                    dialog = new EditLayerDialog<>(App.this, world.getPlatform(), layer);
-                } else if (layer instanceof UndergroundPocketsLayer) {
-                    dialog = (AbstractEditLayerDialog<L>) new UndergroundPocketsDialog(App.this, world.getPlatform(), (UndergroundPocketsLayer) layer, selectedColourScheme, dimension.getMaxHeight(), world.isExtendedBlockIds());
-                } else if (layer instanceof TunnelLayer) {
-                    final int baseHeight, waterLevel;
-                    final TileFactory tileFactory = dimension.getTileFactory();
-                    if (tileFactory instanceof HeightMapTileFactory) {
-                        baseHeight = (int) ((HeightMapTileFactory) tileFactory).getBaseHeight();
-                        waterLevel = ((HeightMapTileFactory) tileFactory).getWaterHeight();
-                    } else {
-                        baseHeight = 58;
-                        waterLevel = DEFAULT_WATER_LEVEL;
-                    }
-                    dialog = (AbstractEditLayerDialog<L>) new TunnelLayerDialog(App.this, world.getPlatform(), (TunnelLayer) layer, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
-                } else {
-                    throw new IllegalArgumentException("Don't know how to create dialog for layer " + layer.getName());
-                }
-                return dialog;
-            }
         });
         return buttonComponents;
+    }
+
+    public boolean editCustomLayer(CustomLayer layer) {
+        int previousColour = layer.getColour();
+        AbstractEditLayerDialog<CustomLayer> dialog = createEditLayerDialog(layer);
+        dialog.setVisible(true);
+        if (! dialog.isCancelled()) {
+            final LayerControls layerControls = this.layerControls.get(layer);
+            final AbstractButton button = (layerControls != null) ? layerControls.button : null;
+            if (button != null) {
+                button.setText(layer.getName());
+                button.setToolTipText(layer.getName() + ": " + layer.getDescription() + "; right-click for options");
+            }
+            int newColour = layer.getColour();
+            boolean viewRefreshed = false;
+            if (newColour != previousColour) {
+                if (button != null) {
+                    button.setIcon(new ImageIcon(layer.getIcon()));
+                }
+                view.refreshTilesForLayer(layer, false);
+                viewRefreshed = true;
+            }
+            dimension.changed();
+            if (layer instanceof CombinedLayer) {
+                updateHiddenLayers();
+            }
+            if ((layer instanceof TunnelLayer) && (! viewRefreshed)) {
+                view.refreshTilesForLayer(layer, false);
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public void deleteCustomLayer(CustomLayer layer) {
@@ -3857,6 +3841,31 @@ public final class App extends JFrame implements RadiusControl,
         addLayerButtonPanel.add(addLayerButton);
 
         return addLayerButtonPanel;
+    }
+
+    @SuppressWarnings("unchecked") // Guaranteed by code
+    @NotNull
+    private <L extends CustomLayer> AbstractEditLayerDialog<L> createEditLayerDialog(L layer) {
+        AbstractEditLayerDialog<L> dialog;
+        if ((layer instanceof Bo2Layer) || (layer instanceof GroundCoverLayer) || (layer instanceof CombinedLayer) || (layer instanceof PlantLayer)) {
+            dialog = new EditLayerDialog<>(App.this, world.getPlatform(), layer);
+        } else if (layer instanceof UndergroundPocketsLayer) {
+            dialog = (AbstractEditLayerDialog<L>) new UndergroundPocketsDialog(App.this, world.getPlatform(), (UndergroundPocketsLayer) layer, selectedColourScheme, dimension.getMaxHeight(), world.isExtendedBlockIds());
+        } else if (layer instanceof TunnelLayer) {
+            final int baseHeight, waterLevel;
+            final TileFactory tileFactory = dimension.getTileFactory();
+            if (tileFactory instanceof HeightMapTileFactory) {
+                baseHeight = (int) ((HeightMapTileFactory) tileFactory).getBaseHeight();
+                waterLevel = ((HeightMapTileFactory) tileFactory).getWaterHeight();
+            } else {
+                baseHeight = 58;
+                waterLevel = DEFAULT_WATER_LEVEL;
+            }
+            dialog = (AbstractEditLayerDialog<L>) new TunnelLayerDialog(App.this, world.getPlatform(), (TunnelLayer) layer, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
+        } else {
+            throw new IllegalArgumentException("Don't know how to create dialog for layer " + layer.getName());
+        }
+        return dialog;
     }
 
     private void updateHiddenLayers() {

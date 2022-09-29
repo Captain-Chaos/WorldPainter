@@ -52,20 +52,38 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
     }
 
     public Set<Layer> apply(Tile tile) {
-        Set<Layer> addedLayers = new HashSet<>();
+        final boolean terrainConfigured = terrain != null;
+        final int biome = getBiome();
+        final boolean biomeConfigured = biome != -1;
+        final Set<Layer> addedLayers = new HashSet<>();
         if (! tile.hasLayer(this)) {
             return Collections.emptySet();
         }
         tile.inhibitEvents();
         try {
+            if (applyTerrainAndBiomeOnExport && (terrainConfigured || biomeConfigured)) {
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    for (int y = 0; y < TILE_SIZE; y++) {
+                        final float strength = tile.getLayerValue(this, x, y) / 15.0f;
+                        if (strength > 0.0f) {
+                            if (terrainConfigured && ((strength >= 0.5f) || ((Math.random() / 2) < strength))) {
+                                tile.setTerrain(x, y, terrain);
+                            }
+                            if (biomeConfigured && ((strength >= 0.5f) || ((Math.random() / 2) < strength))) {
+                                tile.setLayerValue(Biome.INSTANCE, x, y, biome);
+                            }
+                        }
+                    }
+                }
+            }
             for (Layer layer : layers) {
                 boolean layerAdded = false;
                 final float factor = factors.get(layer);
-                DataSize dataSize = layer.getDataSize();
+                final DataSize dataSize = layer.getDataSize();
                 if ((dataSize == BIT) || (dataSize == BIT_PER_CHUNK)) {
                     for (int x = 0; x < TILE_SIZE; x++) {
                         for (int y = 0; y < TILE_SIZE; y++) {
-                            float strength = Math.min(tile.getLayerValue(this, x, y) / 15.0f * factor, 1.0f);
+                            final float strength = Math.min(tile.getLayerValue(this, x, y) / 15.0f * factor, 1.0f);
                             if ((strength > 0.95f) || (Math.random() < strength)) {
                                 tile.setBitLayerValue(layer, x, y, true);
                                 layerAdded = true;
@@ -73,10 +91,10 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
                         }
                     }
                 } else {
-                    int maxValue = (dataSize == NIBBLE) ? 15 : 255;
+                    final int maxValue = (dataSize == NIBBLE) ? 15 : 255;
                     for (int x = 0; x < TILE_SIZE; x++) {
                         for (int y = 0; y < TILE_SIZE; y++) {
-                            int value = Math.min(Math.round(tile.getLayerValue(this, x, y) * factor), maxValue);
+                            final int value = Math.min(Math.round(tile.getLayerValue(this, x, y) * factor), maxValue);
                             if (value > 0) {
                                 tile.setLayerValue(layer, x, y, value);
                                 layerAdded = true;
@@ -134,6 +152,14 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
             throw new NullPointerException();
         }
         this.factors = factors;
+    }
+
+    public boolean isApplyTerrainAndBiomeOnExport() {
+        return applyTerrainAndBiomeOnExport;
+    }
+
+    public void setApplyTerrainAndBiomeOnExport(boolean applyTerrainAndBiomeOnExport) {
+        this.applyTerrainAndBiomeOnExport = applyTerrainAndBiomeOnExport;
     }
 
     @Override
@@ -267,7 +293,7 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
     private Terrain terrain;
     private List<Layer> layers = Collections.emptyList();
     private Map<Layer, Float> factors = Collections.emptyMap();
-    private boolean customTerrainPresent;
+    private boolean customTerrainPresent, applyTerrainAndBiomeOnExport = true;
     private transient MixedMaterial customTerrainMaterial;
 
     private static final LayerExporter EXPORTER = new CombinedLayerExporter();

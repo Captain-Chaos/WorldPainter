@@ -230,7 +230,7 @@ public class EditLayerDialog<L extends Layer> extends AbstractEditLayerDialog<L>
 
     private void updatePattern() {
         previewCreator.setPattern((LayerPreviewCreator.Pattern) jComboBox1.getSelectedItem());
-        updatePreview();
+        schedulePreviewUpdate();
     }
 
     /**

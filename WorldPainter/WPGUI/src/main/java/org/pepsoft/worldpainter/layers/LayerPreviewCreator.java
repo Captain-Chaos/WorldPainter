@@ -92,27 +92,19 @@ public class LayerPreviewCreator {
                 }
                 break;
             case NIBBLE:
-                // If it's a CombinedLayer, also apply the terrain and biome, if
-                // any
-                if (layer instanceof CombinedLayer) {
+                // If it's a CombinedLayer, also apply the terrain, if any
+                if ((layer instanceof CombinedLayer)
+                        && (((CombinedLayer) layer).getTerrain() != null)
+                        && (! ((CombinedLayer) layer).isApplyTerrainAndBiomeOnExport())) {
                     final Terrain terrain = ((CombinedLayer) layer).getTerrain();
-                    final int biome = ((CombinedLayer) layer).getBiome();
-                    final boolean terrainConfigured = terrain != null;
-                    final boolean biomeConfigured = biome != -1;
                     for (int x = 0; x < 128; x++) {
                         for (int y = 0; y < 128; y++) {
                             float strength = pattern.getStrength(x, y);
                             tile.setLayerValue(layer, x, y, Math.min((int) (strength * 16), 15));
-                            // Double the strength so that 50% intensity results
-                            // in full coverage for terrain and biome, which is
-                            // inaccurate but probably more closely resembles
-                            // practical usage
+                            // Double the strength so that 50% intensity results in full coverage for terrain
                             strength = Math.min(strength * 2, 1.0f);
-                            if (terrainConfigured && ((strength > 0.95f) || (Math.random() < strength))) {
+                            if (((strength > 0.95f) || (Math.random() < strength))) {
                                 tile.setTerrain(x, y, terrain);
-                            }
-                            if (biomeConfigured && ((strength > 0.95f) || (Math.random() < strength))) {
-                                tile.setLayerValue(Biome.INSTANCE, x, y, biome);
                             }
                         }
                     }
@@ -127,8 +119,7 @@ public class LayerPreviewCreator {
             default:
                 throw new IllegalArgumentException("Unsupported data size " + layer.getDataSize() + " encountered");
         }
-        // If the layer is a combined layer, apply it recursively and collect
-        // the added layers
+        // If the layer is a combined layer, apply it recursively and collect the added layers
         final List<Layer> layers;
         if (layer instanceof CombinedLayer) {
             layers = new ArrayList<>();
@@ -163,10 +154,10 @@ public class LayerPreviewCreator {
         for (Layer tmpLayer: layers) {
             final LayerExporter exporter = tmpLayer.getExporter(dimension, JAVA_ANVIL_1_17, tmpLayer.equals(layer) ? settings : null);
             if (exporter instanceof FirstPassLayerExporter) {
-                pass1Exporters.put(layer, exporter);
+                pass1Exporters.put(tmpLayer, exporter);
             }
             if (exporter instanceof SecondPassLayerExporter) {
-                pass2Exporters.put(layer, (SecondPassLayerExporter) exporter);
+                pass2Exporters.put(tmpLayer, (SecondPassLayerExporter) exporter);
             }
         }
 

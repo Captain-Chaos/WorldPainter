@@ -8,10 +8,7 @@ package org.pepsoft.worldpainter.layers.combined;
 
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
-import org.pepsoft.worldpainter.layers.CombinedLayer;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.LayerTableCellRenderer;
+import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.themes.JSpinnerTableCellEditor;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
@@ -27,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.pepsoft.util.CollectionUtils.listOf;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
@@ -38,6 +36,7 @@ import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
  *
  * @author Pepijn Schmitz
  */
+@SuppressWarnings({"Convert2Lambda", "Anonymous2MethodRef", "unused", "FieldCanBeLocal"}) // Managed by NetBeans
 public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> implements ListSelectionListener {
     /**
      * Creates new form CombinedLayerEditor
@@ -99,6 +98,8 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
         colourEditor1.setColour(layer.getColour());
         
         comboBoxBiome.setSelectedItem(layer.getBiome());
+
+        checkBoxApplyTerrainAndBiomeOnExport.setSelected(layer.isApplyTerrainAndBiomeOnExport());
         
         settingsChanged();
     }
@@ -137,8 +138,10 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
         comboBoxTerrain.setRenderer(new TerrainListCellRenderer(colourScheme, "none"));
         comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager, "none", platform));
 
+        List<Terrain> allTerrains = listOf(singletonList(null), asList(Terrain.getConfiguredValues()));
+        comboBoxTerrain.setModel(new DefaultComboBoxModel<>(allTerrains.toArray(new Terrain[allTerrains.size()])));
         List<Integer> allBiomes = listOf(singletonList(-1), getAllBiomes(platform, customBiomeManager));
-        comboBoxBiome.setModel(new DefaultComboBoxModel(allBiomes.toArray()));
+        comboBoxBiome.setModel(new DefaultComboBoxModel<>(allBiomes.toArray(new Integer[allBiomes.size()])));
         
         allLayers = context.getAllLayers();
     }
@@ -163,7 +166,9 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
     }
 
     private void setControlStates() {
-        buttonRemoveLayer.setEnabled(tableLayers.getSelectedRowCount() > 0);
+        checkBoxApplyTerrainAndBiomeOnExport.setEnabled((comboBoxTerrain.getSelectedItem() != null) || ((int) comboBoxBiome.getSelectedItem() != -1));
+        buttonRemoveLayer.setEnabled(tableLayers.getSelectedRowCount() == 1);
+        buttonEditLayerSettings.setEnabled((tableLayers.getSelectedRowCount() == 1) && (tableModel.getValueAt(tableLayers.getSelectedRow(), COLUMN_LAYER) instanceof CustomLayer));
     }
 
     private void addLayer() {
@@ -173,6 +178,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             tableModel.addRow(new CombinedLayerTableModel.Row(dialog.getSelectedLayer(), dialog.getSelectedFactor(), dialog.isHiddenSelected()));
+            settingsChanged();
         }
     }
 
@@ -180,9 +186,24 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
         if (tableLayers.isEditing()) {
             tableLayers.getCellEditor().stopCellEditing();
         }
-        final int[] selectedRows = tableLayers.getSelectedRows();
-        for (int i = selectedRows.length - 1; i >= 0; i--) {
-            tableModel.deleteRow(selectedRows[i]);
+        final int selectedRow = tableLayers.getSelectedRow();
+        if (selectedRow != -1) {
+            tableModel.deleteRow(selectedRow);
+            settingsChanged();
+        }
+    }
+    
+    private void editLayerSettings() {
+        if (tableLayers.isEditing()) {
+            tableLayers.getCellEditor().stopCellEditing();
+        }
+        final int selectedRow = tableLayers.getSelectedRow();
+        if (selectedRow != -1) {
+            final Layer layer = (Layer) tableModel.getValueAt(selectedRow, COLUMN_LAYER);
+            if (App.getInstance().editCustomLayer((CustomLayer) layer)) {
+                tableLayers.repaint();
+                settingsChanged();
+            }
         }
     }
     
@@ -197,6 +218,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
         layer.setName(fieldName.getText().trim());
         layer.setBiome((Integer) comboBoxBiome.getSelectedItem());
         layer.setTerrain((Terrain) comboBoxTerrain.getSelectedItem());
+        layer.setApplyTerrainAndBiomeOnExport(checkBoxApplyTerrainAndBiomeOnExport.isSelected());
         tableModel.saveSettings(layer);
         layer.setColour(colourEditor1.getColour());
         return layer;
@@ -205,7 +227,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
     private void configureTable() {
         tableLayers.setModel(tableModel);
         TableColumn layerColumn = tableLayers.getColumnModel().getColumn(COLUMN_LAYER);
-        JComboBox layerCellEditor = new JComboBox(allLayers.toArray());
+        JComboBox<Layer> layerCellEditor = new JComboBox<>(allLayers.toArray(new Layer[allLayers.size()]));
         layerCellEditor.setRenderer(new LayerListCellRenderer());
         layerColumn.setCellEditor(new DefaultCellEditor(layerCellEditor));
         layerColumn.setCellRenderer(new LayerTableCellRenderer());
@@ -218,7 +240,6 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
      * WARNING: Do NOT modify this code. The content of this method is always
      * regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -226,7 +247,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
         jLabel2 = new javax.swing.JLabel();
         comboBoxTerrain = new javax.swing.JComboBox<>();
         jLabel3 = new javax.swing.JLabel();
-        comboBoxBiome = new javax.swing.JComboBox();
+        comboBoxBiome = new javax.swing.JComboBox<>();
         jLabel4 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         tableLayers = new javax.swing.JTable();
@@ -236,12 +257,13 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
         jLabel6 = new javax.swing.JLabel();
         colourEditor1 = new org.pepsoft.worldpainter.ColourEditor();
         buttonRemoveLayer = new javax.swing.JButton();
+        checkBoxApplyTerrainAndBiomeOnExport = new javax.swing.JCheckBox();
+        buttonEditLayerSettings = new javax.swing.JButton();
 
         jLabel1.setText("Configure your combined layer on this screen.");
 
         jLabel2.setText("Terrain:");
 
-        comboBoxTerrain.setModel(new DefaultComboBoxModel(Terrain.getConfiguredValues()));
         comboBoxTerrain.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 comboBoxTerrainActionPerformed(evt);
@@ -258,6 +280,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
 
         jLabel4.setText("Layers:");
 
+        tableLayers.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(tableLayers);
 
         buttonAddLayer.setText("Add");
@@ -281,6 +304,16 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
             }
         });
 
+        checkBoxApplyTerrainAndBiomeOnExport.setText("apply terrain and biome on Export");
+
+        buttonEditLayerSettings.setText("Edit...");
+        buttonEditLayerSettings.setEnabled(false);
+        buttonEditLayerSettings.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonEditLayerSettingsActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -288,6 +321,8 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(buttonEditLayerSettings)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(buttonRemoveLayer)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(buttonAddLayer))
@@ -310,7 +345,8 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel6)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(checkBoxApplyTerrainAndBiomeOnExport))
                 .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -321,10 +357,12 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
                     .addComponent(comboBoxBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(checkBoxApplyTerrainAndBiomeOnExport)
                 .addGap(18, 18, 18)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -332,7 +370,8 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonAddLayer)
-                    .addComponent(buttonRemoveLayer))
+                    .addComponent(buttonRemoveLayer)
+                    .addComponent(buttonEditLayerSettings))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
@@ -345,10 +384,12 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
     }// </editor-fold>//GEN-END:initComponents
 
     private void comboBoxTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxTerrainActionPerformed
+        setControlStates();
         settingsChanged();
     }//GEN-LAST:event_comboBoxTerrainActionPerformed
 
     private void comboBoxBiomeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxBiomeActionPerformed
+        setControlStates();
         settingsChanged();
     }//GEN-LAST:event_comboBoxBiomeActionPerformed
 
@@ -360,12 +401,18 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
         removeLayer();
     }//GEN-LAST:event_buttonRemoveLayerActionPerformed
 
+    private void buttonEditLayerSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonEditLayerSettingsActionPerformed
+        editLayerSettings();
+    }//GEN-LAST:event_buttonEditLayerSettingsActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonAddLayer;
+    private javax.swing.JButton buttonEditLayerSettings;
     private javax.swing.JButton buttonRemoveLayer;
+    private javax.swing.JCheckBox checkBoxApplyTerrainAndBiomeOnExport;
     private org.pepsoft.worldpainter.ColourEditor colourEditor1;
-    private javax.swing.JComboBox comboBoxBiome;
+    private javax.swing.JComboBox<Integer> comboBoxBiome;
     private javax.swing.JComboBox<Terrain> comboBoxTerrain;
     private javax.swing.JTextField fieldName;
     private javax.swing.JLabel jLabel1;

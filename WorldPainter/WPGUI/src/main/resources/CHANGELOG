@@ -1,3 +1,10 @@
+-- Version 2.14.5, released ...
+
+ * Some improvements have been made to Combined Layers:
+   + By default they now apply the configured terrain and/or biome on Export, rather than when painted
+   + It is now possible to edit the settings of the layers in the Combined Layer directly from the layer's settings screen
+   + The layer preview has been fixed and improved
+
 -- Version 2.14.4, released 24-9-2022
 
  * When selecting tiles (for adding/removing, or for Exporting), dragging will now select all the tiles (rather than invert the selection). To deselect tiles, hold Ctrl or Command while dragging
