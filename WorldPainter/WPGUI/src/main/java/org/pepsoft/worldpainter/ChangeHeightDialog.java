@@ -176,30 +176,33 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                 for (Dimension dim: world.getDimensions()) {
                     if (dim.getGenerator() instanceof SuperflatGenerator) {
                         // Patch some block names TODO are there more (that are commonly used in Superflat presets)?
-                        SuperflatPreset settings = ((SuperflatGenerator) dim.getGenerator()).getSettings();
-                        if (((oldPlatform == JAVA_MCREGION) || (oldPlatform == JAVA_ANVIL)) && (newPlatform != JAVA_MCREGION) && (newPlatform != JAVA_ANVIL)) {
-                            for (SuperflatPreset.Layer layer: settings.getLayers()) {
-                                switch (layer.getMaterialName()) {
-                                    case "minecraft:grass":
-                                        layer.setMaterialName(MC_GRASS_BLOCK);
-                                        break;
-                                    case "minecraft:snow_layer":
-                                        layer.setMaterialName(MC_SNOW);
-                                        break;
+                        final SuperflatPreset settings = ((SuperflatGenerator) dim.getGenerator()).getSettings();
+                        // No idea how this could be null, but it has been observed in the wild:
+                        if (settings != null) {
+                            if (((oldPlatform == JAVA_MCREGION) || (oldPlatform == JAVA_ANVIL)) && (newPlatform != JAVA_MCREGION) && (newPlatform != JAVA_ANVIL)) {
+                                for (SuperflatPreset.Layer layer: settings.getLayers()) {
+                                    switch (layer.getMaterialName()) {
+                                        case "minecraft:grass":
+                                            layer.setMaterialName(MC_GRASS_BLOCK);
+                                            break;
+                                        case "minecraft:snow_layer":
+                                            layer.setMaterialName(MC_SNOW);
+                                            break;
+                                    }
                                 }
-                            }
-                        } else if ((oldPlatform != JAVA_MCREGION) && (oldPlatform != JAVA_ANVIL) && ((newPlatform == JAVA_MCREGION) || (newPlatform == JAVA_ANVIL))) {
-                            for (SuperflatPreset.Layer layer: settings.getLayers()) {
-                                switch (layer.getMaterialName()) {
-                                    case MC_GRASS_BLOCK:
-                                        layer.setMaterialName("minecraft:grass");
-                                        break;
-                                    case MC_SNOW:
-                                        layer.setMaterialName("minecraft:snow_layer");
-                                        break;
+                            } else if ((oldPlatform != JAVA_MCREGION) && (oldPlatform != JAVA_ANVIL) && ((newPlatform == JAVA_MCREGION) || (newPlatform == JAVA_ANVIL))) {
+                                for (SuperflatPreset.Layer layer: settings.getLayers()) {
+                                    switch (layer.getMaterialName()) {
+                                        case MC_GRASS_BLOCK:
+                                            layer.setMaterialName("minecraft:grass");
+                                            break;
+                                        case MC_SNOW:
+                                            layer.setMaterialName("minecraft:snow_layer");
+                                            break;
+                                    }
                                 }
-                            }
 
+                            }
                         }
                     }
                 }
