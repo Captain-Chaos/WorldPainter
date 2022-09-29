@@ -874,9 +874,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
 
                 // Third pass. Calculate lighting
                 t5 = System.currentTimeMillis();
-                final boolean lightingNeeded = (exportSettings.isCalculateBlockLight() || exportSettings.isCalculateSkyLight()) && platform.capabilities.contains(PRECALCULATED_LIGHT);
-                final boolean leafDistanceNeeded = exportSettings.isCalculateLeafDistance() && platform.capabilities.contains(LEAF_DISTANCES);
-                if (lightingNeeded || leafDistanceNeeded) {
+                if (BlockPropertiesCalculator.isBlockPropertiesPassNeeded(platform, worldExportSettings, exportSettings)) {
                     blockPropertiesPass(minecraftWorld, regionCoords, exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.75f, 0.25f) : null);
                 }
             }

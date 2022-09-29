@@ -46,8 +46,6 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
-import static org.pepsoft.worldpainter.Platform.Capability.LEAF_DISTANCES;
-import static org.pepsoft.worldpainter.Platform.Capability.PRECALCULATED_LIGHT;
 import static org.pepsoft.worldpainter.exporting.WorldExportSettings.Step.*;
 import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
 
@@ -812,14 +810,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
                 // Third pass. Calculate lighting and/or leaf distances (if requested, and supported by the platform)
                 long t4 = System.currentTimeMillis();
-                final Set<WorldExportSettings.Step> stepsToSkip = worldExportSettings.getStepsToSkip();
-                final boolean lightingNeeded = (exportSettings.isCalculateBlockLight() || exportSettings.isCalculateSkyLight())
-                        && platform.capabilities.contains(PRECALCULATED_LIGHT)
-                        && ((stepsToSkip == null) || (! stepsToSkip.contains(LIGHTING)));
-                final boolean leafDistanceNeeded = exportSettings.isCalculateLeafDistance()
-                        && platform.capabilities.contains(LEAF_DISTANCES)
-                        && ((stepsToSkip == null) || (! stepsToSkip.contains(LEAVES)));
-                if (lightingNeeded || leafDistanceNeeded) {
+                if (BlockPropertiesCalculator.isBlockPropertiesPassNeeded(platform, worldExportSettings, exportSettings)) {
                     blockPropertiesPass(minecraftWorld, regionCoords, exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.35f) : null);
                 }
                 long t5 = System.currentTimeMillis();
