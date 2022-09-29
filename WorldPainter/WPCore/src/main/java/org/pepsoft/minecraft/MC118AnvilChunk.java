@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.*;
 
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
@@ -945,7 +946,12 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
             if (propertiesTag != null) {
                 properties = new HashMap<>();
                 for (Map.Entry<String, Tag> entry : propertiesTag.getValue().entrySet()) {
-                    properties.put(entry.getKey(), ((StringTag) entry.getValue()).getValue());
+                    final Tag tag = entry.getValue();
+                    if (tag instanceof StringTag) {
+                        properties.put(entry.getKey(), ((StringTag) tag).getValue());
+                    } else {
+                        logger.warn("Ignoring non-vanilla material property tag {} of unsupported type {}", entry.getKey(), tag.getClass().getSimpleName());
+                    }
                 }
             } else {
                 properties = null;
@@ -955,11 +961,11 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
 
         @NotNull
         private CompoundTag createPaletteEntry(Material material) {
-            CompoundTag paletteEntry = new CompoundTag("", Collections.emptyMap());
+            CompoundTag paletteEntry = new CompoundTag("", emptyMap());
             if (material != null) {
                 paletteEntry.setTag(TAG_NAME, new StringTag(TAG_NAME, material.name));
                 if (material.getProperties() != null) {
-                    CompoundTag propertiesTag = new CompoundTag(TAG_PROPERTIES, Collections.emptyMap());
+                    CompoundTag propertiesTag = new CompoundTag(TAG_PROPERTIES, emptyMap());
                     for (Map.Entry<String, String> property: material.getProperties().entrySet()) {
                         propertiesTag.setTag(property.getKey(), new StringTag(property.getKey(), property.getValue()));
                     }
