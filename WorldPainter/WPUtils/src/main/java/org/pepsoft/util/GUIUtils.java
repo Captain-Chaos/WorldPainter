@@ -125,29 +125,30 @@ public class GUIUtils {
         for (Map.Entry<Object, Object> entry: UIManager.getDefaults().entrySet()) {
             Object key = entry.getKey();
             Object value = UIManager.get(key);
-            if (value instanceof FontUIResource) {
-                FontUIResource previousResource = (FontUIResource) value;
-                FontUIResource newResource = new FontUIResource(previousResource.getFamily(), previousResource.getStyle(), Math.round(previousResource.getSize() * scale));
-                UIManager.put(key, newResource);
-                logger.trace("Scaled FontUIResource {}", key);
-            } else if (value instanceof InsetsUIResource) {
-                InsetsUIResource oldResource = (InsetsUIResource) value;
-                InsetsUIResource newResource = new InsetsUIResource(Math.round(oldResource.top * scale),
-                        Math.round(oldResource.left * scale),
-                        Math.round(oldResource.bottom * scale),
-                        Math.round(oldResource.right * scale));
-                UIManager.put(key, newResource);
-                logger.trace("Scaled InsetsUIResource {}", key);
-            } else if (value instanceof Insets) {
-                Insets oldResource = (Insets) value;
-                Insets newResource = new Insets(Math.round(oldResource.top * scale),
-                        Math.round(oldResource.left * scale),
-                        Math.round(oldResource.bottom * scale),
-                        Math.round(oldResource.right * scale));
-                UIManager.put(key, newResource);
-                logger.trace("Scaled Insets {}", key);
-            } else if ((value instanceof Integer) && (key instanceof String)) {
-                if (((String) key).toLowerCase().contains("margin")
+            try {
+                if (value instanceof FontUIResource) {
+                    FontUIResource previousResource = (FontUIResource) value;
+                    FontUIResource newResource = new FontUIResource(previousResource.getFamily(), previousResource.getStyle(), Math.round(previousResource.getSize() * scale));
+                    UIManager.put(key, newResource);
+                    logger.trace("Scaled FontUIResource {}", key);
+                } else if (value instanceof InsetsUIResource) {
+                    InsetsUIResource oldResource = (InsetsUIResource) value;
+                    InsetsUIResource newResource = new InsetsUIResource(Math.round(oldResource.top * scale),
+                            Math.round(oldResource.left * scale),
+                            Math.round(oldResource.bottom * scale),
+                            Math.round(oldResource.right * scale));
+                    UIManager.put(key, newResource);
+                    logger.trace("Scaled InsetsUIResource {}", key);
+                } else if (value instanceof Insets) {
+                    Insets oldResource = (Insets) value;
+                    Insets newResource = new Insets(Math.round(oldResource.top * scale),
+                            Math.round(oldResource.left * scale),
+                            Math.round(oldResource.bottom * scale),
+                            Math.round(oldResource.right * scale));
+                    UIManager.put(key, newResource);
+                    logger.trace("Scaled Insets {}", key);
+                } else if ((value instanceof Integer) && (key instanceof String)) {
+                    if (((String) key).toLowerCase().contains("margin")
                             || ((String) key).toLowerCase().contains("thickness")
                             || ((String) key).toLowerCase().contains("gap")
                             || ((String) key).toLowerCase().contains("width")
@@ -159,40 +160,43 @@ public class GUIUtils {
                             || ((String) key).toLowerCase().contains("shift")
                             || ((String) key).toLowerCase().contains("indent")
                             || ((String) key).toLowerCase().contains("padding")) {
-                    int oldValue = (Integer) value;
-                    int newValue = Math.round(oldValue * scale);
-                    UIManager.put(key, newValue);
-                    logger.trace("Scaled integer {}", key);
-                } else {
-                    unknownValueTypesEncountered.add("Integer for key " + key);
+                        int oldValue = (Integer) value;
+                        int newValue = Math.round(oldValue * scale);
+                        UIManager.put(key, newValue);
+                        logger.trace("Scaled integer {}", key);
+                    } else {
+                        unknownValueTypesEncountered.add("Integer for key " + key);
+                        if (logger.isTraceEnabled()) {
+                            logger.trace("Did NOT scale {}: {}} ({}})", key, value, value.getClass().getSimpleName());
+                        }
+                    }
+                } else if (value instanceof ImageIcon) {
+                    ImageIcon icon = (ImageIcon) value;
+                    Image scaledImage = icon.getImage().getScaledInstance(Math.round(icon.getIconWidth() * scale), -1, SCALE_SMOOTH);
+                    UIManager.put(key, new ImageIcon(scaledImage));
+                    logger.trace("Scaled ImageIcon {}", key);
+                } else if (value instanceof Icon) {
+                    Icon icon = (Icon) value;
+                    BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), TYPE_INT_ARGB);
+                    Graphics2D g2 = image.createGraphics();
+                    try {
+                        icon.paintIcon(null, g2, 0, 0);
+                        Image scaledImage = image.getScaledInstance(Math.round(icon.getIconWidth() * scale), -1, SCALE_SMOOTH);
+                        UIManager.put(key, new ImageIcon(scaledImage));
+                        logger.trace("Scaled Icon {}", key);
+                    } catch (NullPointerException | IllegalArgumentException e) {
+                        logger.debug("Did NOT scale Icon {} due to {}", key, e.getClass().getSimpleName());
+                    }
+                } else if ((value instanceof Color) || (value instanceof Boolean)) {
+                    // Ignore silently
+                } else if (value != null) {
+                    unknownValueTypesEncountered.add(value.getClass().getSimpleName());
                     if (logger.isTraceEnabled()) {
                         logger.trace("Did NOT scale {}: {}} ({}})", key, value, value.getClass().getSimpleName());
                     }
                 }
-            } else if (value instanceof ImageIcon) {
-                ImageIcon icon = (ImageIcon) value;
-                Image scaledImage = icon.getImage().getScaledInstance(Math.round(icon.getIconWidth() * scale), -1, SCALE_SMOOTH);
-                UIManager.put(key, new ImageIcon(scaledImage));
-                logger.trace("Scaled ImageIcon {}", key);
-            } else if (value instanceof Icon) {
-                Icon icon = (Icon) value;
-                BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), TYPE_INT_ARGB);
-                Graphics2D g2 = image.createGraphics();
-                try {
-                    icon.paintIcon(null, g2, 0, 0);
-                    Image scaledImage = image.getScaledInstance(Math.round(icon.getIconWidth() * scale), -1, SCALE_SMOOTH);
-                    UIManager.put(key, new ImageIcon(scaledImage));
-                    logger.trace("Scaled Icon {}", key);
-                } catch (NullPointerException | IllegalArgumentException e) {
-                    logger.debug("Did NOT scale Icon {} due to {}", key, e.getClass().getSimpleName());
-                }
-            } else if ((value instanceof Color) || (value instanceof Boolean)) {
-                // Ignore silently
-            } else if (value != null) {
-                unknownValueTypesEncountered.add(value.getClass().getSimpleName());
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Did NOT scale {}: {}} ({}})", key, value, value.getClass().getSimpleName());
-                }
+            } catch (RuntimeException e) {
+                logger.error("Did NOT scale {}: {}} ({}}) due to {} (message: \"{}\")", key, value, value.getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage(), e);
             }
         }
         if (logger.isDebugEnabled()) {
