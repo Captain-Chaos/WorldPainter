@@ -1,9 +1,10 @@
--- Version 2.14.5, released ...
+-- Version 2.14.5, released 30-9-2022
 
  * Some improvements have been made to Combined Layers:
    + By default they now apply the configured terrain and/or biome on Export, rather than when painted
-   + It is now possible to edit the settings of the layers in the Combined Layer directly from the layer's settings screen
+   + It is now possible to edit the settings of any Custom Layers contained in the Combined Layer directly from the layer's settings screen
    + The layer preview has been fixed and improved
+ * Various bug fixes
 
 -- Version 2.14.4, released 24-9-2022
 
