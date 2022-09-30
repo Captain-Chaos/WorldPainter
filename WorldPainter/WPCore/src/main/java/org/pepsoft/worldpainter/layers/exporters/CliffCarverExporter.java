@@ -58,10 +58,10 @@ public class CliffCarverExporter extends AbstractLayerExporter<CliffCarver> impl
                 }
                 previousCarveDepth = carveDepth;
                 for (Point p: getFilledCircleCoordinates(carveDepth)) {
-                    if ((p.x == 0) && (p.y == 0)) {
+                    final int worldX = x + p.x, worldY = y + p.y;
+                    if (((p.x == 0) && (p.y == 0)) || (! dimension.getBitLayerValueAt(layer, worldX, worldY))) {
                         continue;
                     }
-                    final int worldX = x + p.x, worldY = y + p.y;
                     world.setMaterialAt(worldX, worldY, z, AIR);
                     final int zBelow = z - 1;
                     if (replaceTerrain && (world.getMaterialAt(worldX, worldY, zBelow).solid)) {
