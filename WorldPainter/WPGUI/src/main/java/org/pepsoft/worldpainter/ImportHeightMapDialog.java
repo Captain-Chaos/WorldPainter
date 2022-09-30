@@ -137,7 +137,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         if (currentDimension != null) {
             throw new IllegalStateException();
         }
-        final HeightMapImporter importer = createImporter();
+        final HeightMapImporter importer = createImporter(true);
         if (importer == null) {
             return null;
         }
@@ -185,15 +185,19 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         updatePreview(false);
     }
 
-    private HeightMapImporter createImporter() {
+    private HeightMapImporter createImporter(boolean interactive) {
         // TODO keep this? It shouldn't be necessary!
         if ((selectedFile == null) || (! selectedFile.exists())) {
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, "Please select an image file to import.", "No File Selected", ERROR_MESSAGE);
+            if (interactive) {
+                DesktopUtils.beep();
+                JOptionPane.showMessageDialog(this, "Please select an image file to import.", "No File Selected", ERROR_MESSAGE);
+            }
             return null;
         } else if (image == null) {
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, "Please select a valid image file to import.", "No Valid Image Selected", ERROR_MESSAGE);
+            if (interactive) {
+                DesktopUtils.beep();
+                JOptionPane.showMessageDialog(this, "Please select a valid image file to import.", "No Valid Image Selected", ERROR_MESSAGE);
+            }
             return null;
         }
         HeightMap heightMap = BitmapHeightMap.build().withName(selectedFile.getName()).withImage(image).withFile(selectedFile).now();
@@ -508,7 +512,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         if (currentDimension == null) {
             throw new IllegalStateException();
         }
-        final HeightMapImporter importer = createImporter();
+        final HeightMapImporter importer = createImporter(true);
         if (importer == null) {
             return;
         }
@@ -596,11 +600,15 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     private void updatePreview(boolean recentre) {
         doLaterOnEventThread(UPDATE_HEIGHT_MAP_PREVIEW, 250, () -> {
             if (image != null) {
-                TileProvider previewProvider = createImporter().getPreviewProvider(colourScheme, contourLines, contourSeparation, lightOrigin);
-                if (previewProvider != null) {
-                    tiledImageViewer2.setTileProvider(previewProvider);
-                    if (recentre) {
-                        tiledImageViewer2.moveTo(image.getWidth() / 2, image.getHeight() / 2);
+                final HeightMapImporter importer = createImporter(false);
+                // No idea how this could ever be null, but it has been observed in the wild:
+                if (importer != null) {
+                    final TileProvider previewProvider = importer.getPreviewProvider(colourScheme, contourLines, contourSeparation, lightOrigin);
+                    if (previewProvider != null) {
+                        tiledImageViewer2.setTileProvider(previewProvider);
+                        if (recentre) {
+                            tiledImageViewer2.moveTo(image.getWidth() / 2, image.getHeight() / 2);
+                        }
                     }
                 }
             }

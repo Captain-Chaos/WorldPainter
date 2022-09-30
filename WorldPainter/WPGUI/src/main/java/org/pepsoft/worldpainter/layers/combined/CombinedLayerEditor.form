@@ -19,6 +19,8 @@
           <Component id="jScrollPane1" alignment="0" pref="0" max="32767" attributes="0"/>
           <Group type="102" alignment="1" attributes="0">
               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+              <Component id="buttonEditLayerSettings" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Component id="buttonRemoveLayer" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="buttonAddLayer" min="-2" max="-2" attributes="0"/>
@@ -47,6 +49,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="colourEditor1" min="-2" max="-2" attributes="0"/>
                   </Group>
+                  <Component id="checkBoxApplyTerrainAndBiomeOnExport" alignment="0" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
           </Group>
@@ -56,17 +59,19 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
               <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
-              <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="comboBoxTerrain" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="jLabel3" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="comboBoxBiome" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="checkBoxApplyTerrainAndBiomeOnExport" min="-2" max="-2" attributes="0"/>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
               <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Component id="jScrollPane1" pref="26" max="32767" attributes="0"/>
@@ -74,6 +79,7 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="buttonAddLayer" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="buttonRemoveLayer" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="buttonEditLayerSettings" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
@@ -101,11 +107,6 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JComboBox" name="comboBoxTerrain">
-      <Properties>
-        <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="new DefaultComboBoxModel(Terrain.getConfiguredValues())" type="code"/>
-        </Property>
-      </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="comboBoxTerrainActionPerformed"/>
       </Events>
@@ -122,6 +123,9 @@
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="comboBoxBiomeActionPerformed"/>
       </Events>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;Integer&gt;"/>
+      </AuxValues>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel4">
       <Properties>
@@ -136,6 +140,9 @@
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
         <Component class="javax.swing.JTable" name="tableLayers">
+          <Properties>
+            <Property name="selectionMode" type="int" value="0"/>
+          </Properties>
         </Component>
       </SubComponents>
     </Container>
@@ -171,6 +178,20 @@
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonRemoveLayerActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="checkBoxApplyTerrainAndBiomeOnExport">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="apply terrain and biome on Export"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="buttonEditLayerSettings">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Edit..."/>
+        <Property name="enabled" type="boolean" value="false"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonEditLayerSettingsActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

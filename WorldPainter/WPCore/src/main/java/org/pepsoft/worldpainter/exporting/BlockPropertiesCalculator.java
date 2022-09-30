@@ -50,15 +50,9 @@ public class BlockPropertiesCalculator {
     public BlockPropertiesCalculator(MinecraftWorld world, Platform platform, WorldExportSettings worldExportSettings, BlockBasedExportSettings exportSettings) {
         this.world = world;
         this.platform = platform;
-        skyLight = ((worldExportSettings == null) || (worldExportSettings.getStepsToSkip() == null) || (! worldExportSettings.getStepsToSkip().contains(LIGHTING)))
-                && exportSettings.isCalculateSkyLight()
-                && platform.capabilities.contains(PRECALCULATED_LIGHT);
-        blockLight = ((worldExportSettings == null) || (worldExportSettings.getStepsToSkip() == null) || (! worldExportSettings.getStepsToSkip().contains(LIGHTING)))
-                && exportSettings.isCalculateBlockLight()
-                && platform.capabilities.contains(PRECALCULATED_LIGHT);
-        leafDistance = ((worldExportSettings == null) || (worldExportSettings.getStepsToSkip() == null) || (! worldExportSettings.getStepsToSkip().contains(LEAVES)))
-                && exportSettings.isCalculateLeafDistance()
-                && platform.capabilities.contains(LEAF_DISTANCES);
+        skyLight = isSkyLightNeeded(platform, worldExportSettings, exportSettings);
+        blockLight = isBlockLightNeeded(platform, worldExportSettings, exportSettings);
+        leafDistance = isLeafDistanceNeeded(platform, worldExportSettings, exportSettings);
         removeFloatingLeaves = leafDistance && exportSettings.isRemoveFloatingLeaves();
         if ((! skyLight) && (! blockLight) && (! leafDistance)) {
             throw new IllegalArgumentException("Nothing to do");
@@ -421,6 +415,31 @@ public class BlockPropertiesCalculator {
                 }
             }
         }
+    }
+
+    public static boolean isBlockPropertiesPassNeeded(Platform platform, WorldExportSettings worldExportSettings, BlockBasedExportSettings exportSettings) {
+        boolean skyLight = isSkyLightNeeded(platform, worldExportSettings, exportSettings);
+        boolean blockLight = isBlockLightNeeded(platform, worldExportSettings, exportSettings);
+        boolean leafDistance = isLeafDistanceNeeded(platform, worldExportSettings, exportSettings);
+        return skyLight || blockLight || leafDistance;
+    }
+
+    private static boolean isLeafDistanceNeeded(Platform platform, WorldExportSettings worldExportSettings, BlockBasedExportSettings exportSettings) {
+        return ((worldExportSettings == null) || (worldExportSettings.getStepsToSkip() == null) || (!worldExportSettings.getStepsToSkip().contains(LEAVES)))
+                && exportSettings.isCalculateLeafDistance()
+                && platform.capabilities.contains(LEAF_DISTANCES);
+    }
+
+    private static boolean isBlockLightNeeded(Platform platform, WorldExportSettings worldExportSettings, BlockBasedExportSettings exportSettings) {
+        return ((worldExportSettings == null) || (worldExportSettings.getStepsToSkip() == null) || (!worldExportSettings.getStepsToSkip().contains(LIGHTING)))
+                && exportSettings.isCalculateBlockLight()
+                && platform.capabilities.contains(PRECALCULATED_LIGHT);
+    }
+
+    private static boolean isSkyLightNeeded(Platform platform, WorldExportSettings worldExportSettings, BlockBasedExportSettings exportSettings) {
+        return ((worldExportSettings == null) || (worldExportSettings.getStepsToSkip() == null) || (!worldExportSettings.getStepsToSkip().contains(LIGHTING)))
+                && exportSettings.isCalculateSkyLight()
+                && platform.capabilities.contains(PRECALCULATED_LIGHT);
     }
 
     private int getOpacity(Material material) {

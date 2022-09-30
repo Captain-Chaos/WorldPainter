@@ -25,8 +25,6 @@ import java.util.UUID;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
-import static org.pepsoft.worldpainter.exporting.WorldExportSettings.Step.LEAVES;
-import static org.pepsoft.worldpainter.exporting.WorldExportSettings.Step.LIGHTING;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
@@ -625,8 +623,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 }
                 
                 // Fixups are done *after* calculating the block properties, so we have to do that again (if requested)
-                if (((((BlockBasedExportSettings) exportSettings).isCalculateSkyLight() || ((BlockBasedExportSettings) exportSettings).isCalculateBlockLight()) && ((worldExportSettings == null) || (worldExportSettings.getStepsToSkip() == null) || (! worldExportSettings.getStepsToSkip().contains(LIGHTING))))
-                        || (((BlockBasedExportSettings) exportSettings).isCalculateLeafDistance() && ((worldExportSettings == null) || (worldExportSettings.getStepsToSkip() == null) || (! worldExportSettings.getStepsToSkip().contains(LEAVES))))) {
+                if ((exportSettings instanceof BlockBasedExportSettings) && BlockPropertiesCalculator.isBlockPropertiesPassNeeded(platform, worldExportSettings, (BlockBasedExportSettings) exportSettings)) {
                     recalculateBlockProperties(world, bounds, platform, worldExportSettings, (BlockBasedExportSettings) exportSettings);
                 }
             } else if (logger.isTraceEnabled()) {
