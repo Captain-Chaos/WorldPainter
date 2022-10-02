@@ -197,12 +197,14 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
             if (rotation < 0) {
                 rotation = 3;
             }
-            Tile centreMostTile = threeDeeView.getCentreMostTile();
-            threeDeeView = new ThreeDeeView(dimension, colourScheme, customBiomeManager, rotation, zoom);
-            scrollPane.setViewportView(threeDeeView);
-//            scrollPane.getViewport().setViewPosition(new Point((threeDeeView.getWidth() - scrollPane.getWidth()) / 2, (threeDeeView.getHeight() - scrollPane.getHeight()) / 2));
-            threeDeeView.moveToTile(centreMostTile);
-            glassPane.setRotation(DIRECTIONS[rotation], dimension.getAnchor().invert);
+            final Tile centreMostTile = threeDeeView.getCentreMostTile();
+            if (centreMostTile != null) {
+                threeDeeView = new ThreeDeeView(dimension, colourScheme, customBiomeManager, rotation, zoom);
+                scrollPane.setViewportView(threeDeeView);
+//                scrollPane.getViewport().setViewPosition(new Point((threeDeeView.getWidth() - scrollPane.getWidth()) / 2, (threeDeeView.getHeight() - scrollPane.getHeight()) / 2));
+                threeDeeView.moveToTile(centreMostTile);
+                glassPane.setRotation(DIRECTIONS[rotation], dimension.getAnchor().invert);
+            }
         }
         
         private static final long serialVersionUID = 1L;
@@ -219,12 +221,14 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
             if (rotation > 3) {
                 rotation = 0;
             }
-            Tile centreMostTile = threeDeeView.getCentreMostTile();
-            threeDeeView = new ThreeDeeView(dimension, colourScheme, customBiomeManager, rotation, zoom);
-            scrollPane.setViewportView(threeDeeView);
-//            scrollPane.getViewport().setViewPosition(new Point((threeDeeView.getWidth() - scrollPane.getWidth()) / 2, (threeDeeView.getHeight() - scrollPane.getHeight()) / 2));
-            threeDeeView.moveToTile(centreMostTile);
-            glassPane.setRotation(DIRECTIONS[rotation], dimension.getAnchor().invert);
+            final Tile centreMostTile = threeDeeView.getCentreMostTile();
+            if (centreMostTile != null) {
+                threeDeeView = new ThreeDeeView(dimension, colourScheme, customBiomeManager, rotation, zoom);
+                scrollPane.setViewportView(threeDeeView);
+//                scrollPane.getViewport().setViewPosition(new Point((threeDeeView.getWidth() - scrollPane.getWidth()) / 2, (threeDeeView.getHeight() - scrollPane.getHeight()) / 2));
+                threeDeeView.moveToTile(centreMostTile);
+                glassPane.setRotation(DIRECTIONS[rotation], dimension.getAnchor().invert);
+            }
         }
         
         private static final long serialVersionUID = 1L;
