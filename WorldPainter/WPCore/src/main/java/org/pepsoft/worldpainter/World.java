@@ -5,25 +5,20 @@
 
 package org.pepsoft.worldpainter;
 
-import java.awt.Point;
-import java.awt.Rectangle;
+import org.pepsoft.util.undo.UndoManager;
+import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+
+import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import org.pepsoft.util.undo.UndoManager;
-import static org.pepsoft.worldpainter.Constants.*;
-import org.pepsoft.worldpainter.layers.*;
-import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 
 /**
  * Superseded by {@link World2}. Don't use any more!
@@ -195,7 +190,7 @@ public final class World implements TileProvider, Serializable, Tile.Listener {
         if (tile != null) {
             return tile.getHeight(x & (TILE_SIZE - 1), y & (TILE_SIZE - 1));
         } else {
-            return Float.MIN_VALUE;
+            return -Float.MAX_VALUE;
         }
     }
 

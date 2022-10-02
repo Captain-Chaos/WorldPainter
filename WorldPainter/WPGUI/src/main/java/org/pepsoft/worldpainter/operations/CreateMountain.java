@@ -99,7 +99,7 @@ public class CreateMountain extends MouseOrTabletOperation {
                         return true;
                     });
                     float heightAtHead = dimension.getHeightAt(intNewX, intNewY);
-                    if ((heightAtHead == Float.MIN_VALUE) || (heightAtHead >= newZ)) {
+                    if ((heightAtHead == -Float.MAX_VALUE) || (heightAtHead >= newZ)) {
                         // Off the map, or reached higher ground
                         i.remove();
                     } else {
@@ -147,7 +147,7 @@ public class CreateMountain extends MouseOrTabletOperation {
             int localY = y + dy;
             float localZ = z - d * 2 + dx / 1.5f - Math.min(d / 50, 1) * RANDOM_VARIATION.getHeight(localX, localY); // TODO: make slope and bias configurable, and take it into account for radius of visited circle
             float existingHeight = dimension.getHeightAt(localX, localY);
-            if ((existingHeight > Float.MIN_VALUE) && localZ >= existingHeight) {
+            if ((existingHeight != -Float.MAX_VALUE) && localZ >= existingHeight) {
                 dimension.setHeightAt(localX, localY, localZ);
                 touchedBlocks.set(localX, localY);
             }

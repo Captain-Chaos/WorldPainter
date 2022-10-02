@@ -297,14 +297,14 @@ public class JavaMapImporter extends MapImporter {
                         try {
                             for (int xx = 0; xx < 16; xx++) {
                                 for (int zz = 0; zz < 16; zz++) {
-                                    float height = Float.MIN_VALUE;
+                                    float height = -Float.MAX_VALUE;
                                     int waterLevel = Integer.MIN_VALUE;
                                     boolean floodWithLava = false, frost = false;
                                     Terrain terrain = Terrain.BEDROCK;
                                     for (int y = Math.min(maxY, chunk.getHighestNonAirBlock(xx, zz)); y >= chunkMinHeight; y--) {
                                         Material material = chunk.getMaterial(xx, y, zz);
                                         if (! material.natural) {
-                                            if (height == Float.MIN_VALUE) {
+                                            if (height == -Float.MAX_VALUE) {
                                                 manMadeStructuresAboveGround = true;
                                             } else {
                                                 manMadeStructuresBelowGround = true;
@@ -327,7 +327,7 @@ public class JavaMapImporter extends MapImporter {
                                             if (name == MC_LAVA) {
                                                 floodWithLava = true;
                                             }
-                                        } else if (height == Float.MIN_VALUE) {
+                                        } else if (height == -Float.MAX_VALUE) {
                                             if (TERRAIN_MAPPING.containsKey(name)) {
                                                 // Terrain found
                                                 height = y - 0.4375f; // Value that falls in the middle of the lowest one eighth which will still round to the same integer value and will receive a one layer thick smooth snow block (principle of least surprise)
@@ -345,7 +345,7 @@ public class JavaMapImporter extends MapImporter {
                                     }
                                     // Use smooth snow, if present, to better approximate world height, so smooth snow will survive merge
                                     final int intHeight = Math.round(height);
-                                    if ((height != Float.MIN_VALUE) && (intHeight < maxY)) {
+                                    if ((height != -Float.MAX_VALUE) && (intHeight < maxY)) {
                                         Material materialAbove = chunk.getMaterial(xx, intHeight + 1, zz);
                                         if (materialAbove.isNamed(MC_SNOW)) {
                                             int layers = materialAbove.getProperty(LAYERS);
@@ -372,7 +372,7 @@ public class JavaMapImporter extends MapImporter {
                                     if (floodWithLava) {
                                         dimension.setBitLayerValueAt(FloodWithLava.INSTANCE, blockX, blockY, true);
                                     }
-                                    if (height == Float.MIN_VALUE) {
+                                    if (height == -Float.MAX_VALUE) {
                                         dimension.setBitLayerValueAt(org.pepsoft.worldpainter.layers.Void.INSTANCE, blockX, blockY, true);
                                     }
                                     if (importBiomes) {

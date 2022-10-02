@@ -112,7 +112,7 @@ abstract class TunnelDimension extends RODelegatingDimension<TunnelDimension.Tun
     @Override
     public int getIntHeightAt(int x, int y, int defaultValue) {
         float height = getHeightAt(x, y);
-        return (height == Float.MIN_VALUE) ? defaultValue : Math.round(height);
+        return (height == -Float.MAX_VALUE) ? defaultValue : Math.round(height);
     }
 
     @Override
