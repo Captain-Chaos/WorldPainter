@@ -18,6 +18,8 @@ import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.exporting.ExportSettings;
 import org.pepsoft.worldpainter.gardenofeden.Garden;
 import org.pepsoft.worldpainter.gardenofeden.Seed;
+import org.pepsoft.worldpainter.heightMaps.AbstractHeightMap;
+import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
@@ -39,10 +41,14 @@ import java.beans.PropertyChangeSupport;
 import java.io.*;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static java.util.Arrays.fill;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
@@ -55,6 +61,8 @@ import static org.pepsoft.worldpainter.Dimension.Role.MASTER;
 import static org.pepsoft.worldpainter.Dimension.WallType.BEDROCK;
 import static org.pepsoft.worldpainter.Generator.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.*;
+import static org.pepsoft.worldpainter.panels.DefaultFilter.buildForDimension;
+import static org.pepsoft.worldpainter.util.GeometryUtil.getDistances;
 
 /**
  *
@@ -225,8 +233,13 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      *     specified location.
      */
     @Override
-    public synchronized boolean isTilePresent(final int x, final int y) {
-        return tiles.containsKey(new Point(x, y));
+    public boolean isTilePresent(final int x, final int y) {
+        readLock.lock();
+        try {
+            return tiles.containsKey(new Point(x, y));
+        } finally {
+            readLock.unlock();
+        }
     }
 
     /**
@@ -238,39 +251,44 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      *     border tile.
      * @return {@code true} if it is a border tile.
      */
-    public synchronized boolean isBorderTile(int x, int y) {
-        if ((border == null)
-                || ((! border.isEndless())
+    public boolean isBorderTile(int x, int y) {
+        readLock.lock();
+        try {
+            if ((border == null)
+                    || ((!border.isEndless())
                     && ((x < (lowestX - borderSize))
-                        || (x > (highestX + borderSize))
-                        || (y < (lowestY - borderSize))
-                        || (y > (highestY + borderSize))))) {
-            // Couldn't possibly be a border tile
-            return false;
-        } else if (tiles.containsKey(new Point(x, y))) {
-            // There's a tile in the dimension at these coordinates, so not a
-            // border tile
-            return false;
-        } else if (border.isEndless()) {
-            // The border is an endless border, so any tile outside the
-            // dimension is a border tile
-            return true;
-        } else {
-            for (int r = 1; r <= borderSize; r++) {
-                for (int i = 0; i <= (r * 2); i++) {
-                    if (tiles.containsKey(new Point(x + i - r, y - r))
-                        || tiles.containsKey(new Point(x + r, y + i - r))
-                        || tiles.containsKey(new Point(x + r - i, y + r))
-                        || tiles.containsKey(new Point(x - r, y - i + r))) {
-                        // Found a tile in the dimension <= borderSize tiles
-                        // away, so this is a border tile
-                        return true;
+                    || (x > (highestX + borderSize))
+                    || (y < (lowestY - borderSize))
+                    || (y > (highestY + borderSize))))) {
+                // Couldn't possibly be a border tile
+                return false;
+            } else if (tiles.containsKey(new Point(x, y))) {
+                // There's a tile in the dimension at these coordinates, so not a
+                // border tile
+                return false;
+            } else if (border.isEndless()) {
+                // The border is an endless border, so any tile outside the
+                // dimension is a border tile
+                return true;
+            } else {
+                for (int r = 1; r <= borderSize; r++) {
+                    for (int i = 0; i <= (r * 2); i++) {
+                        if (tiles.containsKey(new Point(x + i - r, y - r))
+                                || tiles.containsKey(new Point(x + r, y + i - r))
+                                || tiles.containsKey(new Point(x + r - i, y + r))
+                                || tiles.containsKey(new Point(x - r, y - i + r))) {
+                            // Found a tile in the dimension <= borderSize tiles
+                            // away, so this is a border tile
+                            return true;
+                        }
                     }
                 }
+                // No tiles in dimension <= borderSize tiles away, so not a border
+                // tile
+                return false;
             }
-            // No tiles in dimension <= borderSize tiles away, so not a border
-            // tile
-            return false;
+        } finally {
+            readLock.unlock();
         }
     }
 
@@ -283,12 +301,22 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      *     {@code null} if there is no tile for those coordinates
      */
     @Override
-    public synchronized Tile getTile(final int x, final int y) {
-        return tiles.get(new Point(x, y));
+    public Tile getTile(final int x, final int y) {
+        readLock.lock();
+        try {
+            return tiles.get(new Point(x, y));
+        } finally {
+            readLock.unlock();
+        }
     }
 
-    public synchronized Tile getTile(final Point coords) {
-        return tiles.get(coords);
+    public Tile getTile(final Point coords) {
+        readLock.lock();
+        try {
+            return tiles.get(coords);
+        } finally {
+            readLock.unlock();
+        }
     }
 
     /**
@@ -302,13 +330,18 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      * @return The tile on which the specified coordinates lie, or
      *     {@code null} if there is no tile for those coordinates
      */
-    public synchronized Tile getTileForEditing(final int x, final int y) {
-        Tile tile = tiles.get(new Point(x, y));
-        if ((tile != null) && eventsInhibited && (! tile.isEventsInhibited())) {
-            tile.inhibitEvents();
-            dirtyTiles.add(tile);
+    public Tile getTileForEditing(final int x, final int y) {
+        readLock.lock();
+        try {
+            Tile tile = tiles.get(new Point(x, y));
+            if ((tile != null) && eventsInhibited && (!tile.isEventsInhibited())) {
+                tile.inhibitEvents();
+                dirtyTiles.add(tile);
+            }
+            return tile;
+        } finally {
+            readLock.unlock();
         }
-        return tile;
     }
 
     /**
@@ -321,13 +354,18 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      * @return The tile on which the specified coordinates lie, or
      *     {@code null} if there is no tile for those coordinates
      */
-    public synchronized Tile getTileForEditing(final Point coords) {
-        Tile tile = tiles.get(coords);
-        if ((tile != null) && eventsInhibited && (! tile.isEventsInhibited())) {
-            tile.inhibitEvents();
-            dirtyTiles.add(tile);
+    public Tile getTileForEditing(final Point coords) {
+        readLock.lock();
+        try {
+            Tile tile = tiles.get(coords);
+            if ((tile != null) && eventsInhibited && (!tile.isEventsInhibited())) {
+                tile.inhibitEvents();
+                dirtyTiles.add(tile);
+            }
+            return tile;
+        } finally {
+            readLock.unlock();
         }
-        return tile;
     }
 
     @Override
@@ -340,42 +378,57 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public Collection<? extends Tile> getTiles() {
-        return Collections.unmodifiableCollection(tiles.values());
+        readLock.lock();
+        try {
+            return Collections.unmodifiableCollection(tiles.values());
+        } finally {
+            readLock.unlock();
+        }
     }
 
     public Set<Point> getTileCoords() {
-        return Collections.unmodifiableSet(tiles.keySet());
+        readLock.lock();
+        try {
+            return Collections.unmodifiableSet(tiles.keySet());
+        } finally {
+            readLock.unlock();
+        }
     }
 
-    public synchronized void addTile(Tile tile) {
-        if (tile.getMaxHeight() != maxHeight) {
-            throw new IllegalArgumentException("Tile has different max height (" + tile.getMaxHeight() + ") than dimension (" + maxHeight + ")");
+    public void addTile(Tile tile) {
+        writeLock.lock();
+        try {
+            if (tile.getMaxHeight() != maxHeight) {
+                throw new IllegalArgumentException("Tile has different max height (" + tile.getMaxHeight() + ") than dimension (" + maxHeight + ")");
+            }
+            final int x = tile.getX();
+            final int y = tile.getY();
+            final Point key = new Point(x, y);
+            if (tiles.containsKey(key)) {
+                throw new IllegalStateException("Tile already set");
+            }
+            tile.addListener(this);
+            if (undoManager != null) {
+                tile.register(undoManager);
+            }
+            tiles.put(key, tile);
+            if (x < lowestX) {
+                lowestX = x;
+            }
+            if (x > highestX) {
+                highestX = x;
+            }
+            if (y < lowestY) {
+                lowestY = y;
+            }
+            if (y > highestY) {
+                highestY = y;
+            }
+            fireTileAdded(tile);
+            changeNo++;
+        } finally {
+            writeLock.unlock();
         }
-        final int x = tile.getX();
-        final int y = tile.getY();
-        final Point key = new Point(x, y);
-        if (tiles.containsKey(key)) {
-            throw new IllegalStateException("Tile already set");
-        }
-        tile.addListener(this);
-        if (undoManager != null) {
-            tile.register(undoManager);
-        }
-        tiles.put(key, tile);
-        if (x < lowestX) {
-            lowestX = x;
-        }
-        if (x > highestX) {
-            highestX = x;
-        }
-        if (y < lowestY) {
-            lowestY = y;
-        }
-        if (y > highestY) {
-            highestY = y;
-        }
-        fireTileAdded(tile);
-        changeNo++;
     }
 
     public void removeTile(int tileX, int tileY) {
@@ -386,40 +439,45 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         removeTile(tile.getX(), tile.getY());
     }
 
-    public synchronized void removeTile(Point coords) {
-        if (! tiles.containsKey(coords)) {
-            throw new IllegalStateException("Tile not set");
-        }
-        final Tile tile = tiles.remove(coords);
-        if (undoManager != null) {
-            tile.unregister();
-        }
-        tile.removeListener(this);
-        // If the tile lies at the edge of the world it's possible the low and
-        // high coordinate marks should change; so recalculate them in that case
-        if ((coords.x == lowestX) || (coords.x == highestX) || (coords.y == lowestY) || (coords.y == highestY)) {
-            lowestX = Integer.MAX_VALUE;
-            highestX = Integer.MIN_VALUE;
-            lowestY = Integer.MAX_VALUE;
-            highestY = Integer.MIN_VALUE;
-            for (Tile myTile: tiles.values()) {
-                int myTileX = myTile.getX(), myTileY = myTile.getY();
-                if (myTileX < lowestX) {
-                    lowestX = myTileX;
-                }
-                if (myTileX > highestX) {
-                    highestX = myTileX;
-                }
-                if (myTileY < lowestY) {
-                    lowestY = myTileY;
-                }
-                if (myTileY > highestY) {
-                    highestY = myTileY;
+    public void removeTile(Point coords) {
+        writeLock.lock();
+        try {
+            if (!tiles.containsKey(coords)) {
+                throw new IllegalStateException("Tile not set");
+            }
+            final Tile tile = tiles.remove(coords);
+            if (undoManager != null) {
+                tile.unregister();
+            }
+            tile.removeListener(this);
+            // If the tile lies at the edge of the world it's possible the low and
+            // high coordinate marks should change; so recalculate them in that case
+            if ((coords.x == lowestX) || (coords.x == highestX) || (coords.y == lowestY) || (coords.y == highestY)) {
+                lowestX = Integer.MAX_VALUE;
+                highestX = Integer.MIN_VALUE;
+                lowestY = Integer.MAX_VALUE;
+                highestY = Integer.MIN_VALUE;
+                for (Tile myTile: tiles.values()) {
+                    int myTileX = myTile.getX(), myTileY = myTile.getY();
+                    if (myTileX < lowestX) {
+                        lowestX = myTileX;
+                    }
+                    if (myTileX > highestX) {
+                        highestX = myTileX;
+                    }
+                    if (myTileY < lowestY) {
+                        lowestY = myTileY;
+                    }
+                    if (myTileY > highestY) {
+                        highestY = myTileY;
+                    }
                 }
             }
+            fireTileRemoved(tile);
+            changeNo++;
+        } finally {
+            writeLock.unlock();
         }
-        fireTileRemoved(tile);
-        changeNo++;
     }
 
     public int getHighestX() {
@@ -678,28 +736,33 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      * @param r The radius of the square. The side of the square is 2&middot;r+1
      * @return The number of blocks in the specified square where the specified bit layer is set.
      */
-    public synchronized int getBitLayerCount(final Layer layer, final int x, final int y, final int r) {
-        final int tileX = x >> TILE_SIZE_BITS, tileY = y >> TILE_SIZE_BITS;
-        if (((x - r) >> TILE_SIZE_BITS == tileX) && ((x + r) >> TILE_SIZE_BITS == tileX) && ((y - r) >> TILE_SIZE_BITS == tileY) && ((y + r) >> TILE_SIZE_BITS == tileY)) {
-            // The requested area is completely contained in one tile, optimise
-            // by delegating to the tile
-            final Tile tile = getTile(tileX, tileY);
-            if (tile != null) {
-                return tile.getBitLayerCount(layer, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK, r);
+    public int getBitLayerCount(final Layer layer, final int x, final int y, final int r) {
+        readLock.lock();
+        try {
+            final int tileX = x >> TILE_SIZE_BITS, tileY = y >> TILE_SIZE_BITS;
+            if (((x - r) >> TILE_SIZE_BITS == tileX) && ((x + r) >> TILE_SIZE_BITS == tileX) && ((y - r) >> TILE_SIZE_BITS == tileY) && ((y + r) >> TILE_SIZE_BITS == tileY)) {
+                // The requested area is completely contained in one tile, optimise
+                // by delegating to the tile
+                final Tile tile = getTile(tileX, tileY);
+                if (tile != null) {
+                    return tile.getBitLayerCount(layer, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK, r);
+                } else {
+                    return 0;
+                }
             } else {
-                return 0;
-            }
-        } else {
-            // The requested area overlaps tile boundaries; do it the slow way
-            int count = 0;
-            for (int dx = -r; dx <= r; dx++) {
-                for (int dy = -r; dy <= r; dy++) {
-                    if (getBitLayerValueAt(layer, x + dx, y + dy)) {
-                        count++;
+                // The requested area overlaps tile boundaries; do it the slow way
+                int count = 0;
+                for (int dx = -r; dx <= r; dx++) {
+                    for (int dy = -r; dy <= r; dy++) {
+                        if (getBitLayerValueAt(layer, x + dx, y + dy)) {
+                            count++;
+                        }
                     }
                 }
+                return count;
             }
-            return count;
+        } finally {
+            readLock.unlock();
         }
     }
 
@@ -740,31 +803,36 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return doGetFloodedCount(x, y, r, lava);
     }
 
-    protected final synchronized int doGetFloodedCount(final int x, final int y, final int r, final boolean lava) {
-        final int tileX = x >> TILE_SIZE_BITS, tileY = y >> TILE_SIZE_BITS;
-        if (((x - r) >> TILE_SIZE_BITS == tileX) && ((x + r) >> TILE_SIZE_BITS == tileX) && ((y - r) >> TILE_SIZE_BITS == tileY) && ((y + r) >> TILE_SIZE_BITS == tileY)) {
-            // The requested area is completely contained in one tile, optimise
-            // by delegating to the tile
-            final Tile tile = getTile(tileX, tileY);
-            if (tile != null) {
-                return tile.getFloodedCount(x & TILE_SIZE_MASK, y & TILE_SIZE_MASK, r, lava);
+    protected final int doGetFloodedCount(final int x, final int y, final int r, final boolean lava) {
+        readLock.lock();
+        try {
+            final int tileX = x >> TILE_SIZE_BITS, tileY = y >> TILE_SIZE_BITS;
+            if (((x - r) >> TILE_SIZE_BITS == tileX) && ((x + r) >> TILE_SIZE_BITS == tileX) && ((y - r) >> TILE_SIZE_BITS == tileY) && ((y + r) >> TILE_SIZE_BITS == tileY)) {
+                // The requested area is completely contained in one tile, optimise
+                // by delegating to the tile
+                final Tile tile = getTile(tileX, tileY);
+                if (tile != null) {
+                    return tile.getFloodedCount(x & TILE_SIZE_MASK, y & TILE_SIZE_MASK, r, lava);
+                } else {
+                    return 0;
+                }
             } else {
-                return 0;
-            }
-        } else {
-            // The requested area overlaps tile boundaries; do it the slow way
-            int count = 0;
-            for (int dx = -r; dx <= r; dx++) {
-                for (int dy = -r; dy <= r; dy++) {
-                    final int xx = x + dx, yy = y + dy;
-                    if ((getWaterLevelAt(xx, yy) > getIntHeightAt(xx, yy))
-                            && (lava ? getBitLayerValueAt(FloodWithLava.INSTANCE, xx, yy)
-                                : (! getBitLayerValueAt(FloodWithLava.INSTANCE, xx, yy)))) {
-                        count++;
+                // The requested area overlaps tile boundaries; do it the slow way
+                int count = 0;
+                for (int dx = -r; dx <= r; dx++) {
+                    for (int dy = -r; dy <= r; dy++) {
+                        final int xx = x + dx, yy = y + dy;
+                        if ((getWaterLevelAt(xx, yy) > getIntHeightAt(xx, yy))
+                                && (lava ? getBitLayerValueAt(FloodWithLava.INSTANCE, xx, yy)
+                                : (!getBitLayerValueAt(FloodWithLava.INSTANCE, xx, yy)))) {
+                            count++;
+                        }
                     }
                 }
+                return count;
             }
-            return count;
+        } finally {
+            readLock.unlock();
         }
     }
 
@@ -786,53 +854,188 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return doGetDistanceToEdge(layer, x, y, maxDistance);
     }
 
-    protected final synchronized float doGetDistanceToEdge(final Layer layer, final int x, final int y, final float maxDistance) {
-        final int r = (int) Math.ceil(maxDistance);
-        final int tileX = x >> TILE_SIZE_BITS, tileY = y >> TILE_SIZE_BITS;
-        if (((x - r) >> TILE_SIZE_BITS == tileX) && ((x + r) >> TILE_SIZE_BITS == tileX) && ((y - r) >> TILE_SIZE_BITS == tileY) && ((y + r) >> TILE_SIZE_BITS == tileY)) {
-            // The requested area is completely contained in one tile, optimise
-            // by delegating to the tile
-            final Tile tile = getTile(tileX, tileY);
-            if (tile != null) {
-                return tile.getDistanceToEdge(layer, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK, maxDistance);
-            } else {
-                return 0;
+    /**
+     * Bake the edge distances for an entire painted layer and return them as a {@link HeightMap}. For high values of
+     * {@code maxDistance} this is <em>much</em> quicker than interrogating the edge distance of every pixel via
+     * {@link #getDistanceToEdge(Layer, int, int, float)}, but the information is static and does not update when the
+     * dimension is updated.
+     *
+     * <p><strong>Note</strong> that the information in the height map is only valid for pixels where the layer is set
+     * in the dimension! For other pixels the value is undefined.
+     *
+     * @param layer       The layer for which to bake the edge distances. Must have data type
+     *                    {@link Layer.DataSize#BIT BIT} or {@link Layer.DataSize#BIT_PER_CHUNK BIT_PER_CHUNK}.
+     * @param maxDistance The maximum edge distance to calculate. Pixels where the layer is set and the distance to the
+     *                    nearest edge is higher will have this value set.
+     * @return A {@link HeightMap} returning the distance to the nearest edge for every pixel where the specified layer
+     * is set in this dimension.
+     */
+    @SuppressWarnings("UnnecessaryLocalVariable") // Clarity
+    public HeightMap getDistancesToEdge(final Layer layer, final float maxDistance) {
+        // Precalculate relative distances
+        final float[][] distances = getDistances(maxDistance);
+
+        // Gather all the tiles that contain the layer so we can work on them directly rather than looking up tiles
+        // continuously. visitTiles() will do the read locking
+        final int[] coords = {Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE};
+        final Set<Tile> tilesToProcess = new HashSet<>();
+        final Set<Point> tileCoordsToProcess = new HashSet<>();
+        visitTiles().forFilter(buildForDimension(this).onlyOn(layer).build()).andDo(tile -> {
+            final int tileX = tile.getX(), tileY = tile.getY();
+            if (tileX < coords[0]) {
+                coords[0] = tileX;
             }
-        } else {
-            if (! getBitLayerValueAt(layer, x, y)) {
-                return 0;
+            if (tileX > coords[1]) {
+                coords[1] = tileX;
             }
-            float distance = maxDistance;
-            for (int i = 1; i <= r; i++) {
-                if (((! getBitLayerValueAt(layer, x - i, y))
-                            || (! getBitLayerValueAt(layer, x + i, y))
-                            || (! getBitLayerValueAt(layer, x, y - i))
-                            || (! getBitLayerValueAt(layer, x, y + i)))
-                        && (i < distance)) {
-                    // If we get here there's no possible way a shorter
-                    // distance could be found later, so return immediately
-                    return i;
+            if (tileY < coords[2]) {
+                coords[2] = tileY;
+            }
+            if (tileY > coords[3]) {
+                coords[3] = tileY;
+            }
+            tilesToProcess.add(tile);
+            tileCoordsToProcess.add(new Point(tileX, tileY));
+        });
+
+        // If there are no tiles with the layer we're done
+        if (tilesToProcess.isEmpty()) {
+            return new ConstantHeightMap(0.0f);
+        }
+
+        // Also add the coordinates of all adjacent tiles, otherwise we can't detect edges that lie on a tile boundary
+        final int[] deltas = {0, -1, 1, 0, 0, 1, -1, 0};
+        for (Tile tile: tilesToProcess) {
+            for (int i = 0; i < 4; i++) {
+                final Point adjacentCoords = new Point(tile.getX() + deltas[i * 2], tile.getY() + deltas[i * 2 + 1]);
+                if (tileCoordsToProcess.contains(adjacentCoords)) {
+                    continue;
                 }
-                for (int d = 1; d <= i; d++) {
-                    if ((! getBitLayerValueAt(layer, x - i, y - d))
-                            || (! getBitLayerValueAt(layer, x + d, y - i))
-                            || (! getBitLayerValueAt(layer, x + i, y + d))
-                            || (! getBitLayerValueAt(layer, x - d, y + i))
-                            || ((d < i) && ((! getBitLayerValueAt(layer, x - i, y + d))
-                                || (! getBitLayerValueAt(layer, x - d, y - i))
-                                || (! getBitLayerValueAt(layer, x + i, y - d))
-                                || (! getBitLayerValueAt(layer, x + d, y + i))))) {
-                        float tDistance = MathUtils.getDistance(i, d);
-                        if (tDistance < distance) {
-                            distance = tDistance;
+                tileCoordsToProcess.add(adjacentCoords);
+            }
+        }
+
+        // Store the tiles in a 2D array for fast access; also create the cache that will hold the distance values
+        final int tileX1 = coords[0], tileX2 = coords[1], tileY1 = coords[2], tileY2 = coords[3];
+        final Tile[][] tileCache = new Tile[tileX2 - tileX1 + 1][tileY2 - tileY1 + 1];
+        final float[][][][] distanceCache = new float[tileX2 - tileX1 + 1][tileY2 - tileY1 + 1][][];
+        final int tileXOffset = tileX1, tileYOffset = tileY1;
+        for (Tile tile: tilesToProcess) {
+            tileCache[tile.getX() - tileXOffset][tile.getY() - tileYOffset] = tile;
+            // Initialise the entire cache to maxDistance. It is the caller's responsibility to consult it only
+            // where the layer is actually set
+            final float[][] cacheForTile = new float[TILE_SIZE][TILE_SIZE];
+            for (float[] column: cacheForTile) {
+                fill(column, maxDistance);
+            }
+            distanceCache[tile.getX() - tileXOffset][tile.getY() - tileYOffset] = cacheForTile;
+        }
+
+        // TODO: don't do this separately for every exported region
+
+        // Now find all edge pixels and adjust the distances in the cache for the pixels around each one
+        final int r = (int) Math.ceil(maxDistance), d = 2 * r + 1;
+        for (Point tileCoords: tileCoordsToProcess) {
+            for (int x = 0; x < TILE_SIZE; x++) {
+                for (int y = 0; y < TILE_SIZE; y++) {
+                    final int worldX = (tileCoords.x << TILE_SIZE_BITS) | x, worldY = (tileCoords.y << TILE_SIZE_BITS) | y;
+                    if ((! getBitLayerValueAt(tileCache, tileXOffset, tileYOffset, layer, worldX, worldY))
+                            && (getBitLayerValueAt(tileCache, tileXOffset, tileYOffset, layer, worldX - 1, worldY)
+                            || getBitLayerValueAt(tileCache, tileXOffset, tileYOffset, layer, worldX, worldY - 1)
+                            || getBitLayerValueAt(tileCache, tileXOffset, tileYOffset, layer, worldX + 1, worldY)
+                            || getBitLayerValueAt(tileCache, tileXOffset, tileYOffset, layer, worldX, worldY + 1))) {
+                        // This pixel is directly outside the layer's painted area; adjust the pixels around it
+                        // in the distance cache
+                        for (int dx = -r; dx <= r; dx++) {
+                            for (int dy = -r; dy <= r; dy++) {
+                                setCachedValueIfLower(distanceCache, tileXOffset, tileYOffset, worldX + dx, worldY + dy, distances[dx + r][dy + r]);
+                            }
                         }
-                        // We won't find a shorter distance this round, so
-                        // skip to the next round
-                        break;
                     }
                 }
             }
-            return distance;
+        }
+
+        // Return a HeightMap that will return values from the distance cache
+        return new AbstractHeightMap() {
+            @Override
+            public Icon getIcon() {
+                return null;
+            }
+
+            @Override
+            public float[] getRange() {
+                return new float[] {0.0f, maxDistance};
+            }
+
+            @Override
+            public float getHeight(int x, int y) {
+                final int tileX = (x >> TILE_SIZE_BITS) - tileXOffset, tileY = (y >> TILE_SIZE_BITS) - tileYOffset;
+                if ((tileX < 0) || (tileX >= distanceCache.length) || (tileY < 0) || (tileY >= distanceCache[0].length) || (distanceCache[tileX][tileY] == null)) {
+                    return 0.0f;
+                }
+                return distanceCache[tileX][tileY][x & TILE_SIZE_MASK][y & TILE_SIZE_MASK];
+            }
+        };
+    }
+
+    protected final float doGetDistanceToEdge(final Layer layer, final int x, final int y, final float maxDistance) {
+        readLock.lock();
+        try {
+            final int r = (int) Math.ceil(maxDistance);
+            final int tileX1 = (x - r) >> TILE_SIZE_BITS, tileX2 = (x + r) >> TILE_SIZE_BITS, tileY1 = (y - r) >> TILE_SIZE_BITS, tileY2 = (y + r) >> TILE_SIZE_BITS;
+            if ((tileX1 == tileX2) && (tileY1 == tileY2)) {
+                // The requested area is completely contained in one tile, optimise by delegating to the tile
+                final Tile tile = getTile(tileX1, tileY1);
+                if (tile != null) {
+                    return tile.getDistanceToEdge(layer, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK, maxDistance);
+                } else {
+                    return 0;
+                }
+            } else {
+                if (! getBitLayerValueAt(layer, x, y)) {
+                    return 0;
+                }
+                final Tile[][] tiles = new Tile[tileX2 - tileX1 + 1][tileY2 - tileY1 + 1];
+                for (int tileX = tileX1; tileX <= tileX2; tileX++) {
+                    for (int tileY = tileY1; tileY <= tileY2; tileY++) {
+                        tiles[tileX - tileX1][tileY - tileY1] = getTile(tileX, tileY);
+                    }
+                }
+                float distance = maxDistance;
+                // TODO this is MUCH too slow, due to the incessant locking. Optimise this (by caching the information?)
+                for (int i = 1; i <= r; i++) {
+                    if (((! getBitLayerValueAt(tiles, tileX1, tileY1, layer, x - i, y))
+                            || (! getBitLayerValueAt(tiles, tileX1, tileY1, layer, x + i, y))
+                            || (! getBitLayerValueAt(tiles, tileX1, tileY1, layer, x, y - i))
+                            || (! getBitLayerValueAt(tiles, tileX1, tileY1, layer, x, y + i)))
+                            && (i < distance)) {
+                        // If we get here there's no possible way a shorter distance could be found later, so return
+                        // immediately
+                        return i;
+                    }
+                    for (int d = 1; d <= i; d++) {
+                        if ((! getBitLayerValueAt(tiles, tileX1, tileY1, layer, x - i, y - d))
+                                || (! getBitLayerValueAt(tiles, tileX1, tileY1, layer, x + d, y - i))
+                                || (! getBitLayerValueAt(tiles, tileX1, tileY1, layer, x + i, y + d))
+                                || (! getBitLayerValueAt(tiles, tileX1, tileY1, layer, x - d, y + i))
+                                || ((d < i) && ((! getBitLayerValueAt(tiles, tileX1, tileY1, layer, x - i, y + d))
+                                || (! getBitLayerValueAt(tiles, tileX1, tileY1, layer, x - d, y - i))
+                                || (! getBitLayerValueAt(tiles, tileX1, tileY1, layer, x + i, y - d))
+                                || (! getBitLayerValueAt(tiles, tileX1, tileY1, layer, x + d, y + i))))) {
+                            float tDistance = MathUtils.getDistance(i, d);
+                            if (tDistance < distance) {
+                                distance = tDistance;
+                            }
+                            // We won't find a shorter distance this round, so skip to the next round
+                            break;
+                        }
+                    }
+                }
+                return distance;
+            }
+        } finally {
+            readLock.unlock();
         }
     }
 
@@ -1579,13 +1782,16 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             // Remove all tiles
             final Map<Point, Tile> oldTiles = new HashMap<>(tiles);
             final Set<Tile> removedTiles;
-            synchronized (this) {
+            writeLock.lock();
+            try {
                 tiles.clear();
                 removedTiles = new HashSet<>(oldTiles.values());
                 for (Tile removedTile: removedTiles) {
                     removedTile.removeListener(this);
                     removedTile.unregister();
                 }
+            } finally {
+                writeLock.unlock();
             }
             clearUndo();
             for (Listener listener: listeners) {
@@ -1686,8 +1892,37 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      *
      * @return
      */
+    public TileVisitationBuilder visitTilesForEditing() {
+        return new TileVisitationBuilder(false);
+    }
+
+    /**
+     * Visit the tiles in this dimension, optionally constraining the visited
+     * tiles according to some basic constraints. Uses the builder pattern. To
+     * visit all tiles, do:
+     *
+     * <pre>visitTiles().andDo(tile -> { /* process tile &#42;/ });</pre>
+     *
+     * <p>To restrict to a filter:
+     *
+     * <pre>visitTiles().forFilter(filter).andDo(tile -> { /* process tile &#42;/ });</pre>
+     *
+     * <p>To restrict to a brush:
+     *
+     * <pre>visitTiles().forBrush(brush, x, y).andDo(tile -> { /* process tile &#42;/ });</pre>
+     *
+     * <p>To restrict to the selection:
+     *
+     * <pre>visitTiles().forSelection().andDo(tile -> { /* process tile &#42;/ });</pre>
+     *
+     * <p>You can combine constraints:
+     *
+     * <pre>visitTiles().forFilter(filter).forBrush(brush, x, y).andDo(tile -> { /* process tile &#42;/ });</pre>
+     *
+     * @return
+     */
     public TileVisitationBuilder visitTiles() {
-        return new TileVisitationBuilder();
+        return new TileVisitationBuilder(true);
     }
 
     public <T> T getAttribute(AttributeKey<T> key) {
@@ -1728,7 +1963,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
         final int xx1 = (x << 2) & TILE_SIZE_MASK, yy1 = (y << 2) & TILE_SIZE_MASK, xx2 = xx1 + 4, yy2 = yy1 + 4;
         final int[] histogram = biomeHistogramRef.get();
-        Arrays.fill(histogram, 0);
+        fill(histogram, 0);
         for (int xx = xx1; xx < xx2; xx++) {
             for (int yy = yy1; yy < yy2; yy++) {
                 int biome = tile.getLayerValue(Biome.INSTANCE, xx, yy);
@@ -1755,56 +1990,61 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return mostPrevalentBiome;
     }
 
-    public synchronized void save(ZipOutputStream out) throws IOException {
-        setEventsInhibited(true);
+    public void save(ZipOutputStream out) throws IOException {
+        readLock.lock();
         try {
-            // First serialise everything but the tiles to a separate file
-            final String path = anchor + "/";
-            out.putNextEntry(new ZipEntry(path + "dim-data.bin"));
+            setEventsInhibited(true);
             try {
-                final Map<Point, Tile> savedTiles = tiles;
-                final World2 savedWorld = world;
+                // First serialise everything but the tiles to a separate file
+                final String path = anchor + "/";
+                out.putNextEntry(new ZipEntry(path + "dim-data.bin"));
                 try {
-                    tiles = null;
-                    world = null;
-                    final ObjectOutputStream dataout = new ObjectOutputStream(out);
-                    dataout.writeObject(this);
-                    dataout.flush();
-                } finally {
-                    tiles = savedTiles;
-                    world = savedWorld;
-                }
-            } finally {
-                out.closeEntry();
-            }
-
-            // Then serialise the tiles, grouped by region
-            final int regionX1 = lowestX >> 2, regionX2 = highestX >> 2, regionY1 = lowestY >> 2, regionY2 = highestY >> 2;
-            for (int regionX = regionX1; regionX <= regionX2; regionX++) {
-                for (int regionY = regionY1; regionY <= regionY2; regionY++) {
-                    final List<Tile> tileList = new ArrayList<>();
-                    for (int tileX = 0; tileX < 4; tileX++) {
-                        for (int tileY = 0; tileY < 4; tileY++) {
-                            final Tile tile = tiles.get(new Point((regionX << 2) | tileX, (regionY << 2) | tileY));
-                            if (tile != null) {
-                                tile.prepareForSaving();
-                                tileList.add(tile);
-                            }
-                        }
-                    }
-
-                    out.putNextEntry(new ZipEntry(path + "region-data-" + regionX + "," + regionY + ".bin"));
+                    final Map<Point, Tile> savedTiles = tiles;
+                    final World2 savedWorld = world;
                     try {
+                        tiles = null;
+                        world = null;
                         final ObjectOutputStream dataout = new ObjectOutputStream(out);
-                        dataout.writeObject(tileList);
+                        dataout.writeObject(this);
                         dataout.flush();
                     } finally {
-                        out.closeEntry();
+                        tiles = savedTiles;
+                        world = savedWorld;
+                    }
+                } finally {
+                    out.closeEntry();
+                }
+
+                // Then serialise the tiles, grouped by region
+                final int regionX1 = lowestX >> 2, regionX2 = highestX >> 2, regionY1 = lowestY >> 2, regionY2 = highestY >> 2;
+                for (int regionX = regionX1; regionX <= regionX2; regionX++) {
+                    for (int regionY = regionY1; regionY <= regionY2; regionY++) {
+                        final List<Tile> tileList = new ArrayList<>();
+                        for (int tileX = 0; tileX < 4; tileX++) {
+                            for (int tileY = 0; tileY < 4; tileY++) {
+                                final Tile tile = tiles.get(new Point((regionX << 2) | tileX, (regionY << 2) | tileY));
+                                if (tile != null) {
+                                    tile.prepareForSaving();
+                                    tileList.add(tile);
+                                }
+                            }
+                        }
+
+                        out.putNextEntry(new ZipEntry(path + "region-data-" + regionX + "," + regionY + ".bin"));
+                        try {
+                            final ObjectOutputStream dataout = new ObjectOutputStream(out);
+                            dataout.writeObject(tileList);
+                            dataout.flush();
+                        } finally {
+                            out.closeEntry();
+                        }
                     }
                 }
+            } finally {
+                setEventsInhibited(false);
             }
         } finally {
-            setEventsInhibited(false);
+            readLock.unlock();
         }
     }
 
@@ -1843,6 +2083,34 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     @Override
     public void allNonBitlayerDataChanged(Tile tile) {
         changeNo++;
+    }
+
+    /**
+     * Optimised version of {@link #getBitLayerValueAt(Layer, int, int)} which gets the information from a 2D array
+     * cache of {@link Tile}s rather than looking up the tile each time.
+     */
+    private boolean getBitLayerValueAt(Tile[][] tileCache, int tileXOffset, int tileYOffset, Layer layer, int x, int y) {
+        final int tileX = (x >> TILE_SIZE_BITS) - tileXOffset, tileY = (y >> TILE_SIZE_BITS) - tileYOffset;
+        if ((tileX < 0) || (tileX >= tileCache.length) || (tileY < 0) || (tileY >= tileCache[0].length) || (tileCache[tileX][tileY] == null)) {
+            return false;
+        } else {
+            return tileCache[tileX][tileY].getBitLayerValue(layer, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK);
+        }
+    }
+
+    /**
+     * Updates the value in a 4D cache of {@code float}s (2D arrays of pixels per tile, arranged in a 2D array of tiles)
+     * if the current value is higher.
+     */
+    private void setCachedValueIfLower(float[][][][] cache, int tileXOffset, int tileYOffset, int x, int y, float value) {
+        final int tileX = (x >> TILE_SIZE_BITS) - tileXOffset, tileY = (y >> TILE_SIZE_BITS) - tileYOffset;
+        if ((tileX < 0) || (tileX >= cache.length) || (tileY < 0) || (tileY >= cache[0].length) || (cache[tileX][tileY] == null)) {
+            return;
+        }
+        final int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
+        if (value < cache[tileX][tileY][xInTile][yInTile]) {
+            cache[tileX][tileY][xInTile][yInTile] = value;
+        }
     }
 
     private void fireTileAdded(Tile tile) {
@@ -1924,6 +2192,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         topLayerDepthNoise = new PerlinNoise(seed + TOP_LAYER_DEPTH_SEED_OFFSET);
         rememberedChangeNo = -1;
         biomeHistogramRef = ThreadLocal.withInitial(() -> new int[255]);
+        lock = new ReentrantReadWriteLock();
+        readLock = lock.readLock();
+        writeLock = lock.writeLock();
 
         if (tiles == null) {
             tiles = new HashMap<>();
@@ -2144,6 +2415,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private transient PerlinNoise topLayerDepthNoise;
     private transient long changeNo, rememberedChangeNo = -1;
     private transient ThreadLocal<int[]> biomeHistogramRef = ThreadLocal.withInitial(() -> new int[255]);
+    private transient ReadWriteLock lock = new ReentrantReadWriteLock();
+    private transient Lock readLock = lock.readLock(), writeLock = lock.writeLock();
 
     public static final int[] POSSIBLE_AUTO_BIOMES = {BIOME_PLAINS, BIOME_FOREST,
         BIOME_SWAMPLAND, BIOME_JUNGLE, BIOME_MESA, BIOME_DESERT, BIOME_BEACH,
@@ -2185,6 +2458,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     public enum WallType { BEDROCK, BARIER /* typo, but it's in the wild, so we can't easily fix it anymore... 😔 */}
 
     public class TileVisitationBuilder {
+        public TileVisitationBuilder(boolean readOnly) {
+            this.readOnly = readOnly;
+        }
+
         public TileVisitationBuilder forFilter(Filter filter) {
             this.filter = filter;
             return this;
@@ -2229,17 +2506,29 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 tileY1 = y1 >> TILE_SIZE_BITS;
                 tileY2 = y2 >> TILE_SIZE_BITS;
             }
-            for (Tile tile: tiles.values()) {
+            final Set<Point> tileCoords;
+            readLock.lock();
+            try {
+                tileCoords = getTileCoords();
+            } finally {
+                readLock.unlock();
+            }
+            for (Point coords: tileCoords) {
+                final Tile tile = readOnly ? getTile(coords) : getTileForEditing(coords);
                 final int tileX = tile.getX(), tileY = tile.getY();
                 if ((tileX >= tileX1) && (tileX <= tileX2) && (tileY >= tileY1) && (tileY <= tileY2)
                         && ((! checkSelection) || tile.containsOneOf(SelectionBlock.INSTANCE, SelectionChunk.INSTANCE))
                         && ((! checkLayerPresent) || tile.containsOneOf(layerPresent))
                         && ((! checkLayerNotPresent) || (! tile.containsOneOf(layerNotPresent)))) {
-                    tile.inhibitEvents();
-                    try {
+                    if (readOnly) {
                         visitor.visit(tile);
-                    } finally {
-                        tile.releaseEvents();
+                    } else {
+                        tile.inhibitEvents();
+                        try {
+                            visitor.visit(tile);
+                        } finally {
+                            tile.releaseEvents();
+                        }
                     }
                 }
                 tileCount++;
@@ -2252,7 +2541,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         private Filter filter;
         private Brush brush;
         private int x, y;
-        private boolean selection;
+        private boolean selection, readOnly;
     }
 
     private class WPGarden implements Garden {

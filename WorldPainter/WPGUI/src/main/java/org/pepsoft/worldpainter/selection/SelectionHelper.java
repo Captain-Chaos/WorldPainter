@@ -37,7 +37,7 @@ public class SelectionHelper {
         boolean brushSpecified = brush != null;
         boolean filterSpecified = filter != null;
         boolean[][] blocksSet = new boolean[16][16];
-        dimension.visitTiles().forFilter(filter).forBrush(brush, x, y).andDo(tile -> {
+        dimension.visitTilesForEditing().forFilter(filter).forBrush(brush, x, y).andDo(tile -> {
             boolean tileHasChunkSelection = tile.hasLayer(SelectionChunk.INSTANCE);
             if (! (brushSpecified || filterSpecified)) {
                 // This is slightly odd, but whatever. Just add all chunks to
@@ -126,7 +126,7 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             dimension.clearLayerData(SelectionChunk.INSTANCE);
             dimension.clearLayerData(SelectionBlock.INSTANCE);
         } else {
-            dimension.visitTiles().forSelection().forFilter(filter).forBrush(brush, x, y).andDo(tile -> {
+            dimension.visitTilesForEditing().forSelection().forFilter(filter).forBrush(brush, x, y).andDo(tile -> {
                 boolean tileHasChunkSelection = tile.hasLayer(SelectionChunk.INSTANCE);
                 boolean tileHasBlockSelection = tile.hasLayer(SelectionBlock.INSTANCE);
                 int worldTileX = tile.getX() << TILE_SIZE_BITS;

@@ -11,6 +11,8 @@ import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
 import java.awt.*;
 import java.beans.PropertyChangeListener;
+import java.io.NotSerializableException;
+import java.io.ObjectOutputStream;
 import java.util.*;
 
 /**
@@ -282,6 +284,10 @@ public final class DimensionSnapshot extends Dimension { // This cannot be an RO
     @Override
     public void setWaterLevelAt(int x, int y, int waterLevel) {
         throw new UnsupportedOperationException();
+    }
+
+    private void writeObject(ObjectOutputStream out) throws NotSerializableException {
+        throw new NotSerializableException("Serialization of DimensionSnapshot not supported");
     }
 
     private final Dimension dimension;

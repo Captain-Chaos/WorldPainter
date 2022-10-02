@@ -213,7 +213,7 @@ class FlatteningDimension extends RODelegatingDimension<FlatteningDimension.Flat
     }
 
     @Override
-    public synchronized boolean isBorderTile(int x, int y) {
+    public boolean isBorderTile(int x, int y) {
         boolean result = false;
         for (Dimension dimension: dimensions) {
             if (dimension.isTilePresent(x, y)) {
@@ -247,7 +247,7 @@ class FlatteningDimension extends RODelegatingDimension<FlatteningDimension.Flat
     }
 
     @Override
-    public TileVisitationBuilder visitTiles() {
+    public TileVisitationBuilder visitTilesForEditing() {
         throw new UnsupportedOperationException();
     }
 
@@ -304,7 +304,7 @@ class FlatteningDimension extends RODelegatingDimension<FlatteningDimension.Flat
         }
 
         @Override
-        public synchronized int getFloodedCount(int x, int y, int r, boolean lava) {
+        public int getFloodedCount(int x, int y, int r, boolean lava) {
             // TODO we just copied this from Dimension; are the coordinates correct like this?
             int count = 0;
             for (int dx = -r; dx <= r; dx++) {
@@ -351,7 +351,7 @@ class FlatteningDimension extends RODelegatingDimension<FlatteningDimension.Flat
         }
 
         @Override
-        public synchronized Set<Terrain> getAllTerrains() {
+        public Set<Terrain> getAllTerrains() {
             final Set<Terrain> allTerrains = new HashSet<>();
             for (int x = 0; x < TILE_SIZE; x++) {
                 for (int y = 0; y < TILE_SIZE; y++) {

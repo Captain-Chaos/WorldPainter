@@ -77,7 +77,9 @@ public class HeightMapTreeCellRenderer extends DefaultTreeCellRenderer {
             sb.append("Name: <strong>").append(name).append("</strong><br>");
         }
         String type = heightMap.getClass().getSimpleName();
-        type = type.substring(0, type.length() - 9);
+        if (type.endsWith("HeightMap")) {
+            type = type.substring(0, type.length() - 9);
+        }
         sb.append("Type: <strong>").append(type).append("</strong><br>");
         if (role != null) {
             sb.append("Role: <strong>").append(role).append("</strong><br>");

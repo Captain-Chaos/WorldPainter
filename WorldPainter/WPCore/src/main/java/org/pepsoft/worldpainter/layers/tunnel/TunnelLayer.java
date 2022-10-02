@@ -186,12 +186,6 @@ public class TunnelLayer extends CustomLayer {
     }
 
     @Override
-    public void setColour(int colour) {
-        super.setColour(colour);
-        renderer = new TunnelLayerRenderer(this);
-    }
-
-    @Override
     public void setMinMaxHeight(int oldMinHeight, int newMinHeight, int oldMaxHeight, int newMaxHeight, HeightTransform transform) {
         adjustLayers(orderedFloorLayers, oldMinHeight, newMinHeight, oldMaxHeight, newMaxHeight);
         adjustLayers(orderedRoofLayers, oldMinHeight, newMinHeight, oldMaxHeight, newMaxHeight);
@@ -281,6 +275,13 @@ public class TunnelLayer extends CustomLayer {
         return floorDimension;
     }
 
+    /**
+     * Get a helper for applying this layer to a particular dimension.
+     */
+    public TunnelLayerHelper getHelper(Dimension dimension) {
+        return new TunnelLayerHelper(this, dimension);
+    }
+
     // CustomLayer
 
     @Override
@@ -290,12 +291,12 @@ public class TunnelLayer extends CustomLayer {
 
     @Override
     public TunnelLayerExporter getExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
-        return new TunnelLayerExporter(dimension, platform, this);
+        return new TunnelLayerExporter(dimension, platform, this, getHelper(dimension)); // TODO creating the helper is not necessary to do for every exporter instance
     }
 
     @Override
     public TunnelLayerRenderer getRenderer() {
-        return renderer;
+        return new TunnelLayerRenderer(this);
     }
 
     // Cloneable
@@ -337,7 +338,6 @@ public class TunnelLayer extends CustomLayer {
                 clone.orderedRoofLayers.add(layerSettings.clone());
             }
         }
-        clone.renderer = new TunnelLayerRenderer(clone);
         return clone;
     }
 
@@ -379,21 +379,18 @@ public class TunnelLayer extends CustomLayer {
             }
         }
         wpVersion = CURRENT_WP_VERSION;
-
-        renderer = new TunnelLayerRenderer(this);
     }
 
-    private Mode roofMode = Mode.FIXED_HEIGHT_ABOVE_FLOOR, floorMode = Mode.FIXED_HEIGHT;
-    private int roofLevel = 8, floorLevel = 80, floorWallDepth = 4, roofWallDepth = 4, roofMin = Integer.MIN_VALUE, roofMax = Integer.MAX_VALUE, floorMin = Integer.MIN_VALUE, floorMax = Integer.MAX_VALUE, floodLevel = Integer.MIN_VALUE;
+    Mode roofMode = Mode.FIXED_HEIGHT_ABOVE_FLOOR, floorMode = Mode.FIXED_HEIGHT;
+    int roofLevel = 16, floorLevel = 32, floorWallDepth = 4, roofWallDepth = 4, roofMin = Integer.MIN_VALUE, roofMax = Integer.MAX_VALUE, floorMin = Integer.MIN_VALUE, floorMax = Integer.MAX_VALUE, floodLevel = Integer.MIN_VALUE;
     private boolean stalactites, stalagmites, floodWithLava, removeWater;
     private MixedMaterial floorMaterial, wallMaterial, roofMaterial;
-    private NoiseSettings floorNoise, roofNoise, wallNoise;
+    NoiseSettings floorNoise, roofNoise, wallNoise;
     @Deprecated private Map<Layer, LayerSettings> floorLayers;
     private Integer tunnelBiome;
     private int wpVersion = CURRENT_WP_VERSION;
     private List<LayerSettings> orderedFloorLayers, orderedRoofLayers;
-    private Integer floorDimensionId;
-    private transient TunnelLayerRenderer renderer = new TunnelLayerRenderer(this);
+    Integer floorDimensionId;
 
     private static final int CURRENT_WP_VERSION = 2;
     private static final long serialVersionUID = 1L;

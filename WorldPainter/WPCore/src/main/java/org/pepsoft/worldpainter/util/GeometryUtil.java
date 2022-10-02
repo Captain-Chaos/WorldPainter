@@ -211,6 +211,28 @@ public final class GeometryUtil {
     }
 
     /**
+     * Create a 2D matrix of the relative distances of all the points on the face of a square in which a circle of a
+     * specified radius would exactly fit in an integer coordinate space to the centre at 0,0.
+     *
+     * @param radius The radius of the circle that should fit in the square.
+     * @return A 2D matrix of distances on the face of square to its centre.
+     */
+    public static float[][] getDistances(float radius) {
+        final int r = (int) Math.ceil(radius);
+        final float[][] distances = new float[r * 2 + 1][r * 2 + 1];
+        for (int dx = 0; dx <= r; dx++) {
+            for (int dy = 0; dy <= r; dy++) {
+                final float d = MathUtils.getDistance(dx, dy);
+                distances[r + dx][r + dy] = d;
+                distances[r + dx][r - dy] = d;
+                distances[r - dx][r + dy] = d;
+                distances[r - dx][r - dy] = d;
+            }
+        }
+        return distances;
+    }
+
+    /**
      * Visit all the points inside a spherical volume in an integer coordinate
      * space with the centre at 0,0,0. The order in which the points are visited
      * is not defined. The visitor may abort the process at any point by
