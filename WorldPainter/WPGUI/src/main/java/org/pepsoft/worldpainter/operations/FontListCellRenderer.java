@@ -6,13 +6,10 @@
 
 package org.pepsoft.worldpainter.operations;
 
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.GraphicsEnvironment;
+import javax.swing.*;
+import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JList;
 
 /**
  *
@@ -20,20 +17,23 @@ import javax.swing.JList;
  */
 public class FontListCellRenderer extends DefaultListCellRenderer {
     public FontListCellRenderer(int size) {
-        // Dirty hack to find default font size:
-        for (String fontFamilyName: GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()) {
-            fontCache.put(fontFamilyName, new Font(fontFamilyName, Font.PLAIN, size));
-        }
+        this.size = size;
     }
     
     @Override
     public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
         super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-        if (fontCache.containsKey(value)) {
-            setFont(fontCache.get(value));
+        if (value != null) {
+            Font font = fontCache.get(value);
+            if (font == null) {
+                font = new Font((String) value, Font.PLAIN, size);
+                fontCache.put((String) value, font);
+            }
+            setFont(font);
         }
         return this;
     }
     
     private final Map<String, Font> fontCache = new HashMap<>();
+    private final int size;
 }

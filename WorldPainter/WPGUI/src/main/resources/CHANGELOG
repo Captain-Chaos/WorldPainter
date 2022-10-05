@@ -1,5 +1,7 @@
 -- Version 2.14.6, released ...
 
+ * The performance and readability of the Text tool screen has been improved. Instead of rendering the names in the Font drop-down in the respective fonts, the font of the text area is changed to the selected font
+   + Note that the selected size is not applied to the text area, to keep it readable when selecting very small or very large sizes
  * It is no longer possible to delete a Custom Terrain if it is still in use in a Combined Layer
  * Bug fix: once again allow importing Combined Layers with an embedded Custom Terrain from a file
 
