@@ -109,7 +109,7 @@ public class DumpWorld {
 
         Map<Layer, Integer> usedLayers = new HashMap<>();
         EnumSet<Terrain> terrainsUsed = EnumSet.noneOf(Terrain.class);
-        float lowestSurface = Float.MAX_VALUE, highestSurface = Float.MIN_VALUE;
+        float lowestSurface = Float.MAX_VALUE, highestSurface = -Float.MAX_VALUE;
         int lowestWaterlevel = Integer.MAX_VALUE, highestWaterlevel = Integer.MIN_VALUE;
         for (Tile tile: dimension.getTiles()) {
             for (Layer layer: tile.getLayers()) {

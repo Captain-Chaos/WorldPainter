@@ -135,7 +135,7 @@ public class AnnotationsExporter extends AbstractLayerExporter<Annotations> impl
         }
         
         private boolean export;
-        private String defaultFont = "Lucida Sans";
+        private String defaultFont = "SansSerif";
         private int defaultSize = 18;
     }
 }

@@ -227,33 +227,30 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
     public boolean restoreCustomTerrain() {
         if (customTerrainPresent) {
             if (customTerrainMaterial == null) {
-                // This should not be possible, but due to earlier bugs there
-                // are worlds in the wild with a custom terrain without a stored
-                // custom material. Not much we can do
+                // This should not be possible, but due to earlier bugs there are worlds in the wild with a custom
+                // terrain without a stored custom material. Not much we can do
                 terrain = null;
                 return false;
-            } else if (customTerrainMaterial.equals(Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()))) {
-                // The exact same custom terrain is present, in the same slot.
-                // Keep using it
-                return true;
-            } else if (Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()) == null) {
-                // The slot that was previously used is empty, store the custom
-                // terrain in it
-                Terrain.setCustomMaterial(terrain.getCustomTerrainIndex(), customTerrainMaterial);
-                return true;
             } else {
-                // The slot that was previously used contains a different mixed
-                // material. Find another empty slot
+                // See if the same material is already present and if so keep using it. Find an empty slot otherwise
+                int slot = -1;
                 for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
-                    if (Terrain.getCustomMaterial(i) == null) {
-                        Terrain.setCustomMaterial(i, customTerrainMaterial);
-                        terrain = Terrain.getCustomTerrain(i);
-                        return true;
+                    if (customTerrainMaterial.equals(Terrain.getCustomMaterial(i))) {
+                        slot = i;
+                        break;
+                    } else if ((slot == -1) && (Terrain.getCustomMaterial(i) == null)) {
+                        slot = i;
                     }
                 }
-                // No more slots available. Not much we can do
-                terrain = null;
-                return false;
+                if (slot != -1) {
+                    Terrain.setCustomMaterial(slot, customTerrainMaterial);
+                    terrain = Terrain.getCustomTerrain(slot);
+                    return true;
+                } else {
+                    // No more slots available. Not much we can do
+                    terrain = null;
+                    return false;
+                }
             }
         } else {
             return (terrain == null) || (! terrain.isCustom());

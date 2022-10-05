@@ -512,10 +512,29 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
+    /**
+     * Get the terrain height at the specified coordinates, rounded to the nearest integer, if a tile exists in the
+     * specified location.
+     *
+     * @param x The X coordinate to query.
+     * @param y The Y coordinate to query.
+     * @return The terrain height at the specified coordinates rounded to the nearest integer, or
+     * {@link Integer#MIN_VALUE} if there is no tile at the specified coordinates.
+     */
     public int getIntHeightAt(int x, int y) {
         return getIntHeightAt(x, y, Integer.MIN_VALUE);
     }
 
+    /**
+     * Get the terrain height at the specified coordinates, rounded to the nearest integer, if a tile exists in the
+     * specified location.
+     *
+     * @param x             The X coordinate to query.
+     * @param y             The Y coordinate to query.
+     * @param defaultHeight The value to return if there is no tile at the specified coordinates.
+     * @return The terrain height at the specified coordinates rounded to the nearest integer, or
+     * {@code defaultHeight} if there is no tile at the specified coordinates.
+     */
     public int getIntHeightAt(int x, int y, int defaultHeight) {
         Tile tile = getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         if (tile != null) {
@@ -525,6 +544,14 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
+    /**
+     * Get the terrain height at the specified coordinates, rounded to the nearest integer, if a tile exists in the
+     * specified location.
+     *
+     * @param coords The coordinates to query.
+     * @return The terrain height at the specified coordinates rounded to the nearest integer, or
+     * {@link Integer#MIN_VALUE} if there is no tile at the specified coordinates.
+     */
     public int getIntHeightAt(Point coords) {
         return getIntHeightAt(coords.x, coords.y, Integer.MIN_VALUE);
     }
@@ -557,15 +584,30 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return highestHeight;
     }
 
+    /**
+     * Get the terrain height at the specified coordinates, if a tile exists in the specified location.
+     *
+     * @param x The X coordinate to query.
+     * @param y The Y coordinate to query.
+     * @return The terrain height at the specified coordinates, or {@link Float#MAX_VALUE -Float.MAX_VALUE} if there is
+     * no tile at the specified coordinates.
+     */
     public float getHeightAt(int x, int y) {
         Tile tile = getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         if (tile != null) {
             return tile.getHeight(x & TILE_SIZE_MASK, y & TILE_SIZE_MASK);
         } else {
-            return Float.MIN_VALUE;
+            return -Float.MAX_VALUE;
         }
     }
 
+    /**
+     * Get the terrain height at the specified coordinates, if a tile exists in the specified location.
+     *
+     * @param coords The coordinates to query.
+     * @return The terrain height at the specified coordinates, or {@link Float#MAX_VALUE -Float.MAX_VALUE} if there is
+     * no tile at the specified coordinates.
+     */
     public float getHeightAt(Point coords) {
         return getHeightAt(coords.x, coords.y);
     }

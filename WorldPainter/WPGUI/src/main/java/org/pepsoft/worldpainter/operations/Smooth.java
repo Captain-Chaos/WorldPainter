@@ -5,13 +5,13 @@
 
 package org.pepsoft.worldpainter.operations;
 
-import java.util.Arrays;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MapDragControl;
 import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainter;
 
 import javax.swing.*;
+import java.util.Arrays;
 
 /**
  *
@@ -48,7 +48,7 @@ public class Smooth extends RadiusOperation {
             for (int x = 0; x < diameter + 10; x++) {
                 for (int y = 0; y < diameter + 10; y++) {
                     float currentHeight = dimension.getHeightAt(centreX - radius + x - 5, centreY - radius + y - 5);
-                    if (currentHeight != Float.MIN_VALUE) {
+                    if (currentHeight != -Float.MAX_VALUE) {
                         currentHeights[x][y] = currentHeight;
                         int dxFrom = Math.max(x - 5, 0);
                         int dxTo = Math.min(x + 5, diameter + 9);

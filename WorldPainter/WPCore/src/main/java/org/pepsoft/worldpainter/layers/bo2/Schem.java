@@ -128,7 +128,7 @@ public final class Schem extends AbstractNBTItem implements WPObject {
         } else {
             offset = guestimateOffset();
         }
-        if ((offset.x != 0) || (offset.y != 0) || (offset.z != 0)) {
+        if ((offset != null) && (offset.x != 0) || (offset.y != 0) || (offset.z != 0)) {
             if (attributes == null) {
                 attributes = new HashMap<>();
             }

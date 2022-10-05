@@ -15,6 +15,8 @@ import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
+import static java.awt.RenderingHints.KEY_TEXT_ANTIALIASING;
+import static java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_OFF;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 
 /**
@@ -412,6 +414,7 @@ public final class DimensionPainter {
         BufferedImage image = new BufferedImage(1000, 100, BufferedImage.TYPE_BYTE_BINARY);
         Rectangle2D bounds;
         Graphics2D g2 = image.createGraphics();
+        g2.setRenderingHint(KEY_TEXT_ANTIALIASING, VALUE_TEXT_ANTIALIAS_OFF);
         final int textWidth, textHeight;
         try {
             g2.setFont(font);
@@ -423,6 +426,7 @@ public final class DimensionPainter {
                 g2.dispose();
                 image = new BufferedImage(textWidth, textHeight, BufferedImage.TYPE_BYTE_BINARY);
                 g2 = image.createGraphics();
+                g2.setRenderingHint(KEY_TEXT_ANTIALIASING, VALUE_TEXT_ANTIALIAS_OFF);
                 g2.setFont(font);
             }
             g2.drawString(text, (int) (-bounds.getX()), (int) (-bounds.getY()));
