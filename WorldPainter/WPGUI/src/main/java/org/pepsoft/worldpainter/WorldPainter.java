@@ -38,7 +38,6 @@ import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
 import static org.pepsoft.worldpainter.TileRenderer.TERRAIN_AS_LAYER;
-import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_WHITE;
 
 /**
  *
@@ -765,18 +764,24 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                     this.drawOverlay = false;
                     return;
                 }
-                switch (Configuration.getInstance().getOverlayType()) {
-                    case OPTIMISE_ON_LOAD:
-                        myOverlay = ConfigureViewDialog.scaleImage(myOverlay, getGraphicsConfiguration(), 100);
-                        break;
-                    case SCALE_ON_LOAD:
-                        myOverlay = ConfigureViewDialog.scaleImage(myOverlay, getGraphicsConfiguration(), (int) (dimension.getOverlayScale() * 100));
-                        break;
+                if (myOverlay != null) {
+                    switch (Configuration.getInstance().getOverlayType()) {
+                        case OPTIMISE_ON_LOAD:
+                            // "Scale" to 100%, which optimises the image for the screen environment
+                            myOverlay = ConfigureViewDialog.scaleImage(myOverlay, getGraphicsConfiguration(), 100);
+                            break;
+                        case SCALE_ON_LOAD:
+                            myOverlay = ConfigureViewDialog.scaleImage(myOverlay, getGraphicsConfiguration(), (int) (dimension.getOverlayScale() * 100));
+                            break;
+                    }
+                } else {
+                    logger.error("Image overlay file " + file + " did not contain a recognisable image");
+                    JOptionPane.showMessageDialog(this, "Image overlay file did not contain a recognisable image. It may have been corrupted.\n" + file, "Error Loading Image", JOptionPane.ERROR_MESSAGE);
                 }
                 if (myOverlay != null) {
                     setOverlay(myOverlay);
                 } else {
-                    // The scaling or optimisation failed
+                    // The loading, scaling or optimisation failed
                     this.drawOverlay = false;
                 }
             } else {
