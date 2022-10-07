@@ -364,7 +364,7 @@ public class NewWorldDialog extends WorldPainterDialog {
                             // Operation cancelled by user
                             return;
                         }
-                        Tile tile = tileFactory.createTile(tileCoords.x, tileCoords.y);
+                        Tile tile = createTile(tileFactory, anchor, tileCoords.x, tileCoords.y);
                         dimension.addTile(tile);
                         if (progressReceiver != null) {
                             synchronized (tileCount) {
@@ -398,7 +398,7 @@ public class NewWorldDialog extends WorldPainterDialog {
                                     // Operation cancelled by user
                                     return;
                                 }
-                                Tile tile = tileFactory.createTile(tileX, tileY);
+                                Tile tile = createTile(tileFactory, anchor, tileX, tileY);
                                 dimension.addTile(tile);
                                 if (org.pepsoft.worldpainter.util.MathUtils.getLargestDistanceFromOrigin(tileX, tileY) >= radius) {
                                     // The tile is not completely inside the circle, so use the Void layer to create the
@@ -459,7 +459,7 @@ public class NewWorldDialog extends WorldPainterDialog {
                                 // Operation cancelled by user
                                 return;
                             }
-                            final Tile tile = tileFactory.createTile(tileX, tileY);
+                            final Tile tile = createTile(tileFactory, anchor, tileX, tileY);
                             dimension.addTile(tile);
                             if (progressReceiver != null) {
                                 synchronized (tileCount) {
@@ -492,6 +492,64 @@ public class NewWorldDialog extends WorldPainterDialog {
             dimension.setEventsInhibited(false);
         }
         return dimension;
+    }
+
+    private Tile createTile(TileFactory tileFactory, Anchor anchor, int tileX, int tileY) {
+        final Tile tile = tileFactory.createTile(tileX, tileY);
+        if (anchor.role == MASTER) {
+            for (int xInMasterTile = 0; xInMasterTile < TILE_SIZE; xInMasterTile++) {
+                for (int yInMasterTile = 0; yInMasterTile < TILE_SIZE; yInMasterTile++) {
+                    final int masterX = (tileX << TILE_SIZE_BITS) | xInMasterTile, masterY = (tileY << TILE_SIZE_BITS) | yInMasterTile;
+                    final int detailX = masterX << 4, detailY = masterY << 4;
+                    final int detailTileX = detailX >> TILE_SIZE_BITS, detailTileY = detailY >> TILE_SIZE_BITS;
+                    final Tile detailTile = baseDimension.getTile(detailTileX, detailTileY);
+                    if (detailTile != null) {
+                        final int xInDetailTile = detailX & TILE_SIZE_MASK, yInDetailTile = detailY & TILE_SIZE_MASK;
+                        if (! detailTile.getBitLayerValue(NotPresent.INSTANCE, xInDetailTile, yInDetailTile)) {
+                            // The chunk that corresponds to the block on the master dimension exists in the detail
+                            // dimension. Scan it to determine the average terrain height and most prevalent water
+                            // height and terrain type. We are doing this just so the master dimension visually
+                            // resemble the already existing terrain, so it's not necessary to copy layers, etc.
+                            final Map<Integer, Integer> waterHeights = new HashMap<>();
+                            final Map<Terrain, Integer> terrainTypes = new HashMap<>();
+                            float terrainHeightTotal = 0.0f;
+                            for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                                for (int yInChunk = 0; yInChunk < 16; yInChunk++) {
+                                    final int myX = xInDetailTile + xInChunk, myY = yInDetailTile + yInChunk;
+                                    terrainHeightTotal += detailTile.getHeight(myX, myY);
+                                    final int waterHeight = detailTile.getWaterLevel(myX, myY);
+                                    final int waterHeightTotal = waterHeights.computeIfAbsent(waterHeight, k -> 0);
+                                    waterHeights.put(waterHeight, waterHeightTotal + 1);
+                                    final Terrain terrain = detailTile.getTerrain(myX, myY);
+                                    final int terrainTotal = terrainTypes.computeIfAbsent(terrain, k -> 0);
+                                    terrainTypes.put(terrain, terrainTotal + 1);
+                                }
+                            }
+                            final float averageTerrainHeight = terrainHeightTotal / 256;
+                            int mostPrevalentWaterHeight = Integer.MIN_VALUE, mostPrevalentWaterHeightCount = 0;
+                            for (Map.Entry<Integer, Integer> entry: waterHeights.entrySet()) {
+                                if (entry.getValue() > mostPrevalentWaterHeightCount) {
+                                    mostPrevalentWaterHeight = entry.getKey();
+                                    mostPrevalentWaterHeightCount = entry.getValue();
+                                }
+                            }
+                            Terrain mostPrevalentTerrain = null;
+                            int mostPrevalentTerrainCount = 0;
+                            for (Map.Entry<Terrain, Integer> entry: terrainTypes.entrySet()) {
+                                if (entry.getValue() > mostPrevalentTerrainCount) {
+                                    mostPrevalentTerrain = entry.getKey();
+                                    mostPrevalentTerrainCount = entry.getValue();
+                                }
+                            }
+                            tile.setHeight(xInMasterTile, yInMasterTile, averageTerrainHeight);
+                            tile.setWaterLevel(xInMasterTile, yInMasterTile, mostPrevalentWaterHeight);
+                            tile.setTerrain(xInMasterTile, yInMasterTile, mostPrevalentTerrain);
+                        }
+                    }
+                }
+            }
+        }
+        return tile;
     }
 
     private Dimension createDimension(World2 world, Anchor anchor) {
