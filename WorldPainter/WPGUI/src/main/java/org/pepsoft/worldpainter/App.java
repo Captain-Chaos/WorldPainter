@@ -2940,7 +2940,7 @@ public final class App extends JFrame implements RadiusControl,
         biomeLabel = new JLabel("Auto biome: Mega Spruce Taiga Hills (ID 161)");
         biomeLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         statusBar.add(biomeLabel);
-        radiusLabel = new JLabel(MessageFormat.format(strings.getString("radius.0"), 999));
+        radiusLabel = new JLabel(MessageFormat.format(strings.getString("radius.0"), 15984));
         radiusLabel.setToolTipText(strings.getString("scroll.the.mouse.wheel"));
         radiusLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         statusBar.add(radiusLabel);
