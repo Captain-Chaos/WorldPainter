@@ -17,7 +17,6 @@ import java.util.*;
 import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
-import static org.pepsoft.worldpainter.Platform.Capability.BIOMES;
 
 /**
  *
@@ -35,7 +34,7 @@ public class DumpChunk extends AbstractTool {
         final Platform platform = PlatformManager.getInstance().identifyPlatform(worldDir);
         final Chunk chunk = PlatformManager.getInstance().getChunkStore(platform, worldDir, DIM_NORMAL).getChunk(chunkX, chunkZ);
 
-        if (platform.capabilities.contains(BIOMES)) {
+        if (chunk.isBiomesAvailable()) {
             System.out.println("Biomes");
             System.out.println("X-->");
             for (int z = 0; z < 16; z++) {
@@ -50,6 +49,26 @@ public class DumpChunk extends AbstractTool {
                     System.out.print(" v");
                 }
                 System.out.println();
+            }
+        } else if (chunk.is3DBiomesAvailable()) {
+            System.out.println("Biomes");
+            for (int y = 0; y < level.getMaxHeight() >> 2; y++) {
+                System.out.println("X-->");
+                for (int z = 0; z < 4; z++) {
+                    for (int x = 0; x < 4; x++) {
+                        System.out.printf("[%3d]", chunk.get3DBiome(x, y, z));
+                    }
+                    if (z == 0) {
+                        System.out.print(" Z");
+                    } else if (z == 1) {
+                        System.out.print(" |");
+                    } else if (z == 2) {
+                        System.out.print(" v");
+                    } else {
+                        System.out.print(" Y: " + y);
+                    }
+                    System.out.println();
+                }
             }
         }
 

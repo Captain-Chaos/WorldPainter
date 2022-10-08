@@ -64,7 +64,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
             this.maxHeight = maxHeight;
             this.readOnly = readOnly;
 
-            dataVersion = getInt(REGION, TAG_DATA_VERSION); // TODO: also do this for the other chunk types
+            dataVersion = getInt(REGION, TAG_DATA_VERSION);
             sections = new Section[(maxHeight >> 4) + UNDERGROUND_SECTIONS];
             List<CompoundTag> sectionTags = getList(REGION, TAG_SECTIONS_);
             // MC 1.18 has chunks without any sections; we're not sure yet if

@@ -1251,6 +1251,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         final boolean copy2DBiomes = existingChunk.isBiomesSupported() && newChunk.isBiomesAvailable();
         final boolean copy3DBiomes = existingChunk.is3DBiomesSupported() && newChunk.is3DBiomesAvailable();
         final boolean copyNamedBiomes = existingChunk.isNamedBiomesSupported() && newChunk.isNamedBiomesAvailable();
+        // Handle the case that a platform does not support 3D biomes, but the chunk format does, in which case we
+        // should always merge the entire column of biomes if we merge any of it:
+        final boolean mergeBiomesUnderground = this.mergeBiomesUnderground || ((! (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES))) && mergeBiomesAboveGround);
         final boolean copyBiomes = (mergeBiomesAboveGround || mergeBiomesUnderground) && (copy3DBiomes || copyNamedBiomes);
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
@@ -1389,9 +1392,10 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     }
                     if (biomeCopyColumn) {
                         // For high worlds, go to at least 64 blocks above the surface:
-                        final int biomesMaxY = Math.min(Math.max(Math.max(oldMaxY, newMaxY) + 64, 319), maxHeight - 1) >> 2;
+                        final int biomesMaxY = Math.min(Math.max(Math.max(oldMaxY, newMaxY) + 64, 319), maxHeight - 1) >> 2,
+                                biomesNewHeight = newHeight >> 2;
                         for (int y = minHeight >> 2; y <= biomesMaxY; y++) {
-                            if ((y >= (newHeight >> 2)) ? mergeBiomesAboveGround : mergeBiomesUnderground) {
+                            if ((y >= biomesNewHeight) ? mergeBiomesAboveGround : mergeBiomesUnderground) {
                                 if (copy3DBiomes) {
                                     existingChunk.set3DBiome(x >> 2, y, z >> 2, newChunk.get3DBiome(x >> 2, y, z >> 2));
                                 } else {

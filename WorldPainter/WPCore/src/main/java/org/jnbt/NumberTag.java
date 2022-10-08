@@ -22,4 +22,8 @@ public abstract class NumberTag extends Tag {
      * @return The value as an {@code int}.
      */
     public abstract int intValue();
+
+    public long longValue() {
+        return intValue();
+    }
 }
