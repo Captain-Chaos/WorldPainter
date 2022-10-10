@@ -1,9 +1,11 @@
--- Version 2.14.6, released ...
+-- Version 2.14.6, released 10-10-2022
 
  * The performance and readability of the Text tool screen has been improved. Instead of rendering the names in the Font drop-down in the respective fonts, the font of the text area is changed to the selected font
    + Note that the selected size is not applied to the text area, to keep it readable when selecting very small or very large sizes
  * It is no longer possible to delete a Custom Terrain if it is still in use in a Combined Layer
  * Bug fix: once again allow importing Combined Layers with an embedded Custom Terrain from a file
+ * Bug fix: fix some data corruption issues related to merging with Minecraft 1.15 - 1.16 maps
+ * Bug fix: make merging biomes work again for Minecraft 1.15 - 1.16
 
 -- Version 2.14.5, released 30-9-2022
 

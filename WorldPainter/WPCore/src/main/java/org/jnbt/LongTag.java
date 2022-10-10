@@ -68,6 +68,11 @@ public final class LongTag extends NumberTag {
     }
 
     @Override
+    public long longValue() {
+        return value;
+    }
+
+    @Override
     public String toString() {
         String name = getName();
         String append = "";
