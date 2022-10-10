@@ -424,7 +424,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
             sections[level + UNDERGROUND_SECTIONS] = section;
         } else if (section.singleBiome != null) {
             if (biome != section.singleBiome) {
-                section.biomes = new PackedArrayCube<>(4, 1, String.class);
+                section.biomes = new PackedArrayCube<>(4, 1, false, String.class);
                 section.biomes.fill(section.singleBiome);
                 section.biomes.setValue(x, z, y & 0x3, biome);
                 section.singleBiome = null;
@@ -504,7 +504,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
         }
         if (section.singleMaterial != null) {
             if (material != section.singleMaterial) {
-                section.materials = new PackedArrayCube<>(16, 4, Material.class);
+                section.materials = new PackedArrayCube<>(16, 4, false, Material.class);
                 if (section.singleMaterial != AIR) {
                     section.materials.fill(section.singleMaterial);
                 }
@@ -807,7 +807,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
                     final LongArrayTag blockStatesDataTag = (LongArrayTag) blockStatesTag.getTag(TAG_DATA_);
                     if (blockStatesDataTag != null) {
                         final long[] blockStates = blockStatesDataTag.getValue();
-                        materials = new PackedArrayCube<>(16, blockStates, palette, 4, Material.class);
+                        materials = new PackedArrayCube<>(16, blockStates, palette, 4, false, Material.class);
                     } else if (palette.length == 1) {
                         // Entire section filled with one material
                         singleMaterial = (palette[0] == null) ? AIR : palette[0];
@@ -829,7 +829,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
                         final LongArrayTag biomeDataTag = (LongArrayTag) biomesTag.getTag(TAG_DATA_);
                         if (biomeDataTag != null) {
                             final long[] biomeData = biomeDataTag.getValue();
-                            biomes = new PackedArrayCube<>(4, biomeData, palette, 1, String.class);
+                            biomes = new PackedArrayCube<>(4, biomeData, palette, 1, false, String.class);
                         } else if (palette.length == 1) {
                             // Entire section filled with one biome
                             singleBiome = palette[0];

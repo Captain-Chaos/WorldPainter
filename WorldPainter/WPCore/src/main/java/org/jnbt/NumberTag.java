@@ -26,4 +26,6 @@ public abstract class NumberTag extends Tag {
     public long longValue() {
         return intValue();
     }
+
+    private static final long serialVersionUID = 4199522300454384098L;
 }

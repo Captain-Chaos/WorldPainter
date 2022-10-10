@@ -13,10 +13,14 @@ public class PackedArrayCube<T> {
      * @param size            Length of one edge of the cube.
      * @param minimumWordSize The minimum word size for the packed data. In Minecraft this varies, from 4 for block
      *                        states (resulting in unnecessarily large arrays) to 1 for biomes.
+     * @param straddleLongs   Whether palette indexes are allowed to straddle two longs in the packed data array. It
+     *                        seems that Minecraft 1.15 supports this, whereas Minecraft 1.16+ does not.
+     * @param type            The type of values to be stored in the packed array cube.
      */
     @SuppressWarnings("unchecked") // Guaranteed by Java library
-    public PackedArrayCube(int size, int minimumWordSize, Class<T> type) {
+    public PackedArrayCube(int size, int minimumWordSize, boolean straddleLongs, Class<T> type) {
         this.minimumWordSize = minimumWordSize;
+        this.straddleLongs = straddleLongs;
         this.type = type;
         bitsPerCoordinate = (int) Math.ceil(Math.log(size) / Math.log(2));
         arraySize = size * size * size;
@@ -31,9 +35,12 @@ public class PackedArrayCube<T> {
      * @param palette         The palette of values.
      * @param minimumWordSize The minimum word size for the packed data. In Minecraft this varies, from 4 for block
      *                        states (resulting in unnecessarily large arrays) to 1 for biomes.
+     * @param straddleLongs   Whether palette indexes are allowed to straddle two longs in the packed data array. It
+     *                        seems that Minecraft 1.15 supports this, whereas Minecraft 1.16+ does not.
+     * @param type            The type of values to be stored in the packed array cube.
      */
-    public PackedArrayCube(int size, long[] data, T[] palette, int minimumWordSize, Class<T> type) {
-        this(size, minimumWordSize, type);
+    public PackedArrayCube(int size, long[] data, T[] palette, int minimumWordSize, boolean straddleLongs, Class<T> type) {
+        this(size, minimumWordSize, straddleLongs, type);
 
         final int wordSize = Math.max(minimumWordSize, (int) Math.ceil(Math.log(palette.length) / Math.log(2)));
         final int expectedPackedDataArrayLengthInBytes = wordSize * arraySize / 8;
@@ -108,13 +115,33 @@ public class PackedArrayCube<T> {
         return true;
     }
 
-    @SuppressWarnings("unchecked") // Guaranteed by Java library
+    /**
+     * Pack the data into a palette and a {@code long} array. {@code null} values are not replaced and if any of the
+     * values are {@code null}, the palette will contain a {@code null} entry.
+     *
+     * @return The packed data.
+     */
     public PackedData pack() {
+        return pack(null);
+    }
+
+    /**
+     * Pack the data into a palette and a {@code long} array.
+     *
+     * @param nullSubstitute The value to replace {@code null} values with, if any. May be {@code null}, in which case
+     *                       one of the palette entries may be {@code null}.
+     * @return The packed data.
+     */
+    @SuppressWarnings("unchecked") // Guaranteed by Java library
+    public PackedData pack(T nullSubstitute) {
         // Create the palette. We have to do this first, because otherwise we don't know how many bits the indices will
         // be and therefore how big to make the data array
         final Map<T, Integer> reversePalette = new HashMap<>();
         final List<T> palette = new LinkedList<>();
         for (T value: values) {
+            if (value == null) {
+                value = nullSubstitute;
+            }
             if (! reversePalette.containsKey(value)) {
                 reversePalette.put(value, palette.size());
                 palette.add(value);
@@ -129,30 +156,29 @@ public class PackedArrayCube<T> {
             data = new long[values.length >> 4];
             for (int i = 0; i < values.length; i += 16) {
                 data[i >> 4] =
-                       reversePalette.get(values[i]     )
-                    | (reversePalette.get(values[i +  1]) << 4)
-                    | (reversePalette.get(values[i +  2]) << 8)
-                    | (reversePalette.get(values[i +  3]) << 12)
-                    | (reversePalette.get(values[i +  4]) << 16)
-                    | (reversePalette.get(values[i +  5]) << 20)
-                    | (reversePalette.get(values[i +  6]) << 24)
-                    | ((long) (reversePalette.get(values[i +  7])) << 28)
-                    | ((long) (reversePalette.get(values[i +  8])) << 32)
-                    | ((long) (reversePalette.get(values[i +  9])) << 36)
-                    | ((long) (reversePalette.get(values[i + 10])) << 40)
-                    | ((long) (reversePalette.get(values[i + 11])) << 44)
-                    | ((long) (reversePalette.get(values[i + 12])) << 48)
-                    | ((long) (reversePalette.get(values[i + 13])) << 52)
-                    | ((long) (reversePalette.get(values[i + 14])) << 56)
-                    | ((long) (reversePalette.get(values[i + 15])) << 60);
+                               reversePalette.get(substituteNull(values[i],      nullSubstitute))
+                    |         (reversePalette.get(substituteNull(values[i +  1], nullSubstitute))  <<  4)
+                    |         (reversePalette.get(substituteNull(values[i +  2], nullSubstitute))  <<  8)
+                    |         (reversePalette.get(substituteNull(values[i +  3], nullSubstitute))  << 12)
+                    |         (reversePalette.get(substituteNull(values[i +  4], nullSubstitute))  << 16)
+                    |         (reversePalette.get(substituteNull(values[i +  5], nullSubstitute))  << 20)
+                    |         (reversePalette.get(substituteNull(values[i +  6], nullSubstitute))  << 24)
+                    | ((long) (reversePalette.get(substituteNull(values[i +  7], nullSubstitute))) << 28)
+                    | ((long) (reversePalette.get(substituteNull(values[i +  8], nullSubstitute))) << 32)
+                    | ((long) (reversePalette.get(substituteNull(values[i +  9], nullSubstitute))) << 36)
+                    | ((long) (reversePalette.get(substituteNull(values[i + 10], nullSubstitute))) << 40)
+                    | ((long) (reversePalette.get(substituteNull(values[i + 11], nullSubstitute))) << 44)
+                    | ((long) (reversePalette.get(substituteNull(values[i + 12], nullSubstitute))) << 48)
+                    | ((long) (reversePalette.get(substituteNull(values[i + 13], nullSubstitute))) << 52)
+                    | ((long) (reversePalette.get(substituteNull(values[i + 14], nullSubstitute))) << 56)
+                    | ((long) (reversePalette.get(substituteNull(values[i + 15], nullSubstitute))) << 60);
             }
         } else {
-            final boolean straddleLongs = false;
-            if (straddleLongs) { // TODOMC118 is this ever the case for Minecraft 1.18+?
+            if (straddleLongs) {
                 final BitSet dataBits = new BitSet(arraySize * paletteIndexSize);
                 for (int i = 0; i < arraySize; i++) {
                     final int offset = i * paletteIndexSize;
-                    final int index = reversePalette.get(values[i]);
+                    final int index = reversePalette.get(substituteNull(values[i], nullSubstitute));
                     for (int j = 0; j < paletteIndexSize; j++) {
                         if ((index & (1 << j)) != 0) {
                             dataBits.set(offset + j);
@@ -175,7 +201,7 @@ public class PackedArrayCube<T> {
                 final BitSet dataBits = new BitSet(dataSize * 64);
                 for (int i = 0; i < arraySize; i++) {
                     final int offset = (i / wordsPerLong) * 64 + (i % wordsPerLong) * paletteIndexSize;
-                    final int index = reversePalette.get(values[i]);
+                    final int index = reversePalette.get(substituteNull(values[i], nullSubstitute));
                     for (int j = 0; j < paletteIndexSize; j++) {
                         if ((index & (1 << j)) != 0) {
                             dataBits.set(offset + j);
@@ -199,8 +225,13 @@ public class PackedArrayCube<T> {
         return x | ((y | (z << bitsPerCoordinate)) << bitsPerCoordinate);
     }
 
+    private T substituteNull(T value, T nullSubsitute) {
+        return (value == null) ? nullSubsitute : value;
+    }
+
     private final Class<T> type;
     private final int arraySize, minimumWordSize, bitsPerCoordinate;
+    private final boolean straddleLongs;
     private final T[] values;
 
     public class PackedData {

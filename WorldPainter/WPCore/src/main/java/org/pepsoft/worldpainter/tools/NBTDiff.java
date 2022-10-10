@@ -1,5 +1,8 @@
 package org.pepsoft.worldpainter.tools;
 
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 import org.jnbt.*;
 import org.pepsoft.minecraft.JavaLevel;
 import org.pepsoft.minecraft.RegionFileCache;
@@ -11,6 +14,11 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
+import static org.pepsoft.minecraft.Constants.TAG_NAME;
+import static org.pepsoft.minecraft.Constants.TAG_Y;
 
 public class NBTDiff extends AbstractTool {
     public static void main(String[] args) throws IOException {
@@ -39,6 +47,7 @@ public class NBTDiff extends AbstractTool {
         }
     }
 
+    @SuppressWarnings("unchecked") // Guaranteed by Minecraft
     private static void diff(String prefix, Tag tag1, Tag tag2) {
         if (tag1.getClass() != tag2.getClass()) {
             throw new IllegalArgumentException("Tags not of the same type");
@@ -49,112 +58,91 @@ public class NBTDiff extends AbstractTool {
         }
         switch (tag2.getClass().getSimpleName()) {
             case "ByteArrayTag":
-                final byte[] byteArray1 = ((ByteArrayTag) tag1).getValue();
-                final byte[] byteArray2 = ((ByteArrayTag) tag2).getValue();
-                if (byteArray1.length != byteArray2.length) {
-                    System.out.printf("%s.%s.length %d != %d%n", prefix, name, byteArray1.length, byteArray2.length);
-                } else {
-                    for (int i = 0; i < byteArray1.length; i++) {
-                        if (byteArray1[i] != byteArray2[i]) {
-                            System.out.printf("%s.%s[%d] %d != %d%n", prefix, name, i, byteArray1[i], byteArray2[i]);
-                        }
-                    }
-                }
+                diffList(prefix, name, Bytes.asList(((ByteArrayTag) tag1).getValue()), Bytes.asList(((ByteArrayTag) tag2).getValue()));
                 break;
             case "CompoundTag":
-                final Map<String, Tag> mapValue1 = ((CompoundTag) tag1).getValue();
-                final Map<String, Tag> mapValue2 = ((CompoundTag) tag2).getValue();
-                if (mapValue1.size() != mapValue2.size()) {
-                    System.out.printf("%s.%s.size %d != %d%n", prefix, name, mapValue1.size(), mapValue2.size());
-                }
-                for (Map.Entry<String, Tag> entry: mapValue1.entrySet()) {
-                    final String key = entry.getKey();
-                    if (mapValue2.containsKey(key)) {
-                        diff(String.format("%s.%s[%s]", prefix, name, key), entry.getValue(), mapValue2.get(key));
-                    } else {
-                        System.out.printf("%s.%s[%s] missing from tag 2%n", prefix, name, key);
-                    }
-                }
-                for (String key: mapValue2.keySet()) {
-                    if (! mapValue1.containsKey(key)) {
-                        System.out.printf("%s.%s[%s] missing from tag 1%n", prefix, name, key);
-                    }
-                }
+                diffMap(prefix, name, ((CompoundTag) tag1).getValue(), ((CompoundTag) tag2).getValue());
                 break;
             case "DoubleTag":
-                final double doubleValue1 = ((DoubleTag) tag1).getValue();
-                final double doubleValue2 = ((DoubleTag) tag2).getValue();
-                if (doubleValue1 != doubleValue2) {
-                    System.out.printf("%s.%s %f != %f%n", prefix, name, doubleValue1, doubleValue2);
-                }
+                diffValue(prefix, name, ((DoubleTag) tag1).getValue(), ((DoubleTag) tag2).getValue());
                 break;
             case "FloatTag":
-                final float floatValue1 = ((FloatTag) tag1).getValue();
-                final float floatValue2 = ((FloatTag) tag2).getValue();
-                if (floatValue1 != floatValue2) {
-                    System.out.printf("%s.%s %f != %f%n", prefix, name, floatValue1, floatValue2);
-                }
+                diffValue(prefix, name, ((FloatTag) tag1).getValue(), ((FloatTag) tag2).getValue());
                 break;
             case "IntArrayTag":
-                final int[] intArray1 = ((IntArrayTag) tag1).getValue();
-                final int[] intArray2 = ((IntArrayTag) tag2).getValue();
-                if (intArray1.length != intArray2.length) {
-                    System.out.printf("%s.%s.length %d != %d%n", prefix, name, intArray1.length, intArray2.length);
-                } else {
-                    for (int i = 0; i < intArray1.length; i++) {
-                        if (intArray1[i] != intArray2[i]) {
-                            System.out.printf("%s.%s[%d] %d != %d%n", prefix, name, i, intArray1[i], intArray2[i]);
-                        }
-                    }
-                }
+                diffList(prefix, name, Ints.asList(((IntArrayTag) tag1).getValue()), Ints.asList(((IntArrayTag) tag2).getValue()));
                 break;
             case "ListTag":
-                if (((ListTag<?>) tag1).getType() != ((ListTag<?>) tag2).getType()) {
-                    System.out.printf("%s.%s.type %s != %s%n", prefix, name, ((ListTag<?>) tag1).getType().getSimpleName(), ((ListTag<?>) tag2).getType().getSimpleName());
+                if (name.equals("Sections")) {
+                    diffMap(prefix, name,
+                            ((ListTag<CompoundTag>) tag1).getValue().stream().collect(toMap(tag -> ((ByteTag) tag.getTag(TAG_Y)).intValue(), identity())),
+                            ((ListTag<CompoundTag>) tag2).getValue().stream().collect(toMap(tag -> ((ByteTag) tag.getTag(TAG_Y)).intValue(), identity())));
+                } else if (name.equals("Palette")) {
+                    diffMap(prefix, name,
+                            ((ListTag<CompoundTag>) tag1).getValue().stream().collect(toMap(tag -> ((StringTag) tag.getTag(TAG_NAME)).getValue(), identity())),
+                            ((ListTag<CompoundTag>) tag2).getValue().stream().collect(toMap(tag -> ((StringTag) tag.getTag(TAG_NAME)).getValue(), identity())));
                 } else {
-                    final List<? extends Tag> list1 = ((ListTag<?>) tag1).getValue();
-                    final List<? extends Tag> list2 = ((ListTag<?>) tag2).getValue();
-                    if (list1.size() != list2.size()) {
-                        System.out.printf("%s.%s.size %d != %d%n", prefix, name, list1.size(), list2.size());
+                    if (((ListTag<?>) tag1).getType() != ((ListTag<?>) tag2).getType()) {
+                        System.out.printf("%s.%s.type %s != %s%n", prefix, name, ((ListTag<?>) tag1).getType().getSimpleName(), ((ListTag<?>) tag2).getType().getSimpleName());
                     } else {
-                        for (int i = 0; i < list1.size(); i++) {
-                            diff(String.format("%s.%s[%d]", prefix, name, i), list1.get(i), list2.get(i));
-                        }
+                        diffList(prefix, name, ((ListTag<?>) tag1).getValue(), ((ListTag<?>) tag2).getValue());
                     }
                 }
                 break;
             case "LongArrayTag":
-                final long[] longArray1 = ((LongArrayTag) tag1).getValue();
-                final long[] longArray2 = ((LongArrayTag) tag2).getValue();
-                if (longArray1.length != longArray2.length) {
-                    System.out.printf("%s.%s.length %d != %d%n", prefix, name, longArray1.length, longArray2.length);
-                } else {
-                    for (int i = 0; i < longArray1.length; i++) {
-                        if (longArray1[i] != longArray2[i]) {
-                            System.out.printf("%s.%s[%d] %d != %d%n", prefix, name, i, longArray1[i], longArray2[i]);
-                        }
-                    }
-                }
+                diffList(prefix, name, Longs.asList(((LongArrayTag) tag1).getValue()), Longs.asList(((LongArrayTag) tag2).getValue()));
                 break;
             case "ByteTag":
             case "IntTag":
             case "LongTag":
             case "ShortTag":
-                final long numValue1 = ((NumberTag) tag1).longValue();
-                final long numValue2 = ((NumberTag) tag2).longValue();
-                if (numValue1 != numValue2) {
-                    System.out.printf("%s.%s %d != %d%n", prefix, name, numValue1, numValue2);
-                }
+                diffValue(prefix, name, ((NumberTag) tag1).longValue(), ((NumberTag) tag2).longValue());
                 break;
             case "StringTag":
-                final String stringValue1 = ((StringTag) tag1).getValue();
-                final String stringValue2 = ((StringTag) tag2).getValue();
-                if (! stringValue1.equals(stringValue2)) {
-                    System.out.printf("%s.%s \"%s\" != \"%s\"%n", prefix, name, stringValue1, stringValue2);
-                }
+                diffValue(prefix, name, ((StringTag) tag1).getValue(), ((StringTag) tag2).getValue());
                 break;
             default:
                 throw new IllegalArgumentException("Tags of type " + tag1.getClass().getSimpleName() + " not supported");
+        }
+    }
+
+    private static void diffList(String prefix, String name, List<?> list1, List<?> list2) {
+        if (list1.size() != list2.size()) {
+            System.out.printf("%s.%s.length %d != %d%n", prefix, name, list1.size(), list2.size());
+        } else {
+            for (int i = 0; i < list1.size(); i++) {
+                final Object value1 = list1.get(i);
+                if (value1 instanceof Tag) {
+                    diff(String.format("%s.%s[%d]", prefix, name, i), (Tag) value1, (Tag) list2.get(i));
+                } else if (! Objects.equals(value1, list2.get(i))) {
+                    System.out.printf("%s.%s[%d] %s != %s%n", prefix, name, i, value1, list2.get(i));
+                }
+            }
+        }
+    }
+
+    private static void diffValue(String prefix, String name, Object value1, Object value2) {
+        if (! Objects.equals(value1, value2)) {
+            System.out.printf("%s.%s %s != %s%n", prefix, name, value1, value2);
+        }
+    }
+
+    private static <K, V extends Tag> void diffMap(String prefix, String name, Map<K, V> map1, Map<K, V> map2) {
+        if (map1.size() != map2.size()) {
+            System.out.printf("%s.%s.size %d != %d%n", prefix, name, map1.size(), map2.size());
+        }
+        for (Map.Entry<K, V> entry: map1.entrySet()) {
+            final K key = entry.getKey();
+            if (map2.containsKey(key)) {
+                diff(String.format("%s.%s[%s]", prefix, name, key), entry.getValue(), map2.get(key));
+            } else {
+                System.out.printf("%s.%s[%s] missing from tag 2%n", prefix, name, key);
+            }
+        }
+        for (K key: map2.keySet()) {
+            if (! map1.containsKey(key)) {
+                System.out.printf("%s.%s[%s] missing from tag 1%n", prefix, name, key);
+            }
         }
     }
 }

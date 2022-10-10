@@ -7,7 +7,7 @@ package org.pepsoft.minecraft;
 
 import com.google.common.collect.ImmutableMap;
 import org.jnbt.*;
-import org.pepsoft.minecraft.MC115AnvilChunk.Section.IncompleteSectionException;
+import org.pepsoft.util.PackedArrayCube;
 import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.slf4j.Logger;
@@ -131,7 +131,7 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
             }
 
 //            debugChunk = (xPos == (debugWorldX >> 4)) && (zPos == (debugWorldZ >> 4));
-        } catch (Section.ExceptionParsingSectionException e) {
+        } catch (ExceptionParsingSectionException e) {
             // Already reported; just rethrow
             throw e;
         } catch (RuntimeException e) {
@@ -491,11 +491,11 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
 
     @Override
     public Material getMaterial(int x, int y, int z) {
-        Section section = sections[y >> 4];
+        final Section section = sections[y >> 4];
         if (section == null) {
             return AIR;
         } else {
-            Material material = section.materials[blockOffset(x, y, z)];
+            final Material material = section.materials.getValue(x, z, y & 0xf);
             return (material != null) ? material : AIR;
         }
     }
@@ -508,7 +508,7 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
         if (readOnly) {
             return;
         }
-        int level = y >> 4;
+        final int level = y >> 4;
         Section section = sections[level];
         if (section == null) {
             if (material == AIR) {
@@ -517,7 +517,7 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
             section = new Section((byte) level);
             sections[level] = section;
         }
-        section.materials[blockOffset(x, y, z)] = (material == AIR) ? null : material;
+        section.materials.setValue(x, z, y & 0xf, (material == AIR) ? null : material);
     }
 
     @Override
@@ -549,11 +549,10 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
     public int getHighestNonAirBlock(int x, int z) {
         for (int yy = sections.length - 1; yy >= 0; yy--) {
             if (sections[yy] != null) {
-                final Material[] materials = sections[yy].materials;
-                final int base = blockOffset(x, 0, z);
-                for (int i = blockOffset(x, 15, z); i >= base; i -= 256) {
-                    if ((materials[i] != null) && (materials[i] != AIR)) {
-                        return (yy << 4) | ((i - base) >> 8);
+                final PackedArrayCube<Material> materials = sections[yy].materials;
+                for (int y = 15; y >= 0; y--) {
+                    if ((materials.getValue(x, z, y) != null) && (materials.getValue(x, z, y) != AIR)) {
+                        return (yy << 4) | y;
                     }
                 }
             }
@@ -565,10 +564,14 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
     public int getHighestNonAirBlock() {
         for (int yy = sections.length - 1; yy >= 0; yy--) {
             if (sections[yy] != null) {
-                final Material[] materials = sections[yy].materials;
-                for (int i = materials.length - 1; i >= 0; i--) {
-                    if ((materials[i] != null) && (materials[i] != AIR)) {
-                        return (yy << 4) | (i >> 8);
+                final PackedArrayCube<Material> materials = sections[yy].materials;
+                for (int y = 15; y >= 0; y--) {
+                    for (int x = 0; x < 16; x++) {
+                        for (int z = 0; z < 16; z++) {
+                            if ((materials.getValue(x, z, y) != null) && (materials.getValue(x, z, y) != AIR)) {
+                                return (yy << 4) | y;
+                            }
+                        }
                     }
                 }
             }
@@ -779,73 +782,19 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
     private static final ThreadLocal<int[]> BIOME_BUCKETS_HOLDER = ThreadLocal.withInitial(() -> new int[256]);
     private static final Logger logger = LoggerFactory.getLogger(MC115AnvilChunk.class);
 
-    public static class Section extends AbstractNBTItem implements SectionedChunk.Section {
+    public class Section extends AbstractNBTItem implements SectionedChunk.Section {
         Section(CompoundTag tag) {
             super(tag);
             try {
                 level = getByte(TAG_Y);
-                materials = new Material[4096];
-                long[] blockStates = getLongArray(TAG_BLOCK_STATES);
-                List<CompoundTag> paletteList = getList(TAG_PALETTE);
+                final long[] blockStates = getLongArray(TAG_BLOCK_STATES);
+                final List<CompoundTag> paletteList = getList(TAG_PALETTE);
                 if ((blockStates != null) && (paletteList != null)) {
                     final Material[] palette = new Material[paletteList.size()];
                     for (int i = 0; i < palette.length; i++) {
                         palette[i] = getMaterial(paletteList, i);
                     }
-                    final int wordSize = Math.max(4, (int) Math.ceil(Math.log(palette.length) / Math.log(2)));
-                    final int blockStateArrayLengthInBytes = blockStates.length * 8;
-                    final int expectedPackedBlockStateArrayLengthInBytes = wordSize * 512;
-                    if (logger.isTraceEnabled()) {
-                        logger.trace("Palette size: {}; block states array length in bytes: {}; inferred block state word size: {}; length in bytes of 4096 words: {}", palette.length, blockStateArrayLengthInBytes, wordSize, expectedPackedBlockStateArrayLengthInBytes);
-                    }
-                    if (wordSize == 4) {
-                        // Optimised special case
-                        for (int w = 0; w < 4096; w += 16) {
-                            final long data = blockStates[w >> 4];
-                            materials[w] = palette[(int) (data & 0xf)];
-                            materials[w + 1] = palette[(int) ((data & 0xf0) >> 4)];
-                            materials[w + 2] = palette[(int) ((data & 0xf00) >> 8)];
-                            materials[w + 3] = palette[(int) ((data & 0xf000) >> 12)];
-                            materials[w + 4] = palette[(int) ((data & 0xf0000) >> 16)];
-                            materials[w + 5] = palette[(int) ((data & 0xf00000) >> 20)];
-                            materials[w + 6] = palette[(int) ((data & 0xf000000) >> 24)];
-                            materials[w + 7] = palette[(int) ((data & 0xf0000000L) >> 28)];
-                            materials[w + 8] = palette[(int) ((data & 0xf00000000L) >> 32)];
-                            materials[w + 9] = palette[(int) ((data & 0xf000000000L) >> 36)];
-                            materials[w + 10] = palette[(int) ((data & 0xf0000000000L) >> 40)];
-                            materials[w + 11] = palette[(int) ((data & 0xf00000000000L) >> 44)];
-                            materials[w + 12] = palette[(int) ((data & 0xf000000000000L) >> 48)];
-                            materials[w + 13] = palette[(int) ((data & 0xf0000000000000L) >> 52)];
-                            materials[w + 14] = palette[(int) ((data & 0xf00000000000000L) >> 56)];
-                            materials[w + 15] = palette[(int) ((data & 0xf000000000000000L) >>> 60)];
-                        }
-                    } else if (blockStateArrayLengthInBytes != expectedPackedBlockStateArrayLengthInBytes) {
-                        // A weird format where the block states are packed per
-                        // long (leaving bits unused). Unpack each long individually
-                        final long mask = (long) (Math.pow(2, wordSize)) - 1;
-                        final int bitsInUse = (64 / wordSize) * wordSize;
-                        int materialIndex = 0;
-                        outer:
-                        for (long packedStates: blockStates) {
-                            for (int offset = 0; offset < bitsInUse; offset += wordSize) {
-                                materials[materialIndex++] = palette[(int) ((packedStates & (mask << offset)) >>> offset)];
-                                if (materialIndex >= 4096) {
-                                    // The last long was not fully used
-                                    break outer;
-                                }
-                            }
-                        }
-                    } else {
-                        final BitSet bitSet = BitSet.valueOf(blockStates);
-                        for (int w = 0; w < 4096; w++) {
-                            final int wordOffset = w * wordSize;
-                            int index = 0;
-                            for (int b = 0; b < wordSize; b++) {
-                                index |= bitSet.get(wordOffset + b) ? 1 << b : 0;
-                            }
-                            materials[w] = palette[index];
-                        }
-                    }
+                    materials = new PackedArrayCube<>(16, blockStates, palette, 4, inputDataVersion <= DATA_VERSION_MC_1_15_2, Material.class);
                 } else {
                     throw new IncompleteSectionException();
                 }
@@ -863,33 +812,20 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
         Section(byte level) {
             super(new CompoundTag("", new HashMap<>()));
             this.level = level;
-            materials = new Material[4096];
+            materials = new PackedArrayCube<>(16, 4, true, Material.class);
         }
 
         @Override
         public CompoundTag toNBT() {
             setByte(TAG_Y, level);
 
-            // Create the palette. We have to do this first, because otherwise
-            // we don't know how many bits the indices will be and therefore how
-            // big to make the blockStates array
-            Map<Material, Integer> reversePalette = new HashMap<>();
-            List<Material> palette = new LinkedList<>();
-            for (Material material: materials) {
-                if (material == null) {
-                    material = AIR;
-                }
-                if (! reversePalette.containsKey(material)) {
-                    reversePalette.put(material, palette.size());
-                    palette.add(material);
-                }
-            }
-            List<CompoundTag> paletteList = new ArrayList<>(palette.size());
-            for (Material material: palette) {
-                CompoundTag paletteEntry = new CompoundTag("", Collections.emptyMap());
+            final PackedArrayCube<Material>.PackedData packedMaterials = materials.pack(AIR);
+            final List<CompoundTag> paletteList = new ArrayList<>(packedMaterials.palette.length);
+            for (Material material: packedMaterials.palette) {
+                final CompoundTag paletteEntry = new CompoundTag("", Collections.emptyMap());
                 paletteEntry.setTag(TAG_NAME, new StringTag(TAG_NAME, material.name));
                 if (material.getProperties() != null) {
-                    CompoundTag propertiesTag = new CompoundTag(TAG_PROPERTIES, Collections.emptyMap());
+                    final CompoundTag propertiesTag = new CompoundTag(TAG_PROPERTIES, Collections.emptyMap());
                     for (Map.Entry<String, String> property: material.getProperties().entrySet()) {
                         propertiesTag.setTag(property.getKey(), new StringTag(property.getKey(), property.getValue()));
                     }
@@ -899,54 +835,7 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
             }
             setList(TAG_PALETTE, CompoundTag.class, paletteList);
 
-            // Create the blockStates array and fill it, using the appropriate
-            // length palette indices so that it just fits
-            int paletteIndexSize = Math.max((int) Math.ceil(Math.log(palette.size()) / Math.log(2)), 4);
-            if (paletteIndexSize == 4) {
-                // Optimised special case
-                long[] blockStates = new long[256];
-                for (int i = 0; i < 4096; i += 16) {
-                    blockStates[i >> 4] =
-                           reversePalette.get(materials[i]      != null ? materials[i]      : AIR)
-                        | (reversePalette.get(materials[i +  1] != null ? materials[i +  1] : AIR) << 4)
-                        | (reversePalette.get(materials[i +  2] != null ? materials[i +  2] : AIR) << 8)
-                        | (reversePalette.get(materials[i +  3] != null ? materials[i +  3] : AIR) << 12)
-                        | (reversePalette.get(materials[i +  4] != null ? materials[i +  4] : AIR) << 16)
-                        | (reversePalette.get(materials[i +  5] != null ? materials[i +  5] : AIR) << 20)
-                        | (reversePalette.get(materials[i +  6] != null ? materials[i +  6] : AIR) << 24)
-                        | ((long) (reversePalette.get(materials[i +  7] != null ? materials[i +  7] : AIR)) << 28)
-                        | ((long) (reversePalette.get(materials[i +  8] != null ? materials[i +  8] : AIR)) << 32)
-                        | ((long) (reversePalette.get(materials[i +  9] != null ? materials[i +  9] : AIR)) << 36)
-                        | ((long) (reversePalette.get(materials[i + 10] != null ? materials[i + 10] : AIR)) << 40)
-                        | ((long) (reversePalette.get(materials[i + 11] != null ? materials[i + 11] : AIR)) << 44)
-                        | ((long) (reversePalette.get(materials[i + 12] != null ? materials[i + 12] : AIR)) << 48)
-                        | ((long) (reversePalette.get(materials[i + 13] != null ? materials[i + 13] : AIR)) << 52)
-                        | ((long) (reversePalette.get(materials[i + 14] != null ? materials[i + 14] : AIR)) << 56)
-                        | ((long) (reversePalette.get(materials[i + 15] != null ? materials[i + 15] : AIR)) << 60);
-                }
-                setLongArray(TAG_BLOCK_STATES, blockStates);
-            } else {
-                BitSet blockStates = new BitSet(4096 * paletteIndexSize);
-                for (int i = 0; i < 4096; i++) {
-                    int offset = i * paletteIndexSize;
-                    int index = reversePalette.get(materials[i] != null ? materials[i] : AIR);
-                    for (int j = 0; j < paletteIndexSize; j++) {
-                        if ((index & (1 << j)) != 0) {
-                            blockStates.set(offset + j);
-                        }
-                    }
-                }
-                long[] blockStatesArray = blockStates.toLongArray();
-                // Pad with zeros if necessary
-                int requiredLength = 64 * paletteIndexSize;
-                if (blockStatesArray.length != requiredLength) {
-                    long[] expandedArray = new long[requiredLength];
-                    System.arraycopy(blockStatesArray, 0, expandedArray, 0, blockStatesArray.length);
-                    setLongArray(TAG_BLOCK_STATES, expandedArray);
-                } else {
-                    setLongArray(TAG_BLOCK_STATES, blockStatesArray);
-                }
-            }
+            setLongArray(TAG_BLOCK_STATES, packedMaterials.data);
 
             if (skyLight != null) {
                 setByteArray(TAG_SKY_LIGHT, skyLight);
@@ -965,10 +854,8 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
          */
         @Override
         public boolean isEmpty() {
-            for (Material material: materials) {
-                if (material != null) {
-                    return false;
-                }
+            if (! materials.isEmpty()) {
+                return false;
             }
             if (skyLight != null) {
                 for (byte b: skyLight) {
@@ -1013,16 +900,16 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
         public final byte level;
         byte[] skyLight;
         byte[] blockLight;
-        final Material[] materials;
+        final PackedArrayCube<Material> materials;
+    }
 
-        static class IncompleteSectionException extends WPRuntimeException {
-            // Empty
-        }
+    static class IncompleteSectionException extends WPRuntimeException {
+        // Empty
+    }
 
-        static class ExceptionParsingSectionException extends WPRuntimeException {
-            ExceptionParsingSectionException(Throwable cause) {
-                super(cause);
-            }
+    static class ExceptionParsingSectionException extends WPRuntimeException {
+        ExceptionParsingSectionException(Throwable cause) {
+            super(cause);
         }
     }
 }
