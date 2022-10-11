@@ -5,6 +5,7 @@
 
 package org.pepsoft.worldpainter;
 
+import org.jetbrains.annotations.NotNull;
 import org.pepsoft.minecraft.MapGenerator;
 import org.pepsoft.minecraft.SeededGenerator;
 import org.pepsoft.util.AttributeKey;
@@ -2751,7 +2752,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         private final HashSet<Point> activeTiles = new HashSet<>();
     }
 
-    public static final class Anchor implements Serializable {
+    public static final class Anchor implements Serializable, Comparable {
         public Anchor(int dim, Role role, boolean invert, int id) {
             if (role == null) {
                 throw new NullPointerException("role");
@@ -2817,6 +2818,13 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         @Override
         public int hashCode() {
             return 31 * (31 * (31 * dim + role.hashCode()) + (invert ? 1 : 0)) + id;
+        }
+
+        // Comparable
+
+        @Override
+        public int compareTo(@NotNull Object o) {
+            return COMPARATOR.compare(this, (Anchor) o);
         }
 
         /**
@@ -2892,6 +2900,11 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
          */
         public static final Anchor END_DETAIL_CEILING = new Anchor(DIM_END, DETAIL, true, 0);
 
+        private static final Comparator<Anchor> COMPARATOR = Comparator
+                .comparing((Anchor a) -> a.dim)
+                .thenComparing(a -> a.role)
+                .thenComparing(a -> a.invert)
+                .thenComparing(a -> a.id);
         private static final long serialVersionUID = 1L;
     }
 

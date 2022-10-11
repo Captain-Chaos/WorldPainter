@@ -1598,7 +1598,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
     private final File worldDir;
     private final ThreadLocal<Map<Material, Integer>> materialCountsRef = ThreadLocal.withInitial(HashMap::new);
     private boolean replaceChunks, mergeBlocksUnderground, clearTrees, clearResources, fillCaves, clearVegetation,
-            clearManMadeAboveGround, clearManMadeBelowGround, mergeBlocksAboveGround, mergeBiomesAboveGround, mergeBiomesUnderground;
+            clearManMadeAboveGround, clearManMadeBelowGround, mergeBlocksAboveGround, mergeBiomesAboveGround,
+            mergeBiomesUnderground;
     private String warnings;
     private int surfaceMergeDepth = 1;
     private volatile boolean aborted = true;

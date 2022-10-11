@@ -7,7 +7,6 @@ import org.pepsoft.worldpainter.layers.FloodWithLava;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.NotPresent;
 import org.pepsoft.worldpainter.layers.ReadOnly;
-import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
 import java.awt.*;
 import java.util.List;
@@ -18,6 +17,9 @@ import static org.pepsoft.worldpainter.Constants.*;
 /**
  * A {@link Dimension} which combines multiple layered {@code Dimensions}s into one, returning data from the first
  * dimension in which the chunk is present (it exists and is not marked NotPresent or ReadOnly).
+ *
+ * <p>Settings for singleton layers such as caves, resources, etc. are copied from the first dimension; those settings
+ * are ignored from the other dimensions.
  *
  * <p><strong>Note</strong> that not all operations are implemented. Only those needed for exporting are guaranteed to
  * be implemented. Others may throw an {@link UnsupportedOperationException}.
@@ -42,8 +44,6 @@ class FlatteningDimension extends RODelegatingDimension<FlatteningDimension.Flat
             if (dimension.getHighestY() > highestY) {
                 highestY = dimension.getHighestY();
             }
-            minimumLayers.addAll(dimension.getMinimumLayers());
-            layerSettings.putAll(dimension.getAllLayerSettings());
             if (extent != null) {
                 final Rectangle dimExtent = dimension.getExtent();
                 if (dimExtent != null) {
@@ -153,11 +153,6 @@ class FlatteningDimension extends RODelegatingDimension<FlatteningDimension.Flat
     }
 
     @Override
-    public Set<Layer> getMinimumLayers() {
-        return minimumLayers;
-    }
-
-    @Override
     public int getHeight() {
         return highestY - lowestY + 1;
     }
@@ -170,16 +165,6 @@ class FlatteningDimension extends RODelegatingDimension<FlatteningDimension.Flat
     @Override
     public int getHighestY() {
         return highestY;
-    }
-
-    @Override
-    public ExporterSettings getLayerSettings(Layer layer) {
-        return layerSettings.get(layer);
-    }
-
-    @Override
-    public Map<Layer, ExporterSettings> getAllLayerSettings() {
-        return layerSettings;
     }
 
     @Override
@@ -259,8 +244,6 @@ class FlatteningDimension extends RODelegatingDimension<FlatteningDimension.Flat
     private final Dimension[] dimensions;
     private final Set<Point> tileCoords = new HashSet<>();
     private final int lowestX, highestX, lowestY, highestY;
-    private final Set<Layer> minimumLayers = new HashSet<>();
-    private final Map<Layer, ExporterSettings> layerSettings = new HashMap<>();
     private final Rectangle extent;
     private final int minHeight, maxHeight;
     private Set<Terrain> allTerrains;
@@ -311,8 +294,7 @@ class FlatteningDimension extends RODelegatingDimension<FlatteningDimension.Flat
                 for (int dy = -r; dy <= r; dy++) {
                     final int xx = x + dx, yy = y + dy;
                     if ((getWaterLevelAt(xx, yy) > getIntHeightAt(xx, yy))
-                            && (lava ? getBitLayerValueAt(FloodWithLava.INSTANCE, xx, yy)
-                            : (! getBitLayerValueAt(FloodWithLava.INSTANCE, xx, yy)))) {
+                            && (lava == getBitLayerValueAt(FloodWithLava.INSTANCE, xx, yy))) {
                         count++;
                     }
                 }

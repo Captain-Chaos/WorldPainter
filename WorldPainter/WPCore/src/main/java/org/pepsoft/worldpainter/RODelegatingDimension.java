@@ -566,12 +566,12 @@ public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
 
     @Override
     public ExporterSettings getLayerSettings(Layer layer) {
-        throw new UnsupportedOperationException();
+        return dimension.getLayerSettings(layer);
     }
 
     @Override
     public Map<Layer, ExporterSettings> getAllLayerSettings() {
-        throw new UnsupportedOperationException();
+        return dimension.getAllLayerSettings();
     }
 
     @Override
