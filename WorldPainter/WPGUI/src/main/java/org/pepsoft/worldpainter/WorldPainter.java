@@ -374,15 +374,21 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                 }
             }
 
-            tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, drawContours, contourSeparation, lightOrigin, drawBorders, true, null);
+            tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, drawContours, contourSeparation, lightOrigin, true, null, backgroundDimension == null);
             setTileProvider(LAYER_DETAILS, tileProvider);
 
             if (backgroundDimension != null) {
-                backgroundTileProvider = new WPTileProvider(backgroundDimension, colourScheme, customBiomeManager, hiddenLayers, false, contourSeparation, lightOrigin, drawBorders, false, FADE_TO_FIFTY_PERCENT);
+                backgroundTileProvider = new WPTileProvider(backgroundDimension, colourScheme, customBiomeManager, hiddenLayers, false, contourSeparation, lightOrigin, false, FADE_TO_FIFTY_PERCENT, true);
                 setTileProvider(LAYER_BACKGROUND, backgroundTileProvider);
                 setTileProviderZoom(backgroundTileProvider, backgroundDimensionZoom);
             } else {
                 removeTileProvider(LAYER_BACKGROUND);
+            }
+
+            if (drawBorders && (dimension.getBorder() != null)) {
+                setTileProvider(LAYER_BORDER, new WPBorderTileProvider(dimension, colourScheme));
+            } else {
+                removeTileProvider(LAYER_BORDER);
             }
         } else {
             if (getTileProviderCount() > 0) {
@@ -439,7 +445,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         if (dimension == null) {
             return null;
         }
-        TileRenderer tileRenderer = new TileRenderer(dimension, colourScheme, customBiomeManager, 0);
+        TileRenderer tileRenderer = new TileRenderer(dimension, colourScheme, customBiomeManager, 0, true);
         tileRenderer.setContourLines(drawContours);
         tileRenderer.setContourSeparation(contourSeparation);
         tileRenderer.setHiddenLayers(hiddenLayers);
@@ -909,18 +915,9 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     }
 
     public void setBackgroundDimension(Dimension backgroundDimension, int zoomLevel, WPTileProvider.Effect effect) {
-        if (this.backgroundDimension != null) {
-            removeTileProvider(LAYER_BACKGROUND);
-            backgroundTileProvider = null;
-        }
         this.backgroundDimension = backgroundDimension;
         backgroundDimensionZoom = zoomLevel;
-        if (backgroundDimension != null) {
-            backgroundTileProvider = new WPTileProvider(backgroundDimension, colourScheme, customBiomeManager, hiddenLayers, false, contourSeparation, lightOrigin, drawBorders, false, effect);
-            setTileProvider(LAYER_BACKGROUND, backgroundTileProvider);
-            setTileProviderZoom(backgroundTileProvider, backgroundDimensionZoom);
-        }
-        repaint();
+        refreshTiles();
     }
 
     private HashSet<Layer> hiddenLayers = new HashSet<>();
@@ -950,7 +947,8 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WorldPainter.class);
     private static final long serialVersionUID = 1L;
 
-    private static final int LAYER_BIOMES     = -2;
+    private static final int LAYER_BIOMES     = -3;
+    private static final int LAYER_BORDER     = -2;
     private static final int LAYER_BACKGROUND = -1;
     private static final int LAYER_DETAILS    =  0;
 }

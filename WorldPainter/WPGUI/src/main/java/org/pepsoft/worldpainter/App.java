@@ -2469,6 +2469,9 @@ public final class App extends JFrame implements RadiusControl,
     private void addRemoveTiles() {
         TileEditor tileEditor = new TileEditor(this, dimension, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin());
         tileEditor.setVisible(true);
+        if (tileEditor.isTilesChanged()) {
+            view.refreshTiles();
+        }
     }
     
     private void importWorld() {

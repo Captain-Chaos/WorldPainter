@@ -65,7 +65,11 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
         scaleWindowToUI();
         setLocationRelativeTo(parent);
     }
-    
+
+    public boolean isTilesChanged() {
+        return tilesChanged;
+    }
+
     // TileSelector.Listener
     
     @Override
@@ -185,6 +189,7 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
             dimension.setEventsInhibited(false);
         }
         dimension.armSavePoint();
+        tilesChanged = true;
 
         World2 world = dimension.getWorld();
         if (world != null) {
@@ -215,6 +220,7 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
                 dimension.setEventsInhibited(false);
             }
             dimension.armSavePoint();
+            tilesChanged = true;
             World2 world = dimension.getWorld();
             if (world != null) {
                 world.addHistoryEntry(HistoryEntry.WORLD_TILES_REMOVED, dimension.getName(), tilesToRemove.size());
@@ -332,6 +338,7 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
     // End of variables declaration//GEN-END:variables
 
     private final Dimension dimension, backgroundDimension;
+    private boolean tilesChanged = false;
     
     private static final long serialVersionUID = 1L;
 }

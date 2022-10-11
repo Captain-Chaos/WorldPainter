@@ -390,7 +390,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                         return tile;
                     }
                 };
-                tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, ColourScheme.DEFAULT, null, Collections.singleton(Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST, false));
+                tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, ColourScheme.DEFAULT, null, Collections.singleton(Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST));
                 tiledImageViewer1.setGridColour(Color.BLACK);
                 break;
         }

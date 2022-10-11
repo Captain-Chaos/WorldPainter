@@ -34,7 +34,7 @@ import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.FIXED_HEIG
  * @author pepijn
  */
 public final class TileRenderer {
-    public TileRenderer(TileProvider tileProvider, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int zoom) {
+    public TileRenderer(TileProvider tileProvider, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int zoom, boolean transparentVoid) {
         biomeRenderer = new BiomeRenderer(customBiomeManager);
         this.tileProvider = tileProvider;
         final Dimension dimension = (tileProvider instanceof Dimension) ? (Dimension) tileProvider : null;
@@ -65,18 +65,11 @@ public final class TileRenderer {
         this.renderCeilingIntersection = renderCeilingIntersection;
         this.renderTunnelRoofIntersection = renderTunnelRoofIntersection;
         this.tunnelLayerHelper = tunnelLayerHelper;
-        setColourScheme(colourScheme);
         this.zoom = zoom;
+        this.transparentVoid = transparentVoid;
+        setColourScheme(colourScheme);
         bufferedImage = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_ARGB);
         renderBuffer = ((DataBufferInt) bufferedImage.getRaster().getDataBuffer()).getData();
-    }
-
-    public TileProvider getTileProvider() {
-        return tileProvider;
-    }
-
-    public TileProvider getRelatedTileProvider() {
-        return relatedTileProvider;
     }
 
     public Platform getPlatform() {
@@ -93,51 +86,18 @@ public final class TileRenderer {
         lavaColour = colourScheme.getColour(BLK_LAVA);
         bedrockColour = colourScheme.getColour(BLK_BEDROCK);
         notPresentColour = 0x00000000;
-        if (tileProvider instanceof Dimension) {
-            final Dimension dimension = (Dimension) tileProvider;
-            if (dimension.getBorder() != null) {
-                switch (dimension.getBorder()) {
-                    case WATER:
-                    case ENDLESS_WATER:
-                        notPresentColour = waterColour;
-                        break;
-                    case LAVA:
-                    case ENDLESS_LAVA:
-                        notPresentColour = lavaColour;
-                        break;
-                    case VOID:
-                    case ENDLESS_VOID:
-                        notPresentColour = 0xff000000 | VoidRenderer.getColour();
-                        break;
-                    case BARRIER:
-                    case ENDLESS_BARRIER:
-                        notPresentColour = 0x40ff0000;
-                        break;
-                }
-            }
-        }
+        voidColour = (transparentVoid ? 0x00000000 : 0xff000000) | VoidRenderer.getColour();
     }
 
     public void addHiddenLayers(Collection<Layer> hiddenLayers) {
         this.hiddenLayers.addAll(hiddenLayers);
     }
     
-    public void addHiddenLayer(Layer hiddenLayer) {
-        hiddenLayers.add(hiddenLayer);
-    }
-
     public void setHiddenLayers(Set<Layer> hiddenLayers) {
         this.hiddenLayers.clear();
         // The FloodWithLava layer should *always* remain hidden
         hiddenLayers.add(FloodWithLava.INSTANCE);
         this.hiddenLayers.addAll(hiddenLayers);
-    }
-
-    public void removeHiddenLayer(Layer hiddenLayer) {
-        // The FloodWithLava layer should *always* remain hidden
-        if (! hiddenLayer.equals(FloodWithLava.INSTANCE)) {
-            hiddenLayers.remove(hiddenLayer);
-        }
     }
 
     public Set<Layer> getHiddenLayers() {
@@ -146,10 +106,6 @@ public final class TileRenderer {
 
     public int getZoom() {
         return zoom;
-    }
-
-    public boolean isContourLines() {
-        return contourLines;
     }
 
     public void setContourLines(boolean contourLines) {
@@ -272,7 +228,7 @@ public final class TileRenderer {
                         } else if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)] && CEILING_PATTERN[x & 0x7][y & 0x7]) {
                             renderBuffer[x | (y << TILE_SIZE_BITS)] = 0xff000000;
                         } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
-                            renderBuffer[x | (y << TILE_SIZE_BITS)] = 0x00000000;
+                            renderBuffer[x | (y << TILE_SIZE_BITS)] = voidColour;
                             // TODO still render ReadOnly, and layers which might still be exported over Void
                         } else {
                             int colour = getPixelColour(tile, worldX, worldY, layers, renderers, contourLines, hideTerrain, hideFluids, bottomless, topLayersRelativeToTerrain, seed);
@@ -297,7 +253,7 @@ public final class TileRenderer {
                         } else if ((! noOpposites) && oppositesOverlap[x | (y << TILE_SIZE_BITS)]) {
                             renderBuffer[x / scale + y * tileSize] = 0xff000000;
                         } else if (_void && tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y)) {
-                            renderBuffer[x / scale + y * tileSize] = 0x00000000;
+                            renderBuffer[x / scale + y * tileSize] = voidColour;
                         } else {
                             int colour = getPixelColour(tile, worldX, worldY, layers, renderers, contourLines, hideTerrain, hideFluids, bottomless, topLayersRelativeToTerrain, seed);
                             colour = ColourUtils.multiply(colour, getTerrainBrightenAmount());
@@ -316,11 +272,6 @@ public final class TileRenderer {
             g2.dispose();
         }
 //        }
-    }
-
-    public static TileRenderer forWorld(World2 world, Anchor anchor, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int zoom) {
-        Dimension dimension = world.getDimension(anchor);
-        return new TileRenderer(dimension, colourScheme, customBiomeManager, zoom);
     }
 
     /**
@@ -552,11 +503,11 @@ public final class TileRenderer {
     private final int zoom;
     private final Platform platform;
     private final TileProvider tileProvider, relatedTileProvider;
-    private final boolean renderCeilingIntersection, renderTunnelRoofIntersection;
+    private final boolean renderCeilingIntersection, renderTunnelRoofIntersection, transparentVoid;
     private final TunnelLayerHelper tunnelLayerHelper;
     private ColourScheme colourScheme;
     private boolean contourLines = true;
-    private int contourSeparation = 10, waterColour, lavaColour, bedrockColour, notPresentColour;
+    private int contourSeparation = 10, waterColour, lavaColour, bedrockColour, notPresentColour, voidColour;
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
 
     public static final Layer TERRAIN_AS_LAYER = new Layer("org.pepsoft.synthetic.Terrain", "Terrain", "The terrain type of the surface", Layer.DataSize.NONE, false, 0) {

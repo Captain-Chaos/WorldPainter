@@ -254,7 +254,7 @@ public class TileSelector extends javax.swing.JPanel {
                 }
             }
 
-            WPTileProvider tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin, true);
+            WPTileProvider tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin);
 //            tileProvider.setZoom(zoom);
             viewer.setTileProvider(tileProvider);
 
@@ -270,11 +270,15 @@ public class TileSelector extends javax.swing.JPanel {
                 backgroundZoom = 0;
             }
             if (backgroundDimension != null) {
-                WPTileProvider backgroundProvider = new WPTileProvider(backgroundDimension, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin, false, false, FADE_TO_FIFTY_PERCENT); // TODO handle borders
+                WPTileProvider backgroundProvider = new WPTileProvider(backgroundDimension, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin, false, FADE_TO_FIFTY_PERCENT, true);
                 viewer.setTileProvider(-1, backgroundProvider);
                 viewer.setTileProviderZoom(backgroundProvider, backgroundZoom);
             }
             calculateSelectableTiles();
+
+            if (dimension.getBorder() != null) {
+                viewer.setTileProvider(-2, new WPBorderTileProvider(dimension, colourScheme));
+            }
 
             viewer.setMarkerCoords((dimension.getAnchor().dim == DIM_NORMAL) ? dimension.getWorld().getSpawnPoint() : null);
             buttonSpawn.setEnabled(true);
