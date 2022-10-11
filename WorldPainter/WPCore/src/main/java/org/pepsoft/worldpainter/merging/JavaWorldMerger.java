@@ -15,10 +15,7 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.history.HistoryEntry;
-import org.pepsoft.worldpainter.layers.CustomLayer;
-import org.pepsoft.worldpainter.layers.Frost;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.ReadOnly;
+import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.util.FileInUseException;
 import org.pepsoft.worldpainter.vo.EventVO;
@@ -1255,6 +1252,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         // should always merge the entire column of biomes if we merge any of it:
         final boolean mergeBiomesUnderground = this.mergeBiomesUnderground || ((! (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES))) && mergeBiomesAboveGround);
         final boolean copyBiomes = (mergeBiomesAboveGround || mergeBiomesUnderground) && (copy3DBiomes || copyNamedBiomes);
+        if (populateSupported && dimension.getBitLayerValueAt(Populate.INSTANCE, chunkX, chunkZ)) {
+            existingChunk.setTerrainPopulated(false);
+        }
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 if (mergeBiomesAboveGround && copy2DBiomes) {
@@ -1393,7 +1393,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     if (biomeCopyColumn) {
                         // For high worlds, go to at least 64 blocks above the surface:
                         final int biomesMaxY = Math.min(Math.max(Math.max(oldMaxY, newMaxY) + 64, 319), maxHeight - 1) >> 2,
-                                biomesNewHeight = newHeight >> 2;
+                                biomesNewHeight = (newHeight - surfaceMergeDepth) >> 2;
                         for (int y = minHeight >> 2; y <= biomesMaxY; y++) {
                             if ((y >= biomesNewHeight) ? mergeBiomesAboveGround : mergeBiomesUnderground) {
                                 if (copy3DBiomes) {

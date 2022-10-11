@@ -46,6 +46,7 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
 import static org.pepsoft.worldpainter.exporting.WorldExportSettings.Step.*;
 import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
 
@@ -65,6 +66,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 ? worldExportSettings
                 : (world.getExportSettings() != null ? world.getExportSettings() : new WorldExportSettings());
         platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
+        populateSupported = platform.capabilities.contains(POPULATE);
     }
 
     @Override
@@ -1192,6 +1194,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
     protected final Semaphore performingFixups = new Semaphore(1);
     protected final Platform platform;
     protected final WorldExportSettings worldExportSettings;
+    protected final boolean populateSupported;
 
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
 

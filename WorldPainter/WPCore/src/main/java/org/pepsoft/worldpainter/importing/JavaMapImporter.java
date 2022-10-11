@@ -66,6 +66,7 @@ public class JavaMapImporter extends MapImporter {
         this.chunksToSkip = chunksToSkip;
         this.readOnlyOption = readOnlyOption;
         this.dimensionsToImport = dimensionsToImport;
+        populateSupported = platform.capabilities.contains(POPULATE);
     }
 
     public World2 doImport(ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
@@ -288,6 +289,10 @@ public class JavaMapImporter extends MapImporter {
                                 }
                             }
                             dimension.addTile(tile);
+                        }
+
+                        if (populateSupported && (! chunk.isTerrainPopulated())) {
+                            tile.setBitLayerValue(Populate.INSTANCE, (chunkX << 4) & TILE_SIZE_MASK, (chunkZ << 4) & TILE_SIZE_MASK, true);
                         }
 
                         boolean manMadeStructuresBelowGround = false;
@@ -535,6 +540,7 @@ public class JavaMapImporter extends MapImporter {
     private final Set<MinecraftCoords> chunksToSkip;
     private final ReadOnlyOption readOnlyOption;
     private final Set<Integer> dimensionsToImport;
+    private final boolean populateSupported;
     private String warnings;
     
     public static final Map<String, Terrain> TERRAIN_MAPPING = new HashMap<>();
