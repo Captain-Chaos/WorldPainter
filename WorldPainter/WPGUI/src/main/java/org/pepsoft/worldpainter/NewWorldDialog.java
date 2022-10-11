@@ -496,7 +496,7 @@ public class NewWorldDialog extends WorldPainterDialog {
 
     private Tile createTile(TileFactory tileFactory, Anchor anchor, int tileX, int tileY) {
         final Tile tile = tileFactory.createTile(tileX, tileY);
-        if (anchor.role == MASTER) {
+        if ((anchor.role == MASTER) && (baseDimension != null)) {
             for (int xInMasterTile = 0; xInMasterTile < TILE_SIZE; xInMasterTile++) {
                 for (int yInMasterTile = 0; yInMasterTile < TILE_SIZE; yInMasterTile++) {
                     final int masterX = (tileX << TILE_SIZE_BITS) | xInMasterTile, masterY = (tileY << TILE_SIZE_BITS) | yInMasterTile;
