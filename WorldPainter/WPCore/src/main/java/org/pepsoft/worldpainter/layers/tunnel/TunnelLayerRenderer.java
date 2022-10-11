@@ -21,8 +21,10 @@ public class TunnelLayerRenderer extends TransparentColourRenderer implements Di
     public TunnelLayerRenderer(TunnelLayer layer) {
         super(layer.getColour());
         this.layer = layer;
-        layerFloorLevel = layer.getFloorLevel();
-        layerRoofLevel = layer.getRoofLevel();
+        floorMode = layer.floorMode;
+        floorLevel = layer.floorLevel;
+        roofMode = layer.roofMode;
+        roofLevel = layer.roofLevel;
     }
 
     @Override
@@ -51,9 +53,6 @@ public class TunnelLayerRenderer extends TransparentColourRenderer implements Di
         if (layer.getFloorDimensionId() != null) {
             final Anchor anchor = dimension.getAnchor();
             floorDimension = dimension.getWorld().getDimension(new Anchor(anchor.dim, CAVE_FLOOR, anchor.invert, layer.getFloorDimensionId()));
-            if ((floorDimension != null) && (! floorDimension.containsOneOf(layer))) {
-                floorDimension = null;
-            }
         } else {
             floorDimension = null;
         }
@@ -62,18 +61,18 @@ public class TunnelLayerRenderer extends TransparentColourRenderer implements Di
     private Effect getEffect(int x, int y) {
         final int terrainHeight = dimension.getIntHeightAt(x, y);
         final int floorLevel;
-        switch (layer.getFloorMode()) {
+        switch (floorMode) {
             case CONSTANT_DEPTH:
-                floorLevel = terrainHeight - layerFloorLevel;
+                floorLevel = terrainHeight - this.floorLevel;
                 break;
             case FIXED_HEIGHT:
-                floorLevel = layerFloorLevel;
+                floorLevel = this.floorLevel;
                 break;
             case INVERTED_DEPTH:
-                floorLevel = layerFloorLevel - (terrainHeight - layerFloorLevel);
+                floorLevel = this.floorLevel - (terrainHeight - this.floorLevel);
                 break;
             case CUSTOM_DIMENSION:
-                floorLevel = (floorDimension != null) ? floorDimension.getIntHeightAt(x, y) : layerFloorLevel;
+                floorLevel = (floorDimension != null) ? floorDimension.getIntHeightAt(x, y) : this.floorLevel;
                 break;
             default:
                 throw new InternalError();
@@ -82,18 +81,18 @@ public class TunnelLayerRenderer extends TransparentColourRenderer implements Di
             return Effect.NONE;
         }
         final int roofLevel;
-        switch (layer.getRoofMode()) {
+        switch (roofMode) {
             case CONSTANT_DEPTH:
-                roofLevel = terrainHeight - layerRoofLevel;
+                roofLevel = terrainHeight - this.roofLevel;
                 break;
             case FIXED_HEIGHT:
-                roofLevel = layerRoofLevel;
+                roofLevel = this.roofLevel;
                 break;
             case INVERTED_DEPTH:
-                roofLevel = layerRoofLevel - (terrainHeight - layerRoofLevel);
+                roofLevel = this.roofLevel - (terrainHeight - this.roofLevel);
                 break;
             case FIXED_HEIGHT_ABOVE_FLOOR:
-                roofLevel = floorLevel + layerRoofLevel;
+                roofLevel = floorLevel + this.roofLevel;
                 break;
             default:
                 throw new InternalError();
@@ -108,7 +107,8 @@ public class TunnelLayerRenderer extends TransparentColourRenderer implements Di
     }
     
     private final TunnelLayer layer;
-    private final int layerFloorLevel, layerRoofLevel;
+    private final TunnelLayer.Mode floorMode, roofMode;
+    private final int floorLevel, roofLevel;
     private Dimension dimension, floorDimension;
     
     enum Effect {NONE, BREAKS_SURFACE, UNDERGROUND}

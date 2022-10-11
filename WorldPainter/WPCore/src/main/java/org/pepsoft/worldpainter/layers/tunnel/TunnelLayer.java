@@ -23,6 +23,7 @@ import java.util.Map;
 
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
+import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 
 /**
  *
@@ -280,6 +281,34 @@ public class TunnelLayer extends CustomLayer {
      */
     public TunnelLayerHelper getHelper(Dimension dimension) {
         return new TunnelLayerHelper(this, dimension);
+    }
+
+    /**
+     * Find the {@code TunnelLayer} instance with which a particular cave floor dimension is associated.
+     *
+     * @param floorDimension The cave floor dimension for which to find the {@code TunnelLayer}.
+     * @return The {@code TunnelLayer} with which the specified floor dimension is associated.
+     * @throws IllegalArgumentException If the specified dimension is not a cave floor dimension.
+     * @throws IllegalStateException If no {@code TunnelLayer} can be found, or if multiple {@code TunnelLayer}s claim
+     * to be associated with the specified floor dimension.
+     */
+    public static TunnelLayer find(Dimension floorDimension) {
+        final Anchor floorAnchor = floorDimension.getAnchor();
+        if (floorAnchor.role != CAVE_FLOOR) {
+            throw new IllegalArgumentException("Not a CAVE_FLOOR dimension");
+        }
+        final Anchor detailAnchor = new Anchor(floorAnchor.dim, DETAIL, floorAnchor.invert, 0);
+        final Dimension detailDimension = floorDimension.getWorld().getDimension(detailAnchor);
+        if (detailDimension != null) {
+            for (CustomLayer layer: detailDimension.getCustomLayers()) {
+                if ((layer instanceof TunnelLayer) && (((TunnelLayer) layer).getFloorDimensionId() == floorAnchor.id)) {
+                    return (TunnelLayer) layer;
+                }
+            }
+            throw new IllegalArgumentException("Could not find TunnelLayer for floor dimension " + floorAnchor);
+        } else {
+            throw new IllegalArgumentException("Could not find detail dimension for floor dimension " + floorAnchor);
+        }
     }
 
     // CustomLayer
