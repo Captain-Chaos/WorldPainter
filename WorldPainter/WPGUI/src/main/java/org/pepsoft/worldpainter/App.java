@@ -7197,21 +7197,27 @@ public final class App extends JFrame implements RadiusControl,
     private final BetterAction ACTION_RESET_DOCKS = new BetterAction("resetDockLayout", "Reset current and default") {
         @Override
         protected void performAction(ActionEvent e) {
-            dockingManager.resetToDefault();
-            Configuration config = Configuration.getInstance();
-            config.setDefaultJideLayoutData(null);
-            ACTION_LOAD_LAYOUT.setEnabled(false);
+            DesktopUtils.beep();
+            if (JOptionPane.showConfirmDialog(App.this, "Are you sure you want to reset the workspace?", "Confirm Workspace Reset", YES_NO_OPTION) == YES_OPTION) {
+                dockingManager.resetToDefault();
+                Configuration config = Configuration.getInstance();
+                config.setDefaultJideLayoutData(null);
+                ACTION_LOAD_LAYOUT.setEnabled(false);
+            }
         }
     };
 
     private final BetterAction ACTION_RESET_ALL_DOCKS = new BetterAction("resetAllDockLayout", "Reset current, default and all saved worlds") {
         @Override
         protected void performAction(ActionEvent e) {
-            dockingManager.resetToDefault();
-            Configuration config = Configuration.getInstance();
-            config.setDefaultJideLayoutData(null);
-            config.setJideLayoutData(null);
-            ACTION_LOAD_LAYOUT.setEnabled(false);
+            DesktopUtils.beep();
+            if (JOptionPane.showConfirmDialog(App.this, "Are you sure you want to reset the workspace for all worlds?", "Confirm Workspace Reset", YES_NO_OPTION) == YES_OPTION) {
+                dockingManager.resetToDefault();
+                Configuration config = Configuration.getInstance();
+                config.setDefaultJideLayoutData(null);
+                config.setJideLayoutData(null);
+                ACTION_LOAD_LAYOUT.setEnabled(false);
+            }
         }
     };
 
