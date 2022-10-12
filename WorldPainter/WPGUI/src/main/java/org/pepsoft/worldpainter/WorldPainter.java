@@ -13,6 +13,8 @@ import org.pepsoft.worldpainter.brushes.BrushShape;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.tools.BiomesTileProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -66,6 +68,10 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
 
     @Override
     public final void setDimension(Dimension dimension) {
+        setDimension(dimension, true);
+    }
+
+    final void setDimension(Dimension dimension, boolean refreshTiles) {
         Dimension oldDimension = this.dimension;
         if ((oldDimension != null) && (oldDimension.getAnchor().dim == DIM_NORMAL)) {
             oldDimension.getWorld().removePropertyChangeListener("spawnPoint", this);
@@ -98,7 +104,9 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             setMarkerCoords(null);
         }
         firePropertyChange("dimension", oldDimension, dimension);
-        refreshTiles();
+        if (refreshTiles) {
+            refreshTiles();
+        }
     }
 
     public ColourScheme getColourScheme() {
@@ -945,15 +953,11 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private Shape customBrushShape;
 
     private static final int VIEW_DISTANCE_RADIUS = 192; // 12 chunks (default of Minecraft 1.18.2)
-    private static final int VIEW_DISTANCE_DIAMETER = 2 * VIEW_DISTANCE_RADIUS;
     private static final int FIVE_MINUTE_WALK_DISTANCE_RADIUS = 1280;
-    private static final int FIVE_MINUTE_WALK_DISTANCE_DIAMETER = 2 * FIVE_MINUTE_WALK_DISTANCE_RADIUS;
     private static final int DAY_WALK_DISTANCE_RADIUS = 3328;
-    private static final int DAY_WALK_DISTANCE_DIAMETER = 2 * DAY_WALK_DISTANCE_RADIUS;
     private static final int DAY_NIGHT_WALK_DISTANCE_RADIUS = 5120;
-    private static final int DAY_NIGHT_WALK_DISTANCE_DIAMETER = 2 * DAY_NIGHT_WALK_DISTANCE_RADIUS;
     private static final Font NORMAL_FONT = new Font("SansSerif", Font.PLAIN, 10);
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WorldPainter.class);
+    private static final Logger logger = LoggerFactory.getLogger(WorldPainter.class);
     private static final long serialVersionUID = 1L;
 
     private static final int LAYER_BIOMES     = -3;

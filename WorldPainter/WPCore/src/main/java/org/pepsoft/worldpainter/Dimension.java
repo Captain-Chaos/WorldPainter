@@ -118,6 +118,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return anchor;
     }
 
+    public UUID getId() {
+        return id;
+    }
+
     public String getName() {
         return name;
     }
@@ -1573,6 +1577,32 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
+    public Set<String> getHiddenPalettes() {
+        return hiddenPalettes;
+    }
+
+    public void setHiddenPalettes(Set<String> hiddenPalettes) {
+        if (! Objects.equals(hiddenPalettes, this.hiddenPalettes)) {
+            final Set<String> oldHiddenPalettes = this.hiddenPalettes;
+            this.hiddenPalettes = hiddenPalettes;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("hiddenPalettes", oldHiddenPalettes, hiddenPalettes);
+        }
+    }
+
+    public String getSoloedPalette() {
+        return soloedPalette;
+    }
+
+    public void setSoloedPalette(String soloedPalette) {
+        if (! Objects.equals(soloedPalette, this.soloedPalette)) {
+            final String oldSoloedPalette = this.soloedPalette;
+            this.soloedPalette = soloedPalette;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("soloedPalette", oldSoloedPalette, soloedPalette);
+        }
+    }
+
     public void applyTheme(Point coords) {
         applyTheme(coords.x, coords.y);
     }
@@ -2383,6 +2413,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             }
             name = sb.toString();
         }
+        if (wpVersion < 8) {
+            id = UUID.randomUUID();
+        }
         wpVersion = CURRENT_WP_VERSION;
 
         // Make sure that any custom layers which somehow ended up in the world
@@ -2447,6 +2480,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private Anchor anchor;
     private float scale = 1.0f;
     private String name;
+    private Set<String> hiddenPalettes;
+    private String soloedPalette;
+    private UUID id = UUID.randomUUID();
     private transient List<Listener> listeners = new ArrayList<>();
     private transient boolean eventsInhibited;
     private transient Set<Tile> dirtyTiles = new HashSet<>();
@@ -2469,7 +2505,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     private static final long TOP_LAYER_DEPTH_SEED_OFFSET = 180728193;
     private static final float ROOT_EIGHT = (float) Math.sqrt(8.0);
-    private static final int CURRENT_WP_VERSION = 7;
+    private static final int CURRENT_WP_VERSION = 8;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Dimension.class);
     private static final long serialVersionUID = 2011062401L;
 

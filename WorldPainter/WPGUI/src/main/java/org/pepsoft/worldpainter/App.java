@@ -352,13 +352,6 @@ public final class App extends JFrame implements RadiusControl,
 
             extendedBlockIdsMenuItem.setSelected(world.isExtendedBlockIds());
 
-            // Load the layout *before* setting the dimension, because otherwise
-            // the subsequent changes (due to the loading of custom layers for
-            // instance) may cause layout/display bugs
-            Configuration config = Configuration.getInstance();
-            if ((config.getJideLayoutData() != null) && config.getJideLayoutData().containsKey(world.getName())) {
-                dockingManager.loadLayoutFrom(new ByteArrayInputStream(config.getJideLayoutData().get(world.getName())));
-            }
 
             final Dimension surfaceDimension = world.getDimension(NORMAL_DETAIL);
             final Dimension masterDimension = world.getDimension(NORMAL_MASTER);
@@ -368,6 +361,7 @@ public final class App extends JFrame implements RadiusControl,
                 setDimension(surfaceDimension);
             }
 
+            final Configuration config = Configuration.getInstance();
             if (config.isDefaultViewDistanceEnabled() != view.isDrawViewDistance()) {
                 ACTION_VIEW_DISTANCE.actionPerformed(null);
             }
@@ -425,12 +419,28 @@ public final class App extends JFrame implements RadiusControl,
                 currentUndoManager = null;
             }
 
+            Map<String, byte[]> layoutData = config.getJideLayoutData();
+            if (layoutData == null) {
+                layoutData = new HashMap<>();
+            }
+            layoutData.put(this.dimension.getId().toString(), dockingManager.getLayoutRawData());
+            config.setJideLayoutData(layoutData);
+
             // Remove the existing custom object layers and save the list of custom layers to the dimension to preserve
             // layers which aren't currently in use
             if (! paletteManager.isEmpty()) {
-                List<CustomLayer> customLayers = new ArrayList<>();
+                final List<CustomLayer> customLayers = new ArrayList<>();
                 boolean visibleLayersChanged = false;
+                final Set<String> hiddenPalettes = new HashSet<>();
+                String soloedPalette = null;
                 for (Palette palette: paletteManager.clear()) {
+                    final String paletteName = palette.getName();
+                    if (! palette.isShow()) {
+                        hiddenPalettes.add(paletteName);
+                    }
+                    if (palette.isSolo()) {
+                        soloedPalette = paletteName;
+                    }
                     palette.removePropertyChangeListener(this);
                     List<CustomLayer> paletteLayers = palette.getLayers();
                     customLayers.addAll(paletteLayers);
@@ -451,12 +461,21 @@ public final class App extends JFrame implements RadiusControl,
                 }
                 layerSoloCheckBoxes.clear();
                 this.dimension.setCustomLayers(customLayers);
+                this.dimension.setHiddenPalettes(hiddenPalettes.isEmpty() ? null : hiddenPalettes);
+                this.dimension.setSoloedPalette(soloedPalette);
+
+                if ((paint instanceof LayerPaint) && (((LayerPaint) paint).getLayer() instanceof CustomLayer)) {
+                    // Don't leave a CustomLayer selected as paint, since they are associated with the dimension
+                    deselectPaint();
+                }
             } else {
                 this.dimension.setCustomLayers(emptyList());
             }
             layersWithNoButton.clear();
 
             saveCustomBiomes();
+
+            view.setDimension(null);
         }
         this.dimension = dimension;
         if (dimension != null) {
@@ -485,7 +504,7 @@ public final class App extends JFrame implements RadiusControl,
                 dimension.setFixOverlayCoords(false);
             }
 
-            view.setDimension(dimension);
+            view.setDimension(dimension, false);
             outsideDimensionLabel = "Minecraft Generated";
             if (anchor.equals(NORMAL_DETAIL)) {
                 backgroundDimension = world.getDimension(new Anchor(DIM_NORMAL, MASTER, false, 0));
@@ -555,7 +574,15 @@ public final class App extends JFrame implements RadiusControl,
                 warnings.append("\nThe Custom Terrain has been removed from the layer(s).");
                 showMessageDialog(this, warnings.toString(), "Custom Terrain(s) Not Restored", ERROR_MESSAGE);
             }
-            
+
+            // Restore palette states
+            if (dimension.getSoloedPalette() != null) {
+                paletteManager.getPalette(dimension.getSoloedPalette()).setSolo(true);
+            }
+            if (dimension.getHiddenPalettes() != null) {
+                dimension.getHiddenPalettes().forEach(palette -> paletteManager.getPalette(palette).setShow(false));
+            }
+
             // Set action states
             ACTION_GRID.setSelected(view.isPaintGrid());
             ACTION_CONTOURS.setSelected(view.isDrawContours());
@@ -597,6 +624,14 @@ public final class App extends JFrame implements RadiusControl,
 
             updateZoomLabel();
             updateRadiusLabel();
+
+            final Map<String, byte[]> layoutData = config.getJideLayoutData();
+            final String key = dimension.getId().toString();
+            if ((layoutData != null) && layoutData.containsKey(key)) {
+                dockingManager.loadLayoutFrom(new ByteArrayInputStream(layoutData.get(key)));
+            }
+
+            view.refreshTiles();
 
             if (dimension.getTileCount() == 0) {
                 doLaterOnEventThread(this::addRemoveTiles);
@@ -2263,7 +2298,7 @@ public final class App extends JFrame implements RadiusControl,
                         if (layoutData == null) {
                             layoutData = new HashMap<>();
                         }
-                        layoutData.put(world.getName(), dockingManager.getLayoutRawData());
+                        layoutData.put(dimension.getId().toString(), dockingManager.getLayoutRawData());
                         config.setJideLayoutData(layoutData);
 
                         return null;
