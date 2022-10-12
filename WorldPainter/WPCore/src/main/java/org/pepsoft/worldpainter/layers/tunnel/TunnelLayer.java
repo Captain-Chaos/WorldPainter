@@ -301,7 +301,9 @@ public class TunnelLayer extends CustomLayer {
         final Dimension detailDimension = floorDimension.getWorld().getDimension(detailAnchor);
         if (detailDimension != null) {
             for (CustomLayer layer: detailDimension.getCustomLayers()) {
-                if ((layer instanceof TunnelLayer) && (((TunnelLayer) layer).getFloorDimensionId() == floorAnchor.id)) {
+                if ((layer instanceof TunnelLayer)
+                        && (((TunnelLayer) layer).getFloorDimensionId() != null)
+                        && (((TunnelLayer) layer).getFloorDimensionId() == floorAnchor.id)) {
                     return (TunnelLayer) layer;
                 }
             }
