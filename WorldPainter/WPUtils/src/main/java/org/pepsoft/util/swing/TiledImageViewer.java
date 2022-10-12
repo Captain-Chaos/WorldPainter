@@ -954,6 +954,19 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         }
     }
 
+    public int getLabelScale() {
+        return labelScale;
+    }
+
+    public void setLabelScale(int labelScale) {
+        if (labelScale != this.labelScale) {
+            this.labelScale = labelScale;
+            if (paintGrid) {
+                repaint();
+            }
+        }
+    }
+
     public void setTileProviderZoom(TileProvider tileProvider, int zoom) {
         tileProviderZoom.put(tileProvider, zoom);
         tileProvider.setZoom(((this.zoom + zoom) <= 0) ? (this.zoom + zoom) : 0);
@@ -1137,7 +1150,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 
             // Determine the exclusion zone for preventing labels from being
             // obscured by grid lines or other labels
-            final Rectangle2D fontBounds = BOLD_FONT.getStringBounds("-00000", g2.getFontRenderContext());
+            final Rectangle2D fontBounds = BOLD_FONT.getStringBounds((labelScale < 5) ? "-00000" : "-000000", g2.getFontRenderContext());
             final int fontHeight = (int) Math.round(fontBounds.getHeight()), fontWidth = (int) Math.round(fontBounds.getWidth());
             final int leftClear = fontWidth + 4, topClear = fontHeight + 6;
 
@@ -1187,7 +1200,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                             g2.setFont(NORMAL_FONT);
                             normalFontInstalled = true;
                         }
-                        g2.drawString(Integer.toString(x), lineStartInView.x + 2, fontHeight + 2);
+                        g2.drawString(Integer.toString(x * labelScale), lineStartInView.x + 2, fontHeight + 2);
                     } else {
                         g2.drawLine(lineStartInView.x, topClear, lineStartInView.x, height);
                     }
@@ -1215,7 +1228,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                         g2.setFont(NORMAL_FONT);
                         normalFontInstalled = true;
                     }
-                    g2.drawString(Integer.toString(y), 2, lineStartInView.y - 2);
+                    g2.drawString(Integer.toString(y * labelScale), 2, lineStartInView.y - 2);
                 } else if (lineStartInView.y + 2 >= topClear) {
                     g2.drawLine(leftClear, lineStartInView.y, width, lineStartInView.y);
                 }
@@ -1834,6 +1847,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
     private BackgroundImageMode backgroundImageMode = BackgroundImageMode.CENTRE_REPEAT;
     private volatile boolean inhibitUpdates;
     private Map<TileProvider, Integer> tileProviderZoom = new WeakHashMap<>();
+    private int labelScale = 1;
 
     public static final int TILE_SIZE = 128, TILE_SIZE_BITS = 7, TILE_SIZE_MASK = 0x7f;
     public static final IntegerAttributeKey ADVANCED_SETTING_MAX_TILE_RENDER_THREADS = new IntegerAttributeKey("display.maxTileRenderThreads", 8);
