@@ -618,7 +618,9 @@ public class NewWorldDialog extends WorldPainterDialog {
             }
             dimension.setGenerator(generator);
         }
-        dimension.setScale(scale);
+        if (anchor.role == MASTER) {
+            dimension.setScale(scale);
+        }
         if (baseDimension != null) {
             resourcesSettings.setMinimumLevel(((ResourcesExporterSettings) baseDimension.getLayerSettings(Resources.INSTANCE)).getMinimumLevel());
         } else {
