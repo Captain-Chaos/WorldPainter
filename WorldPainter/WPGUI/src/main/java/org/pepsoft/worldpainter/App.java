@@ -101,6 +101,7 @@ import java.util.zip.GZIPOutputStream;
 import static com.jidesoft.docking.DockContext.DOCK_SIDE_EAST;
 import static com.jidesoft.docking.DockContext.DOCK_SIDE_WEST;
 import static com.jidesoft.docking.DockableFrame.*;
+import static java.awt.event.ComponentEvent.COMPONENT_RESIZED;
 import static java.awt.event.KeyEvent.*;
 import static java.lang.Math.round;
 import static java.util.Arrays.asList;
@@ -629,6 +630,9 @@ public final class App extends JFrame implements RadiusControl,
             final String key = dimension.getId().toString();
             if ((layoutData != null) && layoutData.containsKey(key)) {
                 dockingManager.loadLayoutFrom(new ByteArrayInputStream(layoutData.get(key)));
+                // This works around a bug in JIDE that otherwise causes painting to be shifted if this resulted in
+                // resized docks:
+                view.componentResized(new ComponentEvent(view, COMPONENT_RESIZED));
             }
 
             view.refreshTiles();
