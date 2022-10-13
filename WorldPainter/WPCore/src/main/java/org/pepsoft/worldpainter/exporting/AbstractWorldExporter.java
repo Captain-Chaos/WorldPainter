@@ -46,6 +46,7 @@ import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Dimension.Role.MASTER;
 import static org.pepsoft.worldpainter.exporting.WorldExportSettings.Step.*;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.CUSTOM_DIMENSION;
 import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
 
 /**
@@ -443,6 +444,13 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 }
             }
         } while (! done);
+
+        // Update the floor dimensions, if any, of all TunnelLayers
+        for (CustomLayer customLayer: dimension.getCustomLayers()) {
+            if ((customLayer instanceof TunnelLayer) && (((TunnelLayer) customLayer).getFloorMode() == CUSTOM_DIMENSION)) {
+                ((TunnelLayer) customLayer).updateFloorDimensionTiles(dimension);
+            }
+        }
 
         return savedSettings;
     }

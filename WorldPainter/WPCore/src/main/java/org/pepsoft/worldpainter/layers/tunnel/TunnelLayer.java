@@ -276,6 +276,24 @@ public class TunnelLayer extends CustomLayer {
         return floorDimension;
     }
 
+    public void updateFloorDimensionTiles(Dimension dimension) {
+        final Anchor anchor = dimension.getAnchor();
+        final Dimension floorDimension = dimension.getWorld().getDimension(new Anchor(anchor.dim, CAVE_FLOOR, anchor.invert, floorDimensionId));
+        final TileFactory tileFactory = floorDimension.getTileFactory();
+        floorDimension.setEventsInhibited(true);
+        try {
+            dimension.visitTiles().forFilter(Filter.build(dimension).onlyOn(this).build()).andDo(tile -> {
+                Tile floorTile = floorDimension.getTileForEditing(tile.getX(), tile.getY());
+                if (floorTile == null) {
+                    floorTile = tileFactory.createTile(tile.getX(), tile.getY());
+                    floorDimension.addTile(floorTile);
+                }
+            });
+        } finally {
+            floorDimension.setEventsInhibited(false);
+        }
+    }
+
     /**
      * Get a helper for applying this layer to a particular dimension.
      */

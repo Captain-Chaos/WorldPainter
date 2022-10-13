@@ -429,8 +429,8 @@ public final class App extends JFrame implements RadiusControl,
 
             // Remove the existing custom object layers and save the list of custom layers to the dimension to preserve
             // layers which aren't currently in use
+            saveCustomLayers();
             if (! paletteManager.isEmpty()) {
-                final List<CustomLayer> customLayers = new ArrayList<>();
                 boolean visibleLayersChanged = false;
                 final Set<String> hiddenPalettes = new HashSet<>();
                 String soloedPalette = null;
@@ -444,7 +444,6 @@ public final class App extends JFrame implements RadiusControl,
                     }
                     palette.removePropertyChangeListener(this);
                     List<CustomLayer> paletteLayers = palette.getLayers();
-                    customLayers.addAll(paletteLayers);
                     for (Layer layer: paletteLayers) {
                         if (hiddenLayers.contains(layer)) {
                             hiddenLayers.remove(layer);
@@ -461,7 +460,6 @@ public final class App extends JFrame implements RadiusControl,
                     updateLayerVisibility();
                 }
                 layerSoloCheckBoxes.clear();
-                this.dimension.setCustomLayers(customLayers);
                 this.dimension.setHiddenPalettes(hiddenPalettes.isEmpty() ? null : hiddenPalettes);
                 this.dimension.setSoloedPalette(soloedPalette);
 
@@ -469,8 +467,6 @@ public final class App extends JFrame implements RadiusControl,
                     // Don't leave a CustomLayer selected as paint, since they are associated with the dimension
                     deselectPaint();
                 }
-            } else {
-                this.dimension.setCustomLayers(emptyList());
             }
             layersWithNoButton.clear();
 
@@ -2228,20 +2224,8 @@ public final class App extends JFrame implements RadiusControl,
             logger.info("Saving world " + world.getName() + " to " + file.getAbsolutePath());
 
             saveCustomMaterials();
-
             saveCustomBiomes();
-
-            // Remove the existing custom object layers and save the list of custom layers to the dimension to preserve
-            // layers which aren't currently in use
-            if (! paletteManager.isEmpty()) {
-                final List<CustomLayer> customLayers = new ArrayList<>();
-                for (Palette palette : paletteManager.getPalettes()) {
-                    customLayers.addAll(palette.getLayers());
-                }
-                dimension.setCustomLayers(customLayers);
-            } else {
-                dimension.setCustomLayers(emptyList());
-            }
+            saveCustomLayers();
 
             if (dimension != null) {
                 final Point viewPosition = view.getViewCentreInWorldCoords();
@@ -2420,19 +2404,7 @@ public final class App extends JFrame implements RadiusControl,
             }
             saveCustomMaterials();
             saveCustomBiomes();
-
-            // Remove the existing custom object layers and save the list of
-            // custom layers to the dimension to preserve layers which aren't
-            // currently in use
-            if (!paletteManager.isEmpty()) {
-                List<CustomLayer> customLayers = new ArrayList<>();
-                for (Palette palette : paletteManager.getPalettes()) {
-                    customLayers.addAll(palette.getLayers());
-                }
-                dimension.setCustomLayers(customLayers);
-            } else {
-                dimension.setCustomLayers(emptyList());
-            }
+            saveCustomLayers();
 
             if (dimension != null) {
                 Point viewPosition = view.getViewCentreInWorldCoords();
@@ -2580,6 +2552,7 @@ public final class App extends JFrame implements RadiusControl,
                 return;
             }
             saveCustomBiomes();
+            saveCustomLayers();
             MergeWorldDialog dialog = new MergeWorldDialog(this, world, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin(), view);
             dialog.setVisible(true);
         } finally {
@@ -5808,6 +5781,18 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
+    private void saveCustomLayers() {
+        if (! paletteManager.isEmpty()) {
+            final List<CustomLayer> customLayers = new ArrayList<>();
+            for (Palette palette: paletteManager.getPalettes()) {
+                customLayers.addAll(palette.getLayers());
+            }
+            this.dimension.setCustomLayers(customLayers);
+        } else {
+            this.dimension.setCustomLayers(emptyList());
+        }
+    }
+
     private void saveCustomMaterials() {
         for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
             world.setMixedMaterial(i, Terrain.getCustomMaterial(i));
@@ -6638,6 +6623,7 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 }
                 saveCustomBiomes();
+                saveCustomLayers();
                 ExportWorldDialog dialog = new ExportWorldDialog(App.this, world, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin(), view);
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
