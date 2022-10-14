@@ -141,7 +141,7 @@ public class ScaleWorldDialog extends WorldPainterDialog {
         checkBoxIncludeCeiling = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("[BETA] Scale World");
+        setTitle("Scale World");
 
         jLabel1.setText("Scale the current dimension according to these settings:");
 
@@ -187,7 +187,7 @@ public class ScaleWorldDialog extends WorldPainterDialog {
 
         labelNewWalkingTime.setText("jLabel8");
 
-        jLabel8.setText("<html>\nNotes:\n<ul>\n<li><strong>[BETA]</strong> This is beta functionality. Check the results carefully and please report problems.\n<li>The terrain height and continuous layers such as trees, Custom Object layers, Frost, etc.<br>\nwill be scaled smoothly using bicubic interpolation. Artefacts are still unavoidable though,<br>\nespecially at larger scales.\n<li>Discrete layers such as Annotations and Biomes, but also the terrain type will be scaled<br>\nusing nearest neighbour interpolation. At larger scales these will become noticeably blocky.\n<li>Scaling low-resolution terrain (Imported from Minecraft, or from a low resolution height<br>\nmap) may result in blocky results.\n<li>Extra land may be added around the edges in order to meet chunk boundaries.\n<li><strong>Caution:</strong> if you are scaling up this may fail if there is not enough memory. Save your work to<br>\ndisk first!\n</ul>\n</html>");
+        jLabel8.setText("<html>\nNotes:\n<ul>\n<li>The terrain height and continuous layers such as trees, Custom Object layers, Frost, etc.<br>\nwill be scaled smoothly using bicubic interpolation. Artefacts are still unavoidable though,<br>\nespecially at larger scales.\n<li>Discrete layers such as Annotations and Biomes, but also the terrain type will be scaled<br>\nusing nearest neighbour interpolation. At larger scales these will become noticeably blocky.\n<li>Scaling low-resolution terrain (Imported from Minecraft, or from a low resolution height<br>\nmap) may result in blocky results.\n<li>Extra land may be added around the edges in order to meet chunk boundaries.\n<li><strong>Caution:</strong> if you are scaling up this may fail if there is not enough memory. Save your work to<br>\ndisk first!\n</ul>\n</html>");
 
         jLabel9.setFont(jLabel9.getFont().deriveFont((jLabel9.getFont().getStyle() | java.awt.Font.ITALIC)));
         jLabel9.setText("This operation cannot be undone!");

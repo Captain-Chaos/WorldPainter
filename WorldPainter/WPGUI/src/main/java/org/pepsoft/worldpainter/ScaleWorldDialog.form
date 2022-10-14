@@ -3,7 +3,7 @@
 <Form version="1.5" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JDialogFormInfo">
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="2"/>
-    <Property name="title" type="java.lang.String" value="[BETA] Scale World"/>
+    <Property name="title" type="java.lang.String" value="Scale World"/>
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
@@ -212,7 +212,7 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel8">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&lt;html&gt;&#xa;Notes:&#xa;&lt;ul&gt;&#xa;&lt;li&gt;&lt;strong&gt;[BETA]&lt;/strong&gt; This is beta functionality. Check the results carefully and please report problems.&#xa;&lt;li&gt;The terrain height and continuous layers such as trees, Custom Object layers, Frost, etc.&lt;br&gt;&#xa;will be scaled smoothly using bicubic interpolation. Artefacts are still unavoidable though,&lt;br&gt;&#xa;especially at larger scales.&#xa;&lt;li&gt;Discrete layers such as Annotations and Biomes, but also the terrain type will be scaled&lt;br&gt;&#xa;using nearest neighbour interpolation. At larger scales these will become noticeably blocky.&#xa;&lt;li&gt;Scaling low-resolution terrain (Imported from Minecraft, or from a low resolution height&lt;br&gt;&#xa;map) may result in blocky results.&#xa;&lt;li&gt;Extra land may be added around the edges in order to meet chunk boundaries.&#xa;&lt;li&gt;&lt;strong&gt;Caution:&lt;/strong&gt; if you are scaling up this may fail if there is not enough memory. Save your work to&lt;br&gt;&#xa;disk first!&#xa;&lt;/ul&gt;&#xa;&lt;/html&gt;"/>
+        <Property name="text" type="java.lang.String" value="&lt;html&gt;&#xa;Notes:&#xa;&lt;ul&gt;&#xa;&lt;li&gt;The terrain height and continuous layers such as trees, Custom Object layers, Frost, etc.&lt;br&gt;&#xa;will be scaled smoothly using bicubic interpolation. Artefacts are still unavoidable though,&lt;br&gt;&#xa;especially at larger scales.&#xa;&lt;li&gt;Discrete layers such as Annotations and Biomes, but also the terrain type will be scaled&lt;br&gt;&#xa;using nearest neighbour interpolation. At larger scales these will become noticeably blocky.&#xa;&lt;li&gt;Scaling low-resolution terrain (Imported from Minecraft, or from a low resolution height&lt;br&gt;&#xa;map) may result in blocky results.&#xa;&lt;li&gt;Extra land may be added around the edges in order to meet chunk boundaries.&#xa;&lt;li&gt;&lt;strong&gt;Caution:&lt;/strong&gt; if you are scaling up this may fail if there is not enough memory. Save your work to&lt;br&gt;&#xa;disk first!&#xa;&lt;/ul&gt;&#xa;&lt;/html&gt;"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel9">

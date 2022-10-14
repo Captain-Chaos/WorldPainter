@@ -2519,9 +2519,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         checkBoxDecorationGlowLichen.setText("glow lichen");
 
-        checkBoxDecorationLushCaves.setText("[BETA] patches of lush cave");
+        checkBoxDecorationLushCaves.setText("patches of lush cave");
 
-        checkBoxDecorationDripstoneCaves.setText("[BETA] patches of dripstone cave");
+        checkBoxDecorationDripstoneCaves.setText("patches of dripstone cave");
 
         javax.swing.GroupLayout jPanel24Layout = new javax.swing.GroupLayout(jPanel24);
         jPanel24.setLayout(jPanel24Layout);
