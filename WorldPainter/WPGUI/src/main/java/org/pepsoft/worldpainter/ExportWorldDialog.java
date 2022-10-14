@@ -90,19 +90,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
         }
         fieldName.setText(world.getName());
 
-        final SortedMap<Anchor, Dimension> dimensions = world.getDimensions().stream().collect(Collectors.toMap(
-                Dimension::getAnchor,
-                identity(),
-                (u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); },
-                TreeMap::new));
-        for (Dimension dimension: dimensions.values()) {
-            final DimensionPropertiesEditor editor = new DimensionPropertiesEditor();
-            editor.setColourScheme(colourScheme);
-            editor.setDimension(dimension);
-            editor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
-            jTabbedPane1.addTab(dimension.getName(), editor);
-            dimensionPropertiesEditors.put(dimension.getAnchor(), editor);
-        }
+        createDimensionPropertiesEditors();
         checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
         labelPlatform.setText("<html><u>" + platform.displayName + "</u></html>");
         labelPlatform.setToolTipText("Click to change the map format");
@@ -151,6 +139,22 @@ public class ExportWorldDialog extends WorldPainterDialog {
         scaleToUI();
         pack();
         setLocationRelativeTo(parent);
+    }
+
+    private void createDimensionPropertiesEditors() {
+        final SortedMap<Anchor, Dimension> dimensions = world.getDimensions().stream().collect(Collectors.toMap(
+                Dimension::getAnchor,
+                identity(),
+                (u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); },
+                TreeMap::new));
+        for (Dimension dimension: dimensions.values()) {
+            final DimensionPropertiesEditor editor = new DimensionPropertiesEditor();
+            editor.setColourScheme(colourScheme);
+            editor.setDimension(dimension);
+            editor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
+            jTabbedPane1.addTab(dimension.getName(), editor);
+            dimensionPropertiesEditors.put(dimension.getAnchor(), editor);
+        }
     }
 
     /**
@@ -378,7 +382,8 @@ public class ExportWorldDialog extends WorldPainterDialog {
             return;
         }
         if (App.getInstance().changeWorldHeight(this)) {
-            dimensionPropertiesEditors.forEach((anchor, editor) -> editor.setDimension(world.getDimension(anchor)));
+            jTabbedPane1.removeAll();
+            createDimensionPropertiesEditors();
             platformChanged();
         }
     }
@@ -633,8 +638,6 @@ public class ExportWorldDialog extends WorldPainterDialog {
         }
 
         checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
-
-        dimensionPropertiesEditors.forEach((anchor, editor) -> editor.setPlatform(newPlatform));
 
         pack();
         setControlStates();
