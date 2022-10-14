@@ -11,8 +11,8 @@ import org.pepsoft.worldpainter.exporting.MinecraftWorld;
  * Created by pepijn on 31-7-15.
  */
 public class TunnelRoofDimension extends TunnelDimension {
-    public TunnelRoofDimension(Dimension dimension, TunnelLayer layer) {
-        super(dimension, layer);
+    public TunnelRoofDimension(Dimension dimension, TunnelLayer layer, TunnelLayerHelper helper) {
+        super(dimension, layer, helper);
         reflectionPoint = dimension.getMaxHeight() + dimension.getMinHeight() - 1;
     }
 

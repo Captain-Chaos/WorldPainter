@@ -96,9 +96,9 @@ public class MergeWorldDialog extends WorldPainterDialog {
             checkBoxNether.setSelected(exportSettings.getDimensionsToExport().contains(DIM_NETHER));
             checkBoxEnd.setSelected(exportSettings.getDimensionsToExport().contains(DIM_END));
         } else {
-            checkBoxSurface.setSelected(world.getDimension(NORMAL_DETAIL) != null);
-            checkBoxNether.setSelected(world.getDimension(NETHER_DETAIL) != null);
-            checkBoxEnd.setSelected(world.getDimension(END_DETAIL) != null);
+            checkBoxSurface.setSelected(world.isDimensionPresent(NORMAL_DETAIL));
+            checkBoxNether.setSelected(world.isDimensionPresent(NETHER_DETAIL));
+            checkBoxEnd.setSelected(world.isDimensionPresent(END_DETAIL));
         }
         world.getAttribute(ATTRIBUTE_MERGE_SETTINGS).ifPresent(mergeSettings -> {
             if (mergeSettings.replaceChunks) {
@@ -343,9 +343,9 @@ public class MergeWorldDialog extends WorldPainterDialog {
     private void setControlStates() {
         final boolean mergeAll = radioButtonAll.isSelected();
         final boolean mergeEverything = radioButtonExportEverything.isSelected();
-        final boolean surfacePresent = world.getDimension(NORMAL_DETAIL) != null;
-        final boolean netherPresent = world.getDimension(NETHER_DETAIL) != null;
-        final boolean endPresent = world.getDimension(END_DETAIL) != null;
+        final boolean surfacePresent = world.isDimensionPresent(NORMAL_DETAIL);
+        final boolean netherPresent = world.isDimensionPresent(NETHER_DETAIL);
+        final boolean endPresent = world.isDimensionPresent(END_DETAIL);
         final boolean oneDimensionPresent = world.getDimensions().size() == 1;
         boolean biomesSupported = false, threeDeeBiomesSupported = false;
         final File mapDir = new File(fieldSelectedMapDir.getText().trim());

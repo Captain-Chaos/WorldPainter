@@ -212,6 +212,15 @@ public class SimpleTheme implements Theme, Cloneable {
         initCaches();
     }
 
+    public final Map<Layer, Integer> getDiscreteValues() {
+        return discreteValues;
+    }
+
+    public final void setDiscreteValues(Map<Layer, Integer> discreteValues) {
+        this.discreteValues = discreteValues;
+        initCaches();
+    }
+
     @Override
     public Theme clone() {
         try {
@@ -241,6 +250,7 @@ public class SimpleTheme implements Theme, Cloneable {
                 ", randomise=" + randomise +
                 ", beaches=" + beaches +
                 ", layerMap=" + layerMap +
+                ", discreteValues=" + discreteValues +
                 '}';
     }
 
@@ -284,7 +294,12 @@ public class SimpleTheme implements Theme, Cloneable {
                 Filter filter = entry.getKey();
                 int[] levels = new int[maxHeight - minHeight];
                 for (int z = minHeight; z < maxHeight; z++) {
-                    levels[z - minHeight] = filter.getLevel(0, 0, z, 15);
+                    final int filterLevel = filter.getLevel(0, 0, z, 15);
+                    if ((discreteValues != null) && discreteValues.containsKey(layer)) {
+                        levels[z - minHeight] = (filterLevel >= 0.5) ? discreteValues.get(layer) : layer.getDefaultValue();
+                    } else {
+                        levels[z - minHeight] = filterLevel;
+                    }
                 }
                 switch (layer.getDataSize()) {
                     case BIT:
@@ -293,6 +308,13 @@ public class SimpleTheme implements Theme, Cloneable {
                         bitLayerLevels.add(levels);
                         break;
                     case NIBBLE:
+                        layers.add(layer);
+                        layerLevels.add(levels);
+                        break;
+                    case BYTE:
+                        if (! layer.discrete) {
+                            throw new IllegalArgumentException("Layer with unsupported data size " + layer.getDataSize() + " encountered");
+                        }
                         layers.add(layer);
                         layerLevels.add(levels);
                         break;
@@ -371,7 +393,8 @@ public class SimpleTheme implements Theme, Cloneable {
     private transient PerlinNoise perlinNoise = new PerlinNoise(0);
     private Layer[] layerCache, bitLayerCache;
     private int[][] layerLevelCache, bitLayerLevelCache;
-    
+    private Map<Layer, Integer> discreteValues;
+
     private static final Random random = new Random();
     private static final long serialVersionUID = 1L;
 }

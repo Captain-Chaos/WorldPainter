@@ -6,10 +6,14 @@
 package org.pepsoft.worldpainter.layers.tunnel;
 
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension.Anchor;
+import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.NotPresentBlock;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+import org.pepsoft.worldpainter.operations.Filter;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -17,6 +21,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
+import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.CUSTOM_DIMENSION;
 
 /**
  *
@@ -180,12 +189,6 @@ public class TunnelLayer extends CustomLayer {
     }
 
     @Override
-    public void setColour(int colour) {
-        super.setColour(colour);
-        renderer = new TunnelLayerRenderer(this);
-    }
-
-    @Override
     public void setMinMaxHeight(int oldMinHeight, int newMinHeight, int oldMaxHeight, int newMaxHeight, HeightTransform transform) {
         adjustLayers(orderedFloorLayers, oldMinHeight, newMinHeight, oldMaxHeight, newMaxHeight);
         adjustLayers(orderedRoofLayers, oldMinHeight, newMinHeight, oldMaxHeight, newMaxHeight);
@@ -236,6 +239,100 @@ public class TunnelLayer extends CustomLayer {
         this.tunnelBiome = biome;
     }
 
+    public Integer getFloorDimensionId() {
+        return floorDimensionId;
+    }
+
+    public void setFloorDimensionId(Integer floorDimensionId) {
+        this.floorDimensionId = floorDimensionId;
+    }
+
+    public Dimension updateFloorDimension(Dimension dimension, String name) {
+        final Anchor anchor = dimension.getAnchor();
+        final Dimension floorDimension = dimension.getWorld().getDimension(new Anchor(anchor.dim, CAVE_FLOOR, anchor.invert, floorDimensionId));
+        if (name != null) {
+            floorDimension.setName(name);
+        }
+        final TileFactory tileFactory = floorDimension.getTileFactory();
+        floorDimension.setEventsInhibited(true);
+        try {
+            dimension.visitTiles().forFilter(Filter.build(dimension).onlyOn(this).build()).andDo(tile -> {
+                Tile floorTile = floorDimension.getTileForEditing(tile.getX(), tile.getY());
+                if (floorTile == null) {
+                    floorTile = tileFactory.createTile(tile.getX(), tile.getY());
+                    floorDimension.addTile(floorTile);
+                } else {
+                    floorTile.clearLayerData(NotPresentBlock.INSTANCE);
+                }
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    for (int y = 0; y < TILE_SIZE; y++) {
+                        if (! tile.getBitLayerValue(this, x, y)) {
+                            floorTile.setBitLayerValue(NotPresentBlock.INSTANCE, x, y, true);
+                        }
+                    }
+                }
+            });
+        } finally {
+            floorDimension.setEventsInhibited(false);
+        }
+        return floorDimension;
+    }
+
+    public void updateFloorDimensionTiles(Dimension dimension) {
+        final Anchor anchor = dimension.getAnchor();
+        final Dimension floorDimension = dimension.getWorld().getDimension(new Anchor(anchor.dim, CAVE_FLOOR, anchor.invert, floorDimensionId));
+        final TileFactory tileFactory = floorDimension.getTileFactory();
+        floorDimension.setEventsInhibited(true);
+        try {
+            dimension.visitTiles().forFilter(Filter.build(dimension).onlyOn(this).build()).andDo(tile -> {
+                Tile floorTile = floorDimension.getTileForEditing(tile.getX(), tile.getY());
+                if (floorTile == null) {
+                    floorTile = tileFactory.createTile(tile.getX(), tile.getY());
+                    floorDimension.addTile(floorTile);
+                }
+            });
+        } finally {
+            floorDimension.setEventsInhibited(false);
+        }
+    }
+
+    /**
+     * Get a helper for applying this layer to a particular dimension.
+     */
+    public TunnelLayerHelper getHelper(Dimension dimension) {
+        return new TunnelLayerHelper(this, dimension);
+    }
+
+    /**
+     * Find the {@code TunnelLayer} instance with which a particular cave floor dimension is associated.
+     *
+     * @param floorDimension The cave floor dimension for which to find the {@code TunnelLayer}.
+     * @return The {@code TunnelLayer} with which the specified floor dimension is associated.
+     * @throws IllegalArgumentException If the specified dimension is not a cave floor dimension.
+     * @throws IllegalStateException If no {@code TunnelLayer} can be found, or if multiple {@code TunnelLayer}s claim
+     * to be associated with the specified floor dimension.
+     */
+    public static TunnelLayer find(Dimension floorDimension) {
+        final Anchor floorAnchor = floorDimension.getAnchor();
+        if (floorAnchor.role != CAVE_FLOOR) {
+            throw new IllegalArgumentException("Not a CAVE_FLOOR dimension");
+        }
+        final Anchor detailAnchor = new Anchor(floorAnchor.dim, DETAIL, floorAnchor.invert, 0);
+        final Dimension detailDimension = floorDimension.getWorld().getDimension(detailAnchor);
+        if (detailDimension != null) {
+            for (CustomLayer layer: detailDimension.getCustomLayers()) {
+                if ((layer instanceof TunnelLayer)
+                        && (((TunnelLayer) layer).getFloorDimensionId() != null)
+                        && (((TunnelLayer) layer).getFloorDimensionId() == floorAnchor.id)) {
+                    return (TunnelLayer) layer;
+                }
+            }
+            throw new IllegalArgumentException("Could not find TunnelLayer for floor dimension " + floorAnchor);
+        } else {
+            throw new IllegalArgumentException("Could not find detail dimension for floor dimension " + floorAnchor);
+        }
+    }
+
     // CustomLayer
 
     @Override
@@ -245,18 +342,26 @@ public class TunnelLayer extends CustomLayer {
 
     @Override
     public TunnelLayerExporter getExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
-        return new TunnelLayerExporter(dimension, platform, this);
+        return new TunnelLayerExporter(dimension, platform, this, getHelper(dimension)); // TODO creating the helper is not necessary to do for every exporter instance
     }
 
     @Override
     public TunnelLayerRenderer getRenderer() {
-        return renderer;
+        return new TunnelLayerRenderer(this);
+    }
+
+    @Override
+    public boolean isExportable() {
+        return floorMode != CUSTOM_DIMENSION;
     }
 
     // Cloneable
 
     @Override
     public TunnelLayer clone() {
+        if (floorMode == CUSTOM_DIMENSION) {
+            throw new WPRuntimeException("TunnelLayers with a floor dimension are not Cloneable");
+        }
         TunnelLayer clone = (TunnelLayer) super.clone();
         MixedMaterialManager mixedMaterialManager = MixedMaterialManager.getInstance();
         if (floorMaterial != null) {
@@ -292,7 +397,6 @@ public class TunnelLayer extends CustomLayer {
                 clone.orderedRoofLayers.add(layerSettings.clone());
             }
         }
-        clone.renderer = new TunnelLayerRenderer(clone);
         return clone;
     }
 
@@ -334,26 +438,24 @@ public class TunnelLayer extends CustomLayer {
             }
         }
         wpVersion = CURRENT_WP_VERSION;
-
-        renderer = new TunnelLayerRenderer(this);
     }
 
-    private Mode roofMode = Mode.FIXED_HEIGHT, floorMode = Mode.FIXED_HEIGHT;
-    private int roofLevel = 88, floorLevel = 80, floorWallDepth = 4, roofWallDepth = 4, roofMin = Integer.MIN_VALUE, roofMax = Integer.MAX_VALUE, floorMin = Integer.MIN_VALUE, floorMax = Integer.MAX_VALUE, floodLevel = Integer.MIN_VALUE;
+    Mode roofMode = Mode.FIXED_HEIGHT_ABOVE_FLOOR, floorMode = Mode.FIXED_HEIGHT;
+    int roofLevel = 16, floorLevel = 32, floorWallDepth = 4, roofWallDepth = 4, roofMin = Integer.MIN_VALUE, roofMax = Integer.MAX_VALUE, floorMin = Integer.MIN_VALUE, floorMax = Integer.MAX_VALUE, floodLevel = Integer.MIN_VALUE;
     private boolean stalactites, stalagmites, floodWithLava, removeWater;
     private MixedMaterial floorMaterial, wallMaterial, roofMaterial;
-    private NoiseSettings floorNoise, roofNoise, wallNoise;
+    NoiseSettings floorNoise, roofNoise, wallNoise;
     @Deprecated private Map<Layer, LayerSettings> floorLayers;
     private Integer tunnelBiome;
     private int wpVersion = CURRENT_WP_VERSION;
     private List<LayerSettings> orderedFloorLayers, orderedRoofLayers;
-    private transient TunnelLayerRenderer renderer = new TunnelLayerRenderer(this);
+    Integer floorDimensionId;
 
     private static final int CURRENT_WP_VERSION = 2;
     private static final long serialVersionUID = 1L;
     
-    public enum Mode { FIXED_HEIGHT, CONSTANT_DEPTH, INVERTED_DEPTH }
-    
+    public enum Mode { FIXED_HEIGHT, CONSTANT_DEPTH, INVERTED_DEPTH, CUSTOM_DIMENSION, FIXED_HEIGHT_ABOVE_FLOOR }
+
     public static class LayerSettings implements Serializable, Cloneable {
         public LayerSettings(int minLevel, int maxLevel) {
             this.minLevel = minLevel;

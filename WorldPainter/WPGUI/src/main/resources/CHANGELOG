@@ -4,6 +4,12 @@
    + This may not work, or work properly, with every Minecraft version. Experiment to find out
    + If there is already vegetation there the results may be unexpected or incorrect. But at your option you can use WorldPainter's Merge settings to remove the existing vegetation in the merged chunks
    + Consider marking _all_ chunks Read Only and then only removing the Read Only layer from the chunks you want to be affected. This will protect the rest of the map _and_ speed up the Merge
+ * The show and solo state of palettes is now remembered when saving and loading worlds and switching dimensions
+   + This does _not_ extend to the show and solo state of individual layers
+ * The workspace layout is now remembered per dimension rather than per world
+   + This includes the currently active palettes, so that they will still be active when you return to the dimension
+   + All currently stored per-world layouts will be reset; you will have to re-do your workspace layout once per world
+   + You can speed this up by storing your favourite workspace layout as the default using View -> Workspace layout -> Save workspace layout; this will be used as the default for every world you subsequently create or open
 
 -- Version 2.14.6, released 10-10-2022
 

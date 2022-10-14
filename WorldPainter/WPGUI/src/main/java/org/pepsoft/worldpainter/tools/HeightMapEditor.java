@@ -43,7 +43,8 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
     /**
      * Creates new form HeightMapEditor
      */
-    public HeightMapEditor() throws IOException {
+    public HeightMapEditor(HeightMap heightMap) throws IOException {
+        rootHeightMap = heightMap;
         initComponents();
         tiledImageViewer1.addMouseWheelListener(new MouseWheelListener() {
             @Override
@@ -97,15 +98,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
         }
     }
 
-    private void createHeightMap() throws IOException {
-        rootHeightMap = TileFactoryFactory.createFancyTileFactory(new Random().nextLong(), GRASS, 0, DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_WATER_LEVEL, 58, false, 20f, 1.0).getHeightMap();
-//        File bitmapFile = new File("/home/pepijn/Pictures/WorldPainter/test-image-8-bit-grayscale.png");
-//        BufferedImage bitmap = ImageIO.read(bitmapFile);
-//        BitmapHeightMap bitmapHeightMap = BitmapHeightMap.build().withImage(bitmap).withSmoothScaling(false).withRepeat(true).now();
-//        TransformingHeightMap scaledHeightMap = TransformingHeightMap.build().withHeightMap(bitmapHeightMap).withScale(300).now();
-//        NoiseHeightMap angleMap = new NoiseHeightMap("Angle", (float) (Math.PI * 2), 2.5f, 1);
-//        NoiseHeightMap distanceMap = new NoiseHeightMap("Distance", 25f, 2.5f, 1);
-//        heightMap = new DisplacementHeightMap(scaledHeightMap, angleMap, distanceMap);
+    private void createHeightMap() {
         focusOn(rootHeightMap);
         installHeightMap(true);
         jTree1.addMouseListener(new MouseAdapter() {
@@ -397,7 +390,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                         return tile;
                     }
                 };
-                tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, ColourScheme.DEFAULT, null, Collections.singleton(Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST, false));
+                tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, ColourScheme.DEFAULT, null, Collections.singleton(Biome.INSTANCE), false, 10, TileRenderer.LightOrigin.NORTHWEST));
                 tiledImageViewer1.setGridColour(Color.BLACK);
                 break;
         }
@@ -454,7 +447,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
         tiledImageViewer1 = new org.pepsoft.util.swing.TiledImageViewer();
         simpleThemeEditor1 = new org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Height Map Editor");
 
         jToolBar1.setRollover(true);
@@ -596,10 +589,21 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
         Configuration.setInstance(config);
         logger.info("Installation ID: " + config.getUuid());
 
+        HeightMap rootHeightMap = TileFactoryFactory.createFancyTileFactory(new Random().nextLong(), GRASS, 0, DEFAULT_MAX_HEIGHT_ANVIL, DEFAULT_WATER_LEVEL, 58, false, 20f, 1.0).getHeightMap();
+//        File bitmapFile = new File("/home/pepijn/Pictures/WorldPainter/test-image-8-bit-grayscale.png");
+//        BufferedImage bitmap = ImageIO.read(bitmapFile);
+//        BitmapHeightMap bitmapHeightMap = BitmapHeightMap.build().withImage(bitmap).withSmoothScaling(false).withRepeat(true).now();
+//        TransformingHeightMap scaledHeightMap = TransformingHeightMap.build().withHeightMap(bitmapHeightMap).withScale(300).now();
+//        NoiseHeightMap angleMap = new NoiseHeightMap("Angle", (float) (Math.PI * 2), 2.5f, 1);
+//        NoiseHeightMap distanceMap = new NoiseHeightMap("Distance", 25f, 2.5f, 1);
+//        rootHeightMap = new DisplacementHeightMap(scaledHeightMap, angleMap, distanceMap);
+
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
             try {
-                new HeightMapEditor().setVisible(true);
+                final HeightMapEditor heightMapEditor = new HeightMapEditor(rootHeightMap);
+                heightMapEditor.setDefaultCloseOperation(EXIT_ON_CLOSE);
+                heightMapEditor.setVisible(true);
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -36,7 +36,7 @@ public class Tile3DRenderer {
         minHeight = dimension.getMinHeight();
         this.colourScheme = colourScheme;
         this.rotation = rotation;
-        tileRenderer = new TileRenderer(dimension, colourScheme, customBiomeManager, 0);
+        tileRenderer = new TileRenderer(dimension, colourScheme, customBiomeManager, 0, true);
         tileRenderer.addHiddenLayers(DEFAULT_HIDDEN_LAYERS);
         tileRenderer.setContourLines(false);
         stoneColour = colourScheme.getColour(STONE);

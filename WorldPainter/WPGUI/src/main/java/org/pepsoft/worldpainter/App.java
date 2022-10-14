@@ -5,10 +5,12 @@
 
 package org.pepsoft.worldpainter;
 
+import com.google.common.collect.Lists;
 import com.jidesoft.docking.*;
 import com.jidesoft.swing.JideLabel;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.SeededGenerator;
@@ -45,8 +47,10 @@ import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayerDialog;
 import org.pepsoft.worldpainter.operations.*;
+import org.pepsoft.worldpainter.painting.LayerPaint;
 import org.pepsoft.worldpainter.painting.Paint;
-import org.pepsoft.worldpainter.painting.*;
+import org.pepsoft.worldpainter.painting.PaintFactory;
+import org.pepsoft.worldpainter.painting.TerrainPaint;
 import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.panels.InfoPanel;
@@ -90,18 +94,24 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.*;
+import java.util.function.Function;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import static com.jidesoft.docking.DockContext.DOCK_SIDE_EAST;
 import static com.jidesoft.docking.DockContext.DOCK_SIDE_WEST;
 import static com.jidesoft.docking.DockableFrame.*;
+import static java.awt.event.ComponentEvent.COMPONENT_RESIZED;
 import static java.awt.event.KeyEvent.*;
+import static java.lang.Math.round;
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toSet;
 import static javax.swing.JOptionPane.*;
+import static javax.swing.KeyStroke.getKeyStroke;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.util.GUIUtils.getUIScale;
 import static org.pepsoft.util.GUIUtils.getUIScaleInt;
@@ -112,11 +122,14 @@ import static org.pepsoft.util.swing.ProgressDialog.NO_FOCUS_STEALING;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Dimension.Anchor.*;
+import static org.pepsoft.worldpainter.Dimension.Role.*;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.Terrain.*;
 import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
 import static org.pepsoft.worldpainter.TileRenderer.TERRAIN_AS_LAYER;
+import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_FIFTY_PERCENT;
+import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_TWENTYFIVE_PERCENT;
 import static org.pepsoft.worldpainter.World2.*;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
 
@@ -232,44 +245,6 @@ public final class App extends JFrame implements RadiusControl,
         };
         addWindowListener(windowAdapter);
 
-        ActionMap actionMap = rootPane.getActionMap();
-        actionMap.put("rotateLightLeft", ACTION_ROTATE_LIGHT_LEFT);
-        actionMap.put("rotateLightRight", ACTION_ROTATE_LIGHT_RIGHT);
-        actionMap.put("intensity10", ACTION_INTENSITY_10_PERCENT);
-        actionMap.put("intensity20", ACTION_INTENSITY_20_PERCENT);
-        actionMap.put("intensity30", ACTION_INTENSITY_30_PERCENT);
-        actionMap.put("intensity40", ACTION_INTENSITY_40_PERCENT);
-        actionMap.put("intensity50", ACTION_INTENSITY_50_PERCENT);
-        actionMap.put("intensity60", ACTION_INTENSITY_60_PERCENT);
-        actionMap.put("intensity70", ACTION_INTENSITY_70_PERCENT);
-        actionMap.put("intensity80", ACTION_INTENSITY_80_PERCENT);
-        actionMap.put("intensity90", ACTION_INTENSITY_90_PERCENT);
-        actionMap.put("intensity100", ACTION_INTENSITY_100_PERCENT);
-
-        InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(ACTION_ROTATE_LIGHT_LEFT.getAcceleratorKey(), "rotateLightLeft");
-        inputMap.put(ACTION_ROTATE_LIGHT_RIGHT.getAcceleratorKey(), "rotateLightRight");
-        inputMap.put(ACTION_INTENSITY_10_PERCENT.getAcceleratorKey(), "intensity10");
-        inputMap.put(ACTION_INTENSITY_20_PERCENT.getAcceleratorKey(), "intensity20");
-        inputMap.put(ACTION_INTENSITY_30_PERCENT.getAcceleratorKey(), "intensity30");
-        inputMap.put(ACTION_INTENSITY_40_PERCENT.getAcceleratorKey(), "intensity40");
-        inputMap.put(ACTION_INTENSITY_50_PERCENT.getAcceleratorKey(), "intensity50");
-        inputMap.put(ACTION_INTENSITY_60_PERCENT.getAcceleratorKey(), "intensity60");
-        inputMap.put(ACTION_INTENSITY_70_PERCENT.getAcceleratorKey(), "intensity70");
-        inputMap.put(ACTION_INTENSITY_80_PERCENT.getAcceleratorKey(), "intensity80");
-        inputMap.put(ACTION_INTENSITY_90_PERCENT.getAcceleratorKey(), "intensity90");
-        inputMap.put(ACTION_INTENSITY_100_PERCENT.getAcceleratorKey(), "intensity100");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD1, 0), "intensity10");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD2, 0), "intensity20");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD3, 0), "intensity30");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD4, 0), "intensity40");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD5, 0), "intensity50");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD6, 0), "intensity60");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD7, 0), "intensity70");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD8, 0), "intensity80");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD9, 0), "intensity90");
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD0, 0), "intensity100");
-
         // Log some information about the graphics environment
         GraphicsDevice graphicsDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         DisplayMode displayMode = graphicsDevice.getDisplayMode();
@@ -378,16 +353,16 @@ public final class App extends JFrame implements RadiusControl,
 
             extendedBlockIdsMenuItem.setSelected(world.isExtendedBlockIds());
 
-            // Load the layout *before* setting the dimension, because otherwise
-            // the subsequent changes (due to the loading of custom layers for
-            // instance) may cause layout/display bugs
-            Configuration config = Configuration.getInstance();
-            if ((config.getJideLayoutData() != null) && config.getJideLayoutData().containsKey(world.getName())) {
-                dockingManager.loadLayoutFrom(new ByteArrayInputStream(config.getJideLayoutData().get(world.getName())));
+
+            final Dimension surfaceDimension = world.getDimension(NORMAL_DETAIL);
+            final Dimension masterDimension = world.getDimension(NORMAL_MASTER);
+            if ((masterDimension != null) && (surfaceDimension.getTileCount() == 0)) {
+                setDimension(masterDimension);
+            } else {
+                setDimension(surfaceDimension);
             }
 
-            setDimension(world.getDimension(NORMAL_DETAIL));
-
+            final Configuration config = Configuration.getInstance();
             if (config.isDefaultViewDistanceEnabled() != view.isDrawViewDistance()) {
                 ACTION_VIEW_DISTANCE.actionPerformed(null);
             }
@@ -445,15 +420,30 @@ public final class App extends JFrame implements RadiusControl,
                 currentUndoManager = null;
             }
 
+            Map<String, byte[]> layoutData = config.getJideLayoutData();
+            if (layoutData == null) {
+                layoutData = new HashMap<>();
+            }
+            layoutData.put(this.dimension.getId().toString(), dockingManager.getLayoutRawData());
+            config.setJideLayoutData(layoutData);
+
             // Remove the existing custom object layers and save the list of custom layers to the dimension to preserve
             // layers which aren't currently in use
+            saveCustomLayers();
             if (! paletteManager.isEmpty()) {
-                List<CustomLayer> customLayers = new ArrayList<>();
                 boolean visibleLayersChanged = false;
+                final Set<String> hiddenPalettes = new HashSet<>();
+                String soloedPalette = null;
                 for (Palette palette: paletteManager.clear()) {
+                    final String paletteName = palette.getName();
+                    if (! palette.isShow()) {
+                        hiddenPalettes.add(paletteName);
+                    }
+                    if (palette.isSolo()) {
+                        soloedPalette = paletteName;
+                    }
                     palette.removePropertyChangeListener(this);
                     List<CustomLayer> paletteLayers = palette.getLayers();
-                    customLayers.addAll(paletteLayers);
                     for (Layer layer: paletteLayers) {
                         if (hiddenLayers.contains(layer)) {
                             hiddenLayers.remove(layer);
@@ -470,24 +460,28 @@ public final class App extends JFrame implements RadiusControl,
                     updateLayerVisibility();
                 }
                 layerSoloCheckBoxes.clear();
-                this.dimension.setCustomLayers(customLayers);
-            } else {
-                this.dimension.setCustomLayers(emptyList());
+                this.dimension.setHiddenPalettes(hiddenPalettes.isEmpty() ? null : hiddenPalettes);
+                this.dimension.setSoloedPalette(soloedPalette);
+
+                if ((paint instanceof LayerPaint) && (((LayerPaint) paint).getLayer() instanceof CustomLayer)) {
+                    // Don't leave a CustomLayer selected as paint, since they are associated with the dimension
+                    deselectPaint();
+                }
             }
             layersWithNoButton.clear();
 
             saveCustomBiomes();
+
+            view.setDimension(null);
         }
         this.dimension = dimension;
         if (dimension != null) {
             setTitle("WorldPainter - " + world.getName() + " - " + dimension.getName()); // NOI18N
             final Anchor anchor = dimension.getAnchor();
-            viewSurfaceMenuItem.setSelected((anchor.dim == DIM_NORMAL) && (! anchor.invert));
-            viewSurfaceCeilingMenuItem.setSelected((anchor.dim == DIM_NORMAL) && anchor.invert);
-            viewNetherMenuItem.setSelected((anchor.dim == DIM_NETHER) && (! anchor.invert));
-            viewNetherCeilingMenuItem.setSelected((anchor.dim == DIM_NETHER) && anchor.invert);
-            viewEndMenuItem.setSelected((anchor.dim == DIM_END) && (! anchor.invert));
-            viewEndCeilingMenuItem.setSelected((anchor.dim == DIM_END) && anchor.invert);
+            viewSurfaceMenuItem.setSelected(anchor.dim == DIM_NORMAL);
+            viewNetherMenuItem.setSelected(anchor.dim == DIM_NETHER);
+            viewEndMenuItem.setSelected(anchor.dim == DIM_END);
+            ACTION_EDIT_TILES.setEnabled(anchor.role != CAVE_FLOOR);
 
             // Legacy: if this is an older world with an overlay enabled, ask the user if we should fix the coordinates
             // (ask because they might have fixed the problem manually in 1.9.0 or 1.9.1, in which we neglected to do it
@@ -506,10 +500,27 @@ public final class App extends JFrame implements RadiusControl,
                 }
                 dimension.setFixOverlayCoords(false);
             }
-            
-            view.setDimension(dimension);
+
+            view.setDimension(dimension, false);
+            outsideDimensionLabel = "Minecraft Generated";
+            if (anchor.equals(NORMAL_DETAIL)) {
+                backgroundDimension = world.getDimension(new Anchor(DIM_NORMAL, MASTER, false, 0));
+                showBackgroundStatus = backgroundDimension != null;
+                backgroundZoom = 4;
+                view.setBackgroundDimension(backgroundDimension, backgroundZoom, FADE_TO_FIFTY_PERCENT);
+            } else if (anchor.role == CAVE_FLOOR) {
+                backgroundDimension = world.getDimension(new Anchor(anchor.dim, DETAIL, anchor.invert, 0));
+                showBackgroundStatus = false;
+                backgroundZoom = 0;
+                outsideDimensionLabel = "Outside Cave/Tunnel";
+                view.setBackgroundDimension(backgroundDimension, backgroundZoom, FADE_TO_TWENTYFIVE_PERCENT);
+            } else {
+                backgroundDimension = null;
+                showBackgroundStatus = false;
+                view.setBackgroundDimension(null, -1, null);
+            }
             view.moveTo(dimension.getLastViewPosition());
-            
+
             configureForPlatform();
             currentUndoManager = undoManagers.get(anchor);
             if (currentUndoManager == null) {
@@ -560,7 +571,15 @@ public final class App extends JFrame implements RadiusControl,
                 warnings.append("\nThe Custom Terrain has been removed from the layer(s).");
                 showMessageDialog(this, warnings.toString(), "Custom Terrain(s) Not Restored", ERROR_MESSAGE);
             }
-            
+
+            // Restore palette states
+            if (dimension.getSoloedPalette() != null) {
+                paletteManager.getPalette(dimension.getSoloedPalette()).setSolo(true);
+            }
+            if (dimension.getHiddenPalettes() != null) {
+                dimension.getHiddenPalettes().forEach(palette -> paletteManager.getPalette(palette).setShow(false));
+            }
+
             // Set action states
             ACTION_GRID.setSelected(view.isPaintGrid());
             ACTION_CONTOURS.setSelected(view.isDrawContours());
@@ -599,8 +618,27 @@ public final class App extends JFrame implements RadiusControl,
             for (Tile tile: dimension.getTiles()) {
                 tile.addListener(this);
             }
+
+            updateZoomLabel();
+            updateRadiusLabel();
+
+            final Map<String, byte[]> layoutData = config.getJideLayoutData();
+            final String key = dimension.getId().toString();
+            if ((layoutData != null) && layoutData.containsKey(key)) {
+                dockingManager.loadLayoutFrom(new ByteArrayInputStream(layoutData.get(key)));
+                // This works around a bug in JIDE that otherwise causes painting to be shifted if this resulted in
+                // resized docks:
+                view.componentResized(new ComponentEvent(view, COMPONENT_RESIZED));
+            }
+
+            view.refreshTiles();
+
+            if (dimension.getTileCount() == 0) {
+                doLaterOnEventThread(this::addRemoveTiles);
+            }
         } else {
             view.setDimension(null);
+            view.setBackgroundDimension(null, -1, null);
             setTitle("WorldPainter"); // NOI18N
 
             // Clear action states
@@ -636,19 +674,35 @@ public final class App extends JFrame implements RadiusControl,
             } finally {
                 programmaticChange = false;
             }
+
+            backgroundDimension = null;
         }
     }
 
     public void updateStatusBar(int x, int y) {
-        setTextIfDifferent(locationLabel, MessageFormat.format(strings.getString("location.0.1"), x, y));
+        Dimension dimension = this.dimension;
         if (dimension == null) {
+            setTextIfDifferent(locationLabel, " ");
             setTextIfDifferent(heightLabel, " ");
             setTextIfDifferent(waterLabel, " ");
             setTextIfDifferent(materialLabel, " ");
             setTextIfDifferent(biomeLabel, " ");
             return;
         }
+        final float scale = dimension.getScale();
+        setTextIfDifferent(locationLabel, MessageFormat.format(strings.getString("location.0.1"), NUMBER_FORMAT.format(round(x * scale)), NUMBER_FORMAT.format(round(y * scale))));
         Tile tile = dimension.getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+        int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
+        if (showBackgroundStatus
+                && ((tile == null) || tile.getBitLayerValue(NotPresent.INSTANCE, xInTile, yInTile) || tile.getBitLayerValue(NotPresentBlock.INSTANCE, xInTile, yInTile))
+                && backgroundDimension.isTilePresent(x >> (TILE_SIZE_BITS + backgroundZoom), y >> (TILE_SIZE_BITS + backgroundZoom))) {
+            dimension = backgroundDimension;
+            x = x >> backgroundZoom;
+            y = y >> backgroundZoom;
+            xInTile = x & TILE_SIZE_MASK;
+            yInTile = y & TILE_SIZE_MASK;
+            tile = dimension.getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+        }
         if (tile == null) {
             // Not on a tile
             setTextIfDifferent(heightLabel, " ");
@@ -657,26 +711,25 @@ public final class App extends JFrame implements RadiusControl,
             if (dimension.isBorderTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS)) {
                 setTextIfDifferent(materialLabel, "Border");
             } else {
-                setTextIfDifferent(materialLabel, "Minecraft Generated");
+                setTextIfDifferent(materialLabel, outsideDimensionLabel);
             }
             setTextIfDifferent(biomeLabel, " ");
             return;
         }
-        final int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
-        if (tile.getBitLayerValue(NotPresent.INSTANCE, xInTile, yInTile)) {
+        if (tile.getBitLayerValue(NotPresent.INSTANCE, xInTile, yInTile) || tile.getBitLayerValue(NotPresentBlock.INSTANCE, xInTile, yInTile)) {
             // Marked as not present
             setTextIfDifferent(heightLabel, " ");
             setTextIfDifferent(slopeLabel, " ");
             setTextIfDifferent(waterLabel, " ");
-            setTextIfDifferent(materialLabel, "Minecraft Generated");
+            setTextIfDifferent(materialLabel, outsideDimensionLabel);
             setTextIfDifferent(biomeLabel, " ");
             return;
         }
-        int height = tile.getIntHeight(xInTile, yInTile);
+        final int height = tile.getIntHeight(xInTile, yInTile);
         setTextIfDifferent(heightLabel, MessageFormat.format(strings.getString("height.0.of.1"), height, dimension.getMaxHeight() - 1));
-        setTextIfDifferent(slopeLabel, MessageFormat.format("Slope: {0}°", (int) Math.round(Math.atan(dimension.getSlope(x, y)) * 180 / Math.PI)));
+        setTextIfDifferent(slopeLabel, MessageFormat.format("Slope: {0}°", (int) round(Math.atan(dimension.getSlope(x, y)) * 180 / Math.PI)));
         if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint)) {
-            Layer layer = ((LayerPaint) paint).getLayer();
+            final Layer layer = ((LayerPaint) paint).getLayer();
             switch (layer.getDataSize()) {
                 case BIT:
                 case BIT_PER_CHUNK:
@@ -686,7 +739,7 @@ public final class App extends JFrame implements RadiusControl,
                     int value, strength;
                     if (! layer.equals(Annotations.INSTANCE)) {
                         value = tile.getLayerValue(layer, xInTile, yInTile);
-                        strength = (value > 0) ? ((value - 1) * 100  / 14 + 1): 0;
+                        strength = (value > 0) ? ((value - 1) * 100 / 14 + 1) : 0;
                         if ((strength == 51) || (strength == 101)) {
                             strength--;
                         }
@@ -698,7 +751,7 @@ public final class App extends JFrame implements RadiusControl,
                 case BYTE:
                     if (! layer.equals(Biome.INSTANCE)) {
                         value = tile.getLayerValue(layer, xInTile, yInTile);
-                        strength = (value > 0) ? ((value - 1) * 100  / 254 + 1): 0;
+                        strength = (value > 0) ? ((value - 1) * 100 / 254 + 1) : 0;
                         setTextIfDifferent(waterLabel, MessageFormat.format(strings.getString("layer.0.level.1"), layer.getName(), strength));
                     } else {
                         setTextIfDifferent(waterLabel, " ");
@@ -738,6 +791,15 @@ public final class App extends JFrame implements RadiusControl,
             } else if (biome != -1) {
                 setTextIfDifferent(biomeLabel, MessageFormat.format(strings.getString("biome.0"), biomeHelper.getBiomeName(biome)));
             }
+        }
+    }
+
+    private void updateRadiusLabel() {
+        if ((dimension != null) && (activeOperation instanceof RadiusOperation)) {
+            final float scale = dimension.getScale();
+            setTextIfDifferent(radiusLabel, MessageFormat.format(strings.getString("radius.0"), round(radius * scale)));
+        } else {
+            setTextIfDifferent(radiusLabel, " ");
         }
     }
 
@@ -785,7 +847,7 @@ public final class App extends JFrame implements RadiusControl,
                 ((RadiusOperation) activeOperation).setRadius(radius);
             }
             view.setRadius(radius);
-            radiusLabel.setText(MessageFormat.format(strings.getString("radius.0"), radius));
+            updateRadiusLabel();
         }
     }
 
@@ -1321,7 +1383,7 @@ public final class App extends JFrame implements RadiusControl,
             ((RadiusOperation) activeOperation).setRadius(radius);
         }
         view.setRadius(radius);
-        radiusLabel.setText(MessageFormat.format(strings.getString("radius.0"), radius));
+        updateRadiusLabel();
     }
 
     @Override
@@ -1332,7 +1394,7 @@ public final class App extends JFrame implements RadiusControl,
                 ((RadiusOperation) activeOperation).setRadius(radius);
             }
             view.setRadius(radius);
-            radiusLabel.setText(MessageFormat.format(strings.getString("radius.0"), radius));
+            updateRadiusLabel();
         }
     }
     
@@ -1355,7 +1417,7 @@ public final class App extends JFrame implements RadiusControl,
                 ((RadiusOperation) activeOperation).setRadius(radius);
             }
             view.setRadius(radius);
-            radiusLabel.setText(MessageFormat.format(strings.getString("radius.0"), radius));
+            updateRadiusLabel();
         }
     }
 
@@ -1367,7 +1429,7 @@ public final class App extends JFrame implements RadiusControl,
                 ((RadiusOperation) activeOperation).setRadius(radius);
             }
             view.setRadius(radius);
-            radiusLabel.setText(MessageFormat.format(strings.getString("radius.0"), radius));
+            updateRadiusLabel();
         }
     }
     
@@ -1629,7 +1691,7 @@ public final class App extends JFrame implements RadiusControl,
         popupMenu.add(menuItem);
 
         menuItem = new JMenuItem("Import from another world...");
-        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.TERRAIN));
+        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.TERRAIN, null));
         popupMenu.add(menuItem);
 
         if (button != null) {
@@ -1971,6 +2033,18 @@ public final class App extends JFrame implements RadiusControl,
             setWorld(newWorld, true);
             lastSelectedFile = null;
             disableImportedWorldOperation();
+
+            if ((newWorld.getDimension(NORMAL_MASTER) != null) && (newWorld.getDimension(NORMAL_DETAIL).getTileCount() == 0)) {
+                doLaterOnEventThread(() -> {
+                    JOptionPane.showMessageDialog(this,
+                            "You are now editing the Master Dimension. This will be exported\n" +
+                                    "at sixteen times the horizontal size.\n" +
+                                    "\n" +
+                                    "To add details at 1:1 scale, switch to the Surface Dimension by\n" +
+                                    "pressing " + COMMAND_KEY_NAME + "+M or using the View menu and then add tiles by\n" +
+                                    "pressing " + COMMAND_KEY_NAME + "+T or using the Edit menu.", "Editing Master Dimension", INFORMATION_MESSAGE);
+                });
+            }
         }
     }
 
@@ -2150,20 +2224,8 @@ public final class App extends JFrame implements RadiusControl,
             logger.info("Saving world " + world.getName() + " to " + file.getAbsolutePath());
 
             saveCustomMaterials();
-
             saveCustomBiomes();
-
-            // Remove the existing custom object layers and save the list of custom layers to the dimension to preserve
-            // layers which aren't currently in use
-            if (! paletteManager.isEmpty()) {
-                final List<CustomLayer> customLayers = new ArrayList<>();
-                for (Palette palette : paletteManager.getPalettes()) {
-                    customLayers.addAll(palette.getLayers());
-                }
-                dimension.setCustomLayers(customLayers);
-            } else {
-                dimension.setCustomLayers(emptyList());
-            }
+            saveCustomLayers();
 
             if (dimension != null) {
                 final Point viewPosition = view.getViewCentreInWorldCoords();
@@ -2224,7 +2286,7 @@ public final class App extends JFrame implements RadiusControl,
                         if (layoutData == null) {
                             layoutData = new HashMap<>();
                         }
-                        layoutData.put(world.getName(), dockingManager.getLayoutRawData());
+                        layoutData.put(dimension.getId().toString(), dockingManager.getLayoutRawData());
                         config.setJideLayoutData(layoutData);
 
                         return null;
@@ -2342,19 +2404,7 @@ public final class App extends JFrame implements RadiusControl,
             }
             saveCustomMaterials();
             saveCustomBiomes();
-
-            // Remove the existing custom object layers and save the list of
-            // custom layers to the dimension to preserve layers which aren't
-            // currently in use
-            if (!paletteManager.isEmpty()) {
-                List<CustomLayer> customLayers = new ArrayList<>();
-                for (Palette palette : paletteManager.getPalettes()) {
-                    customLayers.addAll(palette.getLayers());
-                }
-                dimension.setCustomLayers(customLayers);
-            } else {
-                dimension.setCustomLayers(emptyList());
-            }
+            saveCustomLayers();
 
             if (dimension != null) {
                 Point viewPosition = view.getViewCentreInWorldCoords();
@@ -2430,6 +2480,9 @@ public final class App extends JFrame implements RadiusControl,
     private void addRemoveTiles() {
         TileEditor tileEditor = new TileEditor(this, dimension, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin());
         tileEditor.setVisible(true);
+        if (tileEditor.isTilesChanged()) {
+            view.refreshTiles();
+        }
     }
     
     private void importWorld() {
@@ -2499,6 +2552,7 @@ public final class App extends JFrame implements RadiusControl,
                 return;
             }
             saveCustomBiomes();
+            saveCustomLayers();
             MergeWorldDialog dialog = new MergeWorldDialog(this, world, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin(), view);
             dialog.setVisible(true);
         } finally {
@@ -2508,9 +2562,10 @@ public final class App extends JFrame implements RadiusControl,
 
     private void updateZoomLabel() {
         double factor = Math.pow(2.0, view.getZoom());
-        int zoomPercentage = (int) (100 * factor);
+        final float scale = (dimension != null) ? dimension.getScale() : 1.0f;
+        int zoomPercentage = (int) (100 * factor / scale);
         zoomLabel.setText(MessageFormat.format(strings.getString("zoom.0"), zoomPercentage));
-        glassPane.setScale((float) factor);
+        glassPane.setScale((float) factor / scale);
     }
 
     private void initComponents() {
@@ -2550,7 +2605,7 @@ public final class App extends JFrame implements RadiusControl,
         if ((bestCursorSize.width != 0) && (bestCursorSize.height == bestCursorSize.width)) {
             int hotspot = 15;
             if (bestCursorSize.width != 32) {
-                hotspot = Math.round(15 * ((float) bestCursorSize.width / 32));
+                hotspot = round(15 * ((float) bestCursorSize.width / 32));
             }
             final Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(cursorImage, new Point(hotspot, hotspot), "Custom Crosshair");
             glassPane.setCursor(cursor);
@@ -2573,6 +2628,8 @@ public final class App extends JFrame implements RadiusControl,
         }
         dockingManager.setGroupAllowedOnSidePane(false);
         dockingManager.setTabbedPaneCustomizer(tabbedPane -> tabbedPane.setTabPlacement(JTabbedPane.LEFT));
+        // Stop JIDE from swallowing the Esc key
+        dockingManager.getMainContainer().unregisterKeyboardAction(getKeyStroke(VK_ESCAPE, 0));
         Workspace workspace = dockingManager.getWorkspace();
         workspace.setLayout(new BorderLayout());
         workspace.add(viewContainer, BorderLayout.CENTER);
@@ -2756,32 +2813,68 @@ public final class App extends JFrame implements RadiusControl,
         actionMap.put(ACTION_ROTATE_BRUSH_RIGHT_30_DEGREES.getName(), ACTION_ROTATE_BRUSH_RIGHT_30_DEGREES);
         actionMap.put(ACTION_ROTATE_BRUSH_RIGHT_45_DEGREES.getName(), ACTION_ROTATE_BRUSH_RIGHT_45_DEGREES);
         actionMap.put(ACTION_ROTATE_BRUSH_RIGHT_90_DEGREES.getName(), ACTION_ROTATE_BRUSH_RIGHT_90_DEGREES);
+        actionMap.put("rotateLightLeft", ACTION_ROTATE_LIGHT_LEFT);
+        actionMap.put("rotateLightRight", ACTION_ROTATE_LIGHT_RIGHT);
+        actionMap.put("intensity10", ACTION_INTENSITY_10_PERCENT);
+        actionMap.put("intensity20", ACTION_INTENSITY_20_PERCENT);
+        actionMap.put("intensity30", ACTION_INTENSITY_30_PERCENT);
+        actionMap.put("intensity40", ACTION_INTENSITY_40_PERCENT);
+        actionMap.put("intensity50", ACTION_INTENSITY_50_PERCENT);
+        actionMap.put("intensity60", ACTION_INTENSITY_60_PERCENT);
+        actionMap.put("intensity70", ACTION_INTENSITY_70_PERCENT);
+        actionMap.put("intensity80", ACTION_INTENSITY_80_PERCENT);
+        actionMap.put("intensity90", ACTION_INTENSITY_90_PERCENT);
+        actionMap.put("intensity100", ACTION_INTENSITY_100_PERCENT);
+        actionMap.put(ACTION_EXIT_DIMENSION.getName(), ACTION_EXIT_DIMENSION);
 
         int platformCommandMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
         InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        inputMap.put(KeyStroke.getKeyStroke(VK_SUBTRACT, 0),                                     ACTION_NAME_DECREASE_RADIUS);
-        inputMap.put(KeyStroke.getKeyStroke(VK_MINUS,    0),                                     ACTION_NAME_DECREASE_RADIUS);
-        inputMap.put(KeyStroke.getKeyStroke(VK_ADD,      0),                                     ACTION_NAME_INCREASE_RADIUS);
-        inputMap.put(KeyStroke.getKeyStroke(VK_EQUALS,   SHIFT_DOWN_MASK),                       ACTION_NAME_INCREASE_RADIUS);
-        inputMap.put(KeyStroke.getKeyStroke(VK_SUBTRACT, SHIFT_DOWN_MASK),                       ACTION_NAME_DECREASE_RADIUS_BY_ONE);
-        inputMap.put(KeyStroke.getKeyStroke(VK_MINUS,    SHIFT_DOWN_MASK),                       ACTION_NAME_DECREASE_RADIUS_BY_ONE);
-        inputMap.put(KeyStroke.getKeyStroke(VK_ADD,      SHIFT_DOWN_MASK),                       ACTION_NAME_INCREASE_RADIUS_BY_ONE);
-        inputMap.put(KeyStroke.getKeyStroke(VK_Z,        platformCommandMask | SHIFT_DOWN_MASK), ACTION_NAME_REDO);
-        inputMap.put(KeyStroke.getKeyStroke(VK_MINUS,    platformCommandMask),                   ACTION_NAME_ZOOM_OUT);
-        inputMap.put(KeyStroke.getKeyStroke(VK_EQUALS,   platformCommandMask | SHIFT_DOWN_MASK), ACTION_NAME_ZOOM_IN);
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD0,  platformCommandMask),                   ACTION_ZOOM_RESET.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_SUBTRACT, ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_LEFT.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_MINUS,    ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_LEFT.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_ADD,      ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_EQUALS,   ALT_DOWN_MASK | SHIFT_DOWN_MASK),       ACTION_ROTATE_BRUSH_RIGHT.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_0,        ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RESET.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD0,  ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RESET.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_3,        ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_30_DEGREES.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD3,  ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_30_DEGREES.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_4,        ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_45_DEGREES.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD4,  ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_45_DEGREES.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_9,        ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_90_DEGREES.getName());
-        inputMap.put(KeyStroke.getKeyStroke(VK_NUMPAD9,  ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_90_DEGREES.getName());
+        inputMap.put(getKeyStroke(VK_SUBTRACT, 0),                                     ACTION_NAME_DECREASE_RADIUS);
+        inputMap.put(getKeyStroke(VK_MINUS,    0),                                     ACTION_NAME_DECREASE_RADIUS);
+        inputMap.put(getKeyStroke(VK_ADD,      0),                                     ACTION_NAME_INCREASE_RADIUS);
+        inputMap.put(getKeyStroke(VK_EQUALS,   SHIFT_DOWN_MASK),                       ACTION_NAME_INCREASE_RADIUS);
+        inputMap.put(getKeyStroke(VK_SUBTRACT, SHIFT_DOWN_MASK),                       ACTION_NAME_DECREASE_RADIUS_BY_ONE);
+        inputMap.put(getKeyStroke(VK_MINUS,    SHIFT_DOWN_MASK),                       ACTION_NAME_DECREASE_RADIUS_BY_ONE);
+        inputMap.put(getKeyStroke(VK_ADD,      SHIFT_DOWN_MASK),                       ACTION_NAME_INCREASE_RADIUS_BY_ONE);
+        inputMap.put(getKeyStroke(VK_Z,        platformCommandMask | SHIFT_DOWN_MASK), ACTION_NAME_REDO);
+        inputMap.put(getKeyStroke(VK_MINUS,    platformCommandMask),                   ACTION_NAME_ZOOM_OUT);
+        inputMap.put(getKeyStroke(VK_EQUALS,   platformCommandMask | SHIFT_DOWN_MASK), ACTION_NAME_ZOOM_IN);
+        inputMap.put(getKeyStroke(VK_NUMPAD0,  platformCommandMask),                   ACTION_ZOOM_RESET.getName());
+        inputMap.put(getKeyStroke(VK_SUBTRACT, ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_LEFT.getName());
+        inputMap.put(getKeyStroke(VK_MINUS,    ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_LEFT.getName());
+        inputMap.put(getKeyStroke(VK_ADD,      ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT.getName());
+        inputMap.put(getKeyStroke(VK_EQUALS,   ALT_DOWN_MASK | SHIFT_DOWN_MASK),       ACTION_ROTATE_BRUSH_RIGHT.getName());
+        inputMap.put(getKeyStroke(VK_0,        ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RESET.getName());
+        inputMap.put(getKeyStroke(VK_NUMPAD0,  ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RESET.getName());
+        inputMap.put(getKeyStroke(VK_3,        ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_30_DEGREES.getName());
+        inputMap.put(getKeyStroke(VK_NUMPAD3,  ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_30_DEGREES.getName());
+        inputMap.put(getKeyStroke(VK_4,        ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_45_DEGREES.getName());
+        inputMap.put(getKeyStroke(VK_NUMPAD4,  ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_45_DEGREES.getName());
+        inputMap.put(getKeyStroke(VK_9,        ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_90_DEGREES.getName());
+        inputMap.put(getKeyStroke(VK_NUMPAD9,  ALT_DOWN_MASK),                         ACTION_ROTATE_BRUSH_RIGHT_90_DEGREES.getName());
+        inputMap.put(ACTION_ROTATE_LIGHT_LEFT.getAcceleratorKey(),                     "rotateLightLeft");
+        inputMap.put(ACTION_ROTATE_LIGHT_RIGHT.getAcceleratorKey(),                    "rotateLightRight");
+        inputMap.put(ACTION_INTENSITY_10_PERCENT.getAcceleratorKey(),                  "intensity10");
+        inputMap.put(ACTION_INTENSITY_20_PERCENT.getAcceleratorKey(),                  "intensity20");
+        inputMap.put(ACTION_INTENSITY_30_PERCENT.getAcceleratorKey(),                  "intensity30");
+        inputMap.put(ACTION_INTENSITY_40_PERCENT.getAcceleratorKey(),                  "intensity40");
+        inputMap.put(ACTION_INTENSITY_50_PERCENT.getAcceleratorKey(),                  "intensity50");
+        inputMap.put(ACTION_INTENSITY_60_PERCENT.getAcceleratorKey(),                  "intensity60");
+        inputMap.put(ACTION_INTENSITY_70_PERCENT.getAcceleratorKey(),                  "intensity70");
+        inputMap.put(ACTION_INTENSITY_80_PERCENT.getAcceleratorKey(),                  "intensity80");
+        inputMap.put(ACTION_INTENSITY_90_PERCENT.getAcceleratorKey(),                  "intensity90");
+        inputMap.put(ACTION_INTENSITY_100_PERCENT.getAcceleratorKey(),                 "intensity100");
+        inputMap.put(getKeyStroke(VK_NUMPAD1, 0),                                      "intensity10");
+        inputMap.put(getKeyStroke(VK_NUMPAD2, 0),                                      "intensity20");
+        inputMap.put(getKeyStroke(VK_NUMPAD3, 0),                                      "intensity30");
+        inputMap.put(getKeyStroke(VK_NUMPAD4, 0),                                      "intensity40");
+        inputMap.put(getKeyStroke(VK_NUMPAD5, 0),                                      "intensity50");
+        inputMap.put(getKeyStroke(VK_NUMPAD6, 0),                                      "intensity60");
+        inputMap.put(getKeyStroke(VK_NUMPAD7, 0),                                      "intensity70");
+        inputMap.put(getKeyStroke(VK_NUMPAD8, 0),                                      "intensity80");
+        inputMap.put(getKeyStroke(VK_NUMPAD9, 0),                                      "intensity90");
+        inputMap.put(getKeyStroke(VK_NUMPAD0, 0),                                      "intensity100");
+        inputMap.put(ACTION_EXIT_DIMENSION.getAcceleratorKey(),                        ACTION_EXIT_DIMENSION.getName());
 
         programmaticChange = true;
         try {
@@ -2862,7 +2955,7 @@ public final class App extends JFrame implements RadiusControl,
         biomeLabel = new JLabel("Auto biome: Mega Spruce Taiga Hills (ID 161)");
         biomeLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         statusBar.add(biomeLabel);
-        radiusLabel = new JLabel(MessageFormat.format(strings.getString("radius.0"), 999));
+        radiusLabel = new JLabel(MessageFormat.format(strings.getString("radius.0"), 15984));
         radiusLabel.setToolTipText(strings.getString("scroll.the.mouse.wheel"));
         radiusLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         statusBar.add(radiusLabel);
@@ -3017,12 +3110,13 @@ public final class App extends JFrame implements RadiusControl,
         LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(ReadOnly.INSTANCE, 'o'));
         disableImportedWorldOperation();
 
-        final JPopupMenu customLayerMenu = createCustomLayerMenu(null);
-
         final JButton addLayerButton = new JButton(loadScaledIcon("plus"));
         addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
         addLayerButton.setMargin(App.BUTTON_INSETS);
-        addLayerButton.addActionListener(e -> customLayerMenu.show(layerPanel, addLayerButton.getX() + addLayerButton.getWidth(), addLayerButton.getY()));
+        addLayerButton.addActionListener(e -> {
+            final JPopupMenu customLayerMenu = createCustomLayerMenu(null);
+            customLayerMenu.show(layerPanel, addLayerButton.getX() + addLayerButton.getWidth(), addLayerButton.getY());
+        });
         JPanel spacer = new JPanel();
         constraints.gridwidth = 1;
         constraints.weightx = 0.0;
@@ -3184,7 +3278,8 @@ public final class App extends JFrame implements RadiusControl,
             }
         });
         customLayerMenu.add(menuItem);
-        
+
+        final Anchor anchor = dimension.getAnchor();
         menuItem = new JMenuItem(strings.getString("add.a.custom.underground.pockets.layer") + "...");
         menuItem.addActionListener(e -> {
             UndergroundPocketsDialog dialog = new UndergroundPocketsDialog(App.this, world.getPlatform(), MixedMaterial.create(world.getPlatform(), Material.IRON_BLOCK), selectedColourScheme, world.getMaxHeight(), world.isExtendedBlockIds());
@@ -3197,6 +3292,9 @@ public final class App extends JFrame implements RadiusControl,
                 registerCustomLayer(layer, true);
             }
         });
+        if (anchor.role == CAVE_FLOOR) {
+            menuItem.setEnabled(false);
+        }
         customLayerMenu.add(menuItem);
         
         menuItem = new JMenuItem("Add a custom cave/tunnel layer...");
@@ -3212,7 +3310,9 @@ public final class App extends JFrame implements RadiusControl,
                 baseHeight = 58;
                 waterLevel = DEFAULT_WATER_LEVEL;
             }
-            TunnelLayerDialog dialog = new TunnelLayerDialog(App.this, world.getPlatform(), layer, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
+            // TODO passing in dimension here is a crude mechanism. It is supposed to be the dimension on which this
+            //  layer will be used, but that is impossible to enforce. In practice this will usually be right though
+            TunnelLayerDialog dialog = new TunnelLayerDialog(App.this, world.getPlatform(), layer, dimension, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 if (paletteName != null) {
@@ -3221,6 +3321,9 @@ public final class App extends JFrame implements RadiusControl,
                 registerCustomLayer(layer, true);
             }
         });
+        if (anchor.role == CAVE_FLOOR) {
+            menuItem.setEnabled(false);
+        }
         customLayerMenu.add(menuItem);
         
         menuItem = new JMenuItem("Add a custom plants layer...");
@@ -3250,6 +3353,10 @@ public final class App extends JFrame implements RadiusControl,
                 registerCustomLayer(layer, true);
             }
         });
+        // TODO add support for combined layers
+        if (anchor.role == CAVE_FLOOR) {
+            menuItem.setEnabled(false);
+        }
         customLayerMenu.add(menuItem);
 
         List<Class<? extends CustomLayer>> allPluginLayers = new ArrayList<>();
@@ -3279,15 +3386,83 @@ public final class App extends JFrame implements RadiusControl,
             customLayerMenu.addSeparator();
         }
 
+        menuItem = new JMenu("Copy layer from another dimension");
+        final Function<Layer, Boolean> filter = getLayerFilterForCurrentDimension();
+        List<JMenuItem> copyMenuItems = getCopyLayerMenuItems((paletteName != null) ? paletteName : "Custom Layers", filter);
+        if (! copyMenuItems.isEmpty()) {
+            for (JMenuItem copyMenuItem: copyMenuItems) {
+                ((JMenu) menuItem).add(copyMenuItem);
+            }
+        } else {
+            menuItem.setEnabled(false);
+        }
+        customLayerMenu.add(menuItem);
+
         menuItem = new JMenuItem("Import custom layer(s) from file...");
-        menuItem.addActionListener(e -> importLayers(paletteName));
+        menuItem.addActionListener(e -> importLayers(paletteName, filter));
         customLayerMenu.add(menuItem);
 
         menuItem = new JMenuItem("Import custom layer(s) from another world...");
-        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.LAYER));
+        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.LAYER, filter));
         customLayerMenu.add(menuItem);
 
         return customLayerMenu;
+    }
+
+    @Nullable
+    private Function<Layer, Boolean> getLayerFilterForCurrentDimension() {
+        if ((dimension != null) && (dimension.getAnchor().role == CAVE_FLOOR)) {
+            return layer -> ! ((layer instanceof TunnelLayer) || (layer instanceof UndergroundPocketsLayer) || (layer instanceof CombinedLayer));
+        } else {
+            return null;
+        }
+    }
+
+    private List<JMenuItem> getCopyLayerMenuItems(String targetPaletteName, Function<Layer, Boolean> filter) {
+        if (targetPaletteName == null) {
+            throw new NullPointerException("targetPaletteName");
+        }
+        final List<JMenuItem> menuItems = new ArrayList<>();
+        for (Dimension dimension: world.getDimensions()) {
+            if (dimension == this.dimension) {
+                continue;
+            }
+            final Map<String, JMenu> menusForDimension = new HashMap<>();
+            for (CustomLayer layer: dimension.getCustomLayers()) {
+                if ((! layer.isExportable()) || ((filter != null) && filter.apply(layer))) {
+                    continue;
+                }
+                final String palette = layer.getPalette();
+                final JMenuItem menuForPalette = menusForDimension.computeIfAbsent(palette, k -> new JMenu(palette));
+                final JMenuItem menuItem = new JMenuItem(layer.getName(), new ImageIcon(layer.getIcon()));
+                menuItem.addActionListener(event -> copyLayerToPalette(layer, targetPaletteName, true));
+                menuForPalette.add(menuItem);
+            }
+            final JMenu menuForDimension;
+            if (menusForDimension.size() == 1) {
+                menuForDimension = menusForDimension.values().iterator().next();
+                menuForDimension.setText(dimension.getName());
+            } else {
+                menuForDimension = new JMenu(dimension.getName());
+                for (JMenu menu: menusForDimension.values()) {
+                    menuForDimension.add(menu);
+                }
+            }
+            if (menuForDimension.getItemCount() > 0) {
+                menuItems.add(menuForDimension);
+            }
+        }
+        if (menuItems.size() == 1) {
+            return Lists.transform(asList(((JMenu) menuItems.get(0)).getMenuComponents()), e -> (JMenuItem) e);
+        } else {
+            return menuItems;
+        }
+    }
+
+    private void copyLayerToPalette(CustomLayer layer, String paletteName, boolean activate) {
+        final CustomLayer copy = layer.clone();
+        copy.setPalette(paletteName);
+        registerCustomLayer(copy, activate);
     }
 
     private JPanel createTerrainPanel() {
@@ -3685,14 +3860,46 @@ public final class App extends JFrame implements RadiusControl,
                 JMenuItem menuItem = new JMenuItem(strings.getString("edit") + "...");
                 menuItem.addActionListener(e1 -> editCustomLayer(layer));
                 popup.add(menuItem);
+                if ((layer instanceof TunnelLayer)) {
+                    final TunnelLayer tunnelLayer = (TunnelLayer) layer;
+                    final Integer floorDimensionId = tunnelLayer.getFloorDimensionId();
+                    if (floorDimensionId != null) {
+                        menuItem = new JMenuItem("Edit floor dimension");
+                        if (dimension.containsOneOf(layer)) {
+                            menuItem.addActionListener(e1 -> {
+                                setDimension(tunnelLayer.updateFloorDimension(dimension, null));
+                                final Configuration config = Configuration.getInstance();
+                                if (! config.isMessageDisplayedCountAtLeast(EDITING_FLOOR_DIMENSION_KEY, 3)) {
+                                    doLaterOnEventThread(() -> JOptionPane.showMessageDialog(App.this,
+                                            "Press Esc to finish editing the Custom Cave/Tunnel layer floor dimension,\n" +
+                                                    "or select the Surface dimension from the View menu or by pressing " + COMMAND_KEY_NAME + "+U", "Editing Cave/Tunnel Floor", JOptionPane.INFORMATION_MESSAGE));
+                                    config.setMessageDisplayed(EDITING_FLOOR_DIMENSION_KEY);
+                                }
+                            });
+                        } else {
+                            menuItem.setEnabled(false);
+                        }
+                        popup.add(menuItem);
+                    }
+                }
                 menuItem = new JMenuItem("Duplicate...");
-                menuItem.addActionListener(e1 -> duplicate());
+                if (layer.isExportable()) {
+                    menuItem.addActionListener(e1 -> duplicate());
+                } else {
+                    menuItem.setEnabled(false);
+                    menuItem.setToolTipText("This layer cannot be duplicated.");
+                }
                 popup.add(menuItem);
                 menuItem = new JMenuItem(strings.getString("remove") + "...");
                 menuItem.addActionListener(e1 -> remove());
                 popup.add(menuItem);
                 menuItem = new JMenuItem("Export to file...");
-                menuItem.addActionListener(e1 -> exportLayer(layer));
+                if (layer.isExportable()) {
+                    menuItem.addActionListener(e1 -> exportLayer(layer));
+                } else {
+                    menuItem.setEnabled(false);
+                    menuItem.setToolTipText("This layer cannot be exported to a file.");
+                }
                 popup.add(menuItem);
 
                 JMenu paletteMenu = new JMenu("Move to palette");
@@ -3793,6 +4000,11 @@ public final class App extends JFrame implements RadiusControl,
         dimension.setEventsInhibited(true);
         try {
             dimension.clearLayerData(layer);
+            if ((layer instanceof TunnelLayer) && (((TunnelLayer) layer).getFloorDimensionId() != null)) {
+                final Anchor anchor = dimension.getAnchor();
+                world.removeDimension(new Anchor(anchor.dim, CAVE_FLOOR, anchor.invert, ((TunnelLayer) layer).getFloorDimensionId()));
+            }
+            dimension.clearUndo();
         } finally {
             dimension.setEventsInhibited(false);
         }
@@ -3827,13 +4039,14 @@ public final class App extends JFrame implements RadiusControl,
     
     @Override
     public List<Component> createPopupMenuButton(String paletteName) {
-        final JPopupMenu customLayerMenu = createCustomLayerMenu(paletteName);
-        
         final JButton addLayerButton = new JButton(loadScaledIcon("plus"));
         final List<Component> addLayerButtonPanel = new ArrayList<>(3);
         addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
         addLayerButton.setMargin(new Insets(2, 2, 2, 2));
-        addLayerButton.addActionListener(e -> customLayerMenu.show(addLayerButton, addLayerButton.getWidth(), 0));
+        addLayerButton.addActionListener(e -> {
+            final JPopupMenu customLayerMenu = createCustomLayerMenu(paletteName);
+            customLayerMenu.show(addLayerButton, addLayerButton.getWidth(), 0);
+        });
         JPanel spacer = new JPanel();
         addLayerButtonPanel.add(spacer);
         spacer = new JPanel();
@@ -3861,7 +4074,10 @@ public final class App extends JFrame implements RadiusControl,
                 baseHeight = 58;
                 waterLevel = DEFAULT_WATER_LEVEL;
             }
-            dialog = (AbstractEditLayerDialog<L>) new TunnelLayerDialog(App.this, world.getPlatform(), (TunnelLayer) layer, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
+            // TODO passing in dimension here is a crude mechanism. It is supposed to be the dimension on which this
+            //  layer is being used, but that is a lot of work to determine. In practice this will usually be right
+            //  though
+            dialog = (AbstractEditLayerDialog<L>) new TunnelLayerDialog(App.this, world.getPlatform(), (TunnelLayer) layer, dimension, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
         } else {
             throw new IllegalArgumentException("Don't know how to create dialog for layer " + layer.getName());
         }
@@ -3963,7 +4179,6 @@ public final class App extends JFrame implements RadiusControl,
             menuItem = new JMenuItem(strings.getString("height.map") + "...");
             menuItem.addActionListener(event -> importHeightMap());
             menuItem.setMnemonic('h');
-            menuItem.setAccelerator(KeyStroke.getKeyStroke(VK_M, PLATFORM_COMMAND_MASK));
             subMenu.add(menuItem);
 
             menu.add(subMenu);
@@ -4057,13 +4272,21 @@ public final class App extends JFrame implements RadiusControl,
 
         JMenu dimensionsMenu = new JMenu("Dimensions");
 
-        addSurfaceCeilingMenuItem = new JMenuItem("Add Ceiling to Surface...");
-        addSurfaceCeilingMenuItem.addActionListener(e -> addSurfaceCeiling());
-        dimensionsMenu.add(addSurfaceCeilingMenuItem);
+        addMasterMenuItem = new JMenuItem("Add master dimension...");
+        addMasterMenuItem.addActionListener(e -> addMaster());
+        dimensionsMenu.add(addMasterMenuItem);
 
-        removeSurfaceCeilingMenuItem = new JMenuItem("Remove Ceiling from Surface...");
-        removeSurfaceCeilingMenuItem.addActionListener(e -> removeSurfaceCeiling());
-        dimensionsMenu.add(removeSurfaceCeilingMenuItem);
+        removeMasterMenuItem = new JMenuItem("Remove master dimension...");
+        removeMasterMenuItem.addActionListener(e -> removeMaster());
+        dimensionsMenu.add(removeMasterMenuItem);
+
+        addCeilingMenuItem = new JMenuItem("Add ceiling dimension...");
+        addCeilingMenuItem.addActionListener(e -> addCeiling());
+        dimensionsMenu.add(addCeilingMenuItem);
+
+        removeCeilingMenuItem = new JMenuItem("Remove ceiling dimension...");
+        removeCeilingMenuItem.addActionListener(e -> removeCeiling());
+        dimensionsMenu.add(removeCeilingMenuItem);
 
         addNetherMenuItem = new JMenuItem(strings.getString("add.nether") + "...");
         addNetherMenuItem.addActionListener(e -> addNether());
@@ -4074,14 +4297,6 @@ public final class App extends JFrame implements RadiusControl,
         removeNetherMenuItem.addActionListener(e -> removeNether());
         dimensionsMenu.add(removeNetherMenuItem);
 
-        addNetherCeilingMenuItem = new JMenuItem("Add Ceiling to Nether...");
-        addNetherCeilingMenuItem.addActionListener(e -> addNetherCeiling());
-        dimensionsMenu.add(addNetherCeilingMenuItem);
-
-        removeNetherCeilingMenuItem = new JMenuItem("Remove Ceiling from Nether...");
-        removeNetherCeilingMenuItem.addActionListener(e -> removeNetherCeiling());
-        dimensionsMenu.add(removeNetherCeilingMenuItem);
-
         addEndMenuItem = new JMenuItem(strings.getString("add.end") + "...");
         addEndMenuItem.addActionListener(e -> addEnd());
         addEndMenuItem.setMnemonic('d');
@@ -4090,20 +4305,12 @@ public final class App extends JFrame implements RadiusControl,
         removeEndMenuItem = new JMenuItem("Remove End...");
         removeEndMenuItem.addActionListener(e -> removeEnd());
         dimensionsMenu.add(removeEndMenuItem);
-
-        addEndCeilingMenuItem = new JMenuItem("Add Ceiling to End...");
-        addEndCeilingMenuItem.addActionListener(e -> addEndCeiling());
-        dimensionsMenu.add(addEndCeilingMenuItem);
-
-        removeEndCeilingMenuItem = new JMenuItem("Remove Ceiling from End...");
-        removeEndCeilingMenuItem.addActionListener(e -> removeEndCeiling());
-        dimensionsMenu.add(removeEndCeilingMenuItem);
         menu.add(dimensionsMenu);
 
         JMenu importMenu = new JMenu("Import");
         menuItem = new JMenuItem("Custom items from existing world...");
         menuItem.setMnemonic('i');
-        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.ALL));
+        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.ALL, getLayerFilterForCurrentDimension()));
         importMenu.add(menuItem);
 
         menuItem = new JMenuItem(ACTION_IMPORT_LAYER);
@@ -4157,7 +4364,7 @@ public final class App extends JFrame implements RadiusControl,
         menuItem = new JMenuItem(strings.getString("global.operations") + "...");
         menuItem.addActionListener(event -> showGlobalOperations());
         menuItem.setMnemonic('g');
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(VK_G, PLATFORM_COMMAND_MASK));
+        menuItem.setAccelerator(getKeyStroke(VK_G, PLATFORM_COMMAND_MASK));
         menu.add(menuItem);
         
         menuItem = new JMenuItem(ACTION_EDIT_TILES);
@@ -4268,39 +4475,24 @@ public final class App extends JFrame implements RadiusControl,
         viewSurfaceMenuItem = new JCheckBoxMenuItem(strings.getString("view.surface"), true);
         viewSurfaceMenuItem.addActionListener(e -> viewDimension(NORMAL_DETAIL));
         viewSurfaceMenuItem.setMnemonic('s');
-        viewSurfaceMenuItem.setAccelerator(KeyStroke.getKeyStroke(VK_U, PLATFORM_COMMAND_MASK));
-        viewSurfaceMenuItem.setEnabled(false);
+        viewSurfaceMenuItem.setAccelerator(getKeyStroke(VK_U, PLATFORM_COMMAND_MASK));
         menu.add(viewSurfaceMenuItem);
-
-        viewSurfaceCeilingMenuItem = new JCheckBoxMenuItem("View Surface Ceiling", false);
-        viewSurfaceCeilingMenuItem.addActionListener(e -> viewDimension(NORMAL_DETAIL_CEILING));
-        viewSurfaceCeilingMenuItem.setEnabled(false);
-        menu.add(viewSurfaceCeilingMenuItem);
 
         viewNetherMenuItem = new JCheckBoxMenuItem(strings.getString("view.nether"), false);
         viewNetherMenuItem.addActionListener(e -> viewDimension(NETHER_DETAIL));
         viewNetherMenuItem.setMnemonic('n');
-        viewNetherMenuItem.setAccelerator(KeyStroke.getKeyStroke(VK_H, PLATFORM_COMMAND_MASK));
+        viewNetherMenuItem.setAccelerator(getKeyStroke(VK_H, PLATFORM_COMMAND_MASK));
         viewNetherMenuItem.setEnabled(false);
         menu.add(viewNetherMenuItem);
-
-        viewNetherCeilingMenuItem = new JCheckBoxMenuItem("View Nether Ceiling", false);
-        viewNetherCeilingMenuItem.addActionListener(e -> viewDimension(NETHER_DETAIL_CEILING));
-        viewNetherCeilingMenuItem.setEnabled(false);
-        menu.add(viewNetherCeilingMenuItem);
 
         viewEndMenuItem = new JCheckBoxMenuItem(strings.getString("view.end"), false);
         viewEndMenuItem.addActionListener(e -> viewDimension(END_DETAIL));
         viewEndMenuItem.setMnemonic('e');
-        viewEndMenuItem.setAccelerator(KeyStroke.getKeyStroke(VK_D, PLATFORM_COMMAND_MASK));
+        viewEndMenuItem.setAccelerator(getKeyStroke(VK_D, PLATFORM_COMMAND_MASK));
         viewEndMenuItem.setEnabled(false);
         menu.add(viewEndMenuItem);
 
-        viewEndCeilingMenuItem = new JCheckBoxMenuItem("View End Ceiling", false);
-        viewEndCeilingMenuItem.addActionListener(e -> viewDimension(END_DETAIL_CEILING));
-        viewEndCeilingMenuItem.setEnabled(false);
-        menu.add(viewEndCeilingMenuItem);
-
+        menu.add(ACTION_SWITCH_TO_FROM_MASTER);
         menu.add(ACTION_SWITCH_TO_FROM_CEILING);
 
         menu.addSeparator();
@@ -4314,7 +4506,7 @@ public final class App extends JFrame implements RadiusControl,
             ACTION_OVERLAY.setSelected(view.isDrawOverlay());
         });
         menuItem.setMnemonic('c');
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(VK_V, PLATFORM_COMMAND_MASK));
+        menuItem.setAccelerator(getKeyStroke(VK_V, PLATFORM_COMMAND_MASK));
         menu.add(menuItem);
         
         menu.addSeparator();
@@ -4369,7 +4561,7 @@ public final class App extends JFrame implements RadiusControl,
             }
         });
         menuItem.setMnemonic('3');
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(VK_3, PLATFORM_COMMAND_MASK));
+        menuItem.setAccelerator(getKeyStroke(VK_3, PLATFORM_COMMAND_MASK));
         menu.add(menuItem);
 
         menu.addSeparator();
@@ -4583,18 +4775,27 @@ public final class App extends JFrame implements RadiusControl,
         return menu;
     }
 
-    private void addSurfaceCeiling() {
-        final Dimension surface = world.getDimension(NORMAL_DETAIL);
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), surface.getSeed() + 3, world.getPlatform(), NORMAL_DETAIL_CEILING, surface.getMaxHeight(), surface, surface.getTileCoords());
+    private void addCeiling() {
+        final Anchor currentAnchor = dimension.getAnchor();
+        if (currentAnchor.invert) {
+            throw new IllegalStateException("Current dimension is already a ceiling");
+        } else if (currentAnchor.id != 0) {
+            throw new UnsupportedOperationException("Layers other than 0 not yet supported");
+        }
+        final Anchor newAnchor = new Anchor(currentAnchor.dim, currentAnchor.role, true, currentAnchor.id);
+        if (world.isDimensionPresent(newAnchor)) {
+            throw new IllegalStateException("Ceiling dimension already exists");
+        }
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), dimension.getSeed() + newAnchor.hashCode(), world.getPlatform(), newAnchor, dimension.getMaxHeight(), dimension, dimension.getTileCoords());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
                 return;
             }
-            Dimension surfaceCeiling = ProgressDialog.executeTask(this, new ProgressTask<Dimension>() {
+            Dimension ceiling = ProgressDialog.executeTask(this, new ProgressTask<Dimension>() {
                 @Override
                 public String getName() {
-                    return "Creating Surface Ceiling";
+                    return "Creating ceiling dimension";
                 }
 
                 @Override
@@ -4602,113 +4803,36 @@ public final class App extends JFrame implements RadiusControl,
                     return dialog.getSelectedDimension(world, progressReceiver);
                 }
             });
-            if (surfaceCeiling == null) {
+            if (ceiling == null) {
                 // Cancelled by user
                 return;
             }
-            world.addDimension(surfaceCeiling);
-            setDimension(surfaceCeiling);
+            world.addDimension(ceiling);
+            setDimension(ceiling);
         }
     }
 
-    private void removeSurfaceCeiling() {
-        if (showConfirmDialog(this, "Are you sure you want to completely remove the Surface ceiling?\nThis action cannot be undone!", "Confirm Surface Ceiling Deletion", YES_NO_OPTION) == YES_OPTION) {
-            world.removeDimension(NORMAL_DETAIL_CEILING);
-            if ((dimension != null) && (dimension.getAnchor().equals(NORMAL_DETAIL_CEILING))) {
-                viewDimension(NORMAL_DETAIL);
+    private void removeCeiling() {
+        final Anchor currentAnchor = dimension.getAnchor();
+        if (currentAnchor.id != 0) {
+            throw new UnsupportedOperationException("Layers other than 0 not yet supported");
+        }
+        final Anchor ceilingAnchor = new Anchor(currentAnchor.dim, currentAnchor.role, true, currentAnchor.id);
+        if (! world.isDimensionPresent(ceilingAnchor)) {
+            throw new IllegalStateException("There is no ceiling dimension");
+        }
+        final Dimension ceiling = world.getDimension(ceilingAnchor);
+        if (showConfirmDialog(this, "Are you sure you want to completely remove the " + ceiling.getName() + " dimension?\nThis action cannot be undone!", "Confirm " + ceiling.getName() + " Deletion", YES_NO_OPTION) == YES_OPTION) {
+            world.removeDimension(ceilingAnchor);
+            if ((dimension != null) && (dimension.getAnchor().equals(ceilingAnchor))) {
+                viewDimension(new Anchor(ceilingAnchor.dim, ceilingAnchor.role, false, ceilingAnchor.id));
             } else {
                 configureForPlatform();
-                if (dimension.getAnchor().dim == DIM_NORMAL) {
+                if (dimension.getAnchor().dim == ceilingAnchor.dim) {
                     view.refreshTiles();
                 }
             }
-            showMessageDialog(this, "The Surface ceiling was successfully deleted", "Success", INFORMATION_MESSAGE);
-        }
-    }
-
-    private void addNetherCeiling() {
-        final Dimension nether = world.getDimension(NETHER_DETAIL);
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), nether.getSeed() + 1, world.getPlatform(), NETHER_DETAIL_CEILING, nether.getMaxHeight(), nether, nether.getTileCoords());
-        dialog.setVisible(true);
-        if (! dialog.isCancelled()) {
-            if (! dialog.checkMemoryRequirements(this)) {
-                return;
-            }
-            Dimension netherCeiling = ProgressDialog.executeTask(this, new ProgressTask<Dimension>() {
-                @Override
-                public String getName() {
-                    return "Creating Nether Ceiling";
-                }
-
-                @Override
-                public Dimension execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                    return dialog.getSelectedDimension(world, progressReceiver);
-                }
-            });
-            if (netherCeiling == null) {
-                // Cancelled by user
-                return;
-            }
-            world.addDimension(netherCeiling);
-            setDimension(netherCeiling);
-        }
-    }
-
-    private void removeNetherCeiling() {
-        if (showConfirmDialog(this, "Are you sure you want to completely remove the Nether ceiling?\nThis action cannot be undone!", "Confirm Nether Ceiling Deletion", YES_NO_OPTION) == YES_OPTION) {
-            world.removeDimension(NETHER_DETAIL_CEILING);
-            if ((dimension != null) && (dimension.getAnchor().equals(NETHER_DETAIL_CEILING))) {
-                viewDimension(NETHER_DETAIL);
-            } else {
-                configureForPlatform();
-                if (dimension.getAnchor().dim == DIM_NETHER) {
-                    view.refreshTiles();
-                }
-            }
-            showMessageDialog(this, "The Nether ceiling was successfully deleted", "Success", INFORMATION_MESSAGE);
-        }
-    }
-
-    private void addEndCeiling() {
-        final Dimension end = world.getDimension(END_DETAIL);
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), end.getSeed() + 1, world.getPlatform(), END_DETAIL_CEILING, end.getMaxHeight(), end, end.getTileCoords());
-        dialog.setVisible(true);
-        if (! dialog.isCancelled()) {
-            if (! dialog.checkMemoryRequirements(this)) {
-                return;
-            }
-            Dimension endCeiling = ProgressDialog.executeTask(this, new ProgressTask<Dimension>() {
-                @Override
-                public String getName() {
-                    return "Creating End Ceiling";
-                }
-
-                @Override
-                public Dimension execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                    return dialog.getSelectedDimension(world, progressReceiver);
-                }
-            });
-            if (endCeiling == null) {
-                // Cancelled by user
-                return;
-            }
-            world.addDimension(endCeiling);
-            setDimension(endCeiling);
-        }
-    }
-
-    private void removeEndCeiling() {
-        if (showConfirmDialog(this, "Are you sure you want to completely remove the End ceiling?\nThis action cannot be undone!", "Confirm End Ceiling Deletion", YES_NO_OPTION) == YES_OPTION) {
-            world.removeDimension(END_DETAIL_CEILING);
-            if ((dimension != null) && (dimension.getAnchor().equals(END_DETAIL_CEILING))) {
-                viewDimension(END_DETAIL);
-            } else {
-                configureForPlatform();
-                if (dimension.getAnchor().dim == DIM_END) {
-                    view.refreshTiles();
-                }
-            }
-            showMessageDialog(this, "The End ceiling was successfully deleted", "Success", INFORMATION_MESSAGE);
+            showMessageDialog(this, "The " + ceiling.getName() + " was successfully deleted", "Success", INFORMATION_MESSAGE);
         }
     }
 
@@ -4880,7 +5004,7 @@ public final class App extends JFrame implements RadiusControl,
     private void removeNether() {
         if (showConfirmDialog(this, "Are you sure you want to completely remove the Nether dimension?\nThis action cannot be undone!", "Confirm Nether Deletion", YES_NO_OPTION) == YES_OPTION) {
             world.removeDimension(NETHER_DETAIL);
-            if (world.getDimension(NETHER_DETAIL_CEILING) != null) {
+            if (world.isDimensionPresent(NETHER_DETAIL_CEILING)) {
                 world.removeDimension(NETHER_DETAIL_CEILING);
             }
             if ((dimension != null) && (dimension.getAnchor().dim == DIM_NETHER)) {
@@ -4923,7 +5047,7 @@ public final class App extends JFrame implements RadiusControl,
     private void removeEnd() {
         if (showConfirmDialog(this, "Are you sure you want to completely remove the End dimension?\nThis action cannot be undone!", "Confirm End Deletion", YES_NO_OPTION) == YES_OPTION) {
             world.removeDimension(END_DETAIL);
-            if (world.getDimension(END_DETAIL_CEILING) != null) {
+            if (world.isDimensionPresent(END_DETAIL_CEILING)) {
                 world.removeDimension(END_DETAIL_CEILING);
             }
             if ((dimension != null) && (dimension.getAnchor().dim == DIM_END)) {
@@ -4932,6 +5056,69 @@ public final class App extends JFrame implements RadiusControl,
                 configureForPlatform();
             }
             showMessageDialog(this, "The End dimension was successfully deleted", "Success", INFORMATION_MESSAGE);
+        }
+    }
+
+    private void addMaster() {
+        final Anchor currentAnchor = dimension.getAnchor();
+        if (currentAnchor.role == MASTER) {
+            throw new IllegalStateException("Current dimension is already a master");
+        } else if (currentAnchor.id != 0) {
+            throw new UnsupportedOperationException("Layers other than 0 not yet supported");
+        }
+        final Anchor newAnchor = new Anchor(currentAnchor.dim, MASTER, false, currentAnchor.id);
+        if (world.isDimensionPresent(newAnchor)) {
+            throw new IllegalStateException("Master dimension already exists");
+        }
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), dimension.getSeed(), world.getPlatform(), newAnchor, dimension.getMaxHeight(), dimension);
+        dialog.setVisible(true);
+        if (! dialog.isCancelled()) {
+            if (! dialog.checkMemoryRequirements(this)) {
+                return;
+            }
+            Dimension master = ProgressDialog.executeTask(this, new ProgressTask<Dimension>() {
+                @Override
+                public String getName() {
+                    return "Creating master dimension";
+                }
+
+                @Override
+                public Dimension execute(ProgressReceiver progressReceiver) throws OperationCancelled {
+                    return dialog.getSelectedDimension(world, progressReceiver);
+                }
+            });
+            if (master == null) {
+                // Cancelled by user
+                return;
+            }
+            world.addDimension(master);
+            setDimension(master);
+        }
+    }
+
+    private void removeMaster() {
+        final Anchor currentAnchor = dimension.getAnchor();
+        if (currentAnchor.id != 0) {
+            throw new UnsupportedOperationException("Layers other than 0 not yet supported");
+        }
+        final Anchor masterAnchor = new Anchor(currentAnchor.dim, MASTER, false, currentAnchor.id);
+        if (! world.isDimensionPresent(masterAnchor)) {
+            throw new IllegalStateException("There is no master dimension");
+        }
+        final Dimension master = world.getDimension(masterAnchor);
+        if (showConfirmDialog(this, "Are you sure you want to completely remove the " + master.getName() + " dimension?\nThis action cannot be undone!", "Confirm " + master.getName() + " Deletion", YES_NO_OPTION) == YES_OPTION) {
+            world.removeDimension(masterAnchor);
+            if ((dimension != null) && (dimension.getAnchor().equals(masterAnchor))) {
+                viewDimension(new Anchor(masterAnchor.dim, DETAIL, false, masterAnchor.id));
+            } else {
+                if (backgroundDimension == master) {
+                    showBackgroundStatus = false;
+                    view.setBackgroundDimension(null, 0, null);
+                    backgroundDimension = null;
+                }
+                configureForPlatform();
+            }
+            showMessageDialog(this, "The " + master.getName() + " was successfully deleted", "Success", INFORMATION_MESSAGE);
         }
     }
 
@@ -5326,7 +5513,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private Icon setBrushThumbnail(Brush brush) {
-        final Icon thumbnail = createBrushThumbnail(brush.clone(), Math.round(32 * getUIScale()));
+        final Icon thumbnail = createBrushThumbnail(brush.clone(), round(32 * getUIScale()));
         final JToggleButton button = brushButtons.get(brush);
         button.putClientProperty(KEY_THUMBNAIL, thumbnail);
         updateBrushRotation(brush, button);
@@ -5340,7 +5527,7 @@ public final class App extends JFrame implements RadiusControl,
         for (int dx = -radius + 1; dx < radius; dx++) {
             for (int dy = -radius + 1; dy < radius; dy++) {
                 final float strength = brush.getFullStrength(dx, dy);
-                final int alpha = Math.round(strength * 255f);
+                final int alpha = round(strength * 255f);
                 image.setRGB(dx + radius - 1, dy + radius - 1, alpha << 24);
             }
         }
@@ -5374,60 +5561,72 @@ public final class App extends JFrame implements RadiusControl,
 
     private void configureForPlatform() {
         final Platform platform = world.getPlatform();
-        boolean imported = (world != null) && (world.getImportedFrom() != null);
-        boolean nether = (world != null) && (world.getDimension(NETHER_DETAIL) != null);
-        boolean end = (world != null) && (world.getDimension(END_DETAIL) != null);
-        boolean surfaceCeiling = (world != null) && (world.getDimension(NORMAL_DETAIL_CEILING) != null);
-        boolean netherCeiling = (world != null) && (world.getDimension(NETHER_DETAIL_CEILING) != null);
-        boolean endCeiling = (world != null) && (world.getDimension(END_DETAIL_CEILING) != null);
+        final boolean imported = (world != null) && (world.getImportedFrom() != null);
+        final boolean nether = (world != null) && (world.isDimensionPresent(NETHER_DETAIL));
+        final boolean end = (world != null) && (world.isDimensionPresent(END_DETAIL));
+        final Anchor anchor = dimension.getAnchor();
         biomeHelper = new BiomeHelper(selectedColourScheme, customBiomeManager, platform);
-        addNetherMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_NETHER) && (! imported) && (! nether));
-        removeNetherMenuItem.setEnabled(nether);
-        addEndMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_END) && (! imported) && (! end));
-        removeEndMenuItem.setEnabled(end);
-        viewSurfaceMenuItem.setEnabled(nether || end || surfaceCeiling);
-        viewSurfaceCeilingMenuItem.setEnabled(surfaceCeiling);
-        viewNetherMenuItem.setEnabled(nether);
-        viewNetherCeilingMenuItem.setEnabled(netherCeiling);
-        viewEndMenuItem.setEnabled(end);
-        viewEndCeilingMenuItem.setEnabled(endCeiling);
-        addSurfaceCeilingMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_NORMAL) && (! imported) && (! surfaceCeiling));
-        removeSurfaceCeilingMenuItem.setEnabled(surfaceCeiling);
-        addNetherCeilingMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_NETHER) && nether && (! netherCeiling));
-        removeNetherCeilingMenuItem.setEnabled(netherCeiling);
-        addEndCeilingMenuItem.setEnabled(platform.supportedDimensions.contains(DIM_END) && end && (! endCeiling));
-        removeEndCeilingMenuItem.setEnabled(endCeiling);
-        if (dimension != null) {
-            final boolean biomesSupported = (! dimension.getAnchor().invert) && platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
-            if ((! biomesSupported) && (paint instanceof DiscreteLayerPaint) && (((DiscreteLayerPaint) paint).getLayer() == Biome.INSTANCE)) {
-                deselectPaint();
-            }
-            biomesPanelFrame.setEnabled(biomesSupported);
-            // TODO deselect biomes panel if it was selected
-            layerControls.get(Biome.INSTANCE).setEnabled(biomesSupported);
-            switch (dimension.getAnchor().dim) {
-                case DIM_NORMAL:
-                    setSpawnPointToggleButton.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
-                    ACTION_MOVE_TO_SPAWN.setEnabled(platform.capabilities.contains(SET_SPAWN_POINT));
-                    break;
-                default:
-                    if (activeOperation instanceof SetSpawnPoint) {
-                        deselectTool();
-                    }
-                    setSpawnPointToggleButton.setEnabled(false);
-                    ACTION_MOVE_TO_SPAWN.setEnabled(false);
-                    break;
-            }
-        }
-        if (! platform.capabilities.contains(POPULATE)) {
-            layerControls.get(Populate.INSTANCE).disable("Automatic population not support by format " + platform);
+        setEnabled(addNetherMenuItem, platform.supportedDimensions.contains(DIM_NETHER) && (! imported) && (! nether));
+        setEnabled(removeNetherMenuItem, nether);
+        setEnabled(addEndMenuItem, platform.supportedDimensions.contains(DIM_END) && (! imported) && (! end));
+        setEnabled(removeEndMenuItem, end);
+        setEnabled(viewNetherMenuItem, nether);
+        setEnabled(viewEndMenuItem, end);
+        setEnabled(ACTION_SWITCH_TO_FROM_MASTER, world.isDimensionPresent(new Anchor(anchor.dim, (anchor.role == MASTER) ? DETAIL : MASTER, false, 0)));
+        setEnabled(ACTION_SWITCH_TO_FROM_CEILING, world.isDimensionPresent(new Anchor(anchor.dim, DETAIL, true, 0)));
+        setEnabled(addMasterMenuItem, (anchor.role == DETAIL) && (anchor.id == 0) && (! world.isDimensionPresent(new Anchor(anchor.dim, MASTER, false, 0))));
+        setEnabled(removeMasterMenuItem, (anchor.role == MASTER) || (world.isDimensionPresent(new Anchor(anchor.dim, MASTER, false, 0))));
+        setEnabled(addCeilingMenuItem, (anchor.role == DETAIL) && (anchor.id == 0) && (! anchor.invert) && (! world.isDimensionPresent(new Anchor(anchor.dim, anchor.role, true, 0))));
+        setEnabled(removeCeilingMenuItem, anchor.invert || (world.isDimensionPresent(new Anchor(anchor.dim, anchor.role, true, 0))));
+        final boolean biomesSupported = (! anchor.invert) && platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
+        setEnabled(Biome.INSTANCE, biomesSupported, "Biomes not supported by format " + platform);
+        setEnabled(biomesPanelFrame, biomesSupported);
+        // TODO deselect biomes panel if it was selected
+        if (anchor.equals(NORMAL_DETAIL)) {
+            setEnabled(setSpawnPointToggleButton, platform.capabilities.contains(SET_SPAWN_POINT));
+            setEnabled(ACTION_MOVE_TO_SPAWN, platform.capabilities.contains(SET_SPAWN_POINT));
         } else {
-            layerControls.get(Populate.INSTANCE).setEnabled(true);
+            if (activeOperation instanceof SetSpawnPoint) {
+                deselectTool();
+            }
+            setEnabled(setSpawnPointToggleButton, false);
+            setEnabled(ACTION_MOVE_TO_SPAWN, false);
         }
+        setEnabled(Populate.INSTANCE, (anchor.role != CAVE_FLOOR) && (! anchor.invert) && platform.capabilities.contains(POPULATE), "Automatic population not supported or not applicable");
         biomesPanel.loadBiomes(platform, selectedColourScheme);
-        extendedBlockIdsMenuItem.setEnabled((! platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION));
+        setEnabled(extendedBlockIdsMenuItem, (! platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION));
         brushOptions.setPlatform(platform);
         infoPanel.setPlatform(platform);
+        // TODO actually why not support these:
+        setEnabled(Caves.INSTANCE, anchor.role != CAVE_FLOOR, "Caves not supported in Custom Cave/Tunnel floor dimensions");
+        setEnabled(Caverns.INSTANCE, anchor.role != CAVE_FLOOR, "Caverns not supported in Custom Cave/Tunnel floor dimensions");
+        setEnabled(Chasms.INSTANCE, anchor.role != CAVE_FLOOR, "Chasms not supported in Custom Cave/Tunnel floor dimensions");
+        setEnabled(Resources.INSTANCE, anchor.role != CAVE_FLOOR, "Resources not supported in Custom Cave/Tunnel floor dimensions");
+        setEnabled(ReadOnly.INSTANCE, anchor.equals(NORMAL_DETAIL), "Read Only layer not applicable");
+    }
+
+    private void setEnabled(Layer layer, boolean enabled, String toolTipText) {
+        final LayerControls layerControls = this.layerControls.get(layer);
+        if (enabled && (! layerControls.isEnabled())) {
+            layerControls.setEnabled(true);
+        } else if ((! enabled) && layerControls.isEnabled()) {
+            if ((paint instanceof LayerPaint) && (((LayerPaint) paint).getLayer().equals(layer))) {
+                deselectPaint();
+            }
+            layerControls.disable(toolTipText);
+        }
+    }
+
+    private void setEnabled(Component component, boolean enabled) {
+        if (enabled != component.isEnabled()) {
+            component.setEnabled(enabled);
+        }
+    }
+
+    private void setEnabled(Action action, boolean enabled) {
+        if (enabled != action.isEnabled()) {
+            action.setEnabled(enabled);
+        }
     }
 
     private void addMaterialSelectionTo(final JToggleButton button, final int customMaterialIndex) {
@@ -5587,6 +5786,18 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
+    private void saveCustomLayers() {
+        if (! paletteManager.isEmpty()) {
+            final List<CustomLayer> customLayers = new ArrayList<>();
+            for (Palette palette: paletteManager.getPalettes()) {
+                customLayers.addAll(palette.getLayers());
+            }
+            this.dimension.setCustomLayers(customLayers);
+        } else {
+            this.dimension.setCustomLayers(emptyList());
+        }
+    }
+
     private void saveCustomMaterials() {
         for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
             world.setMixedMaterial(i, Terrain.getCustomMaterial(i));
@@ -5650,7 +5861,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void exportImage() {
-        final Set<String> extensions = new HashSet<>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
+        final Set<String> extensions = new HashSet<>(asList(ImageIO.getReaderFileSuffixes()));
         StringBuilder sb = new StringBuilder(strings.getString("supported.image.formats"));
         sb.append(" (");
         boolean first = true;
@@ -5805,7 +6016,7 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
     
-    private void importLayers(String paletteName) {
+    private void importLayers(String paletteName, Function<Layer, Boolean> filter) {
         Configuration config = Configuration.getInstance();
         File layerDirectory = config.getLayerDirectory();
         if ((layerDirectory == null) || (! layerDirectory.isDirectory())) {
@@ -5828,11 +6039,22 @@ public final class App extends JFrame implements RadiusControl,
                 try {
                     try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(selectedFile))))) {
                         CustomLayer layer = (CustomLayer) in.readObject();
-                        for (Layer existingLayer : getCustomLayers()) {
+                        for (Layer existingLayer: getCustomLayers()) {
                             if (layer.equals(existingLayer)) {
-                                showMessageDialog(this, "That layer is already present in the dimension.\nThe layer has not been added.", "Layer Already Present", WARNING_MESSAGE);
+                                DesktopUtils.beep();
+                                showMessageDialog(this, "That layer is already present in the dimension.\nThe layer has not been added.", "Layer Already Present", ERROR_MESSAGE);
                                 return;
                             }
+                        }
+                        if ((filter != null) && (! filter.apply(layer))) {
+                            DesktopUtils.beep();
+                            showMessageDialog(this, "That layer type is not supported for the current dimension.\nThe layer has not been added.", "Inapplicable Layer Type", ERROR_MESSAGE);
+                            return;
+                        }
+                        if (! layer.isExportable()) {
+                            DesktopUtils.beep();
+                            showMessageDialog(this, "That layer is not importable.\nThe layer has not been added.", "Unimportable Layer", ERROR_MESSAGE);
+                            return;
                         }
                         if (paletteName != null) {
                             layer.setPalette(paletteName);
@@ -5842,7 +6064,7 @@ public final class App extends JFrame implements RadiusControl,
                             CombinedLayer combinedLayer = (CombinedLayer) layer;
                             addLayersFromCombinedLayer(combinedLayer);
                             if (! combinedLayer.restoreCustomTerrain()) {
-                                showMessageDialog(this, "The layer contained a Custom Terrain which could not be restored. The terrain has been reset.", "Custom Terrain Not Restored", ERROR_MESSAGE);
+                                showMessageDialog(this, "The layer contained a Custom Terrain which could not be restored. The terrain has been reset.", "Custom Terrain Not Restored", WARNING_MESSAGE);
                             } else {
                                 // Check for a custom terrain type and if necessary make
                                 // sure it has a button
@@ -5858,18 +6080,22 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 } catch (FileNotFoundException e) {
                     logger.error("File not found while loading file " + selectedFile, e);
+                    DesktopUtils.beep();
                     showMessageDialog(this, "The specified path does not exist or is not a file", "Nonexistent File", ERROR_MESSAGE);
                     return;
                 } catch (IOException e) {
                     logger.error("I/O error while loading file " + selectedFile, e);
+                    DesktopUtils.beep();
                     showMessageDialog(this, "I/O error occurred while reading the specified file,\nor is not a (valid) WorldPainter layer file", "I/O Error Or Invalid File", ERROR_MESSAGE);
                     return;
                 } catch (ClassNotFoundException e) {
                     logger.error("Class not found exception while loading file " + selectedFile, e);
+                    DesktopUtils.beep();
                     showMessageDialog(this, "The specified file is not a (valid) WorldPainter layer file", "Invalid File", ERROR_MESSAGE);
                     return;
                 } catch (ClassCastException e) {
                     logger.error("Class cast exception while loading file " + selectedFile, e);
+                    DesktopUtils.beep();
                     showMessageDialog(this, "The specified file is not a (valid) WorldPainter layer file", "Invalid File", ERROR_MESSAGE);
                     return;
                 }
@@ -5953,7 +6179,7 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    private void importCustomItemsFromWorld(CustomItemsTreeModel.ItemType itemType) {
+    private void importCustomItemsFromWorld(CustomItemsTreeModel.ItemType itemType, Function<Layer, Boolean> filter) {
         File dir;
         Configuration config = Configuration.getInstance();
         if (lastSelectedFile != null) {
@@ -6093,6 +6319,9 @@ public final class App extends JFrame implements RadiusControl,
                             }
                             if (existingCustomLayers.contains(selectedItem)) {
                                 errors.append("Custom Layer \"" + ((CustomLayer) selectedItem).getName() + "\" already exists\n");
+                            } else if ((filter != null) && (! filter.apply((CustomLayer) selectedItem))) {
+                                errors.append("Custom Layer \"" + ((CustomLayer) selectedItem).getName() + "\" type not supported for current dimension\n");
+                                showError = true;
                             } else {
                                 registerCustomLayer((CustomLayer) selectedItem, false);
                             }
@@ -6143,7 +6372,7 @@ public final class App extends JFrame implements RadiusControl,
                     default:
                         throw new InternalError();
                 }
-                showMessageDialog(this, "The selected world has no custom " + what + ".", "No Custom Items", WARNING_MESSAGE);
+                showMessageDialog(this, "The selected world has no, or no importable, custom " + what + ".", "No Custom Items To Import", WARNING_MESSAGE);
             }
         }
     }
@@ -6293,6 +6522,15 @@ public final class App extends JFrame implements RadiusControl,
         glassPane.setVisible(true);
     }
 
+    private void exitDimension() {
+        final Anchor anchor = dimension.getAnchor();
+        if ((dimension != null) && (anchor.role == CAVE_FLOOR)) {
+            setDimension(world.getDimension(new Anchor(anchor.dim, DETAIL, anchor.invert, 0)));
+        } else {
+            DesktopUtils.beep();
+        }
+    }
+
     static Icon findIcon(Container container) {
         if (container instanceof JComponent) {
             Icon icon = (Icon) ((JComponent) container).getClientProperty(KEY_ICON);
@@ -6330,7 +6568,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_NEW_WORLD = new BetterAction("newWorld", strings.getString("new.world") + "...", ICON_NEW_WORLD, false) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_N, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_N, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("create.a.new.world"));
         }
         
@@ -6344,7 +6582,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private final BetterAction ACTION_OPEN_WORLD = new BetterAction("openWorld", strings.getString("open.world") + "...", ICON_OPEN_WORLD, false) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_O, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_O, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("open.an.existing.worldpainter.world"));
         }
         
@@ -6358,7 +6596,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_SAVE_WORLD = new BetterAction("saveWorld", strings.getString("save.world") + "...", ICON_SAVE_WORLD, false) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_S, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_S, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("save.the.world.as.a.worldpainter.file.to.the.previously.used.file"));
         }
         
@@ -6372,7 +6610,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private final BetterAction ACTION_SAVE_WORLD_AS = new BetterAction("saveWorldAs", strings.getString("save.world.as") + "...", ICON_SAVE_WORLD, false) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_S, PLATFORM_COMMAND_MASK | SHIFT_DOWN_MASK));
+            setAcceleratorKey(getKeyStroke(VK_S, PLATFORM_COMMAND_MASK | SHIFT_DOWN_MASK));
             setShortDescription(strings.getString("save.the.world.as.a.worldpainter.file"));
         }
         
@@ -6386,7 +6624,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_EXPORT_WORLD = new BetterAction("exportAsMinecraftMap", strings.getString("export.as.minecraft.map") + "...", ICON_EXPORT_WORLD, false) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_E, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_E, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("export.the.world.to.a.minecraft.map"));
         }
         
@@ -6401,6 +6639,7 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 }
                 saveCustomBiomes();
+                saveCustomLayers();
                 ExportWorldDialog dialog = new ExportWorldDialog(App.this, world, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin(), view);
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
@@ -6419,7 +6658,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_IMPORT_MAP = new BetterAction("importMinecraftMap", strings.getString("existing.minecraft.map") + "...", false) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_I, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_I, PLATFORM_COMMAND_MASK));
             setShortDescription("Import the landscape of an existing Minecraft map. Use Merge to merge your changes.");
         }
 
@@ -6433,7 +6672,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private final BetterAction ACTION_MERGE_WORLD = new BetterAction("mergeWorld", strings.getString("merge.world") + "...", false) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_R, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_R, PLATFORM_COMMAND_MASK));
             setShortDescription("Merge the changes in a previously Imported world back to the original Minecraft map.");
         }
 
@@ -6460,7 +6699,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private final BetterAction ACTION_ZOOM_IN = new BetterAction("zoomIn", strings.getString("zoom.in"), ICON_ZOOM_IN) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_ADD, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_ADD, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("zoom.in"));
         }
         
@@ -6483,7 +6722,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private final BetterAction ACTION_ZOOM_RESET = new BetterAction("resetZoom", strings.getString("reset.zoom"), ICON_ZOOM_RESET) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_0, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_0, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("reset.the.zoom.level.to.1.1"));
             setEnabled(false);
         }
@@ -6523,7 +6762,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_ZOOM_OUT = new BetterAction("zoomOut", strings.getString("zoom.out"), ICON_ZOOM_OUT) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_SUBTRACT, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_SUBTRACT, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("zoom.out"));
         }
         
@@ -6607,7 +6846,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_UNDO = new BetterAction("undo", strings.getString("undo"), ICON_UNDO) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_Z, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_Z, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("undo.the.most.recent.action"));
         }
         
@@ -6625,7 +6864,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_REDO = new BetterAction("redo", strings.getString("redo"), ICON_REDO) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_Y, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_Y, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("redo.the.most.recent.action"));
         }
         
@@ -6643,7 +6882,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_EDIT_TILES = new BetterAction("editTiles", strings.getString("add.remove.tiles") + "...", ICON_EDIT_TILES) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_T, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_T, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("add.or.remove.tiles"));
         }
         
@@ -6709,7 +6948,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private final BetterAction ACTION_DIMENSION_PROPERTIES = new BetterAction("dimensionProperties", strings.getString("dimension.properties") + "...", ICON_DIMENSION_PROPERTIES) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_P, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_P, PLATFORM_COMMAND_MASK));
             setShortDescription(strings.getString("edit.the.properties.of.this.dimension"));
         }
         
@@ -6783,7 +7022,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private final BetterAction ACTION_ROTATE_LIGHT_RIGHT = new BetterAction("rotateLightClockwise", strings.getString("rotate.light.clockwise"), ICON_ROTATE_LIGHT_RIGHT) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_R, 0));
+            setAcceleratorKey(getKeyStroke(VK_R, 0));
             setShortDescription(strings.getString("rotate.the.direction.the.light.comes.from.clockwise"));
         }
         
@@ -6797,7 +7036,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_ROTATE_LIGHT_LEFT = new BetterAction("rotateLightAnticlockwise", strings.getString("rotate.light.anticlockwise"), ICON_ROTATE_LIGHT_LEFT) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_L, 0));
+            setAcceleratorKey(getKeyStroke(VK_L, 0));
             setShortDescription(strings.getString("rotate.the.direction.the.light.comes.from.anticlockwise"));
         }
         
@@ -6837,7 +7076,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private final BetterAction ACTION_OPEN_DOCUMENTATION = new BetterAction("browseDocumentation", strings.getString("browse.documentation")) {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_F1, 0));
+            setAcceleratorKey(getKeyStroke(VK_F1, 0));
         }
         
         @Override
@@ -6855,7 +7094,7 @@ public final class App extends JFrame implements RadiusControl,
     private final BetterAction ACTION_IMPORT_LAYER = new BetterAction("importLayer", "Import custom layer(s)") {
         @Override
         protected void performAction(ActionEvent e) {
-            importLayers(null);
+            importLayers(null, getLayerFilterForCurrentDimension());
         }
 
         private static final long serialVersionUID = 1L;
@@ -6964,21 +7203,27 @@ public final class App extends JFrame implements RadiusControl,
     private final BetterAction ACTION_RESET_DOCKS = new BetterAction("resetDockLayout", "Reset current and default") {
         @Override
         protected void performAction(ActionEvent e) {
-            dockingManager.resetToDefault();
-            Configuration config = Configuration.getInstance();
-            config.setDefaultJideLayoutData(null);
-            ACTION_LOAD_LAYOUT.setEnabled(false);
+            DesktopUtils.beep();
+            if (JOptionPane.showConfirmDialog(App.this, "Are you sure you want to reset the workspace?", "Confirm Workspace Reset", YES_NO_OPTION) == YES_OPTION) {
+                dockingManager.resetToDefault();
+                Configuration config = Configuration.getInstance();
+                config.setDefaultJideLayoutData(null);
+                ACTION_LOAD_LAYOUT.setEnabled(false);
+            }
         }
     };
 
     private final BetterAction ACTION_RESET_ALL_DOCKS = new BetterAction("resetAllDockLayout", "Reset current, default and all saved worlds") {
         @Override
         protected void performAction(ActionEvent e) {
-            dockingManager.resetToDefault();
-            Configuration config = Configuration.getInstance();
-            config.setDefaultJideLayoutData(null);
-            config.setJideLayoutData(null);
-            ACTION_LOAD_LAYOUT.setEnabled(false);
+            DesktopUtils.beep();
+            if (JOptionPane.showConfirmDialog(App.this, "Are you sure you want to reset the workspace for all worlds?", "Confirm Workspace Reset", YES_NO_OPTION) == YES_OPTION) {
+                dockingManager.resetToDefault();
+                Configuration config = Configuration.getInstance();
+                config.setDefaultJideLayoutData(null);
+                config.setJideLayoutData(null);
+                ACTION_LOAD_LAYOUT.setEnabled(false);
+            }
         }
     };
 
@@ -7004,15 +7249,36 @@ public final class App extends JFrame implements RadiusControl,
 
     private final BetterAction ACTION_SWITCH_TO_FROM_CEILING = new BetterAction("switchCeiling", "Switch to/from Ceiling") {
         {
-            setAcceleratorKey(KeyStroke.getKeyStroke(VK_C, PLATFORM_COMMAND_MASK));
+            setAcceleratorKey(getKeyStroke(VK_C, PLATFORM_COMMAND_MASK));
         }
 
         @Override
         public void performAction(ActionEvent e) {
             if ((dimension != null) && (world != null)) {
                 final Anchor anchor = dimension.getAnchor();
-                final Dimension oppositeDimension = world.getDimension(new Anchor(anchor.dim, anchor.role, ! anchor.invert, 0));
-                if (oppositeDimension != null) {
+                final Dimension oppositeDimension = world.getDimension(new Anchor(anchor.dim, DETAIL, ! anchor.invert, 0));
+                if ((oppositeDimension != dimension) && (oppositeDimension != null)) {
+                    setDimension(oppositeDimension);
+                    return;
+                }
+            }
+            DesktopUtils.beep();
+        }
+
+        private static final long serialVersionUID = 1L;
+    };
+
+    private final BetterAction ACTION_SWITCH_TO_FROM_MASTER = new BetterAction("switchMaster", "Switch to/from Master") {
+        {
+            setAcceleratorKey(getKeyStroke(VK_M, PLATFORM_COMMAND_MASK));
+        }
+
+        @Override
+        public void performAction(ActionEvent e) {
+            if ((dimension != null) && (world != null)) {
+                final Anchor anchor = dimension.getAnchor();
+                final Dimension oppositeDimension = world.getDimension(new Anchor(anchor.dim, (anchor.role == MASTER) ? DETAIL : MASTER, false, 0));
+                if ((oppositeDimension != dimension) && (oppositeDimension != null)) {
                     setDimension(oppositeDimension);
                     return;
                 }
@@ -7045,10 +7311,23 @@ public final class App extends JFrame implements RadiusControl,
         }
     };
 
+    private final BetterAction ACTION_EXIT_DIMENSION = new BetterAction("exitDimension", "Exit the current dimension") {
+        {
+            setAcceleratorKey(getKeyStroke(VK_ESCAPE, 0));
+        }
+
+        @Override
+        protected void performAction(ActionEvent e) {
+            exitDimension();
+        }
+    };
+
     private World2 world;
     private long lastSavedState = -1, lastAutosavedState = -1, lastSaveTimestamp = -1;
     private volatile long lastChangeTimestamp = -1;
-    private Dimension dimension;
+    private Dimension dimension, backgroundDimension;
+    private boolean showBackgroundStatus;
+    private int backgroundZoom;
     private WorldPainter view;
     private Operation activeOperation;
     private File lastSelectedFile;
@@ -7067,8 +7346,8 @@ public final class App extends JFrame implements RadiusControl,
     private GlassPane glassPane;
     private JCheckBox terrainCheckBox, terrainSoloCheckBox;
     private JToggleButton setSpawnPointToggleButton;
-    private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addSurfaceCeilingMenuItem, removeSurfaceCeilingMenuItem, addNetherCeilingMenuItem, removeNetherCeilingMenuItem, addEndCeilingMenuItem, removeEndCeilingMenuItem;
-    private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem, viewSurfaceCeilingMenuItem, viewNetherCeilingMenuItem, viewEndCeilingMenuItem;
+    private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addCeilingMenuItem, removeCeilingMenuItem, addMasterMenuItem, removeMasterMenuItem;
+    private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem;
     private final JToggleButton[] customMaterialButtons = new JToggleButton[CUSTOM_TERRAIN_COUNT];
     private final ColourScheme selectedColourScheme;
     private BiomeHelper biomeHelper;
@@ -7104,6 +7383,7 @@ public final class App extends JFrame implements RadiusControl,
     private long autosaveInhibitedUntil;
     private final Map<Layer, LayerControls> layerControls = new HashMap<>();
     private InfoPanel infoPanel;
+    private String outsideDimensionLabel;
 
     public static final Image ICON = IconUtils.loadScaledImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
     
@@ -7168,6 +7448,7 @@ public final class App extends JFrame implements RadiusControl,
     private static final Icon ICON_LAYERS               = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/layers.png");
 
     private static final int PLATFORM_COMMAND_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+    private static final String COMMAND_KEY_NAME = (PLATFORM_COMMAND_MASK == META_DOWN_MASK) ? "⌘" : "Ctrl";
 
     private static final String CUSTOM_BRUSHES_DEFAULT_TITLE = "Custom Brushes";
 
@@ -7177,7 +7458,8 @@ public final class App extends JFrame implements RadiusControl,
 
     private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
 
-    private static final String IMPORT_WARNING_KEY = "org.pepsoft.worldpainter.importWarning";
+    private static final String IMPORT_WARNING_KEY          = "org.pepsoft.worldpainter.importWarning";
+    private static final String EDITING_FLOOR_DIMENSION_KEY = "org.pepsoft.worldpainter.TunnelLayer.editingFloorDimension";
 
     static final String MERGE_WARNING_KEY = "org.pepsoft.worldpainter.mergeWarning";
 
@@ -7187,7 +7469,7 @@ public final class App extends JFrame implements RadiusControl,
         public IntensityAction(int percentage, int keyCode) {
             super("intensity" + percentage, MessageFormat.format(strings.getString("set.intensity.to.0"), percentage));
             this.percentage = percentage;
-            setAcceleratorKey(KeyStroke.getKeyStroke(keyCode, 0));
+            setAcceleratorKey(getKeyStroke(keyCode, 0));
         }
 
         @Override

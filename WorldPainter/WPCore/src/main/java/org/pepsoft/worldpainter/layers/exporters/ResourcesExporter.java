@@ -27,6 +27,7 @@ import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
 import static org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings.defaultSettings;
 
 /**
@@ -35,7 +36,7 @@ import static org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.Resour
  */
 public class ResourcesExporter extends AbstractLayerExporter<Resources> implements FirstPassLayerExporter {
     public ResourcesExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
-        super(dimension, platform, (settings != null) ? settings : defaultSettings(platform, dimension.getAnchor().dim, dimension.getMaxHeight()), Resources.INSTANCE);
+        super(dimension, platform, (settings != null) ? settings : defaultSettings(platform, dimension.getAnchor(), dimension.getMaxHeight()), Resources.INSTANCE);
         final ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) super.settings;
         final Set<Material> allMaterials = resourcesSettings.getMaterials();
         final List<Material> activeMaterials = new ArrayList<>(allMaterials.size());
@@ -234,10 +235,10 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
             }
         }
 
-        public static ResourcesExporterSettings defaultSettings(Platform platform, int dim, int maxHeight) {
+        public static ResourcesExporterSettings defaultSettings(Platform platform, Dimension.Anchor anchor, int maxHeight) {
             final Random random = new Random();
             final Map<Material, ResourceSettings> settings = new HashMap<>();
-            switch (dim) {
+            switch (anchor.dim) {
                 case DIM_NORMAL:
                     // TODO make these normal distributions or something else more similar to Minecraft
                     settings.put(DIRT,             new ResourceSettings(DIRT,             0            , maxHeight - 1, 57,     random.nextLong()));
@@ -295,9 +296,13 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                     settings.put(ANCIENT_DEBRIS,   new ResourceSettings(ANCIENT_DEBRIS,   platform.minZ, maxHeight - 1, 0, random.nextLong()));
                     break;
                 default:
-                    throw new IllegalArgumentException("Dimension " + dim + " not supported");
+                    throw new IllegalArgumentException("Dimension " + anchor.dim + " not supported");
             }
-            return new ResourcesExporterSettings(settings);
+            final ResourcesExporterSettings result = new ResourcesExporterSettings(settings);
+            if (anchor.role == CAVE_FLOOR) {
+                result.setMinimumLevel(0);
+            }
+            return result;
         }
         
         private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {

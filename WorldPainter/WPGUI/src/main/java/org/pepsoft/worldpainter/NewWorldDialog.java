@@ -21,10 +21,7 @@ import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.Dimension.Border;
 import org.pepsoft.worldpainter.biomeschemes.Minecraft1_2BiomeScheme;
 import org.pepsoft.worldpainter.history.HistoryEntry;
-import org.pepsoft.worldpainter.layers.Biome;
-import org.pepsoft.worldpainter.layers.Caverns;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.Resources;
+import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.CavernsExporter.CavernsSettings;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
@@ -46,8 +43,12 @@ import static java.util.Arrays.stream;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_END;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_NETHER;
 import static org.pepsoft.util.swing.SpinnerUtils.setMinimum;
+import static org.pepsoft.worldpainter.App.NUMBER_FORMAT;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
+import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
+import static org.pepsoft.worldpainter.Dimension.Role.MASTER;
 import static org.pepsoft.worldpainter.HeightTransform.IDENTITY;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.Terrain.*;
@@ -92,7 +93,8 @@ public class NewWorldDialog extends WorldPainterDialog {
         comboBoxSurfaceMaterial.setRenderer(new TerrainListCellRenderer(app.getColourScheme()));
 
         comboBoxMaxHeight.setSelectedItem(defaultMaxHeight);
-        
+
+        scale = 1.0f;
         Configuration config = Configuration.getInstance();
         if ((anchor.dim == DIM_NORMAL) && (! anchor.invert)) {
             if (! config.isHilly()) {
@@ -116,8 +118,16 @@ public class NewWorldDialog extends WorldPainterDialog {
         ((DefaultEditor) spinnerWidth.getEditor()).getTextField().setColumns(4);
         ((DefaultEditor) spinnerLength.getEditor()).getTextField().setColumns(4);
 
-        if ((anchor.dim == DIM_NORMAL) && anchor.invert) {
-            setTitle("Add Surface Ceiling");
+        if (! anchor.equals(NORMAL_DETAIL)) {
+            setTitle("Add " + anchor.getDefaultName());
+        }
+        if (anchor.role == MASTER) {
+            fieldName.setEnabled(false);
+            comboBoxTarget.setEnabled(false);
+            comboBoxMaxHeight.setEnabled(false);
+            scale = 16.0f;
+            checkBoxMasterDimension.setSelected(true);
+        } else if ((anchor.dim == DIM_NORMAL) && anchor.invert) {
             fieldName.setEnabled(false);
             comboBoxTarget.setEnabled(false);
             comboBoxSurfaceMaterial.setSelectedItem(STONE_MIX);
@@ -127,7 +137,6 @@ public class NewWorldDialog extends WorldPainterDialog {
             comboBoxMaxHeight.setEnabled(false);
         } else if (anchor.dim == DIM_NETHER) {
             if (! anchor.invert) {
-                setTitle("Add Nether");
                 fieldName.setEnabled(false);
                 comboBoxTarget.setEnabled(false);
                 comboBoxSurfaceMaterial.setSelectedItem(NETHERLIKE);
@@ -136,7 +145,6 @@ public class NewWorldDialog extends WorldPainterDialog {
                 spinnerWaterLevel.setValue(lavaLevel);
                 checkBoxLava.setSelected(true);
             } else {
-                setTitle("Add Nether Ceiling");
                 fieldName.setEnabled(false);
                 comboBoxTarget.setEnabled(false);
                 comboBoxSurfaceMaterial.setSelectedItem(NETHERLIKE);
@@ -147,13 +155,11 @@ public class NewWorldDialog extends WorldPainterDialog {
             comboBoxMaxHeight.setEnabled(false);
         } else if (anchor.dim == DIM_END) {
             if (! anchor.invert) {
-                setTitle("Add End");
                 fieldName.setEnabled(false);
                 comboBoxTarget.setEnabled(false);
                 comboBoxSurfaceMaterial.setSelectedItem(END_STONE);
                 spinnerTerrainLevel.setValue(32);
             } else {
-                setTitle("Add End Ceiling");
                 fieldName.setEnabled(false);
                 comboBoxTarget.setEnabled(false);
                 comboBoxSurfaceMaterial.setSelectedItem(END_STONE);
@@ -163,6 +169,7 @@ public class NewWorldDialog extends WorldPainterDialog {
             checkBoxBeaches.setSelected(false);
             comboBoxMaxHeight.setEnabled(false);
         }
+        checkBoxMasterDimension.setEnabled((anchor.role == DETAIL) && (! anchor.invert));
         
         if (tiles != null) {
             int lowestX = Integer.MAX_VALUE, highestX = Integer.MIN_VALUE;
@@ -326,30 +333,27 @@ public class NewWorldDialog extends WorldPainterDialog {
             world.setMixedMaterial(0, new MixedMaterial("Dirt/Gravel", new MixedMaterial.Row[] {new MixedMaterial.Row(Material.DIRT, 750, 1.0f), new MixedMaterial.Row(Material.GRAVEL, 250, 1.0f)}, Minecraft1_2BiomeScheme.BIOME_PLAINS, null, 1.0f));
             world.setMixedMaterial(1, new MixedMaterial("Stone/Gravel", new MixedMaterial.Row[] {new MixedMaterial.Row(Material.STONE, 750, 1.0f), new MixedMaterial.Row(Material.GRAVEL, 250, 1.0f)}, Minecraft1_2BiomeScheme.BIOME_PLAINS, null, 1.0f));
         }
-        
+
+        if (dimension.getAnchor().role == MASTER) {
+            world.addDimension(createDimension(world, new Anchor(anchor.dim, DETAIL, anchor.invert, 0)));
+        }
+
         return world;
     }
     
     public Dimension getSelectedDimension(World2 world, final ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-        long minecraftSeed;
-        try {
-            minecraftSeed = Long.parseLong(fieldSeed.getText());
-        } catch (NumberFormatException e) {
-            minecraftSeed = fieldSeed.getText().hashCode();
+        final Anchor anchor;
+        if (checkBoxMasterDimension.isSelected()) {
+            anchor = new Anchor(this.anchor.dim, MASTER, this.anchor.invert, 0);
+        } else {
+            anchor = this.anchor;
         }
-        if (radioButtonCustomSeed.isSelected()) {
-            worldpainterSeed = minecraftSeed;
-        }
-        final int waterHeight = (Integer) spinnerWaterLevel.getValue();
-
-        final TileFactory tileFactory = createTileFactory(worldpainterSeed);
-
-        final Dimension dimension;
-        dimension = new Dimension(world, minecraftSeed, tileFactory, anchor);
+        final Dimension dimension = createDimension(world, anchor);
         dimension.setEventsInhibited(true);
         try {
             ExecutorService executorService = MDCThreadPoolExecutor.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
             final AtomicBoolean cancelled = new AtomicBoolean();
+            final TileFactory tileFactory = dimension.getTileFactory();
             if (tiles != null) {
                 logger.info("Creating new dimension with " + tiles.size() + " preselected tiles");
                 final int[] tileCount = new int[1];
@@ -360,7 +364,7 @@ public class NewWorldDialog extends WorldPainterDialog {
                             // Operation cancelled by user
                             return;
                         }
-                        Tile tile = tileFactory.createTile(tileCoords.x, tileCoords.y);
+                        Tile tile = createTile(tileFactory, anchor, tileCoords.x, tileCoords.y);
                         dimension.addTile(tile);
                         if (progressReceiver != null) {
                             synchronized (tileCount) {
@@ -384,29 +388,38 @@ public class NewWorldDialog extends WorldPainterDialog {
                 for (int x = -tileRadius; x < tileRadius; x++) {
                     for (int y = -tileRadius; y < tileRadius; y++) {
                         if (org.pepsoft.worldpainter.util.MathUtils.getSmallestDistanceFromOrigin(x, y) < radius) {
-                            // At least one corner is inside the circle; include
-                            // the tile. Note that this is always correct in
-                            // this case only because the centre of the circle
-                            // is always at a tile intersection so the circle
-                            // can never "bulge" into a tile without any of the
-                            // the tile's corners being inside the circle
+                            // At least one corner is inside the circle; include the tile. Note that this is always
+                            // correct in this case only because the centre of the circle is always at a tile
+                            // intersection so the circle can never "bulge" into a tile without any of the the tile's
+                            // corners being inside the circle
                             final int tileX = x, tileY = y;
                             executorService.execute(() -> {
                                 if (cancelled.get()) {
                                     // Operation cancelled by user
                                     return;
                                 }
-                                Tile tile = tileFactory.createTile(tileX, tileY);
+                                Tile tile = createTile(tileFactory, anchor, tileX, tileY);
                                 dimension.addTile(tile);
                                 if (org.pepsoft.worldpainter.util.MathUtils.getLargestDistanceFromOrigin(tileX, tileY) >= radius) {
-                                    // The tile is not completely inside the circle,
-                                    // so use the Void layer to create the shape of
-                                    // the edge
-                                    for (int xx = 0; xx < TILE_SIZE; xx++) {
-                                        for (int yy = 0; yy < TILE_SIZE; yy++) {
-                                            final float distance = MathUtils.getDistance(tileX * TILE_SIZE + xx + 0.5f, tileY * TILE_SIZE + yy + 0.5f);
-                                            if (distance > radius) {
-                                                tile.setBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, xx, yy, true);
+                                    // The tile is not completely inside the circle, so use the Void layer to create the
+                                    // shape of the edge
+                                    final int tileXOffset = tileX << TILE_SIZE_BITS, tileYOffset = tileY << TILE_SIZE_BITS;
+                                    for (int chunkXInTile = 0; chunkXInTile < 8; chunkXInTile++) {
+                                        for (int chunkYInTile = 0; chunkYInTile < 8; chunkYInTile++) {
+                                            int voidColumnsInChunk = 0;
+                                            final int chunkXOffsetInTile = chunkXInTile << 4, chunkYOffsetInTile = chunkYInTile << 4;
+                                            for (int xx = 0; xx < 16; xx++) {
+                                                for (int yy = 0; yy < 16; yy++) {
+                                                    final float distance = MathUtils.getDistance((tileXOffset | chunkXOffsetInTile | xx) + 0.5f, (tileYOffset | chunkYOffsetInTile | yy) + 0.5f);
+                                                    if (distance > radius) {
+                                                        tile.setBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, chunkXOffsetInTile | xx, chunkYOffsetInTile | yy, true);
+                                                        voidColumnsInChunk++;
+                                                    }
+                                                }
+                                            }
+                                            if (voidColumnsInChunk == 256) {
+                                                // Entire chunk is empty
+                                                tile.setBitLayerValue(NotPresent.INSTANCE, chunkXOffsetInTile, chunkYOffsetInTile, true);
                                             }
                                         }
                                     }
@@ -446,7 +459,7 @@ public class NewWorldDialog extends WorldPainterDialog {
                                 // Operation cancelled by user
                                 return;
                             }
-                            final Tile tile = tileFactory.createTile(tileX, tileY);
+                            final Tile tile = createTile(tileFactory, anchor, tileX, tileY);
                             dimension.addTile(tile);
                             if (progressReceiver != null) {
                                 synchronized (tileCount) {
@@ -475,74 +488,153 @@ public class NewWorldDialog extends WorldPainterDialog {
                 // The operation was cancelled by the user
                 return null;
             }
-
-            final ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
-            if (anchor.invert) {
-                // Ceiling dimension; invert min and max levels:
-                final int maxZ = dimension.getMaxHeight() + dimension.getMinHeight() - 1;
-                for (Material material: resourcesSettings.getMaterials()) {
-                    final int oldMinLevel = resourcesSettings.getMinLevel(material);
-                    resourcesSettings.setMinLevel(material, maxZ - resourcesSettings.getMaxLevel(material));
-                    resourcesSettings.setMaxLevel(material, maxZ - oldMinLevel);
-                }
-            }
-            if (anchor.dim == DIM_NETHER) {
-                if (! anchor.invert) {
-                    dimension.setSubsurfaceMaterial(NETHERLIKE);
-
-                    final CavernsSettings cavernsSettings = new CavernsSettings();
-                    cavernsSettings.setCavernsEverywhereLevel(16);
-                    cavernsSettings.setSurfaceBreaking(true);
-                    cavernsSettings.setFloodWithLava(true);
-                    cavernsSettings.setWaterLevel(16);
-                    dimension.setLayerSettings(Caverns.INSTANCE, cavernsSettings);
-                } else {
-                    dimension.setSubsurfaceMaterial(NETHERLIKE);
-                }
-            } else if (anchor.dim == DIM_END) {
-                dimension.setSubsurfaceMaterial(END_STONE);
-            }
-
-            final Configuration config = Configuration.getInstance();
-            final Dimension defaults = config.getDefaultTerrainAndLayerSettings();
-            if ((anchor.dim == DIM_NORMAL) && (! anchor.invert)) {
-                if (! checkBoxCircular.isSelected()) {
-                    dimension.setBorder(defaults.getBorder());
-                    dimension.setBorderSize(defaults.getBorderSize());
-                }
-                dimension.setWallType(defaults.getWallType());
-                dimension.setRoofType(defaults.getRoofType());
-                dimension.setSubsurfaceMaterial(defaults.getSubsurfaceMaterial());
-                dimension.setPopulate(defaults.isPopulate());
-                dimension.setTopLayerMinDepth(defaults.getTopLayerMinDepth());
-                dimension.setTopLayerVariation(defaults.getTopLayerVariation());
-                dimension.setBottomless(defaults.isBottomless());
-                for (Map.Entry<Layer, ExporterSettings> entry: defaults.getAllLayerSettings().entrySet()) {
-                    dimension.setLayerSettings(entry.getKey(), entry.getValue().clone());
-                }
-                MapGenerator generator = config.getDefaultGenerator();
-                if (generator instanceof SeededGenerator) {
-                    ((SeededGenerator) generator).setSeed(dimension.getMinecraftSeed());
-                }
-                dimension.setGenerator(generator);
-            }
-            if (baseDimension != null) {
-                resourcesSettings.setMinimumLevel(((ResourcesExporterSettings) baseDimension.getLayerSettings(Resources.INSTANCE)).getMinimumLevel());
-            } else {
-                resourcesSettings.setMinimumLevel(config.getDefaultResourcesMinimumLevel());
-            }
-            dimension.setBorderLevel(waterHeight);
-            dimension.setCoverSteepTerrain(defaults.isCoverSteepTerrain());
-
-            dimension.setGridEnabled(config.isDefaultGridEnabled());
-            dimension.setGridSize(config.getDefaultGridSize());
-            dimension.setContoursEnabled(config.isDefaultContoursEnabled());
-            dimension.setContourSeparation(config.getDefaultContourSeparation());
-
-            dimension.setExportSettings(config.getDefaultExportSettings());
         } finally {
             dimension.setEventsInhibited(false);
         }
+        return dimension;
+    }
+
+    private Tile createTile(TileFactory tileFactory, Anchor anchor, int tileX, int tileY) {
+        final Tile tile = tileFactory.createTile(tileX, tileY);
+        if ((anchor.role == MASTER) && (baseDimension != null)) {
+            for (int xInMasterTile = 0; xInMasterTile < TILE_SIZE; xInMasterTile++) {
+                for (int yInMasterTile = 0; yInMasterTile < TILE_SIZE; yInMasterTile++) {
+                    final int masterX = (tileX << TILE_SIZE_BITS) | xInMasterTile, masterY = (tileY << TILE_SIZE_BITS) | yInMasterTile;
+                    final int detailX = masterX << 4, detailY = masterY << 4;
+                    final int detailTileX = detailX >> TILE_SIZE_BITS, detailTileY = detailY >> TILE_SIZE_BITS;
+                    final Tile detailTile = baseDimension.getTile(detailTileX, detailTileY);
+                    if (detailTile != null) {
+                        final int xInDetailTile = detailX & TILE_SIZE_MASK, yInDetailTile = detailY & TILE_SIZE_MASK;
+                        if (! detailTile.getBitLayerValue(NotPresent.INSTANCE, xInDetailTile, yInDetailTile)) {
+                            // The chunk that corresponds to the block on the master dimension exists in the detail
+                            // dimension. Scan it to determine the average terrain height and most prevalent water
+                            // height and terrain type. We are doing this just so the master dimension visually
+                            // resemble the already existing terrain, so it's not necessary to copy layers, etc.
+                            final Map<Integer, Integer> waterHeights = new HashMap<>();
+                            final Map<Terrain, Integer> terrainTypes = new HashMap<>();
+                            float terrainHeightTotal = 0.0f;
+                            for (int xInChunk = 0; xInChunk < 16; xInChunk++) {
+                                for (int yInChunk = 0; yInChunk < 16; yInChunk++) {
+                                    final int myX = xInDetailTile + xInChunk, myY = yInDetailTile + yInChunk;
+                                    terrainHeightTotal += detailTile.getHeight(myX, myY);
+                                    final int waterHeight = detailTile.getWaterLevel(myX, myY);
+                                    final int waterHeightTotal = waterHeights.computeIfAbsent(waterHeight, k -> 0);
+                                    waterHeights.put(waterHeight, waterHeightTotal + 1);
+                                    final Terrain terrain = detailTile.getTerrain(myX, myY);
+                                    final int terrainTotal = terrainTypes.computeIfAbsent(terrain, k -> 0);
+                                    terrainTypes.put(terrain, terrainTotal + 1);
+                                }
+                            }
+                            final float averageTerrainHeight = terrainHeightTotal / 256;
+                            int mostPrevalentWaterHeight = Integer.MIN_VALUE, mostPrevalentWaterHeightCount = 0;
+                            for (Map.Entry<Integer, Integer> entry: waterHeights.entrySet()) {
+                                if (entry.getValue() > mostPrevalentWaterHeightCount) {
+                                    mostPrevalentWaterHeight = entry.getKey();
+                                    mostPrevalentWaterHeightCount = entry.getValue();
+                                }
+                            }
+                            Terrain mostPrevalentTerrain = null;
+                            int mostPrevalentTerrainCount = 0;
+                            for (Map.Entry<Terrain, Integer> entry: terrainTypes.entrySet()) {
+                                if (entry.getValue() > mostPrevalentTerrainCount) {
+                                    mostPrevalentTerrain = entry.getKey();
+                                    mostPrevalentTerrainCount = entry.getValue();
+                                }
+                            }
+                            tile.setHeight(xInMasterTile, yInMasterTile, averageTerrainHeight);
+                            tile.setWaterLevel(xInMasterTile, yInMasterTile, mostPrevalentWaterHeight);
+                            tile.setTerrain(xInMasterTile, yInMasterTile, mostPrevalentTerrain);
+                        }
+                    }
+                }
+            }
+        }
+        return tile;
+    }
+
+    private Dimension createDimension(World2 world, Anchor anchor) {
+        long minecraftSeed;
+        try {
+            minecraftSeed = Long.parseLong(fieldSeed.getText());
+        } catch (NumberFormatException e) {
+            minecraftSeed = fieldSeed.getText().hashCode();
+        }
+        if (radioButtonCustomSeed.isSelected()) {
+            worldpainterSeed = minecraftSeed;
+        }
+        final int waterHeight = (Integer) spinnerWaterLevel.getValue();
+
+        final TileFactory tileFactory = createTileFactory(worldpainterSeed, anchor.role);
+
+        final Dimension dimension;
+        dimension = new Dimension(world, anchor.getDefaultName(), minecraftSeed, tileFactory, anchor);
+        final ResourcesExporterSettings resourcesSettings = (ResourcesExporterSettings) dimension.getLayerSettings(Resources.INSTANCE);
+        if (anchor.invert) {
+            // Ceiling dimension; invert min and max levels:
+            final int maxZ = dimension.getMaxHeight() + dimension.getMinHeight() - 1;
+            for (Material material: resourcesSettings.getMaterials()) {
+                final int oldMinLevel = resourcesSettings.getMinLevel(material);
+                resourcesSettings.setMinLevel(material, maxZ - resourcesSettings.getMaxLevel(material));
+                resourcesSettings.setMaxLevel(material, maxZ - oldMinLevel);
+            }
+        }
+        if (anchor.dim == DIM_NETHER) {
+            if (! anchor.invert) {
+                dimension.setSubsurfaceMaterial(NETHERLIKE);
+
+                final CavernsSettings cavernsSettings = new CavernsSettings();
+                cavernsSettings.setCavernsEverywhereLevel(16);
+                cavernsSettings.setSurfaceBreaking(true);
+                cavernsSettings.setFloodWithLava(true);
+                cavernsSettings.setWaterLevel(16);
+                dimension.setLayerSettings(Caverns.INSTANCE, cavernsSettings);
+            } else {
+                dimension.setSubsurfaceMaterial(NETHERLIKE);
+            }
+        } else if (anchor.dim == DIM_END) {
+            dimension.setSubsurfaceMaterial(END_STONE);
+        }
+
+        final Configuration config = Configuration.getInstance();
+        final Dimension defaults = config.getDefaultTerrainAndLayerSettings();
+        if ((anchor.dim == DIM_NORMAL) && (! anchor.invert)) {
+            if (! checkBoxCircular.isSelected()) {
+                dimension.setBorder(defaults.getBorder());
+                dimension.setBorderSize(defaults.getBorderSize());
+            }
+            dimension.setWallType(defaults.getWallType());
+            dimension.setRoofType(defaults.getRoofType());
+            dimension.setSubsurfaceMaterial(defaults.getSubsurfaceMaterial());
+            dimension.setPopulate(defaults.isPopulate());
+            dimension.setTopLayerMinDepth(defaults.getTopLayerMinDepth());
+            dimension.setTopLayerVariation(defaults.getTopLayerVariation());
+            dimension.setBottomless(defaults.isBottomless());
+            for (Map.Entry<Layer, ExporterSettings> entry: defaults.getAllLayerSettings().entrySet()) {
+                dimension.setLayerSettings(entry.getKey(), entry.getValue().clone());
+            }
+            MapGenerator generator = config.getDefaultGenerator();
+            if (generator instanceof SeededGenerator) {
+                ((SeededGenerator) generator).setSeed(dimension.getMinecraftSeed());
+            }
+            dimension.setGenerator(generator);
+        }
+        if (anchor.role == MASTER) {
+            dimension.setScale(scale);
+        }
+        if (baseDimension != null) {
+            resourcesSettings.setMinimumLevel(((ResourcesExporterSettings) baseDimension.getLayerSettings(Resources.INSTANCE)).getMinimumLevel());
+        } else {
+            resourcesSettings.setMinimumLevel(config.getDefaultResourcesMinimumLevel());
+        }
+        dimension.setBorderLevel(waterHeight);
+        dimension.setCoverSteepTerrain(defaults.isCoverSteepTerrain());
+
+        dimension.setGridEnabled(config.isDefaultGridEnabled());
+        dimension.setGridSize(config.getDefaultGridSize());
+        dimension.setContoursEnabled(config.isDefaultContoursEnabled());
+        dimension.setContourSeparation(config.getDefaultContourSeparation());
+
+        dimension.setExportSettings(config.getDefaultExportSettings());
 
         return dimension;
     }
@@ -554,7 +646,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         spinnerRange.setEnabled(hilly);
         spinnerScale.setEnabled(hilly);
         spinnerLength.setEnabled((tiles == null) && (! checkBoxCircular.isSelected()));
-        boolean seedLocked = (tiles != null) || (! platform.capabilities.contains(SEED));
+        boolean seedLocked = (tiles != null) || (! platform.capabilities.contains(SEED)) || anchor.invert || (anchor.role != DETAIL);
         radioButtonOceanSeed.setEnabled(surfaceDimension && (! seedLocked));
         radioButtonLandSeed.setEnabled(surfaceDimension && (! seedLocked));
         radioButtonCustomSeed.setEnabled(surfaceDimension && (! seedLocked));
@@ -581,7 +673,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         } else {
             tmpSeed = worldpainterSeed;
         }
-        final TileFactory tileFactory = createTileFactory(tmpSeed);
+        final TileFactory tileFactory = createTileFactory(tmpSeed, DETAIL);
         TileProvider tileProvider = new TileProvider() {
             @Override
             public Rectangle getExtent() {
@@ -609,10 +701,10 @@ public class NewWorldDialog extends WorldPainterDialog {
             private final Map<Point, Tile> cache = new HashMap<>();
         };
         Configuration config = Configuration.getInstance();
-        tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, colourScheme, app.getCustomBiomeManager(), Collections.singleton(Biome.INSTANCE), config.isDefaultContoursEnabled(), config.getDefaultContourSeparation(), config.getDefaultLightOrigin(), false));
+        tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, colourScheme, app.getCustomBiomeManager(), Collections.singleton(Biome.INSTANCE), config.isDefaultContoursEnabled(), config.getDefaultContourSeparation(), config.getDefaultLightOrigin()));
     }
     
-    private TileFactory createTileFactory(long seed) {
+    private TileFactory createTileFactory(long seed, Dimension.Role role) {
         final Terrain terrain = (Terrain) comboBoxSurfaceMaterial.getSelectedItem();
         final int baseHeight = (Integer) spinnerTerrainLevel.getValue();
         final int waterHeight = (Integer) spinnerWaterLevel.getValue();
@@ -637,12 +729,13 @@ public class NewWorldDialog extends WorldPainterDialog {
         }
 
         final HeightMapTileFactory tileFactory;
+        final double additionalScale = (role == MASTER) ? 16.0 : 1.0;
         if ("true".equals(System.getProperty("org.pepsoft.worldpainter.fancyworlds"))) {
-            tileFactory = TileFactoryFactory.createFancyTileFactory(seed, terrain, minHeight, maxHeight, baseHeight, waterHeight, floodWithLava, range, scale);
+            tileFactory = TileFactoryFactory.createFancyTileFactory(seed, terrain, minHeight, maxHeight, baseHeight, waterHeight, floodWithLava, range, scale / additionalScale);
         } else {
     //        HeightMapTileFactory tileFactory = new ExperimentalTileFactory(maxHeight);
             if (radioButtonHilly.isSelected()) {
-                tileFactory = TileFactoryFactory.createNoiseTileFactory(seed, terrain, minHeight, maxHeight, baseHeight, waterHeight, floodWithLava, beaches, range, scale);
+                tileFactory = TileFactoryFactory.createNoiseTileFactory(seed, terrain, minHeight, maxHeight, baseHeight, waterHeight, floodWithLava, beaches, range, scale / additionalScale);
             } else {
                 tileFactory = TileFactoryFactory.createFlatTileFactory(seed, terrain, minHeight, maxHeight, baseHeight, waterHeight, floodWithLava, beaches);
             }
@@ -680,18 +773,25 @@ public class NewWorldDialog extends WorldPainterDialog {
     }
 
     private void updateWalkingTimes() {
-        int width = (Integer) spinnerWidth.getValue();
+        final int width = Math.round((int) spinnerWidth.getValue() * scale);
+        final int length = Math.round((int) spinnerLength.getValue() * scale);
         if (checkBoxCircular.isSelected()) {
             labelWalkingTimes.setText(blocksToWalkingTime(width));
         } else {
             String westEastTime = blocksToWalkingTime(width);
-            int length = (Integer) spinnerLength.getValue();
             String northSouthTime = blocksToWalkingTime(length);
             if (westEastTime.equals(northSouthTime)) {
                 labelWalkingTimes.setText(westEastTime);
             } else {
                 labelWalkingTimes.setText("West to east: " + westEastTime + ", north to south: " + northSouthTime);
             }
+        }
+        if (scale == 1.0f) {
+            labelScaledDimensions.setText(null);
+        } else if (checkBoxCircular.isSelected()) {
+            labelScaledDimensions.setText("(Scaled: " + NUMBER_FORMAT.format(width) + ")");
+        } else {
+            labelScaledDimensions.setText("(Scaled: " + NUMBER_FORMAT.format(width) + " x " + NUMBER_FORMAT.format(length) + ")");
         }
     }
     
@@ -788,6 +888,22 @@ public class NewWorldDialog extends WorldPainterDialog {
         }
     }
 
+    private void showMasterDimensionInfo() {
+        JOptionPane.showMessageDialog(this, "<html>" +
+                "<h1>Master Dimensions</h1>" +
+                "<p>A Master Dimension is a WorldPainter dimension type (similar to a Ceiling Dimension). It is Exported<br>" +
+                "at 1:16 scale wherever the regular Surface Dimension does not exist. Because the Master Dimension is<br>" +
+                "only scaled at Export, operations such as saving, loading and editing it are <em>much</em> faster than<br>" +
+                "creating a regular Surface Dimension of that size. Note that exporting it takes just as long though." +
+                "<p><p>Use a Master Dimension to quickly create large featureless areas of your world (oceans, continents,<br>" +
+                "deserts, etc.). When you add tiles to the Surface Dimension, they will be initialised to the contents<br>" +
+                "of the Master Dimension in that location. This allows you to quickly sketch out the rough shapes of<br>" +
+                "your world in the Master Dimension, and then fill in the details where necessary in the Surface Dimension." +
+                "<p><p>Master Dimensions can use all the features of regular Surface Dimensions (terrain types, layers, etc.)<br>" +
+                "so large forests, cave systems, etc. are also easily created with it." +
+                "</html>", "What Is A Master Dimension", JOptionPane.INFORMATION_MESSAGE);
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -799,13 +915,15 @@ public class NewWorldDialog extends WorldPainterDialog {
         buttonGroup1 = new javax.swing.ButtonGroup();
         buttonGroup2 = new javax.swing.ButtonGroup();
         buttonGroup3 = new javax.swing.ButtonGroup();
+        jCheckBox1 = new javax.swing.JCheckBox();
+        jLabel14 = new javax.swing.JLabel();
         buttonCancel = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         spinnerWaterLevel = new javax.swing.JSpinner();
         jLabel20 = new javax.swing.JLabel();
         radioButtonFlat = new javax.swing.JRadioButton();
         jLabel5 = new javax.swing.JLabel();
-        comboBoxMaxHeight = new javax.swing.JComboBox<Integer>();
+        comboBoxMaxHeight = new javax.swing.JComboBox<>();
         spinnerLength = new javax.swing.JSpinner();
         jLabel6 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
@@ -843,10 +961,17 @@ public class NewWorldDialog extends WorldPainterDialog {
         radioButtonAdvancedTerrain = new javax.swing.JRadioButton();
         labelAdvancedTerrain = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
-        comboBoxTarget = new javax.swing.JComboBox<Platform>();
+        comboBoxTarget = new javax.swing.JComboBox<>();
+        checkBoxMasterDimension = new javax.swing.JCheckBox();
+        buttonMasterInfo = new javax.swing.JButton();
+        labelScaledDimensions = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         tiledImageViewer1 = new org.pepsoft.util.swing.TiledImageViewer();
         buttonCreate = new javax.swing.JButton();
+
+        jCheckBox1.setText("jCheckBox1");
+
+        jLabel14.setText("jLabel14");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Create New World");
@@ -883,7 +1008,7 @@ public class NewWorldDialog extends WorldPainterDialog {
             }
         });
 
-        spinnerLength.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(640), Integer.valueOf(1), null, Integer.valueOf(128)));
+        spinnerLength.setModel(new javax.swing.SpinnerNumberModel(640, 1, null, 128));
         spinnerLength.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 spinnerLengthStateChanged(evt);
@@ -996,7 +1121,7 @@ public class NewWorldDialog extends WorldPainterDialog {
 
         jLabel18.setText("Hill height:");
 
-        spinnerWidth.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(640), Integer.valueOf(1), null, Integer.valueOf(128)));
+        spinnerWidth.setModel(new javax.swing.SpinnerNumberModel(640, 1, null, 128));
         spinnerWidth.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 spinnerWidthStateChanged(evt);
@@ -1072,12 +1197,28 @@ public class NewWorldDialog extends WorldPainterDialog {
 
         jLabel13.setText("Map format:");
 
-        comboBoxTarget.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         comboBoxTarget.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 comboBoxTargetActionPerformed(evt);
             }
         });
+
+        checkBoxMasterDimension.setText("create as master dimension (1:16 scale)");
+        checkBoxMasterDimension.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxMasterDimensionActionPerformed(evt);
+            }
+        });
+
+        buttonMasterInfo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/information.png"))); // NOI18N
+        buttonMasterInfo.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        buttonMasterInfo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonMasterInfoActionPerformed(evt);
+            }
+        });
+
+        labelScaledDimensions.setText("(Scaled: 99999 x 99999)");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -1152,6 +1293,11 @@ public class NewWorldDialog extends WorldPainterDialog {
                         .addContainerGap())
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(labelScaledDimensions)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(checkBoxMasterDimension)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(buttonMasterInfo))
                             .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addComponent(jLabel13)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1179,6 +1325,10 @@ public class NewWorldDialog extends WorldPainterDialog {
                     .addComponent(jLabel13)
                     .addComponent(comboBoxTarget, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(checkBoxMasterDimension)
+                    .addComponent(buttonMasterInfo))
+                .addGap(18, 18, 18)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -1186,6 +1336,8 @@ public class NewWorldDialog extends WorldPainterDialog {
                     .addComponent(jLabel2)
                     .addComponent(spinnerLength, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel3))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(labelScaledDimensions)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(checkBoxCircular)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1476,27 +1628,45 @@ public class NewWorldDialog extends WorldPainterDialog {
         setPlatform((Platform) comboBoxTarget.getSelectedItem());
     }//GEN-LAST:event_comboBoxTargetActionPerformed
 
+    private void buttonMasterInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonMasterInfoActionPerformed
+        showMasterDimensionInfo();
+    }//GEN-LAST:event_buttonMasterInfoActionPerformed
+
+    private void checkBoxMasterDimensionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxMasterDimensionActionPerformed
+        if (checkBoxMasterDimension.isSelected()) {
+            scale = 16.0f;
+        } else {
+            scale = 1.0f;
+        }
+        updateWalkingTimes();
+        updatePreview();
+    }//GEN-LAST:event_checkBoxMasterDimensionActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
     private javax.swing.JButton buttonCreate;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.ButtonGroup buttonGroup3;
+    private javax.swing.JButton buttonMasterInfo;
     private javax.swing.JButton buttonRandomSeed;
     private javax.swing.JCheckBox checkBoxBeaches;
     private javax.swing.JCheckBox checkBoxCircular;
     private javax.swing.JCheckBox checkBoxExtendedBlockIds;
     private javax.swing.JCheckBox checkBoxLava;
+    private javax.swing.JCheckBox checkBoxMasterDimension;
     private javax.swing.JComboBox<Integer> comboBoxMaxHeight;
     private javax.swing.JComboBox comboBoxSurfaceMaterial;
     private javax.swing.JComboBox<Platform> comboBoxTarget;
     private javax.swing.JTextField fieldName;
     private javax.swing.JTextField fieldSeed;
+    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel19;
@@ -1512,6 +1682,7 @@ public class NewWorldDialog extends WorldPainterDialog {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JLabel labelAdvancedTerrain;
+    private javax.swing.JLabel labelScaledDimensions;
     private javax.swing.JLabel labelWalkingTimes;
     private javax.swing.JLabel labelWarning;
     private javax.swing.JRadioButton radioButtonAdvancedTerrain;
@@ -1540,6 +1711,7 @@ public class NewWorldDialog extends WorldPainterDialog {
     private long worldpainterSeed;
     private SimpleTheme theme;
     private boolean programmaticChange = true;
+    private float scale;
 
     static final int ESTIMATED_TILE_DATA_SIZE = 81; // in KB
     

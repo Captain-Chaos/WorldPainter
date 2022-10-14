@@ -60,7 +60,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
         this.platform = platform;
         this.maxheight = tileFactory.getMaxHeight();
-        Dimension dim = new Dimension(this, minecraftSeed, tileFactory, NORMAL_DETAIL);
+        Dimension dim = new Dimension(this, "Surface", minecraftSeed, tileFactory, NORMAL_DETAIL);
         addDimension(dim);
     }
     
@@ -202,6 +202,10 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
+    public boolean isDimensionPresent(Anchor anchor) {
+        return dimensionsByAnchor.containsKey(anchor);
+    }
+
     public Dimension getDimension(Anchor anchor) {
         return dimensionsByAnchor.get(anchor);
     }
@@ -210,11 +214,11 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         return new HashSet<>(dimensionsByAnchor.values());
     }
 
-    public Set<Dimension> getDimensionsWithRole(Dimension.Role role, boolean inverted, int layer) {
+    public Set<Dimension> getDimensionsWithRole(Dimension.Role role, boolean inverted, int id) {
         return dimensionsByAnchor.values().stream()
                 .filter(dimension -> {
                     final Anchor anchor = dimension.getAnchor();
-                    return (anchor.role == role) && (anchor.invert == inverted) && (anchor.layer == layer);
+                    return (anchor.role == role) && (anchor.invert == inverted) && (anchor.id == id);
                 }).collect(toSet());
     }
 

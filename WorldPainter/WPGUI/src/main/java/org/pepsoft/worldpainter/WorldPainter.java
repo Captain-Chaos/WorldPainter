@@ -13,6 +13,8 @@ import org.pepsoft.worldpainter.brushes.BrushShape;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.tools.BiomesTileProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -38,6 +40,7 @@ import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
 import static org.pepsoft.worldpainter.TileRenderer.TERRAIN_AS_LAYER;
+import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_FIFTY_PERCENT;
 
 /**
  *
@@ -65,6 +68,10 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
 
     @Override
     public final void setDimension(Dimension dimension) {
+        setDimension(dimension, true);
+    }
+
+    final void setDimension(Dimension dimension, boolean refreshTiles) {
         Dimension oldDimension = this.dimension;
         if ((oldDimension != null) && (oldDimension.getAnchor().dim == DIM_NORMAL)) {
             oldDimension.getWorld().removePropertyChangeListener("spawnPoint", this);
@@ -79,6 +86,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
 
             setGridSize(dimension.getGridSize());
             setPaintGrid(dimension.isGridEnabled());
+            setLabelScale((int) dimension.getScale());
             
             if (Configuration.getInstance().getOverlayType() != Configuration.OverlayType.SCALE_ON_LOAD) {
                 setOverlayScale(dimension.getOverlayScale());
@@ -96,7 +104,9 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             setMarkerCoords(null);
         }
         firePropertyChange("dimension", oldDimension, dimension);
-        refreshTiles();
+        if (refreshTiles) {
+            refreshTiles();
+        }
     }
 
     public ColourScheme getColourScheme() {
@@ -128,7 +138,8 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         if (drawViewDistance != this.drawViewDistance) {
             this.drawViewDistance = drawViewDistance;
             firePropertyChange("drawViewDistance", !drawViewDistance, drawViewDistance);
-            repaintWorld(mouseX - VIEW_DISTANCE_RADIUS, mouseY - VIEW_DISTANCE_RADIUS, VIEW_DISTANCE_DIAMETER + 1, VIEW_DISTANCE_DIAMETER + 1);
+            final int scaledRadius = (dimension != null) ? (int) Math.ceil(VIEW_DISTANCE_RADIUS / dimension.getScale()) : VIEW_DISTANCE_RADIUS;
+            repaintWorld(mouseX - scaledRadius, mouseY - scaledRadius, (2 * scaledRadius) + 1, (2 * scaledRadius) + 1);
         }
     }
 
@@ -140,7 +151,8 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         if (drawWalkingDistance != this.drawWalkingDistance) {
             this.drawWalkingDistance = drawWalkingDistance;
             firePropertyChange("drawWalkingDistance", !drawWalkingDistance, drawWalkingDistance);
-            repaintWorld(mouseX - DAY_NIGHT_WALK_DISTANCE_RADIUS, mouseY - DAY_NIGHT_WALK_DISTANCE_RADIUS, DAY_NIGHT_WALK_DISTANCE_DIAMETER + 1, DAY_NIGHT_WALK_DISTANCE_DIAMETER + 1);
+            final int scaledRadius = (dimension != null) ? (int) Math.ceil(DAY_NIGHT_WALK_DISTANCE_RADIUS / dimension.getScale()) : DAY_NIGHT_WALK_DISTANCE_RADIUS;
+            repaintWorld(mouseX - scaledRadius, mouseY - scaledRadius, (2 * scaledRadius) + 1, (2 * scaledRadius) + 1);
         }
     }
 
@@ -373,8 +385,22 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                 }
             }
 
-            tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, drawContours, contourSeparation, lightOrigin, drawBorders, true, null);
+            tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, drawContours, contourSeparation, lightOrigin, true, null, backgroundDimension == null);
             setTileProvider(LAYER_DETAILS, tileProvider);
+
+            if (backgroundDimension != null) {
+                backgroundTileProvider = new WPTileProvider(backgroundDimension, colourScheme, customBiomeManager, hiddenLayers, false, contourSeparation, lightOrigin, false, FADE_TO_FIFTY_PERCENT, true);
+                setTileProvider(LAYER_BACKGROUND, backgroundTileProvider);
+                setTileProviderZoom(backgroundTileProvider, backgroundDimensionZoom);
+            } else {
+                removeTileProvider(LAYER_BACKGROUND);
+            }
+
+            if (drawBorders && (dimension.getBorder() != null)) {
+                setTileProvider(LAYER_BORDER, new WPBorderTileProvider(dimension, colourScheme));
+            } else {
+                removeTileProvider(LAYER_BORDER);
+            }
         } else {
             if (getTileProviderCount() > 0) {
                 removeAllTileProviders();
@@ -430,7 +456,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         if (dimension == null) {
             return null;
         }
-        TileRenderer tileRenderer = new TileRenderer(dimension, colourScheme, customBiomeManager, 0);
+        TileRenderer tileRenderer = new TileRenderer(dimension, colourScheme, customBiomeManager, 0, true);
         tileRenderer.setContourLines(drawContours);
         tileRenderer.setContourSeparation(contourSeparation);
         tileRenderer.setHiddenLayers(hiddenLayers);
@@ -564,7 +590,8 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             }
         }
         if (drawViewDistance) {
-            Rectangle viewDistanceArea = new Rectangle(-VIEW_DISTANCE_RADIUS, -VIEW_DISTANCE_RADIUS, VIEW_DISTANCE_DIAMETER, VIEW_DISTANCE_DIAMETER);
+            final int scaledRadius = (int) Math.ceil(VIEW_DISTANCE_RADIUS / dimension.getScale());
+            Rectangle viewDistanceArea = new Rectangle(-scaledRadius, -scaledRadius, scaledRadius * 2, scaledRadius * 2);
             if (repaintArea != null) {
                 repaintArea = repaintArea.union(viewDistanceArea);
             } else {
@@ -572,7 +599,8 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             }
         }
         if (drawWalkingDistance) {
-            Rectangle walkingDistanceArea = new Rectangle(-DAY_NIGHT_WALK_DISTANCE_RADIUS, -DAY_NIGHT_WALK_DISTANCE_RADIUS, DAY_NIGHT_WALK_DISTANCE_DIAMETER, DAY_NIGHT_WALK_DISTANCE_DIAMETER);
+            final int scaledRadius = (int) Math.ceil(VIEW_DISTANCE_RADIUS / dimension.getScale());
+            Rectangle walkingDistanceArea = new Rectangle(-scaledRadius, -scaledRadius, scaledRadius * 2, scaledRadius * 2);
             if (repaintArea != null) {
                 repaintArea = repaintArea.union(walkingDistanceArea);
             } else {
@@ -705,17 +733,21 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                 }
                 if (drawViewDistance) {
                     g2.setStroke(new BasicStroke(onePixel, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {10 * onePixel, 10 * onePixel}, 0));
-                    g2.drawOval(mouseX - VIEW_DISTANCE_RADIUS, mouseY - VIEW_DISTANCE_RADIUS, VIEW_DISTANCE_DIAMETER, VIEW_DISTANCE_DIAMETER);
+                    final int scaledRadius = (int) Math.ceil(VIEW_DISTANCE_RADIUS / dimension.getScale());
+                    g2.drawOval(mouseX - scaledRadius, mouseY - scaledRadius, scaledRadius * 2, scaledRadius * 2);
                 }
                 if (drawWalkingDistance) {
                     g2.setStroke(new BasicStroke(onePixel, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {20 * onePixel, 20 * onePixel}, 0));
-                    g2.drawOval(mouseX - DAY_NIGHT_WALK_DISTANCE_RADIUS, mouseY - DAY_NIGHT_WALK_DISTANCE_RADIUS, DAY_NIGHT_WALK_DISTANCE_DIAMETER, DAY_NIGHT_WALK_DISTANCE_DIAMETER);
+                    int scaledRadius = (int) Math.ceil(DAY_NIGHT_WALK_DISTANCE_RADIUS / dimension.getScale());
+                    g2.drawOval(mouseX - scaledRadius, mouseY - scaledRadius, scaledRadius * 2, scaledRadius * 2);
                     setFont(NORMAL_FONT.deriveFont(10 * onePixel));
-                    g2.drawString("day + night", mouseX - DAY_NIGHT_WALK_DISTANCE_RADIUS + onePixel * 3, mouseY);
-                    g2.drawOval(mouseX - DAY_WALK_DISTANCE_RADIUS, mouseY - DAY_WALK_DISTANCE_RADIUS, DAY_WALK_DISTANCE_DIAMETER, DAY_WALK_DISTANCE_DIAMETER);
-                    g2.drawString("1 day", mouseX - DAY_WALK_DISTANCE_RADIUS + onePixel * 3, mouseY);
-                    g2.drawOval(mouseX - FIVE_MINUTE_WALK_DISTANCE_RADIUS, mouseY - FIVE_MINUTE_WALK_DISTANCE_RADIUS, FIVE_MINUTE_WALK_DISTANCE_DIAMETER, FIVE_MINUTE_WALK_DISTANCE_DIAMETER);
-                    g2.drawString("5 min.", mouseX - FIVE_MINUTE_WALK_DISTANCE_RADIUS + onePixel * 3, mouseY);
+                    g2.drawString("day + night", mouseX - scaledRadius + onePixel * 3, mouseY);
+                    scaledRadius = (int) Math.ceil(DAY_WALK_DISTANCE_RADIUS / dimension.getScale());
+                    g2.drawOval(mouseX - scaledRadius, mouseY - scaledRadius, scaledRadius * 2, scaledRadius * 2);
+                    g2.drawString("1 day", mouseX - scaledRadius + onePixel * 3, mouseY);
+                    scaledRadius = (int) Math.ceil(FIVE_MINUTE_WALK_DISTANCE_RADIUS / dimension.getScale());
+                    g2.drawOval(mouseX - scaledRadius, mouseY - scaledRadius, scaledRadius * 2, scaledRadius * 2);
+                    g2.drawString("5 min.", mouseX - scaledRadius + onePixel * 3, mouseY);
                 }
             } finally {
                 g2.setColor(savedColour);
@@ -894,35 +926,42 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         }
         return null;
     }
-    
+
+    public Dimension getBackgroundDimension() {
+        return backgroundDimension;
+    }
+
+    public void setBackgroundDimension(Dimension backgroundDimension, int zoomLevel, WPTileProvider.Effect effect) {
+        this.backgroundDimension = backgroundDimension;
+        backgroundDimensionZoom = zoomLevel;
+        refreshTiles();
+    }
+
     private HashSet<Layer> hiddenLayers = new HashSet<>();
     private final CustomBiomeManager customBiomeManager;
-    private Dimension dimension;
-    private int mouseX, mouseY, radius, effectiveRadius, overlayOffsetX, overlayOffsetY, contourSeparation, brushRotation;
-    private boolean drawBrush, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance, drawMinecraftBorder = true,
-        drawBorders = true, drawBiomes = true;
+    private Dimension dimension, backgroundDimension; // TODO make this more generic
+    private int mouseX, mouseY, radius, effectiveRadius, overlayOffsetX, overlayOffsetY, contourSeparation,
+            brushRotation, backgroundDimensionZoom;
+    private boolean drawBrush, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance,
+            drawMinecraftBorder = true, drawBorders = true, drawBiomes = true;
     private BrushShape brushShape;
-    private float overlayScale = 1.0f;
-    private float overlayTransparency = 0.5f;
+    private float overlayScale = 1.0f, overlayTransparency = 0.5f;
     private ColourScheme colourScheme;
     private BufferedImage overlay;
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
-    private WPTileProvider tileProvider;
+    private WPTileProvider tileProvider, backgroundTileProvider;
     private Shape customBrushShape;
 
     private static final int VIEW_DISTANCE_RADIUS = 192; // 12 chunks (default of Minecraft 1.18.2)
-    private static final int VIEW_DISTANCE_DIAMETER = 2 * VIEW_DISTANCE_RADIUS;
     private static final int FIVE_MINUTE_WALK_DISTANCE_RADIUS = 1280;
-    private static final int FIVE_MINUTE_WALK_DISTANCE_DIAMETER = 2 * FIVE_MINUTE_WALK_DISTANCE_RADIUS;
     private static final int DAY_WALK_DISTANCE_RADIUS = 3328;
-    private static final int DAY_WALK_DISTANCE_DIAMETER = 2 * DAY_WALK_DISTANCE_RADIUS;
     private static final int DAY_NIGHT_WALK_DISTANCE_RADIUS = 5120;
-    private static final int DAY_NIGHT_WALK_DISTANCE_DIAMETER = 2 * DAY_NIGHT_WALK_DISTANCE_RADIUS;
     private static final Font NORMAL_FONT = new Font("SansSerif", Font.PLAIN, 10);
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WorldPainter.class);
+    private static final Logger logger = LoggerFactory.getLogger(WorldPainter.class);
     private static final long serialVersionUID = 1L;
 
-    private static final int LAYER_BIOMES  = -2;
-    private static final int LAYER_MASTER  = -1;
-    private static final int LAYER_DETAILS =  0;
+    private static final int LAYER_BIOMES     = -3;
+    private static final int LAYER_BORDER     = -2;
+    private static final int LAYER_BACKGROUND = -1;
+    private static final int LAYER_DETAILS    =  0;
 }

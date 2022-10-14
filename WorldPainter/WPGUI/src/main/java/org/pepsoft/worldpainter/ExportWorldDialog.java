@@ -29,12 +29,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.*;
+import java.util.stream.Collectors;
 
+import static java.util.function.Function.identity;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_PEACEFUL;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
-import static org.pepsoft.worldpainter.Dimension.Anchor.*;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 import static org.pepsoft.worldpainter.GameType.*;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
@@ -88,49 +90,18 @@ public class ExportWorldDialog extends WorldPainterDialog {
         }
         fieldName.setText(world.getName());
 
-        surfacePropertiesEditor.setColourScheme(colourScheme);
-        surfacePropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
-        surfacePropertiesEditor.setDimension(dim0);
-        dimensionPropertiesEditors.put(NORMAL_DETAIL, surfacePropertiesEditor);
-        if (world.getDimension(NETHER_DETAIL) != null) {
-            netherPropertiesEditor.setColourScheme(colourScheme);
-            netherPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
-            netherPropertiesEditor.setDimension(world.getDimension(NETHER_DETAIL));
-            dimensionPropertiesEditors.put(NETHER_DETAIL, netherPropertiesEditor);
-        } else {
-            jTabbedPane1.setEnabledAt(2, false);
-        }
-        if (world.getDimension(END_DETAIL) != null) {
-            endPropertiesEditor.setColourScheme(colourScheme);
-            endPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
-            endPropertiesEditor.setDimension(world.getDimension(END_DETAIL));
-            dimensionPropertiesEditors.put(END_DETAIL, endPropertiesEditor);
-        } else {
-            jTabbedPane1.setEnabledAt(4, false);
-        }
-        if (world.getDimension(NORMAL_DETAIL_CEILING) != null) {
-            surfaceCeilingPropertiesEditor.setColourScheme(colourScheme);
-            surfaceCeilingPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
-            surfaceCeilingPropertiesEditor.setDimension(world.getDimension(NORMAL_DETAIL_CEILING));
-            dimensionPropertiesEditors.put(NORMAL_DETAIL_CEILING, surfaceCeilingPropertiesEditor);
-        } else {
-            jTabbedPane1.setEnabledAt(1, false);
-        }
-        if (world.getDimension(NETHER_DETAIL_CEILING) != null) {
-            netherCeilingPropertiesEditor.setColourScheme(colourScheme);
-            netherCeilingPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
-            netherCeilingPropertiesEditor.setDimension(world.getDimension(NETHER_DETAIL_CEILING));
-            dimensionPropertiesEditors.put(NETHER_DETAIL_CEILING, netherCeilingPropertiesEditor);
-        } else {
-            jTabbedPane1.setEnabledAt(3, false);
-        }
-        if (world.getDimension(END_DETAIL_CEILING) != null) {
-            endCeilingPropertiesEditor.setColourScheme(colourScheme);
-            endCeilingPropertiesEditor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
-            endCeilingPropertiesEditor.setDimension(world.getDimension(END_DETAIL_CEILING));
-            dimensionPropertiesEditors.put(END_DETAIL_CEILING, endCeilingPropertiesEditor);
-        } else {
-            jTabbedPane1.setEnabledAt(5, false);
+        final SortedMap<Anchor, Dimension> dimensions = world.getDimensions().stream().collect(Collectors.toMap(
+                Dimension::getAnchor,
+                identity(),
+                (u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); },
+                TreeMap::new));
+        for (Dimension dimension: dimensions.values()) {
+            final DimensionPropertiesEditor editor = new DimensionPropertiesEditor();
+            editor.setColourScheme(colourScheme);
+            editor.setDimension(dimension);
+            editor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
+            jTabbedPane1.addTab(dimension.getName(), editor);
+            dimensionPropertiesEditors.put(dimension.getAnchor(), editor);
         }
         checkBoxGoodies.setSelected(world.isCreateGoodiesChest());
         labelPlatform.setText("<html><u>" + platform.displayName + "</u></html>");
@@ -245,13 +216,9 @@ public class ExportWorldDialog extends WorldPainterDialog {
         final Platform platform = world.getPlatform();
         final StringBuilder sb = new StringBuilder("<html>Please confirm that you want to export the world<br>notwithstanding the following warnings:<br><ul>");
         boolean showWarning = false;
-        for (Dimension dimension: world.getDimensions()) {
-            if (dimension.getAnchor().invert) {
-                // Skip ceilings
-                continue;
-            }
-            final DimensionPropertiesEditor editor = dimensionPropertiesEditors.get(dimension.getAnchor());
+        for (DimensionPropertiesEditor editor: dimensionPropertiesEditors.values()) {
             final Generator generatorType = editor.getSelectedGeneratorType();
+            final Dimension dimension = editor.getDimension();
             if ((editor.isPopulateSelected() || dimension.getAllLayers(true).contains(Populate.INSTANCE)) && (! platform.capabilities.contains(POPULATE))) {
                 sb.append("<li>Population not supported for<br>map format " + platform.displayName + "; it will not have an effect");
                 showWarning = true;
@@ -262,7 +229,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
                     showWarning = true;
                 }
             }
-            if (! platform.supportedGenerators.contains(generatorType)) {
+            if ((generatorType != null) && (! platform.supportedGenerators.contains(generatorType))) {
                 sb.append("<li>Map format " + platform.displayName + " does not support world type " + generatorType.getDisplayName() + ".<br>The world type will be reset to " + platform.supportedGenerators.get(0).getDisplayName() + ".");
                 editor.setSelectedGeneratorType(platform.supportedGenerators.get(0));
                 showWarning = true;
@@ -337,9 +304,9 @@ public class ExportWorldDialog extends WorldPainterDialog {
         buttonExport.setEnabled(false);
         buttonTestExport.setEnabled(false);
         buttonCancel.setEnabled(false);
-        surfacePropertiesEditor.setEnabled(false);
-        netherPropertiesEditor.setEnabled(false);
-        endPropertiesEditor.setEnabled(false);
+        for (DimensionPropertiesEditor editor: dimensionPropertiesEditors.values()) {
+            editor.setEnabled(false);
+        }
         checkBoxGoodies.setEnabled(false);
         comboBoxGameType.setEnabled(false);
         checkBoxAllowCheats.setEnabled(false);
@@ -360,37 +327,9 @@ public class ExportWorldDialog extends WorldPainterDialog {
     }
 
     private boolean saveDimensionSettings() {
-        if (! surfacePropertiesEditor.saveSettings()) {
-            jTabbedPane1.setSelectedIndex(0);
-            return false;
-        }
-        if (world.getDimension(NETHER_DETAIL) != null) {
-            if (! netherPropertiesEditor.saveSettings()) {
-                jTabbedPane1.setSelectedIndex(2);
-                return false;
-            }
-        }
-        if (world.getDimension(END_DETAIL) != null) {
-            if (! endPropertiesEditor.saveSettings()) {
-                jTabbedPane1.setSelectedIndex(4);
-                return false;
-            }
-        }
-        if (world.getDimension(NORMAL_DETAIL_CEILING) != null) {
-            if (! surfaceCeilingPropertiesEditor.saveSettings()) {
-                jTabbedPane1.setSelectedIndex(1);
-                return false;
-            }
-        }
-        if (world.getDimension(NETHER_DETAIL_CEILING) != null) {
-            if (! netherCeilingPropertiesEditor.saveSettings()) {
-                jTabbedPane1.setSelectedIndex(3);
-                return false;
-            }
-        }
-        if (world.getDimension(END_DETAIL_CEILING) != null) {
-            if (! endCeilingPropertiesEditor.saveSettings()) {
-                jTabbedPane1.setSelectedIndex(5);
+        for (DimensionPropertiesEditor editor: dimensionPropertiesEditors.values()) {
+            if (! editor.saveSettings()) {
+                jTabbedPane1.setSelectedComponent(editor);
                 return false;
             }
         }
@@ -468,12 +407,6 @@ public class ExportWorldDialog extends WorldPainterDialog {
         buttonCancel = new javax.swing.JButton();
         buttonExport = new javax.swing.JButton();
         jTabbedPane1 = new javax.swing.JTabbedPane();
-        surfacePropertiesEditor = new org.pepsoft.worldpainter.DimensionPropertiesEditor();
-        surfaceCeilingPropertiesEditor = new org.pepsoft.worldpainter.DimensionPropertiesEditor();
-        netherPropertiesEditor = new org.pepsoft.worldpainter.DimensionPropertiesEditor();
-        netherCeilingPropertiesEditor = new org.pepsoft.worldpainter.DimensionPropertiesEditor();
-        endPropertiesEditor = new org.pepsoft.worldpainter.DimensionPropertiesEditor();
-        endCeilingPropertiesEditor = new org.pepsoft.worldpainter.DimensionPropertiesEditor();
         checkBoxGoodies = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
         checkBoxAllowCheats = new javax.swing.JCheckBox();
@@ -520,12 +453,6 @@ public class ExportWorldDialog extends WorldPainterDialog {
         });
 
         jTabbedPane1.setTabPlacement(javax.swing.JTabbedPane.RIGHT);
-        jTabbedPane1.addTab("Surface", surfacePropertiesEditor);
-        jTabbedPane1.addTab("Surface Ceiling", surfaceCeilingPropertiesEditor);
-        jTabbedPane1.addTab("Nether", netherPropertiesEditor);
-        jTabbedPane1.addTab("Nether Ceiling", netherCeilingPropertiesEditor);
-        jTabbedPane1.addTab("End", endPropertiesEditor);
-        jTabbedPane1.addTab("End Ceiling", endCeilingPropertiesEditor);
 
         checkBoxGoodies.setSelected(true);
         checkBoxGoodies.setText("Include chest of goodies");
@@ -743,8 +670,6 @@ public class ExportWorldDialog extends WorldPainterDialog {
     private javax.swing.JCheckBox checkBoxMapFeatures;
     private javax.swing.JComboBox comboBoxDifficulty;
     private javax.swing.JComboBox<GameType> comboBoxGameType;
-    private org.pepsoft.worldpainter.DimensionPropertiesEditor endCeilingPropertiesEditor;
-    private org.pepsoft.worldpainter.DimensionPropertiesEditor endPropertiesEditor;
     private javax.swing.JTextField fieldDirectory;
     private javax.swing.JTextField fieldName;
     private javax.swing.JLabel jLabel1;
@@ -756,10 +681,6 @@ public class ExportWorldDialog extends WorldPainterDialog {
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel labelPlatform;
     private javax.swing.JLabel labelPlatformWarning;
-    private org.pepsoft.worldpainter.DimensionPropertiesEditor netherCeilingPropertiesEditor;
-    private org.pepsoft.worldpainter.DimensionPropertiesEditor netherPropertiesEditor;
-    private org.pepsoft.worldpainter.DimensionPropertiesEditor surfaceCeilingPropertiesEditor;
-    private org.pepsoft.worldpainter.DimensionPropertiesEditor surfacePropertiesEditor;
     // End of variables declaration//GEN-END:variables
 
     private final World2 world;

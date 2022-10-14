@@ -11,6 +11,8 @@ import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
 import java.awt.*;
 import java.beans.PropertyChangeListener;
+import java.io.NotSerializableException;
+import java.io.ObjectOutputStream;
 import java.util.*;
 
 /**
@@ -19,7 +21,7 @@ import java.util.*;
  */
 public final class DimensionSnapshot extends Dimension { // This cannot be an RODelegatingDimension because all the properties of the dimension need to be frozen
     public DimensionSnapshot(Dimension dimension, Snapshot snapshot) {
-        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getAnchor());
+        super(dimension.getWorld(), dimension.getName(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getAnchor());
         this.dimension = dimension;
         this.snapshot = snapshot;
         super.setBorder(dimension.getBorder());
@@ -282,6 +284,10 @@ public final class DimensionSnapshot extends Dimension { // This cannot be an RO
     @Override
     public void setWaterLevelAt(int x, int y, int waterLevel) {
         throw new UnsupportedOperationException();
+    }
+
+    private void writeObject(ObjectOutputStream out) throws NotSerializableException {
+        throw new NotSerializableException("Serialization of DimensionSnapshot not supported");
     }
 
     private final Dimension dimension;

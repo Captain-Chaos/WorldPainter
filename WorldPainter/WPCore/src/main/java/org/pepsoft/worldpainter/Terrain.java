@@ -18,6 +18,7 @@ import org.pepsoft.worldpainter.objects.WPObject;
 import java.awt.image.BufferedImage;
 import java.util.*;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
@@ -3007,9 +3008,10 @@ public enum Terrain {
     }
     
     public static Terrain[] getConfiguredValues() {
-        ArrayList<Terrain> values = new ArrayList<>(VALUES.length);
+        final ArrayList<Terrain> values = new ArrayList<>(VALUES.length);
+        values.addAll(asList(PICK_LIST));
         for (Terrain terrain: VALUES) {
-            if ((! terrain.isCustom()) || terrain.isConfigured()) {
+            if (terrain.isCustom() && terrain.isConfigured()) {
                 values.add(terrain);
             }
         }

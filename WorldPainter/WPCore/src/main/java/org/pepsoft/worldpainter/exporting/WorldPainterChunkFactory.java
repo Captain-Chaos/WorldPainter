@@ -151,24 +151,13 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                     biomeUtils.set2DBiome(chunk, x, z, biome);
                 }
 
-                final float height = tile.getHeight(xInTile, yInTile);
-                final int intHeight = Math.round(height);
+                final int intHeight = tile.getIntHeight(xInTile, yInTile);
                 final int waterLevel = tile.getWaterLevel(xInTile, yInTile);
+                final boolean underWater = waterLevel > intHeight;
                 final boolean _void = tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, xInTile, yInTile);
                 if (! _void) {
                     final Terrain terrain = tile.getTerrain(xInTile, yInTile);
-                    final int topLayerDepth = dimension.getTopLayerDepth(worldX, worldY, intHeight);
                     final boolean floodWithLava;
-                    final boolean underWater = waterLevel > intHeight;
-                    final int subSurfaceLayerOffset = subSurfaceLayersRelativeToTerrain ? -(intHeight - subSurfacePatternHeight + 1) : 0;
-                    final int topLayerLayerOffset;
-                    if (topLayersRelativeToTerrain
-                            && terrain.isCustom()
-                            && (Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()).getMode() == MixedMaterial.Mode.LAYERED)) {
-                        topLayerLayerOffset = -(intHeight - Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()).getPatternHeight() + 1);
-                    } else {
-                        topLayerLayerOffset = 0;
-                    }
                     if (underWater) {
                         floodWithLava = tile.getBitLayerValue(FloodWithLava.INSTANCE, xInTile, yInTile);
                         result.stats.waterArea++;
@@ -179,48 +168,8 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                     if (bedrock) {
                         chunk.setMaterial(x, minY, z, BEDROCK);
                     }
-                    int subsurfaceMaxHeight = intHeight - topLayerDepth;
-                    if (coverSteepTerrain) {
-                        subsurfaceMaxHeight = Math.min(subsurfaceMaxHeight,
-                            Math.min(Math.min(dimension.getIntHeightAt(worldX - 1, worldY, Integer.MAX_VALUE),
-                            dimension.getIntHeightAt(worldX + 1, worldY, Integer.MAX_VALUE)),
-                            Math.min(dimension.getIntHeightAt(worldX, worldY - 1, Integer.MAX_VALUE),
-                            dimension.getIntHeightAt(worldX, worldY + 1, Integer.MAX_VALUE))));
-                    }
-                    int columnRenderHeight = Math.min(Math.max(intHeight, waterLevel), maxY);
-                    for (int y = minY + (bedrock ? 1 : 0); y <= columnRenderHeight; y++) {
-                        if (y <= subsurfaceMaxHeight) {
-                            // Sub surface
-                            chunk.setMaterial(x, y, z, subsurfaceMaterial.getMaterial(platform, seed, worldX, worldY, y + subSurfaceLayerOffset, intHeight + subSurfaceLayerOffset));
-                        } else if (y < intHeight) {
-                            // Top/terrain layer, but not surface block
-                            chunk.setMaterial(x, y, z, terrain.getMaterial(platform, seed, worldX, worldY, y + topLayerLayerOffset, intHeight + topLayerLayerOffset));
-                        } else if (y == intHeight) {
-                            // Surface block
-                            final Material material;
-                            if (topLayerLayerOffset != 0) {
-                                material = terrain.getMaterial(platform, seed, worldX, worldY, intHeight + topLayerLayerOffset, intHeight + topLayerLayerOffset);
-                            } else {
-                                // Use floating point height here to make sure
-                                // undulations caused by layer variation settings/
-                                // blobs, etc. look continuous on the surface
-                                material = terrain.getMaterial(platform, seed, worldX, worldY, height + topLayerLayerOffset, intHeight + topLayerLayerOffset);
-                            }
-                            final int blockType = material.blockType;
-                            if (((blockType == BLK_WOODEN_SLAB) || (blockType == BLK_SLAB) || (blockType == BLK_RED_SANDSTONE_SLAB)) && (! underWater) && (height > intHeight)) {
-                                chunk.setMaterial(x, y, z, Material.get(blockType - 1, material.data));
-                            } else {
-                                chunk.setMaterial(x, y, z, material);
-                            }
-                        } else if (y <= waterLevel) {
-                            // Above the surface but below the water/lava level
-                            if (floodWithLava) {
-                                chunk.setMaterial(x, y, z, STATIONARY_LAVA);
-                            } else {
-                                chunk.setMaterial(x, y, z, STATIONARY_WATER);
-                            }
-                        }
-                    }
+                    applySubSurface(tile, chunk, xInTile, yInTile);
+                    applyTopLayer(tile, chunk, xInTile, yInTile, false);
                     if (! underWater) {
                         // Above the surface on dry land
                         WPObject object = null;
@@ -253,7 +202,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                     chunk.setHeight(x, z, maxY);
                 } else if (_void) {
                     chunk.setHeight(x, z, minY);
-                } else if (waterLevel > intHeight) {
+                } else if (underWater) {
                     chunk.setHeight(x, z, (waterLevel < maxY) ? (waterLevel + 1): maxY);
                 } else {
                     chunk.setHeight(x, z, (intHeight < maxY) ? (intHeight + 1): maxY);
@@ -272,6 +221,90 @@ public class WorldPainterChunkFactory implements ChunkFactory {
         }
         result.stats.surfaceArea = 256;
         return result;
+    }
+
+    public void applyTopLayer(Tile tile, Chunk chunk, int xInTile, int yInTile, boolean onlyWhereSolid) {
+        final Terrain terrain = tile.getTerrain(xInTile, yInTile);
+        final int worldX = (tile.getX() << 7) | xInTile, worldY = (tile.getY() << 7) | yInTile, x = xInTile & 0xf, z = yInTile & 0xf;
+        final float height = tile.getHeight(xInTile, yInTile);
+        final int intHeight = Math.round(height), waterLevel = tile.getWaterLevel(xInTile, yInTile);
+        final int topLayerDepth = dimension.getTopLayerDepth(worldX, worldY, intHeight);
+        final boolean floodWithLava;
+        final boolean underWater = waterLevel > intHeight;
+        final int topLayerLayerOffset;
+        if (topLayersRelativeToTerrain
+                && terrain.isCustom()
+                && (Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()).getMode() == MixedMaterial.Mode.LAYERED)) {
+            topLayerLayerOffset = -(intHeight - Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()).getPatternHeight() + 1);
+        } else {
+            topLayerLayerOffset = 0;
+        }
+        if (underWater) {
+            floodWithLava = tile.getBitLayerValue(FloodWithLava.INSTANCE, xInTile, yInTile);
+        } else {
+            floodWithLava = false;
+        }
+        int subsurfaceMaxHeight = intHeight - topLayerDepth;
+        if (coverSteepTerrain) {
+            subsurfaceMaxHeight = Math.min(subsurfaceMaxHeight,
+                    Math.min(Math.min(dimension.getIntHeightAt(worldX - 1, worldY, Integer.MAX_VALUE),
+                                    dimension.getIntHeightAt(worldX + 1, worldY, Integer.MAX_VALUE)),
+                            Math.min(dimension.getIntHeightAt(worldX, worldY - 1, Integer.MAX_VALUE),
+                                    dimension.getIntHeightAt(worldX, worldY + 1, Integer.MAX_VALUE))));
+        }
+        int columnRenderHeight = Math.min(Math.max(intHeight, waterLevel), maxY);
+        for (int y = Math.max(subsurfaceMaxHeight + 1, minY + (bedrock ? 1 : 0)); y <= columnRenderHeight; y++) {
+            if (onlyWhereSolid && (! chunk.getMaterial(x, y, z).solid)) {
+                continue;
+            }
+            if (y < intHeight) {
+                // Top/terrain layer, but not surface block
+                chunk.setMaterial(x, y, z, terrain.getMaterial(platform, seed, worldX, worldY, y + topLayerLayerOffset, intHeight + topLayerLayerOffset));
+            } else if (y == intHeight) {
+                // Surface block
+                final Material material;
+                if (topLayerLayerOffset != 0) {
+                    material = terrain.getMaterial(platform, seed, worldX, worldY, intHeight + topLayerLayerOffset, intHeight + topLayerLayerOffset);
+                } else {
+                    // Use floating point height here to make sure
+                    // undulations caused by layer variation settings/
+                    // blobs, etc. look continuous on the surface
+                    material = terrain.getMaterial(platform, seed, worldX, worldY, height + topLayerLayerOffset, intHeight + topLayerLayerOffset);
+                }
+                final int blockType = material.blockType;
+                if (((blockType == BLK_WOODEN_SLAB) || (blockType == BLK_SLAB) || (blockType == BLK_RED_SANDSTONE_SLAB)) && (! underWater) && (height > intHeight)) {
+                    chunk.setMaterial(x, y, z, Material.get(blockType - 1, material.data));
+                } else {
+                    chunk.setMaterial(x, y, z, material);
+                }
+            } else if (y <= waterLevel) {
+                // Above the surface but below the water/lava level
+                if (floodWithLava) {
+                    chunk.setMaterial(x, y, z, STATIONARY_LAVA);
+                } else {
+                    chunk.setMaterial(x, y, z, STATIONARY_WATER);
+                }
+            }
+        }
+    }
+
+    public void applySubSurface(Tile tile, Chunk chunk, int xInTile, int yInTile) {
+        final int worldX = (tile.getX() << 7) | xInTile, worldY = (tile.getY() << 7) | yInTile, x = xInTile & 0xf, z = yInTile & 0xf;
+        final int intHeight = tile.getIntHeight(xInTile, yInTile);
+        final int topLayerDepth = dimension.getTopLayerDepth(worldX, worldY, intHeight);
+        final int subSurfaceLayerOffset = subSurfaceLayersRelativeToTerrain ? -(intHeight - subSurfacePatternHeight + 1) : 0;
+        int subsurfaceMaxHeight = intHeight - topLayerDepth;
+        if (coverSteepTerrain) {
+            subsurfaceMaxHeight = Math.min(subsurfaceMaxHeight,
+                    Math.min(Math.min(dimension.getIntHeightAt(worldX - 1, worldY, Integer.MAX_VALUE),
+                                    dimension.getIntHeightAt(worldX + 1, worldY, Integer.MAX_VALUE)),
+                            Math.min(dimension.getIntHeightAt(worldX, worldY - 1, Integer.MAX_VALUE),
+                                    dimension.getIntHeightAt(worldX, worldY + 1, Integer.MAX_VALUE))));
+        }
+        for (int y = minY + (bedrock ? 1 : 0); y <= subsurfaceMaxHeight; y++) {
+            // Sub surface
+            chunk.setMaterial(x, y, z, subsurfaceMaterial.getMaterial(platform, seed, worldX, worldY, y + subSurfaceLayerOffset, intHeight + subSurfaceLayerOffset));
+        }
     }
 
     private void renderObject(Chunk chunk, WPObject object, int x, int y, int z) {

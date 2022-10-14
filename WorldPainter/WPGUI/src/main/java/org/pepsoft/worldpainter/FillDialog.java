@@ -187,7 +187,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
 
     private void fillWithTerrain(ProgressReceiver progressReceiver) throws OperationCancelled {
         final Terrain terrain = (Terrain) comboBoxTerrain.getSelectedItem();
-        dimension.visitTiles().forFilter(filter).andDo(tile -> {
+        dimension.visitTilesForEditing().forFilter(filter).andDo(tile -> {
             final int worldTileX = tile.getX() << TILE_SIZE_BITS;
             final int worldTileY = tile.getY() << TILE_SIZE_BITS;
             for (int x = 0; x < TILE_SIZE; x++) {
@@ -211,7 +211,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
         Layer layer = (Layer) comboBoxSetLayer.getSelectedItem();
         if (layer.getDataSize() == Layer.DataSize.NIBBLE) {
             int baseLayerValue = Math.round((sliderLayerValue.getValue() + 2) / 6.667f);
-            dimension.visitTiles().forFilter(filter).andDo(tile -> {
+            dimension.visitTilesForEditing().forFilter(filter).andDo(tile -> {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
                 for (int x = 0; x < TILE_SIZE; x++) {
@@ -229,7 +229,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
                 }
             }, progressReceiver);
         } else if (layer.getDataSize() == Layer.DataSize.BIT) {
-            dimension.visitTiles().forFilter(filter).andDo(tile -> {
+            dimension.visitTilesForEditing().forFilter(filter).andDo(tile -> {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
                 for (int x = 0; x < TILE_SIZE; x++) {
@@ -248,7 +248,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
                 }
             }, progressReceiver);
         } else if (layer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK) {
-            dimension.visitTiles().forFilter(filter).andDo(tile -> {
+            dimension.visitTilesForEditing().forFilter(filter).andDo(tile -> {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
                 for (int x = 0; x < TILE_SIZE; x += 16) {
@@ -277,7 +277,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
             dimension.clearLayerData(layer);
         } else {
             if (layer.getDataSize() == Layer.DataSize.NIBBLE) {
-                dimension.visitTiles().forFilter(filter).andDo(tile -> {
+                dimension.visitTilesForEditing().forFilter(filter).andDo(tile -> {
                     final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                     final int worldTileY = tile.getY() << TILE_SIZE_BITS;
                     for (int x = 0; x < TILE_SIZE; x++) {
@@ -296,7 +296,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
                     }
                 }, progressReceiver);
             } else if (layer.getDataSize() == Layer.DataSize.BIT) {
-                dimension.visitTiles().forFilter(filter).andDo(tile -> {
+                dimension.visitTilesForEditing().forFilter(filter).andDo(tile -> {
                     final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                     final int worldTileY = tile.getY() << TILE_SIZE_BITS;
                     for (int x = 0; x < TILE_SIZE; x++) {
@@ -315,7 +315,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
                     }
                 }, progressReceiver);
             } else if (layer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK) {
-                dimension.visitTiles().forFilter(filter).andDo(tile -> {
+                dimension.visitTilesForEditing().forFilter(filter).andDo(tile -> {
                     final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                     final int worldTileY = tile.getY() << TILE_SIZE_BITS;
                     for (int x = 0; x < TILE_SIZE; x += 16) {
@@ -342,7 +342,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
     private void invertLayer(ProgressReceiver progressReceiver) throws UnsupportedOperationException, OperationCancelled {
         Layer layer = (Layer) comboBoxInvertLayer.getSelectedItem();
         if (layer.getDataSize() == Layer.DataSize.NIBBLE) {
-            dimension.visitTiles().forFilter(filter).andDo(tile -> {
+            dimension.visitTilesForEditing().forFilter(filter).andDo(tile -> {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
                 for (int x = 0; x < TILE_SIZE; x++) {
@@ -361,7 +361,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
                 }
             }, progressReceiver);
         } else if (layer.getDataSize() == Layer.DataSize.BIT) {
-            dimension.visitTiles().forFilter(filter).andDo(tile -> {
+            dimension.visitTilesForEditing().forFilter(filter).andDo(tile -> {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
                 for (int x = 0; x < TILE_SIZE; x++) {
@@ -380,7 +380,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
                 }
             }, progressReceiver);
         } else if (layer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK) {
-            dimension.visitTiles().forFilter(filter).andDo(tile -> {
+            dimension.visitTilesForEditing().forFilter(filter).andDo(tile -> {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
                 for (int x = 0; x < TILE_SIZE; x += 16) {
@@ -405,7 +405,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
 
     private void fillWithBiome(ProgressReceiver progressReceiver) throws OperationCancelled {
         int biome = (Integer) comboBoxBiome.getSelectedItem();
-        dimension.visitTiles().forFilter(filter).andDo(tile -> {
+        dimension.visitTilesForEditing().forFilter(filter).andDo(tile -> {
             final int worldTileX = tile.getX() << TILE_SIZE_BITS;
             final int worldTileY = tile.getY() << TILE_SIZE_BITS;
             for (int x = 0; x < TILE_SIZE; x++) {
@@ -429,7 +429,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
         if (filter == null) {
             dimension.clearLayerData(Biome.INSTANCE);
         } else {
-            dimension.visitTiles().forFilter(filter).andDo(tile -> {
+            dimension.visitTilesForEditing().forFilter(filter).andDo(tile -> {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
                 for (int x = 0; x < TILE_SIZE; x++) {
@@ -445,7 +445,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
     }
 
     private void makeAutoBiomesPermanent(ProgressReceiver progressReceiver) throws OperationCancelled {
-        dimension.visitTiles().forFilter(filter).andDo(tile -> {
+        dimension.visitTilesForEditing().forFilter(filter).andDo(tile -> {
             if (filter == null) {
                 for (int x = 0; x < TILE_SIZE; x++) {
                     for (int y = 0; y < TILE_SIZE; y++) {
@@ -474,7 +474,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
         if (tileFactory instanceof HeightMapTileFactory) {
             int waterLevel = ((HeightMapTileFactory) tileFactory).getWaterHeight();
             boolean floodWithLava = ((HeightMapTileFactory) tileFactory).isFloodWithLava();
-            dimension.visitTiles().forFilter(filter).andDo(tile -> {
+            dimension.visitTilesForEditing().forFilter(filter).andDo(tile -> {
                 final int worldTileX = tile.getX() << TILE_SIZE_BITS;
                 final int worldTileY = tile.getY() << TILE_SIZE_BITS;
                 if (floodWithLava) {
@@ -522,7 +522,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
     }
 
     private void resetTerrain(ProgressReceiver progressReceiver) throws OperationCancelled {
-        dimension.visitTiles().forFilter(filter).andDo(tile -> {
+        dimension.visitTilesForEditing().forFilter(filter).andDo(tile -> {
             final int worldTileX = tile.getX() << TILE_SIZE_BITS;
             final int worldTileY = tile.getY() << TILE_SIZE_BITS;
             for (int x = 0; x < TILE_SIZE; x++) {
@@ -544,7 +544,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
 
     private void addToSelection(ProgressReceiver progressReceiver) throws OperationCancelled {
         final boolean[][] blocksSet = new boolean[16][16];
-        dimension.visitTiles().forFilter(filter).andDo(tile -> {
+        dimension.visitTilesForEditing().forFilter(filter).andDo(tile -> {
             final boolean tileHasChunkSelection = tile.hasLayer(SelectionChunk.INSTANCE);
             if (filter == null) {
                 // This is slightly odd, but whatever. Just add all chunks to
@@ -623,7 +623,7 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             dimension.clearLayerData(SelectionChunk.INSTANCE);
             dimension.clearLayerData(SelectionBlock.INSTANCE);
         } else {
-            dimension.visitTiles().forFilter(filter).andDo(tile -> {
+            dimension.visitTilesForEditing().forFilter(filter).andDo(tile -> {
                 final boolean tileHasChunkSelection = tile.hasLayer(SelectionChunk.INSTANCE);
                 final boolean tileHasBlockSelection = tile.hasLayer(SelectionBlock.INSTANCE);
                 if ((! tileHasChunkSelection) && (! tileHasBlockSelection)) {

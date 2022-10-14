@@ -28,6 +28,7 @@ import java.text.NumberFormat;
 import java.util.List;
 import java.util.*;
 
+import static org.pepsoft.worldpainter.App.NUMBER_FORMAT;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 
@@ -71,12 +72,13 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
         if (worldCoords == null) {
             return;
         }
-        setTextIfDifferent(labelCoords, worldCoords.x + "," + worldCoords.y);
         Dimension dim = view.getDimension();
         if (dim == null) {
             clearFields();
             return;
         }
+        final float scale = dim.getScale();
+        setTextIfDifferent(labelCoords, NUMBER_FORMAT.format(Math.round(worldCoords.x * scale)) + ", " + NUMBER_FORMAT.format(Math.round(worldCoords.y * scale)));
         Tile tile = dim.getTile(worldCoords.x >> TILE_SIZE_BITS, worldCoords.y >> TILE_SIZE_BITS);
         if (tile == null) {
             clearFields();

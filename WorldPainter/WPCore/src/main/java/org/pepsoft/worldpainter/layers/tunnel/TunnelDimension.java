@@ -1,46 +1,23 @@
 package org.pepsoft.worldpainter.layers.tunnel;
 
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.*;
-import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
+import org.pepsoft.worldpainter.RODelegatingDimension;
+import org.pepsoft.worldpainter.RODelegatingTile;
+import org.pepsoft.worldpainter.Tile;
 
 import java.awt.*;
+
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 
 // TODO make TunnelDimension much more intelligent, so that "distance to edge" can work and the normal exporting can be
 //  used rather than the incidental exporting
 abstract class TunnelDimension extends RODelegatingDimension<TunnelDimension.TunnelTile> {
-    TunnelDimension(Dimension dimension, TunnelLayer layer) {
+    TunnelDimension(Dimension dimension, TunnelLayer layer, TunnelLayerHelper helper) {
         super(dimension);
         this.layer = layer;
-        floorMode = layer.getFloorMode();
-        roofMode = layer.getRoofMode();
-        floorWallDepth = layer.getFloorWallDepth();
-        roofWallDepth = layer.getRoofWallDepth();
-        floorLevel = layer.getFloorLevel();
-        roofLevel = layer.getRoofLevel();
-        maxWallDepth = Math.max(floorWallDepth, roofWallDepth) + 1;
-        floorMin = layer.getFloorMin();
-        floorMax = layer.getFloorMax();
-        roofMin = layer.getRoofMin();
-        roofMax = layer.getRoofMax();
+        this.helper = helper;
         minZ = dimension.getMinHeight() + (dimension.isBottomless() ? 0 : 1);
         maxZ = dimension.getMaxHeight() - 1;
-        if (layer.getFloorNoise() != null) {
-            floorNoise = new NoiseHeightMap(layer.getFloorNoise(), TunnelLayerExporter.FLOOR_NOISE_SEED_OFFSET);
-            floorNoise.setSeed(dimension.getSeed());
-            floorNoiseOffset = layer.getFloorNoise().getRange();
-        } else {
-            floorNoise = null;
-            floorNoiseOffset = 0;
-        }
-        if (layer.getRoofNoise()!= null) {
-            roofNoise = new NoiseHeightMap(layer.getRoofNoise(), TunnelLayerExporter.ROOF_NOISE_SEED_OFFSET);
-            roofNoise.setSeed(dimension.getSeed());
-            roofNoiseOffset = layer.getRoofNoise().getRange();
-        } else {
-            roofNoise = null;
-            roofNoiseOffset = 0;
-        }
     }
 
     @Override
@@ -49,14 +26,13 @@ abstract class TunnelDimension extends RODelegatingDimension<TunnelDimension.Tun
         if (dimension.getBitLayerValueAt(layer, x, y)) {
             // Potentially in cave/tunnel
             final int intTerrainHeight = Math.round(terrainHeight);
-            int actualFloorLevel = TunnelLayerExporter.calculateLevel(floorMode, floorLevel, intTerrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0);
-            int actualRoofLevel = TunnelLayerExporter.calculateLevel(roofMode, roofLevel, intTerrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0);
+            int actualFloorLevel = helper.calculateFloorLevel(x, y, intTerrainHeight, minZ, maxZ);
+            int actualRoofLevel = helper.calculateRoofLevel(x, y, intTerrainHeight, minZ, maxZ, actualFloorLevel);
             if (actualRoofLevel <= actualFloorLevel) {
                 return determineHeight(true, actualFloorLevel, actualRoofLevel, terrainHeight);
             }
-            final float distanceToWall = dimension.getDistanceToEdge(layer, x, y, maxWallDepth) - 1;
-            final int floorLedgeHeight = TunnelLayerExporter.calculateLedgeHeight(floorWallDepth, distanceToWall);
-            final int roofLedgeHeight = TunnelLayerExporter.calculateLedgeHeight(roofWallDepth, distanceToWall);
+            final int floorLedgeHeight = helper.calculateBottomLedgeHeight(x, y);
+            final int roofLedgeHeight = helper.calculateTopLedgeHeight(x, y);
             actualFloorLevel += floorLedgeHeight;
             actualRoofLevel -= roofLedgeHeight;
             return determineHeight(true, actualFloorLevel, actualRoofLevel, terrainHeight);
@@ -77,14 +53,13 @@ abstract class TunnelDimension extends RODelegatingDimension<TunnelDimension.Tun
         if (dimension.getBitLayerValueAt(layer, x, y)) {
             // Potentially in cave/tunnel
             final int intTerrainHeight = Math.round(terrainHeight);
-            int actualFloorLevel = TunnelLayerExporter.calculateLevel(floorMode, floorLevel, intTerrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(x, y) - floorNoiseOffset) : 0);
-            int actualRoofLevel = TunnelLayerExporter.calculateLevel(roofMode, roofLevel, intTerrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0);
+            int actualFloorLevel = helper.calculateFloorLevel(x, y, intTerrainHeight, minZ, maxZ);
+            int actualRoofLevel = helper.calculateRoofLevel(x, y, intTerrainHeight, minZ, maxZ, actualFloorLevel);
             if (actualRoofLevel <= actualFloorLevel) {
                 return dimension.getWaterLevelAt(x, y);
             }
-            final float distanceToWall = dimension.getDistanceToEdge(layer, x, y, maxWallDepth) - 1;
-            final int floorLedgeHeight = TunnelLayerExporter.calculateLedgeHeight(floorWallDepth, distanceToWall);
-            final int roofLedgeHeight = TunnelLayerExporter.calculateLedgeHeight(roofWallDepth, distanceToWall);
+            final int floorLedgeHeight = helper.calculateBottomLedgeHeight(x, y);
+            final int roofLedgeHeight = helper.calculateTopLedgeHeight(x, y);
             actualFloorLevel += floorLedgeHeight;
             actualRoofLevel -= roofLedgeHeight;
             if (actualRoofLevel <= actualFloorLevel) {
@@ -128,10 +103,8 @@ abstract class TunnelDimension extends RODelegatingDimension<TunnelDimension.Tun
     protected abstract float determineHeight(boolean inTunnelLayer, int tunnelFloorLevel, int tunnelRoofLevel, float realHeight);
     
     private final TunnelLayer layer;
-    private final TunnelLayer.Mode floorMode, roofMode;
-    private final int floorLevel, floorMin, floorMax, minZ, maxZ, roofLevel, roofMin, roofMax, floorWallDepth, roofWallDepth, maxWallDepth;
-    private final NoiseHeightMap floorNoise, roofNoise;
-    private final int floorNoiseOffset, roofNoiseOffset;
+    private final int minZ, maxZ;
+    private final TunnelLayerHelper helper;
 
     /**
      * A {@link Tile} of which the terrain height follows the floor of a particular
@@ -142,8 +115,6 @@ abstract class TunnelDimension extends RODelegatingDimension<TunnelDimension.Tun
     final class TunnelTile extends RODelegatingTile {
         TunnelTile(Tile tile) {
             super(tile);
-            xOffset = tile.getX() << Constants.TILE_SIZE_BITS;
-            yOffset = tile.getY() << Constants.TILE_SIZE_BITS;
         }
 
         @Override
@@ -152,14 +123,14 @@ abstract class TunnelDimension extends RODelegatingDimension<TunnelDimension.Tun
             if (tile.getBitLayerValue(layer, x, y)) {
                 // Potentially in cave/tunnel
                 final int intTerrainHeight = Math.round(terrainHeight);
-                int actualFloorLevel = TunnelLayerExporter.calculateLevel(floorMode, floorLevel, intTerrainHeight, floorMin, floorMax, minZ, maxZ, (floorNoise != null) ? ((int) floorNoise.getHeight(xOffset | x, yOffset | y) - floorNoiseOffset) : 0);
-                int actualRoofLevel = TunnelLayerExporter.calculateLevel(roofMode, roofLevel, intTerrainHeight, roofMin, roofMax, minZ, maxZ, (roofNoise != null) ? ((int) roofNoise.getHeight(xOffset | x, yOffset | y) - roofNoiseOffset) : 0);
+                final int worldX = (tile.getX() << TILE_SIZE_BITS) | x, worldY = (tile.getY() << TILE_SIZE_BITS) | y;
+                int actualFloorLevel = helper.calculateFloorLevel(worldX, worldY, intTerrainHeight, minZ, maxZ);
+                int actualRoofLevel = helper.calculateRoofLevel(worldX, worldY, intTerrainHeight, minZ, maxZ, actualFloorLevel);
                 if (actualRoofLevel <= actualFloorLevel) {
                     return determineHeight(true, actualFloorLevel, actualRoofLevel, terrainHeight);
                 }
-                final float distanceToWall = dimension.getDistanceToEdge(layer, xOffset | x, yOffset | y, maxWallDepth) - 1;
-                final int floorLedgeHeight = TunnelLayerExporter.calculateLedgeHeight(floorWallDepth, distanceToWall);
-                final int roofLedgeHeight = TunnelLayerExporter.calculateLedgeHeight(roofWallDepth, distanceToWall);
+                final int floorLedgeHeight = helper.calculateBottomLedgeHeight(worldX, worldY);
+                final int roofLedgeHeight = helper.calculateTopLedgeHeight(worldX, worldY);
                 actualFloorLevel += floorLedgeHeight;
                 actualRoofLevel -= roofLedgeHeight;
                 return determineHeight(true, actualFloorLevel, actualRoofLevel, terrainHeight);
@@ -173,7 +144,5 @@ abstract class TunnelDimension extends RODelegatingDimension<TunnelDimension.Tun
         public int getIntHeight(int x, int y) {
             return Math.round(getHeight(x, y));
         }
-
-        private final int xOffset, yOffset;
     }
 }

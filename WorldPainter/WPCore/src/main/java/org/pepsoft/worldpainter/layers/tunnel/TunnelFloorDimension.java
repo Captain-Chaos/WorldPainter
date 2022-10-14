@@ -9,8 +9,8 @@ import org.pepsoft.worldpainter.Dimension;
  * Created by pepijn on 31-7-15.
  */
 public class TunnelFloorDimension extends TunnelDimension {
-    public TunnelFloorDimension(Dimension dimension, TunnelLayer layer) {
-        super(dimension, layer);
+    public TunnelFloorDimension(Dimension dimension, TunnelLayer layer, TunnelLayerHelper helper) {
+        super(dimension, layer, helper);
     }
 
     @Override

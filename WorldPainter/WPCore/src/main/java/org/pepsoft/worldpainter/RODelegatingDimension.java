@@ -15,10 +15,15 @@ import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.NotSerializableException;
+import java.io.ObjectOutputStream;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * A read-only implementation of {@link Dimension} which wraps another
@@ -35,7 +40,7 @@ import java.util.*;
  */
 public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
     public RODelegatingDimension(Dimension dimension) {
-        super(dimension.getWorld(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getAnchor());
+        super(dimension.getWorld(), dimension.getName(), dimension.getMinecraftSeed(), dimension.getTileFactory(), dimension.getAnchor());
         this.dimension = dimension;
     }
 
@@ -561,12 +566,12 @@ public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
 
     @Override
     public ExporterSettings getLayerSettings(Layer layer) {
-        throw new UnsupportedOperationException();
+        return dimension.getLayerSettings(layer);
     }
 
     @Override
     public Map<Layer, ExporterSettings> getAllLayerSettings() {
-        throw new UnsupportedOperationException();
+        return dimension.getAllLayerSettings();
     }
 
     @Override
@@ -580,7 +585,7 @@ public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
     }
 
     @Override
-    public synchronized int getFloodedCount(int x, int y, int r, boolean lava) {
+    public int getFloodedCount(int x, int y, int r, boolean lava) {
         return dimension.getFloodedCount(x, y, r, lava);
     }
 
@@ -600,19 +605,34 @@ public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
      */
     @Override
     public T getTile(Point coords) {
-        // In theory this is not correct, since the dimension might have gained or lost tiles in the meantime. However,
-        // the expected usage pattern of the functionality is such that that should not happen in practice, and creating
-        // tile snapshots of all tiles when the dimension snapshot is created would be a performance hit
-        final Reference<T> cachedTileRef = tileCache.get(coords);
-        T cachedTile = (cachedTileRef != null) ? cachedTileRef.get() : null;
-        if (cachedTile == null) {
-            final Tile tile = dimension.getTile(coords);
-            if (tile != null) {
-                cachedTile = wrapTile(tile);
-                tileCache.put(coords, new SoftReference<>(cachedTile));
+        readLock.lock();
+        try {
+            // In theory this is not correct, since the dimension might have gained or lost tiles in the meantime. However,
+            // the expected usage pattern of the functionality is such that that should not happen in practice, and creating
+            // tile snapshots of all tiles when the dimension snapshot is created would be a performance hit
+            final Reference<T> cachedTileRef = tileCache.get(coords);
+            if (cachedTileRef == NO_TILE_PRESENT) {
+                return null;
             }
+            T cachedTile = (cachedTileRef != null) ? cachedTileRef.get() : null;
+            if (cachedTile == null) {
+                readLock.unlock();
+                writeLock.lock();
+                try {
+                    final Tile tile = doGetTile(coords);
+                    if (tile != null) {
+                        cachedTile = wrapTile(tile);
+                        tileCache.put(coords, new SoftReference<>(cachedTile));
+                    }
+                    readLock.lock();
+                } finally {
+                    writeLock.unlock();
+                }
+            }
+            return cachedTile;
+        } finally {
+            readLock.unlock();
         }
-        return cachedTile;
     }
 
     /**
@@ -621,18 +641,35 @@ public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
      */
     @Override
     public Collection<T> getTiles() {
-        final Collection<? extends Tile> tiles = dimension.getTiles();
-        final List<T> wrappedTiles = new ArrayList<>(tiles.size());
-        for (Tile tile: tiles) {
-            final Reference<T> cachedTileRef = tileCache.get(new Point(tile.getX(), tile.getY()));
-            final T cachedTile = (cachedTileRef != null) ? cachedTileRef.get() : null;
-            if (cachedTile != null) {
-                wrappedTiles.add(cachedTile);
-            } else {
-                wrappedTiles.add(wrapTile(tile));
+        readLock.lock();
+        try {
+            if (allTiles == null) {
+                readLock.unlock();
+                writeLock.lock();
+                try {
+                    final Collection<? extends Tile> tiles = dimension.getTiles();
+                    allTiles = new HashSet<>();
+                    for (Tile tile: tiles) {
+                        final Reference<T> cachedTileRef = tileCache.get(new Point(tile.getX(), tile.getY()));
+                        if (cachedTileRef == NO_TILE_PRESENT) {
+                            continue;
+                        }
+                        final T cachedTile = (cachedTileRef != null) ? cachedTileRef.get() : null;
+                        if (cachedTile != null) {
+                            allTiles.add(cachedTile);
+                        } else {
+                            allTiles.add(wrapTile(tile));
+                        }
+                    }
+                    readLock.lock();
+                } finally {
+                    writeLock.unlock();
+                }
             }
+            return allTiles;
+        } finally {
+            readLock.unlock();
         }
-        return wrappedTiles;
     }
 
     @Override
@@ -735,10 +772,26 @@ public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
         throw new UnsupportedOperationException();
     }
 
-    protected abstract T wrapTile(Tile tile);
+    protected Tile doGetTile(Point coords) {
+        return dimension.getTile(coords);
+    }
+
+    @SuppressWarnings("unchecked") // Responsibility of implementor
+    protected T wrapTile(Tile tile) {
+        return (T) tile;
+    }
+
+    private void writeObject(ObjectOutputStream out) throws NotSerializableException {
+        throw new NotSerializableException("Serialization of " + getClass().getSimpleName() + " not supported");
+    }
 
     protected final Dimension dimension;
     protected final Map<Point, Reference<T>> tileCache = new HashMap<>();
 
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    private final Lock readLock = lock.readLock(), writeLock = lock.writeLock();
+    private Set<T> allTiles;
+
+    private static final Reference<? extends Tile> NO_TILE_PRESENT = new SoftReference<>(null);
     private static final long serialVersionUID = 1L;
 }

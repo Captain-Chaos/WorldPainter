@@ -142,6 +142,9 @@ public class ScalingHelper {
     }
 
     public Tile createScaledTile(int tileX, int tileY) {
+        if (! tileCoords.contains(new Point(tileX, tileY))) {
+            return null;
+        }
         final Tile scaledTile = scaledTileFactory.createTile(tileX, tileY);
         final int[] notPresentBlocksPerChunk = new int[64];
         Tile cachedUnscaledTile = null;
