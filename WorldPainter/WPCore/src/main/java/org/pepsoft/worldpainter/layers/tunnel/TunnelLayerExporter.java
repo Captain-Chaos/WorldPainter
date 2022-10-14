@@ -208,7 +208,7 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                             } else {
                                 logger.debug("Skipping layer {} for stage CARVE while processing TunnelLayer floor dimension", layer.getName());
                             }
-                        } else {
+                        } else if (! (layer instanceof Biome)) {
                             throw new UnsupportedOperationException("Layer " + layer.getName() + " of type " + layer.getClass().getSimpleName() + " not yet supported for cave floor dimensions");
                         }
                     });
