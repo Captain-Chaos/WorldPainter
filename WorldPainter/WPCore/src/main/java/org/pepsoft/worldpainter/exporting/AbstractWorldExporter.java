@@ -478,8 +478,8 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         // Gather all layers used in the region
         final Map<Layer, LayerExporter> exporters = new HashMap<>();
         final Set<Layer> allLayers = new HashSet<>(dimension.getMinimumLayers());
-        // Include an extra ring of tiles
-        final int tileX1 = (regionCoords.x << 2) - 1, tileX2 = tileX1 + 5, tileY1 = (regionCoords.y << 2 - 1), tileY2 = tileY1 + 5;
+        // Include an extra ring of tiles TODO why?
+        final int tileX1 = (regionCoords.x << 2) - 1, tileX2 = tileX1 + 5, tileY1 = (regionCoords.y << 2) - 1, tileY2 = tileY1 + 5;
         for (int tileX = tileX1; tileX <= tileX2; tileX++) {
             for (int tileY = tileY1; tileY <= tileY2; tileY++) {
                 final Tile tile = dimension.getTile(tileX, tileY);
