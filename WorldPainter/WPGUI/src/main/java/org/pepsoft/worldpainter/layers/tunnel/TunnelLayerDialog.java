@@ -917,7 +917,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         jLabel23.setText("Biome:");
 
         buttonGroup1.add(radioButtonFloorCustomDimension);
-        radioButtonFloorCustomDimension.setText("custom dimension");
+        radioButtonFloorCustomDimension.setText("custom dimension [ALPHA]");
         radioButtonFloorCustomDimension.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonFloorCustomDimensionActionPerformed(evt);
@@ -1029,7 +1029,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(radioButtonFloorCustomDimension)))))
                 .addGap(18, 18, 18)
-                .addComponent(labelPreview, javax.swing.GroupLayout.DEFAULT_SIZE, 160, Short.MAX_VALUE)
+                .addComponent(labelPreview, javax.swing.GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(

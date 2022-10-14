@@ -643,7 +643,7 @@
         </Component>
         <Component class="javax.swing.JCheckBox" name="checkBoxMasterDimension">
           <Properties>
-            <Property name="text" type="java.lang.String" value="create as master dimension (1:16 scale)"/>
+            <Property name="text" type="java.lang.String" value="create as master dimension (1:16 scale) [ALPHA]"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxMasterDimensionActionPerformed"/>

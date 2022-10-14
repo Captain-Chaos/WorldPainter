@@ -97,7 +97,7 @@ public class FloorDimensionSettingsDialog extends WorldPainterDialog {
         checkBoxFloodWithLava = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Floor Dimension Defaults");
+        setTitle("Floor Dimension Defaults [ALPHA]");
         setResizable(false);
 
         jLabel3.setText("Level:");

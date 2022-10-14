@@ -2042,7 +2042,7 @@ public final class App extends JFrame implements RadiusControl,
                                     "\n" +
                                     "To add details at 1:1 scale, switch to the Surface Dimension by\n" +
                                     "pressing " + COMMAND_KEY_NAME + "+M or using the View menu and then add tiles by\n" +
-                                    "pressing " + COMMAND_KEY_NAME + "+T or using the Edit menu.", "Editing Master Dimension", INFORMATION_MESSAGE);
+                                    "pressing " + COMMAND_KEY_NAME + "+T or using the Edit menu.", "Editing Master Dimension [ALPHA]", INFORMATION_MESSAGE);
                 });
             }
         }
@@ -3864,7 +3864,7 @@ public final class App extends JFrame implements RadiusControl,
                     final TunnelLayer tunnelLayer = (TunnelLayer) layer;
                     final Integer floorDimensionId = tunnelLayer.getFloorDimensionId();
                     if (floorDimensionId != null) {
-                        menuItem = new JMenuItem("Edit floor dimension");
+                        menuItem = new JMenuItem("Edit floor dimension [ALPHA]");
                         if (dimension.containsOneOf(layer)) {
                             menuItem.addActionListener(e1 -> {
                                 setDimension(tunnelLayer.updateFloorDimension(dimension, null));
@@ -4272,7 +4272,7 @@ public final class App extends JFrame implements RadiusControl,
 
         JMenu dimensionsMenu = new JMenu("Dimensions");
 
-        addMasterMenuItem = new JMenuItem("Add master dimension...");
+        addMasterMenuItem = new JMenuItem("Add master dimension... [ALPHA]");
         addMasterMenuItem.addActionListener(e -> addMaster());
         dimensionsMenu.add(addMasterMenuItem);
 

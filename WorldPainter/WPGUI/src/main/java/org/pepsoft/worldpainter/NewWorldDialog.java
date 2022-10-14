@@ -890,16 +890,16 @@ public class NewWorldDialog extends WorldPainterDialog {
 
     private void showMasterDimensionInfo() {
         JOptionPane.showMessageDialog(this, "<html>" +
-                "<h1>Master Dimensions</h1>" +
+                "<h1>Master Dimensions [ALPHA]</h1>" +
                 "<p>A Master Dimension is a WorldPainter dimension type (similar to a Ceiling Dimension). It is Exported<br>" +
                 "at 1:16 scale wherever the regular Surface Dimension does not exist. Because the Master Dimension is<br>" +
                 "only scaled at Export, operations such as saving, loading and editing it are <em>much</em> faster than<br>" +
                 "creating a regular Surface Dimension of that size. Note that exporting it takes just as long though." +
                 "<p><p>Use a Master Dimension to quickly create large featureless areas of your world (oceans, continents,<br>" +
-                "deserts, etc.). When you add tiles to the Surface Dimension, they will be initialised to the contents<br>" +
+                "deserts, etc.). When you add tiles to the surface Dimension, they will be initialised to the contents<br>" +
                 "of the Master Dimension in that location. This allows you to quickly sketch out the rough shapes of<br>" +
-                "your world in the Master Dimension, and then fill in the details where necessary in the Surface Dimension." +
-                "<p><p>Master Dimensions can use all the features of regular Surface Dimensions (terrain types, layers, etc.)<br>" +
+                "your world in the Master Dimension, and then fill in the details where necessary in the surface Dimension." +
+                "<p><p>Master Dimensions can use all the features of regular surface Dimensions (terrain types, layers, etc.)<br>" +
                 "so large forests, cave systems, etc. are also easily created with it." +
                 "</html>", "What Is A Master Dimension", JOptionPane.INFORMATION_MESSAGE);
     }
@@ -1203,7 +1203,7 @@ public class NewWorldDialog extends WorldPainterDialog {
             }
         });
 
-        checkBoxMasterDimension.setText("create as master dimension (1:16 scale)");
+        checkBoxMasterDimension.setText("create as master dimension (1:16 scale) [ALPHA]");
         checkBoxMasterDimension.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 checkBoxMasterDimensionActionPerformed(evt);
