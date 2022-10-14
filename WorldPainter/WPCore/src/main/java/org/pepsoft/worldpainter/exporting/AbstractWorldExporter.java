@@ -475,7 +475,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
     }
 
     protected Map<Layer, LayerExporter> getExportersForRegion(Dimension dimension, Point regionCoords) {
-        // Gather all layers used in the region
+        // Gather all layers used in the region TODO this should only be the tiles that will actually be exported, taking tile selection and Read Only layer into account
         final Map<Layer, LayerExporter> exporters = new HashMap<>();
         final Set<Layer> allLayers = new HashSet<>(dimension.getMinimumLayers());
         // Include an extra ring of tiles TODO why?
