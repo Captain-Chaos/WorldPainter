@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.layers.tunnel;
 
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension.Anchor;
+import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -24,6 +25,7 @@ import java.util.Map;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.CUSTOM_DIMENSION;
 
 /**
  *
@@ -348,10 +350,18 @@ public class TunnelLayer extends CustomLayer {
         return new TunnelLayerRenderer(this);
     }
 
+    @Override
+    public boolean isExportable() {
+        return floorMode != CUSTOM_DIMENSION;
+    }
+
     // Cloneable
 
     @Override
     public TunnelLayer clone() {
+        if (floorMode == CUSTOM_DIMENSION) {
+            throw new WPRuntimeException("TunnelLayers with a floor dimension are not Cloneable");
+        }
         TunnelLayer clone = (TunnelLayer) super.clone();
         MixedMaterialManager mixedMaterialManager = MixedMaterialManager.getInstance();
         if (floorMaterial != null) {

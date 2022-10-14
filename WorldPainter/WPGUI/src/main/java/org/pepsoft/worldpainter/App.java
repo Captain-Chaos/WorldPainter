@@ -3429,12 +3429,7 @@ public final class App extends JFrame implements RadiusControl,
             }
             final Map<String, JMenu> menusForDimension = new HashMap<>();
             for (CustomLayer layer: dimension.getCustomLayers()) {
-                if ((layer instanceof TunnelLayer) && (((TunnelLayer) layer).getFloorDimensionId() != null)) {
-                    // TunnelLayers with a floor dimension should be locked to one dimension in order to prevent all
-                    // kinds of complications
-                    continue;
-                }
-                if ((filter != null) && filter.apply(layer)) {
+                if ((! layer.isExportable()) || ((filter != null) && filter.apply(layer))) {
                     continue;
                 }
                 final String palette = layer.getPalette();
@@ -3888,13 +3883,23 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 }
                 menuItem = new JMenuItem("Duplicate...");
-                menuItem.addActionListener(e1 -> duplicate());
+                if (layer.isExportable()) {
+                    menuItem.addActionListener(e1 -> duplicate());
+                } else {
+                    menuItem.setEnabled(false);
+                    menuItem.setToolTipText("This layer cannot be duplicated.");
+                }
                 popup.add(menuItem);
                 menuItem = new JMenuItem(strings.getString("remove") + "...");
                 menuItem.addActionListener(e1 -> remove());
                 popup.add(menuItem);
                 menuItem = new JMenuItem("Export to file...");
-                menuItem.addActionListener(e1 -> exportLayer(layer));
+                if (layer.isExportable()) {
+                    menuItem.addActionListener(e1 -> exportLayer(layer));
+                } else {
+                    menuItem.setEnabled(false);
+                    menuItem.setToolTipText("This layer cannot be exported to a file.");
+                }
                 popup.add(menuItem);
 
                 JMenu paletteMenu = new JMenu("Move to palette");
@@ -6034,14 +6039,21 @@ public final class App extends JFrame implements RadiusControl,
                 try {
                     try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(selectedFile))))) {
                         CustomLayer layer = (CustomLayer) in.readObject();
-                        for (Layer existingLayer : getCustomLayers()) {
+                        for (Layer existingLayer: getCustomLayers()) {
                             if (layer.equals(existingLayer)) {
-                                showMessageDialog(this, "That layer is already present in the dimension.\nThe layer has not been added.", "Layer Already Present", WARNING_MESSAGE);
+                                DesktopUtils.beep();
+                                showMessageDialog(this, "That layer is already present in the dimension.\nThe layer has not been added.", "Layer Already Present", ERROR_MESSAGE);
                                 return;
                             }
                         }
                         if ((filter != null) && (! filter.apply(layer))) {
-                            showMessageDialog(this, "That layer type is not supported for the current dimension.\nThe layer has not been added.", "Inapplicable Layer Type", WARNING_MESSAGE);
+                            DesktopUtils.beep();
+                            showMessageDialog(this, "That layer type is not supported for the current dimension.\nThe layer has not been added.", "Inapplicable Layer Type", ERROR_MESSAGE);
+                            return;
+                        }
+                        if (! layer.isExportable()) {
+                            DesktopUtils.beep();
+                            showMessageDialog(this, "That layer is not importable.\nThe layer has not been added.", "Unimportable Layer", ERROR_MESSAGE);
                             return;
                         }
                         if (paletteName != null) {
@@ -6052,7 +6064,7 @@ public final class App extends JFrame implements RadiusControl,
                             CombinedLayer combinedLayer = (CombinedLayer) layer;
                             addLayersFromCombinedLayer(combinedLayer);
                             if (! combinedLayer.restoreCustomTerrain()) {
-                                showMessageDialog(this, "The layer contained a Custom Terrain which could not be restored. The terrain has been reset.", "Custom Terrain Not Restored", ERROR_MESSAGE);
+                                showMessageDialog(this, "The layer contained a Custom Terrain which could not be restored. The terrain has been reset.", "Custom Terrain Not Restored", WARNING_MESSAGE);
                             } else {
                                 // Check for a custom terrain type and if necessary make
                                 // sure it has a button
@@ -6068,18 +6080,22 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 } catch (FileNotFoundException e) {
                     logger.error("File not found while loading file " + selectedFile, e);
+                    DesktopUtils.beep();
                     showMessageDialog(this, "The specified path does not exist or is not a file", "Nonexistent File", ERROR_MESSAGE);
                     return;
                 } catch (IOException e) {
                     logger.error("I/O error while loading file " + selectedFile, e);
+                    DesktopUtils.beep();
                     showMessageDialog(this, "I/O error occurred while reading the specified file,\nor is not a (valid) WorldPainter layer file", "I/O Error Or Invalid File", ERROR_MESSAGE);
                     return;
                 } catch (ClassNotFoundException e) {
                     logger.error("Class not found exception while loading file " + selectedFile, e);
+                    DesktopUtils.beep();
                     showMessageDialog(this, "The specified file is not a (valid) WorldPainter layer file", "Invalid File", ERROR_MESSAGE);
                     return;
                 } catch (ClassCastException e) {
                     logger.error("Class cast exception while loading file " + selectedFile, e);
+                    DesktopUtils.beep();
                     showMessageDialog(this, "The specified file is not a (valid) WorldPainter layer file", "Invalid File", ERROR_MESSAGE);
                     return;
                 }
@@ -6356,7 +6372,7 @@ public final class App extends JFrame implements RadiusControl,
                     default:
                         throw new InternalError();
                 }
-                showMessageDialog(this, "The selected world has no custom " + what + ".", "No Custom Items", WARNING_MESSAGE);
+                showMessageDialog(this, "The selected world has no, or no importable, custom " + what + ".", "No Custom Items To Import", WARNING_MESSAGE);
             }
         }
     }

@@ -153,7 +153,15 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
     public int getDefaultValue() {
         return 0;
     }
-    
+
+    /**
+     * Indicates whether this layer should be allowed to be exported to a file. This may not make sense for some layers,
+     * e.g. TunnelLayers with a floor dimension.
+     */
+    public boolean isExportable() {
+        return true;
+    }
+
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof Layer)

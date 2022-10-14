@@ -5,17 +5,19 @@
  */
 package org.pepsoft.worldpainter.importing;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.swing.event.TreeModelListener;
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreePath;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.layers.CustomLayer;
+import org.pepsoft.worldpainter.layers.Layer;
+
+import javax.swing.event.TreeModelListener;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -31,7 +33,7 @@ public class CustomItemsTreeModel implements TreeModel {
                     customTerrains.add(material);
                 }
             }
-            if (!customTerrains.isEmpty()) {
+            if (! customTerrains.isEmpty()) {
                 childrenOfRoot.add(TERRAINS);
             }
         }
@@ -79,7 +81,7 @@ public class CustomItemsTreeModel implements TreeModel {
             }
         }
         for (Dimension dim: world.getDimensions()) {
-            if (((itemType == ItemType.ALL) || (itemType == ItemType.LAYER)) && (! dim.getCustomLayers().isEmpty())) {
+            if (((itemType == ItemType.ALL) || (itemType == ItemType.LAYER)) && (! dim.getCustomLayers().isEmpty()) && dim.getCustomLayers().stream().anyMatch(Layer::isExportable)) {
                 return true;
             }
             if (((itemType == ItemType.ALL) || (itemType == ItemType.BIOME)) && ((dim.getCustomBiomes() != null) && (! dim.getCustomBiomes().isEmpty()))) {
@@ -165,7 +167,7 @@ public class CustomItemsTreeModel implements TreeModel {
     
     private void processDimension(Dimension dim, ItemType itemType) {
         if ((itemType == ItemType.ALL) || (itemType == ItemType.LAYER)) {
-            customLayers.addAll(dim.getCustomLayers());
+            dim.getCustomLayers().stream().filter(Layer::isExportable).forEach(customLayers::add);
         }
         if ((itemType == ItemType.ALL) || (itemType == ItemType.BIOME)) {
             if (dim.getCustomBiomes() != null) {
