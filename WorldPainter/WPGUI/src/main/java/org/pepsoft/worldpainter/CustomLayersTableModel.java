@@ -13,15 +13,15 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  *
  * @author pepijn
  */
 public class CustomLayersTableModel implements TableModel {
-    public CustomLayersTableModel(Set<CustomLayer> allCustomLayers) {
+    public CustomLayersTableModel(Collection<CustomLayer> allCustomLayers) {
         customLayers = new ArrayList<>(allCustomLayers);
 
         // Sort the list, with first pass layers first

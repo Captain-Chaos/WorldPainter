@@ -38,8 +38,10 @@ import javax.swing.*;
 import javax.swing.JSpinner.NumberEditor;
 import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
-import java.util.*;
 
 import static java.util.Objects.requireNonNull;
 import static org.pepsoft.minecraft.Material.*;
@@ -178,6 +180,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             default:
                 throw new IllegalArgumentException("mode " + mode);
         }
+        loadSettings();
     }
 
     public Dimension getDimension() {
@@ -205,7 +208,6 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             });
         }
         setPlatform(dimension.getWorld().getPlatform());
-        loadSettings();
     }
 
     public Platform getPlatform() {
@@ -1051,16 +1053,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         }
         
         // terrain ranges
-        if (mode != Mode.EXPORT) {
-            if ((dimension.getTileFactory() instanceof HeightMapTileFactory)
-                    && (((HeightMapTileFactory) dimension.getTileFactory()).getTheme() instanceof SimpleTheme)
-                    && (((SimpleTheme) ((HeightMapTileFactory) dimension.getTileFactory()).getTheme()).getTerrainRanges() != null)) {
-                themeEditor.setTheme((SimpleTheme) ((HeightMapTileFactory) dimension.getTileFactory()).getTheme());
-            } else {
-                jTabbedPane1.setEnabledAt(1, false);
-            }
+        if ((mode != Mode.EXPORT)
+                && (dimension.getTileFactory() instanceof HeightMapTileFactory)
+                && (((HeightMapTileFactory) dimension.getTileFactory()).getTheme() instanceof SimpleTheme)
+                && (((SimpleTheme) ((HeightMapTileFactory) dimension.getTileFactory()).getTheme()).getTerrainRanges() != null)) {
+            themeEditor.setTheme((SimpleTheme) ((HeightMapTileFactory) dimension.getTileFactory()).getTheme());
         }
-        
+
         // annotations
         AnnotationsSettings annotationsSettings = (AnnotationsSettings) dimension.getLayerSettings(Annotations.INSTANCE);
         if (annotationsSettings == null) {
@@ -1070,13 +1069,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         
         // custom layers
         if (mode == Mode.EXPORT) {
-            Set<CustomLayer> customLayers = App.getInstance().getCustomLayers();
-//            if (! customLayers.isEmpty()) {
-                customLayersTableModel = new CustomLayersTableModel(customLayers);
-                tableCustomLayers.setModel(customLayersTableModel);
-//            } else {
-//                jTabbedPane1.setEnabledAt(5, false);
-//            }
+            customLayersTableModel = new CustomLayersTableModel(dimension.getCustomLayers());
+            tableCustomLayers.setModel(customLayersTableModel);
         }
 
         // world generation settings
