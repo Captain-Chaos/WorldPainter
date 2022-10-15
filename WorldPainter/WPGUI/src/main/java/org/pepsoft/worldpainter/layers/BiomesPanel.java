@@ -350,14 +350,13 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
      * empty, but not {@code null}.
      */
     private Set<BiomeOption> findAvailableOptions(int baseId) {
-        if ((biomesSet != null) && (biomesSet.displayNames[baseId] != null)) {
+        if ((biomesSet != null) && (baseId < biomesSet.displayNames.length) && (biomesSet.displayNames[baseId] != null)) {
             Set<BiomeOption> availableOptions = noneOf(BiomeOption.class);
             for (BiomeDescriptor descriptor: biomesSet.descriptors) {
                 if (descriptor.getBaseId() == baseId) {
                     availableOptions.addAll(descriptor.getOptions());
                 }
             }
-
             return availableOptions;
         } else {
             return emptySet();

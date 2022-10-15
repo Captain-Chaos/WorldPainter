@@ -1,5 +1,6 @@
 package org.pepsoft.worldpainter.biomeschemes;
 
+import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 
@@ -121,5 +122,5 @@ public final class Minecraft1_17BiomeInfo extends AbstractBiomeInfo implements M
         }
     }
 
-    public static final Minecraft1_17BiomeInfo INSTANCE = new Minecraft1_17BiomeInfo();
+    public static final BiomeScheme INSTANCE = new Minecraft1_17BiomeInfo();
 }

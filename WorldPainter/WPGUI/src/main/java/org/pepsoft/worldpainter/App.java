@@ -599,7 +599,8 @@ public final class App extends JFrame implements RadiusControl,
             // Load custom biomes. But first remove any that are now regular biomes
             List<CustomBiome> customBiomes = dimension.getCustomBiomes();
             if (customBiomes != null) {
-                customBiomes.removeIf(customBiome -> StaticBiomeInfo.INSTANCE.isBiomePresent(customBiome.getId()));
+                final BiomeScheme biomeScheme = world.getPlatform().capabilities.contains(NAMED_BIOMES) ? StaticBiomeInfo.INSTANCE : Minecraft1_17BiomeInfo.INSTANCE;
+                customBiomes.removeIf(customBiome -> biomeScheme.isBiomePresent(customBiome.getId()));
                 if (customBiomes.isEmpty()) {
                     customBiomes = null;
                 }
