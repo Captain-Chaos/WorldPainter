@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.*;
 
 import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
+import static org.pepsoft.worldpainter.Terrain.STAINED_TERRACOTTAS;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
 
 /**
@@ -296,7 +297,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
         
         JMenu terrainMenu = new JMenu("Terrain");
         JMenu customTerrainMenu = new JMenu("Custom");
-        JMenu stainedClayTerrainMenu = new JMenu("Stained Clay");
+        JMenu stainedClayTerrainMenu = new JMenu("Stained Terracotta");
         App app = App.getInstance();
         ColourScheme colourScheme = app.getColourScheme();
         for (Terrain terrain: Terrain.getConfiguredValues()) {
@@ -307,7 +308,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
             menuItem.addActionListener(e -> listener.objectSelected(selectedTerrain, name, icon));
             if (terrain.isCustom()) {
                 customTerrainMenu.add(menuItem);
-            } else if (terrain.getName().endsWith(" Clay") && (terrain != Terrain.HARDENED_CLAY)) {
+            } else if (STAINED_TERRACOTTAS.contains(terrain)) {
                 stainedClayTerrainMenu.add(menuItem);
             } else {
                 terrainMenu.add(menuItem);

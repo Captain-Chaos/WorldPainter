@@ -3320,6 +3320,10 @@ public enum Terrain {
         BLACK_STAINED_CLAY
     };
 
+    public static final Set<Terrain> STAINED_TERRACOTTAS = ImmutableSet.of(WHITE_STAINED_CLAY, ORANGE_STAINED_CLAY,
+            MAGENTA_STAINED_CLAY, LIGHT_BLUE_STAINED_CLAY, YELLOW_STAINED_CLAY, LIME_STAINED_CLAY, PINK_STAINED_CLAY,
+            GREY_STAINED_CLAY, LIGHT_GREY_STAINED_CLAY, CYAN_STAINED_CLAY, PURPLE_STAINED_CLAY, BLUE_STAINED_CLAY,
+            BROWN_STAINED_CLAY, GREEN_STAINED_CLAY, RED_STAINED_CLAY, BLACK_STAINED_CLAY);
     /*
      * A helper method for generating additional custom terrain types. Should be
      * edited before use.

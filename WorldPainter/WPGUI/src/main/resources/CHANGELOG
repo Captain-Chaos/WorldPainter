@@ -1,3 +1,7 @@
+-- Version 2.15.4, released ...
+
+ * Bug fix: make the Stained Terracotta menu work again for Only On and Except On on the Brush Settings panel
+
 -- Version 2.15.3, released 16-10-2022
 
  * Master Dimensions are now also supported for Merging
