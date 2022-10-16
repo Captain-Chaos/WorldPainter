@@ -1,3 +1,9 @@
+-- Version 2.15.3, released 16-10-2022
+
+ * Master Dimensions are now also supported for Merging
+ * Bug fix: restore the wall width behaviour of the previous major release for Custom Cave/Tunnel Layers (even though that is in fact wrong)
+ * Bug fix: place the spawn point and goodies chest correctly if they are on a Master Dimension
+
 -- Version 2.15.2, released 15-10-2022
 
  * Bug fix: make the Custom Layers tab on the Export screen work again
