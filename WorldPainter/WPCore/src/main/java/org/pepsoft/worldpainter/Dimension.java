@@ -227,15 +227,11 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     /**
-     * Determines whether a tile is present in the dimension on specific
-     * coordinates.
+     * Determines whether a tile is present in the dimension on specific coordinates.
      *
-     * @param x The world X coordinate for which to determine whether a tile is
-     *     present.
-     * @param y The world Y coordinate for which to determine whether a tile is
-     *     present.
-     * @return {@code true} if the dimension contains a tile at the
-     *     specified location.
+     * @param x The tile X coordinate for which to determine whether a tile is present.
+     * @param y The tile Y coordinate for which to determine whether a tile is present.
+     * @return {@code true} if the dimension contains a tile at the specified location.
      */
     @Override
     public boolean isTilePresent(final int x, final int y) {
@@ -250,10 +246,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     /**
      * Indicates whether the specified tile is a border tile.
      *
-     * @param x The X coordinate of the tile for which to check whether it is a
-     *     border tile.
-     * @param y The Y coordinate of the tile for which to check whether it is a
-     *     border tile.
+     * @param x The X coordinate of the tile for which to check whether it is a border tile.
+     * @param y The Y coordinate of the tile for which to check whether it is a border tile.
      * @return {@code true} if it is a border tile.
      */
     public boolean isBorderTile(int x, int y) {
@@ -300,10 +294,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     /**
      * Get the tile for a particular set of world or absolute block coordinates.
      *
-     * @param x The world X coordinate for which to get the tile.
-     * @param y The world Y coordinate for which to get the tile.
-     * @return The tile on which the specified coordinates lie, or
-     *     {@code null} if there is no tile for those coordinates
+     * @param x The tile X coordinate for which to get the tile.
+     * @param y The tile Y coordinate for which to get the tile.
+     * @return The tile with the specified coordinates, or {@code null} if there is no tile for those coordinates
      */
     @Override
     public Tile getTile(final int x, final int y) {
@@ -330,10 +323,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      * {@code eventsInhibited} is {@code true}, the dimension will automatically inhibit events on the tile,
      * mark it as dirty and fire an event for it when {@code eventsInhibited} is set to {@code false}.
      *
-     * @param x The world X coordinate for which to get the tile.
-     * @param y The world Y coordinate for which to get the tile.
-     * @return The tile on which the specified coordinates lie, or
-     *     {@code null} if there is no tile for those coordinates
+     * @param x The tile X coordinate for which to get the tile.
+     * @param y The tile Y coordinate for which to get the tile.
+     * @return The tile with the specified coordinates, or {@code null} if there is no tile for those coordinates
      */
     public Tile getTileForEditing(final int x, final int y) {
         readLock.lock();

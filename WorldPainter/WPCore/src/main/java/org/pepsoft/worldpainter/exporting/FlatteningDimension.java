@@ -24,7 +24,7 @@ import static org.pepsoft.worldpainter.Constants.*;
  * <p><strong>Note</strong> that not all operations are implemented. Only those needed for exporting are guaranteed to
  * be implemented. Others may throw an {@link UnsupportedOperationException}.
  */
-class FlatteningDimension extends RODelegatingDimension<FlatteningDimension.FlatteningTile> {
+public class FlatteningDimension extends RODelegatingDimension<FlatteningDimension.FlatteningTile> {
     public FlatteningDimension(Dimension... dimensions) {
         super(dimensions[0]);
         this.dimensions = dimensions.clone();

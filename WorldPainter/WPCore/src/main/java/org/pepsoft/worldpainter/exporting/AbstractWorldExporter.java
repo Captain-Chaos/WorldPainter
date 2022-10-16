@@ -42,8 +42,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.Dimension.Role.MASTER;
 import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
 import static org.pepsoft.worldpainter.exporting.WorldExportSettings.Step.*;
@@ -116,7 +118,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         final Dimension combined = (master != null) ? new FlatteningDimension(dimension, new ScaledDimension(master, 16.0f)) : dimension;
 
         final ChunkFactory.Stats collectedStats = new ChunkFactory.Stats();
-        Object savedSettings = null, savedCeilingSettings = null;
+        Object savedSettings = null, savedCeilingSettings = null, savedMasterSettings = null;
         dimension.rememberChanges();
         if (ceiling != null) {
             ceiling.rememberChanges();
@@ -156,7 +158,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 selectedTiles = null;
                 for (Point tileCoords: combined.getTileCoords()) {
                     // Also add regions for any bedrock wall and/or border tiles, if present
-                    // TODO resolve where the border settings are stored. Here? Master dimension? Both, somehow?
                     int r = (((dimension.getBorder() != null) && (! dimension.getBorder().isEndless())) ? dimension.getBorderSize() : 0)
                             + (((dimension.getBorder() == null) || (! dimension.getBorder().isEndless())) && (dimension.getWallType() != null) ? 1 : 0);
                     for (int dx = -r; dx <= r; dx++) {
@@ -205,7 +206,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 savedCeilingSettings = setupDimensionForExport(ceiling, selectedTiles);
             }
             if (master != null) {
-                setupDimensionForExport(master, selectedTiles);
+                savedMasterSettings = setupDimensionForExport(master, selectedTiles);
                 // TODO is it too late to do this now because we already created the combined dimension?
             }
 
@@ -369,6 +370,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
             if (master != null) {
                 // Undo any changes we made (such as applying any combined layers)
+                restoreDimensionAfterExport(master, savedMasterSettings);
                 if (master.undoChanges()) {
                     // TODO: some kind of cleverer undo mechanism (undo history cloning?) so we don't mess up the user's
                     //  redo history
@@ -647,7 +649,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         if ((dimension.getAnchor().dim == 0) && world.isCreateGoodiesChest()) {
             Point goodiesPoint = (Point) world.getSpawnPoint().clone();
             goodiesPoint.translate(3, 3);
-            int height = dimension.getIntHeightAt(goodiesPoint);
+            int height = getIntHeightAt(DIM_NORMAL, goodiesPoint.x, goodiesPoint.y);
             if (height != Integer.MIN_VALUE) {
                 height = Math.min(height + 1, dimension.getMaxHeight() - 1);
                 Chunk chunk = minecraftWorld.getChunk(goodiesPoint.x >> 4, goodiesPoint.y >> 4);
@@ -1032,6 +1034,55 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 }
                 return rc;
             });
+        }
+    }
+
+    protected final int getIntHeightAt(int dim, int x, int y) {
+        final Dimension dimension = world.getDimension(new Anchor(dim, DETAIL, false, 0));
+        final Tile tile = dimension.getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+        if (tile != null) {
+            if (tile.getBitLayerValue(NotPresent.INSTANCE, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK)) {
+                final Tile masterTile = getMasterTile(dim, x, y);
+                if (masterTile != null) {
+                    return masterTile.getIntHeight((x >> 4) & TILE_SIZE_MASK, (y >> 4) & TILE_SIZE_MASK);
+                }
+            }
+            return tile.getIntHeight(x & TILE_SIZE_MASK, y & TILE_SIZE_MASK);
+        } else {
+            final Tile masterTile = getMasterTile(dim, x, y);
+            if (masterTile != null) {
+                return masterTile.getIntHeight((x >> 4) & TILE_SIZE_MASK, (y >> 4) & TILE_SIZE_MASK);
+            }
+            return Integer.MIN_VALUE;
+        }
+    }
+
+    protected final int getWaterLevelAt(int dim, int x, int y) {
+        final Dimension dimension = world.getDimension(new Anchor(dim, DETAIL, false, 0));
+        final Tile tile = dimension.getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
+        if (tile != null) {
+            if (tile.getBitLayerValue(NotPresent.INSTANCE, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK)) {
+                final Tile masterTile = getMasterTile(dim, x, y);
+                if (masterTile != null) {
+                    return masterTile.getWaterLevel((x >> 4) & TILE_SIZE_MASK, (y >> 4) & TILE_SIZE_MASK);
+                }
+            }
+            return tile.getWaterLevel(x & TILE_SIZE_MASK, y & TILE_SIZE_MASK);
+        } else {
+            final Tile masterTile = getMasterTile(dim, x, y);
+            if (masterTile != null) {
+                return masterTile.getWaterLevel((x >> 4) & TILE_SIZE_MASK, (y >> 4) & TILE_SIZE_MASK);
+            }
+            return Integer.MIN_VALUE;
+        }
+    }
+
+    private Tile getMasterTile(int dim, int x, int y) {
+        final Dimension masterDimension = world.getDimension(new Anchor(dim, MASTER, false, 0));
+        if (masterDimension != null) {
+            return  masterDimension.getTile(x >> (TILE_SIZE_BITS + 4), y >> (TILE_SIZE_BITS + 4));
+        } else {
+            return null;
         }
     }
 
