@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Material.WOOL_MAGENTA;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -80,6 +81,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     }
 
     public void setName(String name) {
+        requireNonNull(name);
         if (! (name.equals(this.name))) {
             String oldName = this.name;
             this.name = name;
