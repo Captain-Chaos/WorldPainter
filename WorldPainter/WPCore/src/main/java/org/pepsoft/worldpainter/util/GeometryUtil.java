@@ -217,7 +217,7 @@ public final class GeometryUtil {
      * @param radius The radius of the circle that should fit in the square.
      * @return A 2D matrix of distances on the face of square to its centre.
      */
-    public static float[][] getDistances(float radius) {
+    public static float[][] getDistancesToCentre(float radius) {
         final int r = (int) Math.ceil(radius);
         final float[][] distances = new float[r * 2 + 1][r * 2 + 1];
         for (int dx = 0; dx <= r; dx++) {

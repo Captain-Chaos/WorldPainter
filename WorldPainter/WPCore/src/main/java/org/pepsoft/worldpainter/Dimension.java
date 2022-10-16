@@ -63,7 +63,7 @@ import static org.pepsoft.worldpainter.Dimension.WallType.BEDROCK;
 import static org.pepsoft.worldpainter.Generator.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.*;
 import static org.pepsoft.worldpainter.panels.DefaultFilter.buildForDimension;
-import static org.pepsoft.worldpainter.util.GeometryUtil.getDistances;
+import static org.pepsoft.worldpainter.util.GeometryUtil.getDistancesToCentre;
 
 /**
  *
@@ -920,7 +920,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     @SuppressWarnings("UnnecessaryLocalVariable") // Clarity
     public HeightMap getDistancesToEdge(final Layer layer, final float maxDistance) {
         // Precalculate relative distances
-        final float[][] distances = getDistances(maxDistance);
+        final float[][] distances = getDistancesToCentre(maxDistance);
 
         // Gather all the tiles that contain the layer so we can work on them directly rather than looking up tiles
         // continuously. visitTiles() will do the read locking
@@ -1050,7 +1050,6 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                     }
                 }
                 float distance = maxDistance;
-                // TODO this is MUCH too slow, due to the incessant locking. Optimise this (by caching the information?)
                 for (int i = 1; i <= r; i++) {
                     if (((! getBitLayerValueAt(tiles, tileX1, tileY1, layer, x - i, y))
                             || (! getBitLayerValueAt(tiles, tileX1, tileY1, layer, x + i, y))

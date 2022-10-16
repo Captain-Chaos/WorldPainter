@@ -41,7 +41,7 @@ public class TunnelLayerHelper {
         }
         if (dimension != null) {
             // Cache wall distance to increase performance
-            final int maxWallDepth = Math.max(layer.floorWallDepth, layer.roofWallDepth) + 1;
+            final int maxWallDepth = Math.max(layer.floorWallDepth, layer.roofWallDepth);
             wallDistanceCache = dimension.getDistancesToEdge(layer, maxWallDepth);
         } else {
             wallDistanceCache = null;
@@ -79,7 +79,7 @@ public class TunnelLayerHelper {
     }
 
     public int calculateTopLedgeHeight(int x, int y) {
-        return calculateTopLedgeHeight(wallDistanceCache.getHeight(x, y));
+        return calculateTopLedgeHeight(wallDistanceCache.getHeight(x, y) - 1);
     }
 
     public int calculateTopLedgeHeight(float distanceToWall) {
@@ -92,7 +92,7 @@ public class TunnelLayerHelper {
     }
 
     public int calculateBottomLedgeHeight(int x, int y) {
-        return calculateBottomLedgeHeight(wallDistanceCache.getHeight(x, y));
+        return calculateBottomLedgeHeight(wallDistanceCache.getHeight(x, y) - 1);
     }
 
     public int calculateBottomLedgeHeight(float distanceToWall) {
