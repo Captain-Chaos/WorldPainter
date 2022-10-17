@@ -1502,7 +1502,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public void setExportSettings(ExportSettings exportSettings) {
-        if ((this.exportSettings == null) ? (exportSettings != null) : (! exportSettings.equals(this.exportSettings))) {
+        if (! Objects.equals(exportSettings, this.exportSettings)) {
             ExportSettings oldExportSettings = this.exportSettings;
             this.exportSettings = exportSettings;
             changeNo++;
