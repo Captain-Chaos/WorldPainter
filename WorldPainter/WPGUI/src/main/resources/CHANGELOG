@@ -1,4 +1,4 @@
--- Version 2.15.4, released ...
+-- Version 2.15.4, released 17-10-2022
 
  * Custom Objects layers have gained some additional choices for the vertical placement of objects:
    + They can now be placed at a fixed absolute height, rather than relative to the terrain
@@ -6,6 +6,7 @@
    + A random vertical variation can be added in either case to displace the object randomly below or above the initial position
    + The spawn settings are still taken into account! If you want the objects to float in the air, make sure that spawn "on air" is selected
    + Each of these settings can be configured individually per object. To change them for all objects at once, select all the objects and press the Edit button
+ * Bug fix: fix an error caused by Exporting a Custom Cave/Tunnel Layer Floor Dimension with custom terrains and no biomes
  * Bug fix: make the Stained Terracotta menu work again for Only On and Except On on the Brush Settings panel
 
 -- Version 2.15.3, released 16-10-2022

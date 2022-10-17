@@ -1661,6 +1661,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public final int getAutoBiome(int x, int y) {
+        return getAutoBiome(x, y, -1);
+    }
+
+    public final int getAutoBiome(int x, int y, int defaultBiome) {
         switch (anchor.dim) {
             case DIM_NETHER:
                 return BIOME_HELL;
@@ -1669,14 +1673,18 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             default:
                 Tile tile = getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
                 if (tile != null) {
-                    return getAutoBiome(tile, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK);
+                    return getAutoBiome(tile, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK, defaultBiome);
                 } else {
-                    return -1;
+                    return defaultBiome;
                 }
         }
     }
 
     public final int getAutoBiome(Tile tile, int x, int y) {
+        return getAutoBiome(tile, x, y, -1);
+    }
+
+    public final int getAutoBiome(Tile tile, int x, int y, int defaultBiome) {
         // TODO add platform support and Minecraft 1.18 biomes
         switch (anchor.dim) {
             case DIM_NETHER:
@@ -1729,7 +1737,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                             // TODO: we have reports from the wild of the custom terrain
                             //  returned here somehow not being configured, so check that
                             //  even though we don't understand how that could happen
-                            final int defaultBiome = terrain.isConfigured() ? terrain.getDefaultBiome() : BIOME_PLAINS;
+                            if (terrain.isConfigured() && (terrain.getDefaultBiome() != -1)) {
+                                defaultBiome = terrain.getDefaultBiome();
+                            }
                             if (((tile.getLayerValue(DeciduousForest.INSTANCE, x, y) > 0)
                                     || (tile.getLayerValue(PineForest.INSTANCE, x, y) > 0))
                                     && (defaultBiome != BIOME_DESERT)

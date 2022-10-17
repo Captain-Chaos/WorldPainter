@@ -32,9 +32,10 @@ import java.util.function.Supplier;
 import static java.awt.Font.PLAIN;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.util.MathUtils.clamp;
-import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
+import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
 import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.CARVE;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.CUSTOM_DIMENSION;
@@ -57,10 +58,24 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
     @Override
     public List<Fixup> carve(Rectangle area, Rectangle exportedArea, MinecraftWorld world) {
         final List<Fixup> fixups = new ArrayList<>();
-        final int floodLevel = layer.getFloodLevel(), biome = (layer.getTunnelBiome() != null) ? layer.getTunnelBiome() : -1;
+        final int floodLevel = layer.getFloodLevel(), biome = (layer.getTunnelBiome() != null) ? layer.getTunnelBiome() : -1, defaultBiome;
+        final Dimension.Anchor anchor = dimension.getAnchor();
+        switch (anchor.dim) {
+            case DIM_NORMAL:
+                defaultBiome = BIOME_PLAINS;
+                break;
+            case DIM_NETHER:
+                defaultBiome = BIOME_HELL;
+                break;
+            case DIM_END:
+                defaultBiome = BIOME_SKY;
+                break;
+            default:
+                throw new InternalError();
+        }
         final boolean removeWater = layer.isRemoveWater(), floodWithLava = layer.isFloodWithLava();
         final Dimension floorDimension = ((layer.getFloorMode() == CUSTOM_DIMENSION) && (layer.getFloorDimensionId() != null))
-                ? dimension.getWorld().getDimension(new Dimension.Anchor(dimension.getAnchor().dim, Dimension.Role.CAVE_FLOOR, dimension.getAnchor().invert, layer.getFloorDimensionId()))
+                ? dimension.getWorld().getDimension(new Dimension.Anchor(anchor.dim, Dimension.Role.CAVE_FLOOR, anchor.invert, layer.getFloorDimensionId()))
                 : null;
         final boolean customDimension = floorDimension != null;
         final boolean set3DBiomes = (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) && (customDimension || (layer.getTunnelBiome() != null));
@@ -140,7 +155,7 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                     if (set3DBiomes) {
                         final int layerValue = floorDimension.getLayerValueAt(Biome.INSTANCE, x, y);
                         if (layerValue == 255) {
-                            myBiome = floorDimension.getAutoBiome(x, y);
+                            myBiome = floorDimension.getAutoBiome(x, y, defaultBiome);
                         } else {
                             myBiome = layerValue;
                         }
