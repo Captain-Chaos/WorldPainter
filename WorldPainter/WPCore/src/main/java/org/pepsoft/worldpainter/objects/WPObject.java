@@ -356,6 +356,9 @@ public interface WPObject extends Serializable, Cloneable {
     int LEAF_DECAY_ON        = 2;
     int LEAF_DECAY_OFF       = 3;
 
+    int HEIGHT_MODE_TERRAIN = 1;
+    int HEIGHT_MODE_FIXED   = 2;
+
     // Standard attribute keys
     AttributeKey<File>    ATTRIBUTE_FILE   = new AttributeKey<>("WPObject.file");
     AttributeKey<Point3i> ATTRIBUTE_OFFSET = new AttributeKey<>("WPObject.offset", new Point3i());
@@ -423,6 +426,9 @@ public interface WPObject extends Serializable, Cloneable {
     AttributeKey<Boolean> ATTRIBUTE_EXTEND_FOUNDATION     = new AttributeKey<>("WPObject.extendFoundation", false);
     AttributeKey<Boolean> ATTRIBUTE_RANDOM_ROTATION_ONLY  = new AttributeKey<>("WPObject.randomRotationOnly", false);
     AttributeKey<Boolean> ATTRIBUTE_RANDOM_MIRRORING_ONLY = new AttributeKey<>("WPObject.randomMirroringOnly", false);
+    AttributeKey<Integer> ATTRIBUTE_HEIGHT_MODE           = new AttributeKey<>("WPObject.heightMode", HEIGHT_MODE_TERRAIN);
+    AttributeKey<Integer> ATTRIBUTE_VERTICAL_OFFSET       = new AttributeKey<>("WPObject.verticalOffset", 0);
+    AttributeKey<Integer> ATTRIBUTE_Y_VARIATION           = new AttributeKey<>("WPObject.yVariation", 0);
 
     @FunctionalInterface
     interface BlockVisitor {

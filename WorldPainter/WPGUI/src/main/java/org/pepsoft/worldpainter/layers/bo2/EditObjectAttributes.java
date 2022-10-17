@@ -89,6 +89,13 @@ public class EditObjectAttributes extends WorldPainterDialog {
             comboBoxUndergroundMode.setSelectedIndex(object.getAttribute(ATTRIBUTE_UNDERGROUND_MODE) - 1);
             comboBoxLeafDecayMode.setSelectedIndex(object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE) - 1);
             spinnerFrequency.setValue(object.getAttribute(ATTRIBUTE_FREQUENCY));
+            if (object.getAttribute(ATTRIBUTE_HEIGHT_MODE) == HEIGHT_MODE_TERRAIN) {
+                radioButtonPlaceOnTerrain.setSelected(true);
+            } else {
+                radioButtonPlaceAtFixedHeight.setSelected(true);
+            }
+            spinnerVerticalOffset.setValue(object.getAttribute(ATTRIBUTE_VERTICAL_OFFSET));
+            spinnerRandomVariation.setValue(object.getAttribute(ATTRIBUTE_Y_VARIATION));
             SortedSet<Material> materials = new TreeSet<>(Comparator.comparing(Material::toString));
             object.visitBlocks((WPObject o, int x, int y, int z, Material m) -> {
                 if (m != AIR) {
@@ -121,9 +128,9 @@ public class EditObjectAttributes extends WorldPainterDialog {
             fieldName.setText("multiple");
             fieldName.setEnabled(false);
             file = null;
-            long frequencyTotal = 0;
-            int firstFrequency = -1;
-            boolean allFrequenciesIdentical = true;
+            long frequencyTotal = 0, variationTotal = 0, verticalOffsetTotal = 0;
+            int firstFrequency = -1, firstVariation = -1;
+            boolean allFrequenciesIdentical = true, allVariationsIdentical = true;
             Point3i origin = new Point3i();
             for (WPObject object: objects) {
                 if (! object.getOffset().equals(origin)) {
@@ -136,6 +143,15 @@ public class EditObjectAttributes extends WorldPainterDialog {
                 } else if (frequency != firstFrequency) {
                     allFrequenciesIdentical = false;
                 }
+                int variation = object.getAttribute(ATTRIBUTE_Y_VARIATION);
+                variationTotal += variation;
+                if (firstVariation == -1) {
+                    firstVariation = variation;
+                } else if (variation != firstVariation) {
+                    allVariationsIdentical = false;
+                }
+                int verticalOffset = object.getAttribute(ATTRIBUTE_VERTICAL_OFFSET);
+                verticalOffsetTotal += verticalOffset;
             }
             labelOffset.setText("multiple");
             checkBoxRandomRotation.setMixed(true);
@@ -159,6 +175,15 @@ public class EditObjectAttributes extends WorldPainterDialog {
             }
             checkBoxReplace.setEnabled(false);
             checkBoxExtendFoundation.setMixed(true);
+            spinnerVerticalOffset.setValue((int) (verticalOffsetTotal / objects.size()));
+            int averageVariation = (int) (variationTotal / objects.size());
+            spinnerRandomVariation.setValue(averageVariation);
+            if (! allVariationsIdentical) {
+                checkBoxRandomVariationActive.setSelected(false);
+                checkBoxRandomVariationActive.setToolTipText("<html>The random variations of the selected objects are not all the same.<br>Check the checkbox if you want to set them all to the same value.</html>");
+                checkBoxRandomVariationActive.setEnabled(true);
+                spinnerRandomVariation.setEnabled(false);
+            }
         }
         scaleToUI();
         pack();
@@ -210,7 +235,7 @@ public class EditObjectAttributes extends WorldPainterDialog {
                 attributes = new HashMap<>();
             }
             if (checkBoxFrequencyActive.isSelected()) {
-                int frequency = (Integer) spinnerFrequency.getValue();
+                final int frequency = (Integer) spinnerFrequency.getValue();
                 if (frequency != 100) {
                     attributes.put(ATTRIBUTE_FREQUENCY.key, frequency);
                 } else {
@@ -278,6 +303,27 @@ public class EditObjectAttributes extends WorldPainterDialog {
             if (! checkBoxExtendFoundation.isMixed()) {
                 attributes.put(ATTRIBUTE_EXTEND_FOUNDATION.key, checkBoxExtendFoundation.isSelected());
             }
+            if (radioButtonPlaceOnTerrain.isSelected() || radioButtonPlaceAtFixedHeight.isSelected()) {
+                final int verticalOffset = (int) spinnerVerticalOffset.getValue();
+                if (verticalOffset != 0) {
+                    attributes.put(ATTRIBUTE_VERTICAL_OFFSET.key, verticalOffset);
+                } else {
+                    attributes.remove(ATTRIBUTE_VERTICAL_OFFSET.key);
+                }
+            }
+            if (radioButtonPlaceOnTerrain.isSelected()) {
+                attributes.remove(ATTRIBUTE_HEIGHT_MODE.key);
+            } else if (radioButtonPlaceAtFixedHeight.isSelected()) {
+                attributes.put(ATTRIBUTE_HEIGHT_MODE.key, HEIGHT_MODE_FIXED);
+            }
+            if (checkBoxRandomVariationActive.isSelected()) {
+                final int variation = (Integer) spinnerRandomVariation.getValue();
+                if (variation > 0) {
+                    attributes.put(ATTRIBUTE_Y_VARIATION.key, variation);
+                } else {
+                    attributes.remove(ATTRIBUTE_Y_VARIATION.key);
+                }
+            }
             if (! attributes.isEmpty()) {
                 object.setAttributes(attributes);
             } else {
@@ -323,6 +369,13 @@ public class EditObjectAttributes extends WorldPainterDialog {
     private void setControlStates() {
         comboBoxReplacedMaterial.setEnabled(checkBoxReplace.isSelected());
         checkBoxCollideWithFloor.setEnabled(checkBoxOnWater.isSelected() || checkBoxOnWater.isTristateMode());
+        spinnerVerticalOffset.setEnabled(radioButtonPlaceAtFixedHeight.isSelected());
+        if (radioButtonPlaceOnTerrain.isSelected()) {
+            labelVerticalOffset.setText("Height above terrain:");
+        } else if (radioButtonPlaceAtFixedHeight.isSelected()) {
+            labelVerticalOffset.setText("Absolute height:");
+        }
+        spinnerVerticalOffset.setEnabled(radioButtonPlaceOnTerrain.isSelected() || radioButtonPlaceAtFixedHeight.isSelected());
     }
     
     /**
@@ -334,6 +387,7 @@ public class EditObjectAttributes extends WorldPainterDialog {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        buttonGroup1 = new javax.swing.ButtonGroup();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         labelFile = new javax.swing.JLabel();
@@ -369,6 +423,15 @@ public class EditObjectAttributes extends WorldPainterDialog {
         checkBoxCollideWithFloor = new org.pepsoft.worldpainter.util.TristateCheckBox();
         checkBoxRandomMirroring = new org.pepsoft.worldpainter.util.TristateCheckBox();
         jLabel10 = new javax.swing.JLabel();
+        jLabel11 = new javax.swing.JLabel();
+        radioButtonPlaceOnTerrain = new javax.swing.JRadioButton();
+        radioButtonPlaceAtFixedHeight = new javax.swing.JRadioButton();
+        spinnerVerticalOffset = new javax.swing.JSpinner();
+        jLabel12 = new javax.swing.JLabel();
+        spinnerRandomVariation = new javax.swing.JSpinner();
+        jLabel13 = new javax.swing.JLabel();
+        checkBoxRandomVariationActive = new javax.swing.JCheckBox();
+        labelVerticalOffset = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Edit Object Attributes");
@@ -435,12 +498,14 @@ public class EditObjectAttributes extends WorldPainterDialog {
 
         jLabel5.setText("%");
 
+        jLabel6.setLabelFor(comboBoxCollisionMode);
         jLabel6.setText("Collide with:");
         jLabel6.setToolTipText("<html>Determines which existing blocks an object will collide with (and therefore not be rendered).<br>\n<strong>Note</strong> that only above ground blocks are considered!</html>");
 
         comboBoxCollisionMode.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "no change", "any blocks", "solid blocks", "nothing" }));
         comboBoxCollisionMode.setToolTipText("<html>Determines which existing blocks an object will collide with (and therefore not be rendered).<br>\n<strong>Note</strong> that only above ground blocks are considered!</html>");
 
+        jLabel7.setLabelFor(comboBoxUndergroundMode);
         jLabel7.setText("Replace underground blocks:");
         jLabel7.setToolTipText("Determines whether existing underground blocks should be replaced by blocks from the object.");
 
@@ -477,6 +542,7 @@ public class EditObjectAttributes extends WorldPainterDialog {
             }
         });
 
+        jLabel9.setLabelFor(comboBoxLeafDecayMode);
         jLabel9.setText("Leaf blocks should:");
 
         comboBoxLeafDecayMode.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "no change", "behave as exported", "decay", "not decay" }));
@@ -502,6 +568,48 @@ public class EditObjectAttributes extends WorldPainterDialog {
         jLabel10.setLabelFor(checkBoxRandomMirroring);
         jLabel10.setText(" ");
         jLabel10.setToolTipText("<html>Mirroring works by rotating blocks 180 degrees.<br>\nIt does not work for asymmetric mod blocks of which<br>\nthe rotated versions are not mirrors of the originals.</html>");
+
+        jLabel11.setText("Placement:");
+
+        buttonGroup1.add(radioButtonPlaceOnTerrain);
+        radioButtonPlaceOnTerrain.setText("relative to terrain");
+        radioButtonPlaceOnTerrain.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonPlaceOnTerrainActionPerformed(evt);
+            }
+        });
+
+        buttonGroup1.add(radioButtonPlaceAtFixedHeight);
+        radioButtonPlaceAtFixedHeight.setText("fixed height");
+        radioButtonPlaceAtFixedHeight.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonPlaceAtFixedHeightActionPerformed(evt);
+            }
+        });
+
+        spinnerVerticalOffset.setModel(new javax.swing.SpinnerNumberModel(0, -383, 383, 1));
+        spinnerVerticalOffset.setEnabled(false);
+
+        jLabel12.setLabelFor(spinnerRandomVariation);
+        jLabel12.setText("Random y variation:");
+
+        spinnerRandomVariation.setModel(new javax.swing.SpinnerNumberModel(0, 0, 383, 1));
+
+        jLabel13.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/information.png"))); // NOI18N
+        jLabel13.setText(" ");
+        jLabel13.setToolTipText("Distributed equally above and below the initial height.");
+
+        checkBoxRandomVariationActive.setSelected(true);
+        checkBoxRandomVariationActive.setText(" ");
+        checkBoxRandomVariationActive.setEnabled(false);
+        checkBoxRandomVariationActive.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxRandomVariationActiveActionPerformed(evt);
+            }
+        });
+
+        labelVerticalOffset.setLabelFor(spinnerVerticalOffset);
+        labelVerticalOffset.setText("Height above terrain:");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -568,7 +676,20 @@ public class EditObjectAttributes extends WorldPainterDialog {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(checkBoxRandomMirroring, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel10)))
+                                .addComponent(jLabel10))
+                            .addComponent(jLabel11)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel12)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(checkBoxRandomVariationActive)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(spinnerRandomVariation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel13))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(labelVerticalOffset)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(spinnerVerticalOffset, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGap(18, 18, 18)
                         .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
@@ -576,11 +697,17 @@ public class EditObjectAttributes extends WorldPainterDialog {
                         .addComponent(buttonOK)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCancel))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(labelFile)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(labelFile))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(radioButtonPlaceOnTerrain)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(radioButtonPlaceAtFixedHeight)))
+                        .addGap(0, 371, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -602,6 +729,22 @@ public class EditObjectAttributes extends WorldPainterDialog {
                             .addComponent(labelOffset, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(buttonOffsetAuto)
                             .addComponent(buttonOffsetReset))
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel11)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(radioButtonPlaceOnTerrain)
+                            .addComponent(radioButtonPlaceAtFixedHeight))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(spinnerVerticalOffset, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(labelVerticalOffset))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel12)
+                            .addComponent(spinnerRandomVariation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel13)
+                            .addComponent(checkBoxRandomVariationActive))
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel4)
@@ -691,8 +834,21 @@ public class EditObjectAttributes extends WorldPainterDialog {
         setControlStates();
     }//GEN-LAST:event_checkBoxOnWaterActionPerformed
 
+    private void radioButtonPlaceOnTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonPlaceOnTerrainActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_radioButtonPlaceOnTerrainActionPerformed
+
+    private void radioButtonPlaceAtFixedHeightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonPlaceAtFixedHeightActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_radioButtonPlaceAtFixedHeightActionPerformed
+
+    private void checkBoxRandomVariationActiveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxRandomVariationActiveActionPerformed
+        spinnerRandomVariation.setEnabled(checkBoxRandomVariationActive.isSelected());
+    }//GEN-LAST:event_checkBoxRandomVariationActiveActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
+    private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton buttonOK;
     private javax.swing.JButton buttonOffsetAuto;
     private javax.swing.JButton buttonOffsetReset;
@@ -705,6 +861,7 @@ public class EditObjectAttributes extends WorldPainterDialog {
     private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxOnWater;
     private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxRandomMirroring;
     private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxRandomRotation;
+    private javax.swing.JCheckBox checkBoxRandomVariationActive;
     private javax.swing.JCheckBox checkBoxReplace;
     private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxUnderLava;
     private org.pepsoft.worldpainter.util.TristateCheckBox checkBoxUnderWater;
@@ -715,6 +872,9 @@ public class EditObjectAttributes extends WorldPainterDialog {
     private javax.swing.JTextField fieldName;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -726,7 +886,12 @@ public class EditObjectAttributes extends WorldPainterDialog {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel labelFile;
     private javax.swing.JLabel labelOffset;
+    private javax.swing.JLabel labelVerticalOffset;
+    private javax.swing.JRadioButton radioButtonPlaceAtFixedHeight;
+    private javax.swing.JRadioButton radioButtonPlaceOnTerrain;
     private javax.swing.JSpinner spinnerFrequency;
+    private javax.swing.JSpinner spinnerRandomVariation;
+    private javax.swing.JSpinner spinnerVerticalOffset;
     // End of variables declaration//GEN-END:variables
 
     private final Collection<WPObject> objects;

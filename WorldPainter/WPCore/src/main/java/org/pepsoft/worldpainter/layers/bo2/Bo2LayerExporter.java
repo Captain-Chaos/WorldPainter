@@ -30,6 +30,7 @@ import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.MC_LAVA;
 import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
@@ -58,23 +59,27 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
             final int density = layer.getDensity() * 64;
             for (int chunkX = area.x; chunkX < area.x + area.width; chunkX += 16) {
                 for (int chunkY = area.y; chunkY < area.y + area.height; chunkY += 16) {
-                    // Set the seed and randomizer according to the chunk
-                    // coordinates to make sure the chunk is always rendered the
-                    // same, no matter how often it is rendered
+                    if (! dimension.isTilePresent(chunkX >> TILE_SIZE_BITS, chunkY >> TILE_SIZE_BITS)) {
+                        continue;
+                    }
+                    // Set the seed and randomizer according to the chunk coordinates to make sure the chunk is always
+                    // rendered the same, no matter how often it is rendered
                     final long seed = dimension.getSeed() + (chunkX >> 4) * 65537L + (chunkY >> 4) * 4099L;
                     final Random random = new Random(seed);
                     objectProvider.setSeed(seed);
                     for (int x = chunkX; x < chunkX + 16; x++) {
                         for (int y = chunkY; y < chunkY + 16; y++) {
-                            final int height = dimension.getIntHeightAt(x, y);
-                            if ((height == Integer.MIN_VALUE) || (height >= maxZ)) {
-                                // height == Integer.MIN_VALUE means no tile present
-                                continue;
-                            }
                             final int strength = dimension.getLayerValueAt(layer, x, y);
                             if ((strength > 0) && (random.nextInt(density) <= strength * strength)) {
                                 WPObject object = objectProvider.getObject();
-                                final Placement placement = getPlacement(minecraftWorld, dimension, x, y, height + 1, object, random);
+                                final int variation = object.getAttribute(ATTRIBUTE_Y_VARIATION);
+                                final int height = ((object.getAttribute(ATTRIBUTE_HEIGHT_MODE) == HEIGHT_MODE_TERRAIN) ? (dimension.getIntHeightAt(x, y) + 1) : 0)
+                                        + object.getAttribute(ATTRIBUTE_VERTICAL_OFFSET)
+                                        + ((variation > 0) ? (random.nextInt(variation + 1) - ((variation + 1) / 2)) : 0); // Bias odd variation downwards
+                                if ((height < minHeight) || (height >= maxHeight)) {
+                                    continue;
+                                }
+                                final Placement placement = getPlacement(minecraftWorld, dimension, x, y, height, object, random);
                                 if (placement == Placement.NONE) {
                                     continue;
                                 }
@@ -90,7 +95,7 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                                         object = new RotatedObject(object, rotateSteps, platform);
                                     }
                                 }
-                                final int z = (placement == Placement.ON_LAND) ? height + 1 : dimension.getWaterLevelAt(x, y) + 1;
+                                final int z = (placement == Placement.ON_LAND) ? height : dimension.getWaterLevelAt(x, y) + 1;
                                 if (! isSane(object, x, y, z, minHeight, maxHeight)) {
                                     continue;
                                 }
@@ -126,8 +131,12 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider();
             objectProvider.setSeed(seed + 1);
             WPObject object = objectProvider.getObject();
-            Material existingMaterial = minecraftWorld.getMaterialAt(location.x, location.y, location.z);
-            Material materialBelow = minecraftWorld.getMaterialAt(location.x, location.y, location.z - 1);
+            final int variation = object.getAttribute(ATTRIBUTE_Y_VARIATION);
+            final int height = ((object.getAttribute(ATTRIBUTE_HEIGHT_MODE) == HEIGHT_MODE_TERRAIN) ? location.z : 0)
+                    + object.getAttribute(ATTRIBUTE_VERTICAL_OFFSET)
+                    + ((variation > 0) ? (applyRandom.nextInt(variation + 1) - ((variation + 1) / 2)) : 0); // Bias odd variation downwards
+            final Material existingMaterial = minecraftWorld.getMaterialAt(location.x, location.y, height);
+            final Material materialBelow = minecraftWorld.getMaterialAt(location.x, location.y, height - 1);
             if ((object.getAttribute(ATTRIBUTE_SPAWN_IN_LAVA) && existingMaterial.isNamed(MC_LAVA))
                     || (object.getAttribute(ATTRIBUTE_SPAWN_IN_WATER) && existingMaterial.isNamed(MC_WATER))
                     || (object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND) && (! materialBelow.veryInsubstantial))
@@ -144,22 +153,20 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                         object = new RotatedObject(object, rotateSteps, platform);
                     }
                 }
-                if (! isSane(object, location.x, location.y, location.z, minecraftWorld.getMinHeight(), minecraftWorld.getMaxHeight())) {
+                if (! isSane(object, location.x, location.y, height, minecraftWorld.getMinHeight(), minecraftWorld.getMaxHeight())) {
                     return null;
                 }
                 prepareForExport(object, dimension);
-                if (! isRoom(minecraftWorld, dimension, object, location.x, location.y, location.z, Placement.ON_LAND)) {
+                if (! isRoom(minecraftWorld, dimension, object, location.x, location.y, height, Placement.ON_LAND)) {
                     return null;
                 }
                 if (! fitsInExportedArea(exportedArea, object, location.x, location.y)) {
-                    // There is room on our side of the border, but the object
-                    // extends outside the exported area, so it might clash with an
-                    // object from another area. Schedule a fixup to retest whether
-                    // there is room after all the objects have been placed on both
-                    // sides of the border
-                    return new WPObjectFixup(object, location.x, location.y, location.z, Placement.ON_LAND);
+                    // There is room on our side of the border, but the object extends outside the exported area, so it
+                    // might clash with an object from another area. Schedule a fixup to retest whether there is room
+                    // after all the objects have been placed on both sides of the border
+                    return new WPObjectFixup(object, location.x, location.y, height, Placement.ON_LAND);
                 }
-                renderObject(minecraftWorld, dimension, object, location.x, location.y, location.z);
+                renderObject(minecraftWorld, dimension, object, location.x, location.y, height);
             }
         }
         return null;
