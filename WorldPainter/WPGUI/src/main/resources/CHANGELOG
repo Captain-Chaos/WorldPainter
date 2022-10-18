@@ -1,3 +1,7 @@
+-- Version 2.15.5, released ...
+
+ * Changed the logic for buried Custom Objects to spawn underneath the (ground) water table even if the "under water" spawn option is not checked
+
 -- Version 2.15.4, released 17-10-2022
 
  * Custom Objects layers have gained some additional choices for the vertical placement of objects:

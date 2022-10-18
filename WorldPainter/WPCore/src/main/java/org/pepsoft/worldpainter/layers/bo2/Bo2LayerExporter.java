@@ -200,8 +200,12 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
     private Placement getPlacement(final MinecraftWorld minecraftWorld, final Dimension dimension, final int x, final int y, final int z, final WPObject object, final Random random) {
         final boolean spawnUnderWater = object.getAttribute(ATTRIBUTE_SPAWN_IN_WATER), spawnUnderLava = object.getAttribute(ATTRIBUTE_SPAWN_IN_LAVA);
         final boolean spawnOnWater = object.getAttribute(ATTRIBUTE_SPAWN_ON_WATER), spawnOnLava = object.getAttribute(ATTRIBUTE_SPAWN_ON_LAVA);
-        final int waterLevel = dimension.getWaterLevelAt(x, y);
-        final boolean flooded = waterLevel >= z;
+        final boolean flooded;
+        if (object.getAttribute(ATTRIBUTE_HEIGHT_MODE) == HEIGHT_MODE_TERRAIN) {
+            flooded = dimension.getWaterLevelAt(x, y) >= z;
+        } else {
+            flooded = (z > dimension.getIntHeightAt(x, y)) && (dimension.getWaterLevelAt(x, y) >= z);
+        }
         if (flooded && (spawnUnderWater || spawnUnderLava || spawnOnWater || spawnOnLava)) {
             boolean lava = dimension.getBitLayerValueAt(FloodWithLava.INSTANCE, x, y);
             if (lava ? (spawnUnderLava && spawnOnLava) : (spawnUnderWater && spawnOnWater)) {
