@@ -9,10 +9,9 @@ import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
-import org.pepsoft.worldpainter.layers.CustomLayer;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.NotPresentBlock;
+import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsLayer;
 import org.pepsoft.worldpainter.operations.Filter;
 
 import java.io.IOException;
@@ -331,6 +330,31 @@ public class TunnelLayer extends CustomLayer {
         } else {
             throw new IllegalArgumentException("Could not find detail dimension for floor dimension " + floorAnchor);
         }
+    }
+
+    public static boolean isLayerTypeSupportedForFloorDimension(Class<? extends Layer> layerType) {
+        return ! (Caves.class.isAssignableFrom(layerType)
+                || Caverns.class.isAssignableFrom(layerType)
+                || Chasms.class.isAssignableFrom(layerType)
+                || Resources.class.isAssignableFrom(layerType)
+                || Populate.class.isAssignableFrom(layerType)
+                || ReadOnly.class.isAssignableFrom(layerType)
+                || TunnelLayer.class.isAssignableFrom(layerType)
+                || UndergroundPocketsLayer.class.isAssignableFrom(layerType));
+    }
+
+    public static boolean isLayerSupportedForFloorDimension(Layer layer) {
+        if (! isLayerTypeSupportedForFloorDimension(layer.getClass())) {
+            return false;
+        }
+        if (layer instanceof CombinedLayer) {
+            for (Layer constituentLayer: ((CombinedLayer) layer).getLayers()) {
+                if (! isLayerSupportedForFloorDimension(constituentLayer)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     // CustomLayer

@@ -28,7 +28,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toMap;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.DataType.REGION;
 import static org.pepsoft.minecraft.Material.*;
@@ -401,7 +403,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         }
         final File dimensionDir, backupDimensionDir;
         final Dimension.Anchor anchor = dimension.getAnchor();
-        switch (anchor.dim) {
+        final int dim = anchor.dim;
+        switch (dim) {
             case org.pepsoft.worldpainter.Constants.DIM_NORMAL:
                 dimensionDir = worldDir;
                 backupDimensionDir = backupWorldDir;
@@ -415,7 +418,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 backupDimensionDir = new File(backupWorldDir, "DIM1");
                 break;
             default:
-                throw new IllegalArgumentException("Dimension " + anchor.dim + " not supported");
+                throw new IllegalArgumentException("Dimension " + dim + " not supported");
         }
         final Set<DataType> dataTypes = platformProvider.getDataTypes(platform);
         for (DataType dataType: dataTypes) {
@@ -427,23 +430,16 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             }
         }
 
-        final Dimension master = dimension.getWorld().getDimension(new Dimension.Anchor(anchor.dim, MASTER, false, 0));
+        final Dimension master = dimension.getWorld().getDimension(new Dimension.Anchor(dim, MASTER, false, 0));
         final Dimension combined = (master != null) ? new FlatteningDimension(dimension, new ScaledDimension(master, 16.0f)) : dimension;
         // TODO add ceiling support
 
-        Object savedChanges = null, savedMasterChanges = null;
-        dimension.rememberChanges();
-        if (master != null) {
-            master.rememberChanges();
-        }
+        final Set<Point> selectedTiles = worldExportSettings.getTilesToExport();
+        // TODO is it too late to do this now because we already created the combined dimension:
+        final Map<Dimension, Object> savedSettings = world.getDimensions().stream()
+                .filter(d -> d.getAnchor().dim == dim)
+                .collect(toMap(identity(), d -> setupDimensionForExport(d, selectedTiles)));
         try {
-
-            final Set<Point> selectedTiles = worldExportSettings.getTilesToExport();
-            savedChanges = setupDimensionForExport(dimension, selectedTiles);
-            if (master != null) {
-                savedMasterChanges = setupDimensionForExport(master, selectedTiles);
-                // TODO is it too late to do this now because we already created the combined dimension?
-            }
 
             // Sort tiles into regions
             final Map<Point, Map<Point, Tile>> tilesByRegion = getTilesByRegion(combined);
@@ -563,7 +559,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                             logger.debug("Merged region " + regionCoords.x + "," + regionCoords.y);
                                         }
                                     } finally {
-                                        minecraftWorld.save(worldDir, anchor.dim);
+                                        minecraftWorld.save(worldDir, dim);
                                     }
                                     synchronized (fixups) {
                                         if (!regionFixups.isEmpty()) {
@@ -641,7 +637,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                     }
                                 } finally {
                                     if ((exportResults != null) && exportResults.chunksGenerated) {
-                                        minecraftWorld.save(worldDir, anchor.dim);
+                                        minecraftWorld.save(worldDir, dim);
                                     }
                                 }
                                 synchronized (fixups) {
@@ -719,24 +715,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         } finally {
             
             // Undo any changes we made (such as applying any combined layers)
-            restoreDimensionAfterExport(dimension, savedChanges);
-            if (dimension.undoChanges()) {
-                // TODO: some kind of cleverer undo mechanism (undo history cloning?) so we don't mess up the user's
-                //  redo history
-                dimension.clearRedo();
-                dimension.armSavePoint();
-            }
-
-            if (master != null) {
-                // Undo any changes we made (such as applying any combined layers)
-                restoreDimensionAfterExport(master, savedMasterChanges);
-                if (master.undoChanges()) {
-                    // TODO: some kind of cleverer undo mechanism (undo history cloning?) so we don't mess up the user's
-                    //  redo history
-                    master.clearRedo();
-                    master.armSavePoint();
-                }
-            }
+            savedSettings.forEach(this::restoreDimensionAfterExport);
         }
     }
 

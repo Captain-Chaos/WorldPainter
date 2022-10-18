@@ -1602,7 +1602,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return undoManager != null;
     }
 
-    public void register(UndoManager undoManager) {
+    public void registerUndoManager(UndoManager undoManager) {
         this.undoManager = undoManager;
         for (Tile tile: tiles.values()) {
             tile.register(undoManager);
@@ -1652,9 +1652,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
-    public void unregister() {
+    public void unregisterUndoManager() {
         for (Tile tile: tiles.values()) {
-            tile.removeListener(this);
             tile.unregister();
         }
         undoManager = null;

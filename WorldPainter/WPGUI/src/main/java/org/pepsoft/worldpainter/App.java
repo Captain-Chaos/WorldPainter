@@ -285,7 +285,7 @@ public final class App extends JFrame implements RadiusControl,
     public void clearWorld() {
         if (world != null) {
             for (Dimension dimension: world.getDimensions()) {
-                dimension.unregister();
+                dimension.unregisterUndoManager();
             }
             world.removePropertyChangeListener(this);
             world = null;
@@ -535,7 +535,7 @@ public final class App extends JFrame implements RadiusControl,
                 }
                 currentUndoManager.setStopAtClasses(PropertyChangeListener.class, Tile.Listener.class, Biome.class, BetterAction.class);
                 undoManagers.put(anchor, currentUndoManager);
-                dimension.register(currentUndoManager);
+                dimension.registerUndoManager(currentUndoManager);
             } else if ((! "true".equals(System.getProperty("org.pepsoft.worldpainter.disableUndo"))) && config.isUndoEnabled()) {
                 currentUndoManager.registerActions(ACTION_UNDO, ACTION_REDO);
             }
@@ -3354,10 +3354,6 @@ public final class App extends JFrame implements RadiusControl,
                 registerCustomLayer(layer, true);
             }
         });
-        // TODO add support for combined layers
-        if (anchor.role == CAVE_FLOOR) {
-            menuItem.setEnabled(false);
-        }
         customLayerMenu.add(menuItem);
 
         List<Class<? extends CustomLayer>> allPluginLayers = new ArrayList<>();
@@ -3388,6 +3384,7 @@ public final class App extends JFrame implements RadiusControl,
         }
 
         menuItem = new JMenu("Copy layer from another dimension");
+        menuItem.setToolTipText("This will make a duplicate of the layer, with its own identity and separate settings");
         final Function<Layer, Boolean> filter = getLayerFilterForCurrentDimension();
         List<JMenuItem> copyMenuItems = getCopyLayerMenuItems((paletteName != null) ? paletteName : "Custom Layers", filter);
         if (! copyMenuItems.isEmpty()) {
@@ -3413,7 +3410,7 @@ public final class App extends JFrame implements RadiusControl,
     @Nullable
     private Function<Layer, Boolean> getLayerFilterForCurrentDimension() {
         if ((dimension != null) && (dimension.getAnchor().role == CAVE_FLOOR)) {
-            return layer -> ! ((layer instanceof TunnelLayer) || (layer instanceof UndergroundPocketsLayer) || (layer instanceof CombinedLayer));
+            return TunnelLayer::isLayerSupportedForFloorDimension;
         } else {
             return null;
         }
@@ -3430,7 +3427,7 @@ public final class App extends JFrame implements RadiusControl,
             }
             final Map<String, JMenu> menusForDimension = new HashMap<>();
             for (CustomLayer layer: dimension.getCustomLayers()) {
-                if ((! layer.isExportable()) || ((filter != null) && filter.apply(layer))) {
+                if ((! layer.isExportable()) || ((filter != null) && (! filter.apply(layer)))) {
                     continue;
                 }
                 final String palette = layer.getPalette();
@@ -6049,7 +6046,7 @@ public final class App extends JFrame implements RadiusControl,
                         }
                         if ((filter != null) && (! filter.apply(layer))) {
                             DesktopUtils.beep();
-                            showMessageDialog(this, "That layer type is not supported for the current dimension.\nThe layer has not been added.", "Inapplicable Layer Type", ERROR_MESSAGE);
+                            showMessageDialog(this, "That layer or layer type is not supported for the current dimension.\nThe layer has not been added.", "Inapplicable Layer Type", ERROR_MESSAGE);
                             return;
                         }
                         if (! layer.isExportable()) {
@@ -6118,7 +6115,7 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void addLayersFromCombinedLayer(CombinedLayer combinedLayer) {
-        combinedLayer.getLayers().stream().filter(layer -> (layer instanceof CustomLayer) && (!paletteManager.contains(layer)) && (!layersWithNoButton.contains(layer))).forEach(layer -> {
+        combinedLayer.getLayers().stream().filter(layer -> (layer instanceof CustomLayer) && (! paletteManager.contains(layer)) && (! layersWithNoButton.contains(layer))).forEach(layer -> {
             CustomLayer customLayer = (CustomLayer) layer;
             if (customLayer.isHide()) {
                 layersWithNoButton.add(customLayer);
@@ -6319,9 +6316,9 @@ public final class App extends JFrame implements RadiusControl,
                                 existingCustomLayers = getCustomLayers();
                             }
                             if (existingCustomLayers.contains(selectedItem)) {
-                                errors.append("Custom Layer \"" + ((CustomLayer) selectedItem).getName() + "\" already exists\n");
+                                errors.append("Layer \"" + ((CustomLayer) selectedItem).getName() + "\" already exists\n");
                             } else if ((filter != null) && (! filter.apply((CustomLayer) selectedItem))) {
-                                errors.append("Custom Layer \"" + ((CustomLayer) selectedItem).getName() + "\" type not supported for current dimension\n");
+                                errors.append("Layer \"" + ((CustomLayer) selectedItem).getName() + "\" or layer type not supported for current dimension\n");
                                 showError = true;
                             } else {
                                 registerCustomLayer((CustomLayer) selectedItem, false);

@@ -6,10 +6,12 @@
 
 package org.pepsoft.worldpainter.layers.combined;
 
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.themes.JSpinnerTableCellEditor;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 
@@ -28,6 +30,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.pepsoft.util.CollectionUtils.listOf;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
+import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
 import static org.pepsoft.worldpainter.layers.combined.CombinedLayerTableModel.COLUMN_FACTOR;
 import static org.pepsoft.worldpainter.layers.combined.CombinedLayerTableModel.COLUMN_LAYER;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
@@ -134,7 +137,8 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
         
         final CustomBiomeManager customBiomeManager = context.getCustomBiomeManager();
         final ColourScheme colourScheme = context.getColourScheme();
-        final Platform platform = context.getDimension().getWorld().getPlatform();
+        final Dimension dimension = context.getDimension();
+        final Platform platform = dimension.getWorld().getPlatform();
         comboBoxTerrain.setRenderer(new TerrainListCellRenderer(colourScheme, "none"));
         comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager, "none", platform));
 
@@ -144,6 +148,10 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
         comboBoxBiome.setModel(new DefaultComboBoxModel<>(allBiomes.toArray(new Integer[allBiomes.size()])));
         
         allLayers = context.getAllLayers();
+
+        if (dimension.getAnchor().role == CAVE_FLOOR) {
+            allLayers.removeIf(l -> ! TunnelLayer.isLayerSupportedForFloorDimension(l));
+        }
     }
 
     @Override

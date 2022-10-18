@@ -7,6 +7,7 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.util.mdc.MDCThreadPoolExecutor;
+import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.*;
@@ -40,6 +41,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -113,30 +116,26 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         long start = System.currentTimeMillis();
 
         final Anchor anchor = dimension.getAnchor();
-        final Dimension ceiling = dimension.getWorld().getDimension(new Anchor(anchor.dim, anchor.role, true, 0));
-        final Dimension master = dimension.getWorld().getDimension(new Anchor(anchor.dim, MASTER, false, 0));
+        final int dim = anchor.dim;
+        final Dimension ceiling = dimension.getWorld().getDimension(new Anchor(dim, anchor.role, true, 0));
+        final Dimension master = dimension.getWorld().getDimension(new Anchor(dim, MASTER, false, 0));
         final Dimension combined = (master != null) ? new FlatteningDimension(dimension, new ScaledDimension(master, 16.0f)) : dimension;
 
         final ChunkFactory.Stats collectedStats = new ChunkFactory.Stats();
-        Object savedSettings = null, savedCeilingSettings = null, savedMasterSettings = null;
-        dimension.rememberChanges();
-        if (ceiling != null) {
-            ceiling.rememberChanges();
-        }
-        if (master != null) {
-            master.rememberChanges();
-        }
+        final boolean tilesSelected = worldExportSettings.getTilesToExport() != null;
+        final Set<Point> selectedTiles = tilesSelected ? worldExportSettings.getTilesToExport() : null;
+        // TODO is it too late to do this now because we already created the combined dimension:
+        final Map<Dimension, Object> savedSettings = world.getDimensions().stream()
+                .filter(d -> d.getAnchor().dim == dim)
+                .collect(toMap(identity(), d -> setupDimensionForExport(d, selectedTiles)));
         try {
             // Determine regions to export
             int lowestRegionX = Integer.MAX_VALUE, highestRegionX = Integer.MIN_VALUE, lowestRegionZ = Integer.MAX_VALUE, highestRegionZ = Integer.MIN_VALUE;
             final Set<Point> regions = new HashSet<>(), exportedRegions = new HashSet<>();
-            final boolean tilesSelected = worldExportSettings.getTilesToExport() != null;
-            final Set<Point> selectedTiles;
             if (tilesSelected) {
                 // Sanity check
                 assert worldExportSettings.getDimensionsToExport().size() == 1;
-                assert worldExportSettings.getDimensionsToExport().contains(anchor.dim);
-                selectedTiles = worldExportSettings.getTilesToExport();
+                assert worldExportSettings.getDimensionsToExport().contains(dim);
                 for (Point tile: selectedTiles) {
                     int regionX = tile.x >> 2;
                     int regionZ = tile.y >> 2;
@@ -155,7 +154,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                     }
                 }
             } else {
-                selectedTiles = null;
                 for (Point tileCoords: combined.getTileCoords()) {
                     // Also add regions for any bedrock wall and/or border tiles, if present
                     int r = (((dimension.getBorder() != null) && (! dimension.getBorder().isEndless())) ? dimension.getBorderSize() : 0)
@@ -199,15 +197,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                         }
                     }
                 }
-            }
-
-            savedSettings = setupDimensionForExport(dimension, selectedTiles);
-            if (ceiling != null) {
-                savedCeilingSettings = setupDimensionForExport(ceiling, selectedTiles);
-            }
-            if (master != null) {
-                savedMasterSettings = setupDimensionForExport(master, selectedTiles);
-                // TODO is it too late to do this now because we already created the combined dimension?
             }
 
             // Sort the regions to export the first two rows together, and then
@@ -281,7 +270,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                             } finally {
                                 if ((exportResults != null) && exportResults.chunksGenerated) {
                                     long saveStart = System.currentTimeMillis();
-                                    worldRegion.save(worldDir, anchor.dim);
+                                    worldRegion.save(worldDir, dim);
                                     if (logger.isDebugEnabled()) {
                                         logger.debug("Saving region took {} ms", System.currentTimeMillis() - saveStart);
                                     }
@@ -349,35 +338,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         } finally {
 
             // Undo any changes we made (such as applying any combined layers)
-            restoreDimensionAfterExport(dimension, savedSettings);
-            if (dimension.undoChanges()) {
-                // TODO: some kind of cleverer undo mechanism (undo history cloning?) so we don't mess up the user's
-                //  redo history
-                dimension.clearRedo();
-                dimension.armSavePoint();
-            }
-
-            if (ceiling != null) {
-                // Undo any changes we made (such as applying any combined layers)
-                restoreDimensionAfterExport(ceiling, savedCeilingSettings);
-                if (ceiling.undoChanges()) {
-                    // TODO: some kind of cleverer undo mechanism (undo history cloning?) so we don't mess up the user's
-                    //  redo history
-                    ceiling.clearRedo();
-                    ceiling.armSavePoint();
-                }
-            }
-
-            if (master != null) {
-                // Undo any changes we made (such as applying any combined layers)
-                restoreDimensionAfterExport(master, savedMasterSettings);
-                if (master.undoChanges()) {
-                    // TODO: some kind of cleverer undo mechanism (undo history cloning?) so we don't mess up the user's
-                    //  redo history
-                    master.clearRedo();
-                    master.armSavePoint();
-                }
-            }
+            savedSettings.forEach(this::restoreDimensionAfterExport);
         }
 
         return collectedStats;
@@ -398,6 +359,14 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
     protected Object setupDimensionForExport(Dimension dimension, Set<Point> selectedTiles) {
         final Map<String, Object> savedSettings = new HashMap<>();
+
+        // Make sure that an undo manager is installed so all data changes can be rolled back
+        if (! dimension.isUndoAvailable()) {
+            final UndoManager undoManager = new UndoManager(2);
+            dimension.registerUndoManager(undoManager);
+            savedSettings.put("undoManager", undoManager);
+        }
+        dimension.rememberChanges();
 
         // Make all leaves persistent if directed by the world export settings
         if ((worldExportSettings.getStepsToSkip() != null) && worldExportSettings.getStepsToSkip().contains(LEAVES)) {
@@ -460,19 +429,27 @@ public abstract class AbstractWorldExporter implements WorldExporter {
     }
 
     /**
-     * Restores changes that were performed by {@link #setupDimensionForExport(Dimension, Set)} that are not covered
-     * by the undo mechanism.
+     * Restores changes that were performed by {@link #setupDimensionForExport(Dimension, Set)}.
      *
      * @param dimension     The dimension to restore.
      * @param savedSettings The object that was returned from {@link #setupDimensionForExport(Dimension, Set)}.
      */
     @SuppressWarnings("unchecked") // Responsibility of caller
     protected void restoreDimensionAfterExport(Dimension dimension, Object savedSettings) {
-        if (savedSettings != null) {
-            final Map<String, Object> map = (Map<String, Object>) savedSettings;
-            if (map.containsKey("exportSettings")) {
-                dimension.setExportSettings((ExportSettings) map.get("exportSettings"));
-            }
+        final Map<String, Object> map = (Map<String, Object>) savedSettings;
+        if ((map != null) && map.containsKey("exportSettings")) {
+            dimension.setExportSettings((ExportSettings) map.get("exportSettings"));
+        }
+
+        if (dimension.undoChanges()) {
+            // TODO: some kind of cleverer undo mechanism (undo history cloning?) so we don't mess up the user's redo
+            //  history
+            dimension.clearRedo();
+            dimension.armSavePoint();
+        }
+
+        if ((map != null) && map.containsKey("undoManager")) {
+            dimension.unregisterUndoManager();
         }
     }
 

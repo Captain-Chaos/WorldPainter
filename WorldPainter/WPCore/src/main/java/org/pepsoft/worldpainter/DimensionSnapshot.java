@@ -71,7 +71,7 @@ public final class DimensionSnapshot extends Dimension { // This cannot be an RO
     }
 
     @Override
-    public void unregister() {
+    public void unregisterUndoManager() {
         // Do nothing
     }
 
@@ -96,7 +96,7 @@ public final class DimensionSnapshot extends Dimension { // This cannot be an RO
     }
 
     @Override
-    public void register(UndoManager undoManager) {
+    public void registerUndoManager(UndoManager undoManager) {
         // Do nothing
     }
 

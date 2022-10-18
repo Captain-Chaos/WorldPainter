@@ -30,7 +30,7 @@ public class RiverGenerator {
     public void generateRivers() {
         dimension.setEventsInhibited(true);
         UndoManager undoManager = new UndoManager(2);
-        dimension.register(undoManager);
+        dimension.registerUndoManager(undoManager);
         snapshot = dimension.getSnapshot();
         dimension.armSavePoint();
         garden = dimension.getGarden();
@@ -49,7 +49,7 @@ public class RiverGenerator {
         } finally {
             garden = null;
             snapshot = null;
-            dimension.unregister();
+            dimension.unregisterUndoManager();
             dimension.setEventsInhibited(false);
         }
     }
