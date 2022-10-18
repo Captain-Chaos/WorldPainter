@@ -789,20 +789,18 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             }
 
             long t1 = System.currentTimeMillis();
-            // First pass. Create terrain and apply layers which don't need access
-            // to neighbouring chunks
+            // First pass. Create terrain and apply layers which don't need access to neighbouring chunks
             ExportResults exportResults = firstPass(minecraftWorld, dimension, regionCoords, tiles, tileSelection, exporters, chunkFactory, false, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, ((ceiling != null) ? 0.225f : 0.45f) /* TODO why doesn't this work? */) : null);
 
             ExportResults ceilingExportResults = null;
             if (ceiling != null) {
-                // First pass for the ceiling. Create terrain and apply layers which
-                // don't need access to neighbouring chunks
+                // First pass for the ceiling. Create terrain and apply layers which don't need access to neighbouring
+                // chunks
                 ceilingExportResults = firstPass(minecraftWorld, ceiling, regionCoords, ceilingTiles, tileSelection, ceilingExporters, ceilingChunkFactory, true, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.225f, 0.225f) : null);
             }
 
             if (exportResults.chunksGenerated || ((ceiling != null) && ceilingExportResults.chunksGenerated)) {
-                // Second pass. Apply layers which need information from or apply
-                // changes to neighbouring chunks
+                // Second pass. Apply layers which need information from or apply changes to neighbouring chunks
                 long t2 = System.currentTimeMillis();
                 List<Fixup> myFixups = secondPass(secondaryPassLayers, dimension, minecraftWorld, exporters, tiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.45f, (ceiling != null) ? 0.05f : 0.1f) : null);
                 if ((myFixups != null) && (! myFixups.isEmpty())) {
@@ -810,9 +808,8 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 }
 
                 if (ceiling != null) {
-                    // Second pass for ceiling. Apply layers which need information
-                    // from or apply changes to neighbouring chunks. Fixups are not
-                    // supported for the ceiling for now. TODO: implement
+                    // Second pass for ceiling. Apply layers which need information from or apply changes to
+                    // neighbouring chunks. Fixups are not supported for the ceiling for now. TODO: implement
                     secondPass(ceilingSecondaryPassLayers, ceiling, new InvertedWorld(minecraftWorld, ceiling.getMaxHeight() - ceiling.getCeilingHeight(), platform), ceilingExporters, ceilingTiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.05f) : null);
                 }
 
@@ -844,7 +841,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
 
             return exportResults;
         } catch (RuntimeException e) {
-            throw new RuntimeException(e.getMessage() + " (region: " + regionCoords + ")", e);
+            throw new WPRuntimeException(e.getMessage() + " (region: " + regionCoords + ")", e);
         }
     }
 
