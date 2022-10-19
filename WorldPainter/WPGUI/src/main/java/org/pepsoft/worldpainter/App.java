@@ -3507,7 +3507,7 @@ public final class App extends JFrame implements RadiusControl,
         buttonPanel.add(createTerrainButton(PODZOL));
 
         buttonPanel.add(createTerrainButton(BARE_GRASS));
-        buttonPanel.add(createTerrainButton(STONE));
+        buttonPanel.add(createTerrainButton(MOSS));
         buttonPanel.add(createTerrainButton(MUD));
         buttonPanel.add(createTerrainButton(GRAVEL));
         buttonPanel.add(createTerrainButton(CLAY));
@@ -3520,15 +3520,21 @@ public final class App extends JFrame implements RadiusControl,
 
         buttonPanel.add(createTerrainButton(COBBLESTONE));
         buttonPanel.add(createTerrainButton(MOSSY_COBBLESTONE));
-        buttonPanel.add(createTerrainButton(OBSIDIAN));
+        buttonPanel.add(createTerrainButton(STONE));
         buttonPanel.add(createTerrainButton(DEEPSLATE));
         buttonPanel.add(createTerrainButton(ROCK));
 
         buttonPanel.add(createTerrainButton(TUFF));
-        buttonPanel.add(createTerrainButton(MAGMA));
-        buttonPanel.add(createTerrainButton(LAVA));
         buttonPanel.add(createTerrainButton(BEDROCK));
         buttonPanel.add(createTerrainButton(MYCELIUM));
+        buttonPanel.add(Box.createGlue());
+        buttonPanel.add(Box.createGlue());
+
+        buttonPanel.add(createTerrainButton(OBSIDIAN));
+        buttonPanel.add(createTerrainButton(MAGMA));
+        buttonPanel.add(createTerrainButton(LAVA));
+        buttonPanel.add(Box.createGlue());
+        buttonPanel.add(Box.createGlue());
 
         buttonPanel.add(createTerrainButton(DESERT));
         buttonPanel.add(createTerrainButton(SANDSTONE));

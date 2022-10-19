@@ -623,6 +623,7 @@ public class JavaMapImporter extends MapImporter {
         TERRAIN_MAPPING.put(MC_CALCITE, Terrain.CALCITE);
         TERRAIN_MAPPING.put(MC_MUD, Terrain.MUD);
         TERRAIN_MAPPING.put(MC_MUDDY_MANGROVE_ROOTS, Terrain.MUD);
+        TERRAIN_MAPPING.put(MC_MOSS_BLOCK, Terrain.MOSS);
     }
 
     static {
