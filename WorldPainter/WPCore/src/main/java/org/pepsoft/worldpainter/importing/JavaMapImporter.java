@@ -571,6 +571,7 @@ public class JavaMapImporter extends MapImporter {
         TERRAIN_MAPPING.put(MC_DIAMOND_ORE, Terrain.STONE);
         TERRAIN_MAPPING.put(MC_REDSTONE_ORE, Terrain.STONE);
         TERRAIN_MAPPING.put(MC_COPPER_ORE, Terrain.STONE);
+        TERRAIN_MAPPING.put(MC_EMERALD_ORE, Terrain.STONE);
         TERRAIN_MAPPING.put(MC_INFESTED_STONE, Terrain.STONE);
         TERRAIN_MAPPING.put(MC_SANDSTONE, Terrain.SANDSTONE);
         TERRAIN_MAPPING.put(MC_RED_SANDSTONE, Terrain.RED_SANDSTONE);

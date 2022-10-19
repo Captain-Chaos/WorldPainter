@@ -298,7 +298,7 @@ minecraft:dried_kelp_block,,,15,false,false,false,false,false,false,,false,false
 minecraft:dripstone_block,,,15,false,false,false,false,false,false,,false,false,0,true,false,ff866b5c,dripstone_block.png
 minecraft:dropper,,"facing:e[north;east;south;west;up;down],triggered:b",0,false,false,false,false,false,true,minecraft:dropper,false,false,0,false,false,ff606060,old default
 minecraft:emerald_block,,,15,false,false,false,false,false,false,,false,false,0,false,false,ff51d975,old default
-minecraft:emerald_ore,,,15,false,false,false,false,true,false,,false,false,0,true,false,ff6d8074,old default
+minecraft:emerald_ore,,,15,false,true,false,false,true,false,,false,false,0,true,false,ff6d8074,old default
 minecraft:enchanting_table,,,0,false,false,false,false,false,true,minecraft:enchanting_table,false,false,7,false,false,ff67403b,old default
 minecraft:end_gateway,,,15,false,false,false,false,false,true,minecraft:end_gateway,false,false,15,false,false,,
 minecraft:end_portal,,,0,false,false,false,false,false,true,minecraft:end_portal,false,false,15,false,false,ff14121d,old default
