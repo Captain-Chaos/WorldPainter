@@ -128,7 +128,6 @@ public class MaterialImporter {
                 || name.contains("azalea")
                 || name.contains("flowering")
                 || name.contains("lichen")
-                || name.contains("moss")
                 || name.contains("stem")
                 || name.contains("blossom"));
     }
