@@ -402,15 +402,30 @@ public final class App extends JFrame implements RadiusControl,
                 tile.removeListener(this);
             }
             Point viewPosition = view.getViewCentreInWorldCoords();
-            if (viewPosition != null) {
-                this.dimension.setLastViewPosition(viewPosition);
-                // Keep the view position of the opposite dimension, if any, in sync
-                if (world != null) {
-                    final Anchor anchor = this.dimension.getAnchor();
-                    final Dimension oppositeDimension = world.getDimension(new Anchor(anchor.dim, anchor.role, ! anchor.invert, 0));
-                    if (oppositeDimension != null) {
-                        oppositeDimension.setLastViewPosition(viewPosition);
-                    }
+            this.dimension.setLastViewPosition(viewPosition);
+            // Keep the view position of related dimensions, if any, in sync
+            if (world != null) {
+                final Anchor anchor = this.dimension.getAnchor();
+                final Dimension oppositeDimension = world.getDimension(new Anchor(anchor.dim, anchor.role, ! anchor.invert, anchor.id));
+                if (oppositeDimension != null) {
+                    oppositeDimension.setLastViewPosition(viewPosition);
+                }
+                switch (anchor.role) {
+                    case DETAIL:
+                        final Dimension masterDimension = world.getDimension(new Anchor(anchor.dim, MASTER, anchor.invert, 0));
+                        if (masterDimension != null) {
+                            masterDimension.setLastViewPosition(new Point(viewPosition.x >> 4, viewPosition.y >> 4));
+                        }
+                        break;
+                    case MASTER:
+                        Dimension detailDimension = world.getDimension(new Anchor(anchor.dim, DETAIL, anchor.invert, 0));
+                        detailDimension.setLastViewPosition(new Point(viewPosition.x << 4, viewPosition.y << 4));
+                        break;
+                    case CAVE_FLOOR:
+                        // Keep the surface dimension in sync with the last edited cave floor
+                        detailDimension = world.getDimension(new Anchor(anchor.dim, DETAIL, anchor.invert, 0));
+                        detailDimension.setLastViewPosition(viewPosition);
+                        break;
                 }
             }
 
@@ -1555,7 +1570,7 @@ public final class App extends JFrame implements RadiusControl,
         allLayers.addAll(getCustomLayers());
         return allLayers;
     }
-    
+
     /**
      * Gets all currently loaded custom layers, including hidden ones (from the
      * panel or the view), regardless of whether they are used on the map.
@@ -2229,10 +2244,7 @@ public final class App extends JFrame implements RadiusControl,
             saveCustomLayers();
 
             if (dimension != null) {
-                final Point viewPosition = view.getViewCentreInWorldCoords();
-                if (viewPosition != null) {
-                    this.dimension.setLastViewPosition(viewPosition);
-                }
+                this.dimension.setLastViewPosition(view.getViewCentreInWorldCoords());
             }
 
             final Configuration config = Configuration.getInstance();
@@ -2408,10 +2420,7 @@ public final class App extends JFrame implements RadiusControl,
             saveCustomLayers();
 
             if (dimension != null) {
-                Point viewPosition = view.getViewCentreInWorldCoords();
-                if (viewPosition != null) {
-                    this.dimension.setLastViewPosition(viewPosition);
-                }
+                this.dimension.setLastViewPosition(view.getViewCentreInWorldCoords());
             }
 
             ProgressDialog.executeTask(this, new ProgressTask<java.lang.Void>() {
@@ -3865,7 +3874,45 @@ public final class App extends JFrame implements RadiusControl,
                         menuItem = new JMenuItem("Edit floor dimension [ALPHA]");
                         if (dimension.containsOneOf(layer)) {
                             menuItem.addActionListener(e1 -> {
-                                setDimension(tunnelLayer.updateFloorDimension(dimension, null));
+                                final Point viewPosition = view.getViewCentreInWorldCoords();
+                                final Dimension floorDimension = tunnelLayer.updateFloorDimension(dimension, null);
+                                setDimension(floorDimension);
+
+                                // Initially we move to the same location as we were on the surface. Then we check
+                                // whether the floor dimension is actually visible then. If not, we try to find the
+                                // middle and move there
+                                // TODO: this might not be helpful if the layer is painted in multiple discontiguous areas
+                                view.moveTo(viewPosition);
+                                int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
+                                final Rectangle visibleArea = view.getVisibleArea();
+                                boolean floorTileVisible = false;
+                                for (Tile tile: floorDimension.getTiles()) {
+                                    // Check if the tile is entirely visible. If so, we're done and will
+                                    if (visibleArea.contains(tile.getX() << TILE_SIZE_BITS, tile.getY() << TILE_SIZE_BITS)
+                                            && visibleArea.contains((tile.getX() << TILE_SIZE_BITS) + TILE_SIZE - 1, (tile.getY() << TILE_SIZE_BITS) + TILE_SIZE - 1)) {
+                                        floorTileVisible = true;
+                                        break;
+                                    }
+
+                                    // Record the extents of the tiles of the floor dimension
+                                    if (tile.getX() < minX) {
+                                        minX = tile.getX();
+                                    }
+                                    if (tile.getX() > maxX) {
+                                        maxX = tile.getX();
+                                    }
+                                    if (tile.getY() < minY) {
+                                        minY = tile.getY();
+                                    }
+                                    if (tile.getY() > maxY) {
+                                        maxY = tile.getY();
+                                    }
+                                };
+                                if ((! floorTileVisible) && (minX != Integer.MAX_VALUE)) {
+                                    view.moveTo((((maxX + minX) / 2) << TILE_SIZE_BITS) + (TILE_SIZE / 2),
+                                            (((maxY + minY) / 2) << TILE_SIZE_BITS) + (TILE_SIZE / 2));
+                                }
+
                                 final Configuration config = Configuration.getInstance();
                                 if (! config.isMessageDisplayedCountAtLeast(EDITING_FLOOR_DIMENSION_KEY, 3)) {
                                     doLaterOnEventThread(() -> JOptionPane.showMessageDialog(App.this,
