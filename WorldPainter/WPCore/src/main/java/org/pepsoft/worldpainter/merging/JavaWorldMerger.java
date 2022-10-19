@@ -1079,9 +1079,9 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             existingChunk.setSkyLightLevel(x, y, z, 0);
                             existingChunk.setBlockLightLevel(x, y, z, 0);
                         } else if (clearResources && existingBlock.resource) {
-                            if (existingBlock.isNamed(MC_NETHER_QUARTZ_ORE)) {
+                            if (existingBlock.isNamedOneOf(MC_NETHER_QUARTZ_ORE, MC_NETHER_GOLD_ORE, MC_ANCIENT_DEBRIS)) {
                                 existingChunk.setMaterial(x, y, z, NETHERRACK);
-                            } else if (existingBlock.name.startsWith("minecraft:deepslate_")) {
+                            } else if (DEEPSLATE_ORES.contains(existingBlock)) {
                                 existingChunk.setMaterial(x, y, z, DEEPSLATE_Y);
                             } else {
                                 existingChunk.setMaterial(x, y, z, STONE);
@@ -1431,8 +1431,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             if ((existingMaterial != null)
                     && (((newMaterial == DIRT) && existingMaterial.isNamed(MC_FARMLAND)) // Farmland is imported as dirt, so make sure to leave it intact.
                     || ((newMaterial == DIRT) && (existingMaterial == ROOTED_DIRT)) // Rooted dirt is imported as dirt, so make sure to leave it intact.
-                    || ((newMaterial == STONE) && (existingMaterial == INFESTED_STONE)) // Infested stone is imported as stone, so make sure to leave it intact.
-                    || (newMaterial.isNamed(MC_DEEPSLATE) && existingMaterial.isNamed(MC_INFESTED_DEEPSLATE)) // Infested deepslate is imported as deepslate, so make sure to leave it intact.
+                    || ((newMaterial == STONE) && ((existingMaterial == INFESTED_STONE) || STONE_ORES.contains(existingMaterial))) // Infested stone and ores are imported as stone, so make sure to leave them intact.
+                    || (newMaterial.isNamed(MC_DEEPSLATE) && (existingMaterial.isNamed(MC_INFESTED_DEEPSLATE) || DEEPSLATE_ORES.contains(existingMaterial))) // Infested deepslate and deepslate ores are imported as deepslate, so make sure to leave them intact.
                     || ((newMaterial == ICE) && existingMaterial.isNamed(MC_FROSTED_ICE)) // Frosted ice is imported as water + Frost, so make sure to leave it intact TODO do this for other forms of ice?
                     || ((newMaterial == MUD) && existingMaterial.isNamed(MC_MUDDY_MANGROVE_ROOTS)))) { // Muddy mangrove roots are imported as mud, so make sure to leave it intact.
                 newMaterial = existingMaterial;

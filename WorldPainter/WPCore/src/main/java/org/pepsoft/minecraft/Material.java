@@ -2048,6 +2048,9 @@ public final class Material implements Serializable {
     public static final int CATEGORY_NATURAL_SOLID = 5;
     public static final int CATEGORY_UNKNOWN       = 6;
 
+    public static final Set<Material> STONE_ORES = ImmutableSet.of(GOLD_ORE, IRON_ORE, COAL, LAPIS_LAZULI_ORE, DIAMOND_ORE, REDSTONE_ORE, COPPER_ORE, EMERALD_ORE);
+    public static final Set<Material> DEEPSLATE_ORES = ImmutableSet.of(DEEPSLATE_GOLD_ORE, DEEPSLATE_IRON_ORE, DEEPSLATE_COAL_ORE, DEEPSLATE_LAPIS_ORE, DEEPSLATE_DIAMOND_ORE, DEEPSLATE_REDSTONE_ORE, DEEPSLATE_COPPER_ORE, DEEPSLATE_EMERALD_ORE);
+
     /**
      * A map of modern tile entity IDs mapped to the modern block IDs they are associated with.
      */
