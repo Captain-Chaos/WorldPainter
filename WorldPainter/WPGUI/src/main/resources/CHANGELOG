@@ -1,7 +1,8 @@
--- Version 2.15.5, released ...
+-- Version 2.15.5, released 19-10-2022
 
  * Combined Layers are now supported for Custom Cave/Tunnel Layer Floor Dimensions. However only if they do not contain prohibited layers for cave floor dimensions, such as cave layers, etc.
- * Changed the logic for buried Custom Objects to spawn underneath the (ground) water table even if the "under water" spawn option is not checked
+ * When editing Floor Dimensions the Floor Dimension is moved into view if it is not currently visible
+ * Changed the logic for buried Custom Objects so that they spawn underneath the (ground) water table even if the "under water" spawn option is not checked
 
 -- Version 2.15.4, released 17-10-2022
 
