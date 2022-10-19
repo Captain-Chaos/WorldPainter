@@ -551,9 +551,9 @@ public class JavaMapImporter extends MapImporter {
 
     static {
         TERRAIN_MAPPING.put(MC_STONE, Terrain.STONE);
-        TERRAIN_MAPPING.put(MC_ANDESITE, Terrain.STONE);
-        TERRAIN_MAPPING.put(MC_DIORITE, Terrain.STONE);
-        TERRAIN_MAPPING.put(MC_GRANITE, Terrain.STONE);
+        TERRAIN_MAPPING.put(MC_ANDESITE, Terrain.ANDESITE);
+        TERRAIN_MAPPING.put(MC_DIORITE, Terrain.DIORITE);
+        TERRAIN_MAPPING.put(MC_GRANITE, Terrain.GRANITE);
         TERRAIN_MAPPING.put(MC_GRASS_BLOCK, Terrain.BARE_GRASS);
         TERRAIN_MAPPING.put(MC_DIRT, Terrain.DIRT);
         TERRAIN_MAPPING.put(MC_COARSE_DIRT, Terrain.PERMADIRT);
