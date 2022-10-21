@@ -33,6 +33,6 @@ public class TerrainShapingOptionsPanel extends StandardOptionsPanel {
         add(checkBoxApplyTheme, constraints);
     }
 
-    private JCheckBox checkBoxApplyTheme = new JCheckBox("Apply theme");
+    private JCheckBox checkBoxApplyTheme;
     private TerrainShapingOptions<?> options;
 }
