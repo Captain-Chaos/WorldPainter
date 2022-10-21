@@ -25,7 +25,7 @@ public class RaiseMountain extends RadiusOperation {
         super("Raise Mountain", "Raises a mountain out of the ground", view, radiusControl, mapDragControl, 100, "operation.raiseMountain", "mountain");
         options = new TerrainShapingOptions<>();
         options.setApplyTheme(true); // This has historically been the default for this operation
-        optionsPanel = new TerrainShapingOptionsPanel(options);
+        optionsPanel = new TerrainShapingOptionsPanel("Mountain", "<ul><li>Left-click to raise a mountain in the shape of the brush and its base at bedrock<li>Right-click to dig a hole in the shape of the brush and its base at build height</ul>", options);
     }
 
     @Override

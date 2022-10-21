@@ -34,6 +34,11 @@ public class Text extends AbstractBrushOperation implements PaintOperation {
     }
 
     @Override
+    public JPanel getOptionsPanel() {
+        return OPTIONS_PANEL;
+    }
+
+    @Override
     protected void brushChanged(Brush newBrush) {
         if (painter.getPaint() != null) {
             painter.getPaint().setBrush(newBrush);
@@ -72,4 +77,6 @@ public class Text extends AbstractBrushOperation implements PaintOperation {
 
     private final DimensionPainter painter = new DimensionPainter();
     private String savedText;
+
+    private static final JPanel OPTIONS_PANEL = new StandardOptionsPanel("Text", "<p>Click to form text with the currently selected paint with its top left corner at the indicated location");
 }

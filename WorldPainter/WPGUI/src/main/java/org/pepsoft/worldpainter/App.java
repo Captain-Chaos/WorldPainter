@@ -5238,6 +5238,7 @@ public final class App extends JFrame implements RadiusControl,
             button.setMnemonic(mnemonic);
         }
         button.addItemListener(event -> {
+            boolean refreshOptionsPanel = false;
             if (event.getStateChange() == ItemEvent.DESELECTED) {
                 if (operation instanceof RadiusOperation) {
                     view.setDrawBrush(false);
@@ -5250,7 +5251,7 @@ public final class App extends JFrame implements RadiusControl,
                 activeOperation = null;
                 if (toolSettingsPanel.getComponentCount() > 0) {
                     toolSettingsPanel.removeAll();
-                    validate();
+                    refreshOptionsPanel = true;
                 }
             } else {
                 if (operation instanceof PaintOperation) {
@@ -5335,8 +5336,12 @@ public final class App extends JFrame implements RadiusControl,
                 JPanel optionsPanel = operation.getOptionsPanel();
                 if (optionsPanel != null) {
                     toolSettingsPanel.add(optionsPanel, BorderLayout.CENTER);
-                    dockingManager.resetLayout();
+                    refreshOptionsPanel = true;
                 }
+            }
+            if (refreshOptionsPanel) {
+                toolSettingsPanel.revalidate();
+                toolSettingsPanel.repaint();
             }
         });
         button.putClientProperty(KEY_HELP_KEY, "Operation/" + operation.getClass().getSimpleName());

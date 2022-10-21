@@ -9,6 +9,8 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.WorldPainter;
 
+import javax.swing.*;
+
 /**
  *
  * @author pepijn
@@ -16,6 +18,11 @@ import org.pepsoft.worldpainter.WorldPainter;
 public class RaisePyramid extends MouseOrTabletOperation {
     public RaisePyramid(WorldPainter worldPainter) {
         super("Raise Pyramid", "Raises a square pyramid out of the ground", worldPainter, 100, "operation.raisePyramid", "pyramid");
+    }
+
+    @Override
+    public JPanel getOptionsPanel() {
+        return OPTIONS_PANEL;
     }
 
     @Override
@@ -71,4 +78,6 @@ public class RaisePyramid extends MouseOrTabletOperation {
         }
         return raised;
     }
+
+    private static final StandardOptionsPanel OPTIONS_PANEL = new StandardOptionsPanel("Raise Pyramid", "<p>Click to raise a four-sided sandstone pyramid from the ground");
 }

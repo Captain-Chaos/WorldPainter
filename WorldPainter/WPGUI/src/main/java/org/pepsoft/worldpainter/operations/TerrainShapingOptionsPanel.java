@@ -1,14 +1,16 @@
 package org.pepsoft.worldpainter.operations;
 
+import org.intellij.lang.annotations.Language;
+
 import javax.swing.*;
 import java.awt.*;
 
 /**
  * Created by Pepijn Schmitz on 18-01-17.
  */
-public class TerrainShapingOptionsPanel extends JPanel {
-    public TerrainShapingOptionsPanel(TerrainShapingOptions<?> options) {
-        initComponents();
+public class TerrainShapingOptionsPanel extends StandardOptionsPanel {
+    public TerrainShapingOptionsPanel(String name, @Language("HTML") String description, TerrainShapingOptions<?> options) {
+        super(name, description);
         setOptions(options);
     }
 
@@ -21,15 +23,16 @@ public class TerrainShapingOptionsPanel extends JPanel {
         checkBoxApplyTheme.setSelected(options.isApplyTheme());
     }
 
-    private void initComponents() {
-        setLayout(new GridLayout(0, 1));
+    @Override
+    protected void addAdditionalComponents(GridBagConstraints constraints) {
+        checkBoxApplyTheme = new JCheckBox("Apply theme");
         checkBoxApplyTheme.addActionListener(e -> {
             options.setApplyTheme(checkBoxApplyTheme.isSelected());
             firePropertyChange("options", null, options);
         });
-        add(checkBoxApplyTheme);
+        add(checkBoxApplyTheme, constraints);
     }
 
-    private final JCheckBox checkBoxApplyTheme = new JCheckBox("Apply theme");
+    private JCheckBox checkBoxApplyTheme = new JCheckBox("Apply theme");
     private TerrainShapingOptions<?> options;
 }

@@ -6,8 +6,7 @@ import org.pepsoft.worldpainter.WorldPainter;
 import org.pepsoft.worldpainter.WorldPainterView;
 import org.pepsoft.worldpainter.brushes.BrushShape;
 import org.pepsoft.worldpainter.operations.MouseOrTabletOperation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.pepsoft.worldpainter.operations.StandardOptionsPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -77,7 +76,10 @@ public class CopySelectionOperation extends MouseOrTabletOperation {
 
     private SelectionHelper selectionHelper;
     private final CopySelectionOperationOptions options = new CopySelectionOperationOptions();
-    private final CopySelectionOperationOptionsPanel optionsPanel = new CopySelectionOperationOptionsPanel(options);
-
-    private static final Logger logger = LoggerFactory.getLogger(CopySelectionOperation.class);
+    private final StandardOptionsPanel optionsPanel = new StandardOptionsPanel("Copy Selection", "<p>Click to copy the selected area to the indicated location. Choose below which aspects of the world to copy:") {
+        @Override
+        protected void addAdditionalComponents(GridBagConstraints constraints) {
+            add(new CopySelectionOperationOptionsPanel(options), constraints);
+        }
+    };
 }

@@ -81,7 +81,7 @@ public class Smooth extends RadiusOperation {
     }
     
     private final TerrainShapingOptions<Smooth> options = new TerrainShapingOptions<>();
-    private final TerrainShapingOptionsPanel optionsPanel = new TerrainShapingOptionsPanel(options);
+    private final TerrainShapingOptionsPanel optionsPanel = new TerrainShapingOptionsPanel("Smooth", "<p>Click to smooth the terrain out", options);
     private float[][] totals, currentHeights;
     private int[][] sampleCounts;
 }

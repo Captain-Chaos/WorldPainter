@@ -7,6 +7,8 @@ package org.pepsoft.worldpainter.operations;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
 
+import javax.swing.*;
+
 /**
  *
  * @author pepijn
@@ -14,6 +16,11 @@ import org.pepsoft.worldpainter.layers.FloodWithLava;
 public class Sponge extends RadiusOperation {
     public Sponge(WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl) {
         super("Sponge", "Dry up or reset water and lava", view, radiusControl, mapDragControl, 100, "operation.sponge");
+    }
+
+    @Override
+    public JPanel getOptionsPanel() {
+        return OPTIONS_PANEL;
     }
 
     @Override
@@ -49,4 +56,6 @@ public class Sponge extends RadiusOperation {
             dimension.setEventsInhibited(false);
         }
     }
+
+    private static final JPanel OPTIONS_PANEL = new StandardOptionsPanel("Sponge", "<ul><li>Left-click to remove water and lava<li>Right-click to reset to the default fluid type and height</ul>");
 }

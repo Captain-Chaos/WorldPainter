@@ -23,6 +23,11 @@ public class SetSpawnPoint extends MouseOrTabletOperation {
     }
 
     @Override
+    public JPanel getOptionsPanel() {
+        return OPTIONS_PANEL;
+    }
+
+    @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
         if (first) {
             Dimension dimension = getDimension();
@@ -40,4 +45,6 @@ public class SetSpawnPoint extends MouseOrTabletOperation {
             world.setSpawnPoint(new Point(centreX, centreY));
         }
     }
+
+    private static final JPanel OPTIONS_PANEL = new StandardOptionsPanel("Spawn", "<p>Click to set the location of the initial spawn point");
 }

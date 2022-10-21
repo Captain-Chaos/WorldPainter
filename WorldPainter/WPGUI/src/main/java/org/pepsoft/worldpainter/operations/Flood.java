@@ -28,6 +28,17 @@ public class Flood extends MouseOrTabletOperation {
                 "operation.flood." + (floodWithLava ? "lava" : "water"),
                 floodWithLava ? "flood_with_lava" : "flood");
         this.floodWithLava = floodWithLava;
+        optionsPanel = floodWithLava
+                ? new StandardOptionsPanel("Flood with Lava", "<ul><li>Left-click on dry land to flood with lava\n" +
+                "<li>Left-click on lava to raise it by one\n" +
+                "<li>Right-click on lava to lower it by one\n" +
+                "<li>Click on water to turn it to lava\n" +
+                "</ul>")
+                : new StandardOptionsPanel("Flood with Water", "<ul><li>Left-click on dry land to flood with water\n" +
+                "<li>Left-click on water to raise it by one\n" +
+                "<li>Right-click on water to lower it by one\n" +
+                "<li>Click on lava to turn it to water\n" +
+                "</ul>");
     }
     
     @Override
@@ -196,9 +207,15 @@ public class Flood extends MouseOrTabletOperation {
         }
     }
 
+    @Override
+    public JPanel getOptionsPanel() {
+        return optionsPanel;
+    }
+
     private boolean alreadyFlooding;
 
     private final boolean floodWithLava;
+    private final StandardOptionsPanel optionsPanel;
 
     private static final Logger logger = LoggerFactory.getLogger(Flood.class);
 

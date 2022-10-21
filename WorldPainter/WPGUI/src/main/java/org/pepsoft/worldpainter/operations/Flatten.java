@@ -55,6 +55,6 @@ public class Flatten extends RadiusOperation {
     }
     
     private final TerrainShapingOptions<Flatten> options = new TerrainShapingOptions<>();
-    private final TerrainShapingOptionsPanel optionsPanel = new TerrainShapingOptionsPanel(options);
+    private final TerrainShapingOptionsPanel optionsPanel = new TerrainShapingOptionsPanel("Flatten", "<p>Click to flatten the terrain", options);
     private float targetHeight;
 }

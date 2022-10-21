@@ -8,7 +8,9 @@ import org.pepsoft.worldpainter.WorldPainterView;
 import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.brushes.RotatedBrush;
 import org.pepsoft.worldpainter.operations.RadiusOperation;
+import org.pepsoft.worldpainter.operations.StandardOptionsPanel;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
@@ -21,6 +23,11 @@ public class EditSelectionOperation extends RadiusOperation {
     public EditSelectionOperation(WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl, ObservableBoolean selectionState) {
         super("Edit Selection", "Expand or shrink the selection", view, radiusControl, mapDragControl, "operation.selection.edit", "edit_selection");
         this.selectionState = selectionState;
+    }
+
+    @Override
+    public JPanel getOptionsPanel() {
+        return OPTIONS_PANEL;
     }
 
     @Override
@@ -66,5 +73,6 @@ public class EditSelectionOperation extends RadiusOperation {
 
     private final ObservableBoolean selectionState;
 
+    private static final JPanel OPTIONS_PANEL = new StandardOptionsPanel("Edit Selection", "<ul><li>Left-click to add to the selection<li>Right-click to remove from the selection</ul>");
     private static final double DEGREES_TO_RADIANS = 360 / (Math.PI * 2);
 }

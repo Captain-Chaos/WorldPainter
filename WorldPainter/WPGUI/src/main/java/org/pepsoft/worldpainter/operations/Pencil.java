@@ -25,6 +25,7 @@ import org.pepsoft.worldpainter.WorldPainterView;
 import org.pepsoft.worldpainter.painting.DimensionPainter;
 import org.pepsoft.worldpainter.painting.Paint;
 
+import javax.swing.*;
 import java.awt.*;
 
 /**
@@ -184,10 +185,26 @@ public class Pencil extends AbstractPaintOperation {
         return new Point((int) Math.round(p1.getX() + u * xDelta), (int) Math.round(p1.getY() + u * yDelta));
     }
 
+    @Override
+    public JPanel getOptionsPanel() {
+        return OPTIONS_PANEL;
+    }
+
     private final DimensionPainter painter = new DimensionPainter();
     private int previousX = Integer.MIN_VALUE, previousY = Integer.MIN_VALUE, lockedX = Integer.MIN_VALUE, lockedY = Integer.MIN_VALUE;
     private Axis lockedAxis;
     private boolean inhibitDrag;
 
     enum Axis {W_E, NW_SE, N_S, NE_SW}
+
+    private static final JPanel OPTIONS_PANEL = new StandardOptionsPanel("Pencil", "<p>With the left mouse button do the following to apply the currently selected paint:\n" +
+            "<ul><li>Drag for freeform lines\n" +
+            "<li>Click for dots\n" +
+            "<li>Shift+click for straight lines from last dot or end of last line\n" +
+            "<li>Hold Ctrl to constrain to 45 degree angles</ul>\n" +
+            "<p>Use the right mouse button instead, to:\n" +
+            "<ul><li>With a Layer selected: remove the layer\n" +
+            "<li>With a Terrain selected: reset to the current theme\n" +
+            "<li>With a Biome selected: reset to Auto Biome" +
+            "</ul>");
 }

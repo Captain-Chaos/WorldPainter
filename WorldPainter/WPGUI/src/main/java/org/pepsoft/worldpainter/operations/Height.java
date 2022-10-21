@@ -84,6 +84,6 @@ public class Height extends RadiusOperation {
     }
 
     private final TerrainShapingOptions<Height> options = new TerrainShapingOptions<>();
-    private final TerrainShapingOptionsPanel optionsPanel = new TerrainShapingOptionsPanel(options);
+    private final TerrainShapingOptionsPanel optionsPanel = new TerrainShapingOptionsPanel("Height", "<ul><li>Left-click to raise the terrain<li>Right-click to lower the terrain</ul>", options);
 //    private Dimension dimensionSnapshot;
 }

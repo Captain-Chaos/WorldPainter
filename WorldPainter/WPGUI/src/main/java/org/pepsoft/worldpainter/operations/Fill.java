@@ -71,6 +71,11 @@ public class Fill extends AbstractBrushOperation implements PaintOperation {
     }
 
     @Override
+    public JPanel getOptionsPanel() {
+        return OPTIONS_PANEL;
+    }
+
+    @Override
     protected void brushChanged(Brush newBrush) {
         if (painter.getPaint() != null) {
             painter.getPaint().setBrush(newBrush);
@@ -80,5 +85,11 @@ public class Fill extends AbstractBrushOperation implements PaintOperation {
     private final DimensionPainter painter = new DimensionPainter();
     private boolean alreadyFilling;
 
+    private static final JPanel OPTIONS_PANEL = new StandardOptionsPanel("Fill", "<ul>" +
+            "<li>Left-click on a location to fill the area with the currently selected paint where the value of the currently selected paint type is the same as at the indicated location\n" +
+            "<li>Right-click with a Layer selected to remove the layer from the area where its value is the same as at the indicated location\n" +
+            "<li>Right-click with a Terrain selected to reset to the current theme where the terrain is set to the same value as at the indicated location\n" +
+            "<li>Right-click with a Biome selected to reset to Auto Biome where the biome is set to the same value as at the indicated location" +
+            "</ul>");
     private static final Logger logger = LoggerFactory.getLogger(Fill.class);
 }
