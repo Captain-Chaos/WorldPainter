@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
+
 /**
  * Created by pepijn on 14-5-15.
  */
@@ -27,9 +29,13 @@ public class Fill extends AbstractBrushOperation implements PaintOperation {
             logger.debug("Fill operation already in progress; ignoring repeated invocation");
             return;
         }
+        final Dimension dimension = getDimension();
+        if (! dimension.isTilePresent(centreX >> TILE_SIZE_BITS, centreY >> TILE_SIZE_BITS)) {
+            // Just silently fail if the user clicks outside the present area
+            return;
+        }
         alreadyFilling = true;
         try {
-            final Dimension dimension = getDimension();
             painter.setUndo(inverse);
             synchronized (dimension) {
                 dimension.setEventsInhibited(true);
