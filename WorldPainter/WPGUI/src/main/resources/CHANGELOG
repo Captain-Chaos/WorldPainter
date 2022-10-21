@@ -1,5 +1,6 @@
 -- Version 2.15.6, released ...
 
+ * The Tool Options panel now shows a name and description for the currently selected tool
  * Added a new terrain type: Moss
    + If you have previously Imported maps with moss at the surface, and you want to make changes to those chunks, you need to take action in order that they will Merge correctly:
      - Either re-Import those maps so that the Moss terrain type is present
