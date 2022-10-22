@@ -1788,6 +1788,14 @@ public final class Material implements Serializable {
     public static final Material WOOL_RED = LEGACY_MATERIALS[((BLK_WOOL) << 4) | (DATA_RED)];
     public static final Material WOOL_BLACK = LEGACY_MATERIALS[((BLK_WOOL) << 4) | (DATA_BLACK)];
 
+    /**
+     * All the colour wools, indexed by the {@code DATA_*} colour data constants (which correspond to the legacy data
+     * values for the wool block).
+     */
+    public static final Material[] WOOLS = {WOOL_WHITE, WOOL_ORANGE, WOOL_MAGENTA, WOOL_LIGHT_BLUE, WOOL_YELLOW,
+            WOOL_LIME, WOOL_PINK, WOOL_GREY, WOOL_LIGHT_GREY, WOOL_CYAN, WOOL_PURPLE, WOOL_BLUE, WOOL_BROWN, WOOL_GREEN,
+            WOOL_RED, WOOL_BLACK};
+
     public static final Material COBBLESTONE_SLAB = LEGACY_MATERIALS[((BLK_SLAB) << 4) | (DATA_SLAB_COBBLESTONE)];
 
     public static final Material DOOR_OPEN_LEFT_BOTTOM = LEGACY_MATERIALS[((BLK_WOODEN_DOOR) << 4) | (DATA_DOOR_BOTTOM | DATA_DOOR_BOTTOM_OPEN)];
