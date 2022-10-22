@@ -4,18 +4,20 @@
  */
 package org.pepsoft.worldpainter.gardenofeden;
 
-import java.awt.Point;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
-import java.util.Random;
-import javax.vecmath.Point3i;
 import org.pepsoft.worldpainter.CoordinateTransform;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.layers.GardenCategory;
 import org.pepsoft.worldpainter.util.GeometryUtil;
+
+import javax.vecmath.Point3i;
+import java.awt.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.util.Random;
 
 /**
  * A seed for planting in a {@link Garden} for creating complex random
@@ -160,14 +162,15 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      * <p>For buildings it may be advantageous to export the exteriors in the
      * first pass.
      *
-     * @param dimension The dimension which is being exported.
-     * @param tile The tile which is being exported. Note that the seed does
-     *             <em>not</em> have to constrain its changes to the area of the
-     *             tile.
+     * @param dimension      The dimension which is being exported.
+     * @param tile           The tile which is being exported. Note that the seed does
+     *                       <em>not</em> have to constrain its changes to the area of the
+     *                       tile.
+     * @param platform
      * @param minecraftWorld The Minecraft map to which the seed should export
      *                       itself.
      */
-    public void buildFirstPass(Dimension dimension, Tile tile, MinecraftWorld minecraftWorld) {
+    public void buildFirstPass(Dimension dimension, Tile tile, Platform platform, MinecraftWorld minecraftWorld) {
         // Do nothing
     }
     
@@ -181,14 +184,15 @@ public abstract class Seed implements Serializable, org.pepsoft.util.undo.Clonea
      * <p>For buildings it may be advantageous to export the interiors in the
      * second pass.
      *
-     * @param dimension The dimension which is being exported.
-     * @param tile The tile which is being exported. Note that the seed does
-     *             <em>not</em> have to constrain its changes to the area of the
-     *             tile.
+     * @param dimension      The dimension which is being exported.
+     * @param tile           The tile which is being exported. Note that the seed does
+     *                       <em>not</em> have to constrain its changes to the area of the
+     *                       tile.
+     * @param platform
      * @param minecraftWorld The Minecraft map to which the seed should export
      *                       itself.
      */
-    public void buildSecondPass(Dimension dimension, Tile tile, MinecraftWorld minecraftWorld) {
+    public void buildSecondPass(Dimension dimension, Tile tile, Platform platform, MinecraftWorld minecraftWorld) {
         // Do nothing
     }
 

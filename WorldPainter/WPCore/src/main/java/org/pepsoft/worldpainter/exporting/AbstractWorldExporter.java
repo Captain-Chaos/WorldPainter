@@ -618,8 +618,8 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         Set<Seed> firstPassProcessedSeeds = new HashSet<>();
         Set<Seed> secondPassProcessedSeeds = new HashSet<>();
         tiles.stream().filter(tile -> tile.getLayers().contains(GardenCategory.INSTANCE)).forEach(tile -> {
-            gardenExporter.firstPass(dimension, tile, minecraftWorld, firstPassProcessedSeeds);
-            gardenExporter.secondPass(dimension, tile, minecraftWorld, secondPassProcessedSeeds);
+            gardenExporter.firstPass(dimension, tile, platform, minecraftWorld, firstPassProcessedSeeds);
+            gardenExporter.secondPass(dimension, tile, platform, minecraftWorld, secondPassProcessedSeeds);
         });
 
         // TODO: trying to do this for every region should work but is not very elegant
