@@ -1,9 +1,9 @@
--- Version 2.15.6, released ...
+-- Version 2.15.6, released 23-10-2022
 
  * The Tool Options panel now shows a name and description for the currently selected tool
- * The Height Map Import screen as received some improvements:
-   + It is now possible to Import a height map as a new Master Dimension to make it easier to create large worlds from scratch based on a height map
-   + The preview can now be zoomed in and out by rolling the scroll wheel
+ * The Height Map Import screen has received some improvements:
+   + It is now possible to Import a height map as a Master Dimension to make it easier to create large worlds from scratch based on a height map
+   + The preview can now be zoomed in and out by rolling the scroll wheel of the mouse
    + When importing a height map into the current dimension, the current dimension is displayed in the preview to make it easier to position the height map
  * Added a new terrain type: Moss
    + If you have previously Imported maps with moss at the surface, and you want to make changes to those chunks, you need to take action in order that they will Merge correctly:
