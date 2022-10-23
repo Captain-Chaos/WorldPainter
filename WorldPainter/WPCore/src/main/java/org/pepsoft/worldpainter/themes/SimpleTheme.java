@@ -46,7 +46,6 @@ public class SimpleTheme implements Theme, Cloneable {
         this.maxHeight = maxHeight;
         this.terrainRangesTable = new Terrain[maxHeight - minHeight];
         setTerrainRanges(terrainRanges);
-        fixTerrainRangesTable();
         setLayerMap(layerMap);
         setRandomise(randomise);
         setBeaches(beaches);
@@ -98,6 +97,18 @@ public class SimpleTheme implements Theme, Cloneable {
     }
 
     public final void setTerrainRanges(SortedMap<Integer, Terrain> terrainRanges) {
+        if (terrainRanges == null) {
+            throw new NullPointerException("terrainRanges");
+        } else if (terrainRanges.isEmpty()) {
+            throw new IllegalArgumentException("terrainRanges may not be empty");
+        } else {
+            // This has been observed to happen in the wild: TODO find out why and fix the underlying cause
+            for (Map.Entry<Integer, Terrain> entry: terrainRanges.entrySet()) {
+                if (entry.getKey() == null || entry.getValue() == null) {
+                    throw new IllegalArgumentException("terrainRanges may not contain null values: " + terrainRanges);
+                }
+            }
+        }
         // Make sure the ranges actually start from the lowest level
         final int lowestLevel = terrainRanges.firstKey();
         if (lowestLevel >= minHeight) {
@@ -182,7 +193,6 @@ public class SimpleTheme implements Theme, Cloneable {
                         terrainRangesTable[i] = oldTerrainRangesTable[oldTerrainRangesTable.length - 1];
                     }
                 }
-                fixTerrainRangesTable();
             }
             if (layerMap != null) {
                 final Map<Filter, Layer> newLayerMap = new HashMap<>();
@@ -373,6 +383,9 @@ public class SimpleTheme implements Theme, Cloneable {
     }
     
     public static SimpleTheme createDefault(Terrain topTerrain, int minHeight, int maxHeight, int waterHeight, boolean randomise, boolean beaches) {
+        if (topTerrain == null) {
+            throw new NullPointerException("topTerrain");
+        }
         SortedMap<Integer, Terrain> terrainRanges = new TreeMap<>();
         float factor = Math.min(maxHeight, 320) / 128f; // Constrain to a reasonable height
         terrainRanges.put(minHeight - 1                    , topTerrain);
