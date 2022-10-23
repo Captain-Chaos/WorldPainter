@@ -599,7 +599,16 @@ public final class App extends JFrame implements RadiusControl,
                 paletteManager.getPalette(dimension.getSoloedPalette()).setSolo(true);
             }
             if (dimension.getHiddenPalettes() != null) {
-                dimension.getHiddenPalettes().forEach(palette -> paletteManager.getPalette(palette).setShow(false));
+                dimension.getHiddenPalettes().forEach(name -> {
+                    final Palette palette = paletteManager.getPalette(name);
+                    // It's not clear how this can be null, but that has been observed in the wild. TODO find out why
+                    //  and fix the underlying cause!
+                    if (palette != null) {
+                        palette.setShow(false);
+                    } else {
+                        logger.error("dimension.hiddenPalettes contains non existent palette name {}", name);
+                    }
+                });
             }
 
             // Set action states
@@ -6623,6 +6632,10 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
+            if ((world == null) || (dimension == null)) {
+                DesktopUtils.beep();
+                return;
+            }
             save();
         }
 
@@ -6637,6 +6650,10 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
+            if ((world == null) || (dimension == null)) {
+                DesktopUtils.beep();
+                return;
+            }
             saveAs();
         }
 
@@ -6651,6 +6668,10 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
+            if ((world == null) || (dimension == null)) {
+                DesktopUtils.beep();
+                return;
+            }
             pauseAutosave();
             try {
                 if (world.getImportedFrom() != null) {
@@ -6699,6 +6720,10 @@ public final class App extends JFrame implements RadiusControl,
 
         @Override
         public void performAction(ActionEvent e) {
+            if ((world == null) || (dimension == null)) {
+                DesktopUtils.beep();
+                return;
+            }
             merge();
         }
 
@@ -6812,6 +6837,10 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
+            if (dimension == null) {
+                DesktopUtils.beep();
+                return;
+            }
             view.setPaintGrid(!view.isPaintGrid());
             dimension.setGridEnabled(view.isPaintGrid());
             setSelected(view.isPaintGrid());
@@ -6828,6 +6857,10 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
+            if (dimension == null) {
+                DesktopUtils.beep();
+                return;
+            }
             view.setDrawContours(!view.isDrawContours());
             dimension.setContoursEnabled(view.isDrawContours());
             setSelected(view.isDrawContours());
@@ -6843,6 +6876,10 @@ public final class App extends JFrame implements RadiusControl,
 
         @Override
         public void performAction(ActionEvent e) {
+            if (dimension == null) {
+                DesktopUtils.beep();
+                return;
+            }
             if (view.isDrawOverlay()) {
                 // An overlay is showing; disable it
                 view.setDrawOverlay(false);
@@ -6909,6 +6946,10 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
+            if (dimension == null) {
+                DesktopUtils.beep();
+                return;
+            }
             addRemoveTiles();
         }
 
@@ -6922,6 +6963,10 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
+            if ((world == null) || (dimension == null)) {
+                DesktopUtils.beep();
+                return;
+            }
             changeWorldHeight(App.this);
         }
 
@@ -6935,6 +6980,10 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
+            if ((world == null) || (dimension == null)) {
+                DesktopUtils.beep();
+                return;
+            }
             rotateWorld(App.this);
         }
 
@@ -6948,6 +6997,10 @@ public final class App extends JFrame implements RadiusControl,
 
         @Override
         public void performAction(ActionEvent e) {
+            if ((world == null) || (dimension == null)) {
+                DesktopUtils.beep();
+                return;
+            }
             shiftWorld(App.this);
         }
 
@@ -6961,6 +7014,10 @@ public final class App extends JFrame implements RadiusControl,
 
         @Override
         public void performAction(ActionEvent e) {
+            if ((world == null) || (dimension == null)) {
+                DesktopUtils.beep();
+                return;
+            }
             scaleWorld(App.this);
         }
 
@@ -6975,6 +7032,10 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
+            if (dimension == null) {
+                DesktopUtils.beep();
+                return;
+            }
             boolean previousCoverSteepTerrain = dimension.isCoverSteepTerrain();
             int previousTopLayerMinDepth = dimension.getTopLayerMinDepth();
             int previousTopLayerVariation = dimension.getTopLayerVariation();
@@ -7019,7 +7080,7 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            view.setDrawViewDistance(!view.isDrawViewDistance());
+            view.setDrawViewDistance(! view.isDrawViewDistance());
             setSelected(view.isDrawViewDistance());
         }
 
@@ -7034,7 +7095,7 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            view.setDrawWalkingDistance(!view.isDrawWalkingDistance());
+            view.setDrawWalkingDistance(! view.isDrawWalkingDistance());
             setSelected(view.isDrawWalkingDistance());
         }
 
@@ -7115,6 +7176,10 @@ public final class App extends JFrame implements RadiusControl,
     private final BetterAction ACTION_IMPORT_LAYER = new BetterAction("importLayer", "Import custom layer(s)") {
         @Override
         protected void performAction(ActionEvent e) {
+            if (dimension == null) {
+                DesktopUtils.beep();
+                return;
+            }
             importLayers(null, getLayerFilterForCurrentDimension());
         }
 
@@ -7317,6 +7382,10 @@ public final class App extends JFrame implements RadiusControl,
 
         @Override
         protected void performAction(ActionEvent e) {
+            if (dimension == null) {
+                DesktopUtils.beep();
+                return;
+            }
             showCustomTerrainButtonPopup(e, -1);
         }
     };
