@@ -1,3 +1,7 @@
+-- Version 2.15.7, released ...
+
+ * If the spawn point is not on the selected tiles for a Test Export, it will automatically temporarily be moved to the middle of the selected area
+
 -- Version 2.15.6, released 23-10-2022
 
  * The Tool Options panel now shows a name and description for the currently selected tool

@@ -65,8 +65,33 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
         JavaLevel level = JavaLevel.create(platform, world.getMaxHeight());
         level.setSeed(dim0.getMinecraftSeed());
         level.setName(name);
-        Point spawnPoint = world.getSpawnPoint();
-        level.setSpawn(spawnPoint.x, Math.max(getIntHeightAt(DIM_NORMAL, spawnPoint.x, spawnPoint.y), getWaterLevelAt(DIM_NORMAL, spawnPoint.x, spawnPoint.y)) + 1,spawnPoint.y);
+
+        // Set the spawn point if applicable, and if necessary move it to the selected tiles
+        final Set<Integer> selectedDimensions = worldExportSettings.getDimensionsToExport();
+        if ((selectedDimensions == null) || selectedDimensions.contains(DIM_NORMAL)) {
+            Point spawnPoint = world.getSpawnPoint();
+            final Set<Point> selectedTiles = worldExportSettings.getTilesToExport();
+            if ((selectedTiles != null) && (! selectedTiles.contains(new Point(spawnPoint.x >> TILE_SIZE_BITS, spawnPoint.y >> TILE_SIZE_BITS)))) {
+                int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
+                for (Point tileCoords: selectedTiles) {
+                    if ((tileCoords.x << TILE_SIZE_BITS) < minX) {
+                        minX = (tileCoords.x << TILE_SIZE_BITS);
+                    }
+                    if (((tileCoords.x << TILE_SIZE_BITS) + TILE_SIZE - 1) > maxX) {
+                        maxX = ((tileCoords.x << TILE_SIZE_BITS) + TILE_SIZE - 1);
+                    }
+                    if ((tileCoords.y << TILE_SIZE_BITS) < minY) {
+                        minY = (tileCoords.y << TILE_SIZE_BITS);
+                    }
+                    if (((tileCoords.y << TILE_SIZE_BITS) + TILE_SIZE - 1) > maxY) {
+                        maxY = ((tileCoords.y << TILE_SIZE_BITS) + TILE_SIZE - 1);
+                    }
+                }
+                spawnPoint = new Point((minX + maxX) / 2, (minY + maxY) / 2);
+            }
+            level.setSpawn(spawnPoint.x, Math.max(getIntHeightAt(DIM_NORMAL, spawnPoint.x, spawnPoint.y), getWaterLevelAt(DIM_NORMAL, spawnPoint.x, spawnPoint.y)) + 1,spawnPoint.y);
+        }
+
         if (world.getGameType() == GameType.HARDCORE) {
             level.setGameType(GAME_TYPE_SURVIVAL);
             level.setHardcore(true);

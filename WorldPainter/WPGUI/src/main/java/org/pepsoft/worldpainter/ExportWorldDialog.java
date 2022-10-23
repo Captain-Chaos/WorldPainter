@@ -248,8 +248,8 @@ public class ExportWorldDialog extends WorldPainterDialog {
                     break;
                 }
             }
-            if (!spawnInSelection) {
-                sb.append("<li>The spawn point is not inside the selected area.");
+            if (! spawnInSelection) {
+                sb.append("<li>The spawn point is not inside the selected area.<br>It will temporarily be moved to the middle of the selected area.");
                 showWarning = true;
             }
         }
