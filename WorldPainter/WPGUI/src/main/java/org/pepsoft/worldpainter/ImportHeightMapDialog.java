@@ -18,6 +18,7 @@ import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.util.swing.TileProvider;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.heightMaps.*;
 import org.pepsoft.worldpainter.heightMaps.gui.ImportPresetListCellRenderer;
 import org.pepsoft.worldpainter.importing.HeightMapImporter;
@@ -35,6 +36,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
@@ -55,9 +58,14 @@ import static org.pepsoft.util.swing.SpinnerUtils.setMinimum;
 import static org.pepsoft.worldpainter.App.NUMBER_FORMAT;
 import static org.pepsoft.worldpainter.Constants.MAX_HEIGHT;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_MASTER;
+import static org.pepsoft.worldpainter.Dimension.Role.MASTER;
 import static org.pepsoft.worldpainter.HeightTransform.IDENTITY;
 import static org.pepsoft.worldpainter.Terrain.GRASS;
 import static org.pepsoft.worldpainter.Terrain.PICK_LIST;
+import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_FIFTY_PERCENT;
+import static org.pepsoft.worldpainter.WPTileProvider.HIDE_ALL_LAYERS;
 import static org.pepsoft.worldpainter.util.LayoutUtils.setDefaultSizeAndLocation;
 import static org.pepsoft.worldpainter.util.MinecraftUtil.blocksToWalkingTime;
 
@@ -69,19 +77,34 @@ import static org.pepsoft.worldpainter.util.MinecraftUtil.blocksToWalkingTime;
         "FieldCanBeLocal", "unused", "Convert2Lambda", "Anonymous2MethodRef"}) // Managed by NetBeans
 public class ImportHeightMapDialog extends WorldPainterDialog implements DocumentListener, SimpleThemeEditor.ChangeListener {
     public ImportHeightMapDialog(Window parent, ColourScheme colourScheme, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
-        this(parent, null, colourScheme, contourLines, contourSeparation, lightOrigin);
+        this(parent, null, colourScheme, null, contourLines, contourSeparation, lightOrigin);
     }
 
-    public ImportHeightMapDialog(Window parent, Dimension currentDimension, ColourScheme colourScheme, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
+    public ImportHeightMapDialog(Window parent, Dimension currentDimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
         super(parent);
         this.currentDimension = currentDimension;
         this.colourScheme = colourScheme;
+        this.customBiomeManager = customBiomeManager;
         this.contourLines = contourLines;
         this.contourSeparation = contourSeparation;
         this.lightOrigin = lightOrigin;
 
         initComponents();
         tiledImageViewer2.setZoom(0);
+        tiledImageViewer2.addMouseWheelListener(new MouseWheelListener() {
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                int oldZoom = tiledImageViewer2.getZoom(), zoom;
+                if (e.getWheelRotation() < 0) {
+                    zoom = Math.min(oldZoom - e.getWheelRotation(), 6);
+                } else {
+                    zoom = Math.max(oldZoom - e.getWheelRotation(), -4);
+                }
+                if (zoom != oldZoom) {
+                    tiledImageViewer2.setZoom(zoom, e.getX(), e.getY());
+                }
+            }
+        });
         tiledImageViewerContainer1.setView(tiledImageViewer2);
         
         themeEditor.setColourScheme(colourScheme);
@@ -111,6 +134,8 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             buttonSaveAsDefaults.setEnabled(true);
             checkBoxOnlyRaise.setSelected(true);
             comboBoxSingleTerrain.setModel(new DefaultComboBoxModel<>(Terrain.getConfiguredValues()));
+            checkBoxMasterDimension.setSelected(currentDimension.getAnchor().role == MASTER);
+            checkBoxMasterDimension.setEnabled(false);
         } else {
             platform = Configuration.getInstance().getDefaultPlatform();
             themeEditor.setTheme(SimpleTheme.createDefault(GRASS, platform.minZ, platform.standardMaxHeight, DEFAULT_WATER_LEVEL, true, true));
@@ -122,6 +147,11 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             comboBoxSingleTerrain.setModel(new DefaultComboBoxModel<>(PICK_LIST));
             loadDefaults();
         }
+        final boolean masterDimensionSelected = checkBoxMasterDimension.isSelected();
+        jLabel20.setVisible(masterDimensionSelected);
+        labelExportedSize.setVisible(masterDimensionSelected);
+        jLabel22.setVisible(masterDimensionSelected);
+        labelExportedOffset.setVisible(masterDimensionSelected);
 
         scaleToUI();
         pack();
@@ -131,6 +161,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         platformChanged();
         updateImageLevelLabels();
         setControlStates();
+        updatePreview(false);
     }
 
     public World2 getImportedWorld() {
@@ -149,7 +180,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
             @Override
             public World2 execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                return importer.importToNewWorld(progressReceiver);
+                return importer.importToNewWorld((checkBoxMasterDimension.isSelected()) ? NORMAL_MASTER : NORMAL_DETAIL, progressReceiver);
             }
         }, NOT_CANCELABLE);
         Configuration.getInstance().setHeightMapsDirectory(selectedFile.getParentFile());
@@ -400,12 +431,20 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     }
 
     private void updateWorldDimensions() {
-        int scale = (Integer) spinnerScale.getValue();
-        int scaledWidth = image.getWidth() * scale / 100;
-        int scaledHeight = image.getHeight() * scale / 100;
-        labelWorldDimensions.setText("Scaled size: " + scaledWidth + " x " + scaledHeight + " blocks");
-        String westEastTime = blocksToWalkingTime(scaledWidth);
-        String northSouthTime = blocksToWalkingTime(scaledHeight);
+        final float dimensionScale = checkBoxMasterDimension.isSelected() ? 16.0f : 1.0f;
+        labelExportedOffset.setText(NUMBER_FORMAT.format(Math.round((int) spinnerOffsetX.getValue() * dimensionScale)) + ", " + NUMBER_FORMAT.format(Math.round((int) spinnerOffsetY.getValue() * dimensionScale)));
+        if (image == null) {
+            return;
+        }
+        final int importScale = (Integer) spinnerScale.getValue();
+        final int scaledWidth = image.getWidth() * importScale / 100;
+        final int scaledHeight = image.getHeight() * importScale / 100;
+        labelWorldDimensions.setText("Scaled size: " + NUMBER_FORMAT.format(scaledWidth) + " x " + NUMBER_FORMAT.format(scaledHeight) + " blocks");
+        final int exportedWidth = Math.round(scaledWidth * dimensionScale);
+        final int exportedHeight = Math.round(scaledHeight * dimensionScale);
+        labelExportedSize.setText(NUMBER_FORMAT.format(exportedWidth) + " x " + NUMBER_FORMAT.format(exportedHeight) + " blocks");
+        String westEastTime = blocksToWalkingTime(exportedWidth);
+        String northSouthTime = blocksToWalkingTime(exportedHeight);
         if (westEastTime.equals(northSouthTime)) {
             labelWalkingTime.setText(westEastTime);
         } else {
@@ -603,14 +642,17 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                 final HeightMapImporter importer = createImporter(false);
                 // No idea how this could ever be null, but it has been observed in the wild:
                 if (importer != null) {
-                    final TileProvider previewProvider = importer.getPreviewProvider(colourScheme, contourLines, contourSeparation, lightOrigin);
+                    final TileProvider previewProvider = importer.getPreviewProvider(checkBoxOnlyRaise.isSelected() ? currentDimension : null, colourScheme, contourLines, contourSeparation, lightOrigin);
                     if (previewProvider != null) {
-                        tiledImageViewer2.setTileProvider(previewProvider);
+                        tiledImageViewer2.setTileProvider(LAYER_HEIGHT_MAP, previewProvider);
                         if (recentre) {
                             tiledImageViewer2.moveTo(image.getWidth() / 2, image.getHeight() / 2);
                         }
                     }
                 }
+            }
+            if (currentDimension != null) {
+                tiledImageViewer2.setTileProvider(LAYER_CURRENT_DIMENSION, new WPTileProvider(currentDimension, colourScheme, customBiomeManager, HIDE_ALL_LAYERS, contourLines, contourSeparation, lightOrigin, false, FADE_TO_FIFTY_PERCENT, true));
             }
         });
     }
@@ -708,6 +750,10 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         comboBoxSingleTerrain = new javax.swing.JComboBox<>();
         jLabel19 = new javax.swing.JLabel();
         comboBoxPreset = new javax.swing.JComboBox<>();
+        jLabel20 = new javax.swing.JLabel();
+        labelExportedSize = new javax.swing.JLabel();
+        jLabel22 = new javax.swing.JLabel();
+        labelExportedOffset = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         themeEditor = new org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor();
         buttonLoadDefaults = new javax.swing.JButton();
@@ -719,6 +765,8 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         jLabel13 = new javax.swing.JLabel();
         comboBoxPlatform = new javax.swing.JComboBox<>();
         tiledImageViewerContainer1 = new org.pepsoft.util.swing.TiledImageViewerContainer();
+        checkBoxMasterDimension = new javax.swing.JCheckBox();
+        buttonMasterInfo = new javax.swing.JButton();
 
         tiledImageViewer2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
@@ -1086,6 +1134,14 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             }
         });
 
+        jLabel20.setText("Exported size:");
+
+        labelExportedSize.setText("? x ? blocks");
+
+        jLabel22.setText("Exported offset:");
+
+        labelExportedOffset.setText("0, 0");
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -1134,7 +1190,15 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jLabel19)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(comboBoxPreset, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(comboBoxPreset, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jLabel20)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(labelExportedSize)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel22)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(labelExportedOffset)))
                 .addContainerGap(71, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
@@ -1151,6 +1215,12 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                     .addComponent(spinnerOffsetY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(labelWorldDimensions)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel20)
+                    .addComponent(labelExportedSize)
+                    .addComponent(jLabel22)
+                    .addComponent(labelExportedOffset))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel14)
@@ -1223,7 +1293,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(themeEditor, javax.swing.GroupLayout.DEFAULT_SIZE, 390, Short.MAX_VALUE)
+                .addComponent(themeEditor, javax.swing.GroupLayout.DEFAULT_SIZE, 413, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonLoadDefaults)
@@ -1240,6 +1310,11 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
         checkBoxOnlyRaise.setText("Only where higher");
         checkBoxOnlyRaise.setToolTipText("When selected, the height map will only be applied where it is higher than the existing terrain");
+        checkBoxOnlyRaise.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxOnlyRaiseActionPerformed(evt);
+            }
+        });
 
         jLabel13.setText("Map format:");
 
@@ -1251,6 +1326,21 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         });
 
         tiledImageViewerContainer1.setMinimumSize(new java.awt.Dimension(384, 22));
+
+        checkBoxMasterDimension.setText("create as master dimension (1:16 scale) [ALPHA]");
+        checkBoxMasterDimension.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxMasterDimensionActionPerformed(evt);
+            }
+        });
+
+        buttonMasterInfo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/information.png"))); // NOI18N
+        buttonMasterInfo.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        buttonMasterInfo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonMasterInfoActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -1285,7 +1375,12 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                                 .addComponent(labelNoUndo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18)
-                        .addComponent(tiledImageViewerContainer1, javax.swing.GroupLayout.DEFAULT_SIZE, 384, Short.MAX_VALUE)))
+                        .addComponent(tiledImageViewerContainer1, javax.swing.GroupLayout.DEFAULT_SIZE, 384, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(checkBoxMasterDimension)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonMasterInfo)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -1307,6 +1402,10 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel13)
                             .addComponent(comboBoxPlatform, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(checkBoxMasterDimension)
+                            .addComponent(buttonMasterInfo))
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(checkBoxCreateTiles)
@@ -1476,15 +1575,15 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     }//GEN-LAST:event_checkBoxVoidActionPerformed
 
     private void spinnerOffsetXStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerOffsetXStateChanged
+        updateWorldDimensions();
         if (image != null) {
-            updateWorldDimensions();
             updatePreview(false);
         }
     }//GEN-LAST:event_spinnerOffsetXStateChanged
 
     private void spinnerOffsetYStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerOffsetYStateChanged
+        updateWorldDimensions();
         if (image != null) {
-            updateWorldDimensions();
             updatePreview(false);
         }
     }//GEN-LAST:event_spinnerOffsetYStateChanged
@@ -1535,15 +1634,35 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         updatePreview(false);
     }//GEN-LAST:event_spinnerVoidBelowStateChanged
 
+    private void checkBoxOnlyRaiseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxOnlyRaiseActionPerformed
+        updatePreview(false);
+    }//GEN-LAST:event_checkBoxOnlyRaiseActionPerformed
+
+    private void checkBoxMasterDimensionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxMasterDimensionActionPerformed
+        final boolean masterDimensionSelected = checkBoxMasterDimension.isSelected();
+        jLabel20.setVisible(masterDimensionSelected);
+        labelExportedSize.setVisible(masterDimensionSelected);
+        jLabel22.setVisible(masterDimensionSelected);
+        labelExportedOffset.setVisible(masterDimensionSelected);
+        updateWorldDimensions();
+    }//GEN-LAST:event_checkBoxMasterDimensionActionPerformed
+
+    private void buttonMasterInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonMasterInfoActionPerformed
+        NewWorldDialog.showMasterDimensionInfo(this);
+    }//GEN-LAST:event_buttonMasterInfoActionPerformed
+
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
     private javax.swing.JButton buttonLoadDefaults;
+    private javax.swing.JButton buttonMasterInfo;
     private javax.swing.JButton buttonOk;
     private javax.swing.JButton buttonResetDefaults;
     private javax.swing.JButton buttonSaveAsDefaults;
     private javax.swing.JButton buttonSelectFile;
     private javax.swing.JCheckBox checkBoxCreateTiles;
     private javax.swing.JCheckBox checkBoxInvert;
+    private javax.swing.JCheckBox checkBoxMasterDimension;
     private javax.swing.JCheckBox checkBoxOnlyRaise;
     private javax.swing.JCheckBox checkBoxVoid;
     private javax.swing.JComboBox<Integer> comboBoxHeight;
@@ -1563,6 +1682,8 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel20;
+    private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -1574,6 +1695,8 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JLabel labelExportedOffset;
+    private javax.swing.JLabel labelExportedSize;
     private javax.swing.JLabel labelImageDimensions;
     private javax.swing.JLabel labelImageHighestLevel;
     private javax.swing.JLabel labelImageLowestLevel;
@@ -1611,6 +1734,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     private final boolean contourLines;
     private final int contourSeparation;
     private final TileRenderer.LightOrigin lightOrigin;
+    private final CustomBiomeManager customBiomeManager;
     private File selectedFile, heightMapDir;
     private volatile BufferedImage image;
     private int bitDepth = 8;
@@ -1620,6 +1744,8 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
     private static final String UPDATE_HEIGHT_MAP_PREVIEW = ImportHeightMapDialog.class.getName() + ".updateHeightMap";
     private static final Icon ICON_WARNING = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/error.png");
+    private static final int LAYER_HEIGHT_MAP = 0;
+    private static final int LAYER_CURRENT_DIMENSION = -1;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ImportHeightMapDialog.class);
     private static final long serialVersionUID = 1L;
 }

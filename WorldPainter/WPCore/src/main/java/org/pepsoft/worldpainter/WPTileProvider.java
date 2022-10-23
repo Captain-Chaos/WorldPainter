@@ -14,10 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.unmodifiableSet;
@@ -33,7 +31,8 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     public WPTileProvider(TileProvider tileProvider, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Set<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, boolean active, Effect effect, boolean transparentVoid) {
         this.tileProvider = tileProvider;
         this.colourScheme = colourScheme;
-        this.hiddenLayers = (hiddenLayers != null) ? new HashSet<>(hiddenLayers) : null;
+        this.hiddenLayers = ((hiddenLayers != null) && (hiddenLayers != HIDE_ALL_LAYERS)) ? new HashSet<>(hiddenLayers) : null;
+        this.hideAllLayers = hiddenLayers == HIDE_ALL_LAYERS;
         this.contourLines = contourLines;
         this.contourSeparation = contourSeparation;
         this.lightOrigin = lightOrigin;
@@ -49,6 +48,9 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     }
     
     public synchronized void setHiddenLayers(Set<Layer> hiddenLayers) {
+        if (hideAllLayers) {
+            throw new IllegalStateException("Cannot set hiddenLayers when hideAllLayers is set");
+        }
         this.hiddenLayers.clear();
         if (hiddenLayers != null) {
             this.hiddenLayers.addAll(hiddenLayers);
@@ -59,7 +61,18 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     public synchronized Set<Layer> getHiddenLayers() {
         return unmodifiableSet(hiddenLayers);
     }
-    
+
+    public boolean isHideAllLayers() {
+        return hideAllLayers;
+    }
+
+    public void setHideAllLayers(boolean hideAllLayers) {
+        if (hideAllLayers != this.hideAllLayers) {
+            this.hideAllLayers = hideAllLayers;
+            tileRendererRef = createNewTileRendererRef();
+        }
+    }
+
     @Override
     public int getTileSize() {
         return TILE_SIZE;
@@ -310,7 +323,9 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
         return ThreadLocal.withInitial(() -> {
             TileRenderer tileRenderer = new TileRenderer(tileProvider, colourScheme, customBiomeManager, zoom, transparentVoid);
             synchronized (WPTileProvider.this) {
-                if (hiddenLayers != null) {
+                if (hideAllLayers) {
+                    tileRenderer.setHideAllLayers(true);
+                } else if (hiddenLayers != null) {
                     tileRenderer.addHiddenLayers(hiddenLayers);
                 }
             }
@@ -350,9 +365,12 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     private final Effect effect;
 
     private int zoom = 0;
+    private boolean hideAllLayers;
     private volatile ThreadLocal<TileRenderer> tileRendererRef;
 
     private static final Logger logger = LoggerFactory.getLogger(WPTileProvider.class);
+
+    public static final Set<Layer> HIDE_ALL_LAYERS = Collections.emptySet();
 
     public enum Effect {
         FADE_TO_FIFTY_PERCENT, FADE_TO_TWENTYFIVE_PERCENT

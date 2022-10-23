@@ -353,11 +353,18 @@ public final class App extends JFrame implements RadiusControl,
 
             extendedBlockIdsMenuItem.setSelected(world.isExtendedBlockIds());
 
-
             final Dimension surfaceDimension = world.getDimension(NORMAL_DETAIL);
             final Dimension masterDimension = world.getDimension(NORMAL_MASTER);
             if ((masterDimension != null) && (surfaceDimension.getTileCount() == 0)) {
                 setDimension(masterDimension);
+
+                doLaterOnEventThread(() -> JOptionPane.showMessageDialog(App.this,
+                        "You are now editing the Master Dimension. This will be exported\n" +
+                                "at sixteen times the horizontal size.\n" +
+                                "\n" +
+                                "To add details at 1:1 scale, switch to the Surface Dimension by\n" +
+                                "pressing " + COMMAND_KEY_NAME + "+M or using the View menu and then add tiles by\n" +
+                                "pressing " + COMMAND_KEY_NAME + "+T or using the Edit menu.", "Editing Master Dimension [ALPHA]", INFORMATION_MESSAGE));
             } else {
                 setDimension(surfaceDimension);
             }
@@ -1143,12 +1150,6 @@ public final class App extends JFrame implements RadiusControl,
             addRecentlyUsedWorld(originalFile);
         }
         setWorld(newWorld, ! (loadedFromBackup || loadedFromAutosave));
-
-        if (newWorld.getImportedFrom() != null) {
-            enableImportedWorldOperation();
-        } else {
-            disableImportedWorldOperation();
-        }
     }
 
     /**
@@ -2048,19 +2049,6 @@ public final class App extends JFrame implements RadiusControl,
 
             setWorld(newWorld, true);
             lastSelectedFile = null;
-            disableImportedWorldOperation();
-
-            if ((newWorld.getDimension(NORMAL_MASTER) != null) && (newWorld.getDimension(NORMAL_DETAIL).getTileCount() == 0)) {
-                doLaterOnEventThread(() -> {
-                    JOptionPane.showMessageDialog(this,
-                            "You are now editing the Master Dimension. This will be exported\n" +
-                                    "at sixteen times the horizontal size.\n" +
-                                    "\n" +
-                                    "To add details at 1:1 scale, switch to the Surface Dimension by\n" +
-                                    "pressing " + COMMAND_KEY_NAME + "+M or using the View menu and then add tiles by\n" +
-                                    "pressing " + COMMAND_KEY_NAME + "+T or using the Edit menu.", "Editing Master Dimension [ALPHA]", INFORMATION_MESSAGE);
-                });
-            }
         }
     }
 
@@ -2510,7 +2498,6 @@ public final class App extends JFrame implements RadiusControl,
             lastSelectedFile = null;
             Configuration config = Configuration.getInstance();
             config.setMessageDisplayed(IMPORT_WARNING_KEY);
-            enableImportedWorldOperation();
         }
     }
     
@@ -2529,9 +2516,9 @@ public final class App extends JFrame implements RadiusControl,
             }
         }
     }
-    
+
     private void importHeightMapIntoCurrentDimension() {
-        ImportHeightMapDialog dialog = new ImportHeightMapDialog(this, dimension, selectedColourScheme, view.isDrawContours(), view.getContourSeparation(), view.getLightOrigin());
+        ImportHeightMapDialog dialog = new ImportHeightMapDialog(this, dimension, selectedColourScheme, customBiomeManager, view.isDrawContours(), view.getContourSeparation(), view.getLightOrigin());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             view.refreshTiles();
@@ -3118,7 +3105,6 @@ public final class App extends JFrame implements RadiusControl,
             LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(Populate.INSTANCE, 'p'));
         }
         LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(ReadOnly.INSTANCE, 'o'));
-        disableImportedWorldOperation();
 
         final JButton addLayerButton = new JButton(loadScaledIcon("plus"));
         addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
@@ -5593,27 +5579,6 @@ public final class App extends JFrame implements RadiusControl,
     private static Icon loadScaledIcon(@NonNls String name) {
         return IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/" + name + ".png");
     }
-    
-    private void enableImportedWorldOperation() {
-        if (! alwaysEnableReadOnly) {
-            layerControls.get(ReadOnly.INSTANCE).setEnabled(true);
-        }
-    }
-
-    private void disableImportedWorldOperation() {
-        if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint) && ((LayerPaint) paint).getLayer().equals(Biome.INSTANCE)) {
-            deselectPaint();
-        }
-        if (! alwaysEnableReadOnly) {
-            LayerControls readOnlyControls = layerControls.get(ReadOnly.INSTANCE);
-            readOnlyControls.setEnabled(true);
-            if (readOnlyControls.isSolo()) {
-                readOnlyControls.setSolo(false);
-                soloLayer = null;
-                updateLayerVisibility();
-            }
-        }
-    }
 
     private void configureForPlatform() {
         final Platform platform = world.getPlatform();
@@ -7415,8 +7380,6 @@ public final class App extends JFrame implements RadiusControl,
     private MapDragControl mapDragControl;
     private BiomesPanel biomesPanel;
     private DockableFrame biomesPanelFrame;
-    private final boolean alwaysEnableReadOnly = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.alwaysEnableReadOnly")); // NOI18N
-//    private JScrollPane scrollPane = new JScrollPane();
     private Filter filter, toolFilter;
     private final BrushOptions brushOptions;
     private final CustomBiomeManager customBiomeManager = new CustomBiomeManager();

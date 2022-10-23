@@ -10,6 +10,7 @@ import org.pepsoft.util.ColourUtils;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.layers.Void;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.renderers.*;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
@@ -90,10 +91,16 @@ public final class TileRenderer {
     }
 
     public void addHiddenLayers(Collection<Layer> hiddenLayers) {
+        if (hideAllLayers) {
+            throw new IllegalStateException("Cannot add to hiddenLayers when hideAllLayers is set");
+        }
         this.hiddenLayers.addAll(hiddenLayers);
     }
     
     public void setHiddenLayers(Set<Layer> hiddenLayers) {
+        if (hideAllLayers) {
+            throw new IllegalStateException("Cannot set hiddenLayers when hideAllLayers is set");
+        }
         this.hiddenLayers.clear();
         // The FloodWithLava layer should *always* remain hidden
         hiddenLayers.add(FloodWithLava.INSTANCE);
@@ -118,6 +125,14 @@ public final class TileRenderer {
 
     public void setContourSeparation(int contourSeparation) {
         this.contourSeparation = contourSeparation;
+    }
+
+    public boolean isHideAllLayers() {
+        return hideAllLayers;
+    }
+
+    public void setHideAllLayers(boolean hideAllLayers) {
+        this.hideAllLayers = hideAllLayers;
     }
 
     /**
@@ -199,6 +214,11 @@ public final class TileRenderer {
         final boolean hideTerrain = hiddenLayers.contains(TERRAIN_AS_LAYER);
         final boolean hideFluids = hiddenLayers.contains(FLUIDS_AS_LAYER);
         final boolean _void = layerList.contains(org.pepsoft.worldpainter.layers.Void.INSTANCE), notAllBlocksPresent = layerList.contains(NotPresent.INSTANCE) || layerList.contains(NotPresentBlock.INSTANCE);
+        if (hideAllLayers) {
+            layerList.clear();
+        } else {
+            layerList.removeIf(layer -> (layer instanceof Void) || (layer instanceof NotPresent) || (layer instanceof NotPresentBlock));
+        }
         final Layer[] layers = layerList.toArray(new Layer[layerList.size()]);
         final LayerRenderer[] renderers = new LayerRenderer[layers.length];
         for (int i = 0; i < layers.length; i++) {
@@ -506,7 +526,7 @@ public final class TileRenderer {
     private final boolean renderCeilingIntersection, renderTunnelRoofIntersection, transparentVoid;
     private final TunnelLayerHelper tunnelLayerHelper;
     private ColourScheme colourScheme;
-    private boolean contourLines = true;
+    private boolean contourLines = true, hideAllLayers;
     private int contourSeparation = 10, waterColour, lavaColour, bedrockColour, notPresentColour, voidColour;
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
 

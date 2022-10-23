@@ -34,6 +34,7 @@ import org.pepsoft.worldpainter.themes.Theme;
 import java.util.Random;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 
 /**
  *
@@ -138,7 +139,7 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
         importer.setName(name);
         importer.setPlatform(platform);
         try {
-            return importer.importToNewWorld(null);
+            return importer.importToNewWorld(NORMAL_DETAIL, null);
         } catch (ProgressReceiver.OperationCancelled e) {
             // Can never happen since we don't pass a progress receiver in
             throw new InternalError();

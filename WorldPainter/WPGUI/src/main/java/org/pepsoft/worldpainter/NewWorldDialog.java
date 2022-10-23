@@ -888,8 +888,8 @@ public class NewWorldDialog extends WorldPainterDialog {
         }
     }
 
-    private void showMasterDimensionInfo() {
-        JOptionPane.showMessageDialog(this, "<html>" +
+    public static void showMasterDimensionInfo(Window parent) {
+        JOptionPane.showMessageDialog(parent, "<html>" +
                 "<h1>Master Dimensions [ALPHA]</h1>" +
                 "<p>A Master Dimension is a WorldPainter dimension type (similar to a Ceiling Dimension). It is Exported<br>" +
                 "at 1:16 scale wherever the regular Surface Dimension does not exist. Because the Master Dimension is<br>" +
@@ -1629,7 +1629,7 @@ public class NewWorldDialog extends WorldPainterDialog {
     }//GEN-LAST:event_comboBoxTargetActionPerformed
 
     private void buttonMasterInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonMasterInfoActionPerformed
-        showMasterDimensionInfo();
+        showMasterDimensionInfo(this);
     }//GEN-LAST:event_buttonMasterInfoActionPerformed
 
     private void checkBoxMasterDimensionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxMasterDimensionActionPerformed
