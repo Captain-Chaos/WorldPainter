@@ -589,22 +589,24 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                 repaintArea = customBrushShape.getBounds();
             }
         }
-        if (drawViewDistance) {
-            final int scaledRadius = (int) Math.ceil(VIEW_DISTANCE_RADIUS / dimension.getScale());
-            Rectangle viewDistanceArea = new Rectangle(-scaledRadius, -scaledRadius, scaledRadius * 2, scaledRadius * 2);
-            if (repaintArea != null) {
-                repaintArea = repaintArea.union(viewDistanceArea);
-            } else {
-                repaintArea = viewDistanceArea;
+        if (dimension != null) {
+            if (drawViewDistance) {
+                final int scaledRadius = (int) Math.ceil(VIEW_DISTANCE_RADIUS / dimension.getScale());
+                Rectangle viewDistanceArea = new Rectangle(-scaledRadius, -scaledRadius, scaledRadius * 2, scaledRadius * 2);
+                if (repaintArea != null) {
+                    repaintArea = repaintArea.union(viewDistanceArea);
+                } else {
+                    repaintArea = viewDistanceArea;
+                }
             }
-        }
-        if (drawWalkingDistance) {
-            final int scaledRadius = (int) Math.ceil(VIEW_DISTANCE_RADIUS / dimension.getScale());
-            Rectangle walkingDistanceArea = new Rectangle(-scaledRadius, -scaledRadius, scaledRadius * 2, scaledRadius * 2);
-            if (repaintArea != null) {
-                repaintArea = repaintArea.union(walkingDistanceArea);
-            } else {
-                repaintArea = walkingDistanceArea;
+            if (drawWalkingDistance) {
+                final int scaledRadius = (int) Math.ceil(VIEW_DISTANCE_RADIUS / dimension.getScale());
+                Rectangle walkingDistanceArea = new Rectangle(-scaledRadius, -scaledRadius, scaledRadius * 2, scaledRadius * 2);
+                if (repaintArea != null) {
+                    repaintArea = repaintArea.union(walkingDistanceArea);
+                } else {
+                    repaintArea = walkingDistanceArea;
+                }
             }
         }
         if (repaintArea != null) {
