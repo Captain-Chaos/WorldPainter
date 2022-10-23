@@ -7,6 +7,8 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.DesktopUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -389,6 +391,12 @@ public class MaterialSelector extends javax.swing.JPanel {
     private void blockIdOrDataChanged() {
         int blockType = comboBoxBlockType.getSelectedIndex();
         int dataValue = (Integer) spinnerDataValue.getValue();
+        if ((blockType < 0) || (blockType > 4095) || (dataValue < 0) || (dataValue > 15)) {
+            // No idea why this happens, but it has been observed in the wild TODO find out why and fix the underlying
+            //  cause
+            logger.error("blockIdOrDataChanged(): blockType = {}, dataValue = {}, comboBoxMinecraftName.selectedItem = {}, comboBoxNamespace.selectedItem = {}, comboBoxCustomName.selectedItem = {}", blockType, dataValue, comboBoxMinecraftName.getSelectedItem(), comboBoxNamespace.getSelectedItem(), comboBoxCustomName.getSelectedItem());
+            return;
+        }
         material = Material.get(blockType, dataValue);
         namespace = material.namespace;
         simpleName = material.simpleName;
@@ -774,4 +782,6 @@ public class MaterialSelector extends javax.swing.JPanel {
     private Material material;
     private String namespace, simpleName;
     private Map<String, String> properties;
+
+    private static final Logger logger = LoggerFactory.getLogger(MaterialSelector.class);
 }
