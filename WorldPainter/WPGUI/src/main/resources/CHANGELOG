@@ -11,6 +11,7 @@
      - Or manually paint the Moss in the areas it should exist, and raise the terrain to the desired level
  * Andesite, diorite and granite are now Imported as their respective terrain types, rather than the Stone terrain type, so that they are preserved when merging
  * Ores on the surface are now preserved when Merging stone and deepslate. If you want them to be removed you can use the "Remove all resources/ores" Merge option (of course that will remove them from the entire chunk, not just the surface)
+ * Various bug fixes
 
 -- Version 2.15.5, released 19-10-2022
 
