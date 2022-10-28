@@ -6,7 +6,7 @@
 
 package org.pepsoft.worldpainter.layers;
 
-import org.pepsoft.minecraft.Chunk;
+import org.pepsoft.minecraft.ChunkFactory;
 import org.pepsoft.util.Box;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.ProgressReceiver;
@@ -166,8 +166,12 @@ public class LayerPreviewCreator {
         final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(dimension, pass1Exporters, JAVA_ANVIL_1_17, previewHeight);
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
-                final Chunk chunk = chunkFactory.createChunk(x, y).chunk;
-                minecraftWorldObject.addChunk(chunk);
+                final ChunkFactory.ChunkCreationResult chunkCreationResult = chunkFactory.createChunk(x, y);
+                // No idea how this could be null, but that has been observed in the world. TODO: find out why and fix
+                //  the underlying cause
+                if (chunkCreationResult != null) {
+                    minecraftWorldObject.addChunk(chunkCreationResult.chunk);
+                }
             }
         }
         now = System.currentTimeMillis();
