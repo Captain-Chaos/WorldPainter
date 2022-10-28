@@ -120,4 +120,19 @@ public interface PlatformProvider extends Provider<Platform> {
     default ExportSettingsEditor getExportSettingsEditor(Platform platform) {
         throw new UnsupportedOperationException("This platform has no export settings");
     }
+
+    /**
+     * Determines whether a world could be retargeted to a platform supported by this provider without requiring any
+     * changes or edits.
+     *
+     * <p>The default implementation just returns {@link Platform#isCompatible(World2) platform.isCompatible(world)}.
+     *
+     * @param platform The platform with which to check compatibility.
+     * @param world    The world to check for compatibility.
+     * @return {@code null} if the world could be trivially retargeted to the specified platform, or a short description
+     * of the reason if it cannot.
+     */
+    default String isCompatible(Platform platform, World2 world) {
+        return platform.isCompatible(world);
+    }
 }

@@ -51,27 +51,29 @@ public final class Platform implements Serializable {
     }
 
     /**
-     * Determines whether a world could be retargeted to this platform without
-     * requiring any changes or edits.
+     * Determines whether a world could be retargeted to this platform without requiring any changes or edits.
      * 
      * @param world The world to check for compatibility.
-     * @return {@code true} if the world could be trivially retargeted to
-     * this platform.
+     * @return {@code null} if the world could be trivially retargeted to this platform, or a short description of the
+     * reason if it cannot.
      */
-    public boolean isCompatible(World2 world) {
-        if (world.getPlatform().minZ < minZ) {
-            return false;
+    public String isCompatible(World2 world) {
+        final Platform worldPlatform = world.getPlatform();
+        if (worldPlatform.minZ < minZ) {
+            return "World minimum build height (" + worldPlatform.minZ + ") is lower than map format supports (" + minZ + ")";
         }
-        if ((world.getMaxHeight() < minMaxHeight)
-                || (world.getMaxHeight() > maxMaxHeight)) {
-            return false;
+        if (world.getMaxHeight() < minMaxHeight) {
+            return "World maximum build height (" + world.getMaxHeight() + ") is lower than the minimum build height supported by map format (" + minMaxHeight + ")";
+        } else if (world.getMaxHeight() > maxMaxHeight) {
+            return "World maximum build height (" + world.getMaxHeight() + ") is higher than the maximum build height supported by map format (" + maxMaxHeight + ")";
         }
         for (Dimension dimension: world.getDimensions()) {
-            if ((! dimension.getAnchor().invert) && (! supportedDimensions.contains(dimension.getAnchor().dim))) {
-                return false;
+            final Dimension.Anchor anchor = dimension.getAnchor();
+            if ((! anchor.invert) && (! supportedDimensions.contains(anchor.dim))) {
+                return "Map format does not support dimension " + anchor.getDefaultName();
             }
         }
-        return true;
+        return null;
     }
 
     /**

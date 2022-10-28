@@ -2,13 +2,12 @@ package org.pepsoft.worldpainter.platforms;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.jnbt.CompoundTag;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.minecraft.mapexplorer.JavaMapRootNode;
-import org.pepsoft.worldpainter.Platform;
-import org.pepsoft.worldpainter.TileFactory;
-import org.pepsoft.worldpainter.Version;
-import org.pepsoft.worldpainter.World2;
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.importing.JavaMapImporter;
 import org.pepsoft.worldpainter.importing.MapImporter;
@@ -34,6 +33,7 @@ import static org.pepsoft.util.IconUtils.loadUnscaledImage;
 import static org.pepsoft.util.IconUtils.scaleIcon;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Generator.CUSTOM;
 import static org.pepsoft.worldpainter.util.MinecraftUtil.getRegionDir;
 
 /**
@@ -186,6 +186,21 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
     @Override
     public ExportSettingsEditor getExportSettingsEditor(Platform platform) {
         return new JavaExportSettingsEditor(platform);
+    }
+
+    @Override
+    public String isCompatible(Platform platform, World2 world) {
+        ensurePlatformSupported(platform);
+        final String superReason = super.isCompatible(platform, world);
+        if ((superReason == null) && ((platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18))) {
+            for (Dimension dimension: world.getDimensions()) {
+                final MapGenerator generator = dimension.getGenerator();
+                if ((generator.getType() == CUSTOM) && (! (((CustomGenerator) generator).getSettings() instanceof CompoundTag))) {
+                    return "World type " + generator + " not supported by map format";
+                }
+            }
+        }
+        return superReason;
     }
 
     private File getRegionFileFile(Platform platform, File regionDir, DataType dataType, Point coords) {

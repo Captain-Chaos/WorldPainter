@@ -180,15 +180,13 @@ public class ExportWorldDialog extends WorldPainterDialog {
             JOptionPane.showMessageDialog(this, sb.toString(), "Map Format Not Compatible", JOptionPane.ERROR_MESSAGE);
             return false;
         }
-        if (! platform.isCompatible(world)) {
+        final String incompatibilityReason = PlatformManager.getInstance().getPlatformProvider(platform).isCompatible(platform, world);
+        if (incompatibilityReason != null) {
             DesktopUtils.beep();
             JOptionPane.showMessageDialog(this, String.format(/* language=HTML */ "<html>" +
-                    "<p>The world cannot be exported in format %s because it is not compatible, for one of these reasons:" +
-                    "<ul><li>The format does not support the world depth of %d blocks" +
-                    "<li>The format does not support the world height of %d blocks" +
-                    "<li>The format does not support one or more of the dimensions in this world" +
-                    "</ul>" +
-                    "</html>", platform.displayName, -world.getPlatform().minZ, world.getMaxHeight()), "Map Format Not Compatible", JOptionPane.ERROR_MESSAGE);
+                    "<p>The world cannot be exported in format %s because it is not compatible:</p>" +
+                    "<p>%s</p>" +
+                    "</html>", platform.displayName, incompatibilityReason), "Map Format Not Compatible", JOptionPane.ERROR_MESSAGE);
             return false;
         }
         return true;
