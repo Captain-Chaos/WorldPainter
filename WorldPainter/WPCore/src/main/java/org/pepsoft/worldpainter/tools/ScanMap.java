@@ -47,7 +47,11 @@ public class ScanMap extends AbstractTool {
         if (platformProvider instanceof JavaPlatformProvider) {
             final JavaPlatformProvider javaPlatformProvider = (JavaPlatformProvider) platformProvider;
             for (DataType dataType: javaPlatformProvider.getDataTypes(platform)) {
-                for (File file: javaPlatformProvider.getRegionFiles(platform, new File (worldDir, "region"), dataType)) {
+                final File[] regionFiles = javaPlatformProvider.getRegionFiles(platform, new File(worldDir, "region"), dataType);
+                if (regionFiles == null) {
+                    continue;
+                }
+                for (File file: regionFiles) {
                     try (RegionFile regionFile = new RegionFile(file, true)) {
                         System.out.println("Scanning region " + dataType + ": " + regionFile.getX() + "," + regionFile.getZ());
                         for (int x = 0; x < 32; x++) {

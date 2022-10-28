@@ -447,20 +447,22 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             // Read the region coordinates of the existing map
             final File backupRegionDir = new File(backupDimensionDir, "region");
             // TODO: support any platform
+            final Set<Point> allRegionCoords = new HashSet<>();
             File[] existingRegionFiles = platformProvider.getRegionFiles(platform, backupRegionDir, REGION);
             final Map<Point, File> existingRegions = new HashMap<>();
-            for (File file: existingRegionFiles) {
-                if (file.length() == 0L) {
-                    continue;
+            if (existingRegionFiles != null) {
+                for (File file: existingRegionFiles) {
+                    if (file.length() == 0L) {
+                        continue;
+                    }
+                    final String[] parts = file.getName().split("\\.");
+                    final int regionX = Integer.parseInt(parts[1]);
+                    final int regionZ = Integer.parseInt(parts[2]);
+                    existingRegions.put(new Point(regionX, regionZ), file);
                 }
-                final String[] parts = file.getName().split("\\.");
-                final int regionX = Integer.parseInt(parts[1]);
-                final int regionZ = Integer.parseInt(parts[2]);
-                existingRegions.put(new Point(regionX, regionZ), file);
+                allRegionCoords.addAll(existingRegions.keySet());
             }
-            final Set<Point> allRegionCoords = new HashSet<>();
             allRegionCoords.addAll(tilesByRegion.keySet());
-            allRegionCoords.addAll(existingRegions.keySet());
             final int lowestRegionX = allRegionCoords.stream().mapToInt(p -> p.x).min().getAsInt();
             final int highestRegionX = allRegionCoords.stream().mapToInt(p -> p.x).max().getAsInt();
             final int lowestRegionZ = allRegionCoords.stream().mapToInt(p -> p.y).min().getAsInt();
@@ -474,13 +476,15 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     continue;
                 }
                 existingRegionFiles = platformProvider.getRegionFiles(platform, backupRegionDir, dataType);
-                for (File file: existingRegionFiles) {
-                    if (file.length() == 0L) {
-                        continue;
+                if (existingRegionFiles != null) {
+                    for (File file: existingRegionFiles) {
+                        if (file.length() == 0L) {
+                            continue;
+                        }
+                        final String[] parts = file.getName().split("\\.");
+                        final Point coords = new Point(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+                        additionalRegions.computeIfAbsent(coords, p -> new HashMap<>()).put(dataType, file);
                     }
-                    final String[] parts = file.getName().split("\\.");
-                    final Point coords = new Point(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
-                    additionalRegions.computeIfAbsent(coords, p -> new HashMap<>()).put(dataType, file);
                 }
             }
 

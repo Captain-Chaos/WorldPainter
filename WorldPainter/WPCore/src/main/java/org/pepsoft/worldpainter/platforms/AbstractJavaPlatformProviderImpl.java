@@ -27,7 +27,7 @@ abstract class AbstractJavaPlatformProviderImpl {
     abstract NBTChunk createChunk(int x, int z, int maxHeight);
 
     /**
-     * Get all region files in a specific directory of the specified type(s).
+     * Get all region files in a specific directory of the specified type(s). May return {@code null} if there are none.
      */
     abstract File[] getRegionFiles(File regionDir, DataType dataType);
 

@@ -21,6 +21,9 @@ public class DumpRegions extends AbstractTool {
         final Platform platform = platformManager.identifyPlatform(worldDir);
         final JavaPlatformProvider platformProvider = (JavaPlatformProvider) platformManager.getPlatformProvider(platform);
         final File[] regionFiles = platformProvider.getRegionFiles(platform, new File(worldDir, "region"), REGION);
+        if (regionFiles == null) {
+            return;
+        }
         int lowestX = Integer.MAX_VALUE, highestX = Integer.MIN_VALUE, lowestZ = Integer.MAX_VALUE, highestZ = Integer.MIN_VALUE;
         final Map<MinecraftCoords, File> regions = new HashMap<>();
         for (File file: regionFiles) {
