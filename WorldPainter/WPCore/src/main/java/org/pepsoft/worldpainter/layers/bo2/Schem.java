@@ -318,9 +318,10 @@ public final class Schem extends AbstractNBTItem implements WPObject {
                 id = ((StringTag) extraTag).getValue();
                 i.remove();
             } else if (extraTag.getName().equals(TAG_POS)) {
-                x = ((ListTag<DoubleTag>) extraTag).getValue().get(0).getValue();
-                y = ((ListTag<DoubleTag>) extraTag).getValue().get(1).getValue();
-                z = ((ListTag<DoubleTag>) extraTag).getValue().get(3).getValue();
+                final List<DoubleTag> posTags = ((ListTag<DoubleTag>) extraTag).getValue();
+                x = posTags.get(0).getValue();
+                y = posTags.get(1).getValue();
+                z = posTags.get(2).getValue();
                 i.remove();
             } else if (extraTag.getName().equals(TAG_DATA)) {
                 dataTag = (CompoundTag) extraTag;
