@@ -1183,6 +1183,10 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     boolean changeWorldHeight(Window parent) {
+        if ((world == null) || (dimension == null)) {
+            DesktopUtils.beep();
+            return false;
+        }
         ChangeHeightDialog dialog = new ChangeHeightDialog(parent, world);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
@@ -1197,7 +1201,10 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     void shiftWorld(Window parent) {
-        if ((world.getImportedFrom() != null) && (showConfirmDialog(parent, "This world was imported from an existing map!\nIf you shift it you will no longer be able to merge it properly.\nAre you sure you want to shift the world?", strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
+        if ((world == null) || (dimension == null)) {
+            DesktopUtils.beep();
+            return;
+        } else if ((world.getImportedFrom() != null) && (showConfirmDialog(parent, "This world was imported from an existing map!\nIf you shift it you will no longer be able to merge it properly.\nAre you sure you want to shift the world?", strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
             return;
         }
         view.setInhibitUpdates(true);
@@ -1216,7 +1223,10 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     void rotateWorld(Window parent) {
-        if ((world.getImportedFrom() != null) && (showConfirmDialog(parent, strings.getString("this.world.was.imported.from.an.existing.map"), strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
+        if ((world == null) || (dimension == null)) {
+            DesktopUtils.beep();
+            return;
+        } else if ((world.getImportedFrom() != null) && (showConfirmDialog(parent, strings.getString("this.world.was.imported.from.an.existing.map"), strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
             return;
         }
         view.setInhibitUpdates(true);
@@ -1235,7 +1245,10 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     void scaleWorld(Window parent) {
-        if ((world.getImportedFrom() != null) && (showConfirmDialog(parent, "This world was imported from an existing map!\nIf you scale it you will no longer be able to merge it properly.\nAre you sure you want to scale the world?", strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
+        if ((world == null) || (dimension == null)) {
+            DesktopUtils.beep();
+            return;
+        } else if ((world.getImportedFrom() != null) && (showConfirmDialog(parent, "This world was imported from an existing map!\nIf you scale it you will no longer be able to merge it properly.\nAre you sure you want to scale the world?", strings.getString("imported"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
             return;
         }
         view.setInhibitUpdates(true);
@@ -2135,6 +2148,10 @@ public final class App extends JFrame implements RadiusControl,
      * @return {@code true} if the file was saved.
      */
     private boolean saveAs() {
+        if (world == null) {
+            DesktopUtils.beep();
+            return false;
+        }
         pauseAutosave();
         try {
             Configuration config = Configuration.getInstance();
@@ -2183,6 +2200,10 @@ public final class App extends JFrame implements RadiusControl,
      * @param file The file to which to save the world.
      */
     private boolean save(File file) {
+        if (world == null) {
+            DesktopUtils.beep();
+            return false;
+        }
         pauseAutosave();
         try {
             // Check for write access to directory
@@ -5817,14 +5838,16 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void saveCustomLayers() {
-        if (! paletteManager.isEmpty()) {
-            final List<CustomLayer> customLayers = new ArrayList<>();
-            for (Palette palette: paletteManager.getPalettes()) {
-                customLayers.addAll(palette.getLayers());
+        if (dimension != null) {
+            if (!paletteManager.isEmpty()) {
+                final List<CustomLayer> customLayers = new ArrayList<>();
+                for (Palette palette: paletteManager.getPalettes()) {
+                    customLayers.addAll(palette.getLayers());
+                }
+                this.dimension.setCustomLayers(customLayers);
+            } else {
+                this.dimension.setCustomLayers(emptyList());
             }
-            this.dimension.setCustomLayers(customLayers);
-        } else {
-            this.dimension.setCustomLayers(emptyList());
         }
     }
 
@@ -5884,6 +5907,10 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void showGlobalOperations() {
+        if ((world == null) || (dimension == null)) {
+            DesktopUtils.beep();
+            return;
+        }
         Set<Layer> allLayers = getAllLayers();
         List<Integer> allBiomes = getAllBiomes(world.getPlatform(), customBiomeManager);
         FillDialog dialog = new FillDialog(App.this, dimension, allLayers.toArray(new Layer[allLayers.size()]), selectedColourScheme, allBiomes.toArray(new Integer[allBiomes.size()]), customBiomeManager, view, selectionState);
@@ -6047,6 +6074,10 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void importLayers(String paletteName, Function<Layer, Boolean> filter) {
+        if (dimension == null) {
+            DesktopUtils.beep();
+            return;
+        }
         Configuration config = Configuration.getInstance();
         File layerDirectory = config.getLayerDirectory();
         if ((layerDirectory == null) || (! layerDirectory.isDirectory())) {
@@ -6632,10 +6663,6 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            if ((world == null) || (dimension == null)) {
-                DesktopUtils.beep();
-                return;
-            }
             save();
         }
 
@@ -6650,10 +6677,6 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            if ((world == null) || (dimension == null)) {
-                DesktopUtils.beep();
-                return;
-            }
             saveAs();
         }
 
@@ -6668,7 +6691,7 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            if ((world == null) || (dimension == null)) {
+            if (world == null) {
                 DesktopUtils.beep();
                 return;
             }
@@ -6963,10 +6986,6 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            if ((world == null) || (dimension == null)) {
-                DesktopUtils.beep();
-                return;
-            }
             changeWorldHeight(App.this);
         }
 
@@ -6980,10 +6999,6 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            if ((world == null) || (dimension == null)) {
-                DesktopUtils.beep();
-                return;
-            }
             rotateWorld(App.this);
         }
 
@@ -6997,10 +7012,6 @@ public final class App extends JFrame implements RadiusControl,
 
         @Override
         public void performAction(ActionEvent e) {
-            if ((world == null) || (dimension == null)) {
-                DesktopUtils.beep();
-                return;
-            }
             shiftWorld(App.this);
         }
 
@@ -7014,10 +7025,6 @@ public final class App extends JFrame implements RadiusControl,
 
         @Override
         public void performAction(ActionEvent e) {
-            if ((world == null) || (dimension == null)) {
-                DesktopUtils.beep();
-                return;
-            }
             scaleWorld(App.this);
         }
 
@@ -7176,10 +7183,6 @@ public final class App extends JFrame implements RadiusControl,
     private final BetterAction ACTION_IMPORT_LAYER = new BetterAction("importLayer", "Import custom layer(s)") {
         @Override
         protected void performAction(ActionEvent e) {
-            if (dimension == null) {
-                DesktopUtils.beep();
-                return;
-            }
             importLayers(null, getLayerFilterForCurrentDimension());
         }
 
