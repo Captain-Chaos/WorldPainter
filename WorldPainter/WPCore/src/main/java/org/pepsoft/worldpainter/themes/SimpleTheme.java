@@ -53,8 +53,10 @@ public class SimpleTheme implements Theme, Cloneable {
 
     @Override
     public void apply(Tile tile, int x, int y) {
-        int height = tile.getIntHeight(x, y);
-        Terrain terrain = getTerrain(x, y, clamp(minHeight, height, maxHeight - 1));
+        // height has been observed to be far out of bounds in the wild, so restrict it to min- and maxHeight:
+        // TODO: determine why this happens and fix the root cause
+        final int height = clamp(minHeight, tile.getIntHeight(x, y), maxHeight - 1);
+        final Terrain terrain = getTerrain(x, y, height);
         // Sanity checks because of NPE's observed in the wild from this method
         if (terrain == null) {
             throw new NullPointerException("apply(" + tile + ", " + x + ", " + y + ": getTerrain() returned null for " + this);
@@ -64,7 +66,7 @@ public class SimpleTheme implements Theme, Cloneable {
         }
         if (layerCache != null) {
             for (int i = 0; i < layerCache.length; i++) {
-                int level = layerLevelCache[i][height - minHeight];
+                final int level = layerLevelCache[i][height - minHeight];
                 if (level != tile.getLayerValue(layerCache[i], x, y)) {
                     tile.setLayerValue(layerCache[i], x, y, level);
                 }
@@ -72,8 +74,8 @@ public class SimpleTheme implements Theme, Cloneable {
         }
         if (bitLayerCache != null) {
             for (int i = 0; i < bitLayerCache.length; i++) {
-                int level = bitLayerLevelCache[i][height - minHeight];
-                boolean set = (level > 0) && ((level == 15) || (random.nextInt(15) < level));
+                final int level = bitLayerLevelCache[i][height - minHeight];
+                final boolean set = (level > 0) && ((level == 15) || (random.nextInt(15) < level));
                 if (set != tile.getBitLayerValue(bitLayerCache[i], x, y)) {
                     tile.setBitLayerValue(bitLayerCache[i], x, y, set);
                 }
