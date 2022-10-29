@@ -196,7 +196,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
                 }
             }
             exportSettings = allDimensionsSelected
-                    ? ((savedSteps != null) ? new WorldExportSettings(null, null, savedSteps) : null)
+                    ? ((savedSteps != null) ? new WorldExportSettings(null, null, savedSteps) : EXPORT_EVERYTHING)
                     : new WorldExportSettings(dimensionsToExport, null, savedSteps);
         } else {
             exportSettings = new WorldExportSettings(singleton(selectedDimension), selectedTiles, savedSteps);
