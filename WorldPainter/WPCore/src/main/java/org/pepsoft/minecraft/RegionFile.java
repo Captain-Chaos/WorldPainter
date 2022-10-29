@@ -149,7 +149,9 @@ public final class RegionFile implements AutoCloseable {
         }
 
         /* set up the available sector map */
-        int nSectors = (int) file.length() / SECTOR_BYTES;
+        int nSectors = ((file.length() & 0xfff) == 0)
+                ? (int) file.length() / SECTOR_BYTES
+                : (int) (((file.length() >> 12) + 1) << 12) / SECTOR_BYTES; // In read-only mode the file length may not be a multiple of 4K at this point, so compensate for that
         sectorFree = new ArrayList<>(nSectors);
 
         for (int i = 0; i < nSectors; ++i) {
