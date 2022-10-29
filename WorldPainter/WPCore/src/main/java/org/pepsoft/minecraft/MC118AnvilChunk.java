@@ -920,7 +920,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
                     }
                 }
             }
-            return ! hasBiomes();
+            return true;
         }
 
         /**
