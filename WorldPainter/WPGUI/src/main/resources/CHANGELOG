@@ -1,6 +1,15 @@
--- Version 2.15.7, released ...
+-- Version 2.15.7, released 29-10-2022
 
  * If the spawn point is not on the selected tiles for a Test Export, it will automatically temporarily be moved to the middle of the selected area
+ * Bug fix: when Merging, don't apply the stored tile selection if "Merge all tiles" is selected
+ * Bug fix: when Importing, don't import unfinished chunks that only have biomes in them as empty chunks
+   + These chunks occur around the edges of Minecraft 1.18+-generated maps
+   + If you have trouble with such incorrect empty chunks around the edges of your imported map, you have two options:
+     - Import the map again now that this bug has been fixed
+     - Manually remove the Void layer from those chunks, and raise them up to terrain height (they will be at bedrock)
+ * Bug fix: schem files with embedded entities no longer result in an error
+ * Bug fix: fix an Import error when encountering region files whose size is not a multiple of 4KB
+ * Various bug fixes and usability improvements
 
 -- Version 2.15.6, released 23-10-2022
 
