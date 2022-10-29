@@ -6046,13 +6046,19 @@ public final class App extends JFrame implements RadiusControl,
             if (p != -1) {
                 type = selectedFile.getName().substring(p + 1).toUpperCase();
             } else {
-                showMessageDialog(App.this, "No filename extension specified", "Missing Extension", ERROR_MESSAGE);
+                DesktopUtils.beep();
+                showMessageDialog(App.this, "No filename extension specified.", "Missing Extension", ERROR_MESSAGE);
                 return;
             }
             if (selectedFile.exists()) {
                 if (showConfirmDialog(App.this, strings.getString("the.file.already.exists"), strings.getString("overwrite.file"), YES_NO_OPTION) != YES_OPTION) {
                     return;
                 }
+            }
+            if (! ImageIO.getImageWritersBySuffix(type).hasNext()) {
+                DesktopUtils.beep();
+                showMessageDialog(this, "Filename extension " + type + " is not a supported image type.", "Unsupported Format", ERROR_MESSAGE);
+                return;
             }
             config.setHeightMapsDirectory(selectedFile.getParentFile());
             final File file = selectedFile;
@@ -6068,7 +6074,8 @@ public final class App extends JFrame implements RadiusControl,
                             return heightMapExporter.exportToFile(file);
                         }
                     }, NOT_CANCELABLE)) {
-                showMessageDialog(App.this, MessageFormat.format(strings.getString("format.0.not.supported"), type, defaultExtension.toUpperCase()));
+                DesktopUtils.beep();
+                showMessageDialog(App.this, MessageFormat.format(strings.getString("format.0.not.supported"), type), "Unsupported Format", ERROR_MESSAGE);
             }
         }
     }
