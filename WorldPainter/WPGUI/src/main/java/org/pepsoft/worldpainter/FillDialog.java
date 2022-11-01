@@ -115,7 +115,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
                     } else if (radioButtonSetLayer.isSelected()) {
                         return "Filling with " + ((Layer) comboBoxSetLayer.getSelectedItem()).getName();
                     } else if (radioButtonClearLayer.isSelected()) {
-                        return "Clearing " + ((Layer) comboBoxSetLayer.getSelectedItem()).getName();
+                        return "Clearing " + ((Layer) comboBoxClearLayer.getSelectedItem()).getName();
                     } else if (radioButtonInvertLayer.isSelected()) {
                         return "Inverting " + ((Layer) comboBoxInvertLayer.getSelectedItem()).getName();
                     } else if (radioButtonBiome.isSelected()) {
