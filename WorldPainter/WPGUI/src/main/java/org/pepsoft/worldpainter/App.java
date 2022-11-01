@@ -2548,6 +2548,10 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void importHeightMapIntoCurrentDimension() {
+        if (dimension == null) {
+            DesktopUtils.beep();
+            return;
+        }
         ImportHeightMapDialog dialog = new ImportHeightMapDialog(this, dimension, selectedColourScheme, customBiomeManager, view.isDrawContours(), view.getContourSeparation(), view.getLightOrigin());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
@@ -2556,6 +2560,10 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void importMask() {
+        if (dimension == null) {
+            DesktopUtils.beep();
+            return;
+        }
         List<Layer> allLayers = new ArrayList<>();
         allLayers.add(Biome.INSTANCE);
         allLayers.add(Annotations.INSTANCE);
@@ -5716,7 +5724,10 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private boolean importCustomMaterials() {
-        if (getConfiguredCustomMaterialCount() == CUSTOM_TERRAIN_COUNT) {
+        if (dimension == null) {
+            DesktopUtils.beep();
+            return false;
+        } else if (getConfiguredCustomMaterialCount() == CUSTOM_TERRAIN_COUNT) {
             showMessageDialog(this, "All Custom Terrain slots are already in use.", "No Free Slots", ERROR_MESSAGE);
             return false;
         }
@@ -5918,6 +5929,10 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void exportImage() {
+        if (dimension == null) {
+            DesktopUtils.beep();
+            return;
+        }
         final Set<String> extensions = new HashSet<>(asList(ImageIO.getReaderFileSuffixes()));
         StringBuilder sb = new StringBuilder(strings.getString("supported.image.formats"));
         sb.append(" (");
@@ -5995,6 +6010,10 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void exportHeightMap(boolean highRes) {
+        if (dimension == null) {
+            DesktopUtils.beep();
+            return;
+        }
         final HeightMapExporter heightMapExporter = new HeightMapExporter(dimension, highRes);
         final List<String> extensions = heightMapExporter.getSupportedFileExtensions();
         StringBuilder sb = new StringBuilder(strings.getString("supported.image.formats"));
@@ -6560,6 +6579,10 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void deleteUnusedLayers() {
+        if (dimension == null) {
+            DesktopUtils.beep();
+            return;
+        }
         Set<CustomLayer> unusedLayers = getCustomLayers();
         Set<Layer> layersInUse = dimension.getAllLayers(true);
         unusedLayers.removeAll(layersInUse);
