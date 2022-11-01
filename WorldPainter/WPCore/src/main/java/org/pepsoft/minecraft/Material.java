@@ -873,11 +873,11 @@ public final class Material implements Serializable {
     }
 
     /**
-     * Indicate whether the block is filled with water (in addition to whatever
-     * else may be there).
+     * Indicate whether the block is filled with water (in addition to whatever else may be there), excepting flowing
+     * water.
      */
     public boolean containsWater() {
-        return watery || is(WATERLOGGED) || (isNamed(MC_WATER) && (getProperty(LEVEL) == 0));
+        return watery || is(WATERLOGGED) || (isNamed(MC_WATER) && (getProperty(LEVEL, 0) == 0));
     }
 
     private HorizontalOrientationScheme[] determineHorizontalOrientations(Identity identity) {

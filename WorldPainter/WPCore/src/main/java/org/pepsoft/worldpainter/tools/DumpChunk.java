@@ -16,6 +16,7 @@ import java.util.*;
 
 import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.minecraft.Material.LEVEL;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
 /**
@@ -117,6 +118,7 @@ x:          for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++) {
                     Material material = chunk.getMaterial(x, y, z);
+                    Integer waterLevel = material.getProperty(LEVEL);
                     if (material != AIR) {
                         String name = material.name;
                         name = name.substring(name.indexOf(':') + 1);
@@ -153,10 +155,15 @@ x:          for (int x = 0; x < 16; x++) {
 //                            tag = String.format("[%3.3s:%2.2s]", name, property);
 //                        }
 //                        System.out.print(tag);
-                        if (chunk.getSkyLightLevel(x, y, z) == 15) {
+//                        if (chunk.getSkyLightLevel(x, y, z) == 15) {
+//                            System.out.printf("[%3.3s:  ]", name);
+//                        } else {
+//                            System.out.printf("[%3.3s:%2d]", name, chunk.getSkyLightLevel(x, y, z));
+//                        }
+                        if (waterLevel == null) {
                             System.out.printf("[%3.3s:  ]", name);
                         } else {
-                            System.out.printf("[%3.3s:%2d]", name, chunk.getSkyLightLevel(x, y, z));
+                            System.out.printf("[%3.3s:%2d]", name, waterLevel);
                         }
                         materialsInSlice.computeIfAbsent(name, materialsForTag -> new HashSet<>()).add(material);
 //                        if (chunk.getBlockLightLevel(x, y, z) == 0) {
@@ -166,10 +173,15 @@ x:          for (int x = 0; x < 16; x++) {
 //                        }
 //                        System.out.printf("[%3.3s:%2d]", name, chunk.getBlockLightLevel(x, y, z));
                     } else {
-                        if (chunk.getSkyLightLevel(x, y, z) == 15) {
+//                        if (chunk.getSkyLightLevel(x, y, z) == 15) {
+//                            System.out.print("[   :  ]");
+//                        } else {
+//                            System.out.printf("[   :%2d]", chunk.getSkyLightLevel(x, y, z));
+//                        }
+                        if (waterLevel == null) {
                             System.out.print("[   :  ]");
                         } else {
-                            System.out.printf("[   :%2d]", chunk.getSkyLightLevel(x, y, z));
+                            System.out.printf("[   :%2d]", waterLevel);
                         }
 //                        if (chunk.getBlockLightLevel(x, y, z) == 0) {
 //                            System.out.print("[   :  ]");
