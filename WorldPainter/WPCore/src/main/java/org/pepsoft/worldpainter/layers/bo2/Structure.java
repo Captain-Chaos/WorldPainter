@@ -55,12 +55,13 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
         this.name = name;
     }
 
+    @SuppressWarnings("unchecked") // Guaranteed by Minecraft
     @Override
     public Point3i getDimensions() {
-        List size = ((ListTag) root.getTag("size")).getValue();
-        return new Point3i(((IntTag) size.get(0)).getValue(),
-                ((IntTag) size.get(2)).getValue(),
-                ((IntTag) size.get(1)).getValue());
+        final List<IntTag> size = ((ListTag<IntTag>) root.getTag("size")).getValue();
+        return new Point3i(size.get(0).getValue(),
+                size.get(2).getValue(),
+                size.get(1).getValue());
     }
 
     @Override
@@ -71,7 +72,7 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
     @Override
     public boolean getMask(int x, int y, int z) {
         if (getAttribute(ATTRIBUTE_IGNORE_AIR)) {
-            Material material = blocks.get(new Point3i(x, y, z));
+            final Material material = blocks.get(new Point3i(x, y, z));
             return (material != null) && (material != AIR);
         } else {
             return blocks.containsKey(new Point3i(x, y, z));
@@ -117,7 +118,7 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
 
     @Override
     public Structure clone() {
-        Structure clone = (Structure) super.clone();
+        final Structure clone = (Structure) super.clone();
         if (attributes != null) {
             clone.attributes = new HashMap<>(attributes);
         }
@@ -136,38 +137,38 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
 
     @SuppressWarnings("unchecked") // Guaranteed by Minecraft
     public static Structure load(String objectName, InputStream inputStream) throws IOException {
-        CompoundTag root;
+        final CompoundTag root;
         try (NBTInputStream in = new NBTInputStream(new GZIPInputStream(new BufferedInputStream(inputStream)))) {
             root = (CompoundTag) in.readTag();
         }
 
         // Load the palette
-        ListTag paletteTag = (ListTag) root.getTag(TAG_PALETTE_);
-        Material[] palette = new Material[paletteTag.getValue().size()];
+        final ListTag<CompoundTag> paletteTag = (ListTag<CompoundTag>) root.getTag(TAG_PALETTE_);
+        final Material[] palette = new Material[paletteTag.getValue().size()];
         for (int i = 0; i < palette.length; i++) {
-            CompoundTag entryTag = (CompoundTag) paletteTag.getValue().get(i);
-            String name = ((StringTag) entryTag.getTag(TAG_NAME)).getValue();
-            CompoundTag propertiesTag = (CompoundTag) entryTag.getTag(TAG_PROPERTIES);
-            Map<String, String> properties = (propertiesTag != null)
+            final CompoundTag entryTag = paletteTag.getValue().get(i);
+            final String name = ((StringTag) entryTag.getTag(TAG_NAME)).getValue();
+            final CompoundTag propertiesTag = (CompoundTag) entryTag.getTag(TAG_PROPERTIES);
+            final Map<String, String> properties = (propertiesTag != null)
                     ? propertiesTag.getValue().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> ((StringTag) entry.getValue()).getValue()))
                     : null;
             palette[i] = Material.get(name, properties);
         }
 
         // Load the blocks and tile entities
-        Map<Point3i, Material> blocks = new HashMap<>();
-        ListTag<CompoundTag> blocksTag = (ListTag<CompoundTag>) root.getTag(TAG_BLOCKS_);
-        List<TileEntity> tileEntities = new ArrayList<>();
+        final Map<Point3i, Material> blocks = new HashMap<>();
+        final ListTag<CompoundTag> blocksTag = (ListTag<CompoundTag>) root.getTag(TAG_BLOCKS_);
+        final List<TileEntity> tileEntities = new ArrayList<>();
         for (CompoundTag blockTag: blocksTag.getValue()) {
-            List<IntTag> posTags = ((ListTag<IntTag>) blockTag.getTag(TAG_POS_)).getValue();
-            int x = posTags.get(0).getValue();
-            int y = posTags.get(2).getValue();
-            int z = posTags.get(1).getValue();
+            final List<IntTag> posTags = ((ListTag<IntTag>) blockTag.getTag(TAG_POS_)).getValue();
+            final int x = posTags.get(0).getValue();
+            final int y = posTags.get(2).getValue();
+            final int z = posTags.get(1).getValue();
             blocks.put(new Point3i(x, y, z), palette[((IntTag) blockTag.getTag(TAG_STATE_)).getValue()]);
-            CompoundTag nbtTag = (CompoundTag) blockTag.getTag(TAG_NBT_);
+            final CompoundTag nbtTag = (CompoundTag) blockTag.getTag(TAG_NBT_);
             if (nbtTag != null) {
                 // This block is a tile entity
-                TileEntity tileEntity = TileEntity.fromNBT(nbtTag);
+                final TileEntity tileEntity = TileEntity.fromNBT(nbtTag);
                 tileEntity.setX(x);
                 tileEntity.setY(z);
                 tileEntity.setZ(y);
@@ -176,17 +177,19 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
         }
 
         // Load the entities
-        ListTag<CompoundTag> entitiesTag = (ListTag<CompoundTag>) root.getTag(TAG_ENTITIES_);
-        List<Entity> entities = new ArrayList<>(entitiesTag.getValue().size());
-        for (CompoundTag entityTag: entitiesTag.getValue()) {
-            double[] relPos = null;
-            if (entityTag.getTag(TAG_POS_) instanceof ListTag) {
-                relPos = ((ListTag<DoubleTag>) entityTag.getTag(TAG_POS_)).getValue().stream().mapToDouble(DoubleTag::getValue).toArray();
+        final ListTag<CompoundTag> entitiesTag = (ListTag<CompoundTag>) root.getTag(TAG_ENTITIES_);
+        final List<Entity> entities = new ArrayList<>();
+        if (entitiesTag != null) {
+            for (CompoundTag entityTag: entitiesTag.getValue()) {
+                double[] relPos = null;
+                if (entityTag.getTag(TAG_POS_) instanceof ListTag) {
+                    relPos = ((ListTag<DoubleTag>) entityTag.getTag(TAG_POS_)).getValue().stream().mapToDouble(DoubleTag::getValue).toArray();
+                }
+                if (entityTag.getTag(TAG_NBT_) instanceof CompoundTag) {
+                    entityTag = (CompoundTag) entityTag.getTag(TAG_NBT_);
+                }
+                entities.add(Entity.fromNBT(entityTag, relPos));
             }
-            if (entityTag.getTag(TAG_NBT_) instanceof CompoundTag) {
-                entityTag = (CompoundTag) entityTag.getTag(TAG_NBT_);
-            }
-            entities.add(Entity.fromNBT(entityTag, relPos));
         }
 
         // Remove palette, blocks and entities from the tag so we don't waste space
