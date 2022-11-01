@@ -162,7 +162,7 @@ public class TerrainRangesTableModel implements TableModel {
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
         if (aValue == null) {
-            throw new NullPointerException("aValue");
+            throw new NullPointerException("aValue (rowIndex: " + rowIndex + ", columnIndex: " + columnIndex + ")");
         }
         switch (columnIndex) {
             case 0:
