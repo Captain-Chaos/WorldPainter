@@ -195,7 +195,7 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
         if ((superReason == null) && ((platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18))) {
             for (Dimension dimension: world.getDimensions()) {
                 final MapGenerator generator = dimension.getGenerator();
-                if ((generator.getType() == CUSTOM) && (! (((CustomGenerator) generator).getSettings() instanceof CompoundTag))) {
+                if ((generator != null) && (generator.getType() == CUSTOM) && (! (((CustomGenerator) generator).getSettings() instanceof CompoundTag))) {
                     return "World type " + generator + " not supported by map format";
                 }
             }
