@@ -330,7 +330,7 @@ public class MaterialSelector extends javax.swing.JPanel {
      * @return The string with its first letter changed to uppercase.
      */
     private String uppercaseFirst(String str) {
-        return Character.toUpperCase(str.charAt(0)) + str.substring(1);
+        return str.isEmpty() ? str : Character.toUpperCase(str.charAt(0)) + str.substring(1);
     }
 
     /**
@@ -356,8 +356,8 @@ public class MaterialSelector extends javax.swing.JPanel {
      */
     private void addProperty() {
         final String name = JOptionPane.showInputDialog(this, "Enter the name of the property to add:", "Add Property", JOptionPane.QUESTION_MESSAGE);
-        if (name != null) {
-            addStringProperty(name, "", null, true);
+        if ((name != null) && (! name.trim().isEmpty())) {
+            addStringProperty(name.trim(), "", null, true);
             SwingUtilities.windowForComponent(this).validate();
             repaint();
         }
