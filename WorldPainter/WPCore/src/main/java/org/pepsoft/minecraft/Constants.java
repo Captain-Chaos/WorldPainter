@@ -693,6 +693,7 @@ public final class Constants {
     public static final String TAG_STATUS                  = "Status";
     public static final String TAG_PALETTE                 = "Palette";
     public static final String TAG_PALETTE_                = "palette";
+    public static final String TAG_PALETTES_               = "palettes";
     public static final String TAG_NAME                    = "Name";
     public static final String TAG_PROPERTIES              = "Properties";
     public static final String TAG_SNAPSHOT                = "Snapshot";
