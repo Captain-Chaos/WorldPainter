@@ -1,3 +1,9 @@
+-- Version 2.15.8, released 3-11-2022
+
+ * Bug fix: fix a crash when Exporting Custom Cave/Tunnel layers with a Floor Dimension
+ * Bug fix: show the correct name when clearing a layer from the Global Operations tool
+ * Various bug fixes
+
 -- Version 2.15.7, released 29-10-2022
 
  * If the spawn point is not on the selected tiles for a Test Export, it will automatically temporarily be moved to the middle of the selected area
