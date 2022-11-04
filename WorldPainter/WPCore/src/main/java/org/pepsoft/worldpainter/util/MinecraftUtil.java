@@ -5,7 +5,6 @@
 package org.pepsoft.worldpainter.util;
 
 import org.jetbrains.annotations.NotNull;
-import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.util.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,9 +116,4 @@ public class MinecraftUtil {
     }
 
     private static final Logger logger = LoggerFactory.getLogger(MinecraftUtil.class);
-
-    @FunctionalInterface
-    public interface ChunkVisitor {
-        void visitChunk(Chunk chunk);
-    }
 }
