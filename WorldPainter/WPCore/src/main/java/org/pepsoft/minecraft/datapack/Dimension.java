@@ -2,6 +2,7 @@ package org.pepsoft.minecraft.datapack;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.google.common.collect.ImmutableMap;
 import lombok.Builder;
 import lombok.Value;
 import org.pepsoft.worldpainter.Platform;
@@ -34,6 +35,8 @@ public class Dimension extends Descriptor {
     boolean ultrawarm;
     Integer fixedTime;
     @Builder.Default String effects = "#minecraft:overworld";
+    int monsterSpawnBlockLightLimit;
+    @Builder.Default IntProvider monsterSpawnLightLevel = IntProvider.builder().type("minecraft:uniform").value(ImmutableMap.of("min_inclusive", 0, "max_inclusive", 7)).build();
 
     public static Dimension createDefault(Platform platform, int dim, int maxHeight) {
         switch (dim) {
@@ -78,5 +81,13 @@ public class Dimension extends Descriptor {
             default:
                 throw new IllegalArgumentException("Unsupported dimension: " + dim);
         }
+    }
+
+    @Value
+    @Builder
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+    public static class IntProvider {
+        String type;
+        Object value;
     }
 }
