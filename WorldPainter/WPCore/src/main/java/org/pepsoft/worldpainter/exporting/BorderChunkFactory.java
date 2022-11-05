@@ -22,11 +22,11 @@ import java.util.Set;
 
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Dimension.Border.BARRIER;
 import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
 import static org.pepsoft.worldpainter.Terrain.BEACHES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
+import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
 
 /**
  *
@@ -70,7 +70,7 @@ public class BorderChunkFactory {
                 switch (border) {
                     case VOID:
                     case BARRIER:
-                        biome = ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) ? BIOME_THE_VOID : BIOME_PLAINS;
+                        biome = getBiomeScheme(platform).isBiomePresent(BIOME_THE_VOID) ? BIOME_THE_VOID : BIOME_PLAINS;
                         break;
                     case WATER:
                         biome = BIOME_OCEAN;

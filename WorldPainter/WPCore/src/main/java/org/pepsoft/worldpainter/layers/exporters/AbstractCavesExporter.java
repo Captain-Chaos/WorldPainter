@@ -20,8 +20,8 @@ import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_17;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_18;
+import static org.pepsoft.worldpainter.Constants.V_1_17;
+import static org.pepsoft.worldpainter.DefaultPlugin.ATTRIBUTE_MC_VERSION;
 import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
 import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.BIOME_DRIPSTONE_CAVES;
@@ -52,9 +52,10 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
         decorationSettings = (settings != null) ? settings.getCaveDecorationSettings() : null;
         if (decorationSettings != null) {
             decorateBrownMushrooms = decorationSettings.isEnabled(Decoration.BROWN_MUSHROOM);
-            decorateGlowLichen = decorationSettings.isEnabled(Decoration.GLOW_LICHEN) && ((platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18));
-            decorateLushCaves = decorationSettings.isEnabled(Decoration.LUSH_CAVE_PATCHES) && ((platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18));
-            decorateDripstoneCaves = decorationSettings.isEnabled(Decoration.DRIPSTONE_CAVE_PATCHES) && ((platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18));
+            final boolean mcVersionAtLeast1_17 = platform.getAttribute(ATTRIBUTE_MC_VERSION).isAtLeast(V_1_17);
+            decorateGlowLichen = decorationSettings.isEnabled(Decoration.GLOW_LICHEN) && mcVersionAtLeast1_17;
+            decorateLushCaves = decorationSettings.isEnabled(Decoration.LUSH_CAVE_PATCHES) && mcVersionAtLeast1_17;
+            decorateDripstoneCaves = decorationSettings.isEnabled(Decoration.DRIPSTONE_CAVE_PATCHES) && mcVersionAtLeast1_17;
             decorationEnabled = decorateBrownMushrooms || decorateGlowLichen || decorateLushCaves || decorateDripstoneCaves;
             lushCaveNoise = decorateLushCaves ? new NoiseHeightMap(decorationSettings.noiseSettingsMap.get(LUSH_CAVE_PATCHES), dimension.getSeed() + 1) : null;
             dripstoneCaveNoise = decorateDripstoneCaves ? new NoiseHeightMap(decorationSettings.noiseSettingsMap.get(DRIPSTONE_CAVE_PATCHES), dimension.getSeed() + 2) : null;

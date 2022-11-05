@@ -10,6 +10,8 @@ import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import javax.swing.*;
 import java.awt.*;
 
+import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
+
 /**
  *
  * @author pepijn
@@ -21,7 +23,7 @@ public class BiomeListCellRenderer extends DefaultListCellRenderer {
     
     public BiomeListCellRenderer(ColourScheme colourScheme, CustomBiomeManager customBiomeManager, String nullLabel, Platform platform) {
         this.nullLabel = nullLabel;
-        this.showIds = (platform != DefaultPlugin.JAVA_ANVIL_1_18); // TODO make this dynamic
+        this.showIds = ! platform.capabilities.contains(NAMED_BIOMES);
         biomeHelper = new BiomeHelper(colourScheme, customBiomeManager, platform);
     }
     

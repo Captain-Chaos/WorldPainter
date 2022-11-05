@@ -17,7 +17,7 @@ import static org.pepsoft.minecraft.Constants.MC_DISTANCE;
 import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.MathUtils.clamp;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Platform.ATTRIBUTE_WATER_OPACITY;
 import static org.pepsoft.worldpainter.Platform.Capability.LEAF_DISTANCES;
 import static org.pepsoft.worldpainter.Platform.Capability.PRECALCULATED_LIGHT;
 import static org.pepsoft.worldpainter.exporting.WorldExportSettings.Step.LEAVES;
@@ -49,7 +49,6 @@ import static org.pepsoft.worldpainter.exporting.WorldExportSettings.Step.LIGHTI
 public class BlockPropertiesCalculator {
     public BlockPropertiesCalculator(MinecraftWorld world, Platform platform, WorldExportSettings worldExportSettings, BlockBasedExportSettings exportSettings) {
         this.world = world;
-        this.platform = platform;
         skyLight = isSkyLightNeeded(platform, worldExportSettings, exportSettings);
         blockLight = isBlockLightNeeded(platform, worldExportSettings, exportSettings);
         leafDistance = isLeafDistanceNeeded(platform, worldExportSettings, exportSettings);
@@ -59,6 +58,7 @@ public class BlockPropertiesCalculator {
         }
         minHeight = world.getMinHeight();
         maxHeight = world.getMaxHeight();
+        waterOpacity = platform.getAttribute(ATTRIBUTE_WATER_OPACITY);
     }
 
     /**
@@ -443,9 +443,8 @@ public class BlockPropertiesCalculator {
     }
 
     private int getOpacity(Material material) {
-        // TODOMC13: make this generic:
         if (material.containsWater()) {
-            return ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) ? 1 : 3;
+            return waterOpacity;
         } else {
             return material.opacity;
         }
@@ -454,9 +453,8 @@ public class BlockPropertiesCalculator {
     // MC coordinate system
     private int calculateSkyLightLevel(Chunk chunk, int x, int y, int z, Material material) {
         int skyLightLevel = getSkyLightLevelAt(chunk, x, y + 1, z);
-        // TODOMC13: make this generic:
         if ((skyLightLevel == 15)
-                && ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18))
+                && (waterOpacity == 1)
                 && (material.isNamed(MC_WATER))
                 && ((y >= maxHeight - 1) || (world.getMaterialAt(x, z, y + 1) == AIR))) {
             // This seems to be a special case in MC 1.15. TODO: keep an eye on whether this was a bug or intended behaviour!
@@ -603,9 +601,8 @@ public class BlockPropertiesCalculator {
     }
 
     private final MinecraftWorld world;
-    private final Platform platform;
     private final boolean skyLight, blockLight, leafDistance, removeFloatingLeaves;
-    private final int minHeight, maxHeight;
+    private final int minHeight, maxHeight, waterOpacity;
     private Box originalDirtyArea, dirtyArea;
     private int[][] maxHeights;
     private int maxHeightsXOffset, maxHeightsZOffset;

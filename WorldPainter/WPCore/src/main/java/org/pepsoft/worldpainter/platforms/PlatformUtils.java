@@ -8,6 +8,7 @@ import java.util.Set;
 
 import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.DATA_VERSION_MC_1_16_5;
+import static org.pepsoft.minecraft.Constants.DATA_VERSION_MC_1_18_2;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 public final class PlatformUtils {
@@ -29,7 +30,11 @@ public final class PlatformUtils {
                 return ImmutableSet.of(JAVA_ANVIL_1_15, JAVA_ANVIL_1_17);
             }
         } else if (chunk instanceof MC118AnvilChunk) {
-            return singleton(JAVA_ANVIL_1_18);
+            if (((MC118AnvilChunk) chunk).getInputDataVersion() > DATA_VERSION_MC_1_18_2) {
+                return singleton(JAVA_ANVIL_1_19);
+            } else {
+                return singleton(JAVA_ANVIL_1_18);
+            }
         } else {
             return null;
         }

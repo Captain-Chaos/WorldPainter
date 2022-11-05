@@ -1,7 +1,6 @@
 package org.pepsoft.worldpainter.platforms;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import org.jnbt.CompoundTag;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
@@ -43,7 +42,7 @@ import static org.pepsoft.worldpainter.util.MinecraftUtil.getRegionDir;
  */
 public final class JavaPlatformProvider extends AbstractPlatformProvider implements BlockBasedPlatformProvider, MapExplorerSupport, MapImporterProvider {
     public JavaPlatformProvider() {
-        super(Version.VERSION, PLATFORMS, "JavaPlatformProvider");
+        super(Version.VERSION, DEFAULT_JAVA_PLATFORMS, "JavaPlatformProvider");
     }
 
     public Set<DataType> getDataTypes(Platform platform) {
@@ -192,7 +191,7 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
     public String isCompatible(Platform platform, World2 world) {
         ensurePlatformSupported(platform);
         final String superReason = super.isCompatible(platform, world);
-        if ((superReason == null) && ((platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18))) {
+        if ((superReason == null) && platform.getAttribute(ATTRIBUTE_MC_VERSION).isAtLeast(V_1_17)) {
             for (Dimension dimension: world.getDimensions()) {
                 final MapGenerator generator = dimension.getGenerator();
                 if ((generator != null) && (generator.getType() == CUSTOM) && (! (((CustomGenerator) generator).getSettings() instanceof CompoundTag))) {
@@ -217,11 +216,11 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
             JAVA_ANVIL, new Anvil1_2PlatformProvider(),
             JAVA_ANVIL_1_15, new Anvil1_15PlatformProvider(),
             JAVA_ANVIL_1_17, new Anvil1_17PlatformProvider(),
-            JAVA_ANVIL_1_18, new Anvil1_18PlatformProvider()
+            JAVA_ANVIL_1_18, new Anvil1_18PlatformProvider(),
+            JAVA_ANVIL_1_19, new Anvil1_18PlatformProvider()
     );
 
     public static final Icon ICON = new ImageIcon(scaleIcon(loadUnscaledImage("org/pepsoft/worldpainter/mapexplorer/maproot.png"), 16));
 
-    private static final Set<Platform> PLATFORMS = ImmutableSet.of(JAVA_MCREGION, JAVA_ANVIL, JAVA_ANVIL_1_15, JAVA_ANVIL_1_17, JAVA_ANVIL_1_18);
     private static final Logger logger = LoggerFactory.getLogger(JavaPlatformProvider.class);
 }

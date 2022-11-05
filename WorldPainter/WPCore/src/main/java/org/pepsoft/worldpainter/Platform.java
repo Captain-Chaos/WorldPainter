@@ -1,12 +1,15 @@
 package org.pepsoft.worldpainter;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import org.pepsoft.util.AttributeKey;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.*;
 
+import static org.pepsoft.minecraft.Constants.MC_GRASS_BLOCK;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 
 /**
@@ -17,16 +20,23 @@ import static org.pepsoft.worldpainter.Platform.Capability.*;
  * <p>Created by Pepijn on 11-12-2016.
  */
 public final class Platform implements Serializable {
+    Platform(String id, String displayName, int minMaxHeight, int standardMaxHeight, int maxMaxHeight, int minX,
+                    int maxX, int minY, int maxY, List<GameType> supportedGameTypes,
+                    List<Generator> supportedGenerators, List<Integer> supportedDimensions,
+                    Set<Capability> capabilities, Object... attributes) {
+        this(id, displayName, defaultMaxHeightsFromTo(minMaxHeight, maxMaxHeight), standardMaxHeight, minX, maxX, minY, maxY, 0, supportedGameTypes, supportedGenerators, supportedDimensions, capabilities, attributes);
+    }
+
     public Platform(String id, String displayName, int minMaxHeight, int standardMaxHeight, int maxMaxHeight, int minX,
                     int maxX, int minY, int maxY, List<GameType> supportedGameTypes,
                     List<Generator> supportedGenerators, List<Integer> supportedDimensions,
                     Set<Capability> capabilities) {
-        this(id, displayName, defaultMaxHeightsFromTo(minMaxHeight, maxMaxHeight), standardMaxHeight, minX, maxX, minY, maxY, 0, supportedGameTypes, supportedGenerators, supportedDimensions, capabilities);
+        this(id, displayName, defaultMaxHeightsFromTo(minMaxHeight, maxMaxHeight), standardMaxHeight, minX, maxX, minY, maxY, 0, supportedGameTypes, supportedGenerators, supportedDimensions, capabilities, (Object[]) null);
     }
 
-    public Platform(String id, String displayName, int[] maxHeights, int standardMaxHeight, int minX, int maxX,
+    Platform(String id, String displayName, int[] maxHeights, int standardMaxHeight, int minX, int maxX,
                     int minY, int maxY, int minZ, List<GameType> supportedGameTypes, List<Generator> supportedGeneratorTypes,
-                    List<Integer> supportedDimensions, Set<Capability> capabilities) {
+                    List<Integer> supportedDimensions, Set<Capability> capabilities, Object... attributes) {
         synchronized (ALL_PLATFORMS) {
             if (ALL_PLATFORMS.containsKey(id)) {
                 throw new IllegalStateException("There is already a platform with ID " + id);
@@ -46,8 +56,23 @@ public final class Platform implements Serializable {
             this.supportedGenerators = ImmutableList.copyOf(supportedGeneratorTypes);
             this.supportedDimensions = ImmutableList.copyOf(supportedDimensions);
             this.capabilities = Sets.immutableEnumSet(capabilities);
+            if ((attributes != null) && (attributes.length > 0)) {
+                final ImmutableMap.Builder<String, Serializable> mapBuilder = ImmutableMap.builder();
+                for (int i = 0; i < attributes.length; i += 2) {
+                    mapBuilder.put(((AttributeKey<?>) attributes[i]).key, (Serializable) attributes[i + 1]);
+                }
+                this.attributes = mapBuilder.build();
+            } else {
+                this.attributes = null;
+            }
             ALL_PLATFORMS.put(id, this);
         }
+    }
+
+    public Platform(String id, String displayName, int[] maxHeights, int standardMaxHeight, int minX, int maxX,
+                    int minY, int maxY, int minZ, List<GameType> supportedGameTypes, List<Generator> supportedGeneratorTypes,
+                    List<Integer> supportedDimensions, Set<Capability> capabilities) {
+        this(id, displayName, maxHeights, standardMaxHeight, minX, maxX, minY, maxY, minZ, supportedGameTypes, supportedGeneratorTypes, supportedDimensions, capabilities, (Object[]) null);
     }
 
     /**
@@ -84,7 +109,15 @@ public final class Platform implements Serializable {
     public boolean supportsBiomes() {
         return capabilities.contains(BIOMES) || capabilities.contains(BIOMES_3D) || capabilities.contains(NAMED_BIOMES);
     }
-    
+
+    /**
+     * Convenience method for getting an attribute value. If the attribute is not set then {@code key.defaultValue} is
+     * returned.
+     */
+    public <T extends Serializable> T getAttribute(AttributeKey<T> key) {
+        return (attributes != null) ? key.get(attributes) : key.defaultValue;
+    }
+
     // Object
 
     @Override
@@ -128,23 +161,17 @@ public final class Platform implements Serializable {
     public final String displayName;
 
     /**
-     * Get the lowest map height supported by this platform.
-     *
-     * @return The lowest map height supported by this platform.
+     * The lowest map height supported by this platform.
      */
     public final int minMaxHeight;
 
     /**
-     * Get the default height of maps for this platform.
-     *
-     * @return The default height of maps for this platform.
+     * The default height of maps for this platform.
      */
     public final int standardMaxHeight;
 
     /**
-     * Get the highest map height supported by this platform.
-     *
-     * @return The highest map height supported by this platform.
+     * The highest map height supported by this platform.
      */
     public final int maxMaxHeight;
 
@@ -199,6 +226,22 @@ public final class Platform implements Serializable {
      */
     public final int minZ;
 
+    /**
+     * Additional custom defined attributes that do not apply to all platforms. May be {@code null}.
+     */
+    public final Map<String, Serializable> attributes;
+
+    /**
+     * The name of the "grass block" block type for the platform. Default value: {@code minecraft:grass_block}.
+     */
+    public static final AttributeKey<String> ATTRIBUTE_GRASS_BLOCK_NAME = new AttributeKey<>("blocks.grass_block.name", MC_GRASS_BLOCK);
+
+    /**
+     * The opacity of a water block. Default value: 1. A value of 1 also implies that the top layer of water has full
+     * daylight lighting.
+     */
+    public static final AttributeKey<Integer> ATTRIBUTE_WATER_OPACITY = new AttributeKey<>("blocks.water.opacity", 1);
+
     private static final Map<String, Platform> ALL_PLATFORMS = new HashMap<>();
 
     private static final long serialVersionUID = 1L;
@@ -213,6 +256,7 @@ public final class Platform implements Serializable {
         return maxHeights.stream().mapToInt(Integer::intValue).toArray();
     }
 
+    // TODO capabilities can be seen as attributes of type boolean; should we just migrate them to that?
     public enum Capability {
         /**
          * Has the concept of a 2D, per-column biome, identified by a number. This is mutually exclusive with

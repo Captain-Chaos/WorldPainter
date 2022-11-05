@@ -30,7 +30,7 @@ import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.minecraft.Material.LEVEL;
 
 /**
- * An "Anvil" chunk for Minecraft 1.15 and higher.
+ * An "Anvil" chunk for Minecraft 1.18 and higher.
  * 
  * @author pepijn
  */
@@ -41,7 +41,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
         this.zPos = zPos;
         this.maxHeight = maxHeight;
 
-        dataVersion = DATA_VERSION_MC_1_18_0;
+        inputDataVersion = null;
         sections = new Section[(maxHeight >> 4) + UNDERGROUND_SECTIONS];
         heightMaps = new HashMap<>();
         entities = new ArrayList<>();
@@ -64,7 +64,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
             this.maxHeight = maxHeight;
             this.readOnly = readOnly;
 
-            dataVersion = getInt(REGION, TAG_DATA_VERSION);
+            inputDataVersion = getInt(REGION, TAG_DATA_VERSION);
             sections = new Section[(maxHeight >> 4) + UNDERGROUND_SECTIONS];
             List<CompoundTag> sectionTags = getList(REGION, TAG_SECTIONS_);
             // MC 1.18 has chunks without any sections; we're not sure yet if
@@ -156,6 +156,10 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
         return heightMaps;
     }
 
+    public Integer getInputDataVersion() {
+        return inputDataVersion;
+    }
+
     private void addFluidTick(int x, int y, int z, Material material) {
         // Fluid ticks are in world coordinates for some reason
         x = (xPos << 4) | x;
@@ -238,10 +242,11 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
             extraTags.forEach((type, tags) -> tags.forEach((name, tag) -> setTag(type, name, tag)));
         }
 
-        setTag(REGION, TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, dataVersion));
+        final int outputDataVersion = (inputDataVersion != null) ? inputDataVersion : DATA_VERSION_MC_1_18_0;
+        setTag(REGION, TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, outputDataVersion));
         if (containsType(ENTITIES)) {
             // Prevent the creation of the separate ENTITIES chunk if it's not necessary
-            setTag(ENTITIES, TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, dataVersion));
+            setTag(ENTITIES, TAG_DATA_VERSION, new IntTag(TAG_DATA_VERSION, outputDataVersion));
             setTag(ENTITIES, TAG_POSITION, new IntArrayTag(TAG_POSITION, new int[] { xPos, zPos }));
         }
         return super.toMultipleNBT();
@@ -768,13 +773,14 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
 
     public final boolean readOnly;
 
-    final int dataVersion, xPos, zPos, maxHeight;
+    final int xPos, zPos, maxHeight;
     final Section[] sections;
     final List<Entity> entities;
     final List<TileEntity> blockEntities;
     final Map<String, long[]> heightMaps;
     final List<CompoundTag> fluidTicks = new ArrayList<>();
     final Map<DataType, Map<String, Tag>> extraTags;
+    final Integer inputDataVersion;
     int highestSectionWithSkylight = Integer.MIN_VALUE;
     boolean lightOn;
     long inhabitedTime, lastUpdate;

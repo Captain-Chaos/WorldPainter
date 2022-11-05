@@ -36,6 +36,7 @@ import static java.util.stream.Collectors.toSet;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.DEFAULT_JAVA_PLATFORMS;
 import static org.pepsoft.worldpainter.Platform.Capability.BLOCK_BASED;
 import static org.pepsoft.worldpainter.util.MapUtils.selectMap;
 
@@ -131,7 +132,7 @@ public class MapImportDialog extends WorldPainterDialog {
         }
 
         JavaLevel levelDat = null;
-        if (PlatformManager.DEFAULT_PLATFORMS.contains(platform)) {
+        if (DEFAULT_JAVA_PLATFORMS.contains(platform)) {
             // Extra sanity checks for default platforms
             // Check if it's a valid level.dat file before we commit
             File levelDatFile = new File(worldDir, "level.dat");

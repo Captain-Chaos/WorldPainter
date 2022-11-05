@@ -60,7 +60,7 @@ public final class TestData {
         return new MinecraftWorldObject("Test", volume, MAX_HEIGHT, lowestBlocks, null);
     }
 
-    public static final Platform PLATFORM = DefaultPlugin.JAVA_ANVIL_1_18;
+    public static final Platform PLATFORM = DefaultPlugin.JAVA_ANVIL_1_19;
 
     public static final int MIN_HEIGHT = PLATFORM.minZ;
 

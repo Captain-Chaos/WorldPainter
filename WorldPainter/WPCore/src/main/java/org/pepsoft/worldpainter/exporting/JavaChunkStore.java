@@ -30,7 +30,8 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.synchronizedSet;
 import static java.util.Objects.requireNonNull;
 import static org.pepsoft.minecraft.DataType.REGION;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.DEFAULT_JAVA_PLATFORMS;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
 
 /**
@@ -42,7 +43,7 @@ public class JavaChunkStore implements ChunkStore {
         this.regionDir = regionDir;
         this.maxHeight = maxHeight;
         platformProvider = (JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
-        if (! ((platform == JAVA_MCREGION) || (platform == JAVA_ANVIL) || (platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18))) {
+        if (! DEFAULT_JAVA_PLATFORMS.contains(platform)) {
             throw new IllegalArgumentException("Unsupported platform " + platform);
         }
         dataTypes = ImmutableSet.copyOf(platformProvider.getDataTypes(platform));

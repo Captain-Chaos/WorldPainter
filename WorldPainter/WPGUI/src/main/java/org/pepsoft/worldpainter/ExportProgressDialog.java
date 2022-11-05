@@ -12,11 +12,9 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.ChunkFactory;
-import org.pepsoft.util.DesktopUtils;
-import org.pepsoft.util.FileUtils;
-import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.*;
+import org.pepsoft.util.Version;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
-import org.pepsoft.util.TaskbarProgressReceiver;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.exporting.WorldExportSettings;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
@@ -32,6 +30,7 @@ import java.text.NumberFormat;
 import java.util.Map;
 
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.worldpainter.Constants.V_1_17;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
@@ -84,17 +83,17 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
         int minutes = (int) (duration / 60);
         int seconds = (int) (duration - minutes * 60);
         sb.append("<br>Export took ").append(hours).append(":").append((minutes < 10) ? "0" : "").append(minutes).append(":").append((seconds < 10) ? "0" : "").append(seconds);
-        if ((world.getPlatform() == JAVA_MCREGION) && (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_MCREGION)) {
+        final Platform platform = world.getPlatform();
+        final Version mcVersion = platform.getAttribute(ATTRIBUTE_MC_VERSION);
+        if ((platform == JAVA_MCREGION) && (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_MCREGION)) {
             sb.append("<br><br>Please note: this map has a <b>non-standard height!</b> You need to have<br>an appropriate height mod installed to play it!");
-        }
-        if (((world.getPlatform() == JAVA_ANVIL_1_17) || (world.getPlatform() == JAVA_ANVIL_1_18)) && (world.getMaxHeight() > 320)) {
+        } else if ((mcVersion.isAtLeast(V_1_17)) && (world.getMaxHeight() > 320)) {
             sb.append("<br><br>Please note: this map is <b>more than 320 blocks</b> high.<br>This may cause performance problems on lower end computers.");
         }
-        if ((world.getPlatform() == JAVA_ANVIL_1_17) && (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_ANVIL)) {
-            sb.append("<br><br>Please note: <b>this map uses a data pack</b> for a deviating build height.<br>This may not be forward compatible with newer versions of Minecraft.");
-        }
-        if ((world.getPlatform() == JAVA_ANVIL_1_18) && (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_1_18)) {
-            sb.append("<br><br>Please note: <b>this map uses a data pack</b> for a deviating build height.<br>This data pack is only compatible with Minecraft 1.18.2.<br>It may not be forward compatible with newer versions of Minecraft.");
+        if ((platform == JAVA_ANVIL_1_17) && (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_ANVIL)) {
+            sb.append("<br><br>Please note: <b>this map uses a data pack</b> for a deviating build height.<br>This data pack is only compatible with Minecraft 1.17.<br>It is not forward compatible with newer versions of Minecraft.");
+        } else if (((platform == JAVA_ANVIL_1_18) || (platform == JAVA_ANVIL_1_19)) && (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_1_18)) {
+            sb.append("<br><br>Please note: <b>this map uses a data pack</b> for a deviating build height.<br>This data pack is only compatible with Minecraft 1.18.2 - 1.19.2.<br>It may not be forward compatible with newer versions of Minecraft.");
         }
         if (result.size() == 1) {
             ChunkFactory.Stats stats = result.get(result.keySet().iterator().next());

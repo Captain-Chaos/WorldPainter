@@ -29,13 +29,15 @@ import java.util.Set;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.SuperflatPreset.Structure.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.DEFAULT_JAVA_PLATFORMS;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Dimension.Anchor.*;
 import static org.pepsoft.worldpainter.Dimension.Border.ENDLESS_BARRIER;
 import static org.pepsoft.worldpainter.Dimension.Border.ENDLESS_WATER;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.Platform.Capability.GENERATOR_PER_DIMENSION;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.*;
+import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
 
 /**
  *
@@ -45,11 +47,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
     public JavaWorldExporter(World2 world, WorldExportSettings exportSettings) {
         super(world, exportSettings, world.getPlatform());
         this.platformProvider = (JavaPlatformProvider) super.platformProvider;
-        if ((! (platform == JAVA_ANVIL))
-                && (! (platform == JAVA_MCREGION))
-                && (! (platform == JAVA_ANVIL_1_15))
-                && (! (platform == JAVA_ANVIL_1_17))
-                && (! (platform == JAVA_ANVIL_1_18))) {
+        if (! DEFAULT_JAVA_PLATFORMS.contains(world.getPlatform())) {
             throw new IllegalArgumentException("Unsupported platform " + platform);
         }
     }
@@ -134,7 +132,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                                 break;
                             case ENDLESS_VOID:
                             case ENDLESS_BARRIER:
-                                biome = ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODO make dynamic */) ? BIOME_THE_VOID : BIOME_PLAINS;
+                                biome = getBiomeScheme(platform).isBiomePresent(BIOME_THE_VOID) ? BIOME_THE_VOID : BIOME_PLAINS;
                                 break;
                             default:
                                 biome = BIOME_PLAINS;

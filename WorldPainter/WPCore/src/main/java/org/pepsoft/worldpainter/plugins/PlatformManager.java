@@ -1,6 +1,5 @@
 package org.pepsoft.worldpainter.plugins;
 
-import com.google.common.collect.ImmutableList;
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.ChunkStore;
 import org.pepsoft.worldpainter.Platform;
@@ -21,7 +20,7 @@ import java.util.Set;
 import java.util.zip.ZipException;
 
 import static java.util.stream.Collectors.toList;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.DEFAULT_JAVA_PLATFORMS;
 
 /**
  * Created by Pepijn on 12-2-2017.
@@ -105,7 +104,7 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
         } else {
             Set<MapInfo> defaultCandidates = new HashSet<>(), pluginCandidates = new HashSet<>();
             candidates.forEach(mapInfo -> {
-                if (DEFAULT_PLATFORMS.contains(mapInfo.platform)) {
+                if (DEFAULT_JAVA_PLATFORMS.contains(mapInfo.platform)) {
                     defaultCandidates.add(mapInfo);
                 } else {
                     pluginCandidates.add(mapInfo);
@@ -117,8 +116,8 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
                 throw new RuntimeException("Multiple platform providers (" + pluginCandidates + ") claimed support for this map");
             } else {
                 // Multiple default platforms matched; pick the newest one
-                for (int i = DEFAULT_PLATFORMS.size() - 1; i >= 0; i--) {
-                    Platform platform = DEFAULT_PLATFORMS.get(i);
+                for (int i = DEFAULT_JAVA_PLATFORMS.size() - 1; i >= 0; i--) {
+                    Platform platform = DEFAULT_JAVA_PLATFORMS.get(i);
                     List<MapInfo> mapInfos = defaultCandidates.stream().filter(mapInfo -> mapInfo.platform == platform).collect(toList());
                     if (! mapInfos.isEmpty()) {
                         return mapInfos.get(0);
@@ -132,9 +131,6 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
     public static PlatformManager getInstance() {
         return INSTANCE;
     }
-
-    // TODO: make this more generic
-    public static final List<Platform> DEFAULT_PLATFORMS = ImmutableList.of(JAVA_MCREGION, JAVA_ANVIL, JAVA_ANVIL_1_15, JAVA_ANVIL_1_17, JAVA_ANVIL_1_18);
 
     private static final PlatformManager INSTANCE = new PlatformManager();
     private static final Logger logger = LoggerFactory.getLogger(PlatformManager.class);

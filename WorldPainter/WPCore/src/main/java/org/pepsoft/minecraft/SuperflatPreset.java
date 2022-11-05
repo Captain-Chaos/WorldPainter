@@ -19,7 +19,7 @@ import static java.util.Collections.emptyMap;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.*;
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Platform.ATTRIBUTE_GRASS_BLOCK_NAME;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.BIOMES_BY_MODERN_ID;
 import static org.pepsoft.worldpainter.biomeschemes.StaticBiomeInfo.BIOME_PLAINS;
 import static org.pepsoft.worldpainter.biomeschemes.StaticBiomeInfo.MODERN_IDS;
@@ -261,7 +261,7 @@ public class SuperflatPreset implements Serializable {
     }
 
     public static SuperflatPreset defaultPreset(Platform platform) {
-        return new SuperflatPreset(BIOME_PLAINS, asList(new Layer(MC_BEDROCK, 1), new Layer(MC_DIRT, 2), new Layer(((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18) /* TODOMC118 make dynamic */) ? MC_GRASS_BLOCK : "minecraft:grass", 1)), emptyMap());
+        return new SuperflatPreset(BIOME_PLAINS, asList(new Layer(MC_BEDROCK, 1), new Layer(MC_DIRT, 2), new Layer(platform.getAttribute(ATTRIBUTE_GRASS_BLOCK_NAME), 1)), emptyMap());
     }
 
     public static Builder builder(int biome, Structure... structures) {

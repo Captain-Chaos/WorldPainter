@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.Set;
 
 public abstract class AbstractPlatformProvider extends AbstractPlugin implements PlatformProvider {
-    protected AbstractPlatformProvider(String version, Set<Platform> platforms, String name) {
+    protected AbstractPlatformProvider(String version, Collection<Platform> platforms, String name) {
         super(name, version);
         this.platforms = ImmutableSet.copyOf(platforms);
     }

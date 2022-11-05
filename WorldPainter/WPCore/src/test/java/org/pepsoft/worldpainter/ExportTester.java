@@ -22,8 +22,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.toSet;
-import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.DEFAULT_JAVA_PLATFORMS;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.exporting.WorldExportSettings.EXPORT_EVERYTHING;
 import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
 
@@ -74,8 +74,9 @@ public class ExportTester extends RegressionIT {
     }
 
     private void run(String[] args) throws IOException, UnloadableWorldException {
-        File worldDir = new File(args[0]);
-        File baseDir = new File(System.getProperty("java.io.tmpdir"), "WPExportTesterMaps");
+        final Platform latestPlatform = DEFAULT_JAVA_PLATFORMS.get(DEFAULT_JAVA_PLATFORMS.size() - 1);
+        final File worldDir = new File(args[0]);
+        final File baseDir = new File(System.getProperty("java.io.tmpdir"), "WPExportTesterMaps");
         if (baseDir.exists()) {
             FileUtils.emptyDir(baseDir);
         } else {
@@ -83,13 +84,10 @@ public class ExportTester extends RegressionIT {
         }
         for (File file: worldDir.listFiles()) {
             if (file.isFile() && WORLD_PATTERN.matcher(file.getName()).matches() && (! WORLD_BACKUP_PATTERN.matcher(file.getName()).matches())) {
-                World2 world = loadWorld(file);
-                if ((! (world.getPlatform() == JAVA_ANVIL))
-                        && (! (world.getPlatform() == JAVA_MCREGION))
-                        && (! (world.getPlatform() == JAVA_ANVIL_1_15))
-                        && (! (world.getPlatform() == JAVA_ANVIL_1_17))
-                        && (! (world.getPlatform() == JAVA_ANVIL_1_18))) {
-                    logger.warn("Don't know how to export platform {}; skipping", world.getPlatform().displayName);
+                final World2 world = loadWorld(file);
+                final Platform platform = world.getPlatform();
+                if (! DEFAULT_JAVA_PLATFORMS.contains(platform)) {
+                    logger.warn("Don't know how to export platform {}; skipping", platform.displayName);
                     continue;
                 }
 
@@ -101,9 +99,9 @@ public class ExportTester extends RegressionIT {
                     logger.error(t.getClass().getSimpleName() + ": " + t.getMessage(), t);
                 }
 
-                if ((world.getPlatform() != JAVA_ANVIL_1_15) && (world.getPlatform() != JAVA_ANVIL_1_17) && (world.getPlatform() != JAVA_ANVIL_1_18) /* TODO make dynamic */ && (world.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL)) {
-                    // Also test the new Minecraft 1.15 support
-                    world.setPlatform(JAVA_ANVIL_1_15);
+                if ((platform != latestPlatform) && (latestPlatform.isCompatible(world) == null)) {
+                    // Also test the latest platform
+                    world.setPlatform(latestPlatform);
                     try {
                         mapDir = exportJavaWorld(world, baseDir);
                         verifyJavaMap(world, mapDir);

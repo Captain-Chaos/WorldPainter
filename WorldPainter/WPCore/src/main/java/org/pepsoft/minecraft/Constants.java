@@ -749,6 +749,8 @@ public final class Constants {
     public static final int DATA_VERSION_MC_1_17   = 2724;
     public static final int DATA_VERSION_MC_1_17_1 = 2730;
     public static final int DATA_VERSION_MC_1_18_0 = 2860;
+    public static final int DATA_VERSION_MC_1_18_2 = 2975;
+    public static final int DATA_VERSION_MC_1_19_0 = 3105;
 
     // Legacy (pre-MC 1.13) block IDs
 

@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableMap;
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.PerlinNoise;
+import org.pepsoft.util.Version;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.HeightTransform;
 import org.pepsoft.worldpainter.Platform;
@@ -26,7 +27,7 @@ import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.ATTRIBUTE_MC_VERSION;
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
 import static org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings.defaultSettings;
 
@@ -238,6 +239,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
         public static ResourcesExporterSettings defaultSettings(Platform platform, Dimension.Anchor anchor, int maxHeight) {
             final Random random = new Random();
             final Map<Material, ResourceSettings> settings = new HashMap<>();
+            final Version mcVersion = platform.getAttribute(ATTRIBUTE_MC_VERSION);
             switch (anchor.dim) {
                 case DIM_NORMAL:
                     // TODO make these normal distributions or something else more similar to Minecraft
@@ -251,20 +253,20 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                     settings.put(REDSTONE_ORE,     new ResourceSettings(REDSTONE_ORE,     platform.minZ,            15,  8,     random.nextLong()));
                     settings.put(STATIONARY_WATER, new ResourceSettings(STATIONARY_WATER, platform.minZ, maxHeight - 1,  1,     random.nextLong()));
                     settings.put(STATIONARY_LAVA,  new ResourceSettings(STATIONARY_LAVA,  platform.minZ,            15,  2,     random.nextLong()));
-                    settings.put(EMERALD_ORE,      new ResourceSettings(EMERALD_ORE,      64,            maxHeight - 1, (platform != JAVA_MCREGION) ?
+                    settings.put(EMERALD_ORE,      new ResourceSettings(EMERALD_ORE,      64,            maxHeight - 1, mcVersion.isAtLeast(V_1_2) ?
                                                                                                                          1 : 0, random.nextLong()));
-                    settings.put(COPPER_ORE,       new ResourceSettings(COPPER_ORE,       0,             88,           ((platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) ?
+                    settings.put(COPPER_ORE,       new ResourceSettings(COPPER_ORE,       0,             88, mcVersion.isAtLeast(V_1_17) ?
                                                                                                                          6 : 0, random.nextLong()));
 
                     settings.put(QUARTZ_ORE,     new ResourceSettings(QUARTZ_ORE,     platform.minZ, maxHeight - 1, 0, random.nextLong()));
                     settings.put(ANCIENT_DEBRIS, new ResourceSettings(ANCIENT_DEBRIS, platform.minZ, maxHeight - 1, 0, random.nextLong()));
                     break;
                 case DIM_NETHER:
-                    settings.put(QUARTZ_ORE,     new ResourceSettings(QUARTZ_ORE,     platform.minZ, maxHeight - 1, (platform != JAVA_MCREGION) ?
+                    settings.put(QUARTZ_ORE,     new ResourceSettings(QUARTZ_ORE,     platform.minZ, maxHeight - 1, mcVersion.isAtLeast(V_1_2) ?
                                                                                                                     7 : 0, random.nextLong()));
-                    settings.put(GOLD_ORE,       new ResourceSettings(GOLD_ORE,       platform.minZ, maxHeight - 1, ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) ?
+                    settings.put(GOLD_ORE,       new ResourceSettings(GOLD_ORE,       platform.minZ, maxHeight - 1, mcVersion.isAtLeast(V_1_15) ?
                                                                                                                     3 : 0, random.nextLong()));
-                    settings.put(ANCIENT_DEBRIS, new ResourceSettings(ANCIENT_DEBRIS, platform.minZ, maxHeight - 1, ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17) || (platform == JAVA_ANVIL_1_18)) ?
+                    settings.put(ANCIENT_DEBRIS, new ResourceSettings(ANCIENT_DEBRIS, platform.minZ, maxHeight - 1, mcVersion.isAtLeast(V_1_15) ?
                                                                                                                     1 : 0, random.nextLong()));
 
                     settings.put(DIRT,             new ResourceSettings(DIRT,             0            , maxHeight - 1, 0, random.nextLong()));

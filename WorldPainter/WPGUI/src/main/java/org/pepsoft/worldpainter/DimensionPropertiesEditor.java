@@ -48,8 +48,8 @@ import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.util.MathUtils.clamp;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_17;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_18;
+import static org.pepsoft.worldpainter.Constants.V_1_17;
+import static org.pepsoft.worldpainter.DefaultPlugin.ATTRIBUTE_MC_VERSION;
 import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 import static org.pepsoft.worldpainter.Dimension.Role.*;
 import static org.pepsoft.worldpainter.DimensionPropertiesEditor.Mode.DEFAULT_SETTINGS;
@@ -1158,9 +1158,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setEnabled(checkBoxDecorateCaves, enabled);
         setEnabled(checkBoxDecorateChasms, enabled);
         setEnabled(checkBoxDecorationBrownMushrooms, enabled && decorations);
-        setEnabled(checkBoxDecorationGlowLichen, enabled && decorations && (platform == JAVA_ANVIL_1_17 || platform == JAVA_ANVIL_1_18));
-        setEnabled(checkBoxDecorationLushCaves, enabled && decorations && (platform == JAVA_ANVIL_1_17 || platform == JAVA_ANVIL_1_18));
-        setEnabled(checkBoxDecorationDripstoneCaves, enabled && decorations && (platform == JAVA_ANVIL_1_17 || platform == JAVA_ANVIL_1_18));
+        final boolean mcVersionAtLeast1_17 = platform.getAttribute(ATTRIBUTE_MC_VERSION).isAtLeast(V_1_17);
+        setEnabled(checkBoxDecorationGlowLichen, enabled && decorations && mcVersionAtLeast1_17);
+        setEnabled(checkBoxDecorationLushCaves, enabled && decorations && mcVersionAtLeast1_17);
+        setEnabled(checkBoxDecorationDripstoneCaves, enabled && decorations && mcVersionAtLeast1_17);
         setEnabled(checkBoxCoverSteepTerrain, enabled && (! caveFloor) && (! master)); // TODO make it possible for this to be different for the master dimension
         setEnabled(comboBoxSurfaceLayerAnchor, enabled);
         setEnabled(comboBoxSubsurfaceMaterial, enabled && (! caveFloor) && (! master)); // TODO make it possible for this to be different for the master dimension

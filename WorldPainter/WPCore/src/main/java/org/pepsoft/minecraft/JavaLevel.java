@@ -27,8 +27,7 @@ import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
-import static org.pepsoft.worldpainter.Constants.MAX_HEIGHT;
+import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
 /**
@@ -36,15 +35,10 @@ import static org.pepsoft.worldpainter.DefaultPlugin.*;
  * @author pepijn
  */
 public abstract class JavaLevel extends AbstractNBTItem {
-    @SuppressWarnings("ConstantConditions") // Defensive programming
     protected JavaLevel(int mapHeight, Platform platform) {
         super(new CompoundTag(TAG_DATA, new HashMap<>()));
         this.platform = platform;
-        if ((platform != JAVA_ANVIL)
-                && (platform != JAVA_MCREGION)
-                && (platform != JAVA_ANVIL_1_15)
-                && (platform != JAVA_ANVIL_1_17)
-                && (platform != JAVA_ANVIL_1_18)) {
+        if (! DEFAULT_JAVA_PLATFORMS.contains(platform)) {
             throw new IllegalArgumentException("Not a supported platform: " + platform);
         }
         if (mapHeight != ((platform == JAVA_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL)) {
@@ -53,20 +47,8 @@ public abstract class JavaLevel extends AbstractNBTItem {
         this.maxHeight = mapHeight;
         extraTags = null;
         setInt(TAG_VERSION_, (platform == JAVA_MCREGION) ? VERSION_MCREGION : VERSION_ANVIL);
-        // TODO: make this dynamic?
-        if (platform != JAVA_MCREGION) {
-            int dataVersion;
-            if (platform == JAVA_ANVIL) {
-                dataVersion = DATA_VERSION_MC_1_12_2;
-            } else if (platform == JAVA_ANVIL_1_15) {
-                dataVersion = DATA_VERSION_MC_1_15_2;
-            } else if (platform == JAVA_ANVIL_1_17) {
-                dataVersion = DATA_VERSION_MC_1_17;
-            } else if (platform == JAVA_ANVIL_1_18) {
-                dataVersion = DATA_VERSION_MC_1_18_0;
-            } else {
-                throw new InternalError();
-            }
+        final Integer dataVersion = platform.getAttribute(ATTRIBUTE_EXPORT_DATA_VERSION);
+        if (dataVersion != null) {
             setInt(TAG_DATA_VERSION, dataVersion);
             Map<String, Tag> versionTag = new HashMap<>();
             versionTag.put(TAG_ID, new IntTag(TAG_ID, dataVersion));
@@ -101,15 +83,14 @@ public abstract class JavaLevel extends AbstractNBTItem {
             platform = JAVA_MCREGION;
         } else {
             final int dataVersion = getInt(TAG_DATA_VERSION);
-            if (dataVersion <= DATA_VERSION_MC_1_12_2) {
-                platform = JAVA_ANVIL;
-            } else if (dataVersion <= DATA_VERSION_MC_1_16_5) {
-                platform = JAVA_ANVIL_1_15;
-            } else if (dataVersion <= DATA_VERSION_MC_1_17_1) {
-                platform = JAVA_ANVIL_1_17;
-            } else {
-                platform = JAVA_ANVIL_1_18;
+            for (Platform platform: DEFAULT_JAVA_PLATFORMS) {
+                final Integer platformLatestDataVersion = platform.getAttribute(ATTRIBUTE_LATEST_DATA_VERSION);
+                if ((platformLatestDataVersion != null) && (dataVersion <= platformLatestDataVersion)) {
+                    this.platform = platform;
+                    return;
+                }
             }
+            this.platform = DEFAULT_JAVA_PLATFORMS.get(DEFAULT_JAVA_PLATFORMS.size() - 1);
         }
     }
     
@@ -441,9 +422,10 @@ public abstract class JavaLevel extends AbstractNBTItem {
     }
 
     public static JavaLevel create(Platform platform, int mapHeight) {
-        if (platform == JAVA_ANVIL_1_18) {
+        final org.pepsoft.util.Version platformMcVersion = platform.getAttribute(ATTRIBUTE_MC_VERSION);
+        if (platformMcVersion.isAtLeast(V_1_18)) {
             return new Java118Level(mapHeight, platform);
-        } else if (platform == JAVA_ANVIL_1_17) {
+        } else if (platformMcVersion.isAtLeast(V_1_16)) {
             return new Java116Level(mapHeight, platform);
         } else {
             return new Java115Level(mapHeight, platform);
@@ -544,10 +526,10 @@ public abstract class JavaLevel extends AbstractNBTItem {
 
     private void createWorldPainterDataPack(File worldDir) {
         try {
-            File datapackDir = new File(worldDir, "datapacks");
+            final File datapackDir = new File(worldDir, "datapacks");
             datapackDir.mkdirs();
-            File datapackFile = new File(datapackDir, "worldpainter.zip");
-            DataPack datapack = new DataPack();
+            final File datapackFile = new File(datapackDir, "worldpainter.zip");
+            final DataPack datapack = new DataPack();
             datapack.addDescriptor("pack.mcmeta", Meta.builder()
                     .pack(Meta.Pack.builder()
                             .packFormat((platform == JAVA_ANVIL_1_17) ? 7 : 9)

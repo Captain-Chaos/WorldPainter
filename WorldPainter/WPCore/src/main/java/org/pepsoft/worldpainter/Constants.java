@@ -98,7 +98,13 @@ public final class Constants {
     public static final int BIOME_ALGORITHM_1_7_DEFAULT         =  9;
     public static final int BIOME_ALGORITHM_1_7_LARGE           = 10;
 
+    public static final Version V_1_1    = new Version(1,  1);
+    public static final Version V_1_2    = new Version(1,  2);
     public static final Version V_1_12_2 = new Version(1, 12, 2);
+    public static final Version V_1_15   = new Version(1, 15);
+    public static final Version V_1_16   = new Version(1, 16);
+    public static final Version V_1_17   = new Version(1, 17);
+    public static final Version V_1_18   = new Version(1, 18);
 
     public static final int MIN_HEIGHT = -8388608;
     public static final int MAX_HEIGHT = 8388608;

@@ -1,6 +1,7 @@
 package org.pepsoft.worldpainter.util;
 
 import org.pepsoft.minecraft.Chunk;
+import org.pepsoft.util.Version;
 import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
@@ -11,7 +12,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
-import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.DefaultPlugin.ATTRIBUTE_MC_VERSION;
+import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.MODERN_IDS;
 
 /**
@@ -77,7 +80,7 @@ public final class BiomeUtils {
                 allBiomes.add(i);
             }
         }
-        if (platform == JAVA_ANVIL_1_18) {
+        if (platform.capabilities.contains(NAMED_BIOMES)) {
             allBiomes.sort(comparing(biomeScheme::getBiomeName));
         }
         List<CustomBiome> customBiomes = customBiomeManager.getCustomBiomes();
@@ -88,11 +91,12 @@ public final class BiomeUtils {
     }
 
     public static BiomeScheme getBiomeScheme(Platform platform) {
-        if (platform == JAVA_ANVIL_1_18) { // TODO Make this dynamic
+        final Version mcVersion = platform.getAttribute(ATTRIBUTE_MC_VERSION);
+        if (mcVersion.isAtLeast(V_1_18)) { // TODO Make this dynamic
             return StaticBiomeInfo.INSTANCE;
-        } else if ((platform == JAVA_ANVIL_1_15) || (platform == JAVA_ANVIL_1_17)) {
+        } else if (mcVersion.isAtLeast(V_1_15)) {
             return Minecraft1_17BiomeInfo.INSTANCE;
-        } else if (platform == JAVA_MCREGION) {
+        } else if (mcVersion.equals(V_1_1)) {
             return Minecraft1_1BiomeInfo.INSTANCE;
         } else {
             return Minecraft1_12BiomeInfo.INSTANCE;

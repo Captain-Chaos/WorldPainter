@@ -27,6 +27,7 @@ import java.util.List;
 import static java.util.Arrays.stream;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
+import static org.pepsoft.worldpainter.Constants.V_1_17;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.history.HistoryEntry.*;
 
@@ -125,7 +126,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         if ((newPlatform == DefaultPlugin.JAVA_MCREGION) && (newMaxHeight != DEFAULT_MAX_HEIGHT_MCREGION)) {
             labelWarning.setText("Only with mods!");
             labelWarning.setVisible(true);
-        } else if ((newMaxHeight > oldMaxHeight) && ((newPlatform == JAVA_ANVIL_1_17) || (newPlatform == JAVA_ANVIL_1_18)) && (newMaxHeight > 320)) {
+        } else if ((newMaxHeight > oldMaxHeight) && (newPlatform.getAttribute(ATTRIBUTE_MC_VERSION).isAtLeast(V_1_17)) && (newMaxHeight > 320)) {
             labelWarning.setText("May impact performance");
             labelWarning.setVisible(true);
         } else {

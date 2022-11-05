@@ -7,6 +7,7 @@ package org.pepsoft.util;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -103,6 +104,7 @@ public final class Version implements Comparable<Version>, Serializable {
     public int hashCode() {
         int hash = 7;
         hash = 41 * hash + Arrays.hashCode(this.parts);
+        hash = 41 * hash + Objects.hashCode(extension);
         return hash;
     }
 
@@ -115,10 +117,10 @@ public final class Version implements Comparable<Version>, Serializable {
             return false;
         }
         final Version other = (Version) obj;
-        if (!Arrays.equals(this.parts, other.parts)) {
+        if (! Arrays.equals(this.parts, other.parts)) {
             return false;
         }
-        return true;
+        return Objects.equals(this.extension, other.extension);
     }
 
     @Override

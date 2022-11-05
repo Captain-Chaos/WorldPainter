@@ -23,7 +23,7 @@ import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.minecraft.Material.LEVEL;
 
 /**
- * An "Anvil" chunk for Minecraft 1.15 and higher.
+ * An "Anvil" chunk for Minecraft 1.15 - 1.17.1.
  * 
  * @author pepijn
  */
