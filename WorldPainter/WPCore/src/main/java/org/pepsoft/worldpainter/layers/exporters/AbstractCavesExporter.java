@@ -243,13 +243,13 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
                     case 0:
                     case 1:
                         if (spaceAvailable > 1) {
-                            renderObject(world, dimension, SMALL_DRIPLEAF.realise(2, platform), x, y, height);
+                            renderObject(world, dimension, platform, SMALL_DRIPLEAF.realise(2, platform), x, y, height);
                         }
                         break;
                     case 2:
                     case 3:
                         if (spaceAvailable > 2) {
-                            renderObject(world, dimension, BIG_DRIPLEAF.realise(rng.nextInt(Math.min(5, spaceAvailable - 2)) + 3, platform), x, y, height);
+                            renderObject(world, dimension, platform, BIG_DRIPLEAF.realise(rng.nextInt(Math.min(5, spaceAvailable - 2)) + 3, platform), x, y, height);
                         }
                         break;
                 }
@@ -258,22 +258,22 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
                     case 0:
                     case 1:
                     case 2:
-                        renderObject(world, dimension, GRASS.realise(1, platform), x, y, height);
+                        renderObject(world, dimension, platform, GRASS.realise(1, platform), x, y, height);
                         break;
                     case 3:
                     case 4:
                     case 5:
                         if (spaceAvailable > 1) {
-                            renderObject(world, dimension, TALL_GRASS.realise(2, platform), x, y, height);
+                            renderObject(world, dimension, platform, TALL_GRASS.realise(2, platform), x, y, height);
                         }
                         break;
                     case 6:
-                        renderObject(world, dimension, SAPLING_FLOWERING_AZALEA.realise(1, platform), x, y, height);
+                        renderObject(world, dimension, platform, SAPLING_FLOWERING_AZALEA.realise(1, platform), x, y, height);
                         break;
                     case 7:
                     case 8:
                     case 9:
-                        renderObject(world, dimension, MOSS_CARPET.realise(1, platform), x, y, height);
+                        renderObject(world, dimension, platform, MOSS_CARPET.realise(1, platform), x, y, height);
                         break;
                 }
             }
@@ -307,10 +307,10 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
                     case 2:
                     case 3:
                     case 4:
-                        renderObjectInverted(world, GLOW_BERRIES.realise(rng.nextInt(Math.min(5, drySpaceAvailable)) + 1, platform), x, y, height);
+                        renderObjectInverted(world, platform, GLOW_BERRIES.realise(rng.nextInt(Math.min(5, drySpaceAvailable)) + 1, platform), x, y, height);
                         break;
                     case 5:
-                        renderObject(world, dimension, SPORE_BLOSSOM.realise(1, platform), x, y, height);
+                        renderObject(world, dimension, platform, SPORE_BLOSSOM.realise(1, platform), x, y, height);
                         break;
                 }
             }

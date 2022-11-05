@@ -77,7 +77,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                                 if (category == null) {
                                     // The plant disagrees that it can be planted here
                                     if (! blockRulesEnforced) {
-                                        renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
+                                        renderObject(minecraftWorld, dimension, platform, plant, worldX, worldY, height + 1, false);
                                     }
                                     continue;
                                 } else if (category != FLOATING_PLANTS) {
@@ -97,7 +97,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                                     if (plant.getMaterial(0, 0, 0).hasProperty(WATERLOGGED)) {
                                         // Take this as a signal that the plant can stick out of the water and does not
                                         // have to be constrained to the water surface
-                                        renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
+                                        renderObject(minecraftWorld, dimension, platform, plant, worldX, worldY, height + 1, false);
                                     } else {
                                         int waterLevel = tile.getWaterLevel(x, y);
                                         if (waterLevel > height) {
@@ -114,19 +114,19 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                                                     }
                                                 }
                                             }
-                                            renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
+                                            renderObject(minecraftWorld, dimension, platform, plant, worldX, worldY, height + 1, false);
                                         }
                                     }
                                 } else if (category == CROPS) {
                                     if (minecraftWorld.getMaterialAt(worldX, worldY, height).isNamed(MC_FARMLAND)) {
-                                        renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
+                                        renderObject(minecraftWorld, dimension, platform, plant, worldX, worldY, height + 1, false);
                                     } else if (generateTilledDirt) {
                                         minecraftWorld.setMaterialAt(worldX, worldY, height, TILLED_DIRT);
-                                        renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
+                                        renderObject(minecraftWorld, dimension, platform, plant, worldX, worldY, height + 1, false);
                                     }
                                 } else {
                                     // TODO shrink the plant to fit if necessary
-                                    renderObject(minecraftWorld, dimension, plant, worldX, worldY, height + 1, false);
+                                    renderObject(minecraftWorld, dimension, platform, plant, worldX, worldY, height + 1, false);
                                 }
                             }
                         }
@@ -154,14 +154,14 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                     possiblyRenderFloatingPlant(minecraftWorld, dimension, plant, location.x, location.y, location.z + 1);
                 } else if (category == CROPS) {
                     if (minecraftWorld.getMaterialAt(location.x, location.y, location.z - 1).isNamed(MC_FARMLAND)) {
-                        renderObject(minecraftWorld, dimension, plant, location.x, location.y, location.z, false);
+                        renderObject(minecraftWorld, dimension, platform, plant, location.x, location.y, location.z, false);
                     } else if (layer.isGenerateFarmland()) {
                         minecraftWorld.setMaterialAt(location.x, location.y, location.z - 1, TILLED_DIRT);
-                        renderObject(minecraftWorld, dimension, plant, location.x, location.y, location.z, false);
+                        renderObject(minecraftWorld, dimension, platform, plant, location.x, location.y, location.z, false);
                     }
                 } else {
                     // TODO shrink the plant to fit if necessary
-                    renderObject(minecraftWorld, dimension, plant, location.x, location.y, location.z, false);
+                    renderObject(minecraftWorld, dimension, platform, plant, location.x, location.y, location.z, false);
                 }
             }
         }
@@ -178,7 +178,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
         if ((z < maxHeight)
                 && existingMaterial.veryInsubstantial
                 && (! existingMaterial.isNamed(MC_LAVA))) {
-            renderObject(world, dimension, plant, x, y, z, false);
+            renderObject(world, dimension, platform, plant, x, y, z, false);
         }
     }
 

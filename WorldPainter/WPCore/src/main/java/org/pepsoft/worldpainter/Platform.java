@@ -322,6 +322,11 @@ public final class Platform implements Serializable {
          * {@code *_leaves} blocks have a {@code distance} property from 1 to 7, indicating the distance from the tree
          * trunk, where 7 means it is too far away and will decay.
          */
-        LEAF_DISTANCES
+        LEAF_DISTANCES,
+
+        /**
+         * Leaf blocks have a {@code waterlogged} property and can therefore be placed in water.
+         */
+        WATERLOGGED_LEAVES
     }
 }

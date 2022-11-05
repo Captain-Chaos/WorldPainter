@@ -25,6 +25,7 @@ import java.util.UUID;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
+import static org.pepsoft.worldpainter.Platform.Capability.WATERLOGGED_LEAVES;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
 /**
@@ -41,39 +42,46 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
     /**
      * Export an object to the world, taking into account the blocks that are
      * already there.
-     * 
-     * @param world The Minecraft world to which to export the object.
+     *
+     * @param world     The Minecraft world to which to export the object.
      * @param dimension The dimension corresponding to the exported world, used
-     *     to determine the terrain height.
-     * @param object The object to export.
-     * @param x The X coordinate at which to export the object.
-     * @param y The Y coordinate at which to export the object.
-     * @param z The Z coordinate at which to export the object.
+     *                  to determine the terrain height.
+     * @param platform
+     * @param object    The object to export.
+     * @param x         The X coordinate at which to export the object.
+     * @param y         The Y coordinate at which to export the object.
+     * @param z         The Z coordinate at which to export the object.
      */
-    public static void renderObject(MinecraftWorld world, Dimension dimension, WPObject object, int x, int y, int z) {
-        renderObject(world, dimension, object, x, y, z, false);
+    public static void renderObject(MinecraftWorld world, Dimension dimension, Platform platform, WPObject object, int x, int y, int z) {
+        renderObject(world, dimension, platform, object, x, y, z, false);
     }
 
     /**
      * Export an object to the world, optionally taking into account the blocks
      * that are already there.
-     * 
-     * @param world The Minecraft world to which to export the object.
-     * @param dimension The dimension corresponding to the exported world, used
-     *     to determine the terrain height.
-     * @param object The object to export.
-     * @param x The X coordinate at which to export the object.
-     * @param y The Y coordinate at which to export the object.
-     * @param z The Z coordinate at which to export the object.
+     *
+     * @param world      The Minecraft world to which to export the object.
+     * @param dimension  The dimension corresponding to the exported world, used
+     *                   to determine the terrain height.
+     * @param platform
+     * @param object     The object to export.
+     * @param x          The X coordinate at which to export the object.
+     * @param y          The Y coordinate at which to export the object.
+     * @param z          The Z coordinate at which to export the object.
      * @param obliterate When {@code true}, all blocks of the object are
-     *     placed regardless of what is already there. When {@code false},
-     *     rules are followed and some or all blocks may not be placed,
-     *     depending on what is already there.
+     *                   placed regardless of what is already there. When {@code false},
+     *                   rules are followed and some or all blocks may not be placed,
+     *                   depending on what is already there.
      */
-    public static void renderObject(MinecraftWorld world, Dimension dimension, WPObject object, int x, int y, int z, boolean obliterate) {
+    public static void renderObject(MinecraftWorld world, Dimension dimension, Platform platform, WPObject object, int x, int y, int z, boolean obliterate) {
         try {
             final Point3i dim = object.getDimensions();
             final Point3i offset = object.getOffset();
+            final int minHeight = world.getMinHeight(), maxHeight = world.getMaxHeight();
+            if ((z + offset.z + dim.z - 1) >= maxHeight) {
+                // Object doesn't fit in the world vertically
+                return;
+            }
             final int undergroundMode = object.getAttribute(ATTRIBUTE_UNDERGROUND_MODE);
             final int leafDecayMode = object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE);
             final boolean bottomless = dimension.isBottomless();
@@ -88,11 +96,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             }
             final boolean replaceBlocks = replaceMaterial != null;
             final boolean extendFoundation = object.getAttribute(ATTRIBUTE_EXTEND_FOUNDATION);
-            final int minHeight = world.getMinHeight(), maxHeight = world.getMaxHeight();
-            if ((z + offset.z + dim.z - 1) >= maxHeight) {
-                // Object doesn't fit in the world vertically
-                return;
-            }
+            final boolean waterLoggedLeaves = platform.capabilities.contains(WATERLOGGED_LEAVES);
             //        System.out.println("Object dimensions: " + dim + ", origin: " + orig);
             for (int dx = 0; dx < dim.x; dx++) {
                 for (int dy = 0; dy < dim.y; dy++) {
@@ -107,39 +111,39 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                             if (worldZ < minHeight + (bottomless || obliterate ? 0 : 1)) {
                                 continue;
                             } else if (obliterate) {
-                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
+                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves);
                             } else {
                                 final Material existingMaterial = world.getMaterialAt(worldX, worldY, worldZ);
                                 if (worldZ <= terrainHeight) {
                                     switch (undergroundMode) {
                                         case COLLISION_MODE_ALL:
                                             // Replace every block
-                                            placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
+                                            placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves);
                                             break;
                                         case COLLISION_MODE_SOLID:
                                             // Only replace if object block is solid
-                                            if (!objectMaterial.veryInsubstantial) {
-                                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
+                                            if (! finalMaterial.veryInsubstantial) {
+                                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves);
                                             }
                                             break;
                                         case COLLISION_MODE_NONE:
                                             // Only replace less solid blocks
                                             if (existingMaterial.veryInsubstantial) {
-                                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
+                                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves);
                                             }
                                             break;
                                     }
                                 } else {
                                     // Above ground only replace less solid blocks
                                     if (existingMaterial.veryInsubstantial) {
-                                        placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
+                                        placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves);
                                     }
                                 }
                             }
                             if (extendFoundation && (dz == 0) && (terrainHeight != Integer.MIN_VALUE) && (worldZ > terrainHeight) && (! finalMaterial.veryInsubstantial)) {
                                 int legZ = worldZ - 1;
                                 while ((legZ >= minHeight) && world.getMaterialAt(worldX, worldY, legZ).veryInsubstantial) {
-                                    placeBlock(world, worldX, worldY, legZ, finalMaterial, leafDecayMode);
+                                    placeBlock(world, worldX, worldY, legZ, finalMaterial, leafDecayMode, waterLoggedLeaves);
                                     legZ--;
                                 }
                             }
@@ -196,20 +200,26 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
 
     /**
      * Export an object to the world upside-down, optionally taking into account the blocks that are already there. This
-     * method does fewer checks than {@link #renderObject(MinecraftWorld, Dimension, WPObject, int, int, int, boolean)}
+     * method does fewer checks than {@link #renderObject(MinecraftWorld, Dimension, Platform, WPObject, int, int, int, boolean)}
      * because they don't make sense when rendering an object upside-down. It treats the location as if it is entirely
      * above-ground.
      *
-     * @param world The Minecraft world to which to export the object.
-     * @param object The object to export.
-     * @param x The X coordinate at which to export the object.
-     * @param y The Y coordinate at which to export the object.
-     * @param z The Z coordinate at which to export the object.
+     * @param world    The Minecraft world to which to export the object.
+     * @param platform
+     * @param object   The object to export.
+     * @param x        The X coordinate at which to export the object.
+     * @param y        The Y coordinate at which to export the object.
+     * @param z        The Z coordinate at which to export the object.
      */
-    public static void renderObjectInverted(MinecraftWorld world, WPObject object, int x, int y, int z) {
+    public static void renderObjectInverted(MinecraftWorld world, Platform platform, WPObject object, int x, int y, int z) {
         try {
             final Point3i dim = object.getDimensions();
             final Point3i offset = object.getOffset();
+            final int minHeight = world.getMinHeight(), maxHeight = world.getMaxHeight();
+            if ((z - offset.z) >= maxHeight) {
+                // Object doesn't fit in the world vertically
+                return;
+            }
             final int leafDecayMode = object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE);
             final Material replaceMaterial;
             if (object.hasAttribute(ATTRIBUTE_REPLACE_WITH_AIR_MATERIAL)) {
@@ -221,11 +231,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 replaceMaterial = null;
             }
             final boolean replaceBlocks = replaceMaterial != null;
-            final int minHeight = world.getMinHeight(), maxHeight = world.getMaxHeight();
-            if ((z - offset.z) >= maxHeight) {
-                // Object doesn't fit in the world vertically
-                return;
-            }
+            final boolean waterLoggedLeaves = platform.capabilities.contains(WATERLOGGED_LEAVES);
             for (int dx = 0; dx < dim.x; dx++) {
                 for (int dy = 0; dy < dim.y; dy++) {
                     final int worldX = x + dx + offset.x;
@@ -238,7 +244,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                             final Material existingMaterial = world.getMaterialAt(worldX, worldY, worldZ);
                             // Only replace less solid blocks
                             if (existingMaterial.veryInsubstantial) {
-                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode);
+                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves);
                             }
                         }
                     }
@@ -536,19 +542,25 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 z + offset.z, z + offset.z + dimensions.z - 1);
     }
 
-    private static void placeBlock(MinecraftWorld world, int x, int y, int z, Material material, int leafDecayMode) {
-        if (material.name.endsWith("_leaves") && (leafDecayMode != LEAF_DECAY_NO_CHANGE)) {
-            if (leafDecayMode == LEAF_DECAY_ON) {
-                material = material.withProperty(PERSISTENT, false);
-            } else {
-                material = material.withProperty(PERSISTENT, true);
+    private static void placeBlock(MinecraftWorld world, int x, int y, int z, Material material, int leafDecayMode, boolean waterloggedLeaves) {
+        final boolean materialHasPropertyWaterlogged;
+        if (material.name.endsWith("_leaves")) {
+            materialHasPropertyWaterlogged = waterloggedLeaves;
+            if (leafDecayMode != LEAF_DECAY_NO_CHANGE) {
+                if (leafDecayMode == LEAF_DECAY_ON) {
+                    material = material.withProperty(PERSISTENT, false);
+                } else {
+                    material = material.withProperty(PERSISTENT, true);
+                }
             }
+        } else {
+            materialHasPropertyWaterlogged = material.hasProperty(WATERLOGGED);
         }
         final Material existingMaterial = world.getMaterialAt(x, y, z);
         final boolean existingMaterialContainsWater = existingMaterial.containsWater();
         // Manage the waterlogged property, but only if we're confident what it should be based on the block that is
         // already there
-        if ((existingMaterial.translucent || existingMaterial.hasProperty(WATERLOGGED)) && material.hasProperty(WATERLOGGED)) {
+        if ((existingMaterial.translucent || existingMaterial.hasProperty(WATERLOGGED)) && materialHasPropertyWaterlogged) {
             if (existingMaterialContainsWater) {
                 material = material.withProperty(WATERLOGGED, true);
             } else {
@@ -600,7 +612,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 if (logger.isTraceEnabled()) {
                     logger.trace("Placing custom object " + object.getName() + " @ " + x + "," + y + "," + z + " in fixup");
                 }
-                WPObjectExporter.renderObject(world, dimension, object, x, y, z);
+                WPObjectExporter.renderObject(world, dimension, platform, object, x, y, z);
                 
                 // Reapply the Frost layer to the area, if necessary
                 final FrostExporter frostExporter = new FrostExporter(dimension, platform, dimension.getLayerSettings(Frost.INSTANCE));

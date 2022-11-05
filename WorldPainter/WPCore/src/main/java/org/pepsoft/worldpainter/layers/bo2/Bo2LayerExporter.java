@@ -111,7 +111,7 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                                     fixups.add(new WPObjectFixup(object, x, y, z, placement));
                                     continue;
                                 }
-                                renderObject(minecraftWorld, dimension, object, x, y, z);
+                                renderObject(minecraftWorld, dimension, platform, object, x, y, z);
                             }
                         }
                     }
@@ -166,7 +166,7 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                     // after all the objects have been placed on both sides of the border
                     return new WPObjectFixup(object, location.x, location.y, height, Placement.ON_LAND);
                 }
-                renderObject(minecraftWorld, dimension, object, location.x, location.y, height);
+                renderObject(minecraftWorld, dimension, platform, object, location.x, location.y, height);
             }
         }
         return null;
