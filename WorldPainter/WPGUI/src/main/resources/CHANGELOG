@@ -1,3 +1,9 @@
+-- Version 2.15.9, released ...
+
+ * Added Minecraft 1.19 as a separate map format
+ * For the Minecraft 1.19 format, waterlogged leaf blocks are now supported (in other words leaf blocks on Custom Objects will be placed underwater for Minecraft 1.19 and later)
+ * Custom build heights now work for Minecraft 1.19 (including upgrading Minecraft 1.18 maps to 1.19 in Minecraft)
+
 -- Version 2.15.8, released 3-11-2022
 
  * Bug fix: fix a crash when Exporting Custom Cave/Tunnel layers with a Floor Dimension
