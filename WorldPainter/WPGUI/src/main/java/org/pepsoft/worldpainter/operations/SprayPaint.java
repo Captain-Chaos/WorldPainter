@@ -24,8 +24,12 @@ public class SprayPaint extends AbstractPaintOperation {
 
     @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
+        final Dimension dimension = getDimension();
+        if (dimension == null) {
+            // Probably some kind of race condition
+            return;
+        }
         painter.setUndo(inverse);
-        Dimension dimension = getDimension();
         dimension.setEventsInhibited(true);
         try {
             painter.drawPoint(dimension, centreX, centreY, dynamicLevel);

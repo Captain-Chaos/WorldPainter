@@ -26,7 +26,11 @@ public class CreateMountain extends MouseOrTabletOperation {
         // 5. optional bias of the slope according to the cardinal direction to create skewed mountains
         // 6. snake out from the summit, going mostly down but sometimes up
         // 7. when creating a local summit (going from going up to going down), have a chance of spawning one or more diverging ridges
-        Dimension dimension = getDimension();
+        final Dimension dimension = getDimension();
+        if (dimension == null) {
+            // Probably some kind of race condition
+            return;
+        }
 //        GroundCoverLayer deepSnowLayer = null;
 //        boolean shouldAddLayer = true;
 //        for (Layer layer: dimension.getCustomLayers()) {

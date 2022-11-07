@@ -27,7 +27,11 @@ public class RaisePyramid extends MouseOrTabletOperation {
 
     @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
-        Dimension dimension = getDimension();
+        final Dimension dimension = getDimension();
+        if (dimension == null) {
+            // Probably some kind of race condition
+            return;
+        }
         float height = dimension.getHeightAt(centreX, centreY);
         dimension.setEventsInhibited(true);
         try {

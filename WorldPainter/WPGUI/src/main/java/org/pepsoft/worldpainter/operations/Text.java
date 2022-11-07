@@ -47,6 +47,11 @@ public class Text extends AbstractBrushOperation implements PaintOperation {
 
     @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
+        final Dimension dimension = getDimension();
+        if (dimension == null) {
+            // Probably some kind of race condition
+            return;
+        }
         if (painter.getPaint() instanceof PaintFactory.NullPaint) {
             // No paint set yet; do nothing
             return;
@@ -61,7 +66,6 @@ public class Text extends AbstractBrushOperation implements PaintOperation {
             Font font = dialog.getSelectedFont();
             settings.setDefaultFont(font.getFamily());
             settings.setDefaultSize(font.getSize());
-            Dimension dimension = getDimension();
             dimension.setLayerSettings(Annotations.INSTANCE, settings);
             painter.setFont(font);
             painter.setTextAngle(dialog.getSelectedAngle());

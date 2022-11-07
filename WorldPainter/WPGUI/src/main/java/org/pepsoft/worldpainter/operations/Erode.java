@@ -5,11 +5,12 @@
 
 package org.pepsoft.worldpainter.operations;
 
-import java.util.Random;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MapDragControl;
 import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainter;
+
+import java.util.Random;
 
 /**
  *
@@ -22,7 +23,11 @@ public class Erode extends RadiusOperation {
 
     @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
-        Dimension dimension = getDimension();
+        final Dimension dimension = getDimension();
+        if (dimension == null) {
+            // Probably some kind of race condition
+            return;
+        }
         dimension.setEventsInhibited(true);
         try {
             int radius = getEffectiveRadius();

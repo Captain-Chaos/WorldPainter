@@ -5,6 +5,7 @@
  * Custom build heights now work for Minecraft 1.19 (including upgrading Minecraft 1.18 maps to 1.19 in Minecraft)
  * Added a warning and a clearer error message for when a world is being Merged with a map that has unoptimized, older chunks with different build limits
  * The Preferences screen now enforces that the default theme does not contain Custom Terrains or Custom Layers, as this is suspected to be the cause of errors
+ * Various bug fixes
 
 -- Version 2.15.8, released 3-11-2022
 

@@ -40,7 +40,11 @@ public class Pencil extends AbstractPaintOperation {
 
     @Override
     protected void tick(int centreX, int centreY, boolean undo, boolean first, float dynamicLevel) {
-        Dimension dimension = getDimension();
+        final Dimension dimension = getDimension();
+        if (dimension == null) {
+            // Probably some kind of race condition
+            return;
+        }
         dimension.setEventsInhibited(true);
         try {
             painter.setUndo(undo);

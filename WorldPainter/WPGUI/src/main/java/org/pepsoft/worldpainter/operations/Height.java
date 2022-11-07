@@ -41,6 +41,10 @@ public class Height extends RadiusOperation {
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
         final float adjustment = (float) Math.pow(dynamicLevel * getLevel() * 2, 2.0);
         final Dimension dimension = getDimension();
+        if (dimension == null) {
+            // Probably some kind of race condition
+            return;
+        }
         final float minZ, maxZ;
         if (getFilter() instanceof DefaultFilter) {
             final DefaultFilter filter = (DefaultFilter) getFilter();

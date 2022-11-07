@@ -50,7 +50,11 @@ public class CopySelectionOperation extends MouseOrTabletOperation {
     @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
         selectionHelper.setOptions(options);
-        Dimension dimension = getDimension();
+        final Dimension dimension = getDimension();
+        if (dimension == null) {
+            // Probably some kind of race condition
+            return;
+        }
         dimension.setEventsInhibited(true);
         try {
             // TODO: opening the progress dialog (and presumeably any dialog)

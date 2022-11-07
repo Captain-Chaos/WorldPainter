@@ -19,7 +19,11 @@ public class RiverPaint extends RadiusOperation {
 
     @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
-        Dimension dim = getDimension();
+        final Dimension dim = getDimension();
+        if (dim == null) {
+            // Probably some kind of race condition
+            return;
+        }
         if (first) {
             // Measure depth and fluid type at first click
             previousWaterLevel = dim.getWaterLevelAt(centreX, centreY);

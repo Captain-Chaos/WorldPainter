@@ -32,6 +32,12 @@ public class EditSelectionOperation extends RadiusOperation {
 
     @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
+        final Dimension dimension = getDimension();
+        if (dimension == null) {
+            // Probably some kind of race condition
+            return;
+        }
+
         // Create a geometric shape corresponding to the brush size, shape and
         // rotation
         Shape shape;
@@ -55,7 +61,6 @@ public class EditSelectionOperation extends RadiusOperation {
                 throw new InternalError();
         }
 
-        final Dimension dimension = getDimension();
         dimension.setEventsInhibited(true);
         try {
             SelectionHelper selectionHelper = new SelectionHelper(dimension);

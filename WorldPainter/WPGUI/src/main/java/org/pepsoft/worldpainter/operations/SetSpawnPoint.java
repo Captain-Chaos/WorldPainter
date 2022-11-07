@@ -30,7 +30,11 @@ public class SetSpawnPoint extends MouseOrTabletOperation {
     @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
         if (first) {
-            Dimension dimension = getDimension();
+            final Dimension dimension = getDimension();
+            if (dimension == null) {
+                // Probably some kind of race condition
+                return;
+            }
             if (dimension.getAnchor().dim != DIM_NORMAL) {
                 throw new IllegalArgumentException("Cannot set spawn point on dimensions other than DIM_NORMAL");
             }

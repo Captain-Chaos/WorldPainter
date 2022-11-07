@@ -29,6 +29,12 @@ public class Smooth extends RadiusOperation {
 
     @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
+        final Dimension dimension = getDimension();
+        if (dimension == null) {
+            // Probably some kind of race condition
+            return;
+        }
+
         int radius = getEffectiveRadius(), diameter = radius * 2 + 1;
         if ((totals == null) || (totals.length < (diameter + 10))) {
             totals = new float[diameter + 10][diameter + 10];
@@ -42,7 +48,6 @@ public class Smooth extends RadiusOperation {
             }
         }
         boolean applyTheme = options.isApplyTheme();
-        Dimension dimension = getDimension();
         dimension.setEventsInhibited(true);
         try {
             for (int x = 0; x < diameter + 10; x++) {

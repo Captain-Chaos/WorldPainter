@@ -28,7 +28,11 @@ public class Flatten extends RadiusOperation {
 
     @Override
     protected void tick(final int centreX, final int centreY, final boolean inverse, final boolean first, final float dynamicLevel) {
-        Dimension dimension = getDimension();
+        final Dimension dimension = getDimension();
+        if (dimension == null) {
+            // Probably some kind of race condition
+            return;
+        }
         if (first) {
             targetHeight = dimension.getHeightAt(centreX, centreY);
         }

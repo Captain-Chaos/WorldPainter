@@ -30,6 +30,10 @@ public class Fill extends AbstractBrushOperation implements PaintOperation {
             return;
         }
         final Dimension dimension = getDimension();
+        if (dimension == null) {
+            // Probably some kind of race condition
+            return;
+        }
         if (! dimension.isTilePresent(centreX >> TILE_SIZE_BITS, centreY >> TILE_SIZE_BITS)) {
             // Just silently fail if the user clicks outside the present area
             return;

@@ -43,6 +43,12 @@ public class Flood extends MouseOrTabletOperation {
     
     @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
+        final Dimension dimension = getDimension();
+        if (dimension == null) {
+            // Probably some kind of race condition
+            return;
+        }
+
         // We have seen in the wild that this sometimes gets called recursively (perhaps someone clicks to flood more
         // than once and then it takes more than two seconds so it is continued in the background and event queue
         // processing is resumed?), which causes errors, so just ignore it if we are already flooding.
@@ -52,7 +58,6 @@ public class Flood extends MouseOrTabletOperation {
         }
         alreadyFlooding = true;
         try {
-            final Dimension dimension = getDimension();
             final Rectangle dimensionBounds = new Rectangle(dimension.getLowestX() * TILE_SIZE, dimension.getLowestY() * TILE_SIZE, dimension.getWidth() * TILE_SIZE, dimension.getHeight() * TILE_SIZE);
             final int terrainHeight = dimension.getIntHeightAt(centreX, centreY);
             if (terrainHeight == Integer.MIN_VALUE) {

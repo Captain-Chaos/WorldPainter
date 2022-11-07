@@ -26,6 +26,10 @@ public class Sponge extends RadiusOperation {
     @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
         final Dimension dimension = getDimension();
+        if (dimension == null) {
+            // Probably some kind of race condition
+            return;
+        }
         final int waterHeight, minHeight = dimension.getMinHeight();
         final TileFactory tileFactory = dimension.getTileFactory();
         if (tileFactory instanceof HeightMapTileFactory) {
