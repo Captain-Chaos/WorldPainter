@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.Boolean.TRUE;
@@ -249,6 +250,7 @@ public class JavaMapImporter extends MapImporter {
         final AtomicInteger nextCustomBiomeId = new AtomicInteger(FIRST_UNALLOCATED_ID);
         final Set<String> allBiomes = synchronizedSet(new HashSet<>());
         final Set<Integer> invalidBiomeIds = synchronizedSet(new HashSet<>());
+        final AtomicBoolean deviatingBuildHeights = new AtomicBoolean();
         try (ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension.getAnchor().dim)) {
             final int total = chunkStore.getChunkCount();
             final AtomicInteger count = new AtomicInteger();
@@ -273,6 +275,8 @@ public class JavaMapImporter extends MapImporter {
                         final Set<Platform> chunkNativePlatforms = determineNativePlatforms(chunk);
                         if ((chunkNativePlatforms != null) && (! chunkNativePlatforms.contains(platform))) {
                             chunkNativePlatforms.forEach(chunkNativePlatform -> nonNativePlatformsEncountered.computeIfAbsent(chunkNativePlatform, p -> new AtomicInteger()).incrementAndGet());
+                        } else if ((chunk.getMinHeight() > minHeight) || (chunk.getMaxHeight() < maxHeight)) {
+                            deviatingBuildHeights.set(true);
                         }
 
                         final int chunkX = chunkCoords.x;
@@ -488,6 +492,15 @@ public class JavaMapImporter extends MapImporter {
                         + nonNativePlatformsEncountered.entrySet().stream()
                             .map(e -> e.getKey().displayName + " (" + e.getValue().get() + " chunk(s))")
                             .collect(joining(", ")) + EOL
+                        + "It may therefore not be possible to Merge your changes back to this map." + EOL
+                        + "It is highly recommended to use the Optimize function of" + EOL
+                        + platform + " to bring the map fully up to date.");
+            } else if (deviatingBuildHeights.get()) {
+                if (reportBuilder.length() > 0) {
+                    reportBuilder.insert(0, EOL + EOL);
+                }
+                reportBuilder.insert(0, "This map contains chunks that have mismatching minimum or maximum build heights." + EOL
+                        + "They are most likely unoptimized chunks from a previous version of Minecraft." + EOL
                         + "It may therefore not be possible to Merge your changes back to this map." + EOL
                         + "It is highly recommended to use the Optimize function of" + EOL
                         + platform + " to bring the map fully up to date.");

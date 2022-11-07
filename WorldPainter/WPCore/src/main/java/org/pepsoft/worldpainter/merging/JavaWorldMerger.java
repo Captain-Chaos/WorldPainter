@@ -994,16 +994,17 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     if (existingChunk != null) {
                         if (newChunk != null) {
                             // Chunk exists in existing and new world; merge it
+                            // Sanity checks
                             final Set<Platform> chunkNativePlatforms = determineNativePlatforms(existingChunk);
                             if ((chunkNativePlatforms != null) && (! chunkNativePlatforms.contains(platform))) {
-                                throw new InvalidMapException("At least one of the existing chunks to be merged is in a different format (" + chunkNativePlatforms.stream().map(p -> p.displayName).collect(joining(" or ")) + ").\n" +
-                                        "Please use the Optimize function in Minecraft to convert the map fully to the current format.\n" +
-                                        "\n" +
-                                        "The partially processed map is now probably corrupted.\n" +
-                                        "You should replace it from the backup at " + oldRegionDir.getParent() + ".");
+                                throw createInvalidMapException("At least one of the existing chunks to be merged is in a different format (" + chunkNativePlatforms.stream().map(p -> p.displayName).collect(joining(" or ")) + ")", oldRegionDir.getParentFile());
+                            } else if (existingChunk.getMinHeight() > newChunk.getMinHeight()) {
+                                throw createInvalidMapException("At least one of the existing chunks to be merged has a higher minimum build height (" + existingChunk.getMinHeight() + ") than the dimension being merged (" + newChunk.getMinHeight() + ")", oldRegionDir.getParentFile());
+                            } else if (existingChunk.getMaxHeight() < newChunk.getMaxHeight()) {
+                                throw createInvalidMapException("At least one of the existing chunks to be merged has a lower maximum build height (" + existingChunk.getMaxHeight() + ") than the dimension being merged (" + newChunk.getMaxHeight() + ")", oldRegionDir.getParentFile());
                             }
                             // Do any necessary processing of the existing chunk (clearing trees, etc.) No need to check
-                            // for read-only; if the chunk was read-only it wouldn't exist in the new map and we
+                            // for read-only; if the chunk was read-only it wouldn't exist in the new map, and we
                             // wouldn't be here
                             processExistingChunk(existingChunk);
                             try {
@@ -1037,6 +1038,14 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             progressReceiver.setProgress(1.0f);
         }
         return reportBuilder.length() != 0 ? reportBuilder.toString() : null;
+    }
+
+    private static InvalidMapException createInvalidMapException(String reason, File backupDir) {
+        return new InvalidMapException(reason + "\n" +
+                "Please use the Optimize function in Minecraft to convert the map fully to the current format.\n" +
+                "\n" +
+                "The partially processed map is now probably corrupted.\n" +
+                "You should replace it from the backup at " + backupDir + ".");
     }
 
     private void processExistingChunk(final Chunk existingChunk) {
