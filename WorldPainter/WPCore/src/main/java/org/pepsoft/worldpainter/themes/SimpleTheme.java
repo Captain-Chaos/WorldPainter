@@ -12,6 +12,8 @@ import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -119,9 +121,7 @@ public class SimpleTheme implements Theme, Cloneable {
             terrainRanges.put(minHeight - 1, lowestTerrain);
         }
         this.terrainRanges = terrainRanges;
-        for (int i = minHeight; i < maxHeight; i++) {
-            terrainRangesTable[i - minHeight] = terrainRanges.get(terrainRanges.headMap(i).lastKey());
-        }
+        updateTerrainRangesTable();
     }
 
     public final boolean isRandomise() {
@@ -167,7 +167,7 @@ public class SimpleTheme implements Theme, Cloneable {
             this.minHeight = minHeight;
             this.maxHeight = maxHeight;
             waterHeight = clamp(minHeight, transform.transformHeight(waterHeight), maxHeight - 1);
-            Terrain[] oldTerrainRangesTable = terrainRangesTable;
+            final Terrain[] oldTerrainRangesTable = terrainRangesTable;
             terrainRangesTable = new Terrain[maxHeight - minHeight];
             if (terrainRanges != null) {
                 SortedMap<Integer, Terrain> oldTerrainRanges = this.terrainRanges;
@@ -182,17 +182,18 @@ public class SimpleTheme implements Theme, Cloneable {
                     terrainRanges.remove(lowestLevel);
                     terrainRanges.put(minHeight - 1, lowestTerrain);
                 }
-                for (int i = minHeight; i < maxHeight; i++) {
-                    terrainRangesTable[i - minHeight] = terrainRanges.get(terrainRanges.headMap(i).lastKey());
-                }
+                updateTerrainRangesTable();
             } else {
-                // No terrain ranges map set; this is probably because it is
-                // an old map. All we can do is extend the last entry
-                // TODO: this won't work correctly if minHeight changed; do we still need to worry about that?
-                System.arraycopy(oldTerrainRangesTable, 0, terrainRangesTable, 0, Math.min(oldTerrainRangesTable.length, terrainRangesTable.length));
-                if (terrainRangesTable.length > oldTerrainRangesTable.length) {
-                    for (int i = oldTerrainRangesTable.length; i < terrainRangesTable.length; i++) {
+                // No terrain ranges map set; this is probably because it is an old map. All we can do is copy the
+                // overlapping values and extend the fist and/or last entry if necessary
+                for (int i = 0; i < terrainRangesTable.length; i++) {
+                    final int oldIndex = i + minHeight - oldMinHeight;
+                    if (oldIndex < 0) {
+                        terrainRangesTable[i] = oldTerrainRangesTable[0];
+                    } else if (oldIndex >= oldTerrainRangesTable.length) {
                         terrainRangesTable[i] = oldTerrainRangesTable[oldTerrainRangesTable.length - 1];
+                    } else {
+                        terrainRangesTable[i] = oldTerrainRangesTable[oldIndex];
                     }
                 }
             }
@@ -294,6 +295,12 @@ public class SimpleTheme implements Theme, Cloneable {
         }
     }
 
+    private void updateTerrainRangesTable() {
+        for (int i = minHeight; i < maxHeight; i++) {
+            terrainRangesTable[i - minHeight] = terrainRanges.get(terrainRanges.headMap(i).lastKey());
+        }
+    }
+
     private void initCaches() {
         if (layerMap != null) {
             List<Layer> layers = new ArrayList<>(layerMap.size());
@@ -358,11 +365,33 @@ public class SimpleTheme implements Theme, Cloneable {
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
+        if (terrainRanges != null) {
+            fixTerrainRanges();
+        }
         fixTerrainRangesTable();
         perlinNoise = new PerlinNoise(seed);
         initCaches();
     }
-    
+
+    /**
+     * This ensures there are no nulls in the terrain ranges map. There already shouldn't be, but we've had reports
+     * from the wild about it happening, so as a workaround fix it here. TODO: find out how there can be nulls in the terrain ranges map. Is it because of custom terrains in the default theme?
+     */
+    private void fixTerrainRanges() {
+        boolean mapChanged = false;
+        for (Map.Entry<Integer, Terrain> entry: terrainRanges.entrySet()) {
+            if (entry.getValue() == null) {
+                logger.warn("Fixing SimpleTheme.terrainRanges[{}]: null -> BARE_GRASS", entry.getKey());
+                // Least problematic default seems to be bare grass
+                entry.setValue(Terrain.BARE_GRASS);
+                mapChanged = true;
+            }
+        }
+        if (mapChanged) {
+            updateTerrainRangesTable();
+        }
+    }
+
     /**
      * This ensures there are no nulls in the terrain ranges table. There already shouldn't be, but we've had reports
      * from the wild about it happening, so as a workaround fix it here. TODO: find out how there can be holes in the terrain ranges table.
@@ -370,6 +399,7 @@ public class SimpleTheme implements Theme, Cloneable {
     private void fixTerrainRangesTable() {
         for (int i = 0; i < terrainRangesTable.length; i++) {
             if (terrainRangesTable[i] == null) {
+                logger.warn("Fixing SimpleTheme.terrainRangesTable[{}]: null -> BARE_GRASS", i);
                 // Least problematic default seems to be bare grass
                 terrainRangesTable[i] = Terrain.BARE_GRASS;
             }
@@ -411,5 +441,6 @@ public class SimpleTheme implements Theme, Cloneable {
     private Map<Layer, Integer> discreteValues;
 
     private static final Random random = new Random();
+    private static final Logger logger = LoggerFactory.getLogger(SimpleTheme.class);
     private static final long serialVersionUID = 1L;
 }
