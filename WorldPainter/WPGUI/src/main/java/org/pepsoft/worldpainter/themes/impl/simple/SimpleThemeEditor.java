@@ -14,6 +14,7 @@ import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.LayerManager;
 import org.pepsoft.worldpainter.layers.LayerTableCellRenderer;
 import org.pepsoft.worldpainter.themes.*;
 
@@ -26,6 +27,7 @@ import java.util.ArrayList;
  *
  * @author pepijn
  */
+@SuppressWarnings({"unused", "FieldCanBeLocal"})
 public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPressListener, TerrainRangesTableModel.ChangeListener {
     /** Creates new form TerrainRangesEditor */
     public SimpleThemeEditor() {
@@ -65,6 +67,17 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
         this.colourScheme = colourScheme;
     }
 
+    public boolean isAllowCustomItems() {
+        return allowCustomItems;
+    }
+
+    public void setAllowCustomItems(boolean allowCustomItems) {
+        if (theme != null) {
+            throw new IllegalStateException("allowCustomItems must be set before theme");
+        }
+        this.allowCustomItems = allowCustomItems;
+    }
+
     public SimpleTheme getTheme() {
         return theme;
     }
@@ -84,7 +97,7 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
             tableTerrain.setDefaultRenderer(JButton.class, new JButtonTableCellRenderer());
             
             tableTerrain.setDefaultEditor(Integer.class, new JSpinnerTableCellEditor(new SpinnerNumberModel(minHeight + 1, minHeight + 1, maxHeight - 1, 1)));
-            JComboBox terrainEditor = new JComboBox(Terrain.getConfiguredValues());
+            final JComboBox<Terrain> terrainEditor = new JComboBox<>(allowCustomItems ? Terrain.getConfiguredValues() : Terrain.PICK_LIST);
             terrainEditor.setRenderer(new TerrainListCellRenderer(colourScheme));
             tableTerrain.setDefaultEditor(Terrain.class, new DefaultCellEditor(terrainEditor));
             tableTerrain.setDefaultEditor(JButton.class, new JButtonTableCellEditor(this));
@@ -149,7 +162,7 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
     }
 
     private void addTerrain() {
-        AddTerrainRangeDialog dialog = new AddTerrainRangeDialog(SwingUtilities.getWindowAncestor(this), theme.getMaxHeight(), colourScheme);
+        AddTerrainRangeDialog dialog = new AddTerrainRangeDialog(SwingUtilities.getWindowAncestor(this), theme.getMinHeight(), theme.getMaxHeight(), colourScheme, allowCustomItems);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             terrainTableModel.addRow(dialog.getSelectedLevel(), dialog.getSelectedTerrain());
@@ -158,7 +171,7 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
 
     private void addLayer() {
         Window window = SwingUtilities.getWindowAncestor(this);
-        AddLayerDialog dialog = new AddLayerDialog(window, new ArrayList<>(App.getInstance().getAllLayers()), theme.getMinHeight(), theme.getMaxHeight());
+        AddLayerDialog dialog = new AddLayerDialog(window, new ArrayList<>(allowCustomItems ? App.getInstance().getAllLayers() : LayerManager.getInstance().getLayers()), theme.getMinHeight(), theme.getMaxHeight());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             layerTableModel.addRow(dialog.getSelectedFilter(), dialog.getSelectedLayer());
@@ -348,7 +361,7 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
     private ColourScheme colourScheme;
     private ChangeListener changeListener;
     private LayerRangesTableModel layerTableModel;
-    private boolean programmaticChange;
+    private boolean programmaticChange, allowCustomItems = true;
 
     private static final long serialVersionUID = 1L;
     

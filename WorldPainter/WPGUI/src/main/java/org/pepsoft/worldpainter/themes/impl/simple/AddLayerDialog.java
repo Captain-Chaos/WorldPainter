@@ -32,10 +32,12 @@ public class AddLayerDialog extends WorldPainterDialog {
         DefaultComboBoxModel<Layer> comboBoxModel = new DefaultComboBoxModel<>(layers.toArray(new Layer[layers.size()]));
         comboBoxLayer.setModel(comboBoxModel);
         comboBoxLayer.setRenderer(new LayerListCellRenderer());
+        ((SpinnerNumberModel) spinnerFrom.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerFrom.getModel()).setMaximum(maxHeight - 1);
-        spinnerFrom.setValue(maxHeight / 2);
+        spinnerFrom.setValue((minHeight + maxHeight) / 2);
+        ((SpinnerNumberModel) spinnerTo.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerTo.getModel()).setMaximum(maxHeight - 1);
-        spinnerTo.setValue(maxHeight - 1);
+        spinnerTo.setValue((minHeight + maxHeight) - 1);
         
         setControlStates();
         getRootPane().setDefaultButton(buttonOK);

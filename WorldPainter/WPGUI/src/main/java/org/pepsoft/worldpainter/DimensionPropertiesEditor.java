@@ -166,6 +166,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 spinnerMinecraftSeed.setEnabled(false);
                 jTabbedPane1.remove(TAB_CUSTOM_LAYERS);
                 jTabbedPane1.remove(TAB_RESOURCES);
+                themeEditor.setAllowCustomItems(false);
                 break;
             case EDITOR:
                 jTabbedPane1.remove(TAB_CUSTOM_LAYERS);

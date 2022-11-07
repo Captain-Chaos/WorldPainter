@@ -10,13 +10,13 @@
  */
 package org.pepsoft.worldpainter.themes.impl.simple;
 
-import java.awt.Window;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.SpinnerNumberModel;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.WorldPainterDialog;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
+
+import javax.swing.*;
+import java.awt.*;
 
 /**
  *
@@ -24,12 +24,13 @@ import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
  */
 public class AddTerrainRangeDialog extends WorldPainterDialog {
     /** Creates new form AddTerrainRangeDialog */
-    public AddTerrainRangeDialog(Window parent, int maxHeight, ColourScheme colourScheme) {
+    public AddTerrainRangeDialog(Window parent, int minHeight, int maxHeight, ColourScheme colourScheme, boolean allowCustomTerrain) {
         super(parent);
         this.colourScheme = colourScheme;
+        this.allowCustomTerrain = allowCustomTerrain;
         initComponents();
         
-        spinnerLevel.setModel(new SpinnerNumberModel(maxHeight / 2, 1, maxHeight - 1, 1));
+        spinnerLevel.setModel(new SpinnerNumberModel((minHeight + maxHeight) / 2, minHeight + 1, maxHeight - 1, 1));
 
         getRootPane().setDefaultButton(buttonOK);
 
@@ -74,7 +75,7 @@ public class AddTerrainRangeDialog extends WorldPainterDialog {
         jLabel3.setLabelFor(comboBoxTerrainType);
         jLabel3.setText("Terrain type:");
 
-        comboBoxTerrainType.setModel(new DefaultComboBoxModel(Terrain.getConfiguredValues()));
+        comboBoxTerrainType.setModel(new DefaultComboBoxModel(allowCustomTerrain ? Terrain.getConfiguredValues() : Terrain.PICK_LIST));
         comboBoxTerrainType.setSelectedItem(Terrain.DIRT);
         comboBoxTerrainType.setRenderer(new TerrainListCellRenderer(colourScheme));
 
@@ -156,6 +157,7 @@ public class AddTerrainRangeDialog extends WorldPainterDialog {
     // End of variables declaration//GEN-END:variables
  
     private final ColourScheme colourScheme;
+    private final boolean allowCustomTerrain;
     
     private static final long serialVersionUID = 1L;
 }
