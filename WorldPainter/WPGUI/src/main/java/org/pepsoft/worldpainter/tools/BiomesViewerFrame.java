@@ -127,6 +127,11 @@ public class BiomesViewerFrame extends JFrame {
         toolBar.add(new JLabel("Seed:"));
         seedSpinner.setEditor(new JSpinner.NumberEditor(seedSpinner, "0"));
         seedSpinner.addChangeListener(e -> {
+            if (BiomesViewerFrame.this.biomeScheme == null) {
+                throw new NullPointerException("BiomesViewerFrame.biomeScheme; available algorithms: " + availableAlgorithms);
+            } else if (seedSpinner.getValue() == null) {
+                throw new NullPointerException("seedSpinner.value; biomeScheme: " + BiomesViewerFrame.this.biomeScheme);
+            }
             BiomesViewerFrame.this.biomeScheme.setSeed(((Number) seedSpinner.getValue()).longValue());
             imageViewer.setTileProvider(new BiomesTileProvider(BiomesViewerFrame.this.biomeScheme, BiomesViewerFrame.this.colourScheme, imageViewer.getZoom(), false));
         });
