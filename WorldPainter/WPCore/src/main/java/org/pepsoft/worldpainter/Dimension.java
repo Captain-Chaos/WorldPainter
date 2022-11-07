@@ -8,10 +8,7 @@ package org.pepsoft.worldpainter;
 import org.jetbrains.annotations.NotNull;
 import org.pepsoft.minecraft.MapGenerator;
 import org.pepsoft.minecraft.SeededGenerator;
-import org.pepsoft.util.AttributeKey;
-import org.pepsoft.util.MathUtils;
-import org.pepsoft.util.PerlinNoise;
-import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.*;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
@@ -1834,22 +1831,13 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             if ((overlay != null) && overlay.canRead()) {
                 try {
                     java.awt.Dimension overlaySize = getImageSize(overlay);
-                    overlayCoords = new Rectangle(overlayOffsetX + (lowestX << TILE_SIZE_BITS), overlayOffsetY + (lowestY << TILE_SIZE_BITS), Math.round(overlaySize.width * overlayScale), Math.round(overlaySize.height * overlayScale));
+                    if (overlaySize != null) {
+                        overlayCoords = new Rectangle(overlayOffsetX + (lowestX << TILE_SIZE_BITS), overlayOffsetY + (lowestY << TILE_SIZE_BITS), Math.round(overlaySize.width * overlayScale), Math.round(overlaySize.height * overlayScale));
+                    }
                 } catch (IOException e) {
                     // Don't bother user with it, just clear the overlay
-                    logger.error("I/O error while trying to determine size of " + overlay, e);
-                    overlay = null;
-                    overlayEnabled = false;
-                    overlayOffsetX = 0;
-                    overlayOffsetY = 0;
-                    overlayScale = 1.0f;
+                    logger.error("I/O error while trying to determine size of " + overlay + "; overlay will not be adjusted", e);
                 }
-            } else {
-                overlay = null;
-                overlayEnabled = false;
-                overlayOffsetX = 0;
-                overlayOffsetY = 0;
-                overlayScale = 1.0f;
             }
 
             // Remove all tiles
@@ -1920,10 +1908,18 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 overlayCoords = transform.transform(overlayCoords);
                 overlayOffsetX = overlayCoords.x - (lowestX << TILE_SIZE_BITS);
                 overlayOffsetY = overlayCoords.y - (lowestY << TILE_SIZE_BITS);
-                SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null, "The " + getName() + " dimension has an overlay image!\n"
-                    + "The coordinates have been adjusted for you,\n"
-                    + "but you need to rotate the actual image yourself\n"
-                    + "using a paint program.", "Adjust Overlay Image", JOptionPane.INFORMATION_MESSAGE));
+                overlayScale = transform.transformScalar(overlayScale);
+                // TODO move this out of WPCore!
+                SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null, "The " + getName() + " dimension has an overlay image!\n" +
+                        "The coordinates have been adjusted for you, but you may need to rotate\n" +
+                        "the actual image yourself using a paint program. You may also need to\n" +
+                        "reload the world to update the scale of the overlay.", "Adjust Overlay Image", JOptionPane.INFORMATION_MESSAGE));
+            } else if (overlay != null) {
+                // TODO move this out of WPCore!
+                DesktopUtils.beep();
+                SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null, "The " + getName() + " dimension has an overlay image, however\n" +
+                        "its coordinates could not be determined, and therefore have not\n" +
+                        "been adjusted! You need to fix and adjust the overlay image yourself.", "Adjust Overlay Image", JOptionPane.WARNING_MESSAGE));
             }
         } finally {
             eventsInhibited = false;

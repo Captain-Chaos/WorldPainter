@@ -48,8 +48,13 @@ public final class Translation extends CoordinateTransform {
     }
 
     @Override
-    public float transform(float angle) {
+    public float transformAngle(float angle) {
         return angle;
+    }
+
+    @Override
+    public float transformScalar(float scalar) {
+        return scalar;
     }
 
     @Override

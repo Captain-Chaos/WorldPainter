@@ -51,7 +51,9 @@ public abstract class CoordinateTransform {
     
     public abstract Direction inverseTransform(Direction direction);
     
-    public abstract float transform(float angle);
+    public abstract float transformAngle(float angle);
+
+    public abstract float transformScalar(float scalar);
 
     public abstract HeightMap transform(HeightMap heightMap);
 
@@ -91,8 +93,13 @@ public abstract class CoordinateTransform {
                 }
 
                 @Override
-                public float transform(float angle) {
+                public float transformAngle(float angle) {
                     return angle;
+                }
+
+                @Override
+                public float transformScalar(float scalar) {
+                    return scalar * scale;
                 }
 
                 @Override
@@ -149,12 +156,17 @@ public abstract class CoordinateTransform {
         }
         
         @Override
-        public float transform(float angle) {
+        public float transformAngle(float angle) {
             angle = angle - HALF_PI;
             while (angle < 0) {
                 angle += TWO_PI;
             }
             return angle;
+        }
+
+        @Override
+        public float transformScalar(float scalar) {
+            return scalar;
         }
 
         @Override
@@ -197,12 +209,17 @@ public abstract class CoordinateTransform {
         }
 
         @Override
-        public float transform(float angle) {
+        public float transformAngle(float angle) {
             angle = angle + PI;
             while (angle >= TWO_PI) {
                 angle -= TWO_PI;
             }
             return angle;
+        }
+
+        @Override
+        public float transformScalar(float scalar) {
+            return scalar;
         }
 
         @Override
@@ -247,12 +264,17 @@ public abstract class CoordinateTransform {
         }
 
         @Override
-        public float transform(float angle) {
+        public float transformAngle(float angle) {
             angle = angle + HALF_PI;
             while (angle >= TWO_PI) {
                 angle -= TWO_PI;
             }
             return angle;
+        }
+
+        @Override
+        public float transformScalar(float scalar) {
+            return scalar;
         }
 
         @Override
@@ -298,8 +320,13 @@ public abstract class CoordinateTransform {
         }
 
         @Override
-        public float transform(float angle) {
+        public float transformAngle(float angle) {
             return angle;
+        }
+
+        @Override
+        public float transformScalar(float scalar) {
+            return scalar;
         }
 
         @Override
