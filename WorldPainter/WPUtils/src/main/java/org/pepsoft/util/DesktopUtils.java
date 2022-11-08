@@ -96,22 +96,22 @@ public final class DesktopUtils {
             return XDG.XDG_PICTURES_DIR_FILE;
         }
         File homeDir = new File(System.getProperty("user.home"));
-        File potentialDocsDir = new File(homeDir, "Pictures");
-        if (potentialDocsDir.isDirectory()) {
-            return potentialDocsDir;
+        File potentialPicsDir = new File(homeDir, "Pictures");
+        if (potentialPicsDir.isDirectory()) {
+            return potentialPicsDir;
         }
-        potentialDocsDir = new File(homeDir, "Photos");
-        if (potentialDocsDir.isDirectory()) {
-            return potentialDocsDir;
+        potentialPicsDir = new File(homeDir, "Photos");
+        if (potentialPicsDir.isDirectory()) {
+            return potentialPicsDir;
         }
         File docsDir = getDocumentsFolder();
-        potentialDocsDir = new File(docsDir, "Pictures");
-        if (potentialDocsDir.isDirectory()) {
-            return potentialDocsDir;
+        potentialPicsDir = new File(docsDir, "Pictures");
+        if (potentialPicsDir.isDirectory()) {
+            return potentialPicsDir;
         }
-        potentialDocsDir = new File(docsDir, "Photos");
-        if (potentialDocsDir.isDirectory()) {
-            return potentialDocsDir;
+        potentialPicsDir = new File(docsDir, "Photos");
+        if (potentialPicsDir.isDirectory()) {
+            return potentialPicsDir;
         }
         return docsDir;
     }
