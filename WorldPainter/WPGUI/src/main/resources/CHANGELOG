@@ -3,6 +3,9 @@
  * Added Minecraft 1.19 as a separate map format
  * For the Minecraft 1.19 format, waterlogged leaf blocks are now supported (in other words leaf blocks on Custom Objects will be placed underwater for Minecraft 1.19 and later)
  * Custom build heights now work for Minecraft 1.19 (including upgrading Minecraft 1.18 maps to 1.19 in Minecraft)
+ * Some improvements were made to dimension transformations (scaling, shifting or rotating):
+    + The handling of the overlay image, if any, has been fixed and streamlined. It is now adjusted fully automatically, except for rotations (in which case a warning is displayed)
+    + All associated dimensions (such as Ceiling dimensions and Custom Cave/Tunnel Floor dimensions) are now automatically included. There is no longer an option to turn that off, since it never makes sense to do so
  * Added a warning and a clearer error message for when a world is being Merged with a map that has unoptimized, older chunks with different build limits
  * The Preferences screen now enforces that the default theme does not contain Custom Terrains or Custom Layers, as this is suspected to be the cause of errors
  * Various bug fixes and usability improvements
