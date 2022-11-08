@@ -1165,8 +1165,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public void setOverlay(File overlay) {
-        if ((overlay != null) ? (! overlay.equals(this.overlay)) : (this.overlay == null)) {
-            File oldOverlay = this.overlay;
+        if (! Objects.equals(overlay, this.overlay)) {
+            final File oldOverlay = this.overlay;
             this.overlay = overlay;
             changeNo++;
             propertyChangeSupport.firePropertyChange("overlay", oldOverlay, overlay);
@@ -1832,7 +1832,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 try {
                     java.awt.Dimension overlaySize = getImageSize(overlay);
                     if (overlaySize != null) {
-                        overlayCoords = new Rectangle(overlayOffsetX + (lowestX << TILE_SIZE_BITS), overlayOffsetY + (lowestY << TILE_SIZE_BITS), Math.round(overlaySize.width * overlayScale), Math.round(overlaySize.height * overlayScale));
+                        overlayCoords = new Rectangle(overlayOffsetX, overlayOffsetY, Math.round(overlaySize.width * overlayScale), Math.round(overlaySize.height * overlayScale));
                     }
                 } catch (IOException e) {
                     // Don't bother user with it, just clear the overlay
@@ -1906,20 +1906,22 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
             if (overlayCoords != null) {
                 overlayCoords = transform.transform(overlayCoords);
-                overlayOffsetX = overlayCoords.x - (lowestX << TILE_SIZE_BITS);
-                overlayOffsetY = overlayCoords.y - (lowestY << TILE_SIZE_BITS);
-                overlayScale = transform.transformScalar(overlayScale);
+                setOverlayOffsetX(overlayCoords.x);
+                setOverlayOffsetY(overlayCoords.y);
+                setOverlayScale(transform.transformScalar(overlayScale));
                 // TODO move this out of WPCore!
-                SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null, "The " + getName() + " dimension has an overlay image!\n" +
-                        "The coordinates have been adjusted for you, but you may need to rotate\n" +
-                        "the actual image yourself using a paint program. You may also need to\n" +
-                        "reload the world to update the scale of the overlay.", "Adjust Overlay Image", JOptionPane.INFORMATION_MESSAGE));
+                DesktopUtils.beep();
+                if (transform.isRotating()) {
+                    SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null, "The " + getName() + " dimension has an overlay image!\n" +
+                            "Its coordinates and/or scale has been adjusted, but you need to\n" +
+                            "rotate the actual image yourself using a paint program.", "Rotate Overlay Image", JOptionPane.WARNING_MESSAGE));
+                }
             } else if (overlay != null) {
                 // TODO move this out of WPCore!
                 DesktopUtils.beep();
                 SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null, "The " + getName() + " dimension has an overlay image, however\n" +
                         "its coordinates could not be determined, and therefore have not\n" +
-                        "been adjusted! You need to fix and adjust the overlay image yourself.", "Adjust Overlay Image", JOptionPane.WARNING_MESSAGE));
+                        "been adjusted! You need to fix and adjust the overlay image yourself.", "Adjust Overlay Image", JOptionPane.ERROR_MESSAGE));
             }
         } finally {
             eventsInhibited = false;

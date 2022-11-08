@@ -61,6 +61,10 @@ public abstract class CoordinateTransform {
         return false;
     }
 
+    public boolean isRotating() {
+        return false;
+    }
+
     public float getScale() {
         return 1.0f;
     }
@@ -173,6 +177,11 @@ public abstract class CoordinateTransform {
         public HeightMap transform(HeightMap heightMap) {
             return TransformingHeightMap.build().withHeightMap(heightMap).withName(heightMap.getName()).withRotation(HALF_PI).now();
         }
+
+        @Override
+        public boolean isRotating() {
+            return true;
+        }
     };
 
     public static final CoordinateTransform ROTATE_180_DEGREES = new CoordinateTransform() {
@@ -225,6 +234,11 @@ public abstract class CoordinateTransform {
         @Override
         public HeightMap transform(HeightMap heightMap) {
             return TransformingHeightMap.build().withHeightMap(heightMap).withName(heightMap.getName()).withRotation(PI).now();
+        }
+
+        @Override
+        public boolean isRotating() {
+            return true;
         }
     };
 
@@ -280,6 +294,11 @@ public abstract class CoordinateTransform {
         @Override
         public HeightMap transform(HeightMap heightMap) {
             return TransformingHeightMap.build().withHeightMap(heightMap).withName(heightMap.getName()).withRotation(PI * 3 / 2).now();
+        }
+
+        @Override
+        public boolean isRotating() {
+            return true;
         }
     };
 

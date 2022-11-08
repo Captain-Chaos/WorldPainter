@@ -37,6 +37,7 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
  *
  * @author pepijn
  */
+@SuppressWarnings({"unused", "FieldCanBeLocal"})
 public class ConfigureViewDialog extends WorldPainterDialog implements WindowListener {
     /** Creates new form ConfigureViewDialog */
     public ConfigureViewDialog(Frame parent, Dimension dimension, WorldPainter view) {
@@ -52,14 +53,14 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
         initComponents();
         checkBoxGrid.setSelected(view.isPaintGrid());
         spinnerGridSize.setValue(view.getGridSize());
-        checkBoxImageOverlay.setSelected(view.isDrawOverlay());
+        checkBoxImageOverlay.setSelected(dimension.isOverlayEnabled());
         if (dimension.getOverlay() != null) {
             fieldImage.setText(dimension.getOverlay().getAbsolutePath());
         }
         spinnerScale.setValue(Math.round(dimension.getOverlayScale() * 100));
-        spinnerTransparency.setValue(Math.round(view.getOverlayTransparency() * 100));
-        spinnerXOffset.setValue(view.getOverlayOffsetX());
-        spinnerYOffset.setValue(view.getOverlayOffsetY());
+        spinnerTransparency.setValue(Math.round(dimension.getOverlayTransparency() * 100));
+        spinnerXOffset.setValue(dimension.getOverlayOffsetX());
+        spinnerYOffset.setValue(dimension.getOverlayOffsetY());
         checkBoxContours.setSelected(view.isDrawContours());
         spinnerContourSeparation.setValue(view.getContourSeparation());
         checkBoxBackgroundImage.setSelected(view.getBackgroundImage() != null);
@@ -134,6 +135,7 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
         if (enableOverlay) {
             addWindowListener(this);
         }
+        programmaticChange = false;
     }
 
     // WindowListener
@@ -170,23 +172,11 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
     }
     
     private void updateImageFile() {
-        File file = new File(fieldImage.getText());
-        BufferedImage image = loadImage(file);
-        if (image != null) {
+        final File file = new File(fieldImage.getText());
+        overlayImage = loadImage(file);
+        if (overlayImage != null) {
             // The loading succeeded
-            switch (Configuration.getInstance().getOverlayType()) {
-                case OPTIMISE_ON_LOAD:
-                    image = scaleImage(image, getGraphicsConfiguration(), 100);
-                    break;
-                case SCALE_ON_LOAD:
-                    image = scaleImage(image, getGraphicsConfiguration(), (Integer) spinnerScale.getValue());
-                    break;
-            }
-            if (image != null) {
-                // The scaling succeeded
-                dimension.setOverlay(file);
-                view.setOverlay(image);
-            }
+            dimension.setOverlay(file);
         }
     }
 
@@ -226,40 +216,6 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
             }
         }
         return null;
-    }
-    
-    static BufferedImage scaleImage(BufferedImage image, GraphicsConfiguration graphicsConfiguration, int scale) {
-        try {
-            boolean alpha = image.getColorModel().hasAlpha();
-            if (scale == 100) {
-                logger.info("Optimising image");
-                BufferedImage optimumImage = graphicsConfiguration.createCompatibleImage(image.getWidth(), image.getHeight(), alpha ? Transparency.TRANSLUCENT : Transparency.OPAQUE);
-                Graphics2D g2 = optimumImage.createGraphics();
-                try {
-                    g2.drawImage(image, 0, 0, null);
-                } finally {
-                    g2.dispose();
-                }
-                return optimumImage;
-            } else {
-                logger.info("Scaling image");
-                int width = image.getWidth() * scale / 100;
-                int height = image.getHeight() * scale / 100;
-                BufferedImage optimumImage = graphicsConfiguration.createCompatibleImage(width, height, alpha ? Transparency.TRANSLUCENT : Transparency.OPAQUE);
-                Graphics2D g2 = optimumImage.createGraphics();
-                try {
-                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-                    g2.drawImage(image, 0, 0, width, height, null);
-                } finally {
-                    g2.dispose();
-                }
-                return optimumImage;
-            }
-        } catch (RuntimeException | Error e) {
-            logger.error(e.getClass().getSimpleName() + " while scaling image of size " + image.getWidth() + "x" + image.getHeight() + " and type " + image.getType() + " to " + scale + "%", e);
-            JOptionPane.showMessageDialog(null, "An error occurred while " + ((scale == 100) ? "optimising" : "scaling") + " the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error " + ((scale == 100) ? "Optimising" : "Scaling") + " Image", JOptionPane.ERROR_MESSAGE);
-            return null;
-        }
     }
     
     private void selectImage() {
@@ -315,14 +271,12 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
     private void enableOverlay() {
         if (! checkBoxImageOverlay.isSelected()) {
             checkBoxImageOverlay.setSelected(true);
-            view.setDrawOverlay(true);
             dimension.setOverlayEnabled(true);
             setControlStates();
         }
         selectImage();
         if (dimension.getOverlay() == null) {
             checkBoxImageOverlay.setSelected(false);
-            view.setDrawOverlay(false);
             dimension.setOverlayEnabled(false);
             setControlStates();
         }
@@ -342,31 +296,40 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
     }
 
     private void fitOverlayToDimension() {
-        BufferedImage overlay = view.getOverlay();
-        if (overlay == null) {
-            return;
+        if (overlayImage == null) {
+            updateImageFile();
+            if (overlayImage == null) {
+                // If it is still null then no image is configured, or it could not be loaded for some reason
+                return;
+            }
         }
-        int desiredScale;
-        float dimRatio = (float) dimension.getWidth() / dimension.getHeight();
-        float imgRatio = (float) overlay.getWidth() / overlay.getHeight();
+        final float desiredScale;
+        final float dimRatio = (float) dimension.getWidth() / dimension.getHeight();
+        final float imgRatio = (float) overlayImage.getWidth() / overlayImage.getHeight();
         if (dimRatio > imgRatio) {
             // Dimension is wider than image, so make image the height of the
             // dimension
-            desiredScale = (int) ((float) (dimension.getHeight() << TILE_SIZE_BITS) / overlay.getHeight() * 100);
+            desiredScale = (float) (dimension.getHeight() << TILE_SIZE_BITS) / overlayImage.getHeight();
         } else {
             // Dimension is taller than image, so make image the width of the
             // dimension
-            desiredScale = (int) ((float) (dimension.getWidth() << TILE_SIZE_BITS) / overlay.getWidth() * 100);
+            desiredScale = (float) (dimension.getWidth() << TILE_SIZE_BITS) / overlayImage.getWidth();
         }
-        int scaledWidth = Math.round(overlay.getWidth() * (float) desiredScale / 100);
-        int scaledHeight = Math.round(overlay.getHeight() * (float) desiredScale / 100);
-        int xOffset = (dimension.getLowestX() << TILE_SIZE_BITS) + ((dimension.getWidth() << TILE_SIZE_BITS) - scaledWidth) / 2;
-        int yOffset = (dimension.getLowestY() << TILE_SIZE_BITS) + ((dimension.getHeight() << TILE_SIZE_BITS) - scaledHeight) / 2;
-        // The event listeners for these controls will take care of setting the
-        // values on the view and the dimension:
-        spinnerScale.setValue(desiredScale);
-        spinnerXOffset.setValue(xOffset);
-        spinnerYOffset.setValue(yOffset);
+        final int scaledWidth = Math.round(overlayImage.getWidth() * desiredScale);
+        final int scaledHeight = Math.round(overlayImage.getHeight() * desiredScale);
+        final int xOffset = (dimension.getLowestX() << TILE_SIZE_BITS) + ((dimension.getWidth() << TILE_SIZE_BITS) - scaledWidth) / 2;
+        final int yOffset = (dimension.getLowestY() << TILE_SIZE_BITS) + ((dimension.getHeight() << TILE_SIZE_BITS) - scaledHeight) / 2;
+        programmaticChange = true;
+        try {
+            dimension.setOverlayScale(desiredScale);
+            dimension.setOverlayOffsetX(xOffset);
+            dimension.setOverlayOffsetY(yOffset);
+            spinnerScale.setValue(Math.round(desiredScale * 100));
+            spinnerXOffset.setValue(xOffset);
+            spinnerYOffset.setValue(yOffset);
+        } finally {
+            programmaticChange = false;
+        }
     }
 
     /** This method is called from within the constructor to
@@ -374,8 +337,8 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
      * WARNING: Do NOT modify this code. The content of this method is
      * always regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    @SuppressWarnings({"Convert2Lambda", "Anonymous2MethodRef"})
     private void initComponents() {
 
         checkBoxGrid = new javax.swing.JCheckBox();
@@ -746,10 +709,17 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
     }// </editor-fold>//GEN-END:initComponents
 
     private void checkBoxGridActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxGridActionPerformed
-        setControlStates();
-        boolean gridEnabled = checkBoxGrid.isSelected();
-        view.setPaintGrid(gridEnabled);
-        dimension.setGridEnabled(gridEnabled);
+        if (! programmaticChange) {
+            programmaticChange = true;
+            try {
+                setControlStates();
+                boolean gridEnabled = checkBoxGrid.isSelected();
+                view.setPaintGrid(gridEnabled);
+                dimension.setGridEnabled(gridEnabled);
+            } finally {
+                programmaticChange = false;
+            }
+        }
     }//GEN-LAST:event_checkBoxGridActionPerformed
 
     private void buttonSelectImageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSelectImageActionPerformed
@@ -757,48 +727,80 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
     }//GEN-LAST:event_buttonSelectImageActionPerformed
 
     private void spinnerScaleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerScaleStateChanged
-        float scale = ((Number) spinnerScale.getValue()).intValue() / 100.0f;
-        dimension.setOverlayScale(scale);
-        if (Configuration.getInstance().getOverlayType() == Configuration.OverlayType.SCALE_ON_LOAD) {
-            scheduleImageUpdate();
-        } else {
-            view.setOverlayScale(scale);
+        if (! programmaticChange) {
+            programmaticChange = true;
+            try {
+                final float scale = ((Number) spinnerScale.getValue()).intValue() / 100.0f;
+                dimension.setOverlayScale(scale);
+            } finally {
+                programmaticChange = false;
+            }
         }
     }//GEN-LAST:event_spinnerScaleStateChanged
 
     private void spinnerTransparencyStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerTransparencyStateChanged
-        float transparency = ((Number) spinnerTransparency.getValue()).intValue() / 100.0f;
-        view.setOverlayTransparency(transparency);
-        dimension.setOverlayTransparency(transparency);
+        if (! programmaticChange) {
+            programmaticChange = true;
+            try {
+                final float transparency = ((Number) spinnerTransparency.getValue()).intValue() / 100.0f;
+                dimension.setOverlayTransparency(transparency);
+            } finally {
+                programmaticChange = false;
+            }
+        }
     }//GEN-LAST:event_spinnerTransparencyStateChanged
 
     private void spinnerXOffsetStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerXOffsetStateChanged
-        int xOffset = ((Number) spinnerXOffset.getValue()).intValue();
-        view.setOverlayOffsetX(xOffset);
-        dimension.setOverlayOffsetX(xOffset);
+        if (! programmaticChange) {
+            programmaticChange = true;
+            try {
+                final int xOffset = ((Number) spinnerXOffset.getValue()).intValue();
+                dimension.setOverlayOffsetX(xOffset);
+            } finally {
+                programmaticChange = false;
+            }
+        }
     }//GEN-LAST:event_spinnerXOffsetStateChanged
 
     private void spinnerYOffsetStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerYOffsetStateChanged
-        int yOffset = ((Number) spinnerYOffset.getValue()).intValue();
-        view.setOverlayOffsetY(yOffset);
-        dimension.setOverlayOffsetY(yOffset);
+        if (! programmaticChange) {
+            programmaticChange = true;
+            try {
+                final int yOffset = ((Number) spinnerYOffset.getValue()).intValue();
+                dimension.setOverlayOffsetY(yOffset);
+            } finally {
+                programmaticChange = false;
+            }
+        }
     }//GEN-LAST:event_spinnerYOffsetStateChanged
 
     private void checkBoxImageOverlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxImageOverlayActionPerformed
-        setControlStates();
-        boolean overlayEnabled = checkBoxImageOverlay.isSelected();
-        view.setDrawOverlay(overlayEnabled);
-        overlayEnabled = view.isDrawOverlay(); // Enabling the overlay may have failed
-        dimension.setOverlayEnabled(overlayEnabled);
-        if (overlayEnabled && (dimension.getOverlay() == null)) {
-            selectImage();
+        if (! programmaticChange) {
+            programmaticChange = true;
+            try {
+                setControlStates();
+                final boolean overlayEnabled = checkBoxImageOverlay.isSelected();
+                dimension.setOverlayEnabled(overlayEnabled);
+                if (overlayEnabled && (dimension.getOverlay() == null)) {
+                    selectImage();
+                }
+            } finally {
+                programmaticChange = false;
+            }
         }
     }//GEN-LAST:event_checkBoxImageOverlayActionPerformed
 
     private void spinnerGridSizeStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerGridSizeStateChanged
-        int gridSize = ((Number) spinnerGridSize.getValue()).intValue();
-        view.setGridSize(gridSize);
-        dimension.setGridSize(gridSize);
+        if (! programmaticChange) {
+            programmaticChange = true;
+            try {
+                int gridSize = ((Number) spinnerGridSize.getValue()).intValue();
+                view.setGridSize(gridSize);
+                dimension.setGridSize(gridSize);
+            } finally {
+                programmaticChange = false;
+            }
+        }
     }//GEN-LAST:event_spinnerGridSizeStateChanged
 
     private void buttonCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCloseActionPerformed
@@ -811,52 +813,101 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
     }//GEN-LAST:event_buttonCloseActionPerformed
 
     private void checkBoxContoursActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxContoursActionPerformed
-        setControlStates();
-        boolean contoursEnabled = checkBoxContours.isSelected();
-        view.setDrawContours(contoursEnabled);
-        dimension.setContoursEnabled(contoursEnabled);
+        if (! programmaticChange) {
+            programmaticChange = true;
+            try {
+                setControlStates();
+                boolean contoursEnabled = checkBoxContours.isSelected();
+                view.setDrawContours(contoursEnabled);
+                dimension.setContoursEnabled(contoursEnabled);
+            } finally {
+                programmaticChange = false;
+            }
+        }
     }//GEN-LAST:event_checkBoxContoursActionPerformed
 
     private void spinnerContourSeparationStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerContourSeparationStateChanged
-        int contourSeparation = ((Number) spinnerContourSeparation.getValue()).intValue();
-        view.setContourSeparation(contourSeparation);
-        dimension.setContourSeparation(contourSeparation);
+        if (! programmaticChange) {
+            programmaticChange = true;
+            try {
+                int contourSeparation = ((Number) spinnerContourSeparation.getValue()).intValue();
+                view.setContourSeparation(contourSeparation);
+                dimension.setContourSeparation(contourSeparation);
+            } finally {
+                programmaticChange = false;
+            }
+        }
     }//GEN-LAST:event_spinnerContourSeparationStateChanged
 
     private void checkBoxBackgroundImageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxBackgroundImageActionPerformed
-        if (checkBoxBackgroundImage.isSelected()) {
-            if (fieldBackgroundImage.getText().trim().isEmpty()) {
-                selectBackgroundImage();
-            } else {
-                updateBackgroundImageFile();
+        if (! programmaticChange) {
+            programmaticChange = true;
+            try {
+                if (checkBoxBackgroundImage.isSelected()) {
+                    if (fieldBackgroundImage.getText().trim().isEmpty()) {
+                        selectBackgroundImage();
+                    } else {
+                        updateBackgroundImageFile();
+                    }
+                } else {
+                    Configuration.getInstance().setBackgroundImage(null);
+                    view.setBackgroundImage(null);
+                }
+                setControlStates();
+            } finally {
+                programmaticChange = false;
             }
-        } else {
-            Configuration.getInstance().setBackgroundImage(null);
-            view.setBackgroundImage(null);
         }
-        setControlStates();
     }//GEN-LAST:event_checkBoxBackgroundImageActionPerformed
 
     private void buttonSelectBackgroundImageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSelectBackgroundImageActionPerformed
-        selectBackgroundImage();
+        if (! programmaticChange) {
+            programmaticChange = true;
+            try {
+                selectBackgroundImage();
+            } finally {
+                programmaticChange = false;
+            }
+        }
     }//GEN-LAST:event_buttonSelectBackgroundImageActionPerformed
 
     private void checkBoxShowBordersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxShowBordersActionPerformed
-        boolean showBorders = checkBoxShowBorders.isSelected();
-        Configuration.getInstance().setShowBorders(showBorders);
-        view.setDrawBorders(showBorders);
+        if (! programmaticChange) {
+            programmaticChange = true;
+            try {
+                boolean showBorders = checkBoxShowBorders.isSelected();
+                Configuration.getInstance().setShowBorders(showBorders);
+                view.setDrawBorders(showBorders);
+            } finally {
+                programmaticChange = false;
+            }
+        }
     }//GEN-LAST:event_checkBoxShowBordersActionPerformed
 
     private void checkBoxShowBiomesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxShowBiomesActionPerformed
-        boolean showBiomes = checkBoxShowBiomes.isSelected();
-        Configuration.getInstance().setShowBiomes(showBiomes);
-        view.setDrawBiomes(showBiomes);
+        if (! programmaticChange) {
+            programmaticChange = true;
+            try {
+                boolean showBiomes = checkBoxShowBiomes.isSelected();
+                Configuration.getInstance().setShowBiomes(showBiomes);
+                view.setDrawBiomes(showBiomes);
+            } finally {
+                programmaticChange = false;
+            }
+        }
     }//GEN-LAST:event_checkBoxShowBiomesActionPerformed
 
     private void comboBoxBackgroundImageModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxBackgroundImageModeActionPerformed
-        TiledImageViewer.BackgroundImageMode mode = (TiledImageViewer.BackgroundImageMode) comboBoxBackgroundImageMode.getSelectedItem();
-        Configuration.getInstance().setBackgroundImageMode(mode);
-        view.setBackgroundImageMode(mode);
+        if (! programmaticChange) {
+            programmaticChange = true;
+            try {
+                TiledImageViewer.BackgroundImageMode mode = (TiledImageViewer.BackgroundImageMode) comboBoxBackgroundImageMode.getSelectedItem();
+                Configuration.getInstance().setBackgroundImageMode(mode);
+                view.setBackgroundImageMode(mode);
+            } finally {
+                programmaticChange = false;
+            }
+        }
     }//GEN-LAST:event_comboBoxBackgroundImageModeActionPerformed
 
     private void buttonResetBackgroundColourActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonResetBackgroundColourActionPerformed
@@ -911,6 +962,11 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
     private final WorldPainter view;
     private final boolean enableOverlay;
     private Timer imageUpdateTimer;
+    /**
+     * The (unscaled) image that is currently selected.
+     */
+    private BufferedImage overlayImage;
+    private boolean programmaticChange = true;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ConfigureViewDialog.class);
     private static final long serialVersionUID = 1L;

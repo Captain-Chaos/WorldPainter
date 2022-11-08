@@ -614,7 +614,7 @@ public final class App extends JFrame implements RadiusControl,
             // Set action states
             ACTION_GRID.setSelected(view.isPaintGrid());
             ACTION_CONTOURS.setSelected(view.isDrawContours());
-            ACTION_OVERLAY.setSelected(view.isDrawOverlay());
+            ACTION_OVERLAY.setSelected(dimension.isOverlayEnabled());
 
             // TODO: make this work correctly with undo/redo, and make "inside selection" ineffective when there is no selection, to avoid confusion
             // Set operation states
@@ -4574,11 +4574,15 @@ public final class App extends JFrame implements RadiusControl,
         
         menuItem = new JMenuItem(strings.getString("configure.view") + "...");
         menuItem.addActionListener(e -> {
+            if (dimension == null) {
+                DesktopUtils.beep();
+                return;
+            }
             ConfigureViewDialog dialog = new ConfigureViewDialog(App.this, dimension, view);
             dialog.setVisible(true);
             ACTION_GRID.setSelected(view.isPaintGrid());
             ACTION_CONTOURS.setSelected(view.isDrawContours());
-            ACTION_OVERLAY.setSelected(view.isDrawOverlay());
+            ACTION_OVERLAY.setSelected(dimension.isOverlayEnabled());
         });
         menuItem.setMnemonic('c');
         menuItem.setAccelerator(getKeyStroke(VK_V, PLATFORM_COMMAND_MASK));
@@ -6933,21 +6937,19 @@ public final class App extends JFrame implements RadiusControl,
                 DesktopUtils.beep();
                 return;
             }
-            if (view.isDrawOverlay()) {
+            if (dimension.isOverlayEnabled()) {
                 // An overlay is showing; disable it
-                view.setDrawOverlay(false);
                 dimension.setOverlayEnabled(false);
                 setSelected(false);
             } else if ((dimension.getOverlay() != null) && dimension.getOverlay().isFile()) {
                 // No overlay is being shown, but there is one configured and it can be found, so enable it
-                view.setDrawOverlay(true); // This will cause the overlay configured in the dimension to be loaded
                 dimension.setOverlayEnabled(true);
                 setSelected(true);
             } else {
                 // Otherwise show the configure view dialog so the user can (re)configure an overlay
                 ConfigureViewDialog dialog = new ConfigureViewDialog(App.this, dimension, view, true);
                 dialog.setVisible(true);
-                setSelected(view.isDrawOverlay());
+                setSelected(dimension.isOverlayEnabled());
                 ACTION_GRID.setSelected(view.isPaintGrid());
                 ACTION_CONTOURS.setSelected(view.isDrawContours());
             }
