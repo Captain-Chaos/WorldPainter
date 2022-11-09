@@ -79,7 +79,6 @@ public class ErrorDialog extends javax.swing.JDialog {
         }
         final boolean ioException = ioExceptionMessage != null;
 
-        final Configuration config = Configuration.getInstance();
         if (exceptionTypes.contains(OutOfMemoryError.class)) {
             setTitle("Out of Memory");
             jTextArea1.setText("Not enough memory available for that operation!\n\n"
@@ -98,6 +97,7 @@ public class ErrorDialog extends javax.swing.JDialog {
             final String requestedActionLine;
             if (Main.privateContext != null) {
                 // We can submit the error
+                final Configuration config = Configuration.getInstance();
                 if ((config != null) && TRUE.equals(config.getPingAllowed()) && (! ioException)) {
                     // Automatic submission is allowed; submit it automatically
                     mode = Mode.SEND_AUTOMATICALLY;
@@ -245,7 +245,7 @@ public class ErrorDialog extends javax.swing.JDialog {
         }
 
         if (mode == Mode.SEND_AUTOMATICALLY) {
-            submitInBackground(config);
+            submitInBackground();
         }
     }
 
@@ -296,7 +296,7 @@ public class ErrorDialog extends javax.swing.JDialog {
         JOptionPane.showMessageDialog(this, "The information has been copied to the clipboard. Please paste\nit in a new email and send it to worldpainter@pepsoft.org.", "Information Copied", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    private void submitInBackground(Configuration config) {
+    private void submitInBackground() {
         jButton1.setText("Sending...");
         jButton1.setEnabled(false);
         jButton2.setEnabled(false);
@@ -306,6 +306,7 @@ public class ErrorDialog extends javax.swing.JDialog {
                 try {
                     UsageVO usageVO = new UsageVO();
                     usageVO.setEvents(singletonList(event));
+                    final Configuration config = Configuration.getInstance();
                     usageVO.setLaunchCount(config.getLaunchCount());
                     usageVO.setInstall(config.getUuid());
                     usageVO.setWPVersion(Version.VERSION);
@@ -420,7 +421,7 @@ public class ErrorDialog extends javax.swing.JDialog {
                 email();
                 break;
             case SEND_MANUALLY:
-                submitInBackground(Configuration.getInstance());
+                submitInBackground();
                 break;
             default:
                 throw new IllegalStateException("mode " + mode);
