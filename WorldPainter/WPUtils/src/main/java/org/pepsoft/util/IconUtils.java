@@ -16,7 +16,6 @@ import java.awt.image.BufferedImageOp;
 import java.io.IOException;
 import java.net.URL;
 
-import static java.awt.Color.BLACK;
 import static java.awt.RenderingHints.KEY_ANTIALIASING;
 import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
 import static java.awt.Transparency.TRANSLUCENT;
@@ -150,13 +149,13 @@ public final class IconUtils {
         return new ImageIcon(image);
     }
 
-    public static Icon createScaledLetterIcon(char letter) {
+    public static Icon createScaledLetterIcon(char letter, Color colour) {
         final int size = 16 * getUIScaleInt();
         final BufferedImage image = newBufferedImage(size);
         final Graphics2D g2 = image.createGraphics();
         try {
             g2.setFont(Font.decode("SansSerif-BOLD").deriveFont(16.0f * getUIScaleInt()));
-            g2.setColor(BLACK);
+            g2.setColor(colour);
             g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
             g2.drawString(String.valueOf(letter), 1 + 2 * getUIScaleInt(), size - 1 - 2 * getUIScaleInt());
         } finally {

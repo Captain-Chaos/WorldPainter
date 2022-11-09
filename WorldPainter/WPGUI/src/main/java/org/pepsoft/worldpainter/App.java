@@ -101,6 +101,8 @@ import java.util.zip.GZIPOutputStream;
 import static com.jidesoft.docking.DockContext.DOCK_SIDE_EAST;
 import static com.jidesoft.docking.DockContext.DOCK_SIDE_WEST;
 import static com.jidesoft.docking.DockableFrame.*;
+import static java.awt.Color.BLACK;
+import static java.awt.Color.WHITE;
 import static java.awt.event.ComponentEvent.COMPONENT_RESIZED;
 import static java.awt.event.KeyEvent.*;
 import static java.lang.Math.round;
@@ -119,6 +121,7 @@ import static org.pepsoft.util.IconUtils.createScaledLetterIcon;
 import static org.pepsoft.util.IconUtils.scaleIcon;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.ProgressDialog.NO_FOCUS_STEALING;
+import static org.pepsoft.worldpainter.Configuration.LookAndFeel.DARK_METAL;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Dimension.Anchor.*;
@@ -150,6 +153,7 @@ public final class App extends JFrame implements RadiusControl,
         setIconImage(ICON);
 
         Configuration config = Configuration.getInstance();
+        darkMode = (! "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"))) && (config.getLookAndFeel() == DARK_METAL);
         final String customColourSchemeLocation = System.getProperty("org.pepsoft.worldpainter.colourSchemeFile");
         if (customColourSchemeLocation != null) {
             logger.info("Loading custom DynMap colour scheme from " + customColourSchemeLocation);
@@ -3689,7 +3693,7 @@ public final class App extends JFrame implements RadiusControl,
         if (brushGroup.icon != null) {
             customBrushesPanel.putClientProperty(KEY_ICON, new ImageIcon(scaleIcon(brushGroup.icon, 16)));
         } else {
-            customBrushesPanel.putClientProperty(KEY_ICON, createScaledLetterIcon(title.charAt(0)));
+            customBrushesPanel.putClientProperty(KEY_ICON, createScaledLetterIcon(title.charAt(0), darkMode ? WHITE : BLACK));
         }
 
         return customBrushesPanel;
@@ -5612,7 +5616,7 @@ public final class App extends JFrame implements RadiusControl,
             for (int dy = -radius + 1; dy < radius; dy++) {
                 final float strength = brush.getFullStrength(dx, dy);
                 final int alpha = round(strength * 255f);
-                image.setRGB(dx + radius - 1, dy + radius - 1, alpha << 24);
+                image.setRGB(dx + radius - 1, dy + radius - 1, (alpha << 24) | (darkMode ? 0xffffff : 0x000000));
             }
         }
         return new ImageIcon(image);
@@ -7507,6 +7511,7 @@ public final class App extends JFrame implements RadiusControl,
     private final Map<Layer, LayerControls> layerControls = new HashMap<>();
     private InfoPanel infoPanel;
     private String outsideDimensionLabel;
+    private final boolean darkMode;
 
     public static final Image ICON = IconUtils.loadScaledImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
     
