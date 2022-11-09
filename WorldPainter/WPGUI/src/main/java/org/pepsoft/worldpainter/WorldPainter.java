@@ -34,6 +34,7 @@ import java.util.Set;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.unmodifiableSet;
+import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.worldpainter.Configuration.OverlayType.SCALE_ON_LOAD;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
@@ -734,12 +735,12 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                     myOverlay = ImageIO.read(file);
                 } catch (IOException e) {
                     logger.error("I/O error while loading image " + file ,e);
-                    JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nIt may not be a valid or supported image file, or the file may be corrupted.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
+                    doLaterOnEventThread(() -> JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nIt may not be a valid or supported image file, or the file may be corrupted.", "Error Loading Image", JOptionPane.ERROR_MESSAGE));
                     this.drawOverlay = false;
                     return;
                 } catch (RuntimeException | Error e) {
                     logger.error(e.getClass().getSimpleName() + " while loading image " + file ,e);
-                    JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
+                    doLaterOnEventThread(() -> JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error Loading Image", JOptionPane.ERROR_MESSAGE));
                     this.drawOverlay = false;
                     return;
                 }
@@ -755,7 +756,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                     }
                 } else {
                     logger.error("Image overlay file " + file + " did not contain a recognisable image");
-                    JOptionPane.showMessageDialog(this, "Image overlay file did not contain a recognisable image. It may have been corrupted.\n" + file, "Error Loading Image", JOptionPane.ERROR_MESSAGE);
+                    doLaterOnEventThread(() -> JOptionPane.showMessageDialog(this, "Image overlay file did not contain a recognisable image. It may have been corrupted.\n" + file, "Error Loading Image", JOptionPane.ERROR_MESSAGE));
                 }
                 if (myOverlay != null) {
                     overlay = myOverlay;
@@ -764,11 +765,11 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                     this.drawOverlay = false;
                 }
             } else {
-                JOptionPane.showMessageDialog(this, "Access denied to overlay image\n" + file, "Error Enabling Overlay", JOptionPane.ERROR_MESSAGE);
+                doLaterOnEventThread(() -> JOptionPane.showMessageDialog(this, "Access denied to overlay image\n" + file, "Error Enabling Overlay", JOptionPane.ERROR_MESSAGE));
                 this.drawOverlay = false;
             }
         } else {
-            JOptionPane.showMessageDialog(this, "Overlay image file not found\n" + file, "Error Enabling Overlay", JOptionPane.ERROR_MESSAGE);
+            doLaterOnEventThread(() -> JOptionPane.showMessageDialog(this, "Overlay image file not found\n" + file, "Error Enabling Overlay", JOptionPane.ERROR_MESSAGE));
             this.drawOverlay = false;
         }
     }
@@ -802,7 +803,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             }
         } catch (RuntimeException | Error e) {
             logger.error(e.getClass().getSimpleName() + " while scaling image of size " + image.getWidth() + "x" + image.getHeight() + " and type " + image.getType() + " to " + scale + "%", e);
-            JOptionPane.showMessageDialog(null, "An error occurred while " + ((scale == 100) ? "optimising" : "scaling") + " the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error " + ((scale == 100) ? "Optimising" : "Scaling") + " Image", JOptionPane.ERROR_MESSAGE);
+            doLaterOnEventThread(() -> JOptionPane.showMessageDialog(null, "An error occurred while " + ((scale == 100) ? "optimising" : "scaling") + " the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error " + ((scale == 100) ? "Optimising" : "Scaling") + " Image", JOptionPane.ERROR_MESSAGE));
             return null;
         }
     }
