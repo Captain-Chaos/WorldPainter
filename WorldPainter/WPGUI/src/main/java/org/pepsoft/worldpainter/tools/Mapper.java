@@ -349,7 +349,7 @@ public class Mapper {
                                                     int data = world.getDataAt(worldX, worldY, height);
                                                     int depth = waterLevel - height;
                                                     int fluidAlpha = 0xff >> Math.min(depth, 3);
-                                                    int colour = colourScheme.getColour(blockType, data);
+                                                    int colour = colourScheme.getColour(Material.get(blockType, data)); // TODO migrate to modern materials
                                                     if (depth > 0) {
                                                         colour = ColourUtils.multiply(colour, getBrightenAmount(world, heightCache, ((chunkX + 1) << 4) | x, ((chunkY + 1) << 4) | y, regionX, regionY));
                                                     }
@@ -371,7 +371,7 @@ public class Mapper {
                                                     int data = world.getDataAt(worldX, worldY, height);
                                                     int depth = waterLevel - height;
                                                     int fluidAlpha = 0xff >> Math.min(depth, 3);
-                                                    int colour = colourScheme.getColour(blockType, data);
+                                                    int colour = colourScheme.getColour(Material.get(blockType, data)); // TODO migrate to modern materials
                                                     if (water) {
                                                         colour = ColourUtils.mix(colour, waterColour, fluidAlpha);
                                                     } else if (lava) {

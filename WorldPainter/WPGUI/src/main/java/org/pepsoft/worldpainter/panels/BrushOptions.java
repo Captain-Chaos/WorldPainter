@@ -25,6 +25,7 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.*;
 
+import static org.pepsoft.minecraft.Material.WOOLS;
 import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
 import static org.pepsoft.worldpainter.Terrain.STAINED_TERRACOTTAS;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
@@ -140,7 +141,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
                         int selectedColour = filter.onlyOnValue, dataValue = selectedColour - ((selectedColour < 8) ? 1 : 0);
                         onlyOn = new DefaultFilter.LayerValue(Annotations.INSTANCE, selectedColour);
                         buttonReplace.setText(Constants.COLOUR_NAMES[dataValue] + " Annotations");
-                        buttonReplace.setIcon(IconUtils.createScaledColourIcon(app.getColourScheme().getColour(Constants.BLK_WOOL, dataValue)));
+                        buttonReplace.setIcon(IconUtils.createScaledColourIcon(app.getColourScheme().getColour(WOOLS[dataValue])));
                         break;
                     case ANNOTATION_ANY:
                         onlyOn = new DefaultFilter.LayerValue(Annotations.INSTANCE);
@@ -186,7 +187,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
                         int selectedColour = filter.exceptOnValue, dataValue = selectedColour - ((selectedColour < 8) ? 1 : 0);
                         exceptOn = new DefaultFilter.LayerValue(Annotations.INSTANCE, selectedColour);
                         buttonExceptOn.setText(Constants.COLOUR_NAMES[dataValue] + " Annotations");
-                        buttonExceptOn.setIcon(IconUtils.createScaledColourIcon(app.getColourScheme().getColour(Constants.BLK_WOOL, dataValue)));
+                        buttonExceptOn.setIcon(IconUtils.createScaledColourIcon(app.getColourScheme().getColour(WOOLS[dataValue])));
                         break;
                     case ANNOTATION_ANY:
                         exceptOn = new DefaultFilter.LayerValue(Annotations.INSTANCE);
@@ -416,7 +417,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
         annotationsMenu.add(menuItem);
         for (int i = 1; i < 16; i++) {
             final int selectedColour = i, dataValue = selectedColour - ((selectedColour < 8) ? 1 : 0);
-            final Icon icon  = IconUtils.createScaledColourIcon(colourScheme.getColour(Constants.BLK_WOOL, dataValue));
+            final Icon icon  = IconUtils.createScaledColourIcon(colourScheme.getColour(WOOLS[dataValue]));
             menuItem = new JMenuItem(Constants.COLOUR_NAMES[dataValue], icon);
             menuItem.addActionListener(e -> listener.objectSelected(new DefaultFilter.LayerValue(Annotations.INSTANCE, selectedColour), Constants.COLOUR_NAMES[dataValue] + " Annotations", icon));
             annotationsMenu.add(menuItem);
