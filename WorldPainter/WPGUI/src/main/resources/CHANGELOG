@@ -1,3 +1,8 @@
+-- Version 2.15.10, released ...
+
+ * When creating a new Custom Material on the Configure Cave/Tunnel Layer screen, the other drop down lists are immediately updated so that the new material can be selected for the other choices as well
+ * Bug fix: make creating new Custom Materials from the Configure Cave/Tunnel Layer screen work again
+
 -- Version 2.15.9, released 8-11-2022
 
  * Added Minecraft 1.19 as a separate map format

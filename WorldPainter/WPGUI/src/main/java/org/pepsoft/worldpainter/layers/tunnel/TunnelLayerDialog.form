@@ -172,7 +172,7 @@
                                   <Group type="102" alignment="0" attributes="0">
                                       <Component id="jLabel14" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace max="-2" attributes="0"/>
-                                      <Component id="mixedMaterialSelectorWall" min="-2" max="-2" attributes="0"/>
+                                      <Component id="mixedMaterialChooserWall" min="-2" max="-2" attributes="0"/>
                                   </Group>
                                   <Group type="102" alignment="0" attributes="0">
                                       <Component id="radioButtonRoofFixedHeight" min="-2" max="-2" attributes="0"/>
@@ -197,21 +197,6 @@
                                       <Component id="spinnerRoofMax" min="-2" max="-2" attributes="0"/>
                                   </Group>
                                   <Group type="102" alignment="0" attributes="0">
-                                      <Component id="jLabel9" min="-2" max="-2" attributes="0"/>
-                                      <EmptySpace max="-2" attributes="0"/>
-                                      <Component id="noiseSettingsEditorRoof" min="-2" max="-2" attributes="0"/>
-                                  </Group>
-                                  <Group type="102" alignment="0" attributes="0">
-                                      <Component id="jLabel10" min="-2" max="-2" attributes="0"/>
-                                      <EmptySpace max="-2" attributes="0"/>
-                                      <Component id="mixedMaterialSelectorRoof" min="-2" max="-2" attributes="0"/>
-                                  </Group>
-                                  <Group type="102" alignment="0" attributes="0">
-                                      <Component id="jLabel7" min="-2" max="-2" attributes="0"/>
-                                      <EmptySpace max="-2" attributes="0"/>
-                                      <Component id="mixedMaterialSelectorFloor" min="-2" max="-2" attributes="0"/>
-                                  </Group>
-                                  <Group type="102" alignment="0" attributes="0">
                                       <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace max="-2" attributes="0"/>
                                       <Component id="spinnerFloorLevel" min="-2" max="-2" attributes="0"/>
@@ -223,11 +208,6 @@
                                       <Component id="jLabel19" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace max="-2" attributes="0"/>
                                       <Component id="spinnerFloorMax" min="-2" max="-2" attributes="0"/>
-                                  </Group>
-                                  <Group type="102" alignment="0" attributes="0">
-                                      <Component id="jLabel5" min="-2" max="-2" attributes="0"/>
-                                      <EmptySpace max="-2" attributes="0"/>
-                                      <Component id="noiseSettingsEditorFloor" min="-2" max="-2" attributes="0"/>
                                   </Group>
                                   <Group type="102" alignment="0" attributes="0">
                                       <Component id="checkBoxFlood" min="-2" max="-2" attributes="0"/>
@@ -252,6 +232,28 @@
                                       <Component id="radioButtonFloorInverse" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace max="-2" attributes="0"/>
                                       <Component id="radioButtonFloorCustomDimension" min="-2" max="-2" attributes="0"/>
+                                  </Group>
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <Group type="103" groupAlignment="0" attributes="0">
+                                          <Component id="jLabel9" alignment="0" min="-2" max="-2" attributes="0"/>
+                                          <Component id="jLabel10" alignment="0" min="-2" max="-2" attributes="0"/>
+                                      </Group>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Group type="103" groupAlignment="0" attributes="0">
+                                          <Component id="mixedMaterialChooserRoof" min="-2" max="-2" attributes="0"/>
+                                          <Component id="noiseSettingsEditorRoof" min="-2" max="-2" attributes="0"/>
+                                      </Group>
+                                  </Group>
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <Group type="103" groupAlignment="0" attributes="0">
+                                          <Component id="jLabel5" alignment="0" min="-2" max="-2" attributes="0"/>
+                                          <Component id="jLabel7" alignment="0" min="-2" max="-2" attributes="0"/>
+                                      </Group>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Group type="103" groupAlignment="0" attributes="0">
+                                          <Component id="mixedMaterialChooserFloor" min="-2" max="-2" attributes="0"/>
+                                          <Component id="noiseSettingsEditorFloor" min="-2" max="-2" attributes="0"/>
+                                      </Group>
                                   </Group>
                               </Group>
                           </Group>
@@ -293,7 +295,7 @@
                               <EmptySpace max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="3" attributes="0">
                                   <Component id="jLabel10" alignment="3" min="-2" max="-2" attributes="0"/>
-                                  <Component id="mixedMaterialSelectorRoof" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="mixedMaterialChooserRoof" alignment="3" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <EmptySpace type="separate" max="-2" attributes="0"/>
                               <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
@@ -325,7 +327,7 @@
                               <EmptySpace max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="3" attributes="0">
                                   <Component id="jLabel7" alignment="3" min="-2" max="-2" attributes="0"/>
-                                  <Component id="mixedMaterialSelectorFloor" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="mixedMaterialChooserFloor" alignment="3" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <EmptySpace type="separate" max="-2" attributes="0"/>
                               <Component id="jLabel12" min="-2" max="-2" attributes="0"/>
@@ -339,9 +341,9 @@
                               <EmptySpace max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="3" attributes="0">
                                   <Component id="jLabel14" alignment="3" min="-2" max="-2" attributes="0"/>
-                                  <Component id="mixedMaterialSelectorWall" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="mixedMaterialChooserWall" alignment="3" min="-2" max="-2" attributes="0"/>
                               </Group>
-                              <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace type="separate" max="-2" attributes="0"/>
                               <Component id="jLabel20" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="3" attributes="0">
@@ -387,8 +389,6 @@
               <Events>
                 <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinnerRoofLevelStateChanged"/>
               </Events>
-            </Component>
-            <Component class="org.pepsoft.worldpainter.MixedMaterialSelector" name="mixedMaterialSelectorFloor">
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel12">
               <Properties>
@@ -518,8 +518,6 @@
                 <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinnerRoofMaxStateChanged"/>
               </Events>
             </Component>
-            <Component class="org.pepsoft.worldpainter.MixedMaterialSelector" name="mixedMaterialSelectorRoof">
-            </Component>
             <Component class="javax.swing.JLabel" name="jLabel13">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Bottom width:"/>
@@ -628,8 +626,6 @@
                 <Property name="text" type="java.lang.String" value="Level:"/>
               </Properties>
             </Component>
-            <Component class="org.pepsoft.worldpainter.MixedMaterialSelector" name="mixedMaterialSelectorWall">
-            </Component>
             <Component class="javax.swing.JRadioButton" name="radioButtonRoofInverse">
               <Properties>
                 <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
@@ -700,6 +696,30 @@
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="radioButtonRoofFixedHeightActionPerformed"/>
               </Events>
+            </Component>
+            <Component class="org.pepsoft.worldpainter.MixedMaterialChooser" name="mixedMaterialChooserRoof">
+              <Events>
+                <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="mixedMaterialChooserRoofPropertyChange"/>
+              </Events>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new MixedMaterialChooser(true)"/>
+              </AuxValues>
+            </Component>
+            <Component class="org.pepsoft.worldpainter.MixedMaterialChooser" name="mixedMaterialChooserFloor">
+              <Events>
+                <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="mixedMaterialChooserFloorPropertyChange"/>
+              </Events>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new MixedMaterialChooser(true)"/>
+              </AuxValues>
+            </Component>
+            <Component class="org.pepsoft.worldpainter.MixedMaterialChooser" name="mixedMaterialChooserWall">
+              <Events>
+                <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="mixedMaterialChooserWallPropertyChange"/>
+              </Events>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new MixedMaterialChooser(true)"/>
+              </AuxValues>
             </Component>
           </SubComponents>
         </Container>
