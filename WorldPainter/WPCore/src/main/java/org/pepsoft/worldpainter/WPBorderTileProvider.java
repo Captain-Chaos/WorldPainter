@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 
 /**
@@ -69,10 +69,10 @@ public class WPBorderTileProvider implements org.pepsoft.util.swing.TileProvider
                 try {
                     g2.setComposite(AlphaComposite.Src);
                     g2.setBackground(new Color(0x00ffffff & VoidRenderer.getColour(), true));
-                    final Color waterColour = new Color(colourScheme.getColour(BLK_WATER));
-                    final Color lavaColour = new Color(colourScheme.getColour(BLK_LAVA));
+                    final Color waterColour = new Color(colourScheme.getColour(WATER));
+                    final Color lavaColour = new Color(colourScheme.getColour(LAVA));
                     final Color voidColour = new Color(0x00ffffff & VoidRenderer.getColour(), true);
-                    final Color bedrockColour = new Color(colourScheme.getColour(BLK_BEDROCK));
+                    final Color bedrockColour = new Color(colourScheme.getColour(BEDROCK));
                     final int scale = 1 << -zoom;
                     final int subSize = TILE_SIZE / scale;
                     for (int dx = 0; dx < scale; dx++) {
@@ -234,11 +234,11 @@ public class WPBorderTileProvider implements org.pepsoft.util.swing.TileProvider
                 switch (dimension.getBorder()) {
                     case WATER:
                     case ENDLESS_WATER:
-                        paint = new Color(0xff000000 | colourScheme.getColour(BLK_WATER));
+                        paint = new Color(0xff000000 | colourScheme.getColour(WATER));
                         break;
                     case LAVA:
                     case ENDLESS_LAVA:
-                        paint = new Color(0xff000000 | colourScheme.getColour(BLK_LAVA));
+                        paint = new Color(0xff000000 | colourScheme.getColour(LAVA));
                         break;
                     case VOID:
                     case ENDLESS_VOID:
@@ -287,7 +287,7 @@ public class WPBorderTileProvider implements org.pepsoft.util.swing.TileProvider
                     if (tileType == TileType.BARRIER_WALL) {
                         g2.setPaint(BARRIER_PAINT);
                     } else {
-                        g2.setColor(new Color(colourScheme.getColour(BLK_BEDROCK)));
+                        g2.setColor(new Color(colourScheme.getColour(BEDROCK)));
                     }
                     TileType neighbourType = getUnzoomedTileType(x, y - 1);
                     if ((neighbourType == TileType.WORLD) || (neighbourType == TileType.BORDER)) {

@@ -205,7 +205,7 @@ public enum Terrain {
 
         @Override
         public int getColour(long seed, int x, int y, int z, int height, Platform platform, ColourScheme colourScheme) {
-            return colourScheme.getColour(BLK_SNOW);
+            return colourScheme.getColour(Material.SNOW);
         }
 
         private final PerlinNoise perlinNoise = new PerlinNoise(0);

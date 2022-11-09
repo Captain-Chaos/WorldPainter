@@ -4,10 +4,9 @@
  */
 package org.pepsoft.worldpainter.layers.renderers;
 
-import static org.pepsoft.minecraft.Constants.*;
-
-import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.ColourScheme;
+
+import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.layers.GardenCategory.*;
 
 /**
@@ -22,13 +21,13 @@ public class GardenCategoryRenderer implements NibbleLayerRenderer, ColourScheme
     @Override
     public void setColourScheme(ColourScheme colourScheme) {
         this.colourScheme = colourScheme;
-        cobblestoneColour = colourScheme.getColour(BLK_COBBLESTONE);
-        grassColour = colourScheme.getColour(BLK_GRASS);
-        dirtColour = colourScheme.getColour(BLK_DIRT);
-        bricksColour = colourScheme.getColour(BLK_BRICKS);
-        woodColour = colourScheme.getColour(BLK_WOODEN_PLANK);
-        waterColour = colourScheme.getColour(BLK_WATER);
-        objectColour = colourScheme.getColour(Material.WOOL_MAGENTA);
+        cobblestoneColour = colourScheme.getColour(COBBLESTONE);
+        grassColour = colourScheme.getColour(GRASS_BLOCK);
+        dirtColour = colourScheme.getColour(DIRT);
+        bricksColour = colourScheme.getColour(BRICKS);
+        woodColour = colourScheme.getColour(WOODEN_PLANK_OAK);
+        waterColour = colourScheme.getColour(WATER);
+        objectColour = colourScheme.getColour(WOOL_MAGENTA);
     }
     
     @Override

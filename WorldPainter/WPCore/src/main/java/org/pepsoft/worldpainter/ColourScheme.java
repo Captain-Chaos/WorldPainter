@@ -16,27 +16,6 @@ import org.pepsoft.worldpainter.colourschemes.HardcodedColourScheme;
  */
 public interface ColourScheme {
     /**
-     * Get the colour of a particular Minecraft block type.
-     *
-     * @deprecated Use {#link {@link #getColour(Material)}}.
-     * @param blockType The block type ID for which to get the colour.
-     * @return The colour of the specified block type in packed RGB format.
-     */
-    @Deprecated
-    int getColour(int blockType);
-
-    /**
-     * Get the colour of a particular Minecraft block type with a particular data value.
-     *
-     * @deprecated Use {#link {@link #getColour(Material)}}.
-     * @param blockType The block type ID for which to get the colour.
-     * @param dataValue The data value for which to get the colour.
-     * @return The colour of the specified block type in packed RGB format.
-     */
-    @Deprecated
-    int getColour(int blockType, int dataValue);
-
-    /**
      * Get the colour of a particular Minecraft material.
      *
      * @param material The material for which to get the colour.

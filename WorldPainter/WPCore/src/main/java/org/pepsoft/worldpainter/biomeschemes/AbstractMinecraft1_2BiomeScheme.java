@@ -11,7 +11,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Material.*;
 
 /**
  * An abstract base class for {@link BiomeScheme}s which provide the biomes as
@@ -29,51 +29,51 @@ public abstract class AbstractMinecraft1_2BiomeScheme extends AbstractBiomeSchem
     public final int getColour(int biome, ColourScheme colourScheme) {
         switch (biome) {
             case BIOME_OCEAN:
-                return colourScheme.getColour(BLK_WATER);
+                return colourScheme.getColour(WATER);
             case BIOME_PLAINS:
-                return colourScheme.getColour(BLK_GRASS);
+                return colourScheme.getColour(GRASS_BLOCK);
             case BIOME_DESERT:
-                return colourScheme.getColour(BLK_SAND);
+                return colourScheme.getColour(SAND);
             case BIOME_EXTREME_HILLS:
-                return colourScheme.getColour(BLK_GRASS);
+                return colourScheme.getColour(GRASS_BLOCK);
             case BIOME_FOREST:
-                return colourScheme.getColour(BLK_LEAVES);
+                return colourScheme.getColour(LEAVES_OAK);
             case BIOME_TAIGA:
-                return colourScheme.getColour(BLK_SNOW);
+                return colourScheme.getColour(SNOW);
             case BIOME_SWAMPLAND:
-                return colourScheme.getColour(BLK_LEAVES);
+                return colourScheme.getColour(LEAVES_OAK);
             case BIOME_RIVER:
-                return colourScheme.getColour(BLK_WATER);
+                return colourScheme.getColour(WATER);
             case BIOME_HELL:
-                return colourScheme.getColour(BLK_NETHERRACK);
+                return colourScheme.getColour(NETHERRACK);
             case BIOME_SKY:
-                return colourScheme.getColour(BLK_AIR);
+                return colourScheme.getColour(AIR);
             case BIOME_FROZEN_OCEAN:
-                return colourScheme.getColour(BLK_ICE);
+                return colourScheme.getColour(ICE);
             case BIOME_FROZEN_RIVER:
-                return colourScheme.getColour(BLK_ICE);
+                return colourScheme.getColour(ICE);
             case BIOME_ICE_PLAINS:
-                return colourScheme.getColour(BLK_SNOW);
+                return colourScheme.getColour(SNOW);
             case BIOME_ICE_MOUNTAINS:
-                return colourScheme.getColour(BLK_SNOW);
+                return colourScheme.getColour(SNOW);
             case BIOME_MUSHROOM_ISLAND:
-                return colourScheme.getColour(BLK_MYCELIUM);
+                return colourScheme.getColour(MYCELIUM);
             case BIOME_MUSHROOM_ISLAND_SHORE:
-                return colourScheme.getColour(BLK_MYCELIUM);
+                return colourScheme.getColour(MYCELIUM);
             case BIOME_BEACH:
-                return colourScheme.getColour(BLK_SAND);
+                return colourScheme.getColour(SAND);
             case BIOME_DESERT_HILLS:
-                return colourScheme.getColour(BLK_SAND);
+                return colourScheme.getColour(SAND);
             case BIOME_FOREST_HILLS:
-                return colourScheme.getColour(BLK_LEAVES);
+                return colourScheme.getColour(LEAVES_OAK);
             case BIOME_TAIGA_HILLS:
-                return colourScheme.getColour(BLK_SNOW);
+                return colourScheme.getColour(SNOW);
             case BIOME_EXTREME_HILLS_EDGE:
-                return colourScheme.getColour(BLK_GRASS);
+                return colourScheme.getColour(GRASS_BLOCK);
             case BIOME_JUNGLE:
-                return colourScheme.getColour(BLK_LEAVES);
+                return colourScheme.getColour(LEAVES_OAK);
             case BIOME_JUNGLE_HILLS:
-                return colourScheme.getColour(BLK_LEAVES);
+                return colourScheme.getColour(LEAVES_OAK);
             default:
                 throw new IllegalArgumentException(Integer.toString(biome));
         }

@@ -55,18 +55,6 @@ public final class DynMapColourScheme implements ColourScheme {
     }
     
     @Override
-    public int getColour(int blockType) {
-        // TODO: migrate this information to Material
-        return (blockType >= 0) && (blockType < 256) ? COLOURS[blockType] : UNKNOWN_MATERIAL_COLOUR;
-    }
-
-    @Override
-    public int getColour(int blockType, int dataValue) {
-        // TODO: migrate this information to Material
-        return (blockType >= 0) && (blockType < 256) ? COLOURS[blockType + dataValue * 256] : UNKNOWN_MATERIAL_COLOUR;
-    }
-
-    @Override
     public int getColour(Material material) {
         // TODO: migrate this information to Material
         final int blockType = material.blockType;

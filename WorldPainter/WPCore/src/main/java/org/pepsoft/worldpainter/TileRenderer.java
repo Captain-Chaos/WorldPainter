@@ -22,7 +22,8 @@ import java.awt.image.DataBufferInt;
 import java.util.List;
 import java.util.*;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
+import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
@@ -83,9 +84,9 @@ public final class TileRenderer {
 
     public void setColourScheme(ColourScheme colourScheme) {
         this.colourScheme = colourScheme;
-        waterColour = colourScheme.getColour(BLK_WATER);
-        lavaColour = colourScheme.getColour(BLK_LAVA);
-        bedrockColour = colourScheme.getColour(BLK_BEDROCK);
+        waterColour = colourScheme.getColour(WATER);
+        lavaColour = colourScheme.getColour(LAVA);
+        bedrockColour = colourScheme.getColour(BEDROCK);
         notPresentColour = 0x00000000;
         voidColour = (transparentVoid ? 0x00000000 : 0xff000000) | VoidRenderer.getColour();
     }
