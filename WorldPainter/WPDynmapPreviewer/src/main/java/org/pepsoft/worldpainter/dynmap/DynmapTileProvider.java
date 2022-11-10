@@ -1,6 +1,7 @@
 package org.pepsoft.worldpainter.dynmap;
 
 import org.dynmap.ConfigurationNode;
+import org.dynmap.DynmapCore;
 import org.dynmap.DynmapWorld;
 import org.dynmap.hdmap.HDMap;
 import org.dynmap.hdmap.HDMapTile;
@@ -22,8 +23,8 @@ import java.util.Map;
  *
  * <p>Created by Pepijn Schmitz on 08-06-15.
  */
-public class DynMapTileProvider implements TileProvider {
-    public DynMapTileProvider(DynmapWorld dmWorld) {
+public class DynmapTileProvider implements TileProvider {
+    public DynmapTileProvider(DynmapWorld dmWorld) {
         this.dmWorld = dmWorld;
         refreshMap();
     }
@@ -40,7 +41,7 @@ public class DynMapTileProvider implements TileProvider {
 
     @Override
     public boolean paintTile(Image image, int x, int y, int dx, int dy) {
-        HDMapTile tile = new HDMapTile(dmWorld, map.getPerspective(), x, -y, 0);
+        HDMapTile tile = new HDMapTile(dmWorld, map.getPerspective(), x, -y, 0, 0);
         BufferedImage tileImage = rendererRef.get().render(dmWorld.getChunkCache(null), tile);
         Graphics2D g2 = (Graphics2D) image.getGraphics();
         try {
@@ -91,10 +92,10 @@ public class DynMapTileProvider implements TileProvider {
     }
 
     private void refreshRenderers() {
-        rendererRef = new ThreadLocal<DynMapRenderer>() {
+        rendererRef = new ThreadLocal<DynmapRenderer>() {
             @Override
-            protected DynMapRenderer initialValue() {
-                return new DynMapRenderer(map.getPerspective(), map, scale, inclination, azimuth);
+            protected DynmapRenderer initialValue() {
+                return new DynmapRenderer(map.getPerspective(), map, scale, inclination, azimuth);
             }
         };
     }
@@ -107,7 +108,7 @@ public class DynMapTileProvider implements TileProvider {
             config.put("shader", "caves");
         }
         ConfigurationNode configNode = new ConfigurationNode(config);
-        map = new HDMap(null, configNode);
+        map = new HDMap(DynmapCore.INSTANCE, configNode);
         refreshRenderers();
     }
 
@@ -172,5 +173,5 @@ public class DynMapTileProvider implements TileProvider {
     private volatile double inclination = 60.0, azimuth = 135.0;
     private volatile int scale = 16;
     private volatile HDMap map;
-    private volatile ThreadLocal<DynMapRenderer> rendererRef;
+    private volatile ThreadLocal<DynmapRenderer> rendererRef;
 }

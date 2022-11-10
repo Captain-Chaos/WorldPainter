@@ -80,7 +80,7 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
     </Container>
-    <Container class="org.pepsoft.worldpainter.dynmap.DynMapPreviewer" name="dynMapPreviewer1">
+    <Container class="org.pepsoft.worldpainter.dynmap.DynmapPreviewer" name="dynMapPreviewer1">
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.EtchedBorderInfo">

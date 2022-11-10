@@ -12,7 +12,7 @@ import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
-import org.pepsoft.worldpainter.dynmap.DynMapPreviewer;
+import org.pepsoft.worldpainter.dynmap.DynmapPreviewer;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
@@ -40,7 +40,7 @@ import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
  * A utility class for generating previews of layers. It renders a layer to a
  * small temporary world and generates a {@link MinecraftWorldObject} (an object
  * which implements both {@link MinecraftWorld} and {@link WPObject}) which can
- * be used to display it, for instance with {@link DynMapPreviewer}.
+ * be used to display it, for instance with {@link DynmapPreviewer}.
  *
  * @author SchmitzP
  */
@@ -296,7 +296,7 @@ public class LayerPreviewCreator {
             System.out.println("Total: " + (System.currentTimeMillis() - start) + " ms");
     //        JFrame frame = new JFrame("LayerPreviewCreator Test");
     //        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            DynMapPreviewer previewer = new DynMapPreviewer();
+            DynmapPreviewer previewer = new DynmapPreviewer();
             previewer.setZoom(-2);
             previewer.setInclination(30.0);
             previewer.setAzimuth(60.0);

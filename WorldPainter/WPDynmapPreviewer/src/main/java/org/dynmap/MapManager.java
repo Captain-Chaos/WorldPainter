@@ -23,6 +23,10 @@ public class MapManager {
         return true;
     }
 
+    public int getDefaultTileScale() {
+        return 0;
+    }
+
     private void init() {
         Map<String, Object> config = new HashMap<>();
         config.put("name", "WorldPainter");

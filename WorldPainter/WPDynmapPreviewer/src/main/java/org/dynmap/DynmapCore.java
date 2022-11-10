@@ -1,14 +1,12 @@
 package org.dynmap;
 
 import org.dynmap.common.DynmapServerInterface;
-import org.pepsoft.util.Version;
 import org.pepsoft.worldpainter.Configuration;
-import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.dynmap.WPDynmapServer;
+import org.pepsoft.worldpainter.exception.WPRuntimeException;
 
 import java.io.File;
-
-import static org.pepsoft.worldpainter.Constants.V_1_12_2;
+import java.io.IOException;
 
 /**
  * Private implementation of {@code DynmapCore} from dynmap in order to work offline.
@@ -16,16 +14,16 @@ import static org.pepsoft.worldpainter.Constants.V_1_12_2;
  * Created by Pepijn Schmitz on 01-09-15.
  */
 public class DynmapCore {
-    public DynmapCore(Version minecraftVersion) {
-        this.minecraftVersion = minecraftVersion;
-    }
-
     public File getDataFolder() {
         return new File(Configuration.getConfigDir(), "dynmap");
     }
 
     public DynmapServerInterface getServer() {
         return server;
+    }
+
+    public MapManager getMapManager() {
+        return MapManager.mapman;
     }
 
     public boolean isCTMSupportEnabled() {
@@ -37,7 +35,7 @@ public class DynmapCore {
     }
 
     public String getDynmapPluginPlatformVersion() {
-        return "1.19.1";
+        return "1.19.2"; // TODO what should this be, exactly? It seems to control which blocks Dynmap support, so ideally it should keep track with the latest version supported by WorldPainter?
     }
 
     public boolean getLeafTransparency() {
@@ -45,15 +43,25 @@ public class DynmapCore {
     }
 
     public File getPluginJarFile() {
-        return BiomeSchemeManager.getMinecraftJarNoNewerThan(V_1_12_2);
+        // Dynmap doesn't actually load the models or textures from this file, it seems to be able to find everything on
+        // the class path, but it still needs it to exist. It does catch and ignore IOExceptions though, so create an
+        // empty dummy file and return that so it will immediately fail.
+        try {
+            final File tmpFile = File.createTempFile("wp-empty", "zip");
+            tmpFile.deleteOnExit();
+            return tmpFile;
+        } catch (IOException e) {
+            throw new WPRuntimeException(e);
+        }
     }
 
     public boolean dumpMissingBlocks() {
-        return true;
+        return false;
     }
 
     private final WPDynmapServer server = new WPDynmapServer();
-    private final Version minecraftVersion;
+
+    public static final DynmapCore INSTANCE = new DynmapCore();
 
     // Copied from dynmap
     public enum CompassMode {

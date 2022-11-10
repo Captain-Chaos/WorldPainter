@@ -3,16 +3,19 @@ package org.dynmap;
 import org.dynmap.common.BiomeMap;
 import org.dynmap.debug.Debug;
 import org.dynmap.renderer.DynmapBlockState;
+import org.pepsoft.worldpainter.exception.WPRuntimeException;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Scanner;
 
+/**
+ * Copy of {@code ColorScheme} from Dynmap in order to enable loading from the classpath.
+ */
 public class ColorScheme {
-    private static final HashMap<String, ColorScheme> cache = new HashMap<String, ColorScheme>();
+    private static final HashMap<String, ColorScheme> cache = new HashMap<>();
 
     public String name;
     /* Switch to arrays - faster than map */
@@ -21,7 +24,7 @@ public class ColorScheme {
     public final Color[][] raincolors; /* [rain * 63][step] */
     public final Color[][] tempcolors; /* [temp * 63][step] */
 
-    public ColorScheme(String name, Color[][] colors, Color[][] biomecolors, Color[][] raincolors,
+    private ColorScheme(String name, Color[][] colors, Color[][] biomecolors, Color[][] raincolors,
                        Color[][] tempcolors) {
         this.name = name;
         this.colors = colors;
@@ -30,8 +33,8 @@ public class ColorScheme {
         this.tempcolors = tempcolors;
     }
 
-    private static File getColorSchemeDirectory(DynmapCore core) {
-        return new File(core.getDataFolder(), "colorschemes");
+    private static URI getColorSchemeDirectory() throws URISyntaxException {
+        return ColorScheme.class.getResource("/extracted/colorschemes").toURI();
     }
 
     public static ColorScheme getScheme(DynmapCore core, String name) {
@@ -39,158 +42,158 @@ public class ColorScheme {
             name = "default";
         ColorScheme scheme = cache.get(name);
         if (scheme == null) {
-            scheme = loadScheme(core, name);
+            scheme = loadScheme(name);
             cache.put(name, scheme);
         }
         return scheme;
     }
 
-    public static ColorScheme loadScheme(DynmapCore core, String name) {
-        URL colorSchemeFile = ClassLoader.getSystemResource("extracted/colorschemes/" + name + ".txt");
-        Color[][] colors = new Color[DynmapBlockState.getGlobalIndexMax()][];
-        Color[][] biomecolors = new Color[BiomeMap.values().length][];
-        Color[][] raincolors = new Color[64][];
-        Color[][] tempcolors = new Color[64][];
-
-        /* Default the biome color */
-        for (int i = 0; i < biomecolors.length; i++) {
-            Color[] c = new Color[5];
-            int red = 0x80 | (0x40 * ((i >> 0) & 1)) | (0x20 * ((i >> 3) & 1)) | (0x10 * ((i >> 6) & 1));
-            int green = 0x80 | (0x40 * ((i >> 1) & 1)) | (0x20 * ((i >> 4) & 1)) | (0x10 * ((i >> 7) & 1));
-            int blue = 0x80 | (0x40 * ((i >> 2) & 1)) | (0x20 * ((i >> 5) & 1));
-            c[0] = new Color(red, green, blue);
-            c[3] = new Color(red * 4 / 5, green * 4 / 5, blue * 4 / 5);
-            c[1] = new Color(red / 2, green / 2, blue / 2);
-            c[2] = new Color(red * 2 / 5, green * 2 / 5, blue * 2 / 5);
-            c[4] = new Color((c[1].getRed() + c[3].getRed()) / 2, (c[1].getGreen() + c[3].getGreen()) / 2,
-                    (c[1].getBlue() + c[3].getBlue()) / 2, (c[1].getAlpha() + c[3].getAlpha()) / 2);
-
-            biomecolors[i] = c;
-        }
-
-        InputStream stream;
-        // Get defaults from biome_rainfall_temp.txt - let custom file override after
-        URL files[] = {
-                ClassLoader.getSystemResource("extracted/colorschemes/biome_rainfall_temp.txt"),
-                ClassLoader.getSystemResource("extracted/colorschemes/default.txt"),
-                colorSchemeFile };
+    public static ColorScheme loadScheme(String name) {
         try {
-            for (int fidx = 0; fidx < files.length; fidx++) {
-                Debug.debug("Loading colors from '" + files[fidx] + "' for " + name + "...");
-                stream = files[fidx].openStream();
+            final URI colorSchemeBaseUri = getColorSchemeDirectory();
+            URI colorSchemeUri = resolveOpaqueURI(colorSchemeBaseUri, name + ".txt");
+            Color[][] colors = new Color[DynmapBlockState.getGlobalIndexMax()][];
+            Color[][] biomecolors = new Color[BiomeMap.values().length][];
+            Color[][] raincolors = new Color[64][];
+            Color[][] tempcolors = new Color[64][];
 
-                Scanner scanner = new Scanner(stream);
-                while (scanner.hasNextLine()) {
-                    String line = scanner.nextLine();
-                    if (line.startsWith("#") || line.equals("")) {
-                        continue;
-                    }
-                    /* Make parser less pedantic - tabs or spaces should be fine */
-                    String[] split = line.split("[\t ]");
-                    int cnt = 0;
-                    for (String s : split) {
-                        if (s.length() > 0)
-                            cnt++;
-                    }
-                    String[] nsplit = new String[cnt];
-                    cnt = 0;
-                    for (String s : split) {
-                        if (s.length() > 0) {
-                            nsplit[cnt] = s;
-                            cnt++;
+            /* Default the biome color */
+            for (int i = 0; i < biomecolors.length; i++) {
+                Color[] c = new Color[5];
+                int red = 0x80 | (0x40 * ((i >> 0) & 1)) | (0x20 * ((i >> 3) & 1)) | (0x10 * ((i >> 6) & 1));
+                int green = 0x80 | (0x40 * ((i >> 1) & 1)) | (0x20 * ((i >> 4) & 1)) | (0x10 * ((i >> 7) & 1));
+                int blue = 0x80 | (0x40 * ((i >> 2) & 1)) | (0x20 * ((i >> 5) & 1));
+                c[0] = new Color(red, green, blue);
+                c[3] = new Color(red * 4 / 5, green * 4 / 5, blue * 4 / 5);
+                c[1] = new Color(red / 2, green / 2, blue / 2);
+                c[2] = new Color(red * 2 / 5, green * 2 / 5, blue * 2 / 5);
+                c[4] = new Color((c[1].getRed() + c[3].getRed()) / 2, (c[1].getGreen() + c[3].getGreen()) / 2,
+                        (c[1].getBlue() + c[3].getBlue()) / 2, (c[1].getAlpha() + c[3].getAlpha()) / 2);
+
+                biomecolors[i] = c;
+            }
+
+            // Get defaults from biome_rainfall_temp.txt - let custom file override after
+            URI uris[] = {
+                    resolveOpaqueURI(colorSchemeBaseUri, "biome_rainfall_temp.txt"),
+                    resolveOpaqueURI(colorSchemeBaseUri, "default.txt"),
+                    colorSchemeUri };
+
+            for (URI uri: uris) {
+                Debug.debug("Loading colors from '" + uri + "' for " + name + "...");
+
+                try (Scanner scanner = new Scanner(uri.toURL().openStream())) {
+                    while (scanner.hasNextLine()) {
+                        String line = scanner.nextLine();
+                        if (line.startsWith("#") || line.equals("")) {
+                            continue;
                         }
-                    }
-                    split = nsplit;
-                    if (split.length < 17) {
-                        continue;
-                    }
-                    Integer id = null;
-                    Integer dat = null;
-                    boolean isbiome = false;
-                    boolean istemp = false;
-                    boolean israin = false;
-                    DynmapBlockState state = null;
-                    int idx = split[0].indexOf(':');
-                    if (idx > 0) { /* ID:data - data color OR blockstate - data color */
-                        String[] vsplit = split[0].split("[\\[\\]]");
-                        // Log.info(String.format("split[0]=%s,vsplit[0]=%s,vsplit[1]=%s", split[0],
-                        // vsplit[0], vsplit.length > 1 ? vsplit[1] : ""));
-                        if (vsplit.length > 1) {
-                            state = DynmapBlockState.getStateByNameAndState(vsplit[0], vsplit[1]);
+                        /* Make parser less pedantic - tabs or spaces should be fine */
+                        String[] split = line.split("[\t ]");
+                        int cnt = 0;
+                        for (String s: split) {
+                            if (s.length() > 0)
+                                cnt++;
+                        }
+                        String[] nsplit = new String[cnt];
+                        cnt = 0;
+                        for (String s: split) {
+                            if (s.length() > 0) {
+                                nsplit[cnt] = s;
+                                cnt++;
+                            }
+                        }
+                        split = nsplit;
+                        if (split.length < 17) {
+                            continue;
+                        }
+                        Integer id = null;
+                        Integer dat = null;
+                        boolean isbiome = false;
+                        boolean istemp = false;
+                        boolean israin = false;
+                        DynmapBlockState state = null;
+                        int idx = split[0].indexOf(':');
+                        if (idx > 0) { /* ID:data - data color OR blockstate - data color */
+                            String[] vsplit = split[0].split("[\\[\\]]");
+                            // Log.info(String.format("split[0]=%s,vsplit[0]=%s,vsplit[1]=%s", split[0],
+                            // vsplit[0], vsplit.length > 1 ? vsplit[1] : ""));
+                            if (vsplit.length > 1) {
+                                state = DynmapBlockState.getStateByNameAndState(vsplit[0], vsplit[1]);
+                            } else {
+                                state = DynmapBlockState.getBaseStateByName(vsplit[0]);
+                            }
+                        } else if (split[0].charAt(0) == '[') { /* Biome color data */
+                            String bio = split[0].substring(1);
+                            idx = bio.indexOf(']');
+                            if (idx >= 0)
+                                bio = bio.substring(0, idx);
+                            isbiome = true;
+                            id = -1;
+                            BiomeMap[] bm = BiomeMap.values();
+                            for (int i = 0; i < bm.length; i++) {
+                                if (bm[i].toString().equalsIgnoreCase(bio)) {
+                                    id = i;
+                                    break;
+                                } else if (bio.equalsIgnoreCase("BIOME_" + i)) {
+                                    id = i;
+                                    break;
+                                }
+                            }
+                            if (id < 0) { /* Not biome - check for rain or temp */
+                                if (bio.startsWith("RAINFALL-")) {
+                                    try {
+                                        double v = Double.parseDouble(bio.substring(9));
+                                        if ((v >= 0) && (v <= 1.00)) {
+                                            id = (int) (v * 63.0);
+                                            israin = true;
+                                        }
+                                    } catch (NumberFormatException nfx) {
+                                    }
+                                } else if (bio.startsWith("TEMPERATURE-")) {
+                                    try {
+                                        double v = Double.parseDouble(bio.substring(12));
+                                        if ((v >= 0) && (v <= 1.00)) {
+                                            id = (int) (v * 63.0);
+                                            istemp = true;
+                                        }
+                                    } catch (NumberFormatException nfx) {
+                                    }
+                                }
+                            }
                         } else {
-                            state = DynmapBlockState.getBaseStateByName(vsplit[0]);
+                            id = Integer.parseInt(split[0]);
+                            state = DynmapBlockState.getStateByLegacyBlockID(id);
                         }
-                    } else if (split[0].charAt(0) == '[') { /* Biome color data */
-                        String bio = split[0].substring(1);
-                        idx = bio.indexOf(']');
-                        if (idx >= 0)
-                            bio = bio.substring(0, idx);
-                        isbiome = true;
-                        id = -1;
-                        BiomeMap[] bm = BiomeMap.values();
-                        for (int i = 0; i < bm.length; i++) {
-                            if (bm[i].toString().equalsIgnoreCase(bio)) {
-                                id = i;
-                                break;
-                            } else if (bio.equalsIgnoreCase("BIOME_" + i)) {
-                                id = i;
-                                break;
-                            }
+
+                        Color[] c = new Color[5];
+
+                        /* store colors by raycast sequence number */
+                        c[0] = new Color(Integer.parseInt(split[1]), Integer.parseInt(split[2]), Integer.parseInt(split[3]),
+                                Integer.parseInt(split[4]));
+                        c[3] = new Color(Integer.parseInt(split[5]), Integer.parseInt(split[6]), Integer.parseInt(split[7]),
+                                Integer.parseInt(split[8]));
+                        c[1] = new Color(Integer.parseInt(split[9]), Integer.parseInt(split[10]),
+                                Integer.parseInt(split[11]), Integer.parseInt(split[12]));
+                        c[2] = new Color(Integer.parseInt(split[13]), Integer.parseInt(split[14]),
+                                Integer.parseInt(split[15]), Integer.parseInt(split[16]));
+                        /* Blended color - for 'smooth' option on flat map */
+                        c[4] = new Color((c[1].getRed() + c[3].getRed()) / 2, (c[1].getGreen() + c[3].getGreen()) / 2,
+                                (c[1].getBlue() + c[3].getBlue()) / 2, (c[1].getAlpha() + c[3].getAlpha()) / 2);
+
+                        if (isbiome) {
+                            if (istemp) {
+                                tempcolors[id] = c;
+                            } else if (israin) {
+                                raincolors[id] = c;
+                            } else if ((id >= 0) && (id < biomecolors.length))
+                                biomecolors[id] = c;
+                        } else if (state != null) {
+                            int stateid = state.globalStateIndex;
+                            colors[stateid] = c;
                         }
-                        if (id < 0) { /* Not biome - check for rain or temp */
-                            if (bio.startsWith("RAINFALL-")) {
-                                try {
-                                    double v = Double.parseDouble(bio.substring(9));
-                                    if ((v >= 0) && (v <= 1.00)) {
-                                        id = (int) (v * 63.0);
-                                        israin = true;
-                                    }
-                                } catch (NumberFormatException nfx) {
-                                }
-                            } else if (bio.startsWith("TEMPERATURE-")) {
-                                try {
-                                    double v = Double.parseDouble(bio.substring(12));
-                                    if ((v >= 0) && (v <= 1.00)) {
-                                        id = (int) (v * 63.0);
-                                        istemp = true;
-                                    }
-                                } catch (NumberFormatException nfx) {
-                                }
-                            }
-                        }
-                    } else {
-                        id = Integer.parseInt(split[0]);
-                        state = DynmapBlockState.getStateByLegacyBlockID(id);
-                    }
-
-                    Color[] c = new Color[5];
-
-                    /* store colors by raycast sequence number */
-                    c[0] = new Color(Integer.parseInt(split[1]), Integer.parseInt(split[2]), Integer.parseInt(split[3]),
-                            Integer.parseInt(split[4]));
-                    c[3] = new Color(Integer.parseInt(split[5]), Integer.parseInt(split[6]), Integer.parseInt(split[7]),
-                            Integer.parseInt(split[8]));
-                    c[1] = new Color(Integer.parseInt(split[9]), Integer.parseInt(split[10]),
-                            Integer.parseInt(split[11]), Integer.parseInt(split[12]));
-                    c[2] = new Color(Integer.parseInt(split[13]), Integer.parseInt(split[14]),
-                            Integer.parseInt(split[15]), Integer.parseInt(split[16]));
-                    /* Blended color - for 'smooth' option on flat map */
-                    c[4] = new Color((c[1].getRed() + c[3].getRed()) / 2, (c[1].getGreen() + c[3].getGreen()) / 2,
-                            (c[1].getBlue() + c[3].getBlue()) / 2, (c[1].getAlpha() + c[3].getAlpha()) / 2);
-
-                    if (isbiome) {
-                        if (istemp) {
-                            tempcolors[id] = c;
-                        } else if (israin) {
-                            raincolors[id] = c;
-                        } else if ((id >= 0) && (id < biomecolors.length))
-                            biomecolors[id] = c;
-                    } else if (state != null) {
-                        int stateid = state.globalStateIndex;
-                        colors[stateid] = c;
                     }
                 }
-                scanner.close();
             }
             /* Last, push base color into any open slots in data colors list */
             for (int i = 0; i < colors.length; i++) {
@@ -205,11 +208,10 @@ public class ColorScheme {
             /* And interpolate any missing rain and temperature colors */
             interpolateColorTable(tempcolors);
             interpolateColorTable(raincolors);
-        } catch (RuntimeException | IOException e) {
-            Log.severe("Could not load colors '" + name + "' ('" + colorSchemeFile + "').", e);
-            return null;
+            return new ColorScheme(name, colors, biomecolors, raincolors, tempcolors);
+        } catch (URISyntaxException | IOException e) {
+            throw new WPRuntimeException(e.getClass().getSimpleName() + " while loading Dynmap colour scheme " + name + " (message: " + e.getMessage() + ")", e);
         }
-        return new ColorScheme(name, colors, biomecolors, raincolors, tempcolors);
     }
 
     public static void interpolateColorTable(Color[][] c) {
@@ -245,23 +247,7 @@ public class ColorScheme {
         }
     }
 
-    public Color[] getRainColor(double rain) {
-        int idx = (int) (rain * 63.0);
-        if ((idx >= 0) && (idx < raincolors.length))
-            return raincolors[idx];
-        else
-            return null;
-    }
-
-    public Color[] getTempColor(double temp) {
-        int idx = (int) (temp * 63.0);
-        if ((idx >= 0) && (idx < tempcolors.length))
-            return tempcolors[idx];
-        else
-            return null;
-    }
-
-    public static void reset() {
-        cache.clear();
+    private static URI resolveOpaqueURI(URI baseUri, String filename) throws URISyntaxException {
+        return new URI(baseUri.toString() + '/' + filename);
     }
 }

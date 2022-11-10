@@ -7,7 +7,7 @@ import org.pepsoft.util.CSVDataSource;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
-import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
+import org.pepsoft.worldpainter.dynmap.DynmapColourScheme;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -267,7 +267,7 @@ public class UpdateMaterials {
             .put(MC_PUMPKIN_STEM, 0xff77ab2f) // TODO
             .build();
     private static final Map<String, Material> PATCHES = ImmutableMap.of(MC_GRASS_PATH, DIRT_PATH);
-    private static final ColourScheme DYNMAP_COLOUR_SCHEME = new DynMapColourScheme("default", true);
+    private static final ColourScheme DYNMAP_COLOUR_SCHEME = DynmapColourScheme.loadDynMapColourScheme("default", 0);
 
     private static final Map<String, Set<Map<String, Object>>> MATERIAL_SPECS = new HashMap<>();
 

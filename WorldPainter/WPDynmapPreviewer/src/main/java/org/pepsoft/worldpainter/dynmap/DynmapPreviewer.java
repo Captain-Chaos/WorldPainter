@@ -39,12 +39,12 @@ import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
  *
  * <p>Created by Pepijn Schmitz on 05-06-15.
  */
-public class DynMapPreviewer extends TiledImageViewer {
-    public DynMapPreviewer() {
+public class DynmapPreviewer extends TiledImageViewer {
+    public DynmapPreviewer() {
         this(135.0, 60.0, 0);
     }
 
-    public DynMapPreviewer(double myAzimuth, double myInclination, int myZoom) {
+    public DynmapPreviewer(double myAzimuth, double myInclination, int myZoom) {
         super(true, false);
         initialAzimuth = myAzimuth;
         initialInclination = myInclination;
@@ -113,7 +113,7 @@ public class DynMapPreviewer extends TiledImageViewer {
             // plugin and needs a mapping applied, for instance
             object.prepareForExport(dimension);
             WPObjectDynmapWorld dmWorld = new WPObjectDynmapWorld(object);
-            tileProvider = new DynMapTileProvider(dmWorld);
+            tileProvider = new DynmapTileProvider(dmWorld);
             tileProvider.setAzimuth(azimuth);
             tileProvider.setInclination(inclination);
             tileProvider.setCaves(caves);
@@ -212,7 +212,7 @@ public class DynMapPreviewer extends TiledImageViewer {
         X509Certificate trustedCert = null;
         try {
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-            trustedCert = (X509Certificate) certificateFactory.generateCertificate(DynMapPreviewer.class.getResourceAsStream("/wproot.pem"));
+            trustedCert = (X509Certificate) certificateFactory.generateCertificate(DynmapPreviewer.class.getResourceAsStream("/wproot.pem"));
         } catch (CertificateException e) {
             logger.error("Certificate exception while loading trusted root certificate", e);
         }
@@ -227,7 +227,7 @@ public class DynMapPreviewer extends TiledImageViewer {
 
         JFrame frame = new JFrame("DynMapPreviewerTest");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        DynMapPreviewer viewer = new DynMapPreviewer();
+        DynmapPreviewer viewer = new DynmapPreviewer();
         WPObject object = CustomObjectManager.getInstance().loadObject(new File(args[0]));
         TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0L, Terrain.GRASS, JAVA_ANVIL_1_15.minZ, JAVA_ANVIL_1_15.standardMaxHeight, 58, DEFAULT_WATER_LEVEL, false, true, 20.0f, 1.0);
         Dimension dimension = new World2(JAVA_ANVIL_1_15, 0L, tileFactory).getDimension(NORMAL_DETAIL);
@@ -318,9 +318,9 @@ public class DynMapPreviewer extends TiledImageViewer {
     private final double initialAzimuth, initialInclination;
     private final int initialZoom;
     private WPObject object;
-    private DynMapTileProvider tileProvider;
+    private DynmapTileProvider tileProvider;
     private double azimuth, inclination;
     private boolean caves;
 
-    private static final Logger logger = LoggerFactory.getLogger(DynMapPreviewer.class);
+    private static final Logger logger = LoggerFactory.getLogger(DynmapPreviewer.class);
 }

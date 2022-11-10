@@ -4,17 +4,16 @@
  */
 package org.pepsoft.worldpainter.layers.bo2;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
+import org.pepsoft.worldpainter.dynmap.DynmapPreviewer;
+import org.pepsoft.worldpainter.objects.WPObject;
+import org.pepsoft.worldpainter.plugins.CustomObjectManager;
+
+import javax.swing.*;
+import javax.swing.border.BevelBorder;
+import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import javax.swing.JFileChooser;
-import javax.swing.JPanel;
-import javax.swing.border.BevelBorder;
-import org.pepsoft.worldpainter.dynmap.DynMapPreviewer;
-import org.pepsoft.worldpainter.objects.WPObject;
-import org.pepsoft.worldpainter.plugins.CustomObjectManager;
 
 /**
  *
@@ -22,7 +21,7 @@ import org.pepsoft.worldpainter.plugins.CustomObjectManager;
  */
 public class WPObjectPreviewer extends JPanel implements PropertyChangeListener {
     public WPObjectPreviewer() {
-        previewer = new DynMapPreviewer();
+        previewer = new DynmapPreviewer();
         setLayout(new BorderLayout());
         add(previewer, BorderLayout.CENTER);
         setPreferredSize(new Dimension(200, -1));
@@ -56,7 +55,7 @@ public class WPObjectPreviewer extends JPanel implements PropertyChangeListener 
         }
     }
     
-    private final DynMapPreviewer previewer;
+    private final DynmapPreviewer previewer;
     private org.pepsoft.worldpainter.Dimension dimension;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WPObjectPreviewer.class);

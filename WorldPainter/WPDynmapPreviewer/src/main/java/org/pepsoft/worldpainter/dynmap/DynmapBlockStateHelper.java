@@ -5,12 +5,10 @@ import org.pepsoft.minecraft.Material;
 
 import java.util.*;
 
-import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.joining;
 import static org.pepsoft.minecraft.Constants.MC_AIR;
 import static org.pepsoft.minecraft.Constants.MC_CAVE_AIR;
 import static org.pepsoft.minecraft.Material.MINECRAFT;
-import static org.pepsoft.minecraft.Material.WATERLOGGED;
 
 public class DynmapBlockStateHelper {
     public static void initialise() {
@@ -18,10 +16,10 @@ public class DynmapBlockStateHelper {
     }
 
     static synchronized DynmapBlockState getDynmapBlockState(Material material) {
-        return MATERIAL_TO_BLOCK_STATE.get(material);
+        return IDENTITY_TO_BLOCK_STATE.get(material.identity);
     }
 
-    private static final Map<Material, DynmapBlockState> MATERIAL_TO_BLOCK_STATE = new IdentityHashMap<>();
+    private static final Map<Material.Identity, DynmapBlockState> IDENTITY_TO_BLOCK_STATE = new HashMap<>();
     private static final Map<String, Set<DynmapBlockState>> BLOCK_STATES_BY_NAME = new HashMap<>();
     private static final Map<String, DynmapBlockState> BLOCK_STATES_BASES_BY_NAME = new HashMap<>();
 
@@ -40,13 +38,13 @@ public class DynmapBlockStateHelper {
                 setFlags(blockState, prototype);
                 BLOCK_STATES_BASES_BY_NAME.put(prototype.name, blockState);
                 BLOCK_STATES_BY_NAME.computeIfAbsent(prototype.name, k -> new HashSet<>()).add(blockState);
-                MATERIAL_TO_BLOCK_STATE.put(prototype, blockState);
+                IDENTITY_TO_BLOCK_STATE.put(prototype.identity, blockState);
 //                System.out.println(prototype + " -> " + blockState);
             } else {
                 // Create all possible permutations of properties
                 // TODO make this more efficient if possible
                 List<Map<String, String>> permutations = new ArrayList<>();
-                permutations.add(emptyMap());
+                permutations.add(new HashMap<>());
                 for (Map.Entry<String, Material.PropertyDescriptor> entry: prototype.propertyDescriptors.entrySet()) {
                     final String name = entry.getKey();
                     final Material.PropertyDescriptor descriptor = entry.getValue();
@@ -68,14 +66,19 @@ public class DynmapBlockStateHelper {
                                 }
                                 break;
                         }
+                        // Also include a permutation _without_ each property
+                        newPermutations.add(partialPermutation);
                     }
                     permutations = newPermutations;
                 }
                 for (Map<String, String> properties: permutations) {
                     final Material material = Material.get(prototype.name, properties);
-                    if (material.data >= 0) {
-                        properties.put("meta", Integer.toString(material.data));
+                    if (IDENTITY_TO_BLOCK_STATE.containsKey(material.identity)) {
+                        continue;
                     }
+//                    if (material.data >= 0) {
+//                        properties.put("meta", Integer.toString(material.data));
+//                    }
                     final String stateName = properties.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(joining(","));
                     final DynmapBlockState blockState;
                     if (BLOCK_STATES_BY_NAME.containsKey(material.name)) {
@@ -98,7 +101,7 @@ public class DynmapBlockStateHelper {
                     }
                     setFlags(blockState, material);
                     BLOCK_STATES_BY_NAME.computeIfAbsent(material.name, k -> new HashSet<>()).add(blockState);
-                    MATERIAL_TO_BLOCK_STATE.put(material, blockState);
+                    IDENTITY_TO_BLOCK_STATE.put(material.identity, blockState);
 //                    System.out.println(material + " -> " + blockState);
                 }
             }
@@ -125,7 +128,7 @@ public class DynmapBlockStateHelper {
         if (material.solid) {
             blockState.setSolid();
         }
-        if (material.is(WATERLOGGED)) {
+        if (material.containsWater()) {
             blockState.setWaterlogged();
         }
     }

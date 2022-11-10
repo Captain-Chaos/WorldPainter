@@ -21,8 +21,8 @@ import java.awt.image.*;
  *
  * <p>Adapted by Pepijn Schmitz on 05-06-15.
  */
-public class DynMapRenderer {
-    public DynMapRenderer(HDPerspective perspective, HDMap map, int scale, double inclination, double azimuth) {
+public class DynmapRenderer {
+    public DynmapRenderer(HDPerspective perspective, HDMap map, int scale, double inclination, double azimuth) {
         this.perspective = perspective;
         this.map = map;
         if (custom_meshes_by_globalstateindex == null) {
@@ -262,12 +262,14 @@ public class DynMapRenderer {
         double patch_t[] = new double[2* HDBlockModels.getMaxPatchCount()];
         double patch_u[] = new double[2*HDBlockModels.getMaxPatchCount()];
         double patch_v[] = new double[2*HDBlockModels.getMaxPatchCount()];
+        boolean patch_shade[] = new boolean[2*HDBlockModels.getMaxPatchCount()];
         BlockStep patch_step[] = new BlockStep[2*HDBlockModels.getMaxPatchCount()];
         int patch_id[] = new int[2*HDBlockModels.getMaxPatchCount()];
         int cur_patch = -1;
         double cur_patch_u;
         double cur_patch_v;
         double cur_patch_t;
+        boolean cur_shade;
 
         int[] subblock_xyz = new int[3];
         final MapIterator mapiter;
@@ -539,6 +541,7 @@ public class DynMapRenderer {
                 case TOP:
                 case TOPFLIP:
                 case TOPFLIPV:
+                case TOPFLIPHV:
                     if (det < 0.000001) {
                         return hitcnt;
                     }
@@ -569,7 +572,7 @@ public class DynMapRenderer {
             /* Compute V using slope times inner product of direction and cross product */
             double v = inv_det * direction.innerProduct(vS);
             // Check constrains: v must be below line from (umin, vmax) to (umax, vmaxatumax)
-            double urel = (u - pd.umin) / (pd.umax - pd.umin);
+            double urel = (u > pd.umin) ? ((u - pd.umin) / (pd.umax - pd.umin)) : 0.0;
             double vmaxatu = pd.vmax + (pd.vmaxatumax - pd.vmax) * urel;
             // Check constrains: v must be above line from (umin, vmin) to (umax, vminatumax)
             double vminatu = pd.vmin + (pd.vminatumax - pd.vmin) * urel;
@@ -582,6 +585,7 @@ public class DynMapRenderer {
                 patch_t[hitcnt] = t;
                 patch_u[hitcnt] = u;
                 patch_v[hitcnt] = v;
+                patch_shade[hitcnt] = pd.shade;
                 patch_id[hitcnt] = pd.textureindex;
                 if(det > 0) {
                     patch_step[hitcnt] = pd.step.opposite();
@@ -589,6 +593,10 @@ public class DynMapRenderer {
                         patch_u[hitcnt] = 1 - u;
                     }
                     else if (pd.sidevis == SideVisible.TOPFLIPV) {
+                        patch_v[hitcnt] = 1 - v;
+                    }
+                    else if (pd.sidevis == SideVisible.TOPFLIPHV) {
+                        patch_u[hitcnt] = 1 - u;
                         patch_v[hitcnt] = 1 - v;
                     }
                 }
@@ -642,6 +650,7 @@ public class DynMapRenderer {
                 cur_patch = patch_id[best_patch]; /* Mark this as current patch */
                 cur_patch_u = patch_u[best_patch];
                 cur_patch_v = patch_v[best_patch];
+                cur_shade = patch_shade[best_patch];
                 laststep = patch_step[best_patch];
                 cur_patch_t = best_t;
                 // If the water patch, switch to water state and patch index
@@ -678,10 +687,7 @@ public class DynMapRenderer {
         }
 
         private RenderPatch[] getPatches(DynmapBlockState bt, boolean isFluid) {
-            RenderPatch[] patches;
-            synchronized (PATCH_ACCESS_LOCK) {
-                patches = scalemodels.getPatchModel(bt);
-            }
+            RenderPatch[] patches = scalemodels.getPatchModel(bt);
             /* If no patches, see if custom model */
             if (patches == null) {
                 CustomBlockModel cbm = scalemodels.getCustomBlockModel(bt);
@@ -1048,6 +1054,14 @@ public class DynMapRenderer {
     
         public double getPatchV() {
             return cur_patch_v;
+        }
+
+        /**
+         * Get current patch noShadow setting (true = no shadows/lighting)
+         */
+        public final boolean getShade() {
+        	// Shade if shade set OR not patch
+            return cur_shade || (cur_patch < 0);    /* If patch hit */
         }
         /**
          * Light level cache

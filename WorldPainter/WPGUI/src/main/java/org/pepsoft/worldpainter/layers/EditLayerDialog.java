@@ -11,6 +11,7 @@ import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.dynmap.DynmapPreviewer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.plants.PlantLayer;
 import org.pepsoft.worldpainter.objects.MinecraftWorldObject;
@@ -243,7 +244,7 @@ public class EditLayerDialog<L extends Layer> extends AbstractEditLayerDialog<L>
     private void initComponents() {
 
         editorPanel = new javax.swing.JPanel();
-        dynMapPreviewer1 = new org.pepsoft.worldpainter.dynmap.DynMapPreviewer();
+        dynMapPreviewer1 = new DynmapPreviewer();
         buttonCancel = new javax.swing.JButton();
         buttonOK = new javax.swing.JButton();
         jComboBox1 = new javax.swing.JComboBox();
@@ -340,7 +341,7 @@ public class EditLayerDialog<L extends Layer> extends AbstractEditLayerDialog<L>
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
     private javax.swing.JButton buttonOK;
-    private org.pepsoft.worldpainter.dynmap.DynMapPreviewer dynMapPreviewer1;
+    private DynmapPreviewer dynMapPreviewer1;
     private javax.swing.JPanel editorPanel;
     private javax.swing.JComboBox jComboBox1;
     private javax.swing.JLabel jLabel1;
