@@ -166,17 +166,16 @@ public final class Material implements Serializable {
      */
     @SuppressWarnings({"unchecked", "StringEquality"}) // Guaranteed by contents of file; interned string
     private Material(Identity identity) {
-        // See if this modern material matches a legacy one to set a block type
-        // and data value for backwards compatibility
+        // See if this modern material matches a legacy one to set a block type and data value for backwards
+        // compatibility
         int legacyIndex = -1;
         if (LEGACY_BLOCK_SPECS_BY_NAME.containsKey(identity.name)) {
             blockSpecs:
             for (Map<String, Object> blockSpec: LEGACY_BLOCK_SPECS_BY_NAME.get(identity.name)) {
                 if (blockSpec.containsKey("properties")) {
                     if (identity.properties != null) {
-                        // The legacy block spec and supplied identify have
-                        // properties; check if they all match; if so we can use the
-                        // corresponding block ID and data value
+                        // The legacy block spec and supplied identify have properties; check if they all match; if so
+                        // we can use the corresponding block ID and data value
                         for (Map.Entry<String, String> entry: ((Map<String, String>) blockSpec.get("properties")).entrySet()) {
                             if (!entry.getValue().equals(identity.properties.get(entry.getKey()))) {
                                 continue blockSpecs;
@@ -187,8 +186,8 @@ public final class Material implements Serializable {
                         break;
                     }
                 } else {
-                    // The legacy block spec has no properties, so the name
-                    // match should suffice. // TODO: what if it doesn't? What if the specified identity has properties?
+                    // The legacy block spec has no properties, so the name match should suffice. // TODO: what if it
+                    //  doesn't? What if the specified identity has properties?
                     legacyIndex = (((Number) blockSpec.get("blockId")).intValue() << 4) | ((Number) blockSpec.get("dataValue")).intValue();
                     break;
                 }
@@ -308,17 +307,15 @@ public final class Material implements Serializable {
                     for (String property: discriminator) {
                         int p = property.indexOf('=');
                         if (p != -1) {
-                            // The spec specifies a specific value; check that
-                            // the identity has the property and it is set to
-                            // that value
+                            // The spec specifies a specific value; check that the identity has the property and it is
+                            // set to that value
                             String key = property.substring(0, p);
                             String value = property.substring(p + 1);
                             if (! identity.containsPropertyWithValue(key, value)) {
                                 continue specs;
                             }
                         } else {
-                            // The spec just specifies a property name; check
-                            // that the identity has that property
+                            // The spec just specifies a property name; check that the identity has that property
                             if (! identity.properties.containsKey(property)) {
                                 continue specs;
                             }
@@ -1257,7 +1254,7 @@ public final class Material implements Serializable {
         if (! (o instanceof Material)) {
             return false;
         }
-        if ((blockType != -1) && ((blockType != ((Material) o).blockType) || (data != ((Material) o).data))) {
+        if (((blockType != -1) || (((Material) o).blockType != -1)) && ((blockType != ((Material) o).blockType) || (data != ((Material) o).data))) {
             return false;
         }
         return identity.equals(((Material) o).identity);
@@ -1521,7 +1518,12 @@ public final class Material implements Serializable {
      */
     public final transient boolean hasPropertySnowy;
 
-    private final Identity identity;
+    /**
+     * The modern identity of the material, excluding legacy block type and data value (meaning there may be multiple
+     * {@link Material}s with the same {@code identity}.
+     */
+    public final Identity identity;
+
     private final transient String stringRep, legacyStringRep;
     private transient Map<PropertyAndValue, Material> variants;
 
@@ -2084,8 +2086,8 @@ public final class Material implements Serializable {
      * since it does not include the block ID and data value of legacy
      * materials, multiple ones of which map map to the same modern identity.
      */
-    static final class Identity implements Serializable {
-        Identity(String name, Map<String, String> properties) {
+    public static final class Identity implements Serializable {
+        public Identity(String name, Map<String, String> properties) {
             if (name == null) {
                 throw new NullPointerException("name");
             }
@@ -2143,8 +2145,8 @@ public final class Material implements Serializable {
             return properties != null ? name + properties : name;
         }
 
-        final String name;
-        final Map<String, String> properties;
+        public final String name;
+        public final Map<String, String> properties;
 
         private static final long serialVersionUID = 1L;
     }
