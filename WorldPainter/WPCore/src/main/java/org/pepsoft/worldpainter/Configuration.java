@@ -203,6 +203,14 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         }
     }
 
+    public synchronized int getColourschemeIndex() {
+        return colourschemeIndex;
+    }
+
+    public synchronized void setColourschemeIndex(int colourschemeIndex) {
+        this.colourschemeIndex = colourschemeIndex;
+    }
+
     public synchronized Map<Integer, File> getMinecraftJars() {
         return minecraftJars;
     }

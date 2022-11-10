@@ -28,7 +28,7 @@ import org.pepsoft.worldpainter.brushes.BitmapBrush;
 import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.brushes.RotatedBrush;
 import org.pepsoft.worldpainter.brushes.SymmetricBrush;
-import org.pepsoft.worldpainter.colourschemes.DynMapColourScheme;
+import org.pepsoft.worldpainter.dynmap.DynmapColourScheme;
 import org.pepsoft.worldpainter.exporting.HeightMapExporter;
 import org.pepsoft.worldpainter.gardenofeden.GardenOfEdenOperation;
 import org.pepsoft.worldpainter.history.HistoryEntry;
@@ -153,19 +153,25 @@ public final class App extends JFrame implements RadiusControl,
 
         setIconImage(ICON);
 
+        colourSchemes = new ColourScheme[] {
+            DynmapColourScheme.loadDynMapColourScheme("default", 0),
+            null,
+            null,
+            null,
+            DynmapColourScheme.loadDynMapColourScheme("dokudark", 0),
+            DynmapColourScheme.loadDynMapColourScheme("dokuhigh", 0),
+            DynmapColourScheme.loadDynMapColourScheme("dokulight", 0),
+            DynmapColourScheme.loadDynMapColourScheme("misa", 0),
+            DynmapColourScheme.loadDynMapColourScheme("sphax", 0)
+        };
+        defaultColourScheme = colourSchemes[0];
         Configuration config = Configuration.getInstance();
         darkMode = (! "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"))) && (config.getLookAndFeel() == DARK_METAL);
         final String customColourSchemeLocation = System.getProperty("org.pepsoft.worldpainter.colourSchemeFile");
         if (customColourSchemeLocation != null) {
-            logger.info("Loading custom DynMap colour scheme from " + customColourSchemeLocation);
-            try {
-                selectedColourScheme = new DynMapColourScheme(new FileInputStream(customColourSchemeLocation), true);
-            } catch (FileNotFoundException e) {
-                throw new IllegalArgumentException("Colour scheme file not found: " + customColourSchemeLocation);
-            }
+            throw new UnsupportedOperationException("The org.pepsoft.worldpainter.colourSchemeFileNo advanced setting is no longer supported (colour schemes are once again available from the View menu)");
         } else {
-            selectedColourScheme = ColourScheme.DEFAULT;
-//            selectedColourScheme = new DynMapColourScheme("default", true);
+            selectedColourScheme = (colourSchemes[config.getColourschemeIndex()] != null) ? colourSchemes[config.getColourschemeIndex()] : defaultColourScheme;
         }
         operations = OperationManager.getInstance().getOperations();
         setMaxRadius(config.getMaximumBrushSize());
@@ -4578,6 +4584,31 @@ public final class App extends JFrame implements RadiusControl,
 
         menu.addSeparator();
         
+        final JMenu colourSchemeMenu = new JMenu(strings.getString("change.colour.scheme"));
+        // This array must correspond 1:1 with App.colourSchemes as initialised in the constructor:
+        final String[] colourSchemeNames = {strings.getString("default"), null, null, null, "DokuDark", "DokuHigh", "DokuLight", "Misa", "Sphax"};
+        final ButtonGroup schemesButtonGroup = new ButtonGroup();
+        final Configuration config = Configuration.getInstance();
+        for (int i = 0; i < colourSchemeNames.length; i++) {
+            final int index = i;
+            if (colourSchemes[index] == null) {
+                // Skip deprecated schemes
+                continue;
+            }
+            final JCheckBoxMenuItem schemeMenuItem = new JCheckBoxMenuItem(colourSchemeNames[index]);
+            schemesButtonGroup.add(schemeMenuItem);
+            if (config.getColourschemeIndex() == index) {
+                schemeMenuItem.setSelected(true);
+            }
+            schemeMenuItem.addActionListener(e -> {
+                selectedColourScheme = colourSchemes[index];
+                view.setColourScheme(selectedColourScheme);
+                config.setColourschemeIndex(index);
+            });
+            colourSchemeMenu.add(schemeMenuItem);
+        }
+        menu.add(colourSchemeMenu);
+
         menuItem = new JMenuItem(strings.getString("configure.view") + "...");
         menuItem.addActionListener(e -> {
             if (dimension == null) {
@@ -4606,7 +4637,6 @@ public final class App extends JFrame implements RadiusControl,
         menuItem.setMnemonic('a');
         workspaceLayoutMenu.add(menuItem);
 
-        Configuration config = Configuration.getInstance();
         ACTION_LOAD_LAYOUT.setEnabled(config.getDefaultJideLayoutData() != null);
         menuItem = new JMenuItem(ACTION_LOAD_LAYOUT);
         menuItem.setMnemonic('l');
@@ -7480,7 +7510,9 @@ public final class App extends JFrame implements RadiusControl,
     private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addCeilingMenuItem, removeCeilingMenuItem, addMasterMenuItem, removeMasterMenuItem;
     private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem;
     private final JToggleButton[] customMaterialButtons = new JToggleButton[CUSTOM_TERRAIN_COUNT];
-    private final ColourScheme selectedColourScheme;
+    private final ColourScheme[] colourSchemes;
+    private final ColourScheme defaultColourScheme;
+    private ColourScheme selectedColourScheme;
     private BiomeHelper biomeHelper;
     private SortedMap<String, BrushGroup> customBrushes;
     private final List<Layer> layers = LayerManager.getInstance().getLayers();
