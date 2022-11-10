@@ -14,7 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.pepsoft.minecraft.Constants.MC_WATER;
 import static org.pepsoft.minecraft.Material.WATER;
-import static org.pepsoft.worldpainter.Constants.UNKNOWN_MATERIAL_COLOUR;
 
 /**
  * An implementation of {@link ColourScheme} which can read
@@ -40,7 +39,7 @@ public final class DynmapColourScheme implements ColourScheme {
             if ((blockState != null) && (blockState.globalStateIndex < dynmapColorScheme.colors.length)) {
                 return dynmapColorScheme.colors[blockState.globalStateIndex][step].getARGB();
             }
-            return UNKNOWN_MATERIAL_COLOUR;
+            return material.colour;
         });
     }
 
