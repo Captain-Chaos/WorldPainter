@@ -130,7 +130,7 @@ public class BiomeSchemeManager {
             }
         }
 
-        return ALL_JARS.lastKey();
+        return ALL_JARS.isEmpty() ? null : ALL_JARS.lastKey();
     }
 
     /**
