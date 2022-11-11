@@ -1,4 +1,4 @@
--- Version 2.15.10, released ...
+-- Version 2.15.10, released 11-11-2022
 
  * The 3D preview for Custom Objects and Custom Layers has been upgraded to use version 3.4 of Dynmap, which supports Minecraft 1.19.2 so there will be fewer unknown blocks rendered as magenta wool
    + There are still some known bugs, such as some log blocks being invisible, fence blocks being rendered with the wrong orientation, etc.. These will be solved in time
@@ -8,6 +8,7 @@
    + The org.pepsoft.worldpainter.colourSchemeFile advanced setting that had been introduced in order to keep being able to load old Dynmap colour schemes is no longer supported and will result in a startup error
  * When creating a new Custom Material on the Configure Cave/Tunnel Layer screen, the other drop down lists are immediately updated so that the new material can be selected for the other choices as well
  * Bug fix: make creating new Custom Materials from the Configure Cave/Tunnel Layer screen work again
+ * Various bug fixes and usability improvements
 
 -- Version 2.15.9, released 8-11-2022
 
