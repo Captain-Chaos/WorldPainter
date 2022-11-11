@@ -1,5 +1,11 @@
 -- Version 2.15.10, released ...
 
+ * The 3D preview for Custom Objects and Custom Layers has been upgraded to use version 3.4 of Dynmap, which supports Minecraft 1.19.2 so there will be fewer unknown blocks rendered as magenta wool
+   + There are still some known bugs, such as some log blocks being invisible, fence blocks being rendered with the wrong orientation, etc.. These will be solved in time
+   + Dynmap 3.4 includes the vanilla Minecraft textures so the 3D preview no longer needs a Minecraft installation in order to work
+ * Selectable colour schemes are once again supported, since Dynmap has reinstated support for them
+   + Select a colour scheme from the View menu under "Select colour scheme"
+   + The org.pepsoft.worldpainter.colourSchemeFile advanced setting that had been introduced in order to keep being able to load old Dynmap colour schemes is no longer supported and will result in a startup error
  * When creating a new Custom Material on the Configure Cave/Tunnel Layer screen, the other drop down lists are immediately updated so that the new material can be selected for the other choices as well
  * Bug fix: make creating new Custom Materials from the Configure Cave/Tunnel Layer screen work again
 
@@ -9,8 +15,8 @@
    + For the Minecraft 1.19 format, waterlogged leaf blocks are now supported (in other words leaf blocks on Custom Objects will be placed underwater for Minecraft 1.19 and later)
    + Custom build heights now work for Minecraft 1.19 (including upgrading Minecraft 1.18 maps to 1.19 in Minecraft)
  * Some improvements were made to dimension transformations (scaling, shifting or rotating):
-    + The handling of the overlay image, if any, has been fixed and streamlined. It is now adjusted fully automatically, except for rotations (in which case a warning is displayed)
-    + All associated dimensions (such as Ceiling dimensions and Custom Cave/Tunnel Floor dimensions) are now automatically included. There is no longer an option to turn that off, since it never makes sense to do so
+   + The handling of the overlay image, if any, has been fixed and streamlined. It is now adjusted fully automatically, except for rotations (in which case a warning is displayed)
+   + All associated dimensions (such as Ceiling dimensions and Custom Cave/Tunnel Floor dimensions) are now automatically included. There is no longer an option to turn that off, since it never makes sense to do so
  * Added a warning and a clearer error message for when a map is being Imported or Merged that has unoptimized, older chunks with different build limits
  * The Preferences screen now enforces that the default theme does not contain Custom Terrains or Custom Layers, as this is suspected to be the cause of errors
  * Various bug fixes and usability improvements
