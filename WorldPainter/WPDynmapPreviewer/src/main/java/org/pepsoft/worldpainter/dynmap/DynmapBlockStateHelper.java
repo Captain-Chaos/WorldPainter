@@ -1,5 +1,6 @@
 package org.pepsoft.worldpainter.dynmap;
 
+import com.google.common.collect.ImmutableMap;
 import org.dynmap.renderer.DynmapBlockState;
 import org.pepsoft.minecraft.Material;
 
@@ -11,20 +12,24 @@ import static org.pepsoft.minecraft.Constants.MC_CAVE_AIR;
 import static org.pepsoft.minecraft.Material.MINECRAFT;
 
 public class DynmapBlockStateHelper {
+    /**
+     * Initialise the Dynmap {@link DynmapBlockState}s for all currently loaded {@link Material}s. This can be done
+     * only once, after which Dynmap will only be able to render the materials known at that time.
+     */
     public static void initialise() {
         // Do nothing (loading the class has done the initialisation)
     }
 
-    static synchronized DynmapBlockState getDynmapBlockState(Material material) {
+    static DynmapBlockState getDynmapBlockState(Material material) {
         return IDENTITY_TO_BLOCK_STATE.get(material.identity);
     }
 
-    private static final Map<Material.Identity, DynmapBlockState> IDENTITY_TO_BLOCK_STATE = new HashMap<>();
-    private static final Map<String, Set<DynmapBlockState>> BLOCK_STATES_BY_NAME = new HashMap<>();
-    private static final Map<String, DynmapBlockState> BLOCK_STATES_BASES_BY_NAME = new HashMap<>();
+    private static final Map<Material.Identity, DynmapBlockState> IDENTITY_TO_BLOCK_STATE;
 
     static {
-        // TODO this will take a long time and hugely expand the number of loaded materials; make this more efficient
+        final Map<Material.Identity, DynmapBlockState> identityToBlockState = new HashMap<>();
+        final Map<String, Set<DynmapBlockState>> blockStatesByName = new HashMap<>();
+        final Map<String, DynmapBlockState> blockStatesBasesByName = new HashMap<>();
         for (String simpleName: Material.getAllSimpleNamesForNamespace(MINECRAFT)) {
             final Material prototype = Material.getPrototype(MINECRAFT + ':' + simpleName);
             if ((prototype.propertyDescriptors == null) || prototype.propertyDescriptors.isEmpty()) {
@@ -36,13 +41,11 @@ public class DynmapBlockStateHelper {
                         prototype.simpleName,
                         prototype.blockType);
                 setFlags(blockState, prototype);
-                BLOCK_STATES_BASES_BY_NAME.put(prototype.name, blockState);
-                BLOCK_STATES_BY_NAME.computeIfAbsent(prototype.name, k -> new HashSet<>()).add(blockState);
-                IDENTITY_TO_BLOCK_STATE.put(prototype.identity, blockState);
-//                System.out.println(prototype + " -> " + blockState);
+                blockStatesBasesByName.put(prototype.name, blockState);
+                blockStatesByName.computeIfAbsent(prototype.name, k -> new HashSet<>()).add(blockState);
+                identityToBlockState.put(prototype.identity, blockState);
             } else {
                 // Create all possible permutations of properties
-                // TODO make this more efficient if possible
                 List<Map<String, String>> permutations = new ArrayList<>();
                 permutations.add(new HashMap<>());
                 for (Map.Entry<String, Material.PropertyDescriptor> entry: prototype.propertyDescriptors.entrySet()) {
@@ -73,18 +76,15 @@ public class DynmapBlockStateHelper {
                 }
                 for (Map<String, String> properties: permutations) {
                     final Material material = Material.get(prototype.name, properties);
-                    if (IDENTITY_TO_BLOCK_STATE.containsKey(material.identity)) {
+                    if (identityToBlockState.containsKey(material.identity)) {
                         continue;
                     }
-//                    if (material.data >= 0) {
-//                        properties.put("meta", Integer.toString(material.data));
-//                    }
                     final String stateName = properties.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(joining(","));
                     final DynmapBlockState blockState;
-                    if (BLOCK_STATES_BY_NAME.containsKey(material.name)) {
+                    if (blockStatesByName.containsKey(material.name)) {
                         // Variation
-                        blockState = new DynmapBlockState(BLOCK_STATES_BASES_BY_NAME.get(material.name),
-                                BLOCK_STATES_BY_NAME.get(material.name).size(),
+                        blockState = new DynmapBlockState(blockStatesBasesByName.get(material.name),
+                                blockStatesByName.get(material.name).size(),
                                 material.name,
                                 stateName,
                                 material.simpleName,
@@ -97,15 +97,15 @@ public class DynmapBlockStateHelper {
                                 stateName,
                                 material.simpleName,
                                 material.blockType);
-                        BLOCK_STATES_BASES_BY_NAME.put(material.name, blockState);
+                        blockStatesBasesByName.put(material.name, blockState);
                     }
                     setFlags(blockState, material);
-                    BLOCK_STATES_BY_NAME.computeIfAbsent(material.name, k -> new HashSet<>()).add(blockState);
-                    IDENTITY_TO_BLOCK_STATE.put(material.identity, blockState);
-//                    System.out.println(material + " -> " + blockState);
+                    blockStatesByName.computeIfAbsent(material.name, k -> new HashSet<>()).add(blockState);
+                    identityToBlockState.put(material.identity, blockState);
                 }
             }
         }
+        IDENTITY_TO_BLOCK_STATE = ImmutableMap.copyOf(identityToBlockState);
         DynmapBlockState.finalizeBlockStates();
     }
 
