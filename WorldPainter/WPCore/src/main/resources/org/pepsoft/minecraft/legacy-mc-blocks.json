@@ -842,24 +842,35 @@
   {
     "blockId": 17,
     "dataValue": 12,
-    "name": "minecraft:oak_wood"
+    "name": "minecraft:oak_wood",
+    "properties": {
+      "axis": "y"
+    }
   },
   {
     "blockId": 17,
     "dataValue": 13,
-    "name": "minecraft:spruce_wood"
+    "name": "minecraft:spruce_wood",
+    "properties": {
+      "axis": "y"
+    }
   },
   {
     "blockId": 17,
     "dataValue": 14,
-    "name": "minecraft:birch_wood"
+    "name": "minecraft:birch_wood",
+    "properties": {
+      "axis": "y"
+    }
   },
   {
     "blockId": 17,
     "dataValue": 15,
-    "name": "minecraft:jungle_wood"
+    "name": "minecraft:jungle_wood",
+    "properties": {
+      "axis": "y"
+    }
   },
-  "# What to do about the distance property?",
   {
     "blockId": 18,
     "dataValue": 0,
@@ -9190,12 +9201,18 @@
   {
     "blockId": 162,
     "dataValue": 12,
-    "name": "minecraft:acacia_wood"
+    "name": "minecraft:acacia_wood",
+    "properties": {
+      "axis": "y"
+    }
   },
   {
     "blockId": 162,
     "dataValue": 13,
-    "name": "minecraft:dark_oak_wood"
+    "name": "minecraft:dark_oak_wood",
+    "properties": {
+      "axis": "y"
+    }
   },
   {
     "blockId": 163,
