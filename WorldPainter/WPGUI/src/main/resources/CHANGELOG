@@ -1,3 +1,10 @@
+-- Version 2.15.11, released ...
+
+ * 3D previews now show full details for two additional zoom levels, allowing you to zoom in further before starting to lose precision
+ * Bug fix: improve the mapping of WorldPainter materials to Dynmap in order to solve problems of some blocks being invisible and others rendering incorrectly
+ * Bug fix: fix the water colour of 3D previews
+ * Bug fix: fix a bug in the Dynmap glue code that was causing an error in 3D previews
+
 -- Version 2.15.10, released 11-11-2022
 
  * The 3D preview for Custom Objects and Custom Layers has been upgraded to use version 3.4 of Dynmap, which supports Minecraft 1.19.2 so there will be fewer unknown blocks rendered as magenta wool
