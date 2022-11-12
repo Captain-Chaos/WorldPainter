@@ -6,6 +6,7 @@ package org.pepsoft.minecraft;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import org.pepsoft.util.CSVDataSource;
 import org.pepsoft.util.Pair;
 import org.pepsoft.worldpainter.Platform;
@@ -117,7 +118,7 @@ public final class Material implements Serializable {
             watery = (boolean) spec.get("watery");
             colour = spec.containsKey("colour") ? ((int) spec.get("colour")) : UNKNOWN_MATERIAL_COLOUR;
             category = determineCategory();
-            propertyDescriptors = (Map<String, PropertyDescriptor>) spec.get("properties");
+            propertyDescriptors = (SortedMap<String, PropertyDescriptor>) spec.get("properties");
         } else {
             if (logger.isTraceEnabled()) {
                 logger.trace("Legacy material " + blockType + ":" + data + " not found in materials database");
@@ -248,7 +249,7 @@ public final class Material implements Serializable {
             watery = (boolean) spec.get("watery");
             colour = spec.containsKey("colour") ? ((int) spec.get("colour")) : UNKNOWN_MATERIAL_COLOUR;
             category = determineCategory();
-            propertyDescriptors = (Map<String, PropertyDescriptor>) spec.get("properties");
+            propertyDescriptors = (SortedMap<String, PropertyDescriptor>) spec.get("properties");
         } else {
             if (logger.isDebugEnabled()) {
                 if ((namespace != null) && namespace.equals(MINECRAFT)) {
@@ -1501,9 +1502,9 @@ public final class Material implements Serializable {
 
     /**
      * Descriptors of all the properties this type of material has, regardless of whether they are set on the current
-     * instance.
+     * instance, sorted by their name.
      */
-    public final transient Map<String, PropertyDescriptor> propertyDescriptors;
+    public final transient SortedMap<String, PropertyDescriptor> propertyDescriptors;
 
     /**
      * Whether the material is vanilla or modded. In the case of Minecraft this indicates that the namespace is not
@@ -1592,7 +1593,9 @@ public final class Material implements Serializable {
                 }
                 str = csvDataSource.getString("properties");
                 if (! isNullOrEmpty(str)) {
-                    materialSpecs.put("properties", stream(str.split(",")).map(PropertyDescriptor::fromString).collect(toMap(d -> d.name, identity())));
+                    materialSpecs.put("properties", stream(str.split(","))
+                            .map(PropertyDescriptor::fromString)
+                            .collect(ImmutableSortedMap.toImmutableSortedMap(String::compareTo, d -> d.name, identity())));
                 }
                 materialSpecs.put("opacity", csvDataSource.getInt("opacity"));
                 materialSpecs.put("receivesLight", csvDataSource.getBoolean("receivesLight"));

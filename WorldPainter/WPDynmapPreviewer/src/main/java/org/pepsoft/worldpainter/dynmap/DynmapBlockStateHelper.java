@@ -34,7 +34,7 @@ public class DynmapBlockStateHelper {
             final Material prototype = Material.getPrototype(MINECRAFT + ':' + simpleName);
             if ((prototype.propertyDescriptors == null) || prototype.propertyDescriptors.isEmpty()) {
                 // Simple material
-                DynmapBlockState blockState = new DynmapBlockState(null,
+                final DynmapBlockState blockState = new DynmapBlockState(null,
                         0,
                         prototype.name,
                         null,
@@ -46,6 +46,9 @@ public class DynmapBlockStateHelper {
                 identityToBlockState.put(prototype.identity, blockState);
             } else {
                 // Create all possible permutations of properties
+                // Material.propertyDescriptors is sorted by property name, which is important to Dynmap as it expects
+                // both the block variants and the properties in the statename to be in an exact order for the rendering
+                // logic to work properly
                 List<Map<String, String>> permutations = new ArrayList<>();
                 permutations.add(new HashMap<>());
                 for (Map.Entry<String, Material.PropertyDescriptor> entry: prototype.propertyDescriptors.entrySet()) {
@@ -74,12 +77,31 @@ public class DynmapBlockStateHelper {
                     }
                     permutations = newPermutations;
                 }
+
+                // Make sure the permutations with all properties set are at the start of the list, to ensure those are
+                // at the indices that Dynmap expects in its rendering logic. We only add the variants with missing
+                // properties to cover blocks that we might load from custom objects, etc., and accept that Dynmap might
+                // not be able to render those
+                final Set<Map<String, String>> permutationsWithMissingProperties = new HashSet<>(permutations.size());
+                for (Iterator<Map<String, String>> i = permutations.iterator(); i.hasNext(); ) {
+                    final Map<String, String> permutation = i.next();
+                    if (permutation.size() < prototype.propertyDescriptors.size()) {
+                        i.remove();
+                        permutationsWithMissingProperties.add(permutation);
+                    }
+                }
+                // Add them back at the end of the list
+                permutations.addAll(permutationsWithMissingProperties);
+
                 for (Map<String, String> properties: permutations) {
                     final Material material = Material.get(prototype.name, properties);
                     if (identityToBlockState.containsKey(material.identity)) {
                         continue;
                     }
-                    final String stateName = properties.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(joining(","));
+                    final String stateName = properties.entrySet().stream()
+                            .sorted(Map.Entry.comparingByKey())
+                            .map(e -> e.getKey() + "=" + e.getValue())
+                            .collect(joining(","));
                     final DynmapBlockState blockState;
                     if (blockStatesByName.containsKey(material.name)) {
                         // Variation
