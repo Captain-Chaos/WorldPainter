@@ -17,8 +17,8 @@ import static org.pepsoft.minecraft.Material.WOOL_MAGENTA;
 import static org.pepsoft.worldpainter.dynmap.DynmapBlockStateHelper.getDynmapBlockState;
 
 /**
- * A {@link DynmapWorld} implementation which wraps a {@link WPObject} for use
- * with the dynmap API.
+ * A {@link DynmapWorld} implementation which wraps a {@link WPObject} for use with the dynmap API. The object's
+ * horizontal offset is applied to the coordinate system. Its vertical offset is not.
  *
  * <p>Created by Pepijn Schmitz on 08-06-15.
  */
@@ -98,17 +98,17 @@ class WPObjectDynmapWorld extends DynmapWorld {
         // Do nothing
     }
 
+    // The Dynmap API doesn't make clear exactly what light level this is, so we assume it's the effective, or max of
+    // block and sky light level, since it seems to be being used to determine whether someone is in shadow. Since we
+    // don't support sky light this comes down to always returning full brightness
     @Override
     public int getLightLevel(int x, int y, int z) {
-        if (bounds.contains(x, z, y)) {
-            return lightLevels[x - xOffset][z][y - yOffset];
-        } else {
-            return 0;
-        }
+        return 15;
     }
 
     @Override
     public int getHighestBlockYAt(int x, int z) {
+        // NOTE that this API follows the Minecraft convention of reversing y and z!
         if (bounds.containsXY(x, z)) {
             return heights[x - xOffset][z - yOffset];
         } else {
@@ -123,6 +123,7 @@ class WPObjectDynmapWorld extends DynmapWorld {
 
     @Override
     public int getSkyLightLevel(int x, int y, int z) {
+        // NOTE that this API follows the Minecraft convention of reversing y and z!
         throw new UnsupportedOperationException();
     }
 

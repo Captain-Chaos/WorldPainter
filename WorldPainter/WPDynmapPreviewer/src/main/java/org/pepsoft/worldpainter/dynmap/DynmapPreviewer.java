@@ -45,7 +45,7 @@ public class DynmapPreviewer extends TiledImageViewer {
     }
 
     public DynmapPreviewer(double myAzimuth, double myInclination, int myZoom) {
-        super(true, false);
+        super(true, false, 2);
         initialAzimuth = myAzimuth;
         initialInclination = myInclination;
         initialZoom = myZoom;

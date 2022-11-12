@@ -47,21 +47,33 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * left mouse button and which paints the central crosshair.
      */
     public TiledImageViewer() {
-        this(true, true);
+        this(true, true, 0);
     }
 
     /**
      * Create a new tiled image viewer.
      *
-     * @param leftClickDrags Whether dragging with the left mouse button should
-     *                       pan the image.
-     * @param paintCentre Whether the central crosshair indicating the current
-     *                    location should be painted.
+     * @param leftClickDrags Whether dragging with the left mouse button should pan the image.
+     * @param paintCentre Whether the central crosshair indicating the current location should be painted.
      */
     @SuppressWarnings("LeakingThisInConstructor")
     public TiledImageViewer(boolean leftClickDrags, boolean paintCentre) {
+        this(leftClickDrags, paintCentre, 0);
+    }
+
+    /**
+     * Create a new tiled image viewer.
+     *
+     * @param leftClickDrags Whether dragging with the left mouse button should pan the image.
+     * @param paintCentre Whether the central crosshair indicating the current location should be painted.
+     * @param tileProviderZoomCutoff The zoom level below which zooming should be delegated to the tile providers that
+     *                               support it.
+     */
+    @SuppressWarnings("LeakingThisInConstructor")
+    public TiledImageViewer(boolean leftClickDrags, boolean paintCentre, int tileProviderZoomCutoff) {
         this.leftClickDrags = leftClickDrags;
         this.paintCentre = paintCentre;
+        this.tileProviderZoomCutoff = tileProviderZoomCutoff;
         String maxThreads = System.getProperty("org.pepsoft.worldpainter." + ADVANCED_SETTING_MAX_TILE_RENDER_THREADS.key);
         if (maxThreads != null) {
             threads = ADVANCED_SETTING_MAX_TILE_RENDER_THREADS.toValue(maxThreads);
@@ -149,9 +161,9 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
             
             if (tileProvider.isZoomSupported()) {
                 if (zoom != null) {
-                    tileProvider.setZoom(((this.zoom + zoom) <= 0) ? (this.zoom + zoom) : 0);
+                    tileProvider.setZoom(((this.zoom + zoom) <= tileProviderZoomCutoff) ? (this.zoom + zoom) : tileProviderZoomCutoff);
                 } else {
-                    tileProvider.setZoom((this.zoom <= 0) ? this.zoom : 0);
+                    tileProvider.setZoom((this.zoom <= tileProviderZoomCutoff) ? this.zoom : tileProviderZoomCutoff);
                 }
             }
             tileProvider.addTileListener(this);
@@ -337,7 +349,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
                     if (tileProvider.isZoomSupported()) {
                         // Only use the tile provider's own zoom support for
                         // zooming out:
-                        tileProvider.setZoom(((zoom + tileProviderZoom.getOrDefault(tileProvider, 0)) <= 0) ? (zoom + tileProviderZoom.getOrDefault(tileProvider, 0)) : 0);
+                        tileProvider.setZoom(((zoom + tileProviderZoom.getOrDefault(tileProvider, 0)) <= tileProviderZoomCutoff) ? (zoom + tileProviderZoom.getOrDefault(tileProvider, 0)) : tileProviderZoomCutoff);
                     }
                     dirtyTileCaches.put(tileProvider, new HashMap<>());
                     tileCaches.put(tileProvider, new HashMap<>());
@@ -878,7 +890,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
 
     public void setTileProviderZoom(TileProvider tileProvider, int zoom) {
         tileProviderZoom.put(tileProvider, zoom);
-        tileProvider.setZoom(((this.zoom + zoom) <= 0) ? (this.zoom + zoom) : 0);
+        tileProvider.setZoom(((this.zoom + zoom) <= tileProviderZoomCutoff) ? (this.zoom + zoom) : tileProviderZoomCutoff);
         repaint();
     }
 
@@ -1135,7 +1147,7 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
         GraphicsConfiguration gc = getGraphicsConfiguration();
         for (TileProvider tileProvider: tileProviders.values()) {
             final Integer tileProviderZoom = this.tileProviderZoom.getOrDefault(tileProvider, 0);
-            final int effectiveZoom = (tileProvider.isZoomSupported() && ((zoom + tileProviderZoom) < 0)) ? 0 : (zoom + tileProviderZoom);
+            final int effectiveZoom = (tileProvider.isZoomSupported() && ((zoom + tileProviderZoom) < tileProviderZoomCutoff)) ? 0 : (zoom + tileProviderZoom - tileProviderZoomCutoff);
             if (logger.isTraceEnabled()) {
                 logger.trace("Provider {}: zoomSupported: {}, this.zoom: {}, tileProviderZoom: {}, effectiveZoom: {}, tileProvider.getZoom(): {}",
                         tileProvider, tileProvider.isZoomSupported(), zoom, tileProviderZoom, effectiveZoom, tileProvider.getZoom());
@@ -1653,6 +1665,10 @@ public class TiledImageViewer extends JComponent implements TileListener, MouseL
      * The currently configured overlays.
      */
     private final Map<String, Overlay> overlays = new HashMap<>();
+    /**
+     * The zoom level below which to delegate zooming to the tile providers, if they support it.
+     */
+    private final int tileProviderZoomCutoff;
     /**
      * The currently displayed location in scaled coordinates.
      */

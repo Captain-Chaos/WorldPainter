@@ -8,6 +8,7 @@ import org.dynmap.utils.BlockStep;
 import org.dynmap.utils.MapIterator;
 
 import static org.dynmap.renderer.DynmapBlockState.AIR;
+import static org.pepsoft.minecraft.Material.WATER;
 
 /**
  * Implemenation of {@link MapIterator} used by {@link WPObjectDynmapWorld}.
@@ -45,10 +46,7 @@ class WPObjectMapIterator implements MapIterator {
 
     @Override
     public int getBlockLight(int xoff, int yoff, int zoff) {
-        final int offsetX = x + xoff;
-        final int offsetY = y + zoff;
-        final int offsetHeight = height + yoff;
-        return 3840 + object.getLightLevel(offsetX - object.xOffset, offsetY - object.yOffset, offsetHeight);
+        return object.getLightLevel(x + xoff, y + zoff, height + yoff) * 256 + 15;
     }
 
     @Override
@@ -68,7 +66,7 @@ class WPObjectMapIterator implements MapIterator {
 
     @Override
     public int getSmoothWaterColorMultiplier() {
-        return 0xffffff;
+        return WATER.colour;
     }
 
     @Override
@@ -129,7 +127,9 @@ class WPObjectMapIterator implements MapIterator {
 
     @Override
     public long getBlockKey() {
-        return height | ((x & 0x00000fffL) << 20) | ((y & 0x00000fff) << 8);
+        return (long) (x - object.xOffset) * object.bounds.getLength() * object.bounds.getHeight()
+                + (long) (y - object.yOffset) * object.bounds.getHeight()
+                + height;
     }
 
     @Override
@@ -158,7 +158,7 @@ class WPObjectMapIterator implements MapIterator {
         final int offsetX = x + xoff;
         final int offsetY = y + zoff;
         final int offsetHeight = height + yoff;
-        if (object.bounds.contains(offsetX - object.xOffset, offsetY - object.yOffset, offsetHeight)) {
+        if (object.bounds.contains(offsetX, offsetY, offsetHeight)) {
             return object.blockStates[offsetX - object.xOffset][offsetY - object.yOffset][offsetHeight];
         } else {
             return AIR;

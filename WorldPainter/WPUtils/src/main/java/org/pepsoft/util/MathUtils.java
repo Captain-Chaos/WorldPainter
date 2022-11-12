@@ -20,7 +20,7 @@ public final class MathUtils {
      * Positive integer powers.
      */
     public static int pow(int x, int y) {
-        if ((x >= 0) && (x < 50) && (y < 50)) {
+        if ((x >= 0) && (x < 50) && (y >= 0) && (y < 50)) {
             return INTEGER_POWERS[x][y];
         } else {
             switch (y) {
