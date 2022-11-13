@@ -30,6 +30,7 @@ import static javax.swing.JFileChooser.FILES_AND_DIRECTORIES;
  *
  * @author pepijn
  */
+@SuppressWarnings("ResultOfMethodCallIgnored") // We don't care
 public class FileUtils {
     private FileUtils() {
         // Prevent instantiation
@@ -110,7 +111,10 @@ public class FileUtils {
                 logger.warn("Not copying " + file + "; not a regular file or directory");
             }
         }
-        destDir.setLastModified(dir.lastModified());
+        final long lastModified = dir.lastModified();
+        if (lastModified > 0) {
+            destDir.setLastModified(lastModified);
+        }
     }
 
     /**
@@ -136,7 +140,10 @@ public class FileUtils {
             throw new IllegalStateException("Destination file is an existing directory");
         }
         StreamUtils.copy(new FileInputStream(file), new FileOutputStream(destFile));
-        destFile.setLastModified(file.lastModified());
+        final long lastModified = file.lastModified();
+        if (lastModified > 0) {
+            destFile.setLastModified(lastModified);
+        }
     }
 
     /**
@@ -171,7 +178,10 @@ public class FileUtils {
             throw new IllegalStateException("Destination file " + destFile + " already exists");
         }
         StreamUtils.copy(new FileInputStream(file), new FileOutputStream(destFile), progressReceiver, file.length());
-        destFile.setLastModified(file.lastModified());
+        final long lastModified = file.lastModified();
+        if (lastModified > 0) {
+            destFile.setLastModified(lastModified);
+        }
     }
 
     /**
