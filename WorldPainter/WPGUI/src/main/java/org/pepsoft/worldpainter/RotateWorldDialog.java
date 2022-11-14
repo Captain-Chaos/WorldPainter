@@ -21,6 +21,7 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
+import static org.pepsoft.worldpainter.ExceptionHandler.handleException;
 
 /**
  *
@@ -54,9 +55,7 @@ public class RotateWorldDialog extends WorldPainterDialog implements ProgressRec
     @Override
     public synchronized void exceptionThrown(final Throwable exception) {
         doOnEventThread(() -> {
-            ErrorDialog errorDialog = new ErrorDialog(RotateWorldDialog.this);
-            errorDialog.setException(exception);
-            errorDialog.setVisible(true);
+            handleException(exception, RotateWorldDialog.this);
             cancel();
         });
     }

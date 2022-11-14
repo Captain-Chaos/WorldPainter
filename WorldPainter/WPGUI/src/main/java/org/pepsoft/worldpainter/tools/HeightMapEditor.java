@@ -6,7 +6,6 @@
 
 package org.pepsoft.worldpainter.tools;
 
-import org.pepsoft.util.FileUtils;
 import org.pepsoft.worldpainter.MouseAdapter;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.heightMaps.*;
@@ -16,6 +15,7 @@ import org.pepsoft.worldpainter.heightMaps.gui.HeightMapTreeCellRenderer;
 import org.pepsoft.worldpainter.heightMaps.gui.HeightMapTreeModel;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
+import org.pepsoft.worldpainter.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -5,10 +5,14 @@
 
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
+import java.awt.*;
 import java.nio.file.InvalidPathException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
@@ -16,15 +20,21 @@ import java.nio.file.InvalidPathException;
  */
 public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
     public static void handleException(Throwable t) {
-//        t.printStackTrace();
-        if (shouldIgnore(t)) {
+        handleException(t, App.getInstanceIfExists());
+    }
+
+    public static void handleException(Throwable t, Window parent) {
+        if (reportingDisabled.get() > 0) {
+            LoggerFactory.getLogger(ExceptionHandler.class)
+                    .error("{} occurred while exception reporting was disabled (message: {})", t.getClass().getSimpleName(), t.getMessage(), t);
+        } else if (shouldIgnore(t)) {
             t.printStackTrace();
         } else {
             final Runnable task = () -> {
                 if (! handlingException) {
                     handlingException = true;
                     try {
-                        ErrorDialog dialog = new ErrorDialog(App.getInstanceIfExists());
+                        ErrorDialog dialog = new ErrorDialog(parent);
                         dialog.setException(t);
                         dialog.setVisible(true);
                     } finally {
@@ -42,6 +52,46 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
             }
         }
     }
+
+    /**
+     * Perform a task with exception reporting disabled. Exceptions will be logged, but will not result in an
+     * {@link ErrorDialog} being shown or a report to be submitted to the backoffice.
+     *
+     * <p><strong>Note</strong> that this does not <em>catch</em> exceptions! Uncaught exceptions will be propagated as
+     * normal.
+     */
+    public static void doWithoutExceptionReporting(Runnable task) {
+        reportingDisabled.incrementAndGet();
+        try {
+            task.run();
+        } finally {
+            reportingDisabled.decrementAndGet();
+        }
+    }
+
+    /**
+     * Perform a task with exception reporting disabled. Exceptions will be logged, but will not result in an
+     * {@link ErrorDialog} being shown or a report to be submitted to the backoffice.
+     *
+     * <p><strong>Note</strong> that this does not <em>catch</em> exceptions! Uncaught exceptions will be propagated as
+     * normal. Checked exceptions will be wrapped in a {@link WPRuntimeException}.
+     */
+    public static <T> T doWithoutExceptionReporting(Callable<T> task) {
+        reportingDisabled.incrementAndGet();
+        try {
+            return task.call();
+        } catch (Exception e) {
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            } else {
+                throw new WPRuntimeException(e);
+            }
+        } finally {
+            reportingDisabled.decrementAndGet();
+        }
+    }
+
+    // UncaughtExceptionHandler
 
     @Override
     public void uncaughtException(Thread t, final Throwable e) {
@@ -72,5 +122,6 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
         return false;
     }
 
+    private static final AtomicInteger reportingDisabled = new AtomicInteger();
     private static boolean handlingException;
 }

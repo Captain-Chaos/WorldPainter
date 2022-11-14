@@ -6,7 +6,6 @@
 package org.pepsoft.worldpainter.tools.scripts;
 
 import org.jetbrains.annotations.NotNull;
-import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.Dimension;
@@ -14,6 +13,7 @@ import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.WorldPainterDialog;
 import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.util.FileUtils;
 import org.pepsoft.worldpainter.vo.EventVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 import static java.util.stream.Collectors.joining;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SCRIPT_FILENAME;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SCRIPT_NAME;
+import static org.pepsoft.worldpainter.ExceptionHandler.doWithoutExceptionReporting;
 
 /**
  *
@@ -406,7 +407,7 @@ public class ScriptRunner extends WorldPainterDialog {
                     }
                     try {
                         // Load the script
-                        final String script = FileUtils.load(scriptFile, Charset.defaultCharset());
+                        final String script = org.pepsoft.util.FileUtils.load(scriptFile, Charset.defaultCharset());
 
                         // Compile the script, if the engine supports it, and run it
                         final long start;
@@ -930,7 +931,7 @@ public class ScriptRunner extends WorldPainterDialog {
                 if (! field.getText().trim().isEmpty()) {
                     fileChooser.setSelectedFile(new File(field.getText().trim()));
                 }
-                if (fileChooser.showOpenDialog(panel) == JFileChooser.APPROVE_OPTION) {
+                if (doWithoutExceptionReporting(() -> fileChooser.showOpenDialog(panel)) == JFileChooser.APPROVE_OPTION) {
                     field.setText(fileChooser.getSelectedFile().getAbsolutePath());
                 }
             });

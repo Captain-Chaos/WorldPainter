@@ -44,6 +44,7 @@ import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
+import static org.pepsoft.worldpainter.ExceptionHandler.handleException;
 import static org.pepsoft.worldpainter.Generator.*;
 import static org.pepsoft.worldpainter.HeightTransform.IDENTITY;
 import static org.pepsoft.worldpainter.Platform.Capability.BLOCK_BASED;
@@ -330,9 +331,7 @@ public class PreferencesDialog extends WorldPainterDialog {
         try {
             config.save();
         } catch (IOException e) {
-            ErrorDialog errorDialog = new ErrorDialog(this);
-            errorDialog.setException(e);
-            errorDialog.setVisible(true);
+            handleException(e, this);
         }
     }
     

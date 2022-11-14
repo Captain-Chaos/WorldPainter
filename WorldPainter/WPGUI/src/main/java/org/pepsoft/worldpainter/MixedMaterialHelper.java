@@ -7,7 +7,7 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.DesktopUtils;
-import org.pepsoft.util.FileUtils;
+import org.pepsoft.worldpainter.util.FileUtils;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -97,7 +97,7 @@ public class MixedMaterialHelper {
         if ((terrainDirectory == null) || (! terrainDirectory.isDirectory())) {
             terrainDirectory = DesktopUtils.getDocumentsFolder();
         }
-        File selectedFile = new File(terrainDirectory, FileUtils.sanitiseName(material.getName()) + ".terrain");
+        File selectedFile = new File(terrainDirectory, org.pepsoft.util.FileUtils.sanitiseName(material.getName()) + ".terrain");
         selectedFile = FileUtils.selectFileForSave(SwingUtilities.getWindowAncestor(parent), "Export as WorldPainter custom terrain file", selectedFile, new FileFilter() {
             @Override
             public boolean accept(File f) {

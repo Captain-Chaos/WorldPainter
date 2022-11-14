@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import static java.awt.Dialog.ModalityType.APPLICATION_MODAL;
 import static java.lang.Boolean.TRUE;
 import static java.util.Collections.singletonList;
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
@@ -45,14 +46,8 @@ import static org.pepsoft.worldpainter.Constants.*;
 @SuppressWarnings({"unused", "Convert2Lambda", "Anonymous2MethodRef"}) // Managed by NetBeans
 public class ErrorDialog extends javax.swing.JDialog {
     /** Creates new form ErrorDialog */
-    public ErrorDialog(Dialog parent) {
-        super(parent, true);
-        init(parent);
-    }
-
-    /** Creates new form ErrorDialog */
-    public ErrorDialog(Frame parent) {
-        super(parent, true);
+    public ErrorDialog(Window parent) {
+        super(parent, APPLICATION_MODAL);
         init(parent);
     }
 
@@ -331,12 +326,6 @@ public class ErrorDialog extends javax.swing.JDialog {
                 }
             }
         }.start();
-    }
-    
-    public static void main(String[] args) {
-        ErrorDialog dialog = new ErrorDialog((Frame) null);
-        dialog.setException(new OutOfMemoryError("test"));
-        dialog.setVisible(true);
     }
 
     /** This method is called from within the constructor to

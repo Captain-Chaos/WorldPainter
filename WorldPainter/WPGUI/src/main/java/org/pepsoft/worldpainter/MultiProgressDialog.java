@@ -28,6 +28,7 @@ import java.awt.event.ComponentListener;
 
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
+import static org.pepsoft.worldpainter.ExceptionHandler.handleException;
 
 /**
  *
@@ -119,10 +120,7 @@ public abstract class MultiProgressDialog<T> extends javax.swing.JDialog impleme
                 DesktopUtils.beep();
                 JOptionPane.showMessageDialog(MultiProgressDialog.this, cause.getMessage(), "Incompatible Material", JOptionPane.ERROR_MESSAGE);
             } else {
-                DesktopUtils.beep();
-                ErrorDialog dialog = new ErrorDialog(MultiProgressDialog.this);
-                dialog.setException(exception);
-                dialog.setVisible(true);
+                handleException(exception, MultiProgressDialog.this);
             }
             close();
         });

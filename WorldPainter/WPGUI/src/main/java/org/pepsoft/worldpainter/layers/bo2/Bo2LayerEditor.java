@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Material.PERSISTENT;
+import static org.pepsoft.worldpainter.ExceptionHandler.doWithoutExceptionReporting;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
@@ -268,7 +269,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         previewer.setDimension(App.getInstance().getDimension());
         fileChooser.addPropertyChangeListener(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY, previewer);
         fileChooser.setAccessory(previewer);
-        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+        if (doWithoutExceptionReporting(() -> fileChooser.showOpenDialog(this)) == JFileChooser.APPROVE_OPTION) {
             File[] selectedFiles = fileChooser.getSelectedFiles();
             if (selectedFiles.length > 0) {
                 Platform platform = context.getDimension().getWorld().getPlatform();

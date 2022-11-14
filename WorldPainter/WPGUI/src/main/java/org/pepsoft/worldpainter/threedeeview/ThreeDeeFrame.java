@@ -5,7 +5,6 @@
 package org.pepsoft.worldpainter.threedeeview;
 
 import org.pepsoft.minecraft.Direction;
-import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
@@ -17,6 +16,7 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.util.BetterAction;
+import org.pepsoft.worldpainter.util.FileUtils;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

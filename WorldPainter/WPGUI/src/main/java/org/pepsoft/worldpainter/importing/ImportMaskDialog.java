@@ -10,7 +10,6 @@
  */
 package org.pepsoft.worldpainter.importing;
 
-import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
@@ -18,6 +17,7 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Void;
+import org.pepsoft.worldpainter.util.FileUtils;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

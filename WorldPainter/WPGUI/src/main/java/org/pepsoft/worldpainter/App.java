@@ -62,6 +62,7 @@ import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
 import org.pepsoft.worldpainter.tools.BiomesViewerFrame;
 import org.pepsoft.worldpainter.tools.RespawnPlayerDialog;
 import org.pepsoft.worldpainter.tools.scripts.ScriptRunner;
+import org.pepsoft.worldpainter.util.FileUtils;
 import org.pepsoft.worldpainter.util.*;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
 import org.pepsoft.worldpainter.vo.EventVO;
@@ -2170,9 +2171,9 @@ public final class App extends JFrame implements RadiusControl,
             File file = lastSelectedFile;
             if (file == null) {
                 if ((config != null) && (config.getWorldDirectory() != null)) {
-                    file = new File(config.getWorldDirectory(), FileUtils.sanitiseName(world.getName().trim() + ".world"));
+                    file = new File(config.getWorldDirectory(), org.pepsoft.util.FileUtils.sanitiseName(world.getName().trim() + ".world"));
                 } else {
-                    file = new File(DesktopUtils.getDocumentsFolder(), FileUtils.sanitiseName(world.getName().trim() + ".world"));
+                    file = new File(DesktopUtils.getDocumentsFolder(), org.pepsoft.util.FileUtils.sanitiseName(world.getName().trim() + ".world"));
                 }
             }
             file = FileUtils.selectFileForSave(App.this, "Save as a WorldPainter world", file, new FileFilter() {
@@ -2234,7 +2235,7 @@ public final class App extends JFrame implements RadiusControl,
             if (name.isEmpty()) {
                 name = strings.getString("generated.world") + ".world"; // NOI18N
             } else {
-                name = FileUtils.sanitiseName(name);
+                name = org.pepsoft.util.FileUtils.sanitiseName(name);
             }
             final File normalisedFile = new File(file.getParentFile(), name);
 
@@ -2388,7 +2389,7 @@ public final class App extends JFrame implements RadiusControl,
             return;
         }
         try {
-            FileUtils.rotateFile(getAutosaveFile(), "autosave.{0}.world", 0, 3);
+            org.pepsoft.util.FileUtils.rotateFile(getAutosaveFile(), "autosave.{0}.world", 0, 3);
         } catch (IOException e) {
             throw new RuntimeException("I/O error while rotating autosave file", e);
         }
@@ -6263,7 +6264,7 @@ public final class App extends JFrame implements RadiusControl,
         if ((layerDirectory == null) || (! layerDirectory.isDirectory())) {
             layerDirectory = DesktopUtils.getDocumentsFolder();
         }
-        File selectedFile = FileUtils.selectFileForSave(this, "Export WorldPainter layer file", new File(layerDirectory, FileUtils.sanitiseName(layer.getName()) + ".layer"), new FileFilter() {
+        File selectedFile = FileUtils.selectFileForSave(this, "Export WorldPainter layer file", new File(layerDirectory, org.pepsoft.util.FileUtils.sanitiseName(layer.getName()) + ".layer"), new FileFilter() {
             @Override
             public boolean accept(File f) {
                 return f.isDirectory() || f.getName().toLowerCase().endsWith(".layer");

@@ -1,6 +1,5 @@
 package org.pepsoft.worldpainter.util;
 
-import org.pepsoft.util.FileUtils;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.plugins.MapImporterProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;

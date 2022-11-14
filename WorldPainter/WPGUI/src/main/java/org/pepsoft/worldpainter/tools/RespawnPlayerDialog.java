@@ -12,8 +12,8 @@
 package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.util.DesktopUtils;
-import org.pepsoft.util.FileUtils;
 import org.pepsoft.worldpainter.Configuration;
+import org.pepsoft.worldpainter.util.FileUtils;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;

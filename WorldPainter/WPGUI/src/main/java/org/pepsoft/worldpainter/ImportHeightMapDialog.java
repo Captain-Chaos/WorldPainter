@@ -11,7 +11,6 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.DesktopUtils;
-import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
@@ -28,6 +27,7 @@ import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 import org.pepsoft.worldpainter.themes.Theme;
 import org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor;
+import org.pepsoft.worldpainter.util.FileUtils;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

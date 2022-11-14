@@ -11,10 +11,10 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.DesktopUtils;
-import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.swing.TiledImageViewer;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
+import org.pepsoft.worldpainter.util.FileUtils;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
