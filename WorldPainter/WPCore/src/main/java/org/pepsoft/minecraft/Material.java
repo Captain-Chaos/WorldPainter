@@ -201,7 +201,7 @@ public final class Material implements Serializable {
             if (logger.isDebugEnabled()) {
                 logger.debug("Matched " + identity + " to " + BLOCK_TYPE_NAMES[blockType] + "(" + blockType + "):" + data);
             }
-        } else if (identity.name.startsWith("legacy:block_") && (identity.properties != null) && identity.properties.containsKey("data_value")) {
+        } else if (identity.name.startsWith("legacy:block_") && (identity.properties != null) && isValidDataValue(identity.properties.get("data_value"))) {
             // Legacy non-vanilla block; decode block ID and data value from
             // name and properties
             blockType = Integer.parseInt(identity.name.substring(13));
@@ -1246,6 +1246,15 @@ public final class Material implements Serializable {
             return MATERIAL_SPECS.get(name).stream().map(Collections::unmodifiableMap).collect(toSet());
         } else {
             return emptySet();
+        }
+    }
+
+    private static boolean isValidDataValue(String dataValue) {
+        try {
+            final int intValue = Integer.parseInt(dataValue);
+            return (intValue >= 0) && (intValue <= 15);
+        } catch (NumberFormatException e) {
+            return false;
         }
     }
 
