@@ -98,7 +98,7 @@ public class TileFactoryPreviewer {
         Terrain.setCustomMaterial(1, new MixedMaterial("Stone/Gravel", new Row[] {new Row(Material.STONE, 750, 1.0f), new Row(Material.GRAVEL, 250, 1.0f)}, Minecraft1_2BiomeScheme.BIOME_PLAINS, null, 1.0f));
         TiledImageViewer viewer = new TiledImageViewer();
         JFrame frame = new JFrame("TileFactory Previewer");
-        viewer.setTileProvider(new WPTileProvider(tileProvider, ColourScheme.DEFAULT, null, Collections.singleton(Biome.INSTANCE), true, 10, TileRenderer.LightOrigin.NORTHWEST));
+        viewer.setTileProvider(new WPTileProvider(tileProvider, ColourScheme.DEFAULT, null, Collections.singleton(Biome.INSTANCE), true, 10, TileRenderer.LightOrigin.NORTHWEST, null));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(viewer, BorderLayout.CENTER);
         frame.setSize(1000, 800);

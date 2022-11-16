@@ -14,6 +14,7 @@ import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
+import org.pepsoft.worldpainter.ramps.ColourRamp;
 import org.pepsoft.worldpainter.tools.BiomesTileProvider;
 import org.pepsoft.worldpainter.tools.WPTileSelectionViewer;
 
@@ -254,7 +255,7 @@ public class TileSelector extends javax.swing.JPanel {
                 }
             }
 
-            WPTileProvider tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin);
+            WPTileProvider tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin, colourRamp);
 //            tileProvider.setZoom(zoom);
             viewer.setTileProvider(tileProvider);
 
@@ -270,7 +271,7 @@ public class TileSelector extends javax.swing.JPanel {
                 backgroundZoom = 0;
             }
             if (backgroundDimension != null) {
-                WPTileProvider backgroundProvider = new WPTileProvider(backgroundDimension, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin, false, FADE_TO_FIFTY_PERCENT, true);
+                WPTileProvider backgroundProvider = new WPTileProvider(backgroundDimension, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin, false, FADE_TO_FIFTY_PERCENT, true, colourRamp);
                 viewer.setTileProvider(-1, backgroundProvider);
                 viewer.setTileProviderZoom(backgroundProvider, backgroundZoom);
             }
@@ -315,7 +316,15 @@ public class TileSelector extends javax.swing.JPanel {
     public void setCustomBiomeManager(CustomBiomeManager customBiomeManager) {
         this.customBiomeManager = customBiomeManager;
     }
-    
+
+    public ColourRamp getColourRamp() {
+        return colourRamp;
+    }
+
+    public void setColourRamp(ColourRamp colourRamp) {
+        this.colourRamp = colourRamp;
+    }
+
     public Set<Point> getSelectedTiles() {
         return viewer.getSelectedTiles();
     }
@@ -556,6 +565,7 @@ public class TileSelector extends javax.swing.JPanel {
     private boolean contourLines, allowNonExistentTileSelection = false, allowBackgroundTileSelection = true;
     private TileRenderer.LightOrigin lightOrigin;
     private CustomBiomeManager customBiomeManager;
+    private ColourRamp colourRamp;
 
     private static final long serialVersionUID = 1L;
     

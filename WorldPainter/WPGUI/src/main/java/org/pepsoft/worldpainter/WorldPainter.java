@@ -13,6 +13,7 @@ import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.brushes.BrushShape;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.ramps.ColourRamp;
 import org.pepsoft.worldpainter.tools.BiomesTileProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import static java.util.Collections.singleton;
@@ -244,6 +246,21 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         }
     }
 
+    public ColourRamp getColourRamp() {
+        return colourRamp;
+    }
+
+    public void setColourRamp(ColourRamp colourRamp) {
+        if (! Objects.equals(colourRamp, this.colourRamp)) {
+            final ColourRamp oldColourRamp = this.colourRamp;
+            this.colourRamp = colourRamp;
+            if ((hiddenLayers != null) && hiddenLayers.contains(TERRAIN_AS_LAYER)) {
+                refreshTiles();
+            }
+            firePropertyChange("colourRamp", oldColourRamp, colourRamp);
+        }
+    }
+
     public void refreshBrush() {
         Point mousePos = getMousePosition();
         if (mousePos != null) {
@@ -299,11 +316,11 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                 }
             }
 
-            tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, drawContours, contourSeparation, lightOrigin, true, null, backgroundDimension == null);
+            tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, drawContours, contourSeparation, lightOrigin, true, null, backgroundDimension == null, colourRamp);
             setTileProvider(LAYER_DETAILS, tileProvider);
 
             if (backgroundDimension != null) {
-                backgroundTileProvider = new WPTileProvider(backgroundDimension, colourScheme, customBiomeManager, hiddenLayers, false, contourSeparation, lightOrigin, false, FADE_TO_FIFTY_PERCENT, true);
+                backgroundTileProvider = new WPTileProvider(backgroundDimension, colourScheme, customBiomeManager, hiddenLayers, false, contourSeparation, lightOrigin, false, FADE_TO_FIFTY_PERCENT, true, colourRamp);
                 setTileProvider(LAYER_BACKGROUND, backgroundTileProvider);
                 setTileProviderZoom(backgroundTileProvider, backgroundDimensionZoom);
             } else {
@@ -370,7 +387,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         if (dimension == null) {
             return null;
         }
-        TileRenderer tileRenderer = new TileRenderer(dimension, colourScheme, customBiomeManager, 0, true);
+        TileRenderer tileRenderer = new TileRenderer(dimension, colourScheme, customBiomeManager, 0, true, colourRamp);
         tileRenderer.setContourLines(drawContours);
         tileRenderer.setContourSeparation(contourSeparation);
         tileRenderer.setHiddenLayers(hiddenLayers);
@@ -944,6 +961,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private WPTileProvider tileProvider, backgroundTileProvider;
     private Shape customBrushShape;
     private OverlayType overlayType;
+    private ColourRamp colourRamp;
 
     private static final int VIEW_DISTANCE_RADIUS = 192; // 12 chunks (default of Minecraft 1.18.2)
     private static final int FIVE_MINUTE_WALK_DISTANCE_RADIUS = 1280;

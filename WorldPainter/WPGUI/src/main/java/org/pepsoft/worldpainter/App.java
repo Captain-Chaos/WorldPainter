@@ -57,6 +57,8 @@ import org.pepsoft.worldpainter.panels.InfoPanel;
 import org.pepsoft.worldpainter.plugins.CustomLayerProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
+import org.pepsoft.worldpainter.ramps.ColourGradient;
+import org.pepsoft.worldpainter.ramps.DefaultColourRamp;
 import org.pepsoft.worldpainter.selection.*;
 import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
 import org.pepsoft.worldpainter.tools.BiomesViewerFrame;
@@ -123,6 +125,7 @@ import static org.pepsoft.util.IconUtils.createScaledLetterIcon;
 import static org.pepsoft.util.IconUtils.scaleIcon;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.ProgressDialog.NO_FOCUS_STEALING;
+import static org.pepsoft.worldpainter.App.TerrainMode.SHOW_TERRAIN;
 import static org.pepsoft.worldpainter.Configuration.LookAndFeel.DARK_METAL;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
@@ -136,6 +139,7 @@ import static org.pepsoft.worldpainter.TileRenderer.TERRAIN_AS_LAYER;
 import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_FIFTY_PERCENT;
 import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_TWENTYFIVE_PERCENT;
 import static org.pepsoft.worldpainter.World2.*;
+import static org.pepsoft.worldpainter.ramps.ColourGradient.Transition.LINEAR;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
 
 /**
@@ -3144,9 +3148,9 @@ public final class App extends JFrame implements RadiusControl,
         Configuration config = Configuration.getInstance();
         constraints.anchor = GridBagConstraints.WEST;
         constraints.weightx = 0.0;
-        List<Component> terrainComponents = createLayerButton(TERRAIN_AS_LAYER, (char) 0, true, false);
-        terrainCheckBox = (JCheckBox) terrainComponents.get(0);
+        List<Component> terrainComponents = createTerrainDropDown();
         terrainSoloCheckBox = (JCheckBox) terrainComponents.get(1);
+        terrainModeComboBox = (JComboBox<TerrainMode>) terrainComponents.get(2);
         LayoutUtils.addRowOfComponents(layerPanel, constraints, terrainComponents);
         LayoutUtils.addRowOfComponents(layerPanel, constraints, createLayerButton(FLUIDS_AS_LAYER, (char) 0, false, false));
         for (Layer layer: layers) {
@@ -3177,6 +3181,66 @@ public final class App extends JFrame implements RadiusControl,
         layerPanel.putClientProperty(KEY_ICON, ICON_LAYERS);
 
         return layerPanel;
+    }
+
+    private List<Component> createTerrainDropDown() {
+        final JComboBox<TerrainMode> comboBox = new JComboBox<>(TerrainMode.values());
+        final Icon terrainIcon = new ImageIcon(TERRAIN_AS_LAYER.getIcon());
+        final String terrainName = TERRAIN_AS_LAYER.getName();
+        final Icon defaultColourRampIcon = new ImageIcon(new DefaultColourRamp(-64, 62, 320).getPreview((int) (80 * getUIScale()), (int) (16 * getUIScale()), -64, 319));
+        final Icon defaultGreyscaleRampIcon = new ImageIcon(new ColourGradient(0.0f, 0x000000, 1.0f, 0xffffff, LINEAR).getPreview((int) (80 * getUIScale()), (int) (16 * getUIScale()), 0.0f, 1.0f));
+        comboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                switch ((TerrainMode) value) {
+                    case SHOW_TERRAIN:
+                        setIcon(terrainIcon);
+                        setText(terrainName);
+                        break;
+                    case HIDE_TERRAIN:
+                        setIcon(ICON_NO_TERRAIN);
+                        setText("Hide Terrain");
+                        break;
+                    case DEFAULT_COLOUR_RAMP:
+                        setIcon(defaultColourRampIcon);
+                        setText(null);
+                        break;
+                    case DEFAULT_GREYSCALE_RAMP:
+                        setIcon(defaultGreyscaleRampIcon);
+                        setText(null);
+                        break;
+                }
+                return this;
+            }
+        });
+        comboBox.addActionListener(e -> {
+            terrainMode = (TerrainMode) comboBox.getSelectedItem();
+            switch (terrainMode) {
+                case SHOW_TERRAIN:
+                    hiddenLayers.remove(TERRAIN_AS_LAYER);
+                    break;
+                case HIDE_TERRAIN:
+                    hiddenLayers.add(TERRAIN_AS_LAYER);
+                    view.setColourRamp(null);
+                    break;
+                case DEFAULT_COLOUR_RAMP:
+                    hiddenLayers.add(TERRAIN_AS_LAYER);
+                    if (dimension != null) {
+                        final int waterLevel = (dimension.getTileFactory() instanceof HeightMapTileFactory) ? ((HeightMapTileFactory) dimension.getTileFactory()).getWaterHeight() : 62;
+                        view.setColourRamp(new DefaultColourRamp(dimension.getMinHeight(), waterLevel, dimension.getMaxHeight()));
+                    }
+                    break;
+                case DEFAULT_GREYSCALE_RAMP:
+                    hiddenLayers.add(TERRAIN_AS_LAYER);
+                    if (dimension != null) {
+                        view.setColourRamp(new ColourGradient(dimension.getMinHeight(), 0x000000, dimension.getMaxHeight(), 0xffffff, LINEAR));
+                    }
+                    break;
+            }
+            updateLayerVisibility();
+        });
+        return createLayerRow(TERRAIN_AS_LAYER, false, true, comboBox);
     }
 
     private JPanel createBiomesPanelContainer() {
@@ -3518,20 +3582,11 @@ public final class App extends JFrame implements RadiusControl,
         Configuration config = Configuration.getInstance();
         constraints.anchor = GridBagConstraints.FIRST_LINE_START;
         constraints.weightx = 0.0;
-        JCheckBox checkBoxShowTerrain = new RemoteJCheckBox(terrainCheckBox, "Show:");
-        checkBoxShowTerrain.setHorizontalTextPosition(SwingConstants.LEADING);
-        checkBoxShowTerrain.setToolTipText("Uncheck to hide biomes from view (it will still be exported)");
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
         if (! config.isEasyMode()) {
-            constraints.gridwidth = 1;
-            constraints.weightx = 0.0;
-            terrainPanel.add(checkBoxShowTerrain, constraints);
-        }
-
-        JCheckBox checkBoxSoloTerrain = new RemoteJCheckBox(terrainSoloCheckBox, "Solo:");
-        checkBoxSoloTerrain.setHorizontalTextPosition(SwingConstants.LEADING);
-        checkBoxSoloTerrain.setToolTipText("<html>Check to show <em>only</em> the biomes (the other layers are still exported)</html>");
-        if (! config.isEasyMode()) {
-            constraints.gridwidth = GridBagConstraints.REMAINDER;
+            final JCheckBox checkBoxSoloTerrain = new RemoteJCheckBox(terrainSoloCheckBox, "Solo:");
+            checkBoxSoloTerrain.setHorizontalTextPosition(SwingConstants.LEADING);
+            checkBoxSoloTerrain.setToolTipText("<html>Check to show <em>only</em> the biomes (the other layers are still exported)</html>");
             terrainPanel.add(checkBoxSoloTerrain, constraints);
         }
 
@@ -4054,16 +4109,18 @@ public final class App extends JFrame implements RadiusControl,
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             final LayerControls layerControls = this.layerControls.get(layer);
-            final AbstractButton button = (layerControls != null) ? layerControls.button : null;
-            if (button != null) {
-                button.setText(layer.getName());
-                button.setToolTipText(layer.getName() + ": " + layer.getDescription() + "; right-click for options");
+            final JComponent control = (layerControls != null) ? layerControls.control : null;
+            if (control != null) {
+                if (control instanceof AbstractButton) {
+                    ((AbstractButton) control).setText(layer.getName());
+                }
+                control.setToolTipText(layer.getName() + ": " + layer.getDescription() + "; right-click for options");
             }
             int newColour = layer.getColour();
             boolean viewRefreshed = false;
             if (newColour != previousColour) {
-                if (button != null) {
-                    button.setIcon(new ImageIcon(layer.getIcon()));
+                if (control instanceof AbstractButton) {
+                    ((AbstractButton) control).setIcon(new ImageIcon(layer.getIcon()));
                 }
                 view.refreshTilesForLayer(layer, false);
                 viewRefreshed = true;
@@ -5414,25 +5471,63 @@ public final class App extends JFrame implements RadiusControl,
         return button;
     }
 
-    private List<Component> createLayerButton(final Layer layer, char mnemonic) {
+    private List<Component> createLayerButton(final Layer layer, final char mnemonic) {
         return createLayerButton(layer, mnemonic, true, true);
     }
 
-    private List<Component> createLayerButton(final Layer layer, char mnemonic, boolean createSoloCheckbox, boolean createButton) {
+    private List<Component> createLayerButton(final Layer layer, final char mnemonic, final boolean createSoloCheckbox, final boolean createButton) {
+        if (createButton) {
+            final JToggleButton button = new JToggleButton();
+            button.setMargin(new Insets(2, 2, 2, 2));
+            if (layer.getIcon() != null) {
+                button.setIcon(new ImageIcon(layer.getIcon()));
+            }
+            button.setToolTipText(layer.getName() + ": " + layer.getDescription());
+            // TODO: make this work again, but with Ctrl + Alt or something
+//            if (mnemonic != 0) {
+//                button.setMnemonic(mnemonic);
+//            }
+            button.addItemListener(event -> {
+                if (event.getStateChange() == ItemEvent.SELECTED) {
+                    paintUpdater = () -> {
+                        paint = PaintFactory.createLayerPaint(layer);
+                        paintChanged();
+                    };
+                    paintUpdater.updatePaint();
+                }
+            });
+            paintButtonGroup.add(button);
+            button.setText(layer.getName());
+            button.putClientProperty(KEY_HELP_KEY, "Layer/" + layer.getId());
+            return createLayerRow(layer, true, createSoloCheckbox, button);
+        } else {
+            JLabel label = new JLabel(layer.getName(), new ImageIcon(layer.getIcon()), JLabel.LEADING);
+            label.putClientProperty(KEY_HELP_KEY, "Layer/" + layer.getId());
+            return createLayerRow(layer, true, createSoloCheckbox, label);
+        }
+    }
+
+    private List<Component> createLayerRow(final Layer layer, final boolean createShowCheckbox, final boolean createSoloCheckbox, final JComponent layerComponent) {
         List<Component> components = new ArrayList<>(3);
 
-        final JCheckBox checkBox = new JCheckBox();
-        checkBox.setToolTipText(strings.getString("whether.or.not.to.display.this.layer"));
-        checkBox.setSelected(true);
-        checkBox.addChangeListener(e -> {
-            if (checkBox.isSelected()) {
-                hiddenLayers.remove(layer);
-            } else {
-                hiddenLayers.add(layer);
-            }
-            updateLayerVisibility();
-        });
-        components.add(checkBox);
+        final JCheckBox checkBox;
+        if (createShowCheckbox) {
+            checkBox = new JCheckBox();
+            checkBox.setToolTipText(strings.getString("whether.or.not.to.display.this.layer"));
+            checkBox.setSelected(true);
+            checkBox.addChangeListener(e -> {
+                if (checkBox.isSelected()) {
+                    hiddenLayers.remove(layer);
+                } else {
+                    hiddenLayers.add(layer);
+                }
+                updateLayerVisibility();
+            });
+            components.add(checkBox);
+        } else {
+            checkBox = null;
+            components.add(Box.createGlue());
+        }
 
         final JCheckBox soloCheckBox;
         if (createSoloCheckbox) {
@@ -5446,39 +5541,8 @@ public final class App extends JFrame implements RadiusControl,
             components.add(Box.createGlue());
         }
 
-        final JToggleButton button;
-        if (createButton) {
-            button = new JToggleButton();
-            button.setMargin(new Insets(2, 2, 2, 2));
-            if (layer.getIcon() != null) {
-                button.setIcon(new ImageIcon(layer.getIcon()));
-            }
-            button.setToolTipText(layer.getName() + ": " + layer.getDescription());
-            // TODO: make this work again, but with Ctrl + Alt or something
-    //        if (mnemonic != 0) {
-    //            button.setMnemonic(mnemonic);
-    //        }
-            button.addItemListener(event -> {
-                if (event.getStateChange() == ItemEvent.SELECTED) {
-                    paintUpdater = () -> {
-                        paint = PaintFactory.createLayerPaint(layer);
-                        paintChanged();
-                    };
-                    paintUpdater.updatePaint();
-                }
-            });
-            paintButtonGroup.add(button);
-            button.setText(layer.getName());
-            button.putClientProperty(KEY_HELP_KEY, "Layer/" + layer.getId());
-            components.add(button);
-        } else {
-            button = null;
-            JLabel label = new JLabel(layer.getName(), new ImageIcon(layer.getIcon()), JLabel.LEADING);
-            label.putClientProperty(KEY_HELP_KEY, "Layer/" + layer.getId());
-            components.add(label);
-        }
-
-        layerControls.put(layer, new LayerControls(layer, checkBox, soloCheckBox, button));
+        components.add(layerComponent);
+        layerControls.put(layer, new LayerControls(layer, checkBox, soloCheckBox, layerComponent));
 
         return components;
     }
@@ -5530,13 +5594,17 @@ public final class App extends JFrame implements RadiusControl,
         // The FloodWithLava layer should *always* be hidden
         targetHiddenLayers.add(FloodWithLava.INSTANCE);
         if (soloLayer != null) {
-            // Only the solo layer and the active layer (if there is one and it
-            // is different than the solo layer) should be visible
+            // Only the solo layer and the active layer (if there is one and it is different than the solo layer) should
+            // be visible
             targetHiddenLayers.addAll((dimension != null) ? dimension.getAllLayers(true) : new HashSet<>(layers));
-            // Put in the currently hidden layers as well, as some of them might
-            // be synthetic and not returned by the dimension
+            // Put in the currently hidden layers as well, as some of them might be synthetic and not returned by the
+            // dimension
             targetHiddenLayers.addAll(hiddenLayers);
-            targetHiddenLayers.remove(soloLayer);
+            // Don't hide the solo layer, except when that is the terrain. "Soloing" the terrain has the slightly
+            // different meaning of hiding all the layers
+            if (soloLayer != TERRAIN_AS_LAYER) {
+                targetHiddenLayers.remove(soloLayer);
+            }
         } else {
             Palette soloPalette = null;
             for (Palette palette: paletteManager.getPalettes()) {
@@ -5576,7 +5644,7 @@ public final class App extends JFrame implements RadiusControl,
         // The Selection layers should *never* be hidden
         targetHiddenLayers.remove(SelectionBlock.INSTANCE);
         targetHiddenLayers.remove(SelectionChunk.INSTANCE);
-        
+
         // Hide the selected layers
         view.setHiddenLayers(targetHiddenLayers);
 
@@ -7506,7 +7574,8 @@ public final class App extends JFrame implements RadiusControl,
     private Set<Layer> hiddenLayers = new HashSet<>();
     private int maxRadius = DEFAULT_MAX_RADIUS, brushRotation = 0, toolBrushRotation = 0, previousBrushRotation = 0;
     private GlassPane glassPane;
-    private JCheckBox terrainCheckBox, terrainSoloCheckBox;
+    private JComboBox<TerrainMode> terrainModeComboBox;
+    private JCheckBox terrainSoloCheckBox;
     private JToggleButton setSpawnPointToggleButton;
     private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addCeilingMenuItem, removeCeilingMenuItem, addMasterMenuItem, removeMasterMenuItem;
     private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem;
@@ -7547,6 +7616,7 @@ public final class App extends JFrame implements RadiusControl,
     private InfoPanel infoPanel;
     private String outsideDimensionLabel;
     private final boolean darkMode;
+    private TerrainMode terrainMode = SHOW_TERRAIN;
 
     public static final Image ICON = IconUtils.loadScaledImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
     
@@ -7609,6 +7679,7 @@ public final class App extends JFrame implements RadiusControl,
     private static final Icon ICON_ANNOTATIONS          = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/annotations.png");
     private static final Icon ICON_BIOMES               = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/deciduous_trees_pattern.png");
     private static final Icon ICON_LAYERS               = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/layers.png");
+    private static final Icon ICON_NO_TERRAIN           = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/edit_selection.png");
 
     private static final int PLATFORM_COMMAND_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
     private static final String COMMAND_KEY_NAME = (PLATFORM_COMMAND_MASK == META_DOWN_MASK) ? "⌘" : "Ctrl";
@@ -7822,14 +7893,14 @@ public final class App extends JFrame implements RadiusControl,
             this(layer, checkBox, soloCheckBox, null);
         }
 
-        LayerControls(Layer layer, JCheckBox checkBox, JCheckBox soloCheckBox, AbstractButton button) {
+        LayerControls(Layer layer, JCheckBox checkBox, JCheckBox soloCheckBox, JComponent control) {
             this.layer = layer;
             this.checkBox = checkBox;
             this.soloCheckBox = soloCheckBox;
-            this.button = button;
-            defaultCheckBoxToolTip = checkBox.getToolTipText();
+            this.control = control;
+            defaultCheckBoxToolTip = (checkBox != null) ? checkBox.getToolTipText() : null;
             defaultSoloCheckBoxToolTip = (soloCheckBox != null) ? soloCheckBox.getToolTipText() : null;
-            defaultButtonToolTip = (button != null) ? button.getToolTipText() : null;
+            defaultButtonToolTip = (control != null) ? control.getToolTipText() : null;
         }
 
         /**
@@ -7839,7 +7910,7 @@ public final class App extends JFrame implements RadiusControl,
          * enabled.
          */
         boolean isEnabled() {
-            return checkBox.isEnabled();
+            return (checkBox == null) || checkBox.isEnabled();
         }
 
         /**
@@ -7859,9 +7930,11 @@ public final class App extends JFrame implements RadiusControl,
                         updateLayerVisibility();
                     }
                 }
-                checkBox.setEnabled(enabled);
-                if (enabled) {
-                    checkBox.setToolTipText(defaultCheckBoxToolTip);
+                if (checkBox != null) {
+                    checkBox.setEnabled(enabled);
+                    if (enabled) {
+                        checkBox.setToolTipText(defaultCheckBoxToolTip);
+                    }
                 }
                 if (soloCheckBox != null) {
                     soloCheckBox.setEnabled(enabled);
@@ -7869,10 +7942,10 @@ public final class App extends JFrame implements RadiusControl,
                         soloCheckBox.setToolTipText(defaultSoloCheckBoxToolTip);
                     }
                 }
-                if (button != null) {
-                    button.setEnabled(enabled);
+                if (control != null) {
+                    control.setEnabled(enabled);
                     if (enabled) {
-                        button.setToolTipText(defaultButtonToolTip);
+                        control.setToolTipText(defaultButtonToolTip);
                     }
                 }
             });
@@ -7888,12 +7961,14 @@ public final class App extends JFrame implements RadiusControl,
         void disable(String toolTipText) {
             if (isEnabled()) {
                 setEnabled(false);
-                checkBox.setToolTipText(toolTipText);
+                if (checkBox != null) {
+                    checkBox.setToolTipText(toolTipText);
+                }
                 if (soloCheckBox != null) {
                     soloCheckBox.setToolTipText(toolTipText);
                 }
-                if (button != null) {
-                    button.setToolTipText(toolTipText);
+                if (control != null) {
+                    control.setToolTipText(toolTipText);
                 }
             }
         }
@@ -7925,7 +8000,7 @@ public final class App extends JFrame implements RadiusControl,
         protected final Layer layer;
         protected final JCheckBox checkBox;
         protected final JCheckBox soloCheckBox;
-        protected final AbstractButton button;
+        protected final JComponent control;
         protected final String defaultCheckBoxToolTip, defaultSoloCheckBoxToolTip, defaultButtonToolTip;
     }
 
@@ -7942,4 +8017,6 @@ public final class App extends JFrame implements RadiusControl,
         final BufferedImage icon;
         final List<Brush> brushes;
     }
+
+    public enum TerrainMode { SHOW_TERRAIN, HIDE_TERRAIN, DEFAULT_COLOUR_RAMP, DEFAULT_GREYSCALE_RAMP }
 }

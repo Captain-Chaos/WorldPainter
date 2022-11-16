@@ -235,7 +235,7 @@ public class HeightMapImporter {
             final Theme theme = ((this.theme != null) ? this.theme : heightMapTileFactory.getTheme()).clone();
             theme.setWaterHeight(worldWaterLevel);
             final HeightMapTileFactory tileFactory = new PreviewTileFactory(1L, previewHeightMap, targetDimension, platform.minZ, maxHeight, heightMapTileFactory.isFloodWithLava(), theme, heightMap, voidBelowLevel);
-            return new WPTileProvider(tileFactory, colourScheme, null, null, contourLines, contourSeparation, lightOrigin);
+            return new WPTileProvider(tileFactory, colourScheme, null, null, contourLines, contourSeparation, lightOrigin, null);
         } else {
             return null;
         }

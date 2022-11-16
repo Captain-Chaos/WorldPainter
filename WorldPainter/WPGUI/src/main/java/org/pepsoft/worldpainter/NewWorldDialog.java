@@ -702,7 +702,7 @@ public class NewWorldDialog extends WorldPainterDialog {
             private final Map<Point, Tile> cache = new HashMap<>();
         };
         Configuration config = Configuration.getInstance();
-        tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, colourScheme, app.getCustomBiomeManager(), Collections.singleton(Biome.INSTANCE), config.isDefaultContoursEnabled(), config.getDefaultContourSeparation(), config.getDefaultLightOrigin()));
+        tiledImageViewer1.setTileProvider(new WPTileProvider(tileProvider, colourScheme, app.getCustomBiomeManager(), Collections.singleton(Biome.INSTANCE), config.isDefaultContoursEnabled(), config.getDefaultContourSeparation(), config.getDefaultLightOrigin(), null));
     }
     
     private TileFactory createTileFactory(long seed, Dimension.Role role) {

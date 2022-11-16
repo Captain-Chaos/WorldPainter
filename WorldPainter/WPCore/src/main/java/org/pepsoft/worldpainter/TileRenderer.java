@@ -15,6 +15,7 @@ import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.renderers.*;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayerHelper;
+import org.pepsoft.worldpainter.ramps.ColourRamp;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -36,7 +37,7 @@ import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.FIXED_HEIG
  * @author pepijn
  */
 public final class TileRenderer {
-    public TileRenderer(TileProvider tileProvider, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int zoom, boolean transparentVoid) {
+    public TileRenderer(TileProvider tileProvider, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int zoom, boolean transparentVoid, ColourRamp colourRamp) {
         biomeRenderer = new BiomeRenderer(customBiomeManager);
         this.tileProvider = tileProvider;
         final Dimension dimension = (tileProvider instanceof Dimension) ? (Dimension) tileProvider : null;
@@ -69,6 +70,7 @@ public final class TileRenderer {
         this.tunnelLayerHelper = tunnelLayerHelper;
         this.zoom = zoom;
         this.transparentVoid = transparentVoid;
+        this.colourRamp = colourRamp;
         setColourScheme(colourScheme);
         bufferedImage = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_ARGB);
         renderBuffer = ((DataBufferInt) bufferedImage.getRaster().getDataBuffer()).getData();
@@ -403,7 +405,7 @@ public final class TileRenderer {
                 }
             }
         } else {
-            colour = LIGHT_GREY;
+            colour = (colourRamp != null) ? colourRamp.getColour(floatHeightCache[offset]) : LIGHT_GREY;
         }
         for (int i = 0; i < layers.length; i++) {
             final Layer layer = layers[i];
@@ -526,6 +528,7 @@ public final class TileRenderer {
     private final TileProvider tileProvider, relatedTileProvider;
     private final boolean renderCeilingIntersection, renderTunnelRoofIntersection, transparentVoid;
     private final TunnelLayerHelper tunnelLayerHelper;
+    private final ColourRamp colourRamp;
     private ColourScheme colourScheme;
     private boolean contourLines = true, hideAllLayers;
     private int contourSeparation = 10, waterColour, lavaColour, bedrockColour, notPresentColour, voidColour;

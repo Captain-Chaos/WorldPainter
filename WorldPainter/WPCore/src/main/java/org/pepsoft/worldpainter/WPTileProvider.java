@@ -10,6 +10,7 @@ import org.pepsoft.util.swing.TiledImageViewer;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
+import org.pepsoft.worldpainter.ramps.ColourRamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +29,7 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
  * @author pepijn
  */
 public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dimension.Listener, Tile.Listener {
-    public WPTileProvider(TileProvider tileProvider, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Set<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, boolean active, Effect effect, boolean transparentVoid) {
+    public WPTileProvider(TileProvider tileProvider, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Set<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, boolean active, Effect effect, boolean transparentVoid, ColourRamp colourRamp) {
         this.tileProvider = tileProvider;
         this.colourScheme = colourScheme;
         this.hiddenLayers = ((hiddenLayers != null) && (hiddenLayers != HIDE_ALL_LAYERS)) ? new HashSet<>(hiddenLayers) : null;
@@ -41,10 +42,11 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
         tileRendererRef = createNewTileRendererRef();
         this.effect = effect;
         this.transparentVoid = transparentVoid;
+        this.colourRamp = colourRamp;
     }
 
-    public WPTileProvider(TileProvider tileProvider, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Set<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
-        this(tileProvider, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin, false, null, true);
+    public WPTileProvider(TileProvider tileProvider, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Set<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, ColourRamp colourRamp) {
+        this(tileProvider, colourScheme, customBiomeManager, hiddenLayers, contourLines, contourSeparation, lightOrigin, false, null, true, colourRamp);
     }
     
     public synchronized void setHiddenLayers(Set<Layer> hiddenLayers) {
@@ -321,7 +323,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     @NotNull
     private ThreadLocal<TileRenderer> createNewTileRendererRef() {
         return ThreadLocal.withInitial(() -> {
-            TileRenderer tileRenderer = new TileRenderer(tileProvider, colourScheme, customBiomeManager, zoom, transparentVoid);
+            TileRenderer tileRenderer = new TileRenderer(tileProvider, colourScheme, customBiomeManager, zoom, transparentVoid, colourRamp);
             synchronized (WPTileProvider.this) {
                 if (hideAllLayers) {
                     tileRenderer.setHideAllLayers(true);
@@ -363,6 +365,7 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
     private final List<TileListener> listeners = new ArrayList<>();
     private final CustomBiomeManager customBiomeManager;
     private final Effect effect;
+    private final ColourRamp colourRamp;
 
     private int zoom = 0;
     private boolean hideAllLayers;

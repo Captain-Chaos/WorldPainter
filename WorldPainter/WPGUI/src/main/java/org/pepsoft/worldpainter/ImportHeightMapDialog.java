@@ -652,7 +652,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                 }
             }
             if (currentDimension != null) {
-                tiledImageViewer2.setTileProvider(LAYER_CURRENT_DIMENSION, new WPTileProvider(currentDimension, colourScheme, customBiomeManager, HIDE_ALL_LAYERS, contourLines, contourSeparation, lightOrigin, false, FADE_TO_FIFTY_PERCENT, true));
+                tiledImageViewer2.setTileProvider(LAYER_CURRENT_DIMENSION, new WPTileProvider(currentDimension, colourScheme, customBiomeManager, HIDE_ALL_LAYERS, contourLines, contourSeparation, lightOrigin, false, FADE_TO_FIFTY_PERCENT, true, null));
             }
         });
     }
