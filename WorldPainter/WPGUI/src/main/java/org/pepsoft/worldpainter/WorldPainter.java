@@ -613,6 +613,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                 if (drawBrush || drawViewDistance || drawWalkingDistance) {
                     g2.setColor(Color.BLACK);
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setXORMode(Color.WHITE);
                 }
                 if (drawBrush) {
                     g2.setStroke(new BasicStroke(onePixel, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {3 * onePixel, 3 * onePixel}, 0));
@@ -703,6 +704,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                 g2.setStroke(savedStroke);
                 g2.setTransform(savedTransform);
                 g2.setFont(savedFont);
+                g2.setPaintMode();
             }
         }
     }
