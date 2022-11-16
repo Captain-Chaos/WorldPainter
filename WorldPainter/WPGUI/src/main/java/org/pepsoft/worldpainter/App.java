@@ -5649,7 +5649,7 @@ public final class App extends JFrame implements RadiusControl,
             for (int dy = -radius + 1; dy < radius; dy++) {
                 final float strength = brush.getFullStrength(dx, dy);
                 final int alpha = round(strength * 255f);
-                image.setRGB(dx + radius - 1, dy + radius - 1, (alpha << 24) | (darkMode ? 0xffffff : 0x000000));
+                image.setRGB(dx + radius - 1, dy + radius - 1, (alpha << 24) | (darkMode ? 0xd0d0d0 : 0x000000));
             }
         }
         return new ImageIcon(image);
