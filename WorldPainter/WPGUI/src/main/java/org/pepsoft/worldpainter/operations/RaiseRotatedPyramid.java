@@ -38,7 +38,7 @@ public class RaiseRotatedPyramid extends MouseOrTabletOperation {
                 dimension.setHeightAt(centreX, centreY, height + 1);
             }
             dimension.setTerrainAt(centreX, centreY, Terrain.SANDSTONE);
-            int maxR = dimension.getMaxHeight();
+            int maxR = dimension.getMaxHeight() - dimension.getMinHeight();
             for (int r = 1; r < maxR; r++) {
                 if (! raiseRing(dimension, centreX, centreY, r, height--)) {
                     break;
