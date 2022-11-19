@@ -20,6 +20,8 @@ public class GetPlatformOp extends AbstractOperation<Platform> {
 
     @Override
     public Platform go() throws ScriptException {
+        goCalled();
+
         if (id != null) {
             if (name != null) {
                 throw new ScriptException("Both name and id set");
