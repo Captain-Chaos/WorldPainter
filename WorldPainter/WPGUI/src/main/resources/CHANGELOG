@@ -1,3 +1,19 @@
+-- Version 2.15.12, released ...
+
+ * A colour and greyscale ramp are now supported for showing the terrain height in the editor, in addition to the existing terrain type and hide terrain options, as an addition or alternative to the contour lines
+   + Select the colour or greyscale ramp using the drop down box at the top of the Layers or Terrain panels
+     - This does not by itself disable the contour lines. Disable those by pressing the toolbar button, or from the Configure View screen (View menu or Ctrl+V)
+   + If you want to see _just_ the colour ramp and no layers, check the Solo checkbox
+   + If you also don't want to see water and lava, uncheck the Show checkbox next to Water/Lava
+   + The colour ramp adjusts to the minimum and the maximum build heights, and the default water level. It has the following ranges:
+     - From -64 to 0: black to blue
+     - From 0 to the water level: blue to cyan
+     - From the water level to 256: dark green to green to yellow to orange to red to white
+     - 256 and up: white to purple
+   + The shadows and specular highlights by default will brighten or darken the ramp colours and distort the apparent shape. If you want to disable shadows, press the "Rotate light anticlockwise" button on the toolbar, or the l key, to change the light direction to straight from above and remove the shadows and specular highlights
+   + The greyscale ramp can only display 256 values, which is too few for the full build height range of -64 to 320 of a Minecraft 1.18+ map. It is therefore not suitable for detailed editing
+   + If there is enough interest more ramps and/or the ability to create custom ramps may be added in the future
+
 -- Version 2.15.11, released 12-11-2022
 
  * 3D previews now show full details for two additional zoom levels, allowing you to zoom in further before starting to lose precision
