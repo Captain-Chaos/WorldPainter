@@ -13,6 +13,10 @@
    + The shadows and specular highlights by default will brighten or darken the ramp colours and distort the apparent shape. If you want to disable shadows, press the "Rotate light anticlockwise" button on the toolbar, or the l key, to change the light direction to straight from above and remove the shadows and specular highlights
    + The greyscale ramp can only display 256 values, which is too few for the full build height range of -64 to 320 of a Minecraft 1.18+ map. It is therefore not suitable for detailed editing
    + If there is enough interest more ramps and/or the ability to create custom ramps may be added in the future
+ * The mouse cursor is now white with black drop shadows, instead of black, for better visibility
+ * The brush shape, view distance and walking distance indicators are now painted in XOR mode (dark over bright background; bright over dark background) for better visibility
+ * More diagnostic information has been added to error reports in order to improve debugging of problems
+ * Some small bug fixes and usability improvements
 
 -- Version 2.15.11, released 12-11-2022
 
