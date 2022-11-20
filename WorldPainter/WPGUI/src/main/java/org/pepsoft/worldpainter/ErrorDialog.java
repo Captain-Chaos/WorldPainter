@@ -11,6 +11,8 @@
 
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.util.mdc.MDCWrappingException;
+import org.pepsoft.util.mdc.MDCWrappingRuntimeException;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
 import org.pepsoft.worldpainter.vo.EventVO;
@@ -26,10 +28,7 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static java.awt.Dialog.ModalityType.APPLICATION_MODAL;
 import static java.lang.Boolean.TRUE;
@@ -53,6 +52,11 @@ public class ErrorDialog extends javax.swing.JDialog {
 
     @SuppressWarnings("StringConcatenationInsideStringBufferAppend") // Readability
     public void setException(Throwable exception) {
+        SortedMap<String, String> mdcContextMap = new TreeMap<>(gatherMdcContext(exception));
+        if ((exception instanceof MDCWrappingException) || (exception instanceof MDCWrappingRuntimeException)) {
+            exception = exception.getCause();
+        }
+
         final UUID uuid = UUID.randomUUID();
         logger.error("[" + uuid + "] " + exception.getClass().getSimpleName() + ": " + exception.getMessage(), exception);
 
@@ -153,7 +157,6 @@ public class ErrorDialog extends javax.swing.JDialog {
             sb.append(eol);
         }
 
-        Map<String, String> mdcContextMap = gatherMdcContext(exception);
         if (! mdcContextMap.isEmpty()) {
             sb.append("Diagnostic context:" + eol);
             mdcContextMap.forEach((key, value) -> sb.append("\t" + key + ": " + value + eol));

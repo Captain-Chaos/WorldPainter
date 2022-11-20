@@ -5,9 +5,9 @@ import org.jnbt.NBTInputStream;
 import org.jnbt.NBTOutputStream;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import org.pepsoft.util.mdc.MDCThreadPoolExecutor;
 import org.pepsoft.worldpainter.Platform;
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.slf4j.Logger;
@@ -112,7 +112,7 @@ public class JavaChunkStore implements ChunkStore {
                     }
                 }
             } catch (IOException e) {
-                throw new WPRuntimeException("I/O error saving chunk @" + x + "," + z + " to region of type " + type, e);
+                throw new MDCCapturingRuntimeException("I/O error saving chunk @" + x + "," + z + " to region of type " + type, e);
             }
         });
     }
@@ -238,7 +238,7 @@ public class JavaChunkStore implements ChunkStore {
          * Visit a Minecraft region file.
          *
          * <p>For convenience, the visitor may throw checked exceptions. They will be wrapped in a
-         * {@link WPRuntimeException} if this happens.
+         * {@link MDCCapturingRuntimeException} if this happens.
          *
          * @param regions The region file(s) to be visited.
          * @return {@code true} if more chunks should be visited, or {@code false} if no more chunks need to be visited.
@@ -296,7 +296,7 @@ public class JavaChunkStore implements ChunkStore {
                     } catch (RuntimeException e) {
                         throw e;
                     } catch (Exception e) {
-                        throw new WPRuntimeException("Checked exception visiting region file " + file, e);
+                        throw new MDCCapturingRuntimeException("Checked exception visiting region file " + file, e);
                     } finally {
                         for (Map.Entry<DataType, RegionFile> entry: regionFilesToVisit.entrySet()) {
                             entry.getValue().close();
@@ -386,12 +386,12 @@ public class JavaChunkStore implements ChunkStore {
             try {
                 executor.awaitTermination(366, TimeUnit.DAYS);
             } catch (InterruptedException e) {
-                throw new WPRuntimeException("Thread interrupted while waiting for all tasks to finish", e);
+                throw new MDCCapturingRuntimeException("Thread interrupted while waiting for all tasks to finish", e);
             }
         }
         synchronized (exception) {
             if (exception[0] != null) {
-                throw new WPRuntimeException(exception[0].getClass().getSimpleName() + " while visiting region files (message: " + exception[0].getMessage() + ")", exception[0]);
+                throw new MDCCapturingRuntimeException(exception[0].getClass().getSimpleName() + " while visiting region files (message: " + exception[0].getMessage() + ")", exception[0]);
             } else {
                 return ! cancelled.get();
             }
@@ -437,7 +437,7 @@ public class JavaChunkStore implements ChunkStore {
                                 }
                             }
                         } catch (Exception e) {
-                            throw new WPRuntimeException("Checked exception visiting chunk " + x + "," + z + " in regions " + regions, e);
+                            throw new MDCCapturingRuntimeException("Checked exception visiting chunk " + x + "," + z + " in regions " + regions, e);
                         }
                     }
                 }

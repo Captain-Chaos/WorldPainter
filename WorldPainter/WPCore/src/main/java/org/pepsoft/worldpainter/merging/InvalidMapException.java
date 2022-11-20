@@ -1,8 +1,8 @@
 package org.pepsoft.worldpainter.merging;
 
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 
-public class InvalidMapException extends WPRuntimeException {
+public class InvalidMapException extends MDCCapturingRuntimeException {
     public InvalidMapException(String message) {
         super(message);
     }

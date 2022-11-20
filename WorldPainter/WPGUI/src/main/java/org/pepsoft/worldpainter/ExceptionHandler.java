@@ -5,7 +5,7 @@
 
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
+import org.pepsoft.util.mdc.MDCWrappingRuntimeException;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
@@ -74,7 +74,7 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
      * {@link ErrorDialog} being shown or a report to be submitted to the backoffice.
      *
      * <p><strong>Note</strong> that this does not <em>catch</em> exceptions! Uncaught exceptions will be propagated as
-     * normal. Checked exceptions will be wrapped in a {@link WPRuntimeException}.
+     * normal. Checked exceptions will be wrapped in a {@link MDCWrappingRuntimeException}.
      */
     public static <T> T doWithoutExceptionReporting(Callable<T> task) {
         reportingDisabled.incrementAndGet();
@@ -84,7 +84,7 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
             if (e instanceof RuntimeException) {
                 throw (RuntimeException) e;
             } else {
-                throw new WPRuntimeException(e);
+                throw new MDCWrappingRuntimeException(e);
             }
         } finally {
             reportingDisabled.decrementAndGet();

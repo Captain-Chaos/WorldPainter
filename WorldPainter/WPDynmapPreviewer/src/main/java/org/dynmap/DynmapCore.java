@@ -1,9 +1,9 @@
 package org.dynmap;
 
 import org.dynmap.common.DynmapServerInterface;
+import org.pepsoft.util.mdc.MDCWrappingRuntimeException;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.dynmap.WPDynmapServer;
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,7 +51,7 @@ public class DynmapCore {
             tmpFile.deleteOnExit();
             return tmpFile;
         } catch (IOException e) {
-            throw new WPRuntimeException(e);
+            throw new MDCWrappingRuntimeException(e);
         }
     }
 

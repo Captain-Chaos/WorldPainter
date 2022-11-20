@@ -1,6 +1,6 @@
 package org.pepsoft.minecraft;
 
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 
 import java.util.Set;
 
@@ -88,7 +88,7 @@ public interface ChunkStore extends ChunkProvider {
          * Visit a chunk.
          *
          * <p>For convenience, the visitor may throw checked exceptions. They will be wrapped in a
-         * {@link WPRuntimeException} if this happens.
+         * {@link MDCCapturingRuntimeException} if this happens.
          *
          * @param chunk The chunk to be visited.
          * @return {@code true} if more chunks should be visited, or {@code false} if no more chunks need to be visited.

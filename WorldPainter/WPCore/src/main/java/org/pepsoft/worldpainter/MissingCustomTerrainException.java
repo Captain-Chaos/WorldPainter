@@ -1,11 +1,11 @@
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 
 /**
  * Created by pepijn on 27-9-15.
  */
-public class MissingCustomTerrainException extends WPRuntimeException {
+public class MissingCustomTerrainException extends MDCCapturingRuntimeException {
     public MissingCustomTerrainException(String message, int index) {
         super(message);
         this.index = index;

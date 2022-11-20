@@ -10,10 +10,10 @@ import org.pepsoft.minecraft.datapack.DataPack;
 import org.pepsoft.minecraft.datapack.Descriptor;
 import org.pepsoft.minecraft.datapack.Dimension;
 import org.pepsoft.minecraft.datapack.Meta;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import org.pepsoft.worldpainter.AccessDeniedException;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Version;
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -537,7 +537,7 @@ public abstract class JavaLevel extends AbstractNBTItem {
             datapack.addDescriptor("data/minecraft/dimension_type/overworld.json", Dimension.createDefault(platform, DIM_NORMAL, maxHeight));
             datapack.write(new FileOutputStream(datapackFile));
         } catch (IOException e) {
-            throw new WPRuntimeException("I/O error creating datapack", e);
+            throw new MDCCapturingRuntimeException("I/O error creating datapack", e);
         }
     }
 

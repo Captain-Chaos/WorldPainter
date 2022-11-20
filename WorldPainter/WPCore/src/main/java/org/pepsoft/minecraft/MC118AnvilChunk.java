@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jnbt.*;
 import org.pepsoft.minecraft.MC118AnvilChunk.Section.IncompleteSectionException;
 import org.pepsoft.util.PackedArrayCube;
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -993,15 +993,15 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
         PackedArrayCube<String> biomes;
         String singleBiome;
 
-        static class IncompleteSectionException extends WPRuntimeException {
+        static class IncompleteSectionException extends MDCCapturingRuntimeException {
             IncompleteSectionException(String message) {
                 super(message);
             }
         }
 
-        static class ExceptionParsingSectionException extends WPRuntimeException {
+        static class ExceptionParsingSectionException extends MDCCapturingRuntimeException {
             ExceptionParsingSectionException(Throwable cause) {
-                super(cause);
+                super("Could not parse section", cause);
             }
         }
     }

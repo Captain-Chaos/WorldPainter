@@ -20,6 +20,7 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
+import static org.pepsoft.util.mdc.MDCUtils.decorateWithMdcContext;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.ExceptionHandler.handleException;
 
@@ -54,8 +55,10 @@ public class RotateWorldDialog extends WorldPainterDialog implements ProgressRec
 
     @Override
     public synchronized void exceptionThrown(final Throwable exception) {
+        // Make sure to capture the MDC context from the current thread
+        final Throwable exceptionWithContext = decorateWithMdcContext(exception);
         doOnEventThread(() -> {
-            handleException(exception, RotateWorldDialog.this);
+            handleException(exceptionWithContext, RotateWorldDialog.this);
             cancel();
         });
     }

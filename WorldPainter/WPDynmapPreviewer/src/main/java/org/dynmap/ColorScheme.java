@@ -3,7 +3,7 @@ package org.dynmap;
 import org.dynmap.common.BiomeMap;
 import org.dynmap.debug.Debug;
 import org.dynmap.renderer.DynmapBlockState;
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -210,7 +210,7 @@ public class ColorScheme {
             interpolateColorTable(raincolors);
             return new ColorScheme(name, colors, biomecolors, raincolors, tempcolors);
         } catch (URISyntaxException | IOException e) {
-            throw new WPRuntimeException(e.getClass().getSimpleName() + " while loading Dynmap colour scheme " + name + " (message: " + e.getMessage() + ")", e);
+            throw new MDCCapturingRuntimeException(e.getClass().getSimpleName() + " while loading Dynmap colour scheme " + name + " (message: " + e.getMessage() + ")", e);
         }
     }
 

@@ -1,7 +1,7 @@
 package org.pepsoft.worldpainter.util;
 
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import org.pepsoft.worldpainter.Configuration;
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,7 +157,7 @@ public final class BackupUtils {
                     }
                 }
             } catch (IOException e) {
-                throw new WPRuntimeException("I/O error getting backups directory file store for platform " + platform, e);
+                throw new MDCCapturingRuntimeException("I/O error getting backups directory file store for platform " + platform, e);
             }
         });
         File backupsDir = new File(System.getProperty("user.home"), "WorldPainter Backups");
@@ -189,7 +189,7 @@ public final class BackupUtils {
                     backupsDirs.computeIfAbsent(backupsDirStore, key -> new HashSet<>()).add(backupsDir);
                 }
             } catch (IOException e) {
-                throw new WPRuntimeException("I/O error getting backups directory file store for platform " + platform, e);
+                throw new MDCCapturingRuntimeException("I/O error getting backups directory file store for platform " + platform, e);
             }
         });
         // Remove the backup dirs on different file stores than the export dir
@@ -235,7 +235,7 @@ public final class BackupUtils {
         try {
             return DATE_FORMAT.parse(name.substring(name.length() - 14));
         } catch (ParseException e) {
-            throw new WPRuntimeException("Could not parse date in filename \"" + name + '"', e);
+            throw new MDCCapturingRuntimeException("Could not parse date in filename \"" + name + '"', e);
         }
     }
 

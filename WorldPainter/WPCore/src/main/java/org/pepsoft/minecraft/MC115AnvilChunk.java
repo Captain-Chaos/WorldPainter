@@ -8,7 +8,7 @@ package org.pepsoft.minecraft;
 import com.google.common.collect.ImmutableMap;
 import org.jnbt.*;
 import org.pepsoft.util.PackedArrayCube;
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -903,13 +903,15 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
         final PackedArrayCube<Material> materials;
     }
 
-    static class IncompleteSectionException extends WPRuntimeException {
-        // Empty
+    static class IncompleteSectionException extends MDCCapturingRuntimeException {
+        IncompleteSectionException() {
+            super("Incomplete section");
+        }
     }
 
-    static class ExceptionParsingSectionException extends WPRuntimeException {
+    static class ExceptionParsingSectionException extends MDCCapturingRuntimeException {
         ExceptionParsingSectionException(Throwable cause) {
-            super(cause);
+            super("Could not parse section", cause);
         }
     }
 }

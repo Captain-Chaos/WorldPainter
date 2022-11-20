@@ -7,6 +7,7 @@ package org.pepsoft.util;
 
 import com.kenperlin.ImprovedNoise;
 import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
+import org.pepsoft.util.mdc.MDCWrappingRuntimeException;
 
 import java.io.*;
 
@@ -84,7 +85,7 @@ public final class PerlinNoise implements Serializable, Cloneable {
         try {
             return super.clone();
         } catch (CloneNotSupportedException e) {
-            throw new MDCCapturingRuntimeException(e);
+            throw new MDCWrappingRuntimeException(e);
         }
     }
 

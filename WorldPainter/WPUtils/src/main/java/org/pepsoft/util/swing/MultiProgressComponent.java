@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.pepsoft.util.AwtUtils.doOnEventThreadAndWait;
+import static org.pepsoft.util.mdc.MDCUtils.decorateWithMdcContext;
 
 /**
  * A component which can execute a task in the background, reporting its
@@ -136,6 +137,8 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
     @Override
     public void exceptionThrown(final Throwable exception) {
         if (! exceptionReported) {
+            // Make sure to capture the MDC context from the current thread
+            final Throwable exceptionWithContext = decorateWithMdcContext(exception);
             doOnEventThreadAndWait(() -> {
                 timer.stop();
                 if (jProgressBar1.isIndeterminate()) {
@@ -151,7 +154,7 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
                 } else {
                     jLabel2.setText("Error");
                     if (listener != null) {
-                        listener.exceptionThrown(exception);
+                        listener.exceptionThrown(exceptionWithContext);
                     }
                 }
             });

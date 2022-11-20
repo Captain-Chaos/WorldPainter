@@ -1,6 +1,6 @@
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.worldpainter.exception.WPException;
+import org.pepsoft.util.mdc.MDCCapturingException;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -11,12 +11,7 @@ import java.util.Map;
  *
  * Created by Pepijn Schmitz on 02-07-15.
  */
-public class UnloadableWorldException extends WPException {
-    public UnloadableWorldException(Throwable cause, Map<String, Object> metadata) {
-        super(cause);
-        this.metadata = metadata;
-    }
-
+public class UnloadableWorldException extends MDCCapturingException {
     public UnloadableWorldException(String message, Map<String, Object> metadata) {
         super(message);
         this.metadata = metadata;

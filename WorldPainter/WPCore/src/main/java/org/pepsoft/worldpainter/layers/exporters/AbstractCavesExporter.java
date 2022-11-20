@@ -4,11 +4,11 @@ import com.google.common.collect.ImmutableSet;
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.util.mdc.MDCWrappingRuntimeException;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.NoiseSettings;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
@@ -496,7 +496,7 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
             try {
                 return (CaveDecorationSettings) super.clone();
             } catch (CloneNotSupportedException e) {
-                throw new WPRuntimeException(e);
+                throw new MDCWrappingRuntimeException(e);
             }
         }
 

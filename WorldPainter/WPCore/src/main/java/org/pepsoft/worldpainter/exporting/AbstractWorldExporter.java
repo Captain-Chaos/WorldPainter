@@ -6,12 +6,12 @@ import org.pepsoft.util.ParallelProgressManager;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.SubProgressReceiver;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import org.pepsoft.util.mdc.MDCThreadPoolExecutor;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.*;
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.gardenofeden.GardenExporter;
 import org.pepsoft.worldpainter.gardenofeden.Seed;
 import org.pepsoft.worldpainter.layers.*;
@@ -45,6 +45,7 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.util.mdc.MDCUtils.doWithMdcContext;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
@@ -305,7 +306,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 try {
                     executor.awaitTermination(366, TimeUnit.DAYS);
                 } catch (InterruptedException e) {
-                    throw new WPRuntimeException("Thread interrupted while waiting for all tasks to finish", e);
+                    throw new MDCCapturingRuntimeException("Thread interrupted while waiting for all tasks to finish", e);
                 }
             }
 
@@ -720,7 +721,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                                          Map<Layer, LayerExporter> exporters, Map<Layer, LayerExporter> ceilingExporters,
                                          ChunkFactory chunkFactory, ChunkFactory ceilingChunkFactory,
                                          ProgressReceiver progressReceiver) throws OperationCancelled, IOException {
-        try {
+        return doWithMdcContext(() -> {
             if (progressReceiver != null) {
                 progressReceiver.setMessage("Exporting region " + regionCoords.x + "," + regionCoords.y + " of " + dimension.getName());
             }
@@ -817,9 +818,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             }
 
             return exportResults;
-        } catch (RuntimeException e) {
-            throw new WPRuntimeException(e.getMessage() + " (region: " + regionCoords + ")", e);
-        }
+        }, "region.coords", regionCoords);
     }
 
     protected ChunkFactory.ChunkCreationResult createChunk(Dimension dimension, ChunkFactory chunkFactory, Map<Point, Tile> tiles, int chunkX, int chunkY, boolean tileSelection, Map<Layer, LayerExporter> exporters, boolean ceiling) {

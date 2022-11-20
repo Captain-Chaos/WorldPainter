@@ -8,17 +8,13 @@ import java.util.Map;
  * An {@link Exception} which captures the current contents of the {@link MDC} thread local diagnostic context at the
  * moment of throwing. The captured context is available from the {@link #getMdcContext()} method.
  *
- * <p>This exception is meant for adding semantic information to the exception chain. To <em>just</em> capture the MDC
- * context, use {@link MDCWrappingException}.
+ * <p>This exception is meant to <em>only</em> add the MDC context informatio to an exception chain, not any other
+ * semantic information, so that it can be safely unwrapped without losing any diagnostic information (other than the
+ * MDC context).
  */
-public class MDCCapturingException extends RuntimeException implements MDCContextProvider {
-    public MDCCapturingException(String message) {
-        super(message);
-        mdcContext = MDC.getCopyOfContextMap();
-    }
-
-    public MDCCapturingException(String message, Throwable cause) {
-        super(message, cause);
+public class MDCWrappingException extends Exception implements MDCContextProvider{
+    public MDCWrappingException(Throwable cause) {
+        super(cause.getClass().getSimpleName() + ": " + cause.getMessage(), cause);
         mdcContext = MDC.getCopyOfContextMap();
     }
 

@@ -24,7 +24,7 @@
 
 package org.pepsoft.worldpainter.tools.scripts;
 
-import org.pepsoft.worldpainter.exception.WPException;
+import org.pepsoft.util.mdc.MDCCapturingException;
 
 /**
  * A checked exception, thrown if an exception occurs during the execution of a
@@ -32,20 +32,12 @@ import org.pepsoft.worldpainter.exception.WPException;
  * 
  * @author SchmitzP
  */
-public class ScriptException extends WPException {
-    public ScriptException() {
-        // Do nothing
-    }
-
+public class ScriptException extends MDCCapturingException {
     public ScriptException(String string) {
         super(string);
     }
 
     public ScriptException(String string, Throwable thrwbl) {
         super(string, thrwbl);
-    }
-
-    public ScriptException(Throwable thrwbl) {
-        super(thrwbl);
     }
 }

@@ -6,12 +6,12 @@
 package org.pepsoft.worldpainter.tools.scripts;
 
 import org.jetbrains.annotations.NotNull;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.WorldPainterDialog;
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.util.FileUtils;
 import org.pepsoft.worldpainter.vo.EventVO;
@@ -327,7 +327,7 @@ public class ScriptRunner extends WorldPainterDialog {
                         } else {
                             scriptEngine = SCRIPT_ENGINE_MANAGER.getEngineByExtension(extension);
                             if (scriptEngine == null) {
-                                throw new WPRuntimeException("No script engine found for extension \"" + extension + "\"");
+                                throw new MDCCapturingRuntimeException("No script engine found for extension \"" + extension + "\"");
                             }
                             SCRIPT_ENGINES.put(extension, scriptEngine);
                             logger.info("Using script engine {} version {} for scripts of type {}", scriptEngine.getFactory().getEngineName(), scriptEngine.getFactory().getEngineVersion(), extension);

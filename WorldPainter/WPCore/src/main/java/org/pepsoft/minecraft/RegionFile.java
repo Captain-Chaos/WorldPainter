@@ -58,7 +58,7 @@ package org.pepsoft.minecraft;
 
  */
 
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -459,7 +459,7 @@ public final class RegionFile implements AutoCloseable {
         }
     }
 
-    public static class InvalidRegionFileException extends WPRuntimeException {
+    public static class InvalidRegionFileException extends MDCCapturingRuntimeException {
         InvalidRegionFileException(String message) {
             super(message);
         }

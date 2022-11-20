@@ -6,10 +6,10 @@
 package org.pepsoft.worldpainter.layers;
 
 import org.pepsoft.util.IconUtils;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.renderers.LayerRenderer;
@@ -110,7 +110,7 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("Access denied while instantiating exporter for layer " + name, e);
             } catch (NoSuchMethodException e) {
-                throw new WPRuntimeException("Exporter class for layer " + name + " is missing a (Dimension, Platform) constructor", e);
+                throw new MDCCapturingRuntimeException("Exporter class for layer " + name + " is missing a (Dimension, Platform) constructor", e);
             } catch (InvocationTargetException e) {
                 if (e.getTargetException() instanceof Error) {
                     throw (Error) e.getTargetException();
@@ -209,7 +209,7 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
                 exporterType = null;
             }
         } catch (IllegalAccessException e) {
-            throw new WPRuntimeException("Access denied while creating renderer for layer " + name, e);
+            throw new MDCCapturingRuntimeException("Access denied while creating renderer for layer " + name, e);
         }
         icon = IconUtils.loadScaledImage(clazz.getClassLoader(), "org/pepsoft/worldpainter/icons/" + getClass().getSimpleName().toLowerCase() + ".png");
     }

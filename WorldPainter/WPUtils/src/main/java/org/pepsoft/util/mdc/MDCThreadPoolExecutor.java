@@ -54,7 +54,7 @@ public class MDCThreadPoolExecutor extends ThreadPoolExecutor {
                 try {
                     runnable.run();
                 } catch (RuntimeException | Error e) {
-                    throw new MDCCapturingRuntimeException(e);
+                    throw new MDCWrappingRuntimeException(e);
                 }
             } finally {
                 if (mdcContextMap != null) {

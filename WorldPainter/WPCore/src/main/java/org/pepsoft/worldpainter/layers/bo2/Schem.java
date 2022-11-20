@@ -8,8 +8,9 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
 import org.pepsoft.util.AttributeKey;
 import org.pepsoft.util.DynamicList;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
+import org.pepsoft.util.mdc.MDCWrappingRuntimeException;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.objects.WPObject;
 
 import javax.vecmath.Point3i;
@@ -272,7 +273,7 @@ public final class Schem extends AbstractNBTItem implements WPObject {
                 final int _byte = is.read();
                 i |= (_byte & 0x7F) << byteCount++ * 7;
                 if (byteCount > 5) {
-                    throw new WPRuntimeException("VarInt too big");
+                    throw new MDCCapturingRuntimeException("VarInt too big");
                 }
                 if ((_byte & 0x80) != 128) {
                     break;
@@ -280,7 +281,7 @@ public final class Schem extends AbstractNBTItem implements WPObject {
             }
             return i;
         } catch (IOException e) {
-            throw new WPRuntimeException(e);
+            throw new MDCWrappingRuntimeException(e);
         }
     }
 

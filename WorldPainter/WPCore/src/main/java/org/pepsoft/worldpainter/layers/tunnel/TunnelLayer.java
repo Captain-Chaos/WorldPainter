@@ -5,9 +5,9 @@
  */
 package org.pepsoft.worldpainter.layers.tunnel;
 
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension.Anchor;
-import org.pepsoft.worldpainter.exception.WPRuntimeException;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
@@ -384,7 +384,7 @@ public class TunnelLayer extends CustomLayer {
     @Override
     public TunnelLayer clone() {
         if (floorMode == CUSTOM_DIMENSION) {
-            throw new WPRuntimeException("TunnelLayers with a floor dimension are not Cloneable");
+            throw new MDCCapturingRuntimeException("TunnelLayers with a floor dimension are not Cloneable");
         }
         TunnelLayer clone = (TunnelLayer) super.clone();
         MixedMaterialManager mixedMaterialManager = MixedMaterialManager.getInstance();

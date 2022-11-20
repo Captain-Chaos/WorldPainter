@@ -28,6 +28,7 @@ import java.util.Set;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.SuperflatPreset.Structure.*;
+import static org.pepsoft.util.mdc.MDCUtils.doWithMdcContext;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.DEFAULT_JAVA_PLATFORMS;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
@@ -214,150 +215,154 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
 
     @Override
     public Map<Integer, ChunkFactory.Stats> export(File baseDir, String name, File backupDir, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
-        // Sanity checks
-        final Set<Point> selectedTiles = worldExportSettings.getTilesToExport();
-        final Set<Integer> selectedDimensions = worldExportSettings.getDimensionsToExport();
-        if ((selectedTiles != null) && ((selectedDimensions == null) || (selectedDimensions.size() != 1))) {
-            throw new IllegalArgumentException("If a tile selection is active then exactly one dimension must be selected");
-        }
-
-        // Backup existing level
-        File worldDir = new File(baseDir, FileUtils.sanitiseName(name));
-        logger.info("Exporting world " + world.getName() + " to map at " + worldDir + " in " + platform.displayName + " format");
-        if (worldDir.isDirectory()) {
-            if (backupDir != null) {
-                logger.info("Directory already exists; backing up to " + backupDir);
-                if (!worldDir.renameTo(backupDir)) {
-                    throw new FileInUseException("Could not move " + worldDir + " to " + backupDir);
-                }
-            } else {
-                throw new IllegalStateException("Directory already exists and no backup directory specified");
+        return doWithMdcContext(() -> {
+            // Sanity checks
+            final Set<Point> selectedTiles = worldExportSettings.getTilesToExport();
+            final Set<Integer> selectedDimensions = worldExportSettings.getDimensionsToExport();
+            if ((selectedTiles != null) && ((selectedDimensions == null) || (selectedDimensions.size() != 1))) {
+                throw new IllegalArgumentException("If a tile selection is active then exactly one dimension must be selected");
             }
-        }
-        
-        // Record start of export
-        long start = System.currentTimeMillis();
-        
-        // Create the level.dat file
-        final JavaLevel level = createWorld(worldDir, name);
 
-        // Lock the level.dat file, to keep Minecraft out until we are done
-        File levelDatFile = new File(worldDir, "level.dat");
-        // We need to load the level.dat file later when creating chunk stores, so keep that working even though the
-        // file is exclusively locked:
-        JavaLevel.setCachedLevel(levelDatFile, level);
-        try (RandomAccessFile lockedFile = new RandomAccessFile(levelDatFile, "rw")) {
-            lockedFile.getChannel().lock();
-
-            Map<Integer, ChunkFactory.Stats> stats = new HashMap<>();
-            int selectedDimension;
-            if (selectedTiles == null) {
-                selectedDimension = -1;
-                boolean first = true;
-                for (Dimension dimension: world.getDimensionsWithRole(DETAIL, false, 0)) {
-                    if ((selectedDimensions != null) && (! selectedDimensions.contains(dimension.getAnchor().dim))) {
-                        // This dimension has not been selected to be exported, so skip it
-                        continue;
+            // Backup existing level
+            File worldDir = new File(baseDir, FileUtils.sanitiseName(name));
+            logger.info("Exporting world " + world.getName() + " to map at " + worldDir + " in " + platform.displayName + " format");
+            if (worldDir.isDirectory()) {
+                if (backupDir != null) {
+                    logger.info("Directory already exists; backing up to " + backupDir);
+                    if (!worldDir.renameTo(backupDir)) {
+                        throw new FileInUseException("Could not move " + worldDir + " to " + backupDir);
                     }
-                    if (first) {
-                        first = false;
-                    } else if (progressReceiver != null) {
-                        progressReceiver.reset();
+                } else {
+                    throw new IllegalStateException("Directory already exists and no backup directory specified");
+                }
+            }
+
+            // Record start of export
+            long start = System.currentTimeMillis();
+
+            // Create the level.dat file
+            final JavaLevel level = createWorld(worldDir, name);
+
+            // Lock the level.dat file, to keep Minecraft out until we are done
+            File levelDatFile = new File(worldDir, "level.dat");
+            // We need to load the level.dat file later when creating chunk stores, so keep that working even though the
+            // file is exclusively locked:
+            JavaLevel.setCachedLevel(levelDatFile, level);
+            try (RandomAccessFile lockedFile = new RandomAccessFile(levelDatFile, "rw")) {
+                lockedFile.getChannel().lock();
+
+                Map<Integer, ChunkFactory.Stats> stats = new HashMap<>();
+                int selectedDimension;
+                if (selectedTiles == null) {
+                    selectedDimension = -1;
+                    boolean first = true;
+                    for (Dimension dimension: world.getDimensionsWithRole(DETAIL, false, 0)) {
+                        if ((selectedDimensions != null) && (!selectedDimensions.contains(dimension.getAnchor().dim))) {
+                            // This dimension has not been selected to be exported, so skip it
+                            continue;
+                        }
+                        if (first) {
+                            first = false;
+                        } else if (progressReceiver != null) {
+                            progressReceiver.reset();
+                        }
+                        stats.put(dimension.getAnchor().dim, exportDimension(worldDir, dimension, progressReceiver));
                     }
-                    stats.put(dimension.getAnchor().dim, exportDimension(worldDir, dimension, progressReceiver));
+                } else {
+                    selectedDimension = selectedDimensions.iterator().next();
+                    stats.put(selectedDimension, exportDimension(worldDir, world.getDimension(new Anchor(selectedDimension, DETAIL, false, 0)), progressReceiver));
                 }
-            } else {
-                selectedDimension = selectedDimensions.iterator().next();
-                stats.put(selectedDimension, exportDimension(worldDir, world.getDimension(new Anchor(selectedDimension, DETAIL, false, 0)), progressReceiver));
-            }
 
-            // Update the session.lock file, hopefully kicking out any Minecraft instances which may have tried to open the
-            // map in the mean time:
-            File sessionLockFile = new File(worldDir, "session.lock");
-            try (DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile))) {
-                sessionOut.writeLong(System.currentTimeMillis());
-            }
+                // Update the session.lock file, hopefully kicking out any Minecraft instances which may have tried to open the
+                // map in the mean time:
+                File sessionLockFile = new File(worldDir, "session.lock");
+                try (DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile))) {
+                    sessionOut.writeLong(System.currentTimeMillis());
+                }
 
-            // Record the export in the world history
-            if (selectedTiles == null) {
-                world.addHistoryEntry(HistoryEntry.WORLD_EXPORTED_FULL, name, worldDir);
-            } else {
-                world.addHistoryEntry(HistoryEntry.WORLD_EXPORTED_PARTIAL, name, worldDir, world.getDimension(new Anchor(selectedDimension, DETAIL, false, 0)).getName());
-            }
+                // Record the export in the world history
+                if (selectedTiles == null) {
+                    world.addHistoryEntry(HistoryEntry.WORLD_EXPORTED_FULL, name, worldDir);
+                } else {
+                    world.addHistoryEntry(HistoryEntry.WORLD_EXPORTED_PARTIAL, name, worldDir, world.getDimension(new Anchor(selectedDimension, DETAIL, false, 0)).getName());
+                }
 
-            // Log an event
-            Configuration config = Configuration.getInstance();
-            if (config != null) {
-                EventVO event = new EventVO(EVENT_KEY_ACTION_EXPORT_WORLD).duration(System.currentTimeMillis() - start);
-                event.setAttribute(EventVO.ATTRIBUTE_TIMESTAMP, new Date(start));
-                event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
-                event.setAttribute(ATTRIBUTE_KEY_PLATFORM, platform.displayName);
-                event.setAttribute(ATTRIBUTE_KEY_PLATFORM_ID, platform.id);
-                event.setAttribute(ATTRIBUTE_KEY_MAP_FEATURES, world.isMapFeatures());
-                event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
-                event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
-                event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getDimension(NORMAL_DETAIL).getGenerator().getType().name());
-                Dimension dimension = world.getDimension(NORMAL_DETAIL);
-                event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTileCount());
-                logLayers(dimension, event, "");
-                dimension = world.getDimension(NETHER_DETAIL);
-                if (dimension != null) {
-                    event.setAttribute(ATTRIBUTE_KEY_NETHER_TILES, dimension.getTileCount());
-                    logLayers(dimension, event, "nether.");
+                // Log an event
+                Configuration config = Configuration.getInstance();
+                if (config != null) {
+                    EventVO event = new EventVO(EVENT_KEY_ACTION_EXPORT_WORLD).duration(System.currentTimeMillis() - start);
+                    event.setAttribute(EventVO.ATTRIBUTE_TIMESTAMP, new Date(start));
+                    event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, world.getMaxHeight());
+                    event.setAttribute(ATTRIBUTE_KEY_PLATFORM, platform.displayName);
+                    event.setAttribute(ATTRIBUTE_KEY_PLATFORM_ID, platform.id);
+                    event.setAttribute(ATTRIBUTE_KEY_MAP_FEATURES, world.isMapFeatures());
+                    event.setAttribute(ATTRIBUTE_KEY_GAME_TYPE_NAME, world.getGameType().name());
+                    event.setAttribute(ATTRIBUTE_KEY_ALLOW_CHEATS, world.isAllowCheats());
+                    event.setAttribute(ATTRIBUTE_KEY_GENERATOR, world.getDimension(NORMAL_DETAIL).getGenerator().getType().name());
+                    Dimension dimension = world.getDimension(NORMAL_DETAIL);
+                    event.setAttribute(ATTRIBUTE_KEY_TILES, dimension.getTileCount());
+                    logLayers(dimension, event, "");
+                    dimension = world.getDimension(NETHER_DETAIL);
+                    if (dimension != null) {
+                        event.setAttribute(ATTRIBUTE_KEY_NETHER_TILES, dimension.getTileCount());
+                        logLayers(dimension, event, "nether.");
+                    }
+                    dimension = world.getDimension(END_DETAIL);
+                    if (dimension != null) {
+                        event.setAttribute(ATTRIBUTE_KEY_END_TILES, dimension.getTileCount());
+                        logLayers(dimension, event, "end.");
+                    }
+                    if (selectedDimension != -1) {
+                        event.setAttribute(ATTRIBUTE_KEY_EXPORTED_DIMENSION, selectedDimension);
+                        event.setAttribute(ATTRIBUTE_KEY_EXPORTED_DIMENSION_TILES, selectedTiles.size());
+                    }
+                    if (world.getImportedFrom() != null) {
+                        event.setAttribute(ATTRIBUTE_KEY_IMPORTED_WORLD, true);
+                    }
+                    config.logEvent(event);
                 }
-                dimension = world.getDimension(END_DETAIL);
-                if (dimension != null) {
-                    event.setAttribute(ATTRIBUTE_KEY_END_TILES, dimension.getTileCount());
-                    logLayers(dimension, event, "end.");
-                }
-                if (selectedDimension != -1) {
-                    event.setAttribute(ATTRIBUTE_KEY_EXPORTED_DIMENSION, selectedDimension);
-                    event.setAttribute(ATTRIBUTE_KEY_EXPORTED_DIMENSION_TILES, selectedTiles.size());
-                }
-                if (world.getImportedFrom() != null) {
-                    event.setAttribute(ATTRIBUTE_KEY_IMPORTED_WORLD, true);
-                }
-                config.logEvent(event);
-            }
 
-            return stats;
-        } finally {
-            JavaLevel.setCachedLevel(null, null);
-        }
+                return stats;
+            } finally {
+                JavaLevel.setCachedLevel(null, null);
+            }
+        }, "world.name", world.getName(), "platform.id", platform.id, "world.maxHeight", world.getMaxHeight(), "baseDir", baseDir);
     }
 
-    protected ChunkFactory.Stats exportDimension(File worldDir, Dimension dimension, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-        final Anchor anchor = dimension.getAnchor();
-        final File dimensionDir;
-        switch (anchor.dim) {
-            case DIM_NORMAL:
-                dimensionDir = worldDir;
-                break;
-            case DIM_NETHER:
-                dimensionDir = new File(worldDir, "DIM-1");
-                break;
-            case DIM_END:
-                dimensionDir = new File(worldDir, "DIM1");
-                break;
-            default:
-                throw new IllegalArgumentException("Dimension " + anchor.dim + " not supported");
-        }
-        for (DataType dataType: platformProvider.getDataTypes(platform)) {
-            File regionDir = new File(dimensionDir, dataType.name().toLowerCase());
-            if (! regionDir.exists()) {
-                if (! regionDir.mkdirs()) {
-                    throw new RuntimeException("Could not create directory " + regionDir);
+    protected ChunkFactory.Stats exportDimension(File worldDir, Dimension dimension, ProgressReceiver progressReceiver) {
+        return doWithMdcContext(() -> {
+            final Anchor anchor = dimension.getAnchor();
+            final File dimensionDir;
+            switch (anchor.dim) {
+                case DIM_NORMAL:
+                    dimensionDir = worldDir;
+                    break;
+                case DIM_NETHER:
+                    dimensionDir = new File(worldDir, "DIM-1");
+                    break;
+                case DIM_END:
+                    dimensionDir = new File(worldDir, "DIM1");
+                    break;
+                default:
+                    throw new IllegalArgumentException("Dimension " + anchor.dim + " not supported");
+            }
+            for (DataType dataType: platformProvider.getDataTypes(platform)) {
+                File regionDir = new File(dimensionDir, dataType.name().toLowerCase());
+                if (! regionDir.exists()) {
+                    if (! regionDir.mkdirs()) {
+                        throw new RuntimeException("Could not create directory " + regionDir);
+                    }
                 }
             }
-        }
 
-        ChunkFactory.Stats collectedStats = parallelExportRegions(dimension, worldDir, progressReceiver);
+            ChunkFactory.Stats collectedStats = parallelExportRegions(dimension, worldDir, progressReceiver);
 
-        if (progressReceiver != null) {
-            progressReceiver.setProgress(1.0f);
-        }
+            if (progressReceiver != null) {
+                progressReceiver.setProgress(1.0f);
+            }
 
-        return collectedStats;
+            return collectedStats;
+        }, "dimension.anchor", dimension.getAnchor(), "dimension.minHeight", dimension.getMinHeight(), "dimension.maxHeight", dimension.getMaxHeight());
     }
 
     protected final JavaPlatformProvider platformProvider;
