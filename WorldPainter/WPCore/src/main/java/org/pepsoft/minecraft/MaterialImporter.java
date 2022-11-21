@@ -136,6 +136,7 @@ public class MaterialImporter {
         return (guessVegetation(material) || guessTreeRelated(material))
                 && (! material.contains("stripped"));
     }
+
     /**
      * Guess whether a material receives light unto itself, despite being opaque to surrounding blocks.
      */
