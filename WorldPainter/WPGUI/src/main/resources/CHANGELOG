@@ -1,4 +1,12 @@
--- Version 2.15.12, released ...
+-- Version 2.15.13, released ...
+
+ * Multiple overlay images may now be configured
+   + The overlay images are configured from the Configure View screen (View menu, or press Ctrl+V (on Windows) or ⌘+V (on Mac))
+   + They can be disabled and enabled separately
+   + The existing "Enable or disable image overlay(s)" toolbar button now shows or hides all enabled overlays
+     - The exception is if no overlays are enabled. If there is one overlay configured and it is disabled, it will be enabled. In all other cases the Configure View screen will be opened
+
+-- Version 2.15.12, released 20-11-2022
 
  * A colour and greyscale ramp are now supported for showing the terrain height in the editor, in addition to the existing terrain type and hide terrain options, as an addition or alternative to the contour lines
    + Select the colour or greyscale ramp using the drop down box at the top of the Layers or Terrain panels
