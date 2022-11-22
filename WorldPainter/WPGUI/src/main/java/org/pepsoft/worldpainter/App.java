@@ -522,21 +522,14 @@ public final class App extends JFrame implements RadiusControl,
             viewEndMenuItem.setSelected(anchor.dim == DIM_END);
             ACTION_EDIT_TILES.setEnabled(anchor.role != CAVE_FLOOR);
 
-            // Legacy: if this is an older world with an overlay enabled, ask the user if we should fix the coordinates
-            // (ask because they might have fixed the problem manually in 1.9.0 or 1.9.1, in which we neglected to do it
-            // automatically)
+            // Legacy: if this is an older world with an overlay enabled, warn the user that it may be incorrectly
+            // located (we used to offer to fix this, but this should be exceedingly rare).
             if (dimension.isFixOverlayCoords()) {
                 DesktopUtils.beep();
-                if (showConfirmDialog(this,
+                showMessageDialog(this,
                         "This world was created in an older version of WorldPainter\n" +
                         "in which the overlay offsets were not stored correctly.\n" +
-                        "Do you want WorldPainter to fix the offsets now?\n" +
-                        "\n" +
-                        "If you already manually fixed the offsets using version 1.9.0\n"
-                        + "or 1.9.1 of WorldPainter, say no. If you're unsure, say yes.", "Fix Overlay Offset?", YES_NO_OPTION, QUESTION_MESSAGE) != NO_OPTION) {
-                    dimension.setOverlayOffsetX(dimension.getOverlayOffsetX() + dimension.getLowestX() << TILE_SIZE_BITS);
-                    dimension.setOverlayOffsetY(dimension.getOverlayOffsetY() + dimension.getLowestY() << TILE_SIZE_BITS);
-                }
+                        "You may need to fix the position of your overlay.", "Check Overlay Positioning", WARNING_MESSAGE);
                 dimension.setFixOverlayCoords(false);
             }
 
@@ -631,7 +624,7 @@ public final class App extends JFrame implements RadiusControl,
             // Set action states
             ACTION_GRID.setSelected(view.isPaintGrid());
             ACTION_CONTOURS.setSelected(view.isDrawContours());
-            ACTION_OVERLAY.setSelected(dimension.isOverlayEnabled());
+            ACTION_OVERLAYS.setSelected(dimension.isOverlaysEnabled());
 
             // TODO: make this work correctly with undo/redo, and make "inside selection" ineffective when there is no selection, to avoid confusion
             // Set operation states
@@ -693,7 +686,7 @@ public final class App extends JFrame implements RadiusControl,
             // Clear action states
             ACTION_GRID.setSelected(false);
             ACTION_CONTOURS.setSelected(false);
-            ACTION_OVERLAY.setSelected(false);
+            ACTION_OVERLAYS.setSelected(false);
             
             // Close the 3D view
             if (threeDeeFrame != null) {
@@ -1377,6 +1370,9 @@ public final class App extends JFrame implements RadiusControl,
         }
         lastChangeTimestamp = System.currentTimeMillis();
     }
+
+    @Override public void overlayAdded(Dimension dimension, int index, Overlay overlay) {}
+    @Override public void overlayRemoved(Dimension dimension, int index, Overlay overlay) {}
 
     // Tile.Listener
 
@@ -4677,7 +4673,7 @@ public final class App extends JFrame implements RadiusControl,
             dialog.setVisible(true);
             ACTION_GRID.setSelected(view.isPaintGrid());
             ACTION_CONTOURS.setSelected(view.isDrawContours());
-            ACTION_OVERLAY.setSelected(dimension.isOverlayEnabled());
+            ACTION_OVERLAYS.setSelected(dimension.isOverlaysEnabled());
         });
         menuItem.setMnemonic('c');
         menuItem.setAccelerator(getKeyStroke(VK_V, PLATFORM_COMMAND_MASK));
@@ -5106,7 +5102,7 @@ public final class App extends JFrame implements RadiusControl,
         button = new JToggleButton(ACTION_CONTOURS);
         button.setHideActionText(true);
         toolBar.add(button);
-        button = new JToggleButton(ACTION_OVERLAY);
+        button = new JToggleButton(ACTION_OVERLAYS);
         button.setHideActionText(true);
         toolBar.add(button);
         button = new JToggleButton(ACTION_VIEW_DISTANCE);
@@ -7031,7 +7027,7 @@ public final class App extends JFrame implements RadiusControl,
         private static final long serialVersionUID = 1L;
     };
     
-    private final BetterAction ACTION_OVERLAY = new BetterAction("overlay", strings.getString("overlay"), ICON_OVERLAY) {
+    private final BetterAction ACTION_OVERLAYS = new BetterAction("overlay", strings.getString("overlay"), ICON_OVERLAY) {
         {
             setShortDescription(strings.getString("enable.or.disable.image.overlay"));
         }
@@ -7042,19 +7038,25 @@ public final class App extends JFrame implements RadiusControl,
                 DesktopUtils.beep();
                 return;
             }
-            if (dimension.isOverlayEnabled()) {
-                // An overlay is showing; disable it
-                dimension.setOverlayEnabled(false);
+            if (dimension.isOverlaysEnabled()) {
+                // Overlays are showing; disable them
+                dimension.setOverlaysEnabled(false);
                 setSelected(false);
-            } else if ((dimension.getOverlay() != null) && dimension.getOverlay().isFile()) {
-                // No overlay is being shown, but there is one configured and it can be found, so enable it
-                dimension.setOverlayEnabled(true);
+            } else if ((! dimension.getOverlays().isEmpty()) && dimension.getOverlays().stream().anyMatch(Overlay::isEnabled)) {
+                // No overlay is being shown, but there is at least one configured and enable, so show overlays
+                dimension.setOverlaysEnabled(true);
+                setSelected(true);
+            } else if (dimension.getOverlays().size() == 1) {
+                // No overlay is being shown, but there is exactly one configured but disabled. Enable it and show
+                // overlays
+                dimension.getOverlays().get(0).setEnabled(true);
+                dimension.setOverlaysEnabled(true);
                 setSelected(true);
             } else {
-                // Otherwise show the configure view dialog so the user can (re)configure an overlay
+                // Otherwise show the configure view dialog so the user can (re)configure the overlays
                 ConfigureViewDialog dialog = new ConfigureViewDialog(App.this, dimension, view, true);
                 dialog.setVisible(true);
-                setSelected(dimension.isOverlayEnabled());
+                setSelected(dimension.isOverlaysEnabled());
                 ACTION_GRID.setSelected(view.isPaintGrid());
                 ACTION_CONTOURS.setSelected(view.isDrawContours());
             }

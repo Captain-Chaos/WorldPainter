@@ -106,6 +106,9 @@
         </Property>
         <Property name="toolTipText" type="java.lang.String" value="Reload all or selected objects from disk"/>
         <Property name="enabled" type="boolean" value="false"/>
+        <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
+          <Insets value="[2, 2, 2, 2]"/>
+        </Property>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonReloadAllActionPerformed"/>
@@ -123,6 +126,9 @@
         </Property>
         <Property name="toolTipText" type="java.lang.String" value="Edit selected object(s) options"/>
         <Property name="enabled" type="boolean" value="false"/>
+        <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
+          <Insets value="[2, 2, 2, 2]"/>
+        </Property>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonEditActionPerformed"/>
@@ -338,6 +344,9 @@
           <Image iconType="3" name="/org/pepsoft/worldpainter/icons/brick_add.png"/>
         </Property>
         <Property name="toolTipText" type="java.lang.String" value="Add one or more objects"/>
+        <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
+          <Insets value="[2, 2, 2, 2]"/>
+        </Property>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonAddFileActionPerformed"/>
@@ -350,6 +359,9 @@
         </Property>
         <Property name="toolTipText" type="java.lang.String" value="Remove selected object(s)"/>
         <Property name="enabled" type="boolean" value="false"/>
+        <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
+          <Insets value="[2, 2, 2, 2]"/>
+        </Property>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonRemoveFileActionPerformed"/>

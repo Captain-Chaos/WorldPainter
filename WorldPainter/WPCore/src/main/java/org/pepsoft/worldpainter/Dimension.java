@@ -8,7 +8,10 @@ package org.pepsoft.worldpainter;
 import org.jetbrains.annotations.NotNull;
 import org.pepsoft.minecraft.MapGenerator;
 import org.pepsoft.minecraft.SeededGenerator;
-import org.pepsoft.util.*;
+import org.pepsoft.util.AttributeKey;
+import org.pepsoft.util.MathUtils;
+import org.pepsoft.util.PerlinNoise;
+import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
@@ -48,6 +51,7 @@ import java.util.zip.ZipOutputStream;
 
 import static java.util.Arrays.fill;
 import static java.util.Collections.emptySet;
+import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.minecraft.Material.*;
@@ -1131,7 +1135,6 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return Collections.unmodifiableMap(layerSettings);
     }
 
-    @SuppressWarnings("unchecked")
     public ExporterSettings getLayerSettings(Layer layer) {
         return layerSettings.get(layer);
     }
@@ -1160,68 +1163,25 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
-    public File getOverlay() {
-        return overlay;
+    public List<Overlay> getOverlays() {
+        return unmodifiableList(overlays);
     }
 
-    public void setOverlay(File overlay) {
-        if (! Objects.equals(overlay, this.overlay)) {
-            final File oldOverlay = this.overlay;
-            this.overlay = overlay;
-            changeNo++;
-            propertyChangeSupport.firePropertyChange("overlay", oldOverlay, overlay);
+    public int addOverlay(Overlay overlay) {
+        overlays.add(overlay);
+        changeNo++;
+        final int rowIndex = overlays.size() - 1;
+        for (Listener listener: listeners) {
+            listener.overlayAdded(this, rowIndex, overlay);
         }
+        return rowIndex;
     }
 
-    public int getOverlayOffsetX() {
-        return overlayOffsetX;
-    }
-
-    public void setOverlayOffsetX(int overlayOffsetX) {
-        if (overlayOffsetX != this.overlayOffsetX) {
-            int oldOverlayOffsetX = this.overlayOffsetX;
-            this.overlayOffsetX = overlayOffsetX;
-            changeNo++;
-            propertyChangeSupport.firePropertyChange("overlayOffsetX", oldOverlayOffsetX, overlayOffsetX);
-        }
-    }
-
-    public int getOverlayOffsetY() {
-        return overlayOffsetY;
-    }
-
-    public void setOverlayOffsetY(int overlayOffsetY) {
-        if (overlayOffsetY != this.overlayOffsetY) {
-            int oldOverlayOffsetY = this.overlayOffsetY;
-            this.overlayOffsetY = overlayOffsetY;
-            changeNo++;
-            propertyChangeSupport.firePropertyChange("overlayOffsetY", oldOverlayOffsetY, overlayOffsetY);
-        }
-    }
-
-    public float getOverlayScale() {
-        return overlayScale;
-    }
-
-    public void setOverlayScale(float overlayScale) {
-        if (overlayScale != this.overlayScale) {
-            float oldOverlayScale = this.overlayScale;
-            this.overlayScale = overlayScale;
-            changeNo++;
-            propertyChangeSupport.firePropertyChange("overlayScale", oldOverlayScale, overlayScale);
-        }
-    }
-
-    public float getOverlayTransparency() {
-        return overlayTransparency;
-    }
-
-    public void setOverlayTransparency(float overlayTransparency) {
-        if (overlayTransparency != this.overlayTransparency) {
-            float oldOverlayTransparency = this.overlayTransparency;
-            this.overlayTransparency = overlayTransparency;
-            changeNo++;
-            propertyChangeSupport.firePropertyChange("overlayTransparency", oldOverlayTransparency, overlayTransparency);
+    public void removeOverlay(int index) {
+        final Overlay overlay = overlays.remove(index);
+        changeNo++;
+        for (Listener listener: listeners) {
+            listener.overlayRemoved(this, index, overlay);
         }
     }
 
@@ -1250,15 +1210,15 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
-    public boolean isOverlayEnabled() {
+    public boolean isOverlaysEnabled() {
         return overlayEnabled;
     }
 
-    public void setOverlayEnabled(boolean overlayEnabled) {
-        if (overlayEnabled != this.overlayEnabled) {
-            this.overlayEnabled = overlayEnabled;
+    public void setOverlaysEnabled(boolean overlaysEnabled) {
+        if (overlaysEnabled != this.overlayEnabled) {
+            this.overlayEnabled = overlaysEnabled;
             changeNo++;
-            propertyChangeSupport.firePropertyChange("overlayEnabled", ! overlayEnabled, overlayEnabled);
+            propertyChangeSupport.firePropertyChange("overlaysEnabled", ! overlaysEnabled, overlaysEnabled);
         }
     }
 
@@ -1827,19 +1787,6 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             dirtyTiles.clear();
             changeNo++;
 
-            Rectangle overlayCoords = null;
-            if ((overlay != null) && overlay.canRead()) {
-                try {
-                    java.awt.Dimension overlaySize = getImageSize(overlay);
-                    if (overlaySize != null) {
-                        overlayCoords = new Rectangle(overlayOffsetX, overlayOffsetY, Math.round(overlaySize.width * overlayScale), Math.round(overlaySize.height * overlayScale));
-                    }
-                } catch (IOException e) {
-                    // Don't bother user with it, just clear the overlay
-                    logger.error("I/O error while trying to determine size of " + overlay + "; overlay will not be adjusted", e);
-                }
-            }
-
             // Remove all tiles
             final Map<Point, Tile> oldTiles = new HashMap<>(tiles);
             final Set<Tile> removedTiles;
@@ -1904,24 +1851,31 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
             tileFactory.transform(transform);
 
-            if (overlayCoords != null) {
-                overlayCoords = transform.transform(overlayCoords);
-                setOverlayOffsetX(overlayCoords.x);
-                setOverlayOffsetY(overlayCoords.y);
-                setOverlayScale(transform.transformScalar(overlayScale));
-                // TODO move this out of WPCore!
-                DesktopUtils.beep();
-                if (transform.isRotating()) {
-                    SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null, "The " + getName() + " dimension has an overlay image!\n" +
-                            "Its coordinates and/or scale has been adjusted, but you need to\n" +
-                            "rotate the actual image yourself using a paint program.", "Rotate Overlay Image", JOptionPane.WARNING_MESSAGE));
+            for (Overlay overlay: overlays) {
+                if (overlay.getFile().canRead()) {
+                    try {
+                        final java.awt.Dimension overlaySize = getImageSize(overlay.getFile());
+                        if (overlaySize != null) {
+                            final float overlayScale = overlay.getScale();
+                            final Rectangle overlayCoords = transform.transform(new Rectangle(overlay.getOffsetX(), overlay.getOffsetY(), Math.round(overlaySize.width * overlayScale), Math.round(overlaySize.height * overlayScale)));
+                            overlay.setOffsetX(overlayCoords.x);
+                            overlay.setOffsetY(overlayCoords.y);
+                            overlay.setScale(transform.transformScalar(overlayScale));
+                        } else {
+                            // Don't bother user with it, just clear the overlay
+                            logger.error("Size of " + overlay.getFile() + " could not be determined; overlay will not be adjusted");
+                            overlay.setEnabled(false);
+                        }
+                    } catch (IOException e) {
+                        // Don't bother user with it, just clear the overlay
+                        logger.error("I/O error while trying to determine size of " + overlay.getFile() + "; overlay will not be adjusted", e);
+                        overlay.setEnabled(false);
+                    }
+                } else {
+                    // Don't bother user with it, just clear the overlay
+                    logger.error("Overlay " + overlay.getFile() + " could not be read; overlay will not be adjusted");
+                    overlay.setEnabled(false);
                 }
-            } else if (overlay != null) {
-                // TODO move this out of WPCore!
-                DesktopUtils.beep();
-                SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null, "The " + getName() + " dimension has an overlay image, however\n" +
-                        "its coordinates could not be determined, and therefore have not\n" +
-                        "been adjusted! You need to fix and adjust the overlay image yourself.", "Adjust Overlay Image", JOptionPane.ERROR_MESSAGE));
             }
         } finally {
             eventsInhibited = false;
@@ -2414,6 +2368,22 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (wpVersion < 8) {
             id = UUID.randomUUID();
         }
+        if (wpVersion < 9) {
+            overlays = new ArrayList<>();
+            if (this.overlay != null) {
+                final Overlay overlay = new Overlay(this.overlay);
+                overlay.setOffsetX(overlayOffsetX);
+                overlay.setOffsetY(overlayOffsetY);
+                overlay.setScale(overlayScale);
+                overlay.setTransparency(overlayTransparency);
+                overlays.add(overlay);
+                this.overlay = null;
+                overlayOffsetX = 0;
+                overlayOffsetY = 0;
+                overlayScale = 0.0f;
+                overlayTransparency = 0.0f;
+            }
+        }
         wpVersion = CURRENT_WP_VERSION;
 
         // Make sure that any custom layers which somehow ended up in the world
@@ -2455,10 +2425,15 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     @Deprecated private boolean darkLevel, bedrockWall;
     private Map<Layer, ExporterSettings> layerSettings = new HashMap<>();
     private long minecraftSeed;
-    private File overlay;
-    private float overlayScale = 1.0f, overlayTransparency = 0.5f;
-    private int overlayOffsetX, overlayOffsetY, gridSize = 128;
-    private boolean overlayEnabled, gridEnabled, biomesConverted = true;
+    @Deprecated private File overlay;
+    @Deprecated private float overlayScale = 1.0f, overlayTransparency = 0.5f;
+    @Deprecated private int overlayOffsetX, overlayOffsetY;
+    private int gridSize = 128;
+    /**
+     * Should be {@code overlaysEnabled}; has the wrong name for historical purposes.
+     */
+    private boolean overlayEnabled;
+    private boolean gridEnabled, biomesConverted = true;
     private int minHeight, maxHeight, contourSeparation = 10;
     private boolean contoursEnabled = true;
     private int topLayerMinDepth = 3, topLayerVariation = 4;
@@ -2481,6 +2456,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private Set<String> hiddenPalettes;
     private String soloedPalette;
     private UUID id = UUID.randomUUID();
+    private List<Overlay> overlays = new ArrayList<>();
     private transient List<Listener> listeners = new ArrayList<>();
     private transient boolean eventsInhibited;
     private transient Set<Tile> dirtyTiles = new HashSet<>();
@@ -2503,13 +2479,15 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     private static final long TOP_LAYER_DEPTH_SEED_OFFSET = 180728193;
     private static final float ROOT_EIGHT = (float) Math.sqrt(8.0);
-    private static final int CURRENT_WP_VERSION = 8;
+    private static final int CURRENT_WP_VERSION = 9;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Dimension.class);
     private static final long serialVersionUID = 2011062401L;
 
     public interface Listener {
         void tilesAdded(Dimension dimension, Set<Tile> tiles);
         void tilesRemoved(Dimension dimension, Set<Tile> tiles);
+        void overlayAdded(Dimension dimension, int index, Overlay overlay);
+        void overlayRemoved(Dimension dimension, int index, Overlay overlay);
     }
 
     public interface TileVisitor {

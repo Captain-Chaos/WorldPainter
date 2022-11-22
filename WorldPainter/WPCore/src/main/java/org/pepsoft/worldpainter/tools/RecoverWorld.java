@@ -229,12 +229,9 @@ public class RecoverWorld {
                 System.err.println("Grid settings lost for dimension " + dimension.getName());
             }
             newDimension.setMinecraftSeed(dimension.getMinecraftSeed());
-            newDimension.setOverlay(dimension.getOverlay());
-            newDimension.setOverlayEnabled(dimension.isOverlayEnabled());
-            newDimension.setOverlayOffsetX(dimension.getOverlayOffsetX());
-            newDimension.setOverlayOffsetY(dimension.getOverlayOffsetY());
-            newDimension.setOverlayScale(dimension.getOverlayScale());
-            newDimension.setOverlayTransparency(dimension.getOverlayTransparency());
+            for (Overlay overlay: dimension.getOverlays()) {
+                newDimension.addOverlay(overlay);
+            }
             newDimension.setPopulate(dimension.isPopulate());
             if (dimension.getSubsurfaceMaterial() != null) {
                 newDimension.setSubsurfaceMaterial(dimension.getSubsurfaceMaterial());

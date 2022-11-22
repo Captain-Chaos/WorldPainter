@@ -10,15 +10,18 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 
+import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static javax.swing.JOptionPane.WARNING_MESSAGE;
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.util.mdc.MDCUtils.decorateWithMdcContext;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
@@ -35,6 +38,9 @@ public class ShiftWorldDialog extends WorldPainterDialog implements ProgressRece
         super(parent);
         this.world = world;
         this.anchor = anchor;
+        affectedDimensions = world.getDimensions().stream()
+                .filter(dimension -> dimension.getAnchor().dim == anchor.dim)
+                .collect(toList());
 
         initComponents();
         setTitle("Shift " + new Anchor(anchor.dim, DETAIL, false, 0).getDefaultName() + " Dimension");
@@ -65,7 +71,13 @@ public class ShiftWorldDialog extends WorldPainterDialog implements ProgressRece
 
     @Override
     public synchronized void done() {
-        doOnEventThread(this::ok);
+        doOnEventThread(() -> {
+            if (affectedDimensions.stream().flatMap(dimension -> dimension.getOverlays().stream()).anyMatch(overlay -> ! overlay.getFile().canRead())) {
+                DesktopUtils.beep();
+                JOptionPane.showMessageDialog(this, "One or more overlay image files could not be read,\nand have therefore not been shifted.\nYou will need to shift these manually.", "Not All Overlays Shifted", WARNING_MESSAGE);
+            }
+            ok();
+        });
     }
 
     @Override
@@ -97,9 +109,6 @@ public class ShiftWorldDialog extends WorldPainterDialog implements ProgressRece
             @Override
             public void run() {
                 try {
-                    final List<Dimension> affectedDimensions = world.getDimensions().stream()
-                            .filter(dimension -> dimension.getAnchor().dim == anchor.dim)
-                            .collect(toList());
                     for (int i = 0; i < affectedDimensions.size(); i++) {
                         final Dimension dimension = affectedDimensions.get(i);
                         world.transform(dimension.getAnchor(), transform, new SubProgressReceiver(ShiftWorldDialog.this, (float) i / affectedDimensions.size(), 1.0f / affectedDimensions.size()));
@@ -302,6 +311,7 @@ public class ShiftWorldDialog extends WorldPainterDialog implements ProgressRece
 
     private final World2 world;
     private final Anchor anchor;
+    private final List<Dimension> affectedDimensions;
 
     private static final long serialVersionUID = 1L;
 }

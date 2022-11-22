@@ -14,7 +14,6 @@ import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
 import java.awt.*;
 import java.beans.PropertyChangeListener;
-import java.io.File;
 import java.io.NotSerializableException;
 import java.io.ObjectOutputStream;
 import java.lang.ref.Reference;
@@ -215,52 +214,17 @@ public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
     }
 
     @Override
-    public File getOverlay() {
-        return dimension.getOverlay();
+    public List<Overlay> getOverlays() {
+        return dimension.getOverlays();
     }
 
     @Override
-    public final void setOverlay(File overlay) {
+    public int addOverlay(Overlay overlay) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public int getOverlayOffsetX() {
-        return dimension.getOverlayOffsetX();
-    }
-
-    @Override
-    public final void setOverlayOffsetX(int overlayOffsetX) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public int getOverlayOffsetY() {
-        return dimension.getOverlayOffsetY();
-    }
-
-    @Override
-    public final void setOverlayOffsetY(int overlayOffsetY) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public float getOverlayScale() {
-        return dimension.getOverlayScale();
-    }
-
-    @Override
-    public final void setOverlayScale(float overlayScale) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public float getOverlayTransparency() {
-        return dimension.getOverlayTransparency();
-    }
-
-    @Override
-    public final void setOverlayTransparency(float overlayTransparency) {
+    public void removeOverlay(int index) {
         throw new UnsupportedOperationException();
     }
 
@@ -285,12 +249,12 @@ public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
     }
 
     @Override
-    public boolean isOverlayEnabled() {
-        return dimension.isOverlayEnabled();
+    public boolean isOverlaysEnabled() {
+        return dimension.isOverlaysEnabled();
     }
 
     @Override
-    public final void setOverlayEnabled(boolean overlayEnabled) {
+    public final void setOverlaysEnabled(boolean overlaysEnabled) {
         throw new UnsupportedOperationException();
     }
 

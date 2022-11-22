@@ -477,6 +477,14 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.heightMapsDirectory = heightMapsDirectory;
     }
 
+    public synchronized File getOverlaysDirectory() {
+        return overlaysDirectory;
+    }
+
+    public synchronized void setOverlaysDirectory(File overlaysDirectory) {
+        this.overlaysDirectory = overlaysDirectory;
+    }
+
     public synchronized Theme getHeightMapDefaultTheme() {
         return heightMapDefaultTheme;
     }
@@ -1088,10 +1096,9 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
-        // We keep having difficulties on Windows with Files being Windows-
-        // specific subclasses of File which don't serialise correctly and end
-        // up being null somehow. Work around the problem by making sure all
-        // Files are actually java.io.Files
+        // We keep having difficulties on Windows with Files being Windows- specific subclasses of File which don't
+        // serialise correctly and end up being null somehow. Work around the problem by making sure all Files are
+        // actually java.io.Files
         worldDirectory = FileUtils.absolutise(worldDirectory);
         savesDirectory = FileUtils.absolutise(savesDirectory);
         customObjectsDirectory = FileUtils.absolutise(customObjectsDirectory);
@@ -1104,6 +1111,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         masksDirectory = FileUtils.absolutise(masksDirectory);
         backgroundImage = FileUtils.absolutise(backgroundImage);
         exportDirectoriesById = FileUtils.absolutise(exportDirectoriesById);
+        overlaysDirectory = FileUtils.absolutise(overlaysDirectory);
         
         out.defaultWriteObject();
     }
@@ -1255,6 +1263,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private int defaultResourcesMinimumLevel = 8, showDonationDialogAfter = 5;
     private Integer merchStoreDialogDisplayed = 0;
     private Map<String, List<MessageDisplayed>> displayedMessages = new HashMap<>();
+    private File overlaysDirectory;
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk

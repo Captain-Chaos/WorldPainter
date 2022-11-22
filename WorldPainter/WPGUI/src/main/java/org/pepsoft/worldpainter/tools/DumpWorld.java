@@ -96,13 +96,12 @@ public class DumpWorld {
         System.out.println("    Contour separation: " + dimension.getContourSeparation());
         System.out.println("    Grid size: " + dimension.getGridSize());
         System.out.println("    Last view position: " + dimension.getLastViewPosition().x + "," + dimension.getLastViewPosition().y);
-        if (dimension.getOverlay() != null) {
-            System.out.println("    Overlay image: " + dimension.getOverlay());
-            System.out.println("        Offset: " + dimension.getOverlayOffsetX() + "," + dimension.getOverlayOffsetY());
-            System.out.println("        Scale:" + dimension.getOverlayScale());
-            System.out.println("        Transparency: " + dimension.getOverlayTransparency());
-        } else {
-            System.out.println("    Overlay image: none");
+        for (Overlay overlay: dimension.getOverlays()) {
+            System.out.println("    Overlay image: " + overlay.getFile());
+            System.out.println("        Enabled: " + overlay.isEnabled());
+            System.out.println("        Offset: " + overlay.getOffsetX() + "," + overlay.getOffsetY());
+            System.out.println("        Scale:" + overlay.getScale());
+            System.out.println("        Transparency: " + overlay.getTransparency());
         }
         System.out.println("    Subfurface material: " + dimension.getSubsurfaceMaterial());
         System.out.println("    Top layer depth: " + dimension.getTopLayerMinDepth() + " - " + (dimension.getTopLayerMinDepth() + dimension.getTopLayerVariation()));

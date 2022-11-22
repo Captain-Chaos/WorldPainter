@@ -37,6 +37,7 @@ import java.util.Set;
 import static java.util.Collections.singleton;
 import static java.util.Collections.unmodifiableSet;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
+import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.worldpainter.Configuration.OverlayType.SCALE_ON_LOAD;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
@@ -51,7 +52,7 @@ import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_FIFTY_PERCE
  *
  * @author pepijn
  */
-public class WorldPainter extends WorldPainterView implements MouseMotionListener, PropertyChangeListener {
+public class WorldPainter extends WorldPainterView implements MouseMotionListener, PropertyChangeListener, Dimension.Listener {
     public WorldPainter(ColourScheme colourScheme, CustomBiomeManager customBiomeManager) {
         super(false, false);
         this.colourScheme = colourScheme;
@@ -83,6 +84,10 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             if (oldDimension.getAnchor().dim == DIM_NORMAL) {
                 oldDimension.getWorld().removePropertyChangeListener("spawnPoint", this);
             }
+            oldDimension.removeDimensionListener(this);
+            for (Overlay overlay: oldDimension.getOverlays()) {
+                overlay.removePropertyChangeListener(this);
+            }
         }
         this.dimension = dimension;
         if (dimension != null) {
@@ -92,22 +97,20 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             if (dimension.getAnchor().dim == DIM_NORMAL) {
                 dimension.getWorld().addPropertyChangeListener("spawnPoint", this);
             }
+            dimension.addDimensionListener(this);
+            for (Overlay overlay: dimension.getOverlays()) {
+                overlay.addPropertyChangeListener(this);
+            }
 
             setGridSize(dimension.getGridSize());
             setPaintGrid(dimension.isGridEnabled());
             setLabelScale((int) dimension.getScale());
             
-            overlayScale = dimension.getOverlayScale();
             overlayType = Configuration.getInstance().getOverlayType();
-            overlayTransparency = dimension.getOverlayTransparency();
-            overlayOffsetX = dimension.getOverlayOffsetX();
-            overlayOffsetY = dimension.getOverlayOffsetY();
-            overlay = null;
-            drawOverlay = dimension.isOverlayEnabled();
+            drawOverlays = dimension.isOverlaysEnabled();
             setMarkerCoords((dimension.getAnchor().dim == DIM_NORMAL) ? dimension.getWorld().getSpawnPoint() : null);
         } else {
-            overlay = null;
-            drawOverlay = false;
+            drawOverlays = false;
             setMarkerCoords(null);
         }
         firePropertyChange("dimension", oldDimension, dimension);
@@ -500,6 +503,33 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         }
     }
 
+    @Override
+    public Point getMousePosition() throws HeadlessException {
+        Point translation = new Point(0, 0);
+        Component component = this;
+        while (component != null) {
+            Point mousePosition = (component == this) ? super.getMousePosition() : component.getMousePosition();
+            if (mousePosition != null) {
+                mousePosition.translate(-translation.x, -translation.y);
+                return mousePosition;
+            } else {
+                translation.translate(component.getX(), component.getY());
+                component = component.getParent();
+            }
+        }
+        return null;
+    }
+
+    public Dimension getBackgroundDimension() {
+        return backgroundDimension;
+    }
+
+    public void setBackgroundDimension(Dimension backgroundDimension, int zoomLevel, WPTileProvider.Effect effect) {
+        this.backgroundDimension = backgroundDimension;
+        backgroundDimensionZoom = zoomLevel;
+        refreshTiles();
+    }
+
     // MouseMotionListener
 
     @Override
@@ -567,39 +597,53 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         if ((evt.getSource() == dimension.getWorld()) && evt.getPropertyName().equals("spawnPoint")) {
             setMarkerCoords((Point) evt.getNewValue());
         } else if (evt.getSource() == dimension) {
-            final boolean previousDrawOverlay = drawOverlay;
-            switch (evt.getPropertyName()) {
-                case "overlay":
-                    overlay = null;
-                    drawOverlay = dimension.isOverlayEnabled() && (dimension.getOverlay() != null);
-                    break;
-                case "overlayOffsetX":
-                    overlayOffsetX = (Integer) evt.getNewValue();
-                    break;
-                case "overlayOffsetY":
-                    overlayOffsetY = (Integer) evt.getNewValue();
-                    break;
-                case "overlayScale":
-                    overlayScale = (Float) evt.getNewValue();
-                    if (overlayType == SCALE_ON_LOAD) {
-                        overlay = null;
-                    }
-                    break;
-                case "overlayTransparency":
-                    overlayTransparency = (Float) evt.getNewValue();
-                    break;
-                case "overlayEnabled":
-                    drawOverlay = ((Boolean) evt.getNewValue()) && (dimension.getOverlay() != null);
-                    break;
+            if ("overlaysEnabled".equals(evt.getPropertyName())) {
+                drawOverlays = ((Boolean) evt.getNewValue());
+                repaint();
             }
-            if (drawOverlay || previousDrawOverlay) {
+        } else if (evt.getSource() instanceof Overlay) {
+            if (evt.getPropertyName().equals("image")) {
+                // Do nothing
+            } else if ((evt.getPropertyName().equals("scale")) && (Configuration.getInstance().getOverlayType() == SCALE_ON_LOAD)) {
+                // The overlay type is set to scale on load, so since the scale has changed the image has to be reloaded
+                ((Overlay) evt.getSource()).setImage(null);
+                if (drawOverlays) {
+                    // Since reloading an image is slow, wait with triggering it in case the value is still adjusting
+                    scheduleRepaint(250);
+                }
+            } else if (drawOverlays) {
                 repaint();
             }
         }
     }
 
+    // Dimension.Listener
+
+    @Override public void tilesAdded(Dimension dimension, Set<Tile> tiles) {}
+    @Override public void tilesRemoved(Dimension dimension, Set<Tile> tiles) {}
+
+    @Override
+    public void overlayAdded(Dimension dimension, int index, Overlay overlay) {
+        overlay.addPropertyChangeListener(this);
+        if (drawOverlays) {
+            repaint();
+        }
+    }
+
+    @Override
+    public void overlayRemoved(Dimension dimension, int index, Overlay overlay) {
+        overlay.removePropertyChangeListener(this);
+        if (drawOverlays) {
+            repaint();
+        }
+    }
+
     long getOverlayImageSize() {
-        return (overlay != null) ? MemoryUtils.getSize(overlay, Collections.emptySet()) : 0L;
+        long total = 0L;
+        for (Overlay overlay: dimension.getOverlays()) {
+            total += (overlay.getImage() != null) ? MemoryUtils.getSize(overlay.getImage(), Collections.emptySet()) : 0L;
+        }
+        return total;
     }
     
     @Override
@@ -624,8 +668,8 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                 // Switch to world coordinate system
                 final float scale = transformGraphics(g2);
                 final float onePixel = 1 / scale;
-                if (drawOverlay) {
-                    drawOverlay(g2);
+                if (drawOverlays) {
+                    drawOverlays(g2);
                 }
                 if (drawBrush || drawViewDistance || drawWalkingDistance) {
                     g2.setColor(Color.BLACK);
@@ -741,55 +785,52 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         }
     }
 
-    private void loadOverlay() {
-        if (dimension == null) {
-            return;
-        }
-        File file = dimension.getOverlay();
+    private void loadOverlay(Overlay overlay) {
+        File file = overlay.getFile();
         if ((file != null) && file.isFile()) {
             if (file.canRead()) {
                 logger.info("Loading image");
-                BufferedImage myOverlay;
+                BufferedImage overlayImage;
                 try {
-                    myOverlay = ImageIO.read(file);
+                    overlayImage = ImageIO.read(file);
                 } catch (IOException e) {
                     logger.error("I/O error while loading image " + file ,e);
                     doLaterOnEventThread(() -> JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nIt may not be a valid or supported image file, or the file may be corrupted.", "Error Loading Image", JOptionPane.ERROR_MESSAGE));
-                    this.drawOverlay = false;
+                    overlay.setEnabled(false);
                     return;
                 } catch (RuntimeException | Error e) {
                     logger.error(e.getClass().getSimpleName() + " while loading image " + file ,e);
                     doLaterOnEventThread(() -> JOptionPane.showMessageDialog(this, "An error occurred while loading the overlay image.\nThere may not be enough available memory, or the image may be too large.", "Error Loading Image", JOptionPane.ERROR_MESSAGE));
-                    this.drawOverlay = false;
+                    overlay.setEnabled(false);
                     return;
                 }
-                if (myOverlay != null) {
+                if (overlayImage != null) {
                     switch (overlayType) {
                         case OPTIMISE_ON_LOAD:
                             // "Scale" to 100%, which optimises the image for the screen environment
-                            myOverlay = scaleImage(myOverlay, getGraphicsConfiguration(), 1.0f);
+                            overlayImage = scaleImage(overlayImage, getGraphicsConfiguration(), 1.0f);
                             break;
                         case SCALE_ON_LOAD:
-                            myOverlay = scaleImage(myOverlay, getGraphicsConfiguration(), dimension.getOverlayScale());
+                            overlayImage = scaleImage(overlayImage, getGraphicsConfiguration(), overlay.getScale());
                             break;
                     }
                 } else {
                     logger.error("Image overlay file " + file + " did not contain a recognisable image");
                     doLaterOnEventThread(() -> JOptionPane.showMessageDialog(this, "Image overlay file did not contain a recognisable image. It may have been corrupted.\n" + file, "Error Loading Image", JOptionPane.ERROR_MESSAGE));
                 }
-                if (myOverlay != null) {
-                    overlay = myOverlay;
+                if (overlayImage != null) {
+                    overlay.setImage(overlayImage);
                 } else {
                     // The loading, scaling or optimisation failed
-                    this.drawOverlay = false;
+                    overlay.setEnabled(false);
                 }
             } else {
                 doLaterOnEventThread(() -> JOptionPane.showMessageDialog(this, "Access denied to overlay image\n" + file, "Error Enabling Overlay", JOptionPane.ERROR_MESSAGE));
-                this.drawOverlay = false;
+                overlay.setEnabled(false);
             }
         } else {
             doLaterOnEventThread(() -> JOptionPane.showMessageDialog(this, "Overlay image file not found\n" + file, "Error Enabling Overlay", JOptionPane.ERROR_MESSAGE));
-            this.drawOverlay = false;
+            overlay.setEnabled(false);
         }
     }
 
@@ -874,94 +915,94 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         repaint(area.x - 2, area.y - 2, area.width + 4, area.height + 4);
     }
 
-    private void drawOverlay(Graphics2D g2) {
-        if (overlayTransparency == 1.0f) {
-            // Fully transparent
+    private void drawOverlays(Graphics2D g2) {
+        if (dimension.getOverlays().isEmpty()) {
             return;
-        } else {
-            if (overlay == null) {
-                loadOverlay();
-            }
-            if (overlay == null) {
-                // If it is _still_ null then loading has failed
-                return;
-            }
-
-            // Translucent or fully opaque
-            Composite savedComposite = (overlayTransparency > 0.0f) ? g2.getComposite() : null;
-            try {
-                if (overlayTransparency > 0.0f) {
-                    // Translucent
-                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f - overlayTransparency));
-                }
-                if ((overlayType == SCALE_ON_LOAD) || (overlayScale == 1.0f)) {
-                    // 1:1 scale, or the image has already been scaled on loading
-                    g2.drawImage(overlay, overlayOffsetX, overlayOffsetY, null);
+        }
+        Composite savedComposite = g2.getComposite();
+        try {
+            for (Overlay overlay: dimension.getOverlays()) {
+                final float overlayTransparency = overlay.getTransparency();
+                if (! overlay.isEnabled()) {
+                    // Not enabled
+                    continue;
+                } else if (overlay.getTransparency() == 1.0f) {
+                    // Fully transparent
+                    continue;
                 } else {
-                    int width = Math.round(overlay.getWidth() * overlayScale);
-                    int height = Math.round(overlay.getHeight() * overlayScale);
-                    Object savedInterpolation = g2.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
-                    try {
-                        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-                        g2.drawImage(overlay, overlayOffsetX, overlayOffsetY, width, height, null);
-                    } finally {
-                        if (savedInterpolation != null) {
-                            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, savedInterpolation);
+                    if (overlay.getImage() == null) {
+                        loadOverlay(overlay);
+                    }
+                    final BufferedImage overlayImage = overlay.getImage();
+                    if (overlayImage == null) {
+                        // If it is _still_ null then loading has failed
+                        continue;
+                    }
+
+                    // Translucent or fully opaque
+                    if (overlayTransparency > 0.0f) {
+                        // Translucent
+                        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f - overlayTransparency));
+                    }
+                    final float overlayScale = overlay.getScale();
+                    final int overlayOffsetX = overlay.getOffsetX(), overlayOffsetY = overlay.getOffsetY();
+                    if ((overlayType == SCALE_ON_LOAD) || (overlayScale == 1.0f)) {
+                        // 1:1 scale, or the image has already been scaled on loading
+                        g2.drawImage(overlayImage, overlayOffsetX, overlayOffsetY, null);
+                    } else {
+                        final int width = Math.round(overlayImage.getWidth() * overlayScale);
+                        final int height = Math.round(overlayImage.getHeight() * overlayScale);
+                        final Object savedInterpolation = g2.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
+                        try {
+                            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                            g2.drawImage(overlayImage, overlayOffsetX, overlayOffsetY, width, height, null);
+                        } finally {
+                            if (savedInterpolation != null) {
+                                g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, savedInterpolation);
+                            }
                         }
                     }
                 }
-            } finally {
-                if (overlayTransparency > 0.0f) {
-                    // Translucent
-                    g2.setComposite(savedComposite);
-                }
             }
+        } finally {
+            g2.setComposite(savedComposite);
         }
     }
 
-    @Override
-    public Point getMousePosition() throws HeadlessException {
-        Point translation = new Point(0, 0);
-        Component component = this;
-        while (component != null) {
-            Point mousePosition = (component == this) ? super.getMousePosition() : component.getMousePosition();
-            if (mousePosition != null) {
-                mousePosition.translate(-translation.x, -translation.y);
-                return mousePosition;
-            } else {
-                translation.translate(component.getX(), component.getY());
-                component = component.getParent();
+    /**
+     * Schedules a {@link #repaint()} for {@code delay} ms after now. If a repaint was already scheduled, that is
+     * postponed.
+     *
+     * @param delay The number of ms to delay the repaint.
+     */
+    private void scheduleRepaint(int delay) {
+        doOnEventThread(() -> {
+            if (repaintTimer != null) {
+                repaintTimer.stop();
             }
-        }
-        return null;
-    }
-
-    public Dimension getBackgroundDimension() {
-        return backgroundDimension;
-    }
-
-    public void setBackgroundDimension(Dimension backgroundDimension, int zoomLevel, WPTileProvider.Effect effect) {
-        this.backgroundDimension = backgroundDimension;
-        backgroundDimensionZoom = zoomLevel;
-        refreshTiles();
+            repaintTimer = new Timer(delay, event -> {
+                repaint();
+                repaintTimer = null;
+            });
+            repaintTimer.setRepeats(false);
+            repaintTimer.start();
+        });
     }
 
     private HashSet<Layer> hiddenLayers = new HashSet<>();
     private final CustomBiomeManager customBiomeManager;
     private Dimension dimension, backgroundDimension; // TODO make this more generic
-    private int mouseX, mouseY, radius, effectiveRadius, overlayOffsetX, overlayOffsetY, contourSeparation,
-            brushRotation, backgroundDimensionZoom;
-    private boolean drawBrush, drawOverlay, drawContours, drawViewDistance, drawWalkingDistance,
+    private int mouseX, mouseY, radius, effectiveRadius, contourSeparation, brushRotation, backgroundDimensionZoom;
+    private boolean drawBrush, drawOverlays, drawContours, drawViewDistance, drawWalkingDistance,
             drawMinecraftBorder = true, drawBorders = true, drawBiomes = true;
     private BrushShape brushShape;
-    private float overlayScale = 1.0f, overlayTransparency = 0.5f;
     private ColourScheme colourScheme;
-    private BufferedImage overlay;
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
     private WPTileProvider tileProvider, backgroundTileProvider;
     private Shape customBrushShape;
     private OverlayType overlayType;
     private ColourRamp colourRamp;
+    private Timer repaintTimer;
 
     private static final int VIEW_DISTANCE_RADIUS = 192; // 12 chunks (default of Minecraft 1.18.2)
     private static final int FIVE_MINUTE_WALK_DISTANCE_RADIUS = 1280;

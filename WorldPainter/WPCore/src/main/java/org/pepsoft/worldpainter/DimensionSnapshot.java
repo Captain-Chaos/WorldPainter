@@ -252,6 +252,16 @@ public final class DimensionSnapshot extends Dimension { // This cannot be an RO
     }
 
     @Override
+    public int addOverlay(Overlay overlay) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void removeOverlay(int index) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void setWallType(WallType wallType) {
         throw new UnsupportedOperationException();
     }

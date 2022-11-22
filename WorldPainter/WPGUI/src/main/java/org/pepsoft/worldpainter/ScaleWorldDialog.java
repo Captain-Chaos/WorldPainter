@@ -18,8 +18,7 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
-import static javax.swing.JOptionPane.OK_OPTION;
-import static javax.swing.JOptionPane.YES_NO_OPTION;
+import static javax.swing.JOptionPane.*;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
@@ -39,10 +38,13 @@ public class ScaleWorldDialog extends WorldPainterDialog {
         super(parent);
         this.world = world;
         this.anchor = anchor;
-        final Dimension dimension = world.getDimension(anchor);
+        affectedDimensions = world.getDimensions().stream()
+                .filter(dimension -> dimension.getAnchor().dim == anchor.dim)
+                .collect(toList());
 
         initComponents();
         setTitle("Scale " + new Anchor(anchor.dim, DETAIL, false, 0).getDefaultName() + " Dimension");
+        final Dimension dimension = world.getDimension(anchor);
         final int width = dimension.getWidth() * TILE_SIZE, height = dimension.getHeight() * TILE_SIZE;
         labelCurrentSize.setText(format("%d x %d blocks", width, height));
         labelCurrentWalkingTime.setText(getWalkingTime(width, height));
@@ -71,9 +73,6 @@ public class ScaleWorldDialog extends WorldPainterDialog {
 
             @Override
             public Void execute(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-                final List<Dimension> affectedDimensions = world.getDimensions().stream()
-                        .filter(dimension -> dimension.getAnchor().dim == anchor.dim)
-                        .collect(toList());
                 for (int i = 0; i < affectedDimensions.size(); i++) {
                     final Dimension dimension = affectedDimensions.get(i);
                     world.transform(dimension.getAnchor(), transform, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) i / affectedDimensions.size(), 1.0f / affectedDimensions.size()) : null);
@@ -82,6 +81,10 @@ public class ScaleWorldDialog extends WorldPainterDialog {
                 return null;
             }
         }, NOT_CANCELABLE);
+        if (affectedDimensions.stream().flatMap(dimension -> dimension.getOverlays().stream()).anyMatch(overlay -> ! overlay.getFile().canRead())) {
+            DesktopUtils.beep();
+            JOptionPane.showMessageDialog(this, "One or more overlay image files could not be read,\nand have therefore not been scaled.\nYou will need to scale these manually.", "Not All Overlays Scaled", WARNING_MESSAGE);
+        }
         ok();
     }
     
@@ -316,4 +319,5 @@ public class ScaleWorldDialog extends WorldPainterDialog {
 
     private final World2 world;
     private final Anchor anchor;
+    private final List<Dimension> affectedDimensions;
 }

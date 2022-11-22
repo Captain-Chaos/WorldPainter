@@ -5,10 +5,8 @@
 package org.pepsoft.worldpainter.threedeeview;
 
 import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.HeightMapTileFactory;
-import org.pepsoft.worldpainter.Tile;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Layer;
 
@@ -248,6 +246,9 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         // since this can currently never happen anyway we will deal with that
         // when it becomes necessary
     }
+
+    @Override public void overlayAdded(Dimension dimension, int index, Overlay overlay) {}
+    @Override public void overlayRemoved(Dimension dimension, int index, Overlay overlay) {}
 
     // Tile.Listener
     

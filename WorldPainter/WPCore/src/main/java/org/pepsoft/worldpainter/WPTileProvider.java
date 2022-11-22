@@ -217,6 +217,9 @@ public class WPTileProvider implements org.pepsoft.util.swing.TileProvider, Dime
         fireTilesChanged(tiles);
     }
 
+    @Override public void overlayAdded(Dimension dimension, int index, Overlay overlay) {}
+    @Override public void overlayRemoved(Dimension dimension, int index, Overlay overlay) {}
+
     // Tile.Listener
     
     @Override
