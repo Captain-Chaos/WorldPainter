@@ -27,6 +27,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
+import static org.pepsoft.util.ExceptionUtils.chainContains;
+import static org.pepsoft.util.ExceptionUtils.getFromChainOfType;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.worldpainter.ExceptionHandler.handleException;
 
@@ -98,27 +100,23 @@ public abstract class MultiProgressDialog<T> extends javax.swing.JDialog impleme
     @Override
     public void exceptionThrown(Throwable exception) {
         doLaterOnEventThread(() -> {
-            Throwable cause = exception;
-            while (cause.getCause() != null) {
-                cause = cause.getCause();
-            }
-            if (cause instanceof FileInUseException) {
+            if (chainContains(exception, FileInUseException.class)) {
                 DesktopUtils.beep();
                 JOptionPane.showMessageDialog(MultiProgressDialog.this, "Could not " + getVerb().toLowerCase() + " the world because the existing map directory is in use.\nPlease close Minecraft and all other windows and try again.", "Map In Use", JOptionPane.ERROR_MESSAGE);
-            } else if (cause instanceof MissingCustomTerrainException) {
+            } else if (chainContains(exception, MissingCustomTerrainException.class)) {
                 DesktopUtils.beep();
                 JOptionPane.showMessageDialog(MultiProgressDialog.this,
-                        "Custom Terrain " + ((MissingCustomTerrainException) cause).getIndex() + " not configured!\n" +
+                        "Custom Terrain " + (getFromChainOfType(exception, MissingCustomTerrainException.class)).getIndex() + " not configured!\n" +
                                 "Please configure it on the Custom Terrain panel.\n" +
                                 "\n" +
                                 "The partially processed map is now probably corrupted.\n" +
                                 "You should replace it from the backup, or " + getVerb().toLowerCase() + " the map again.", "Unconfigured Custom Terrain", JOptionPane.ERROR_MESSAGE);
-            } else if (cause instanceof InvalidMapException) {
+            } else if (chainContains(exception, InvalidMapException.class)) {
                 DesktopUtils.beep();
-                JOptionPane.showMessageDialog(MultiProgressDialog.this, cause.getMessage(), "Invalid Map", JOptionPane.ERROR_MESSAGE);
-            } else if (cause instanceof IncompatibleMaterialException) {
+                JOptionPane.showMessageDialog(MultiProgressDialog.this, getFromChainOfType(exception, InvalidMapException.class).getMessage(), "Invalid Map", JOptionPane.ERROR_MESSAGE);
+            } else if (chainContains(exception, IncompatibleMaterialException.class)) {
                 DesktopUtils.beep();
-                JOptionPane.showMessageDialog(MultiProgressDialog.this, cause.getMessage(), "Incompatible Material", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(MultiProgressDialog.this, getFromChainOfType(exception, IncompatibleMaterialException.class).getMessage(), "Incompatible Material", JOptionPane.ERROR_MESSAGE);
             } else {
                 handleException(exception, MultiProgressDialog.this);
             }

@@ -5,7 +5,12 @@
 package org.pepsoft.util;
 
 
+import org.pepsoft.util.ProgressReceiver.OperationCancelled;
+import org.pepsoft.util.ProgressReceiver.OperationCancelledByUser;
+
 import java.util.BitSet;
+
+import static org.pepsoft.util.ExceptionUtils.chainContains;
 
 /**
  * A manager of parallel progress receivers, which reports to one parent
@@ -29,7 +34,7 @@ import java.util.BitSet;
  * <p>If a task invokes {@link ProgressReceiver#exceptionThrown(Throwable)} it will
  * be reported to the parent progress receiver, and all subsequent invocations
  * on their progress receivers by any other tasks will result in an
- * {@link ProgressReceiver.OperationCancelled} exception being thrown. If any
+ * {@link OperationCancelled} exception being thrown. If any
  * more exceptions are reported these are <em>not</em> reported to the parent
  * progress receiver (instead they are logged using the java.util logging
  * framework). Also, if an exception has been reported,
@@ -93,7 +98,7 @@ public class ParallelProgressManager {
         return exceptionThrown;
     }
 
-    private synchronized void setProgress(int index, float subProgress) throws ProgressReceiver.OperationCancelled {
+    private synchronized void setProgress(int index, float subProgress) throws OperationCancelled {
         if (! started) {
             start();
         }
@@ -105,7 +110,7 @@ public class ParallelProgressManager {
         }
         try {
             progressReceiver.setProgress(totalProgress / taskCount);
-        } catch (ProgressReceiver.OperationCancelled e) {
+        } catch (OperationCancelled e) {
             previousException = e;
             throw e;
         }
@@ -124,11 +129,11 @@ public class ParallelProgressManager {
         if (! exceptionReported) {
             exceptionReported = true;
             progressReceiver.exceptionThrown(exception);
-        } else if (exception instanceof ProgressReceiver.OperationCancelledByUser) {
+        } else if (chainContains(exception, OperationCancelledByUser.class)) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Operation cancelled by user; not reporting to progress receiver");
             }
-        } else if (exception instanceof ProgressReceiver.OperationCancelled) {
+        } else if (chainContains(exception, OperationCancelled.class)) {
             logger.debug("Operation cancelled on thread {} (message: \"{}\")", Thread.currentThread().getName(), exception.getMessage());
         } else {
             logger.error("Secondary exception from parallel task; not reporting to progress receiver", exception);
@@ -148,7 +153,7 @@ public class ParallelProgressManager {
         }
     }
 
-    private synchronized void setMessage(int index, String message) throws ProgressReceiver.OperationCancelled {
+    private synchronized void setMessage(int index, String message) throws OperationCancelled {
         if (! started) {
             start();
         }
@@ -156,14 +161,14 @@ public class ParallelProgressManager {
         progressReceiver.setMessage(message);
     }
 
-    private synchronized void checkForCancellation() throws ProgressReceiver.OperationCancelled {
+    private synchronized void checkForCancellation() throws OperationCancelled {
         if (! started) {
             start();
         }
         cancelIfPreviousException();
     }
 
-    private synchronized void subProgressStarted(org.pepsoft.util.SubProgressReceiver subProgressReceiver) throws ProgressReceiver.OperationCancelled {
+    private synchronized void subProgressStarted(org.pepsoft.util.SubProgressReceiver subProgressReceiver) throws OperationCancelled {
         if (! started) {
             start();
         }
@@ -179,9 +184,9 @@ public class ParallelProgressManager {
         notifyAll();
     }
 
-    private void cancelIfPreviousException() throws ProgressReceiver.OperationCancelled {
+    private void cancelIfPreviousException() throws OperationCancelled {
         if (previousException != null) {
-            throw new ProgressReceiver.OperationCancelled("Operation cancelled due to exception on other thread (type: " + previousException.getClass().getSimpleName() + ", message: " + previousException.getMessage() + ")", previousException);
+            throw new OperationCancelled("Operation cancelled due to exception on other thread (type: " + previousException.getClass().getSimpleName() + ", message: " + previousException.getMessage() + ")", previousException);
         }
     }
     

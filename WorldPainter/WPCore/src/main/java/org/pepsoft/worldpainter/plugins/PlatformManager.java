@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.zip.ZipException;
 
 import static java.util.stream.Collectors.toList;
+import static org.pepsoft.util.ExceptionUtils.chainContains;
 import static org.pepsoft.worldpainter.DefaultPlugin.DEFAULT_JAVA_PLATFORMS;
 
 /**
@@ -85,11 +86,7 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
                     candidates.add(mapInfo);
                 }
             } catch (RuntimeException e) {
-                Throwable rootCause = e;
-                while (rootCause.getCause() != null) {
-                    rootCause = e.getCause();
-                }
-                if ((rootCause instanceof ClosedByInterruptException) || (rootCause instanceof InvalidPathException) || (rootCause instanceof ZipException)) {
+                if (chainContains(e, ClosedByInterruptException.class) || chainContains(e, InvalidPathException.class) || chainContains(e, ZipException.class)) {
                     // These are some exceptions that seem to be thrown for special paths or unsupported file formats; not worth polluting the log with
                     logger.debug("{} while asking provider {} to identify {}; skipping platform", e.getClass().getSimpleName(), provider.getClass().getName(), worldDir, e);
                 } else {

@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.pepsoft.util.AwtUtils.doOnEventThreadAndWait;
+import static org.pepsoft.util.ExceptionUtils.chainContains;
 import static org.pepsoft.util.mdc.MDCUtils.decorateWithMdcContext;
 
 /**
@@ -138,7 +139,7 @@ public class ProgressComponent<T> extends javax.swing.JPanel implements Progress
                 }
                 jButton1.setEnabled(false);
                 inhibitDone = true;
-                if (exception instanceof OperationCancelled) {
+                if (chainContains(exception, OperationCancelled.class)) {
                     jLabel2.setText("Cancelled");
                     if (listener != null) {
                         listener.cancelled();

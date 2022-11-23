@@ -45,6 +45,7 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
+import static org.pepsoft.util.ExceptionUtils.chainContains;
 import static org.pepsoft.util.mdc.MDCUtils.doWithMdcContext;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
@@ -285,7 +286,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                             }
                             performFixupsIfNecessary(worldDir, combined, regions, fixups, exportedRegions, progressReceiver1);
                         } catch (Throwable t) {
-                            if (t instanceof OperationCancelled) {
+                            if (chainContains(t, OperationCancelled.class)) {
                                 logger.debug("Operation cancelled on thread {} (message: \"{}\")", Thread.currentThread().getName(), t.getMessage());
                             } else {
                                 logger.error(t.getClass().getSimpleName() + " while exporting region {},{} (message: \"{}\")", region.x, region.y, t.getMessage(), t);

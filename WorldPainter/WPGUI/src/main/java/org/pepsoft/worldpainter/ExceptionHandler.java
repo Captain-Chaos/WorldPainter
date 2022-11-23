@@ -14,6 +14,8 @@ import java.nio.file.InvalidPathException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.pepsoft.util.ExceptionUtils.getUltimateCause;
+
 /**
  *
  * @author pepijn
@@ -99,10 +101,7 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
     }
     
     private static boolean shouldIgnore(Throwable t) {
-        Throwable rootCause = t;
-        while (rootCause.getCause() != null) {
-            rootCause = rootCause.getCause();
-        }
+        final Throwable rootCause = getUltimateCause(t);
         if ((rootCause.getStackTrace() != null) && (rootCause.getStackTrace().length > 0)) {
             final StackTraceElement topOfStack = rootCause.getStackTrace()[0];
             if (rootCause instanceof NullPointerException) {

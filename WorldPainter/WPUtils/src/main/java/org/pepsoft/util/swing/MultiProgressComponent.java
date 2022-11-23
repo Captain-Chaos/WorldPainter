@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.pepsoft.util.AwtUtils.doOnEventThreadAndWait;
+import static org.pepsoft.util.ExceptionUtils.chainContains;
 import static org.pepsoft.util.mdc.MDCUtils.decorateWithMdcContext;
 
 /**
@@ -146,7 +147,7 @@ public class MultiProgressComponent<T> extends javax.swing.JPanel implements Pro
                 }
                 jButton1.setEnabled(false);
                 inhibitDone = true;
-                if (exception instanceof OperationCancelled) {
+                if (chainContains(exception, OperationCancelled.class)) {
                     jLabel2.setText("Cancelled");
                     if (listener != null) {
                         listener.cancelled();
