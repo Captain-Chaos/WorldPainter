@@ -1200,6 +1200,7 @@ public final class App extends JFrame implements RadiusControl,
         ChangeHeightDialog dialog = new ChangeHeightDialog(parent, world);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
+            view.refreshTiles();
             if (threeDeeFrame != null) {
                 threeDeeFrame.refresh();
             }
