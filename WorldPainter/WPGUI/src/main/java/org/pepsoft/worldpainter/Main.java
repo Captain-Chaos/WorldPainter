@@ -66,8 +66,7 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
-        // Force language to English for now. TODO: remove this once the first
-        // translations are implemented
+        // Force language to English for now. TODO: remove this once the first translations are implemented
         Locale.setDefault(Locale.US);
 
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
@@ -77,12 +76,11 @@ public class Main {
             // Use the Mac style top of screen menu bar
             System.setProperty("apple.laf.useScreenMenuBar", "true");
         }
-        // Work around a bug in the JIDE Docking Framework which otherwise
-        // causes duplicate mouse events on focus switches resulting in
-        // uncommanded edits
+        // Work around a bug in the JIDE Docking Framework which otherwise causes duplicate mouse events on focus
+        // switches resulting in uncommanded edits
         System.setProperty("docking.focusWorkaround1", "true");
-        // Disable Java2D's automatic UI scaling, as it does not do a good job
-        // with the editor view; we want to do it ourselves
+        // Disable Java2D's automatic UI scaling, as it does not do a good job with the editor view; we want to do it
+        // ourselves
         System.setProperty("sun.java2d.uiScale.enabled", "false");
 
         // Use a file lock to make sure only one instance is running with autosave enabled
@@ -94,8 +92,8 @@ public class Main {
         try {
             Files.createFile(lockFilePath);
         } catch (FileAlreadyExistsException e) {
-            // We can't yet conclude another instance is running, because it may
-            // have crashed and left the lock file behind
+            // We can't yet conclude another instance is running, because it may have crashed and left the lock file
+            // behind
         }
         FileChannel lockFileChannel = FileChannel.open(lockFilePath, StandardOpenOption.WRITE);
         FileLock lock = lockFileChannel.tryLock();
@@ -204,8 +202,8 @@ public class Main {
                     logger.info("Hardware acceleration method: unaccelerated");
                     break;
                 case DIRECT3D:
-                    // Direct3D should already be the default on Windows, but
-                    // enable a few things which are off by default:
+                    // Direct3D should already be the default on Windows, but enable a few things which are off by
+                    // default:
                     System.setProperty("sun.java2d.translaccel", "true");
                     System.setProperty("sun.java2d.ddscale", "true");
                     logger.info("Hardware acceleration method: Direct3D");
@@ -230,10 +228,9 @@ public class Main {
             logger.info("[SAFE MODE] Hardware acceleration method: default");
         }
 
-        // Load the default platform descriptors so that they don't get blocked
-        // by older versions of them which might be contained in the
-        // configuration. Do this by loading and initialising (but not
-        // instantiating) the DefaultPlugin class
+        // Load the default platform descriptors so that they don't get blocked by older versions of them which might be
+        // contained in the configuration. Do this by loading and initialising (but not instantiating) the DefaultPlugin
+        // class
         try {
             Class.forName("org.pepsoft.worldpainter.DefaultPlugin");
         } catch (ClassNotFoundException e) {
@@ -249,8 +246,7 @@ public class Main {
         }
         if (config == null) {
             if (! logger.isDebugEnabled()) {
-                // If debug logging is on, the Configuration constructor will
-                // already log this
+                // If debug logging is on, the Configuration constructor will already log this
                 logger.info("Creating new configuration");
             }
             config = new Configuration();
@@ -264,8 +260,8 @@ public class Main {
         if (config.getPreviousVersion() >= 0) {
             // Perform legacy migration actions
             if (config.getPreviousVersion() < 18) {
-                // The dynmap data may have been copied from Minecraft 1.13, in
-                // which case it doesn't work, so delete it if it exists
+                // The dynmap data may have been copied from Minecraft 1.13, in which case it doesn't work, so delete it
+                // if it exists
                 File dynmapDir = new File(Configuration.getConfigDir(), "dynmap");
                 if (dynmapDir.isDirectory()) {
                     FileUtils.deleteDir(dynmapDir);
@@ -277,8 +273,7 @@ public class Main {
             StartupMessages.addWarning("Another instance of WorldPainter is already running.\nAutosave will therefore be disabled in this instance of WorldPainter!");
         }
 
-        // Store the acceleration type in the config object so the Preferences
-        // dialog can edit it
+        // Store the acceleration type in the config object so the Preferences dialog can edit it
         config.setAccelerationType(accelerationType);
 
         // Start background scan for Minecraft jars
@@ -304,9 +299,8 @@ public class Main {
             logger.info("[SAFE MODE] Not loading plugins");
         }
         WPPluginManager.initialise(config.getUuid());
-        // Load all the platform descriptors to ensure that when worlds
-        // containing older versions of them are loaded later they are replaced
-        // with the current versions, rather than the other way around
+        // Load all the platform descriptors to ensure that when worlds containing older versions of them are loaded
+        // later they are replaced with the current versions, rather than the other way around
         for (Platform platform : PlatformManager.getInstance().getAllPlatforms()) {
             logger.info("Available platform: {}", platform.displayName);
         }
@@ -482,8 +476,7 @@ public class Main {
                 app.setExtendedState(Frame.MAXIMIZED_BOTH);
             }
 
-            // Do this later to give the app the chance to properly set
-            // itself up
+            // Do this later to give the app the chance to properly set itself up
             SwingUtilities.invokeLater(() -> {
                 if (Version.isSnapshot() && ! myConfig.isMessageDisplayed(SNAPSHOT_MESSAGE_KEY)) {
                     String result = JOptionPane.showInputDialog(app, SNAPSHOT_MESSAGE, "Snapshot Release", WARNING_MESSAGE);
@@ -502,9 +495,8 @@ public class Main {
                     myConfig.setMessageDisplayed(SNAPSHOT_MESSAGE_KEY);
                 }
                 if (world != null) {
-                    // On a Mac we may be doing this unnecessarily because we
-                    // may be opening a .world file, but it has proven difficult
-                    // to detect that. TODO
+                    // On a Mac we may be doing this unnecessarily because we may be opening a .world file, but it has
+                    // proven difficult to detect that. TODO
                     app.setWorld(world, true);
                 } else if ((! autosaveInhibited) && myConfig.isAutosaveEnabled() && autosaveFile.isFile()) {
                     logger.info("Recovering autosaved world");
