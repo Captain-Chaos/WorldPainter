@@ -91,38 +91,42 @@ public final class WorldUtils {
                     if (dimNewMinHeight != oldMinHeight) {
                         final int raiseBy = oldMinHeight - dimNewMinHeight;
                         final SuperflatPreset settings = ((SuperflatGenerator) dim.getGenerator()).getSettings();
-                        final List<SuperflatPreset.Layer> layers = new ArrayList<>(settings.getLayers());
-                        if (raiseBy > 0) {
-                            // Insert deepslate to raise the Superflat terrain up. Skip the lowest layer
-                            // if that is bedrock, so that bedrock remains at the bottom. If the lowest
-                            // or second-lowest layer is already deepslate: expand that
-                            if (layers.get(0).getMaterialName().equals(MC_BEDROCK)) {
-                                if (layers.get(1).getMaterialName().equals(MC_DEEPSLATE)) {
-                                    layers.get(1).setThickness(layers.get(1).getThickness() + raiseBy);
+                        // Not sure how this can be null, but it has been observed in the wild:
+                        // TODO: find out how this can happen and fix it properly
+                        if (settings != null) {
+                            final List<SuperflatPreset.Layer> layers = new ArrayList<>(settings.getLayers());
+                            if (raiseBy > 0) {
+                                // Insert deepslate to raise the Superflat terrain up. Skip the lowest layer
+                                // if that is bedrock, so that bedrock remains at the bottom. If the lowest
+                                // or second-lowest layer is already deepslate: expand that
+                                if (layers.get(0).getMaterialName().equals(MC_BEDROCK)) {
+                                    if (layers.get(1).getMaterialName().equals(MC_DEEPSLATE)) {
+                                        layers.get(1).setThickness(layers.get(1).getThickness() + raiseBy);
+                                    } else {
+                                        layers.add(1, new SuperflatPreset.Layer(MC_DEEPSLATE, raiseBy));
+                                    }
+                                } else if (layers.get(0).getMaterialName().equals(MC_DEEPSLATE)) {
+                                    layers.get(0).setThickness(layers.get(0).getThickness() + raiseBy);
                                 } else {
-                                    layers.add(1, new SuperflatPreset.Layer(MC_DEEPSLATE, raiseBy));
+                                    layers.add(0, new SuperflatPreset.Layer(MC_DEEPSLATE, raiseBy));
                                 }
-                            } else if (layers.get(0).getMaterialName().equals(MC_DEEPSLATE)) {
-                                layers.get(0).setThickness(layers.get(0).getThickness() + raiseBy);
                             } else {
-                                layers.add(0, new SuperflatPreset.Layer(MC_DEEPSLATE, raiseBy));
-                            }
-                        } else {
-                            int lowerBy = -raiseBy;
-                            // Keep reducing the thickness of layers, starting with the bottom one, until we
-                            // have shaved off enough, or we run out of layers
-                            for (SuperflatPreset.Layer layer: layers) {
-                                final int amount = Math.min(lowerBy, layer.getThickness() - 1);
-                                if (amount > 0) {
-                                    layer.setThickness(layer.getThickness() - amount);
-                                    lowerBy -= amount;
-                                    if (lowerBy == 0) {
-                                        break;
+                                int lowerBy = -raiseBy;
+                                // Keep reducing the thickness of layers, starting with the bottom one, until we
+                                // have shaved off enough, or we run out of layers
+                                for (SuperflatPreset.Layer layer: layers) {
+                                    final int amount = Math.min(lowerBy, layer.getThickness() - 1);
+                                    if (amount > 0) {
+                                        layer.setThickness(layer.getThickness() - amount);
+                                        lowerBy -= amount;
+                                        if (lowerBy == 0) {
+                                            break;
+                                        }
                                     }
                                 }
                             }
+                            settings.setLayers(layers);
                         }
-                        settings.setLayers(layers);
                     }
                 }
             }
