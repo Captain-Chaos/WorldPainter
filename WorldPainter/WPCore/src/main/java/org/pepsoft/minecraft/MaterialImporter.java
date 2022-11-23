@@ -14,10 +14,10 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.ImmutableSortedMap.toImmutableSortedMap;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.stream;
 import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toMap;
 import static org.pepsoft.minecraft.Constants.MC_DIRT_PATH;
 import static org.pepsoft.minecraft.Constants.MC_GRASS_PATH;
 
@@ -43,7 +43,9 @@ public class MaterialImporter {
                             }
                             str = csvDataSource.getString("properties", null);
                             if (! isNullOrEmpty(str)) {
-                                myMaterialSpecs.put("properties", stream(str.split(",")).map(Material.PropertyDescriptor::fromString).collect(toMap(d -> d.name, identity())));
+                                myMaterialSpecs.put("properties", stream(str.split(","))
+                                        .map(Material.PropertyDescriptor::fromString)
+                                        .collect(toImmutableSortedMap(String::compareTo, d -> d.name, identity())));
                             }
                             myMaterialSpecs.put("opacity", csvDataSource.getInt("opacity", guessOpacity(name)));
                             myMaterialSpecs.put("receivesLight", csvDataSource.getBoolean("receivesLight", guessReceivesLight(name)));

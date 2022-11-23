@@ -6,7 +6,6 @@ package org.pepsoft.minecraft;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSortedMap;
 import org.pepsoft.util.CSVDataSource;
 import org.pepsoft.util.Pair;
 import org.pepsoft.worldpainter.Platform;
@@ -18,6 +17,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.ImmutableSortedMap.toImmutableSortedMap;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
@@ -1604,7 +1604,7 @@ public final class Material implements Serializable {
                 if (! isNullOrEmpty(str)) {
                     materialSpecs.put("properties", stream(str.split(","))
                             .map(PropertyDescriptor::fromString)
-                            .collect(ImmutableSortedMap.toImmutableSortedMap(String::compareTo, d -> d.name, identity())));
+                            .collect(toImmutableSortedMap(String::compareTo, d -> d.name, identity())));
                 }
                 materialSpecs.put("opacity", csvDataSource.getInt("opacity"));
                 materialSpecs.put("receivesLight", csvDataSource.getBoolean("receivesLight"));
