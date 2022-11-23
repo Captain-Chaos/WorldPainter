@@ -309,10 +309,13 @@ public class WorldPainterChunkFactory implements ChunkFactory {
 
     private void renderObject(Chunk chunk, WPObject object, int x, int y, int z) {
         final int height = object.getDimensions().z;
-        if (y + height >= maxHeight) {
+        if ((y < platform.minZ) || (y + height >= maxHeight)) {
             return;
         }
         for (int dy = 0; dy < height; dy++) {
+            if (((y + dy) < platform.minZ) || ((y + dy) >= maxHeight)) {
+                continue;
+            }
             if (object.getMask(0, 0, dy)) {
                 final Material objectMaterial = object.getMaterial(0, 0, dy);
                 final Material existingMaterial = chunk.getMaterial(x, y + dy, z);
