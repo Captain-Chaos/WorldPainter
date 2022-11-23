@@ -6,8 +6,10 @@
 package org.pepsoft.worldpainter;
 
 import com.google.common.collect.Sets;
+import org.pepsoft.minecraft.MapGenerator;
 import org.pepsoft.util.MemoryUtils;
 import org.pepsoft.worldpainter.Configuration.OverlayType;
+import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.brushes.BrushShape;
@@ -42,6 +44,7 @@ import static org.pepsoft.worldpainter.Configuration.OverlayType.SCALE_ON_LOAD;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
 import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
@@ -297,26 +300,34 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
 
     public void refreshTiles() {
         if (dimension != null) {
+            int biomeAlgorithm = -1;
+            long minecraftSeed = -1;
+            final Anchor anchor = dimension.getAnchor();
             if (drawBiomes
-                    && (dimension.getAnchor().dim == DIM_NORMAL)
+                    && (anchor.equals(NORMAL_DETAIL))
                     && ((dimension.getBorder() == null) || (! dimension.getBorder().isEndless()))) {
-                World2 world = dimension.getWorld();
+                final World2 world = dimension.getWorld();
                 if (world != null) {
-                    int biomeAlgorithm = -1;
-                    Platform platform = world.getPlatform();
+                    final Platform platform = world.getPlatform();
                     if (platform == JAVA_MCREGION) {
                         biomeAlgorithm = BIOME_ALGORITHM_1_1;
+                        minecraftSeed = dimension.getMinecraftSeed();
                     } else if (platform == JAVA_ANVIL) { // TODO add support for newer platforms
-                        if (dimension.getGenerator().getType() == DEFAULT) {
+                        minecraftSeed = dimension.getMinecraftSeed();
+                        final MapGenerator generator = dimension.getGenerator();
+                        if (generator.getType() == DEFAULT) {
                             biomeAlgorithm = BIOME_ALGORITHM_1_7_DEFAULT;
-                        } else if (dimension.getGenerator().getType() == LARGE_BIOMES) {
+                        } else if (generator.getType() == LARGE_BIOMES) {
                             biomeAlgorithm = BIOME_ALGORITHM_1_7_LARGE;
                         }
                     }
-                    if (biomeAlgorithm != -1) {
-                        setTileProvider(LAYER_BIOMES, new BiomesTileProvider(biomeAlgorithm, dimension.getMinecraftSeed(), colourScheme, 0, true));
-                    }
                 }
+            }
+            if (biomeAlgorithm != -1) {
+                final BiomesTileProvider biomesTileProvider = new BiomesTileProvider(biomeAlgorithm, minecraftSeed, colourScheme, 0, true);
+                setTileProvider(LAYER_BIOMES, biomesTileProvider);
+            } else {
+                removeTileProvider(LAYER_BIOMES);
             }
 
             tileProvider = new WPTileProvider(dimension, colourScheme, customBiomeManager, hiddenLayers, drawContours, contourSeparation, lightOrigin, true, null, backgroundDimension == null, colourRamp);
