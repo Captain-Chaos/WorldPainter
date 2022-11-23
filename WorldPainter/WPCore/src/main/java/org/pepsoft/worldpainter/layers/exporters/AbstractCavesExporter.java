@@ -148,7 +148,7 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
     }
 
     protected final void decorateBlock(MinecraftWorld world, Random rng, int x, int y, int height) {
-        if (! decorationEnabled) {
+        if ((! decorationEnabled) || (height < minZ) || (height > maxZ)) {
             return;
         }
         final Material material = world.getMaterialAt(x, y, height);
