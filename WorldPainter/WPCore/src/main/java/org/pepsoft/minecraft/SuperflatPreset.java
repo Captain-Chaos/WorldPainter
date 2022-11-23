@@ -181,83 +181,95 @@ public class SuperflatPreset implements Serializable {
     }
 
     public static SuperflatPreset fromMinecraft1_12_2(String str) {
-        String[] tokens = str.split(";");
-        if ((tokens.length < 3) || (! tokens[0].equals("3"))) {
-            throw new IllegalArgumentException("Invalid Superflat preset for Minecraft 1.12.2: " + str + " (too few tokens, or invalid version)");
-        }
-        List<Layer> layers = stream(tokens[1].split(",")).map(layerDescriptor -> {
-            int p = layerDescriptor.indexOf('*');
-            if (p == -1) {
-                return new Layer(layerDescriptor, 1);
-            } else {
-                return new Layer(layerDescriptor.substring(p + 1), Integer.parseInt(layerDescriptor.substring(0, p)));
+        try {
+            String[] tokens = str.split(";");
+            if ((tokens.length < 3) || (!tokens[0].equals("3"))) {
+                throw new IllegalArgumentException("Invalid Superflat preset for Minecraft 1.12.2: too few tokens, or invalid version");
             }
-        }).collect(toList());
-        int biome = Integer.parseInt(tokens[2]);
-        Map<Structure, Map<String, String>> structures = new HashMap<>();
-        if ((tokens.length >= 4) && (tokens[3] != null)) {
-            stream(tokens[3].split(",")).forEach(structure -> {
-                int p = structure.indexOf('(');
+            List<Layer> layers = stream(tokens[1].split(",")).map(layerDescriptor -> {
+                int p = layerDescriptor.indexOf('*');
                 if (p == -1) {
-                    structures.put(Structure.valueOf(structure.toUpperCase()), emptyMap());
+                    return new Layer(layerDescriptor, 1);
                 } else {
-                    Structure key = Structure.valueOf(structure.substring(0, p).toUpperCase());
-                    Map<String, String> params = new HashMap<>();
-                    for (String attr: structure.substring(p + 1, structure.length() - 1).split(" ")) {
-                        p = attr.indexOf('=');
-                        if (p == -1) {
-                            throw new IllegalArgumentException("Invalid Superflat preset for Minecraft 1.12.2: " + str + " (parameter missing =)");
-                        }
-                        params.put(attr.substring(0, p), attr.substring(p + 1));
-                    }
-                    structures.put(key, params);
+                    return new Layer(layerDescriptor.substring(p + 1), Integer.parseInt(layerDescriptor.substring(0, p)));
                 }
-            });
+            }).collect(toList());
+            int biome = Integer.parseInt(tokens[2]);
+            Map<Structure, Map<String, String>> structures = new HashMap<>();
+            if ((tokens.length >= 4) && (tokens[3] != null)) {
+                stream(tokens[3].split(",")).forEach(structure -> {
+                    int p = structure.indexOf('(');
+                    if (p == -1) {
+                        structures.put(Structure.valueOf(structure.toUpperCase()), emptyMap());
+                    } else {
+                        Structure key = Structure.valueOf(structure.substring(0, p).toUpperCase());
+                        Map<String, String> params = new HashMap<>();
+                        for (String attr: structure.substring(p + 1, structure.length() - 1).split(" ")) {
+                            p = attr.indexOf('=');
+                            if (p == -1) {
+                                throw new IllegalArgumentException("Invalid Superflat preset for Minecraft 1.12.2: parameter missing");
+                            }
+                            params.put(attr.substring(0, p), attr.substring(p + 1));
+                        }
+                        structures.put(key, params);
+                    }
+                });
+            }
+            return new SuperflatPreset(biome, layers, structures);
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException(e.getClass().getSimpleName() + " (message: \"" + e.getMessage() + "\") while parsing string: \"" + str + "\"", e);
         }
-        return new SuperflatPreset(biome, layers, structures);
     }
 
     @SuppressWarnings("unchecked") // Guaranteed by Minecraft
     public static SuperflatPreset fromMinecraft1_15_2(CompoundTag tag) {
-        final String biomeName = ((StringTag) tag.getTag("biome")).getValue();
-        final SuperflatPreset preset = new SuperflatPreset(biomeName,
-                ((ListTag<CompoundTag>) tag.getTag("layers")).getValue().stream()
-                        .map(layerTag -> new Layer(((StringTag) layerTag.getTag("block")).getValue(), ((NumberTag) layerTag.getTag("height")).intValue()))
-                        .collect(toList()),
-                ((CompoundTag) tag.getTag("structures")).getValue().values().stream()
-                        .collect(toMap(structureTag -> Structure.valueOf(structureTag.getName().toUpperCase()),
-                                structureTag -> ((CompoundTag) structureTag).getValue().entrySet().stream().collect(toMap(Entry::getKey, paramEntry -> ((StringTag) paramEntry.getValue()).getValue())))),
-                false,
-                false
-        );
         try {
-            preset.setBiome(getBiomeByMinecraft117Name(biomeName));
-        } catch (IllegalArgumentException e) {
-            logger.warn("Biome {} not recognised while importing Superflat preset; substituting Plains biome for older Minecraft versions", biomeName);
-            preset.setBiome(BIOME_PLAINS);
+            final String biomeName = ((StringTag) tag.getTag("biome")).getValue();
+            final SuperflatPreset preset = new SuperflatPreset(biomeName,
+                    ((ListTag<CompoundTag>) tag.getTag("layers")).getValue().stream()
+                            .map(layerTag -> new Layer(((StringTag) layerTag.getTag("block")).getValue(), ((NumberTag) layerTag.getTag("height")).intValue()))
+                            .collect(toList()),
+                    ((CompoundTag) tag.getTag("structures")).getValue().values().stream()
+                            .collect(toMap(structureTag -> Structure.valueOf(structureTag.getName().toUpperCase()),
+                                    structureTag -> ((CompoundTag) structureTag).getValue().entrySet().stream().collect(toMap(Entry::getKey, paramEntry -> ((StringTag) paramEntry.getValue()).getValue())))),
+                    false,
+                    false
+            );
+            try {
+                preset.setBiome(getBiomeByMinecraft117Name(biomeName));
+            } catch (IllegalArgumentException e) {
+                logger.warn("Biome {} not recognised while importing Superflat preset; substituting Plains biome for older Minecraft versions", biomeName);
+                preset.setBiome(BIOME_PLAINS);
+            }
+            return preset;
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException(e.getClass().getSimpleName() + " (message: \"" + e.getMessage() + "\") while parsing tag: " + tag, e);
         }
-        return preset;
     }
 
     @SuppressWarnings("unchecked") // Guaranteed by Minecraft
     public static SuperflatPreset fromMinecraft1_18_0(CompoundTag tag) {
-        // TODOMC118 add features, lakes
-        final String biomeName = ((StringTag) tag.getTag(TAG_BIOME_)).getValue();
-        final SuperflatPreset preset = new SuperflatPreset(biomeName,
-                ((ListTag<CompoundTag>) tag.getTag(TAG_LAYERS_)).getValue().stream()
-                        .map(layerTag -> new Layer(((StringTag) layerTag.getTag(TAG_BLOCK_)).getValue(), ((NumberTag) layerTag.getTag(TAG_HEIGHT_)).intValue()))
-                        .collect(toList()),
-                emptyMap(),
-                ((ByteTag) tag.getTag(TAG_FEATURES_)).getValue() != 0,
-                ((ByteTag) tag.getTag(TAG_LAKES_)).getValue() != 0
-                );
         try {
-            preset.setBiome(getBiomeByMinecraft118Name(biomeName));
-        } catch (IllegalArgumentException e) {
-            logger.warn("Biome {} not recognised while importing Superflat preset; substituting Plains biome for older Minecraft versions", biomeName);
-            preset.setBiome(BIOME_PLAINS);
+            // TODOMC118 add features, lakes
+            final String biomeName = ((StringTag) tag.getTag(TAG_BIOME_)).getValue();
+            final SuperflatPreset preset = new SuperflatPreset(biomeName,
+                    ((ListTag<CompoundTag>) tag.getTag(TAG_LAYERS_)).getValue().stream()
+                            .map(layerTag -> new Layer(((StringTag) layerTag.getTag(TAG_BLOCK_)).getValue(), ((NumberTag) layerTag.getTag(TAG_HEIGHT_)).intValue()))
+                            .collect(toList()),
+                    emptyMap(),
+                    ((ByteTag) tag.getTag(TAG_FEATURES_)).getValue() != 0,
+                    ((ByteTag) tag.getTag(TAG_LAKES_)).getValue() != 0
+            );
+            try {
+                preset.setBiome(getBiomeByMinecraft118Name(biomeName));
+            } catch (IllegalArgumentException e) {
+                logger.warn("Biome {} not recognised while importing Superflat preset; substituting Plains biome for older Minecraft versions", biomeName);
+                preset.setBiome(BIOME_PLAINS);
+            }
+            return preset;
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException(e.getClass().getSimpleName() + " (message: \"" + e.getMessage() + "\") while parsing tag: " + tag, e);
         }
-        return preset;
     }
 
     public static SuperflatPreset defaultPreset(Platform platform) {
