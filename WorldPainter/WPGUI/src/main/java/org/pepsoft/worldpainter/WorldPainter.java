@@ -36,6 +36,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import static java.awt.BasicStroke.CAP_SQUARE;
+import static java.awt.BasicStroke.JOIN_MITER;
 import static java.util.Collections.singleton;
 import static java.util.Collections.unmodifiableSet;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
@@ -678,94 +680,15 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
 
                 // Switch to world coordinate system
                 final float scale = transformGraphics(g2);
-                final float onePixel = 1 / scale;
                 if (drawOverlays) {
                     drawOverlays(g2);
                 }
                 if (drawBrush || drawViewDistance || drawWalkingDistance) {
                     g2.setColor(Color.BLACK);
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setXORMode(Color.WHITE);
-                }
-                if (drawBrush) {
-                    g2.setStroke(new BasicStroke(onePixel, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {3 * onePixel, 3 * onePixel}, 0));
-                    final int diameter = radius * 2 + 1;
-                    switch (brushShape) {
-                        case CIRCLE:
-                            g2.drawOval(mouseX - radius, mouseY - radius, diameter, diameter);
-                            break;
-                        case SQUARE:
-                            if (brushRotation % 90 == 0) {
-                                g2.drawRect(mouseX - radius, mouseY - radius, diameter, diameter);
-                            } else {
-                                AffineTransform existingTransform = g2.getTransform();
-                                try {
-                                    if (scale > 1.0f) {
-                                        g2.rotate(brushRotation / 180.0 * Math.PI, mouseX + 0.5, mouseY + 0.5);
-                                    } else {
-                                        g2.rotate(brushRotation / 180.0 * Math.PI, mouseX, mouseY);
-                                    }
-                                    g2.drawRect(mouseX - radius, mouseY - radius, diameter, diameter);
-                                } finally {
-                                    g2.setTransform(existingTransform);
-                                }
-                            }
-                            break;
-                        case BITMAP:
-                            final int arrowSize = radius / 2;
-                            if (brushRotation == 0) {
-                                g2.drawRect(mouseX - radius, mouseY - radius, diameter, diameter);
-                                if (arrowSize > 0) {
-                                    g2.drawLine(mouseX, mouseY - radius, mouseX - arrowSize, mouseY - radius + arrowSize);
-                                    g2.drawLine(mouseX - arrowSize, mouseY - radius + arrowSize, mouseX + arrowSize + 1, mouseY - radius + arrowSize);
-                                    g2.drawLine(mouseX + arrowSize + 1, mouseY - radius + arrowSize, mouseX + 1, mouseY - radius);
-                                }
-                            } else {
-                                AffineTransform existingTransform = g2.getTransform();
-                                try {
-                                    if (scale > 1.0f) {
-                                        g2.rotate(brushRotation / 180.0 * Math.PI, mouseX + 0.5, mouseY + 0.5);
-                                    } else {
-                                        g2.rotate(brushRotation / 180.0 * Math.PI, mouseX, mouseY);
-                                    }
-                                    g2.drawRect(mouseX - radius, mouseY - radius, diameter, diameter);
-                                    if (arrowSize > 0) {
-                                        g2.drawLine(mouseX, mouseY - radius, mouseX - arrowSize, mouseY - radius + arrowSize);
-                                        g2.drawLine(mouseX - arrowSize, mouseY - radius + arrowSize, mouseX + arrowSize + 1, mouseY - radius + arrowSize);
-                                        g2.drawLine(mouseX + arrowSize + 1, mouseY - radius + arrowSize, mouseX + 1, mouseY - radius);
-                                    }
-                                } finally {
-                                    g2.setTransform(existingTransform);
-                                }
-                            }
-                            break;
-                        case CUSTOM:
-                            AffineTransform existingTransform = g2.getTransform();
-                            try {
-                                g2.translate(mouseX, mouseY);
-                                g2.draw(customBrushShape);
-                            } finally {
-                                g2.setTransform(existingTransform);
-                            }
-                    }
-                }
-                if (drawViewDistance) {
-                    g2.setStroke(new BasicStroke(onePixel, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {10 * onePixel, 10 * onePixel}, 0));
-                    final int scaledRadius = (int) Math.ceil(VIEW_DISTANCE_RADIUS / dimension.getScale());
-                    g2.drawOval(mouseX - scaledRadius, mouseY - scaledRadius, scaledRadius * 2, scaledRadius * 2);
-                }
-                if (drawWalkingDistance) {
-                    g2.setStroke(new BasicStroke(onePixel, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {20 * onePixel, 20 * onePixel}, 0));
-                    int scaledRadius = (int) Math.ceil(DAY_NIGHT_WALK_DISTANCE_RADIUS / dimension.getScale());
-                    g2.drawOval(mouseX - scaledRadius, mouseY - scaledRadius, scaledRadius * 2, scaledRadius * 2);
-                    setFont(NORMAL_FONT.deriveFont(10 * onePixel));
-                    g2.drawString("day + night", mouseX - scaledRadius + onePixel * 3, mouseY);
-                    scaledRadius = (int) Math.ceil(DAY_WALK_DISTANCE_RADIUS / dimension.getScale());
-                    g2.drawOval(mouseX - scaledRadius, mouseY - scaledRadius, scaledRadius * 2, scaledRadius * 2);
-                    g2.drawString("1 day", mouseX - scaledRadius + onePixel * 3, mouseY);
-                    scaledRadius = (int) Math.ceil(FIVE_MINUTE_WALK_DISTANCE_RADIUS / dimension.getScale());
-                    g2.drawOval(mouseX - scaledRadius, mouseY - scaledRadius, scaledRadius * 2, scaledRadius * 2);
-                    g2.drawString("5 min.", mouseX - scaledRadius + onePixel * 3, mouseY);
+                    drawBrushEtc(g2, scale, false);
+                    g2.setColor(Color.WHITE);
+                    drawBrushEtc(g2, scale, true);
                 }
             } finally {
                 g2.setColor(savedColour);
@@ -776,8 +699,100 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                 g2.setStroke(savedStroke);
                 g2.setTransform(savedTransform);
                 g2.setFont(savedFont);
-                g2.setPaintMode();
             }
+        }
+    }
+
+    private void drawBrushEtc(Graphics2D g2, float scale, boolean dashed) {
+        final float onePixel = 1 / scale;
+        if (! dashed) {
+            g2.setStroke(new BasicStroke(onePixel));
+        }
+        if (drawBrush) {
+            if (dashed) {
+                g2.setStroke(new BasicStroke(onePixel, CAP_SQUARE, JOIN_MITER, 10.0f, new float[] { 4 * onePixel, 6 * onePixel }, 0));
+            }
+            final int diameter = radius * 2 + 1;
+            switch (brushShape) {
+                case CIRCLE:
+                    g2.drawOval(mouseX - radius, mouseY - radius, diameter, diameter);
+                    break;
+                case SQUARE:
+                    if (brushRotation % 90 == 0) {
+                        g2.drawRect(mouseX - radius, mouseY - radius, diameter, diameter);
+                    } else {
+                        AffineTransform existingTransform = g2.getTransform();
+                        try {
+                            if (scale > 1.0f) {
+                                g2.rotate(brushRotation / 180.0 * Math.PI, mouseX + 0.5, mouseY + 0.5);
+                            } else {
+                                g2.rotate(brushRotation / 180.0 * Math.PI, mouseX, mouseY);
+                            }
+                            g2.drawRect(mouseX - radius, mouseY - radius, diameter, diameter);
+                        } finally {
+                            g2.setTransform(existingTransform);
+                        }
+                    }
+                    break;
+                case BITMAP:
+                    final int arrowSize = radius / 2;
+                    if (brushRotation == 0) {
+                        g2.drawRect(mouseX - radius, mouseY - radius, diameter, diameter);
+                        if (arrowSize > 0) {
+                            g2.drawLine(mouseX, mouseY - radius, mouseX - arrowSize, mouseY - radius + arrowSize);
+                            g2.drawLine(mouseX - arrowSize, mouseY - radius + arrowSize, mouseX + arrowSize + 1, mouseY - radius + arrowSize);
+                            g2.drawLine(mouseX + arrowSize + 1, mouseY - radius + arrowSize, mouseX + 1, mouseY - radius);
+                        }
+                    } else {
+                        AffineTransform existingTransform = g2.getTransform();
+                        try {
+                            if (scale > 1.0f) {
+                                g2.rotate(brushRotation / 180.0 * Math.PI, mouseX + 0.5, mouseY + 0.5);
+                            } else {
+                                g2.rotate(brushRotation / 180.0 * Math.PI, mouseX, mouseY);
+                            }
+                            g2.drawRect(mouseX - radius, mouseY - radius, diameter, diameter);
+                            if (arrowSize > 0) {
+                                g2.drawLine(mouseX, mouseY - radius, mouseX - arrowSize, mouseY - radius + arrowSize);
+                                g2.drawLine(mouseX - arrowSize, mouseY - radius + arrowSize, mouseX + arrowSize + 1, mouseY - radius + arrowSize);
+                                g2.drawLine(mouseX + arrowSize + 1, mouseY - radius + arrowSize, mouseX + 1, mouseY - radius);
+                            }
+                        } finally {
+                            g2.setTransform(existingTransform);
+                        }
+                    }
+                    break;
+                case CUSTOM:
+                    AffineTransform existingTransform = g2.getTransform();
+                    try {
+                        g2.translate(mouseX, mouseY);
+                        g2.draw(customBrushShape);
+                    } finally {
+                        g2.setTransform(existingTransform);
+                    }
+            }
+        }
+        if (drawViewDistance) {
+            if (dashed) {
+                g2.setStroke(new BasicStroke(onePixel, CAP_SQUARE, JOIN_MITER, 10.0f, new float[] { 9 * onePixel, 11 * onePixel }, 0));
+            }
+            final int scaledRadius = (int) Math.ceil(VIEW_DISTANCE_RADIUS / dimension.getScale());
+            g2.drawOval(mouseX - scaledRadius, mouseY - scaledRadius, scaledRadius * 2, scaledRadius * 2);
+        }
+        if (drawWalkingDistance) {
+            if (dashed) {
+                g2.setStroke(new BasicStroke(onePixel, CAP_SQUARE, JOIN_MITER, 10.0f, new float[] { 19 * onePixel, 21 * onePixel }, 0));
+            }
+            int scaledRadius = (int) Math.ceil(DAY_NIGHT_WALK_DISTANCE_RADIUS / dimension.getScale());
+            g2.drawOval(mouseX - scaledRadius, mouseY - scaledRadius, scaledRadius * 2, scaledRadius * 2);
+            setFont(NORMAL_FONT.deriveFont(10 * onePixel));
+            g2.drawString("day + night", mouseX - scaledRadius + onePixel * 3, mouseY);
+            scaledRadius = (int) Math.ceil(DAY_WALK_DISTANCE_RADIUS / dimension.getScale());
+            g2.drawOval(mouseX - scaledRadius, mouseY - scaledRadius, scaledRadius * 2, scaledRadius * 2);
+            g2.drawString("1 day", mouseX - scaledRadius + onePixel * 3, mouseY);
+            scaledRadius = (int) Math.ceil(FIVE_MINUTE_WALK_DISTANCE_RADIUS / dimension.getScale());
+            g2.drawOval(mouseX - scaledRadius, mouseY - scaledRadius, scaledRadius * 2, scaledRadius * 2);
+            g2.drawString("5 min.", mouseX - scaledRadius + onePixel * 3, mouseY);
         }
     }
 
@@ -885,7 +900,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         Rectangle clip = g2.getClipBounds();
         if ((border.x >= clip.x) || (border.y >= clip.y) || ((border.x + border.width) < (clip.x + clip.width)) || ((border.y + border.height) < (clip.y + clip.height))) {
             g2.setColor(Color.RED);
-            g2.setStroke(new BasicStroke(1, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[] {3, 3}, 0));
+            g2.setStroke(new BasicStroke(1, CAP_SQUARE, JOIN_MITER, 10.0f, new float[] { 3, 3 }, 0));
             if ((border.width < 5000) && (border.height < 5000)) {
                 // If it's small enough performance of drawing it at once is fine
                 g2.drawRect(border.x, border.y, border.width, border.height);

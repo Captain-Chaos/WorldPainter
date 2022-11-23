@@ -5,6 +5,7 @@
    + They can be disabled and enabled separately
    + The existing "Enable or disable image overlay(s)" toolbar button now shows or hides all enabled overlays
      - The exception is if no overlays are enabled. If there is one overlay configured and it is disabled, it will be enabled. In all other cases the Configure View screen will be opened
+ * The brush shape, view distance and walking distance indicators are now painted with a black and white dashed line for better visibility
 
 -- Version 2.15.12, released 20-11-2022
 
