@@ -1,4 +1,4 @@
--- Version 2.15.13, released ...
+-- Version 2.15.13, released 23-11-2022
 
  * Multiple overlay images may now be configured
    + The overlay images are configured from the Configure View screen (View menu, or press Ctrl+V (on Windows) or ⌘+V (on Mac))
@@ -6,6 +6,8 @@
    + The existing "Enable or disable image overlay(s)" toolbar button now shows or hides all enabled overlays
      - The exception is if no overlays are enabled. If there is one overlay configured and it is disabled, it will be enabled. In all other cases the Configure View screen will be opened
  * The brush shape, view distance and walking distance indicators are now painted with a black and white dashed line for better visibility
+ * Bug fix: cancelling a long running process works correctly again, rather than generating an error
+ * Various bug fixes
 
 -- Version 2.15.12, released 20-11-2022
 
