@@ -3162,6 +3162,10 @@ public final class App extends JFrame implements RadiusControl,
         addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
         addLayerButton.setMargin(App.BUTTON_INSETS);
         addLayerButton.addActionListener(e -> {
+            if (dimension == null) {
+                DesktopUtils.beep();
+                return;
+            }
             final JPopupMenu customLayerMenu = createCustomLayerMenu(null);
             customLayerMenu.show(layerPanel, addLayerButton.getX() + addLayerButton.getWidth(), addLayerButton.getY());
         });
@@ -4186,6 +4190,10 @@ public final class App extends JFrame implements RadiusControl,
         addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
         addLayerButton.setMargin(new Insets(2, 2, 2, 2));
         addLayerButton.addActionListener(e -> {
+            if (dimension == null) {
+                DesktopUtils.beep();
+                return;
+            }
             final JPopupMenu customLayerMenu = createCustomLayerMenu(paletteName);
             customLayerMenu.show(addLayerButton, addLayerButton.getWidth(), 0);
         });
