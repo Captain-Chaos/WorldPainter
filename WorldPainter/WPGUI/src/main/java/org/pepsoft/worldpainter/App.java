@@ -2308,23 +2308,23 @@ public final class App extends JFrame implements RadiusControl,
                                         final File backupFile = BackupUtils.getBackupFile(normalisedFile, i);
                                         if (backupFile.isFile()) {
                                             if (! backupFile.delete()) {
-                                                throw new RuntimeException("Could not delete old backup file " + backupFile.getName());
+                                                throw new IOException("Could not delete old backup file " + backupFile.getName());
                                             }
                                         }
                                         if (! nextBackupFile.renameTo(backupFile)) {
-                                            throw new RuntimeException("Could not move " + nextBackupFile.getName() + " to " + backupFile.getName());
+                                            throw new IOException("Could not move " + nextBackupFile.getName() + " to " + backupFile.getName());
                                         }
                                     }
                                 }
                                 progressReceiver.setMessage(null);
                             } else if (! normalisedFile.delete()) {
-                                throw new RuntimeException("Could not delete existing file " + normalisedFile.getName() + "; world is saved as " + tempFile.getName());
+                                throw new IOException("Could not delete existing file " + normalisedFile.getName() + "; world is saved as " + tempFile.getName());
                             }
                         }
 
                         // Finally, move the temporary file to the final location
                         if (! tempFile.renameTo(normalisedFile)) {
-                            throw new RuntimeException("Could not move " + tempFile.getName() + " to " + normalisedFile.getName() + "; world is saved as " + tempFile.getName());
+                            throw new IOException("Could not move " + tempFile.getName() + " to " + normalisedFile.getName() + "; world is saved as " + tempFile.getName());
                         }
 
                         Map<String, byte[]> layoutData = config.getJideLayoutData();
