@@ -529,7 +529,7 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
             if (removeWater || (! flooded) || (z <= terrainHeight) || (z > waterLevel)) {
                 if (((x >> 4) == chunk.getxPos()) && ((y >> 4) == chunk.getzPos())) {
                     final Material existingBlock = chunk.getMaterial(x & 0xf, z, y & 0xf);
-                    if ((existingBlock != Material.AIR) && (!existingBlock.insubstantial)) {
+                    if ((existingBlock != Material.AIR) && (! existingBlock.insubstantial)) {
                         // The coordinates are within bounds and the existing block is solid
                         chunk.setMaterial(x & 0xf, z, y & 0xf, material);
                     }
