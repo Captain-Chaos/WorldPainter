@@ -653,8 +653,10 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
 
     long getOverlayImageSize() {
         long total = 0L;
-        for (Overlay overlay: dimension.getOverlays()) {
-            total += (overlay.getImage() != null) ? MemoryUtils.getSize(overlay.getImage(), Collections.emptySet()) : 0L;
+        if (dimension != null) {
+            for (Overlay overlay: dimension.getOverlays()) {
+                total += (overlay.getImage() != null) ? MemoryUtils.getSize(overlay.getImage(), Collections.emptySet()) : 0L;
+            }
         }
         return total;
     }
