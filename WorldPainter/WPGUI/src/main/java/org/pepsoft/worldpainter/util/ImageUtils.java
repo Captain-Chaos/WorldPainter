@@ -35,9 +35,11 @@ public final class ImageUtils {
                 return ImageIO.read(file);
             } catch (IOException e) {
                 logger.error("I/O error while loading image " + file ,e);
+                DesktopUtils.beep();
                 JOptionPane.showMessageDialog(parent, "An error occurred while loading the image.\nIt may not be a valid or supported image file, or the file may be corrupted.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
             } catch (RuntimeException | Error e) {
                 logger.error(e.getClass().getSimpleName() + " while loading image " + file ,e);
+                DesktopUtils.beep();
                 JOptionPane.showMessageDialog(parent, "An error occurred while loading the image.\nThere may not be enough available memory, or the image may be too large.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
             }
         }

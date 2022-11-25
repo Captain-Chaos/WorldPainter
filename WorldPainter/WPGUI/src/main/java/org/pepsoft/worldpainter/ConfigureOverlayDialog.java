@@ -67,6 +67,9 @@ public class ConfigureOverlayDialog extends WorldPainterDialog {
     
     private void fitOverlayToDimension() {
         final BufferedImage overlayImage = loadImage(this, overlay.getFile());
+        if (overlayImage == null) {
+            return;
+        }
         final float desiredScale;
         final float dimRatio = (float) dimension.getWidth() / dimension.getHeight();
         final float imgRatio = (float) overlayImage.getWidth() / overlayImage.getHeight();
