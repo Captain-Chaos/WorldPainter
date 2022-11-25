@@ -15,20 +15,22 @@ import org.pepsoft.worldpainter.heightMaps.gui.HeightMapTreeCellRenderer;
 import org.pepsoft.worldpainter.heightMaps.gui.HeightMapTreeModel;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
-import org.pepsoft.worldpainter.util.FileUtils;
+import org.pepsoft.worldpainter.util.ImageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
@@ -203,42 +205,8 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                 replaceMenu.add(menuItem);
                 menuItem = new JMenuItem("Bitmap");
                 menuItem.addActionListener(actionEvent -> {
-                    File myHeightMapDir = Configuration.getInstance().getHeightMapsDirectory();
-                    final Set<String> extensions = new HashSet<>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
-                    StringBuilder sb = new StringBuilder("Supported image formats (");
-                    boolean first = true;
-                    for (String extension: extensions) {
-                        if (first) {
-                            first = false;
-                        } else {
-                            sb.append(", ");
-                        }
-                        sb.append("*.");
-                        sb.append(extension);
-                    }
-                    sb.append(')');
-                    final String description = sb.toString();
-                    File file = FileUtils.selectFileForOpen(HeightMapEditor.this, "Select a height map image file", myHeightMapDir, new FileFilter() {
-                        @Override
-                        public boolean accept(File f) {
-                            if (f.isDirectory()) {
-                                return true;
-                            }
-                            String filename = f.getName();
-                            int p = filename.lastIndexOf('.');
-                            if (p != -1) {
-                                String extension = filename.substring(p + 1).toLowerCase();
-                                return extensions.contains(extension);
-                            } else {
-                                return false;
-                            }
-                        }
-
-                        @Override
-                        public String getDescription() {
-                            return description;
-                        }
-                    });
+                    final File myHeightMapDir = Configuration.getInstance().getHeightMapsDirectory();
+                    final File file = ImageUtils.selectImageForOpen(HeightMapEditor.this, "a height map image file", myHeightMapDir);
                     if (file != null) {
                         try {
                             BufferedImage image = ImageIO.read(file);

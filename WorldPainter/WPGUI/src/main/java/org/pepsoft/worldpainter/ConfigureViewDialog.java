@@ -26,7 +26,7 @@ import java.io.File;
 import static java.awt.event.MouseEvent.BUTTON1;
 import static org.pepsoft.util.GUIUtils.getUIScale;
 import static org.pepsoft.worldpainter.util.ImageUtils.loadImage;
-import static org.pepsoft.worldpainter.util.ImageUtils.selectImage;
+import static org.pepsoft.worldpainter.util.ImageUtils.selectImageForOpen;
 
 /**
  *
@@ -186,7 +186,7 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
     }
 
     private void selectBackgroundImage() {
-        final File selectedFile = selectImage(this, "a background image file", new File(fieldBackgroundImage.getText()));
+        final File selectedFile = selectImageForOpen(this, "a background image file", new File(fieldBackgroundImage.getText()));
         if (selectedFile != null) {
             fieldBackgroundImage.setText(selectedFile.getAbsolutePath());
         }
@@ -205,7 +205,7 @@ public class ConfigureViewDialog extends WorldPainterDialog implements WindowLis
 
     private void addOverlay() {
         final Configuration config = Configuration.getInstance();
-        final File imageFile = selectImage(this, "an overlay image file", config.getOverlaysDirectory());
+        final File imageFile = selectImageForOpen(this, "an overlay image file", config.getOverlaysDirectory());
         if (imageFile != null) {
             final Overlay overlay = new Overlay(imageFile);
             final int rowIndex = overlaysTableModel.addOverlay(overlay);

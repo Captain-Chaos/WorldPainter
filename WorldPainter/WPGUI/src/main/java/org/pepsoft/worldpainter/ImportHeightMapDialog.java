@@ -27,14 +27,13 @@ import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 import org.pepsoft.worldpainter.themes.Theme;
 import org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor;
-import org.pepsoft.worldpainter.util.FileUtils;
+import org.pepsoft.worldpainter.util.ImageUtils;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.JSpinner.NumberEditor;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
@@ -43,8 +42,10 @@ import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.*;
+import java.util.Random;
+import java.util.Vector;
 
 import static com.google.common.primitives.Ints.asList;
 import static java.awt.image.DataBuffer.*;
@@ -1489,41 +1490,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         if (myHeightMapDir == null) {
             myHeightMapDir = Configuration.getInstance().getMasksDirectory();
         }
-        final Set<String> extensions = new HashSet<>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
-        StringBuilder sb = new StringBuilder("Supported image formats (");
-        boolean first = true;
-        for (String extension: extensions) {
-            if (first) {
-                first = false;
-            } else {
-                sb.append(", ");
-            }
-            sb.append("*.");
-            sb.append(extension);
-        }
-        sb.append(')');
-        final String description = sb.toString();
-        File file = FileUtils.selectFileForOpen(this, "Select a height map image file", myHeightMapDir, new FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                if (f.isDirectory()) {
-                    return true;
-                }
-                String filename = f.getName();
-                int p = filename.lastIndexOf('.');
-                if (p != -1) {
-                    String extension = filename.substring(p + 1).toLowerCase();
-                    return extensions.contains(extension);
-                } else {
-                    return false;
-                }
-            }
-
-            @Override
-            public String getDescription() {
-                return description;
-            }
-        });
+        final File file = ImageUtils.selectImageForOpen(this, "a height map image file", myHeightMapDir);
         if (file != null) {
             heightMapDir = file.getParentFile();
             fieldFilename.setText(file.getAbsolutePath());

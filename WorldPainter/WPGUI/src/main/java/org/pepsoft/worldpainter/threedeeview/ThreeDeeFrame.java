@@ -16,18 +16,14 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.util.BetterAction;
-import org.pepsoft.worldpainter.util.FileUtils;
+import org.pepsoft.worldpainter.util.ImageUtils;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
@@ -241,42 +237,8 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
         
         @Override
         public void performAction(ActionEvent e) {
-            final Set<String> extensions = new HashSet<>(Arrays.asList(ImageIO.getReaderFileSuffixes()));
-            StringBuilder sb = new StringBuilder("Supported image formats (");
-            boolean first = true;
-            for (String extension: extensions) {
-                if (first) {
-                    first = false;
-                } else {
-                    sb.append(", ");
-                }
-                sb.append("*.");
-                sb.append(extension);
-            }
-            sb.append(')');
-            final String description = sb.toString();
-            String defaultname = dimension.getWorld().getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getAnchor().dim == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + "_3d.png";
-            File selectedFile = FileUtils.selectFileForSave(ThreeDeeFrame.this, "Export as image file", new File(defaultname), new FileFilter() {
-                @Override
-                public boolean accept(File f) {
-                    if (f.isDirectory()) {
-                        return true;
-                    }
-                    String filename = f.getName();
-                    int p = filename.lastIndexOf('.');
-                    if (p != -1) {
-                        String extension = filename.substring(p + 1).toLowerCase();
-                        return extensions.contains(extension);
-                    } else {
-                        return false;
-                    }
-                }
-
-                @Override
-                public String getDescription() {
-                    return description;
-                }
-            });
+            final String defaultname = dimension.getWorld().getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getAnchor().dim == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + "_3d.png";
+            File selectedFile = ImageUtils.selectImageForSave(ThreeDeeFrame.this, "image file", new File(defaultname));
             if (selectedFile != null) {
                 final String type;
                 int p = selectedFile.getName().lastIndexOf('.');
