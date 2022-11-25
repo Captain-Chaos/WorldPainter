@@ -28,6 +28,7 @@ public class GardenCategoryRenderer implements NibbleLayerRenderer, ColourScheme
         woodColour = colourScheme.getColour(WOODEN_PLANK_OAK);
         waterColour = colourScheme.getColour(WATER);
         objectColour = colourScheme.getColour(WOOL_MAGENTA);
+        treeColour = colourScheme.getColour(LEAVES_OAK);
     }
     
     @Override
@@ -49,6 +50,8 @@ public class GardenCategoryRenderer implements NibbleLayerRenderer, ColourScheme
                 return woodColour;
             case CATEGORY_WATER:
                 return waterColour;
+            case CATEGORY_TREE:
+                return treeColour;
             case CATEGORY_OBJECT:
                 return objectColour;
             default:
@@ -57,5 +60,5 @@ public class GardenCategoryRenderer implements NibbleLayerRenderer, ColourScheme
     }
     
     private ColourScheme colourScheme;
-    private int cobblestoneColour, grassColour, dirtColour, bricksColour, torchColour, woodColour, waterColour, objectColour;
+    private int cobblestoneColour, grassColour, dirtColour, bricksColour, torchColour, woodColour, waterColour, objectColour, treeColour;
 }
