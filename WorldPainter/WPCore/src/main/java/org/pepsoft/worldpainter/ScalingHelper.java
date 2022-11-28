@@ -33,9 +33,8 @@ public class ScalingHelper {
             scaledTileFactory = tileFactory;
         }
         this.scale = scale;
-        final Tile examplarTile = tiles.values().iterator().next();
-        minHeight = examplarTile.getMinHeight();
-        maxHeight = examplarTile.getMaxHeight();
+        minHeight = tileFactory.getMinHeight();
+        maxHeight = tileFactory.getMaxHeight();
         heightMap = new AbstractHeightMap() {
             @Override
             public float getHeight(int x, int y) {
