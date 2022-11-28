@@ -39,7 +39,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static java.util.Arrays.stream;
+import static com.google.common.primitives.Ints.asList;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_END;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_NETHER;
 import static org.pepsoft.util.swing.SpinnerUtils.setMinimum;
@@ -713,21 +713,8 @@ public class NewWorldDialog extends WorldPainterDialog {
         final double scale = ((Integer) spinnerScale.getValue()) / 100.0;
         final boolean floodWithLava = checkBoxLava.isSelected();
         final boolean beaches = checkBoxBeaches.isSelected();
-        final int minHeight;
-        int maxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
-        switch (anchor.dim) {
-            case DIM_NETHER:
-                minHeight = Math.max(platform.minZ, 0);
-                maxHeight = Math.min(maxHeight, DEFAULT_MAX_HEIGHT_NETHER);
-                break;
-            case DIM_END:
-                minHeight = Math.max(platform.minZ, 0);
-                maxHeight = Math.min(maxHeight, DEFAULT_MAX_HEIGHT_END);
-                break;
-            default:
-                minHeight = platform.minZ;
-                break;
-        }
+        final int minHeight = ((anchor.dim == DIM_NETHER) || (anchor.dim == DIM_END)) ? Math.max(platform.minZ, 0) : platform.minZ;
+        final int maxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
 
         final HeightMapTileFactory tileFactory;
         final double additionalScale = (role == MASTER) ? 16.0 : 1.0;
@@ -815,11 +802,11 @@ public class NewWorldDialog extends WorldPainterDialog {
             return;
         }
 
-        Platform previousPlatform = this.platform;
+        final Platform previousPlatform = this.platform;
         this.platform = platform;
 
-        int maxWidth = (int) Math.min((((long) platform.maxX - platform.minX) / TILE_SIZE) * TILE_SIZE, Integer.MAX_VALUE);
-        int maxLength = (int) Math.min((((long) platform.maxY - platform.minY) / TILE_SIZE) * TILE_SIZE, Integer.MAX_VALUE);
+        final int maxWidth = (int) Math.min((((long) platform.maxX - platform.minX) / TILE_SIZE) * TILE_SIZE, Integer.MAX_VALUE);
+        final int maxLength = (int) Math.min((((long) platform.maxY - platform.minY) / TILE_SIZE) * TILE_SIZE, Integer.MAX_VALUE);
         SpinnerNumberModel model = (SpinnerNumberModel) spinnerWidth.getModel();
         model.setMaximum(maxWidth);
         if ((Integer) model.getValue() > maxWidth) {
@@ -832,11 +819,29 @@ public class NewWorldDialog extends WorldPainterDialog {
         }
         updateWalkingTimes();
 
-        Integer currentMaxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
-        boolean atDefault = (currentMaxHeight == null) || (currentMaxHeight == previousPlatform.standardMaxHeight);
-        comboBoxMaxHeight.setModel(new DefaultComboBoxModel<>(stream(platform.maxHeights).boxed().toArray(Integer[]::new)));
+        final int maxMaxHeight, defaultMaxHeight, previousDefaultMaxHeight;
+        switch (anchor.dim) {
+            case DIM_NETHER:
+                maxMaxHeight = Math.min(platform.maxMaxHeight, DEFAULT_MAX_HEIGHT_NETHER);
+                defaultMaxHeight = previousDefaultMaxHeight = DEFAULT_MAX_HEIGHT_NETHER;
+                break;
+            case DIM_END:
+                maxMaxHeight = Math.min(platform.maxMaxHeight, DEFAULT_MAX_HEIGHT_END);
+                defaultMaxHeight = previousDefaultMaxHeight = DEFAULT_MAX_HEIGHT_END;
+                break;
+            default:
+                maxMaxHeight = platform.maxMaxHeight;
+                defaultMaxHeight = platform.standardMaxHeight;
+                previousDefaultMaxHeight = (previousPlatform != null) ? previousPlatform.standardMaxHeight : Integer.MIN_VALUE;
+                break;
+        }
+        final Integer currentMaxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
+        final boolean atDefault = (currentMaxHeight == null) || (currentMaxHeight == previousDefaultMaxHeight);
+        final List<Integer> maxHeights = new ArrayList<>(asList(platform.maxHeights));
+        maxHeights.removeIf(height -> height.compareTo(maxMaxHeight) > 0);
+        comboBoxMaxHeight.setModel(new DefaultComboBoxModel<>(maxHeights.toArray(new Integer[maxHeights.size()])));
         if (atDefault) {
-            comboBoxMaxHeight.setSelectedItem(platform.standardMaxHeight);
+            comboBoxMaxHeight.setSelectedItem(defaultMaxHeight);
         } else if (currentMaxHeight < platform.minMaxHeight){
             comboBoxMaxHeight.setSelectedItem(platform.minMaxHeight);
         } else if (currentMaxHeight > platform.maxMaxHeight) {
@@ -844,7 +849,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         } else {
             comboBoxMaxHeight.setSelectedItem(currentMaxHeight);
         }
-        comboBoxMaxHeight.setEnabled(platform.maxHeights.length > 1);
+        comboBoxMaxHeight.setEnabled((anchor.role == DETAIL) && (! anchor.invert) && (maxHeights.size() > 1));
         maxHeightChanged(true);
 
         setMinimum(spinnerTerrainLevel, platform.minZ);
