@@ -571,6 +571,14 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             }
             return exporter.getStages().size();
         }).sum();
+
+        // Garden / seeds first pass
+        final GardenExporter gardenExporter = new GardenExporter();
+        final Set<Seed> firstPassProcessedSeeds = new HashSet<>();
+        tiles.stream().filter(tile -> tile.getLayers().contains(GardenCategory.INSTANCE)).forEach(tile -> {
+            gardenExporter.firstPass(dimension, tile, platform, minecraftWorld, firstPassProcessedSeeds);
+        });
+
         int counter = 0;
         final Rectangle area = new Rectangle((regionCoords.x << 9) - 16, (regionCoords.y << 9) - 16, 544, 544);
         final Rectangle exportedArea = new Rectangle((regionCoords.x << 9), (regionCoords.y << 9), 512, 512);
@@ -616,11 +624,8 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
 
         // Garden / seeds first and second pass
-        GardenExporter gardenExporter = new GardenExporter();
-        Set<Seed> firstPassProcessedSeeds = new HashSet<>();
-        Set<Seed> secondPassProcessedSeeds = new HashSet<>();
+        final Set<Seed> secondPassProcessedSeeds = new HashSet<>();
         tiles.stream().filter(tile -> tile.getLayers().contains(GardenCategory.INSTANCE)).forEach(tile -> {
-            gardenExporter.firstPass(dimension, tile, platform, minecraftWorld, firstPassProcessedSeeds);
             gardenExporter.secondPass(dimension, tile, platform, minecraftWorld, secondPassProcessedSeeds);
         });
 
