@@ -625,13 +625,12 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         });
 
         // TODO: trying to do this for every region should work but is not very elegant
-        if ((dimension.getAnchor().dim == 0) && world.isCreateGoodiesChest()) {
-            Point goodiesPoint = (Point) world.getSpawnPoint().clone();
+        if ((dimension.getAnchor().dim == DIM_NORMAL) && world.isCreateGoodiesChest()) {
+            final Point goodiesPoint = (Point) world.getSpawnPoint().clone();
             goodiesPoint.translate(3, 3);
-            int height = getIntHeightAt(DIM_NORMAL, goodiesPoint.x, goodiesPoint.y);
-            if (height != Integer.MIN_VALUE) {
-                height = Math.min(height + 1, dimension.getMaxHeight() - 1);
-                Chunk chunk = minecraftWorld.getChunk(goodiesPoint.x >> 4, goodiesPoint.y >> 4);
+            final int height = getIntHeightAt(DIM_NORMAL, goodiesPoint.x, goodiesPoint.y) + 1;
+            if ((height >= dimension.getMinHeight()) && (height < dimension.getMaxHeight())) {
+                final Chunk chunk = minecraftWorld.getChunk(goodiesPoint.x >> 4, goodiesPoint.y >> 4);
                 if (chunk != null) {
                     chunk.setMaterial(goodiesPoint.x & 0xf, height, goodiesPoint.y & 0xf, Material.CHEST_NORTH);
                     Chest goodiesChest = createGoodiesChest(platform);
