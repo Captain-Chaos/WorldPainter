@@ -570,12 +570,16 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                             minecraftWorld.save(worldDir, dim);
                                         }
                                         synchronized (fixups) {
-                                            if (!regionFixups.isEmpty()) {
+                                            if (! regionFixups.isEmpty()) {
                                                 fixups.put(new Point(regionCoords.x, regionCoords.y), regionFixups);
                                             }
                                             exportedRegions.add(regionCoords);
                                         }
-                                        performFixupsIfNecessary(worldDir, combined, allRegionCoords, fixups, exportedRegions, progressReceiver1);
+                                        try {
+                                            performFixupsIfNecessary(worldDir, combined, allRegionCoords, fixups, exportedRegions, progressReceiver1);
+                                        } catch (InvalidMapException e) {
+                                            throw createInvalidMapException(e.getMessage(), backupWorldDir);
+                                        }
                                     } catch (Throwable t) {
                                         logger.error("{} while merging region {},{} (message: \"{}\")", t.getClass().getSimpleName(), regionCoords.x, regionCoords.y, t.getMessage(), t);
                                         abort.set(true);
@@ -654,7 +658,11 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                         }
                                         exportedRegions.add(regionCoords);
                                     }
-                                    performFixupsIfNecessary(worldDir, combined, allRegionCoords, fixups, exportedRegions, progressReceiver1);
+                                    try {
+                                        performFixupsIfNecessary(worldDir, combined, allRegionCoords, fixups, exportedRegions, progressReceiver1);
+                                    } catch (InvalidMapException e) {
+                                        throw createInvalidMapException(e.getMessage(), backupWorldDir);
+                                    }
                                 } catch (Throwable t) {
                                     logger.error("{} while exporting region {},{} (message: \"{}\")", t.getClass().getSimpleName(), regionCoords.x, regionCoords.y, t.getMessage(), t);
                                     abort.set(true);
@@ -668,8 +676,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     additionalRegions.forEach((coords, regions) -> {
                         if (! allRegionCoords.contains(coords)) {
                             // This is a region file from a directory other than "region" which does not have a
-                            // corresponding region file in "region" in either the old or new maps, so it was not processed
-                            // yet. Just copy it
+                            // corresponding region file in "region" in either the old or new maps, so it was not
+                            // processed yet. Just copy it
                             executor.execute(() -> {
                                 if (abort.get()) {
                                     return;
@@ -703,16 +711,20 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     }
                 }
 
-                // It's possible for there to be fixups left, if thread A was performing fixups and thread B added new ones
-                // and then quit, or if regions were copied from the existing map
+                // It's possible for there to be fixups left, if thread A was performing fixups and thread B added new
+                // ones and then quit, or if regions were copied from the existing map
                 if (! abort.get()) {
                     synchronized (fixups) {
-                        if (!fixups.isEmpty()) {
+                        if (! fixups.isEmpty()) {
                             if (progressReceiver != null) {
                                 progressReceiver.setMessage("doing remaining fixups for " + dimension.getName());
                                 progressReceiver.reset();
                             }
-                            performFixups(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, fixups);
+                            try {
+                                performFixups(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, fixups);
+                            } catch (InvalidMapException e) {
+                                throw createInvalidMapException(e.getMessage(), backupWorldDir);
+                            }
                         }
                     }
                 }

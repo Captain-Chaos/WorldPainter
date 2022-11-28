@@ -3,6 +3,7 @@ package org.pepsoft.worldpainter.exporting;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.jobqueue.HashList;
 import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.merging.InvalidMapException;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import java.awt.*;
@@ -218,6 +219,11 @@ public class CachingMinecraftWorld implements MinecraftWorld {
         if (cachedChunk == null) {
 //            loadingTime = System.currentTimeMillis();
             cachedChunk = chunkStore.getChunk(x, z);
+            if (cachedChunk.getMinHeight() > minHeight) {
+                throw new InvalidMapException("At least one of the existing chunks to be merged has a higher minimum build height (" + cachedChunk.getMinHeight() + ") than the dimension being merged (" + minHeight + ").");
+            } else if (cachedChunk.getMaxHeight() < maxHeight) {
+                throw new InvalidMapException("At least one of the existing chunks to be merged has a lower maximum build height (" + cachedChunk.getMaxHeight() + ") than the dimension being merged (" + maxHeight + ").");
+            }
 //            loadingTime -= System.currentTimeMillis();
             maintainCache();
             if (cachedChunk != null) {
