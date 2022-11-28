@@ -39,6 +39,12 @@ import static org.pepsoft.worldpainter.layers.plants.Category.*;
 public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements SecondPassLayerExporter, IncidentalLayerExporter {
     public PlantLayerExporter(Dimension dimension, Platform platform, PlantLayer layer) {
         super(dimension, platform, null, layer);
+        final long total = layer.getConfiguredPlants().values().stream().mapToLong(setting -> setting.occurrence).sum();
+        if (total <= 0L) {
+            throw new IllegalArgumentException("No plants configured on PlantLayer \"" + layer + "\"");
+        } else if (total > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Total occurrence of plants configured on PlantLayer \"" + layer + "\" higher than " + Integer.MAX_VALUE);
+        }
     }
 
     @Override

@@ -140,7 +140,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
 
     @Override
     public boolean isCommitAvailable() {
-        return (! fieldName.getText().trim().isEmpty()) && (totalOccurrence > 0);
+        return (! fieldName.getText().trim().isEmpty()) && (totalOccurrence > 0L) && (totalOccurrence <= Integer.MAX_VALUE);
     }
     
     private void initPlantControls() {
@@ -330,7 +330,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
                 if (asList(ALL_PLANTS[i].getCategories()).contains(CROPS)) {
                     cropsSelected = true;
                 }
-                int percentage = value * 100 / totalOccurrence;
+                int percentage = (int) (value * 100 / totalOccurrence);
                 if (percentage < 10) {
                     percentageLabels[i].setText("  " + percentage + "%");
                 } else if (percentage < 100) {
@@ -541,7 +541,8 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
     private final JSpinner[] spinners = new JSpinner[ALL_PLANTS.length];
     private final JLabel[] plantLabels = new JLabel[ALL_PLANTS.length], percentageLabels = new JLabel[ALL_PLANTS.length];
     private final JSpinner[] growthFromSpinners = new JSpinner[ALL_PLANTS.length], growthToSpinners = new JSpinner[ALL_PLANTS.length];
-    private int selectedColour = Color.ORANGE.getRGB(), totalOccurrence;
+    private int selectedColour = Color.ORANGE.getRGB();
+    private long totalOccurrence;
     private boolean cropsSelected;
     private Font normalFont, boldFont;
 
