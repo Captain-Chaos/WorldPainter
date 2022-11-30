@@ -70,6 +70,10 @@ public class TileEditor extends WorldPainterDialog implements TileSelector.Liste
         return tilesChanged;
     }
 
+    public void moveTo(Point coords) {
+        tileSelector1.moveTo(coords);
+    }
+
     // TileSelector.Listener
     
     @Override
