@@ -15,8 +15,10 @@ import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
-import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Void;
+import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 import org.pepsoft.worldpainter.util.ImageUtils;
 
 import javax.imageio.ImageIO;
@@ -28,29 +30,55 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Vector;
 
+import static java.util.Arrays.asList;
+import static java.util.Comparator.comparing;
+import static org.pepsoft.util.CollectionUtils.nullAnd;
 import static org.pepsoft.worldpainter.importing.MaskImporter.InputType.*;
-import static org.pepsoft.worldpainter.importing.MaskImporter.Mapping.*;
+import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
 
 
 /**
  *
  * @author pepijn
  */
+@SuppressWarnings({"unused", "FieldCanBeLocal"}) // Managed by NetBeans
 public class ImportMaskDialog extends WorldPainterDialog implements DocumentListener {
-    public ImportMaskDialog(Window parent, Dimension dimension, ColourScheme colourScheme, List<Layer> allLayers) {
+    public ImportMaskDialog(Window parent, Dimension dimension, ColourScheme colourScheme, List<Layer> allLayers, CustomBiomeManager customBiomeManager) {
         super(parent);
         this.dimension = dimension;
+        this.colourScheme = colourScheme;
         this.allLayers = allLayers;
+        this.customBiomeManager = customBiomeManager;
 
         initComponents();
-        
+
         fieldFilename.getDocument().addDocumentListener(this);
+        allLayers.sort(comparing(layer -> layer instanceof CustomLayer)
+                .thenComparing(layer -> ((Layer) layer).getName()));
         comboBoxLayer.setModel(new DefaultComboBoxModel<>(allLayers.toArray(new Layer[allLayers.size()])));
         comboBoxLayer.setRenderer(new LayerListCellRenderer());
-        
+        comboBoxApplyToTerrain.setModel(new DefaultComboBoxModel<>(nullAnd(asList(Terrain.getConfiguredValues())).toArray(new Terrain[0])));
+        comboBoxApplyToTerrain.setRenderer(new TerrainListCellRenderer(colourScheme, "-all-"));
+        fieldFilename.getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent e) { loadFile(); }
+            @Override public void removeUpdate(DocumentEvent e) { loadFile(); }
+            @Override public void changedUpdate(DocumentEvent e) { loadFile(); }
+        });
+        comboBoxMapping.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value != null) {
+                    setText(((Mapping) value).getDescription());
+                }
+                return this;
+            }
+        });
+
         rootPane.setDefaultButton(buttonOk);
-        
+
         loadDefaults();
 
         scaleToUI();
@@ -77,36 +105,96 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
         setControlStates();
     }
 
-    private void setControlStates() {
+    private void loadFile() {
         File file = new File(fieldFilename.getText());
-        if (file.isFile() && ((selectedFile == null) || (! file.equals(selectedFile)))) {
+        if (file.isFile() && (! file.equals(selectedFile))) {
             selectedFile = file;
             loadImage();
+        } else {
+            selectedFile = null;
         }
+        setControlStates();
+    }
+
+    private void updatePossibleMappings() {
         boolean fileSelected = (selectedFile != null) && selectedFile.isFile();
-        radioButtonLayer.setEnabled(fileSelected);
-        if (! fileSelected) {
-            // loadImage() will enable it when necessary
-            radioButtonTerrain.setEnabled(false);
-        }
         boolean targetSelected = (radioButtonLayer.isSelected() && (comboBoxLayer.getSelectedItem() != null)) || radioButtonTerrain.isSelected();
-        if (radioButtonTerrain.isEnabled() && radioButtonTerrain.isSelected()) {
-            maskImporter.setApplyToTerrain(true);
-        } else if (radioButtonLayer.isEnabled() && radioButtonLayer.isSelected() && comboBoxLayer.getSelectedItem() != null) {
-            maskImporter.setApplyToLayer((Layer) comboBoxLayer.getSelectedItem());
+        if (fileSelected && targetSelected) {
+            final MaskImporter.PossibleMappingsResult possibleMappings = maskImporter.getPossibleMappings();
+            if (! possibleMappings.mappings.isEmpty()) {
+                comboBoxMapping.setModel(new DefaultComboBoxModel<>(possibleMappings.mappings.toArray(new Mapping[possibleMappings.mappings.size()])));
+                pack();
+            } else {
+                comboBoxMapping.setModel(new DefaultComboBoxModel<>());
+            }
+            labelReason.setText((possibleMappings.reason != null) ? (possibleMappings.reason + " ") : null);
         }
-        radioButtonOneToOne.setEnabled(fileSelected && targetSelected && maskImporter.getPossibleMappings().contains(ONE_TO_ONE));
-        radioButtonThreshold.setEnabled(fileSelected && targetSelected && maskImporter.getPossibleMappings().contains(THRESHOLD));
-        radioButtonDither.setEnabled(fileSelected && targetSelected && maskImporter.getPossibleMappings().contains(DITHERING));
-        radioButtonFullRange.setEnabled(fileSelected && targetSelected && maskImporter.getPossibleMappings().contains(FULL_RANGE));
-        spinnerThreshold.setEnabled(fileSelected && radioButtonThreshold.isSelected());
+    }
+
+    private void setControlStates() {
+        boolean fileSelected = (selectedFile != null) && selectedFile.isFile();
+        radioButtonTerrain.setEnabled(fileSelected);
+        comboBoxApplyToTerrain.setEnabled(radioButtonTerrain.isSelected());
+        radioButtonLayer.setEnabled(fileSelected);
         comboBoxLayer.setEnabled(fileSelected && radioButtonLayer.isSelected());
+        comboBoxApplyToLayerValue.setEnabled(radioButtonLayer.isSelected() && (comboBoxLayer.getSelectedItem() != null) && (comboBoxApplyToLayerValue.getItemCount() > 1));
         checkBoxRemoveExisting.setEnabled(fileSelected && radioButtonLayer.isSelected());
-        boolean mappingSelected = (radioButtonOneToOne.isEnabled() && radioButtonOneToOne.isSelected())
-            || (radioButtonThreshold.isEnabled() && radioButtonThreshold.isSelected())
-            || (radioButtonDither.isEnabled() && radioButtonDither.isSelected())
-            || (radioButtonFullRange.isEnabled() && radioButtonFullRange.isSelected());
+        boolean targetSelected = (radioButtonLayer.isSelected() && (comboBoxLayer.getSelectedItem() != null)) || radioButtonTerrain.isSelected();
+        comboBoxMapping.setEnabled(fileSelected && targetSelected);
+        spinnerThreshold.setEnabled(fileSelected && targetSelected && (comboBoxMapping.getSelectedItem() instanceof Mapping.ThresholdMapping));
+        boolean mappingSelected = comboBoxMapping.getSelectedItem() != null;
         buttonOk.setEnabled(fileSelected && targetSelected && mappingSelected);
+    }
+
+    private void loadLayerValues() {
+        final Platform platform = dimension.getWorld().getPlatform();
+        final Layer layer = (Layer) comboBoxLayer.getSelectedItem();
+        final Vector<Integer> values;
+        Integer defaultValue = (Integer) comboBoxApplyToLayerValue.getSelectedItem();
+        if (layer instanceof Biome) {
+            values = new Vector<>(256);
+            values.add(null);
+            final BiomeScheme biomeScheme = getBiomeScheme(platform);
+            for (int value = 0; value < 256; value++) {
+                if (biomeScheme.isBiomePresent(value)) {
+                    values.add(value);
+                } else {
+                    final int finalValue = value;
+                    if (customBiomeManager.getCustomBiomes().stream().anyMatch(customBiome -> customBiome.getId() == finalValue)) {
+                        values.add(value);
+                    }
+                }
+            }
+        } else {
+            final Layer.DataSize dataSize = layer.getDataSize();
+            switch (dataSize) {
+                case BIT:
+                case BIT_PER_CHUNK:
+                    defaultValue = (maskImporter.getInputType() == ONE_BIT_GREY_SCALE) ? 1 : null;
+                    values = new Vector<>(1);
+                    values.add(defaultValue);
+                    break;
+                case NIBBLE:
+                    values = new Vector<>(17);
+                    values.add(null);
+                    for (int value = 0; value < 16; value++) {
+                        if (value == layer.getDefaultValue()) {
+                            continue;
+                        }
+                        values.add(value);
+                    }
+                    if ((defaultValue == null) && (maskImporter.getInputType() == ONE_BIT_GREY_SCALE)) {
+                        defaultValue = 8;
+                    }
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Layer " + layer + " of type " + layer.getClass().getSimpleName() + " with data size " + dataSize + " not supported");
+            }
+        }
+        comboBoxApplyToLayerValue.setModel(new DefaultComboBoxModel<>(values));
+        comboBoxApplyToLayerValue.setRenderer(new LayerValueListCellRenderer(layer, platform, colourScheme, customBiomeManager, "-full range-"));
+        comboBoxApplyToLayerValue.setSelectedItem(defaultValue);
+        pack();
     }
 
     private void loadImage() {
@@ -124,21 +212,25 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
             } else {
                 labelImageDimensions.setForeground(null);
                 int width = image.getWidth(), height = image.getHeight();
-                maskImporter = new MaskImporter(dimension, selectedFile, image, allLayers);
+                maskImporter = new MaskImporter(dimension, selectedFile, image);
+                maskImporter.setRemoveExistingLayer(checkBoxRemoveExisting.isSelected());
                 MaskImporter.InputType inputType = maskImporter.getInputType();
                 if (inputType == EIGHT_BIT_GREY_SCALE || inputType == SIXTEEN_BIT_GREY_SCALE) {
                     SpinnerNumberModel thresholdModel = (SpinnerNumberModel) spinnerThreshold.getModel();
                     thresholdModel.setMinimum(maskImporter.getImageLowValue());
                     thresholdModel.setMaximum(maskImporter.getImageHighValue());
-                    thresholdModel.setValue((maskImporter.getImageHighValue() - maskImporter.getImageLowValue()) / 2);
+                    thresholdModel.setValue((maskImporter.getImageLowValue() + maskImporter.getImageHighValue()) / 2);
                 }
-
-                radioButtonTerrain.setEnabled(maskImporter.isTerrainPossible());
-                if (! maskImporter.isTerrainPossible()) {
+                comboBoxApplyToTerrain.setSelectedItem(null);
+                if (inputType == COLOUR) {
                     radioButtonLayer.setSelected(true);
+                    comboBoxLayer.setSelectedItem(Annotations.INSTANCE);
+                    comboBoxApplyToLayerValue.setSelectedItem(null);
+                } else {
+                    buttonGroup1.clearSelection();
+                    comboBoxLayer.setSelectedIndex(0);
                 }
-                List<Layer> possibleLayers = maskImporter.getPossibleLayers();
-                comboBoxLayer.setModel(new DefaultComboBoxModel<>(possibleLayers.toArray(new Layer[possibleLayers.size()])));
+                labelReason.setText(null);
 
                 if (inputType == COLOUR) {
                     labelImageDimensions.setText(String.format("Image size: %d x %d, indexed colour, %d bits", width, height, image.getSampleModel().getSampleSize(0)));
@@ -168,19 +260,9 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
 
     @Override
     protected void ok() {
-        if (radioButtonOneToOne.isSelected()) {
-            maskImporter.setMapping(ONE_TO_ONE);
-        } else if (radioButtonFullRange.isSelected()) {
-            maskImporter.setMapping(FULL_RANGE);
-        } else if (radioButtonThreshold.isSelected()) {
-            maskImporter.setMapping(THRESHOLD);
-            maskImporter.setThreshold((Integer) spinnerThreshold.getValue());
-        } else {
-            maskImporter.setMapping(DITHERING);
-        }
-        if (radioButtonLayer.isSelected()) {
-            maskImporter.setRemoveExistingLayer(checkBoxRemoveExisting.isSelected());
-        }
+        maskImporter.setThreshold((int) spinnerThreshold.getValue());
+        maskImporter.setMapping((Mapping) comboBoxMapping.getSelectedItem());
+        maskImporter.setRemoveExistingLayer(radioButtonLayer.isSelected() && checkBoxRemoveExisting.isSelected());
         maskImporter.setScale((Integer) spinnerScale.getValue());
         maskImporter.setxOffset((Integer) spinnerOffsetX.getValue());
         maskImporter.setyOffset((Integer) spinnerOffsetY.getValue());
@@ -206,13 +288,12 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
      * WARNING: Do NOT modify this code. The content of this method is
      * always regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"Convert2Lambda", "Anonymous2MethodRef"}) // Managed by NetBeans
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         jLabel14 = new javax.swing.JLabel();
         buttonGroup1 = new javax.swing.ButtonGroup();
-        buttonGroup2 = new javax.swing.ButtonGroup();
         jLabel1 = new javax.swing.JLabel();
         fieldFilename = new javax.swing.JTextField();
         buttonSelectFile = new javax.swing.JButton();
@@ -222,11 +303,8 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
         jLabel2 = new javax.swing.JLabel();
         radioButtonTerrain = new javax.swing.JRadioButton();
         radioButtonLayer = new javax.swing.JRadioButton();
-        comboBoxLayer = new javax.swing.JComboBox<Layer>();
+        comboBoxLayer = new javax.swing.JComboBox<>();
         jLabel3 = new javax.swing.JLabel();
-        radioButtonOneToOne = new javax.swing.JRadioButton();
-        radioButtonThreshold = new javax.swing.JRadioButton();
-        radioButtonDither = new javax.swing.JRadioButton();
         spinnerThreshold = new javax.swing.JSpinner();
         jLabel4 = new javax.swing.JLabel();
         spinnerScale = new javax.swing.JSpinner();
@@ -236,12 +314,13 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
         spinnerOffsetY = new javax.swing.JSpinner();
         jLabel12 = new javax.swing.JLabel();
         labelWorldDimensions = new javax.swing.JLabel();
-        radioButtonFullRange = new javax.swing.JRadioButton();
         checkBoxRemoveExisting = new javax.swing.JCheckBox();
+        comboBoxApplyToTerrain = new javax.swing.JComboBox<>();
+        jLabel10 = new javax.swing.JLabel();
+        comboBoxApplyToLayerValue = new javax.swing.JComboBox<>();
+        labelReason = new javax.swing.JLabel();
+        comboBoxMapping = new javax.swing.JComboBox<>();
         jLabel6 = new javax.swing.JLabel();
-        jLabel7 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
-        jLabel9 = new javax.swing.JLabel();
 
         jLabel14.setText("jLabel14");
 
@@ -277,7 +356,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
         jLabel2.setText("Apply to:");
 
         buttonGroup1.add(radioButtonTerrain);
-        radioButtonTerrain.setText("terrain");
+        radioButtonTerrain.setText("terrain:");
         radioButtonTerrain.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonTerrainActionPerformed(evt);
@@ -299,31 +378,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
             }
         });
 
-        jLabel3.setText("Mapping:");
-
-        buttonGroup2.add(radioButtonOneToOne);
-        radioButtonOneToOne.setText("one to one");
-        radioButtonOneToOne.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonOneToOneActionPerformed(evt);
-            }
-        });
-
-        buttonGroup2.add(radioButtonThreshold);
-        radioButtonThreshold.setText("threshold");
-        radioButtonThreshold.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonThresholdActionPerformed(evt);
-            }
-        });
-
-        buttonGroup2.add(radioButtonDither);
-        radioButtonDither.setText("dither");
-        radioButtonDither.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonDitherActionPerformed(evt);
-            }
-        });
+        jLabel3.setText("Select the mapping:");
 
         spinnerThreshold.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
         spinnerThreshold.setEnabled(false);
@@ -363,24 +418,35 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
 
         labelWorldDimensions.setText("Scaled size: ? x ? blocks");
 
-        buttonGroup2.add(radioButtonFullRange);
-        radioButtonFullRange.setText("full range");
-        radioButtonFullRange.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                radioButtonFullRangeActionPerformed(evt);
-            }
-        });
-
         checkBoxRemoveExisting.setText("remove existing layer");
         checkBoxRemoveExisting.setEnabled(false);
 
-        jLabel6.setText("Place layer where grey scale value is higher than threshold");
+        comboBoxApplyToTerrain.setEnabled(false);
+        comboBoxApplyToTerrain.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxApplyToTerrainActionPerformed(evt);
+            }
+        });
 
-        jLabel7.setText("Map full range of grey scale to full range of layer");
+        jLabel10.setText(": ");
 
-        jLabel8.setText("Set the layer value to the exact grey scale value or colour");
+        comboBoxApplyToLayerValue.setEnabled(false);
+        comboBoxApplyToLayerValue.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxApplyToLayerValueActionPerformed(evt);
+            }
+        });
 
-        jLabel9.setText("Use the full grey scale range to dither the layer");
+        labelReason.setFont(labelReason.getFont().deriveFont((labelReason.getFont().getStyle() | java.awt.Font.ITALIC)));
+
+        comboBoxMapping.setEnabled(false);
+        comboBoxMapping.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxMappingActionPerformed(evt);
+            }
+        });
+
+        jLabel6.setText("Threshold:");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -389,64 +455,68 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(fieldFilename)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(jLabel6)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(buttonSelectFile))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(buttonOk)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(buttonCancel))
+                        .addComponent(spinnerThreshold, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(labelImageDimensions)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(fieldFilename)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(buttonSelectFile))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(labelReason)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(buttonOk)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(buttonCancel))
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel4)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerScale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jLabel5)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel11)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerOffsetX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, 0)
-                                .addComponent(jLabel12)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerOffsetY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(labelWorldDimensions)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(radioButtonTerrain)
+                                    .addComponent(jLabel1)
+                                    .addComponent(labelImageDimensions)
                                     .addGroup(layout.createSequentialGroup()
-                                        .addComponent(radioButtonLayer)
+                                        .addComponent(jLabel4)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(comboBoxLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(spinnerScale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(0, 0, 0)
+                                        .addComponent(jLabel5)
                                         .addGap(18, 18, 18)
-                                        .addComponent(checkBoxRemoveExisting))))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel3)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(radioButtonThreshold)
+                                        .addComponent(jLabel11)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(spinnerThreshold, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(radioButtonFullRange)
-                                    .addComponent(radioButtonOneToOne)
-                                    .addComponent(radioButtonDither))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel9)
-                                    .addComponent(jLabel8)
-                                    .addComponent(jLabel7)
-                                    .addComponent(jLabel6))))
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+                                        .addComponent(spinnerOffsetX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(0, 0, 0)
+                                        .addComponent(jLabel12)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(spinnerOffsetY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(labelWorldDimensions)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel2)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addGroup(layout.createSequentialGroup()
+                                                .addComponent(radioButtonTerrain)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(comboBoxApplyToTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                            .addGroup(layout.createSequentialGroup()
+                                                .addComponent(radioButtonLayer)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(comboBoxLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jLabel10)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(comboBoxApplyToLayerValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(18, 18, 18)
+                                                .addComponent(checkBoxRemoveExisting))))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel3)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(comboBoxMapping, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGap(0, 0, Short.MAX_VALUE)))
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -473,34 +543,28 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(radioButtonTerrain))
+                    .addComponent(radioButtonTerrain)
+                    .addComponent(comboBoxApplyToTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(radioButtonLayer)
                     .addComponent(comboBoxLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(checkBoxRemoveExisting))
+                    .addComponent(checkBoxRemoveExisting)
+                    .addComponent(jLabel10)
+                    .addComponent(comboBoxApplyToLayerValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
-                    .addComponent(radioButtonOneToOne)
-                    .addComponent(jLabel8))
+                    .addComponent(comboBoxMapping, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(radioButtonFullRange)
-                    .addComponent(jLabel7))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(radioButtonThreshold)
-                    .addComponent(spinnerThreshold, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel6))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(radioButtonDither)
-                    .addComponent(jLabel9))
-                .addGap(18, 18, Short.MAX_VALUE)
+                    .addComponent(jLabel6)
+                    .addComponent(spinnerThreshold, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
-                    .addComponent(buttonOk))
+                    .addComponent(buttonOk)
+                    .addComponent(labelReason))
                 .addContainerGap())
         );
 
@@ -549,43 +613,60 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
     }//GEN-LAST:event_spinnerOffsetYStateChanged
 
     private void radioButtonTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonTerrainActionPerformed
+        if (radioButtonTerrain.isSelected()) {
+            maskImporter.setApplyToTerrain(true);
+            comboBoxApplyToLayerValue.setModel(new DefaultComboBoxModel<>());
+            comboBoxApplyToLayerValue.setSelectedItem(null);
+        }
+        updatePossibleMappings();
         setControlStates();
     }//GEN-LAST:event_radioButtonTerrainActionPerformed
 
     private void radioButtonLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonLayerActionPerformed
+        if (radioButtonLayer.isSelected()) {
+            maskImporter.setApplyToLayer((Layer) comboBoxLayer.getSelectedItem());
+            loadLayerValues();
+        }
+        updatePossibleMappings();
         setControlStates();
     }//GEN-LAST:event_radioButtonLayerActionPerformed
 
-    private void radioButtonOneToOneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonOneToOneActionPerformed
-        setControlStates();
-    }//GEN-LAST:event_radioButtonOneToOneActionPerformed
-
-    private void radioButtonFullRangeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonFullRangeActionPerformed
-        setControlStates();
-    }//GEN-LAST:event_radioButtonFullRangeActionPerformed
-
-    private void radioButtonThresholdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonThresholdActionPerformed
-        setControlStates();
-    }//GEN-LAST:event_radioButtonThresholdActionPerformed
-
-    private void radioButtonDitherActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonDitherActionPerformed
-        setControlStates();
-    }//GEN-LAST:event_radioButtonDitherActionPerformed
-
     private void comboBoxLayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxLayerActionPerformed
+        maskImporter.setApplyToLayer((Layer) comboBoxLayer.getSelectedItem());
+        loadLayerValues();
+        updatePossibleMappings();
         setControlStates();
     }//GEN-LAST:event_comboBoxLayerActionPerformed
+
+    private void comboBoxApplyToTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxApplyToTerrainActionPerformed
+        maskImporter.setApplyToTerrainType((Terrain) comboBoxApplyToTerrain.getSelectedItem());
+        updatePossibleMappings();
+        setControlStates();
+    }//GEN-LAST:event_comboBoxApplyToTerrainActionPerformed
+
+    private void comboBoxApplyToLayerValueActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxApplyToLayerValueActionPerformed
+        maskImporter.setApplyToLayerValue((Integer) comboBoxApplyToLayerValue.getSelectedItem());
+        updatePossibleMappings();
+        setControlStates();
+    }//GEN-LAST:event_comboBoxApplyToLayerValueActionPerformed
+
+    private void comboBoxMappingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxMappingActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_comboBoxMappingActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
     private javax.swing.ButtonGroup buttonGroup1;
-    private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JButton buttonOk;
     private javax.swing.JButton buttonSelectFile;
     private javax.swing.JCheckBox checkBoxRemoveExisting;
+    private javax.swing.JComboBox<Integer> comboBoxApplyToLayerValue;
+    private javax.swing.JComboBox<Terrain> comboBoxApplyToTerrain;
     private javax.swing.JComboBox<Layer> comboBoxLayer;
+    private javax.swing.JComboBox<Mapping> comboBoxMapping;
     private javax.swing.JTextField fieldFilename;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel14;
@@ -594,17 +675,11 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
     private javax.swing.JLabel labelImageDimensions;
+    private javax.swing.JLabel labelReason;
     private javax.swing.JLabel labelWorldDimensions;
-    private javax.swing.JRadioButton radioButtonDither;
-    private javax.swing.JRadioButton radioButtonFullRange;
     private javax.swing.JRadioButton radioButtonLayer;
-    private javax.swing.JRadioButton radioButtonOneToOne;
     private javax.swing.JRadioButton radioButtonTerrain;
-    private javax.swing.JRadioButton radioButtonThreshold;
     private javax.swing.JSpinner spinnerOffsetX;
     private javax.swing.JSpinner spinnerOffsetY;
     private javax.swing.JSpinner spinnerScale;
@@ -612,7 +687,9 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
     // End of variables declaration//GEN-END:variables
 
     private final Dimension dimension;
+    private final ColourScheme colourScheme;
     private final List<Layer> allLayers;
+    private final CustomBiomeManager customBiomeManager;
     private File selectedFile, masksDir;
     private volatile BufferedImage image;
     private MaskImporter maskImporter;

@@ -5,15 +5,13 @@
  */
 package org.pepsoft.worldpainter.importing;
 
-import org.pepsoft.util.MathUtils;
+import com.google.common.collect.ImmutableSet;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
-import org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Annotations;
-import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
 
 import javax.imageio.ImageIO;
@@ -24,40 +22,46 @@ import java.awt.image.IndexColorModel;
 import java.awt.image.Raster;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.*;
+import java.util.Set;
 
+import static java.util.Collections.emptySet;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
+import static org.pepsoft.worldpainter.importing.Mapping.*;
 import static org.pepsoft.worldpainter.importing.MaskImporter.InputType.SIXTEEN_BIT_GREY_SCALE;
+import static org.pepsoft.worldpainter.layers.Layer.DataSize.BIT;
 
 /**
  *
  * @author pepijn
  */
 public class MaskImporter {
-    public MaskImporter(Dimension dimension, File imageFile, List<Layer> allLayers) throws IOException {
-        this(dimension, imageFile, ImageIO.read(imageFile), allLayers);
+    public MaskImporter(Dimension dimension, File imageFile) throws IOException {
+        this(dimension, imageFile, ImageIO.read(imageFile));
     }
 
-    public MaskImporter(Dimension dimension, File imageFile, BufferedImage image, List<Layer> allLayers) {
+    public MaskImporter(Dimension dimension, File imageFile, BufferedImage image) {
         this.dimension = dimension;
         this.imageFile = imageFile;
         this.image = image;
-        this.allLayers = allLayers;
         int sampleSize = image.getSampleModel().getSampleSize(0);
         if (sampleSize == 1) {
             inputType = InputType.ONE_BIT_GREY_SCALE;
+            imageMaxValue = 1;
         } else if (image.getColorModel().getColorSpace().getType() == ColorSpace.TYPE_GRAY) {
             if (sampleSize == 8) {
                 inputType = InputType.EIGHT_BIT_GREY_SCALE;
+                imageMaxValue = 255;
             } else if (sampleSize == 16) {
                 inputType = InputType.SIXTEEN_BIT_GREY_SCALE;
+                imageMaxValue = 65535;
             } else {
                 inputType = InputType.UNSUPPORTED;
+                imageMaxValue = -1;
             }
         } else {
             inputType = InputType.COLOUR;
+            imageMaxValue = 0xffffffff;
         }
 
         switch (inputType) {
@@ -103,28 +107,15 @@ outer:          for (int x = 0; x < width; x++) {
         if (mapping == null) {
             throw new IllegalStateException("Mapping not set");
         }
-        if ((mapping == Mapping.THRESHOLD) && (threshold == -1)) {
-            throw new IllegalStateException("Threshold not set");
-        }
-        final int maxValue;
-        switch (inputType) {
-            case ONE_BIT_GREY_SCALE:
-                maxValue = 1;
-                break;
-            case EIGHT_BIT_GREY_SCALE:
-                maxValue = 255;
-                break;
-            case SIXTEEN_BIT_GREY_SCALE:
-                maxValue = 65535;
-                break;
-            default:
-                maxValue = 0;
-                break;
-        }
-        final Random random = new Random(dimension.getSeed() + xOffset * 31 + yOffset);
+
+        // Set up mapping
+        mapping.setThreshold(threshold);
+        mapping.setMaskLowValue(imageLowValue);
+        mapping.setMaskHighValue(imageHighValue);
+        mapping.setMaskMaxValue(imageMaxValue);
 
         // Scale the mask, if necessary
-        final BufferedImage scaledImage;
+        BufferedImage scaledImage;
         if (scale == 100) {
             // No scaling necessary
             scaledImage = image;
@@ -137,7 +128,7 @@ outer:          for (int x = 0; x < width; x++) {
             }
             Graphics2D g2 = scaledImage.createGraphics();
             try {
-                if (mapping == Mapping.FULL_RANGE) {
+                if (mapping instanceof RangedMapping) {
                     g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
                 }
                 g2.drawImage(image, 0, 0, newWidth, newHeight, null);
@@ -146,198 +137,13 @@ outer:          for (int x = 0; x < width; x++) {
             }
         }
         image = null; // The original image is no longer necessary, so allow it to be garbage collected to make more space available for the import
-
-        // Create the appropriate mapping logic
-        abstract class Applicator {
-            void setTile(Tile tile) {
-                this.tile = tile;
-            }
-
-            abstract void apply(int x, int y, int value);
-
-            Tile tile;
+        // Dither the mask, if necessary
+        if ((mapping instanceof ColourToAnnotationsMapping) && ((ColourToAnnotationsMapping) mapping).dithered) {
+            scaledImage = Mapping.ditherMask(scaledImage);
         }
-        final Applicator applicator;
-        final String aspect;
-        switch (inputType) {
-            case ONE_BIT_GREY_SCALE:
-                if (removeExistingLayer) {
-                    applicator = new Applicator() {
-                        @Override
-                        void apply(int x, int y, int value) {
-                            tile.setBitLayerValue(applyToLayer, x, y, value != 0);
-                        }
-                    };
-                } else {
-                    applicator = new Applicator() {
-                        @Override
-                        void apply(int x, int y, int value) {
-                            if (value != 0) {
-                                tile.setBitLayerValue(applyToLayer, x, y, true);
-                            }
-                        }
-                    };
-                }
-                aspect = "layer " + applyToLayer.getName();
-                break;
-            case EIGHT_BIT_GREY_SCALE:
-            case SIXTEEN_BIT_GREY_SCALE:
-                switch (mapping) {
-                    case ONE_TO_ONE:
-                        if (applyToTerrain) {
-                            applicator = new Applicator() {
-                                @Override
-                                void apply(int x, int y, int value) {
-                                    tile.setTerrain(x, y, Terrain.VALUES[value]);
-                                }
-                            };
-                            aspect = "terrain";
-                        } else {
-                            // TODOMC118 platforms with named biomes
-                            final int defaultValue = applyToLayer.getDefaultValue();
-                            if (removeExistingLayer) {
-                                applicator = new Applicator() {
-                                    @Override
-                                    void apply(int x, int y, int value) {
-                                        if ((value != defaultValue)
-                                                || (tile.getLayerValue(applyToLayer, x, y) != defaultValue)) {
-                                            tile.setLayerValue(applyToLayer, x, y, value);
-                                        }
-                                    }
-                                };
-                            } else {
-                                applicator = new Applicator() {
-                                    @Override
-                                    void apply(int x, int y, int value) {
-                                        if ((value != defaultValue) && (value > tile.getLayerValue(applyToLayer, x, y))) {
-                                            tile.setLayerValue(applyToLayer, x, y, value);
-                                        }
-                                    }
-                                };
-                            }
-                            aspect = "layer " + applyToLayer.getName();
-                        }
-                        break;
-                    case DITHERING:
-                        if (removeExistingLayer) {
-                            applicator = new Applicator() {
-                                @Override
-                                void apply(int x, int y, int value) {
-                                    boolean layerValue = (value > 0) && (random.nextInt(limit) <= value);
-                                    if (layerValue || (tile.getBitLayerValue(applyToLayer, x, y))) {
-                                        tile.setBitLayerValue(applyToLayer, x, y, layerValue);
-                                    }
-                                }
 
-                                private final int limit = maxValue + 1;
-                            };
-                        } else {
-                            applicator = new Applicator() {
-                                @Override
-                                void apply(int x, int y, int value) {
-                                    if ((value > 0) && (random.nextInt(limit) <= value)) {
-                                        tile.setBitLayerValue(applyToLayer, x, y, true);
-                                    }
-                                }
-
-                                private final int limit = maxValue + 1;
-                            };
-                        }
-                        aspect = "layer " + applyToLayer.getName();
-                        break;
-                    case THRESHOLD:
-                        if (removeExistingLayer) {
-                            applicator = new Applicator() {
-                                @Override
-                                void apply(int x, int y, int value) {
-                                    boolean layerValue = value >= threshold;
-                                    if (layerValue || tile.getBitLayerValue(applyToLayer, x, y)) {
-                                        tile.setBitLayerValue(applyToLayer, x, y, layerValue);
-                                    }
-                                }
-                            };
-                        } else {
-                            applicator = new Applicator() {
-                                @Override
-                                void apply(int x, int y, int value) {
-                                    if (value >= threshold) {
-                                        tile.setBitLayerValue(applyToLayer, x, y, true);
-                                    }
-                                }
-                            };
-                        }
-                        aspect = "layer " + applyToLayer.getName();
-                        break;
-                    case FULL_RANGE:
-                        final int layerLimit;
-                        if (applyToLayer.getDataSize() == Layer.DataSize.NIBBLE) {
-                            layerLimit = 16;
-                        } else if (applyToLayer.getDataSize() == Layer.DataSize.BYTE) {
-                            layerLimit = 256;
-                        } else {
-                            throw new IllegalArgumentException();
-                        }
-                        final int defaultValue = applyToLayer.getDefaultValue();
-                        if (removeExistingLayer) {
-                            applicator = new Applicator() {
-                                @Override
-                                void apply(int x, int y, int value) {
-                                    int layerValue = value * layerLimit / limit;
-                                    if ((layerValue != defaultValue) || (tile.getLayerValue(applyToLayer, x, y) != defaultValue)) {
-                                        tile.setLayerValue(applyToLayer, x, y, layerValue);
-                                    }
-                                }
-
-                                private final int limit = maxValue + 1;
-                            };
-                        } else {
-                            applicator = new Applicator() {
-                                @Override
-                                void apply(int x, int y, int value) {
-                                    int layerValue = value * layerLimit / limit;
-                                    if ((layerValue != defaultValue) && (layerValue > tile.getLayerValue(applyToLayer, x, y))) {
-                                        tile.setLayerValue(applyToLayer, x, y, layerValue);
-                                    }
-                                }
-
-                                private final int limit = maxValue + 1;
-                            };
-                        }
-                        aspect = "layer " + applyToLayer.getName();
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Don't know how to apply this combo");
-                }
-                break;
-            case COLOUR:
-                if (removeExistingLayer) {
-                    applicator = new Applicator() {
-                        @Override
-                        void apply(int x, int y, int value) {
-                            if (((value >> 24) & 0xff) > 0x7f) {
-                                tile.setLayerValue(Annotations.INSTANCE, x, y, COLOUR_ANNOTATION_MAPPING[((value >> 12) & 0xf00) | ((value >> 8) & 0xf0) | ((value >> 4) & 0xf)]);
-                            } else if (tile.getLayerValue(Annotations.INSTANCE, x, y) != 0) {
-                                tile.setLayerValue(Annotations.INSTANCE, x, y, 0);
-                            }
-                        }
-                    };
-                } else {
-                    applicator = new Applicator() {
-                        @Override
-                        void apply(int x, int y, int value) {
-                            if (((value >> 24) & 0xff) > 0x7f) {
-                                tile.setLayerValue(Annotations.INSTANCE, x, y, COLOUR_ANNOTATION_MAPPING[((value >> 12) & 0xf00) | ((value >> 8) & 0xf0) | ((value >> 4) & 0xf)]);
-                            }
-                        }
-                    };
-                }
-                aspect = "annotations";
-                break;
-            default:
-                throw new IllegalArgumentException("Don't know how to apply this combo");
-        }
         if (dimension.getWorld() != null) {
-            dimension.getWorld().addHistoryEntry(HistoryEntry.WORLD_MASK_IMPORTED_TO_DIMENSION, dimension.getName(), imageFile, aspect);
+            dimension.getWorld().addHistoryEntry(HistoryEntry.WORLD_MASK_IMPORTED_TO_DIMENSION, dimension.getName(), imageFile, mapping.getAspect());
         }
 
         // Apply the mask tile by tile
@@ -358,15 +164,44 @@ outer:          for (int x = 0; x < width; x++) {
                 }
                 tile.inhibitEvents();
                 try {
+                    // First remove the existing layer, if requested
                     final int tileOffsetX = (tileX << TILE_SIZE_BITS) - xOffset, tileOffsetY = (tileY << TILE_SIZE_BITS) - yOffset;
+                    if ((applyToLayer != null) && removeExistingLayer) {
+                        // Crude heuristic to decide whether a tile lies entirely inside the area covered by the mask:
+                        if ((tileX > tileX1) && (tileX < tileX2) && (tileY > tileY1) && (tileY < tileY2)) {
+                            tile.clearLayerData(applyToLayer);
+                        } else {
+                            if (applyToLayer.dataSize.maxValue == 1) {
+                                for (int xInTile = 0; xInTile < TILE_SIZE; xInTile++) {
+                                    for (int yInTile = 0; yInTile < TILE_SIZE; yInTile++) {
+                                        final int imageX = tileOffsetX + xInTile, imageY = tileOffsetY + yInTile;
+                                        if ((imageX >= 0) && (imageX < width) && (imageY >= 0) && (imageY < height)) {
+                                            tile.setBitLayerValue(applyToLayer, xInTile, yInTile, false);
+                                        }
+                                    }
+                                }
+                            } else {
+                                final int defaultValue = applyToLayer.getDefaultValue();
+                                for (int xInTile = 0; xInTile < TILE_SIZE; xInTile++) {
+                                    for (int yInTile = 0; yInTile < TILE_SIZE; yInTile++) {
+                                        final int imageX = tileOffsetX + xInTile, imageY = tileOffsetY + yInTile;
+                                        if ((imageX >= 0) && (imageX < width) && (imageY >= 0) && (imageY < height)) {
+                                            tile.setLayerValue(applyToLayer, xInTile, yInTile, defaultValue);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     final Raster raster = scaledImage.getRaster();
-                    applicator.setTile(tile);
+                    mapping.setTile(tile);
                     if (inputType == InputType.COLOUR) {
                         for (int xInTile = 0; xInTile < TILE_SIZE; xInTile++) {
                             for (int yInTile = 0; yInTile < TILE_SIZE; yInTile++) {
                                 final int imageX = tileOffsetX + xInTile, imageY = tileOffsetY + yInTile;
                                 if ((imageX >= 0) && (imageX < width) && (imageY >= 0) && (imageY < height)) {
-                                    applicator.apply(xInTile, yInTile, scaledImage.getRGB(imageX, imageY));
+                                    mapping.apply(xInTile, yInTile, scaledImage.getRGB(imageX, imageY));
                                 }
                             }
                         }
@@ -375,7 +210,7 @@ outer:          for (int x = 0; x < width; x++) {
                             for (int yInTile = 0; yInTile < TILE_SIZE; yInTile++) {
                                 final int imageX = tileOffsetX + xInTile, imageY = tileOffsetY + yInTile;
                                 if ((imageX >= 0) && (imageX < width) && (imageY >= 0) && (imageY < height)) {
-                                    applicator.apply(xInTile, yInTile, raster.getSample(imageX, imageY, 0));
+                                    mapping.apply(xInTile, yInTile, raster.getSample(imageX, imageY, 0));
                                 }
                             }
                         }
@@ -399,65 +234,23 @@ outer:          for (int x = 0; x < width; x++) {
         return inputType != InputType.UNSUPPORTED;
     }
 
-    /**
-     * @return Whether this image type can be mapped to the terrain.
-     */
-    public boolean isTerrainPossible() {
-        // Only grey scale images with at least 8 bits can be mapped to the
-        // terrain. Possible in the future we will support mapping colours to
-        // the terrain, but not yet.
-        return (inputType == InputType.EIGHT_BIT_GREY_SCALE || inputType == InputType.SIXTEEN_BIT_GREY_SCALE)
-            && (imageHighValue < Terrain.VALUES.length);
-    }
-
-//    TODO: dithered en threshold ook ondersteunen voor terrain en continue layers - mappen op één waarde
-//            of beter nog: generieke mapping mode bouwen
-
-    /**
-     * @return The list of layers to which this image type can be mapped. May be
-     *     empty.
-     */
-    public List<Layer> getPossibleLayers() {
-        List<Layer> possibleLayers = new ArrayList<>(allLayers.size());
-        for (Layer layer: allLayers) {
-            if (layer.equals(Annotations.INSTANCE)) {
-                // Annotations are a special case; since they are coloured we
-                // support importing a colour image as annotations
-                if (((inputType == InputType.EIGHT_BIT_GREY_SCALE || inputType == InputType.SIXTEEN_BIT_GREY_SCALE) && (imageHighValue < 16)) || inputType == InputType.COLOUR) {
-                    possibleLayers.add(layer);
-                }
-            } else if (layer.equals(Biome.INSTANCE)) {
-                // Biomes are a discrete layer which can only be mapped one on one
-                if ((inputType == InputType.EIGHT_BIT_GREY_SCALE || inputType == InputType.SIXTEEN_BIT_GREY_SCALE) && (imageHighValue <= Minecraft1_17Biomes.HIGHEST_BIOME_ID )) {
-                    possibleLayers.add(layer);
-                }
-            } else if (layer.getDataSize() == Layer.DataSize.BIT || layer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK) {
-                // 8 or 16 bit masks can be applied by either dithering or applying a threshold
-                if (inputType == InputType.ONE_BIT_GREY_SCALE || inputType == InputType.EIGHT_BIT_GREY_SCALE || inputType == InputType.SIXTEEN_BIT_GREY_SCALE) {
-                    possibleLayers.add(layer);
-                }
-            } else {
-                // Continuous layers need a grey scale mask
-                if (inputType == InputType.EIGHT_BIT_GREY_SCALE || inputType == InputType.SIXTEEN_BIT_GREY_SCALE) {
-                    possibleLayers.add(layer);
-                }
-            }
-        }
-        return possibleLayers;
-    }
-
     public Layer getApplyToLayer() {
         return applyToLayer;
     }
 
     public void setApplyToLayer(Layer applyToLayer) {
-        if ((applyToLayer != null) && (! getPossibleLayers().contains(applyToLayer))) {
-            throw new IllegalArgumentException("This image type cannot be applied to the specified layer");
-        }
         this.applyToLayer = applyToLayer;
         if (applyToLayer != null) {
             applyToTerrain = false;
         }
+    }
+
+    public Integer getApplyToLayerValue() {
+        return applyToLayerValue;
+    }
+
+    public void setApplyToLayerValue(Integer applyToLayerValue) {
+        this.applyToLayerValue = applyToLayerValue;
     }
 
     public boolean isApplyToTerrain() {
@@ -465,38 +258,141 @@ outer:          for (int x = 0; x < width; x++) {
     }
 
     public void setApplyToTerrain(boolean applyToTerrain) {
-        if (applyToTerrain && (! isTerrainPossible())) {
-            throw new IllegalArgumentException("This image type cannot be applied to the terrain");
-        }
         this.applyToTerrain = applyToTerrain;
         if (applyToTerrain) {
             applyToLayer = null;
         }
     }
 
-    /**
-     * @return The types of mapping possible for the specified target (terrain
-     *     or layer).
-     */
-    public Set<Mapping> getPossibleMappings() {
-        if (applyToTerrain) {
-            return EnumSet.of(Mapping.ONE_TO_ONE);
-        } else if (applyToLayer.equals(Annotations.INSTANCE)) {
-            return EnumSet.of(Mapping.ONE_TO_ONE);
-        } else if (applyToLayer.equals(Biome.INSTANCE)) {
-            return EnumSet.of(Mapping.ONE_TO_ONE);
-        } else if (applyToLayer.getDataSize() == Layer.DataSize.BIT || applyToLayer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK) {
-            switch (inputType) {
-                case ONE_BIT_GREY_SCALE:
-                    return EnumSet.of(Mapping.ONE_TO_ONE);
-                case EIGHT_BIT_GREY_SCALE:
-                case SIXTEEN_BIT_GREY_SCALE:
-                    return EnumSet.of(Mapping.DITHERING, Mapping.THRESHOLD);
+    public static class PossibleMappingsResult {
+        PossibleMappingsResult(Mapping... mappings) {
+            if ((mappings == null) || (mappings.length == 0)) {
+                throw new IllegalArgumentException("mappings");
             }
-        } else {
-            return EnumSet.of(Mapping.FULL_RANGE);
+            this.mappings = ImmutableSet.copyOf(mappings);
+            reason = null;
         }
-        throw new IllegalStateException();
+
+        PossibleMappingsResult(String reason) {
+            if ((reason == null) || reason.trim().isEmpty()) {
+                throw new IllegalArgumentException("reason");
+            }
+            this.reason = reason;
+            mappings = emptySet();
+        }
+
+        public final Set<Mapping> mappings;
+        public final String reason;
+    }
+
+    /**
+     * @return The types of mapping possible for the specified target (terrain or layer).
+     */
+    public PossibleMappingsResult getPossibleMappings() {
+        switch (inputType) {
+            case ONE_BIT_GREY_SCALE:
+                if (applyToTerrain) {
+                    if (applyToTerrainType != null) {
+                        // One-bit mask to one terrain type
+                        return new PossibleMappingsResult(setTerrainValue(applyToTerrainType));
+                    } else {
+                        // One-bit mask to terrain
+                        return new PossibleMappingsResult("Pick one terrain type to apply one-bit mask to");
+                    }
+                } else if (applyToLayer != null) {
+                    if (applyToLayer.discrete) {
+                        // One-bit mask to discrete layer
+                        if (applyToLayerValue != null) {
+                            // Value selected
+                            return new PossibleMappingsResult(setLayerValue(applyToLayer, applyToLayerValue));
+                        } else {
+                            // No value selected
+                            return new PossibleMappingsResult("Pick one discrete layer value to apply one-bit mask to");
+                        }
+                    } else if (applyToLayer.getDataSize().maxValue == 1) {
+                        // One-bit mask to one-bit layer
+                        return new PossibleMappingsResult(setLayerValue(applyToLayer, 1));
+                    } else {
+                        // One-bit mask to continuous layer
+                        if (applyToLayerValue != null) {
+                            // Value selected
+                            return new PossibleMappingsResult(setLayerValue(applyToLayer, applyToLayerValue));
+                        } else {
+                            // No value selected
+                            return new PossibleMappingsResult("Pick one layer intensity to apply one-bit mask to");
+                        }
+                    }
+                }
+                break;
+            case EIGHT_BIT_GREY_SCALE:
+            case SIXTEEN_BIT_GREY_SCALE:
+                if (applyToTerrain) {
+                    if (applyToTerrainType != null) {
+                        // Continuous greyscale mask to one terrain type
+                        return new PossibleMappingsResult(setTerrainValue(applyToTerrainType).ditheredActualRange(), setTerrainValue(applyToTerrainType).ditheredFullRange(), setTerrainValue(applyToTerrainType).threshold());
+                    } else {
+                        // Continuous greyscale mask to terrain
+                        if (imageHighValue < Terrain.VALUES.length) {
+                            return new PossibleMappingsResult(mapToTerrain());
+                        } else {
+                            return new PossibleMappingsResult("Mask contains values higher than the highest terrain type index (" + (Terrain.VALUES.length - 1) + ")");
+                        }
+                    }
+                } else if (applyToLayer != null) {
+                    if (applyToLayer.discrete) {
+                        // Continuous greyscale mask to discrete layer
+                        if (applyToLayerValue != null) {
+                            // Value selected
+                            return new PossibleMappingsResult(setLayerValue(applyToLayer, applyToLayerValue).ditheredActualRange(), setLayerValue(applyToLayer, applyToLayerValue).ditheredFullRange(), setLayerValue(applyToLayer, applyToLayerValue).threshold());
+                        } else {
+                            // No value selected
+                            if (imageHighValue <= applyToLayer.dataSize.maxValue) {
+                                return new PossibleMappingsResult(mapToLayer(applyToLayer));
+                            } else {
+                                return new PossibleMappingsResult("Mask contains values higher than the highest layer value (" + applyToLayer.dataSize.maxValue + ")");
+                            }
+                        }
+                    } else if (applyToLayer.getDataSize().maxValue == 1) {
+                        // Continuous greyscale mask to one-bit layer
+                        if (applyToLayer.getDataSize() == BIT) {
+                            return new PossibleMappingsResult(mapToLayer(applyToLayer).ditheredActualRange(), mapToLayer(applyToLayer).ditheredFullRange(), mapToLayer(applyToLayer).threshold());
+                        } else {
+                            return new PossibleMappingsResult(mapToLayer(applyToLayer).threshold());
+                        }
+                    } else {
+                        // Continuous greyscale mask to continuous layer
+                        if (applyToLayerValue != null) {
+                            // Value selected
+                            return new PossibleMappingsResult(setLayerValue(applyToLayer, applyToLayerValue).ditheredActualRange(), setLayerValue(applyToLayer, applyToLayerValue).ditheredFullRange(), setLayerValue(applyToLayer, applyToLayerValue).threshold());
+                        } else {
+                            // No value selected
+                            if (imageHighValue <= applyToLayer.dataSize.maxValue) {
+                                return new PossibleMappingsResult(mapActualRangeToLayer(applyToLayer), mapFullRangeToLayer(applyToLayer), mapToLayer(applyToLayer));
+                            } else {
+                                return new PossibleMappingsResult(mapActualRangeToLayer(applyToLayer), mapFullRangeToLayer(applyToLayer));
+                            }
+                        }
+                    }
+                }
+                break;
+            case COLOUR:
+                if (Annotations.INSTANCE.equals(applyToLayer) && (applyToLayerValue == null)) {
+                    return new PossibleMappingsResult(colourToAnnotations(), colourToAnnotations().ditheredActualRange());
+                } else {
+                    return new PossibleMappingsResult("Colour mask can only be applied to Annotations layer");
+                }
+            default:
+                return new PossibleMappingsResult("Bit depth or format of mask not supported");
+        }
+        return new PossibleMappingsResult("No target selected");
+    }
+
+    public Terrain getApplyToTerrainType() {
+        return applyToTerrainType;
+    }
+
+    public void setApplyToTerrainType(Terrain applyToTerrainType) {
+        this.applyToTerrainType = applyToTerrainType;
     }
 
     public Mapping getMapping() {
@@ -504,9 +400,6 @@ outer:          for (int x = 0; x < width; x++) {
     }
 
     public void setMapping(Mapping mapping) {
-        if (! getPossibleMappings().contains(mapping)) {
-            throw new IllegalArgumentException();
-        }
         this.mapping = mapping;
     }
 
@@ -561,63 +454,21 @@ outer:          for (int x = 0; x < width; x++) {
         return imageLowValue;
     }
 
-    private static int findNearestAnnotationValue(int colour) {
-        final int red = (colour & 0xff0000) >> 16;
-        final int green = (colour & 0xff00) >> 8;
-        final int blue = colour & 0xff;
-        float minDistance = Float.MAX_VALUE;
-        int minDistanceIndex = -1;
-        for (int i = 0; i < ANNOTATIONS_PALETTE.length; i++) {
-            final float distance = MathUtils.getDistance(red - ANNOTATIONS_PALETTE[i][0], green - ANNOTATIONS_PALETTE[i][1], blue - ANNOTATIONS_PALETTE[i][2]);
-            if (distance < minDistance) {
-                minDistance = distance;
-                minDistanceIndex = i;
-            }
-        }
-        return minDistanceIndex + 1;
+    public int getImageMaxValue() {
+        return imageMaxValue;
     }
 
     private final Dimension dimension;
-    private final List<Layer> allLayers;
     private final InputType inputType;
-    private final int imageLowValue, imageHighValue;
+    private final int imageLowValue, imageHighValue, imageMaxValue;
     private final File imageFile;
     private BufferedImage image;
     private boolean applyToTerrain, removeExistingLayer;
     private Layer applyToLayer;
     private Mapping mapping;
     private int scale, xOffset, yOffset, threshold = -1;
+    private Integer applyToLayerValue;
+    private Terrain applyToTerrainType;
 
     public enum InputType {UNSUPPORTED, ONE_BIT_GREY_SCALE, EIGHT_BIT_GREY_SCALE, SIXTEEN_BIT_GREY_SCALE, COLOUR}
-    public enum Mapping {ONE_TO_ONE, DITHERING, THRESHOLD, FULL_RANGE}
-
-    private static int[][] ANNOTATIONS_PALETTE = {
-        {0xdd, 0xdd, 0xdd},
-        {0xdb, 0x7d, 0x3e},
-        {0xb3, 0x50, 0xbc},
-        {0x6a, 0x8a, 0xc9},
-        {0xb1, 0xa6, 0x27},
-        {0x41, 0xae, 0x38},
-        {0xd0, 0x84, 0x99},
-        {0x9a, 0xa1, 0xa1},
-        {0x2e, 0x6e, 0x89},
-        {0x7e, 0x3d, 0xb5},
-        {0x2e, 0x38, 0x8d},
-        {0x4f, 0x32, 0x1f},
-        {0x35, 0x46, 0x1b},
-        {0x96, 0x34, 0x30},
-        {0x19, 0x16, 0x16}
-    };
-
-    /**
-     * A table which maps colours to annotation layer values. The colours have
-     * their last four bits stripped to keep the table small.
-     */
-    private static final int[] COLOUR_ANNOTATION_MAPPING = new int[4096];
-
-    static {
-        for (int i = 0; i < 4096; i++) {
-            COLOUR_ANNOTATION_MAPPING[i] = findNearestAnnotationValue(((i & 0xf00) << 12) | ((i & 0xf0) << 8) | ((i & 0xf) << 4));
-        }
-    }
 }

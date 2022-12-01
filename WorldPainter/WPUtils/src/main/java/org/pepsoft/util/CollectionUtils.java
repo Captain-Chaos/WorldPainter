@@ -6,10 +6,7 @@
 
 package org.pepsoft.util;
 
-import java.util.AbstractList;
-import java.util.BitSet;
-import java.util.List;
-import java.util.RandomAccess;
+import java.util.*;
 
 /**
  *
@@ -103,5 +100,19 @@ public final class CollectionUtils {
             }
         }
         return max;
+    }
+
+    /**
+     * Prepends a {@code null} to a collection.
+     *
+     * @param collection The collection to which to prepend a {@code null}.
+     * @return A list containing a {@code null} and then the contents of {@code collection}.
+     * @param <T> The type of collection.
+     */
+    public static <T> List<T> nullAnd(Collection<T> collection) {
+        final List<T> list = new ArrayList<>(collection.size() + 1);
+        list.add(null);
+        list.addAll(collection);
+        return list;
     }
 }
