@@ -1,3 +1,13 @@
+-- Version 2.15.14, released ...
+
+ * The Import Mask screen (Edit -> Import -> Mask as terrain or layer...) has been made more powerful and easier to use:
+   + Many more mappings are now possible, for example:
+     - On/off layers (e.g. Frost or Custom Ground Cover layers) can now be mapped from a grey scale image by dithering or applying a threshold
+     - One-bit masks can now be used to set a single terrain type, or an individual value or intensity of any layer
+   + Usability has been improved by allowing selection of all layers and values and then restricting the available mappings, or explaining why no mappings are available, rather than restricting the available selections without explanation
+ * The Add/Remove Tiles screen now has scrollbars, and additionally is initialised to the same location as the current editor view
+ * Various bug fixes
+
 -- Version 2.15.13, released 23-11-2022
 
  * Multiple overlay images may now be configured
