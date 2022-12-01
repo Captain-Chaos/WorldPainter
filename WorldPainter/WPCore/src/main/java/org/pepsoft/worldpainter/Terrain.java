@@ -20,6 +20,7 @@ import java.util.*;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
+import static java.util.Comparator.comparing;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.MathUtils.mod;
@@ -3011,10 +3012,15 @@ public enum Terrain {
     public static Terrain[] getConfiguredValues() {
         final ArrayList<Terrain> values = new ArrayList<>(VALUES.length);
         values.addAll(asList(PICK_LIST));
+        final List<Terrain> customValues = new ArrayList<>(96);
         for (Terrain terrain: VALUES) {
             if (terrain.isCustom() && terrain.isConfigured()) {
-                values.add(terrain);
+                customValues.add(terrain);
             }
+        }
+        if (! customValues.isEmpty()) {
+            customValues.sort(comparing(Terrain::getName));
+            values.addAll(customValues);
         }
         return values.toArray(new Terrain[values.size()]);
     }

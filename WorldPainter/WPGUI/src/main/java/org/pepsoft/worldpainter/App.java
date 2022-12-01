@@ -112,6 +112,7 @@ import static java.lang.Math.round;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toSet;
 import static javax.swing.JOptionPane.*;
 import static javax.swing.KeyStroke.getKeyStroke;
@@ -1589,8 +1590,8 @@ public final class App extends JFrame implements RadiusControl,
      * hidden ones (from the panel or the view), regardless of whether they are
      * used on the map.
      */
-    public Set<Layer> getAllLayers() {
-        Set<Layer> allLayers = new HashSet<>(layers);
+    public List<Layer> getAllLayers() {
+        final List<Layer> allLayers = new ArrayList<>(layers);
         allLayers.add(Populate.INSTANCE);
         if (layerControls.get(ReadOnly.INSTANCE).isEnabled()) {
             allLayers.add(ReadOnly.INSTANCE);
@@ -1603,10 +1604,11 @@ public final class App extends JFrame implements RadiusControl,
      * Gets all currently loaded custom layers, including hidden ones (from the
      * panel or the view), regardless of whether they are used on the map.
      */
-    public Set<CustomLayer> getCustomLayers() {
-        Set<CustomLayer> customLayers = new HashSet<>();
+    public List<CustomLayer> getCustomLayers() {
+        final List<CustomLayer> customLayers = new ArrayList<>(256);
         customLayers.addAll(paletteManager.getLayers());
         customLayers.addAll(layersWithNoButton);
+        customLayers.sort(comparing(CustomLayer::getName));
         return customLayers;
     }
 
@@ -2570,11 +2572,11 @@ public final class App extends JFrame implements RadiusControl,
             DesktopUtils.beep();
             return;
         }
-        List<Layer> allLayers = new ArrayList<>();
+        final List<Layer> allLayers = new ArrayList<>();
         allLayers.add(Biome.INSTANCE);
         allLayers.add(Annotations.INSTANCE);
         allLayers.addAll(getAllLayers());
-        ImportMaskDialog dialog = new ImportMaskDialog(this, dimension, selectedColourScheme, allLayers);
+        final ImportMaskDialog dialog = new ImportMaskDialog(this, dimension, selectedColourScheme, allLayers, customBiomeManager);
         dialog.setVisible(true);
     }
     
@@ -6028,9 +6030,9 @@ public final class App extends JFrame implements RadiusControl,
             DesktopUtils.beep();
             return;
         }
-        Set<Layer> allLayers = getAllLayers();
-        List<Integer> allBiomes = getAllBiomes(world.getPlatform(), customBiomeManager);
-        FillDialog dialog = new FillDialog(App.this, dimension, allLayers.toArray(new Layer[allLayers.size()]), selectedColourScheme, allBiomes.toArray(new Integer[allBiomes.size()]), customBiomeManager, view, selectionState);
+        final List<Layer> allLayers = getAllLayers();
+        final List<Integer> allBiomes = getAllBiomes(world.getPlatform(), customBiomeManager);
+        final FillDialog dialog = new FillDialog(App.this, dimension, allLayers.toArray(new Layer[allLayers.size()]), selectedColourScheme, allBiomes.toArray(new Integer[allBiomes.size()]), customBiomeManager, view, selectionState);
         dialog.setVisible(true);
     }
 
@@ -6503,7 +6505,7 @@ public final class App extends JFrame implements RadiusControl,
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
                     StringBuilder errors = new StringBuilder();
-                    Set<CustomLayer> existingCustomLayers = null;
+                    List<CustomLayer> existingCustomLayers = null;
                     boolean refreshView = false, showError = false;
                     for (Object selectedItem: dialog.getSelectedItems()) {
                         if (selectedItem instanceof CustomLayer) {
@@ -6689,13 +6691,13 @@ public final class App extends JFrame implements RadiusControl,
             DesktopUtils.beep();
             return;
         }
-        Set<CustomLayer> unusedLayers = getCustomLayers();
-        Set<Layer> layersInUse = dimension.getAllLayers(true);
+        final List<CustomLayer> unusedLayers = getCustomLayers();
+        final Set<Layer> layersInUse = dimension.getAllLayers(true);
         unusedLayers.removeAll(layersInUse);
         if (unusedLayers.isEmpty()) {
             JOptionPane.showMessageDialog(this, "There are no unused layers in this dimension.", "No Unused Layers", JOptionPane.INFORMATION_MESSAGE);
         } else {
-            DeleteLayersDialog dialog = new DeleteLayersDialog(this, unusedLayers);
+            final DeleteLayersDialog dialog = new DeleteLayersDialog(this, unusedLayers);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 JOptionPane.showMessageDialog(this, "The selected layers have been deleted.", "Layers Deleted", JOptionPane.INFORMATION_MESSAGE);
