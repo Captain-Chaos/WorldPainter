@@ -648,7 +648,11 @@ public final class App extends JFrame implements RadiusControl,
             }
             programmaticChange = true;
             try {
-                customBiomeManager.setCustomBiomes(customBiomes);
+                if (customBiomes != null) {
+                    customBiomeManager.setCustomBiomes(customBiomes);
+                } else {
+                    customBiomeManager.clearCustomBiomes();
+                }
             } finally {
                 programmaticChange = false;
             }
@@ -712,7 +716,7 @@ public final class App extends JFrame implements RadiusControl,
             
             programmaticChange = true;
             try {
-                customBiomeManager.setCustomBiomes(null);
+                customBiomeManager.clearCustomBiomes();
             } finally {
                 programmaticChange = false;
             }

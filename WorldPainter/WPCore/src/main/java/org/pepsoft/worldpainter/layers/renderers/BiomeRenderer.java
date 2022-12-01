@@ -21,18 +21,16 @@ import java.util.Map;
  */
 public class BiomeRenderer implements ByteLayerRenderer, ColourSchemeRenderer, CustomBiomeListener {
     public BiomeRenderer(CustomBiomeManager customBiomeManager) {
-        int count = StaticBiomeInfo.INSTANCE.getBiomeCount();
+        final int count = StaticBiomeInfo.INSTANCE.getBiomeCount();
         patterns = new boolean[count][][];
         for (int i = 0; i < count; i++) {
             patterns[i] = StaticBiomeInfo.INSTANCE.getPattern(i);
         }
         if (customBiomeManager != null) {
-            List<CustomBiome> customBiomes = customBiomeManager.getCustomBiomes();
-            if (customBiomes != null) {
-                for (CustomBiome customBiome: customBiomes) {
-                    customColours.put(customBiome.getId(), customBiome.getColour());
-                    custom[customBiome.getId()] = true;
-                }
+            final List<CustomBiome> customBiomes = customBiomeManager.getCustomBiomes();
+            for (CustomBiome customBiome: customBiomes) {
+                customColours.put(customBiome.getId(), customBiome.getColour());
+                custom[customBiome.getId()] = true;
             }
             resetColours();
             customBiomeManager.addListener(this);

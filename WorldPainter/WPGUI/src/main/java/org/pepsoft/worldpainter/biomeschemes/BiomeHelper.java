@@ -50,7 +50,7 @@ public class BiomeHelper {
             if (biomeScheme.isBiomePresent(biomeID)) {
                 names[biomeID][0] = biomeScheme.getBiomeName(biomeID);
                 names[biomeID][1] = showIds ? names[biomeID][0] + " (" + biomeID + ")" : names[biomeID][0];
-            } else if (customBiomeManager.getCustomBiomes() != null) {
+            } else {
                 for (CustomBiome customBiome: customBiomeManager.getCustomBiomes()) {
                     if (customBiome.getId() == biomeID) {
                         names[biomeID][0] = customBiome.getName();
@@ -71,7 +71,7 @@ public class BiomeHelper {
         if (icons[biomeID] == null) {
             if (biomeScheme.isBiomePresent(biomeID)) {
                 icons[biomeID] = new ImageIcon(BiomeSchemeManager.createImage(biomeScheme, biomeID, colourScheme));
-            } else if (customBiomeManager.getCustomBiomes() != null) {
+            } else {
                 for (CustomBiome customBiome: customBiomeManager.getCustomBiomes()) {
                     if (customBiome.getId() == biomeID) {
                         icons[biomeID] = IconUtils.createScaledColourIcon(customBiome.getColour());

@@ -329,7 +329,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
                 menuItem.addActionListener(e -> listener.objectSelected(l, l.getName(), new ImageIcon(l.getIcon())));
                 layerMenu.add(menuItem);
             });
-        Set<CustomLayer> customLayers = app.getCustomLayers();
+        List<CustomLayer> customLayers = app.getCustomLayers();
         if (customLayers.size() > 15) {
             // If there are fifteen or more custom layers, split them by palette
             // and move them to separate submenus to try and conserve screen
@@ -358,7 +358,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
         final CustomBiomeManager customBiomeManager = app.getCustomBiomeManager();
         final BiomeHelper biomeHelper = new BiomeHelper(colourScheme, customBiomeManager, platform);
         List<CustomBiome> customBiomes = customBiomeManager.getCustomBiomes();
-        if ((customBiomes != null) && (! customBiomes.isEmpty())) {
+        if (! customBiomes.isEmpty()) {
             JMenu customBiomeMenu = new JMenu("Custom");
             for (CustomBiome customBiome: customBiomes) {
                 final int selectedBiome = customBiome.getId();

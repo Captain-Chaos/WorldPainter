@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.FIRST_UNALLOCATED_ID;
 
 /**
@@ -23,42 +24,39 @@ public class CustomBiomeManager {
     }
 
     public synchronized void setCustomBiomes(List<CustomBiome> customBiomes) {
-        List<CustomBiome> oldCustomBiomes = this.customBiomes;
-        this.customBiomes = customBiomes;
-        if (oldCustomBiomes != null) {
-            for (CustomBiome customBiome: oldCustomBiomes) {
-                for (CustomBiomeListener listener: listeners) {
-                    listener.customBiomeRemoved(customBiome);
-                }
+        final List<CustomBiome> oldCustomBiomes = new ArrayList<>(this.customBiomes);
+        this.customBiomes.clear();
+        this.customBiomes.addAll(customBiomes);
+        for (CustomBiome customBiome: oldCustomBiomes) {
+            for (CustomBiomeListener listener: listeners) {
+                listener.customBiomeRemoved(customBiome);
             }
         }
-        if (customBiomes != null) {
-            for (CustomBiome customBiome: customBiomes) {
-                for (CustomBiomeListener listener: listeners) {
-                    listener.customBiomeAdded(customBiome);
-                }
+        for (CustomBiome customBiome: customBiomes) {
+            for (CustomBiomeListener listener: listeners) {
+                listener.customBiomeAdded(customBiome);
             }
         }
     }
 
+    public synchronized void clearCustomBiomes() {
+        setCustomBiomes(emptyList());
+    }
+
     public synchronized int getNextId() {
-        if (customBiomes != null) {
-            outer:
-            for (int i = FIRST_UNALLOCATED_ID; i < 256; i++) {
-                for (CustomBiome customBiome : customBiomes) {
-                    if (customBiome.getId() == i) {
-                        continue outer;
-                    }
+        outer:
+        for (int i = FIRST_UNALLOCATED_ID; i < 256; i++) {
+            for (CustomBiome customBiome : customBiomes) {
+                if (customBiome.getId() == i) {
+                    continue outer;
                 }
-                if (isBiomePresent(i)) {
-                    continue;
-                }
-                return i;
             }
-            return - 1;
-        } else {
-            return FIRST_UNALLOCATED_ID;
+            if (isBiomePresent(i)) {
+                continue;
+            }
+            return i;
         }
+        return - 1;
     }
 
     public synchronized boolean addCustomBiome(Window parent, CustomBiome customBiome) {
@@ -67,9 +65,6 @@ public class CustomBiomeManager {
                 JOptionPane.showMessageDialog(parent, "The specified ID (" + customBiome.getId() + ") is already a regular biome (named " + Minecraft1_17Biomes.BIOME_NAMES[customBiome.getId()] + ")", "ID Already In Use", JOptionPane.ERROR_MESSAGE);
             }
             return false;
-        }
-        if (customBiomes == null) {
-            customBiomes = new ArrayList<>();
         }
         for (CustomBiome existingCustomBiome: customBiomes) {
             if (existingCustomBiome.getId() == customBiome.getId()) {
@@ -144,7 +139,7 @@ public class CustomBiomeManager {
     }
 
     private final List<CustomBiomeListener> listeners = new ArrayList<>();
-    private List<CustomBiome> customBiomes;
+    private final List<CustomBiome> customBiomes = new ArrayList<>(256);
     
     public interface CustomBiomeListener {
         void customBiomeAdded(CustomBiome customBiome);
