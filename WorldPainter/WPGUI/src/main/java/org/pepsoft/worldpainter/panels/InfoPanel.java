@@ -649,23 +649,7 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
             } else if (layer instanceof GardenCategory) {
                 return GardenCategory.getLabel(strings, intensity);
             } else {
-                switch (layer.getDataSize()) {
-                    case BIT:
-                    case BIT_PER_CHUNK:
-                        return intensity == 0 ? "off" : "on";
-                    case NIBBLE:
-                        int strength = (intensity > 0) ? ((intensity - 1) * 100  / 14 + 1): 0;
-                        if ((strength == 51) || (strength == 101)) {
-                            strength--;
-                        }
-                        return strength + "%";
-                    case BYTE:
-                        return (intensity * 100 / 255) + "%";
-                    case NONE:
-                        return "N/A";
-                    default:
-                        throw new UnsupportedOperationException();
-                }
+                return layer.getDataSize().toString(intensity);
             }
         }
 

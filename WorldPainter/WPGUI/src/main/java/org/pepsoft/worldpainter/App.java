@@ -776,29 +776,16 @@ public final class App extends JFrame implements RadiusControl,
         setTextIfDifferent(slopeLabel, MessageFormat.format("Slope: {0}°", (int) round(Math.atan(dimension.getSlope(x, y)) * 180 / Math.PI)));
         if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint)) {
             final Layer layer = ((LayerPaint) paint).getLayer();
-            switch (layer.getDataSize()) {
+            final Layer.DataSize dataSize = layer.getDataSize();
+            switch (dataSize) {
                 case BIT:
                 case BIT_PER_CHUNK:
                     setTextIfDifferent(waterLabel, MessageFormat.format(strings.getString("layer.0.on.off"), layer.getName(), (tile.getBitLayerValue(layer, xInTile, yInTile) ? 1 : 0)));
                     break;
                 case NIBBLE:
-                    int value, strength;
-                    if (! layer.equals(Annotations.INSTANCE)) {
-                        value = tile.getLayerValue(layer, xInTile, yInTile);
-                        strength = (value > 0) ? ((value - 1) * 100 / 14 + 1) : 0;
-                        if ((strength == 51) || (strength == 101)) {
-                            strength--;
-                        }
-                        setTextIfDifferent(waterLabel, MessageFormat.format(strings.getString("layer.0.level.1"), layer.getName(), strength));
-                    } else {
-                        setTextIfDifferent(waterLabel, " ");
-                    }
-                    break;
                 case BYTE:
-                    if (! layer.equals(Biome.INSTANCE)) {
-                        value = tile.getLayerValue(layer, xInTile, yInTile);
-                        strength = (value > 0) ? ((value - 1) * 100 / 254 + 1) : 0;
-                        setTextIfDifferent(waterLabel, MessageFormat.format(strings.getString("layer.0.level.1"), layer.getName(), strength));
+                    if ((! layer.equals(Annotations.INSTANCE)) && (! layer.equals(Biome.INSTANCE))) {
+                        setTextIfDifferent(waterLabel, MessageFormat.format(strings.getString("layer.0.level.1"), layer.getName(), dataSize.toString(tile.getLayerValue(layer, xInTile, yInTile))));
                     } else {
                         setTextIfDifferent(waterLabel, " ");
                     }

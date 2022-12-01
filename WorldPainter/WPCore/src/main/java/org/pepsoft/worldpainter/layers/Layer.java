@@ -241,11 +241,50 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
     private static final long serialVersionUID = 2011032901L;
 
     public enum DataSize {
-        BIT(1), NIBBLE(15), BYTE(255), BIT_PER_CHUNK(1), NONE(-1);
+        BIT(1) {
+            @Override
+            public String toString(int value) {
+                return value == 0 ? "off" : "on";
+            }
+        },
+
+        NIBBLE(15) {
+            @Override
+            public String toString(int value) {
+                int strength = (value > 0) ? ((value - 1) * 100  / 14 + 1): 0;
+                if ((strength == 51) || (strength == 101)) {
+                    strength--;
+                }
+                return strength + "%";
+            }
+        },
+
+        BYTE(255) {
+            @Override
+            public String toString(int value) {
+                return (value * 100 / 255) + "%";
+            }
+        },
+
+        BIT_PER_CHUNK(1) {
+            @Override
+            public String toString(int value) {
+                return value == 0 ? "off" : "on";
+            }
+        },
+
+        NONE(-1) {
+            @Override
+            public String toString(int value) {
+                return "N/A";
+            }
+        };
 
         DataSize(int maxValue) {
             this.maxValue = maxValue;
         }
+
+        public abstract String toString(int value);
 
         public final int maxValue;
     }
