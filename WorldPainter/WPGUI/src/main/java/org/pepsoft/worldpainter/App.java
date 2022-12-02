@@ -5855,9 +5855,7 @@ public final class App extends JFrame implements RadiusControl,
                     nextIndex++;
                 }
                 customMaterial = MixedMaterialManager.getInstance().register(customMaterial);
-                Terrain.setCustomMaterial(nextIndex, customMaterial);
-                customMaterialButtons[nextIndex].setIcon(new ImageIcon(customMaterial.getIcon(selectedColourScheme)));
-                customMaterialButtons[nextIndex].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
+                addButtonForNewCustomTerrain(nextIndex, customMaterial, false);
             }
             view.refreshTiles();
             return true;
@@ -5950,7 +5948,7 @@ public final class App extends JFrame implements RadiusControl,
             Terrain.setCustomMaterial(i, material);
             if (material != null) {
                 // TODO: this doesn't preserve the original order of the buttons
-                // is that a problem?
+                //  is that a problem?
                 addButtonForNewCustomTerrain(i, material, false);
                 customTerrainsChanged = true;
             }
