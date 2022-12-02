@@ -3,7 +3,7 @@
 
     <groupId>org.pepsoft.worldpainter</groupId>
     <artifactId>WorldPainter</artifactId>
-    <version>2.15.14-SNAPSHOT</version>
+    <version>2.15.14</version>
     <packaging>pom</packaging>
 
     <name>WorldPainter</name>

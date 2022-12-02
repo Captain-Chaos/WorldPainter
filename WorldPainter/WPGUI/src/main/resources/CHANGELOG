@@ -1,4 +1,4 @@
--- Version 2.15.14, released ...
+-- Version 2.15.14, released 2-12-2022
 
  * The Import Mask screen (Edit -> Import -> Mask as terrain or layer...) has been made more powerful and easier to use:
    + Many more mappings are now possible, for example:
@@ -6,7 +6,7 @@
      - One-bit masks can now be used to set a single terrain type, or an individual value or intensity of any layer
    + Usability has been improved by allowing selection of all layers and values and then restricting the available mappings, or explaining why no mappings are available, rather than restricting the available selections without explanation
  * The Add/Remove Tiles screen now has scrollbars, and additionally is initialised to the same location as the current editor view
- * Various bug fixes
+ * Various bug fixes and usability improvements
 
 -- Version 2.15.13, released 23-11-2022
 
