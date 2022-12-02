@@ -219,14 +219,14 @@ public class CachingMinecraftWorld implements MinecraftWorld {
         if (cachedChunk == null) {
 //            loadingTime = System.currentTimeMillis();
             cachedChunk = chunkStore.getChunk(x, z);
-            if (cachedChunk.getMinHeight() > minHeight) {
-                throw new InvalidMapException("At least one of the existing chunks to be merged has a higher minimum build height (" + cachedChunk.getMinHeight() + ") than the dimension being merged (" + minHeight + ").");
-            } else if (cachedChunk.getMaxHeight() < maxHeight) {
-                throw new InvalidMapException("At least one of the existing chunks to be merged has a lower maximum build height (" + cachedChunk.getMaxHeight() + ") than the dimension being merged (" + maxHeight + ").");
-            }
 //            loadingTime -= System.currentTimeMillis();
             maintainCache();
             if (cachedChunk != null) {
+                if (cachedChunk.getMinHeight() > minHeight) {
+                    throw new InvalidMapException("At least one of the existing chunks to be merged has a higher minimum build height (" + cachedChunk.getMinHeight() + ") than the dimension being merged (" + minHeight + ").");
+                } else if (cachedChunk.getMaxHeight() < maxHeight) {
+                    throw new InvalidMapException("At least one of the existing chunks to be merged has a lower maximum build height (" + cachedChunk.getMaxHeight() + ") than the dimension being merged (" + maxHeight + ").");
+                }
                 cache.put(coords, cachedChunk);
             } else {
                 cache.put(coords, NON_EXISTANT_CHUNK);
