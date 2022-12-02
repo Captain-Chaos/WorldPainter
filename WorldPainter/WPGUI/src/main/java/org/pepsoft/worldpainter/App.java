@@ -3160,8 +3160,12 @@ public final class App extends JFrame implements RadiusControl,
                 DesktopUtils.beep();
                 return;
             }
-            final JPopupMenu customLayerMenu = createCustomLayerMenu(null);
-            customLayerMenu.show(layerPanel, addLayerButton.getX() + addLayerButton.getWidth(), addLayerButton.getY());
+            // This is sometimes invoked while layerPanel is not showing, which results in an error. TODO: find out why
+            //  and fix underlying cause
+            if (layerPanel.isShowing()) {
+                final JPopupMenu customLayerMenu = createCustomLayerMenu(null);
+                customLayerMenu.show(layerPanel, addLayerButton.getX() + addLayerButton.getWidth(), addLayerButton.getY());
+            }
         });
         JPanel spacer = new JPanel();
         constraints.gridwidth = 1;
