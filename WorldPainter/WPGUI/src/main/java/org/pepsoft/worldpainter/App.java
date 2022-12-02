@@ -6033,6 +6033,9 @@ public final class App extends JFrame implements RadiusControl,
             DesktopUtils.beep();
             return;
         }
+        if (! imageFitsInJavaArray(dimension)) {
+            beepAndShowError(this, "The dimension is too large to export to an image.\nThe area (width x height) may not be more than " + NUMBER_FORMAT.format(Integer.MAX_VALUE), "Dimension Too Large");
+        }
         final Set<String> extensions = new HashSet<>(asList(ImageIO.getReaderFileSuffixes()));
         StringBuilder sb = new StringBuilder(strings.getString("supported.image.formats"));
         sb.append(" (");
@@ -6115,6 +6118,9 @@ public final class App extends JFrame implements RadiusControl,
             return;
         }
         final HeightMapExporter heightMapExporter = new HeightMapExporter(dimension, highRes);
+        if (! imageFitsInJavaArray(dimension)) {
+            beepAndShowError(this, "The dimension is too large to export to a height map.\nThe area (width x height) may not be more than " + NUMBER_FORMAT.format(Integer.MAX_VALUE), "Dimension Too Large");
+        }
         final List<String> extensions = heightMapExporter.getSupportedFileExtensions();
         StringBuilder sb = new StringBuilder(strings.getString("supported.image.formats"));
         sb.append(" (");
@@ -6195,7 +6201,12 @@ public final class App extends JFrame implements RadiusControl,
             }
         }
     }
-    
+
+    private boolean imageFitsInJavaArray(Dimension dimension) {
+        final long areaInTiles = (long) dimension.getWidth() * dimension.getHeight();
+        return (areaInTiles >= 0L) && (areaInTiles <= 131071L);
+    }
+
     private void importLayers(String paletteName, Function<Layer, Boolean> filter) {
         if (dimension == null) {
             DesktopUtils.beep();
