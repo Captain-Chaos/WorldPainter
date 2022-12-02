@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.util.Collections.singleton;
+import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
 import static org.pepsoft.worldpainter.App.MERGE_WARNING_KEY;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Dimension.Anchor.*;
@@ -151,13 +152,11 @@ public class MergeWorldDialog extends WorldPainterDialog {
         // Check for errors
         if (mapDir == null) {
             fieldSelectedMapDir.requestFocusInWindow();
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, "No existing map selected.", "Error", JOptionPane.ERROR_MESSAGE);
+            beepAndShowError(this, "No existing map selected.", "Error");
             return;
         } else if (platform == null) {
             fieldSelectedMapDir.requestFocusInWindow();
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, "Selected map does not have a supported format.", "Error", JOptionPane.ERROR_MESSAGE);
+            beepAndShowError(this, "Selected map does not have a supported format.", "Error");
             return;
         }
         if (! checkCompatibility(platform)) {
@@ -165,14 +164,12 @@ public class MergeWorldDialog extends WorldPainterDialog {
         }
         if ((! radioButtonExportEverything.isSelected()) && ((selectedTiles == null) || selectedTiles.isEmpty())) {
             radioButtonExportEverything.requestFocusInWindow();
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, "No tiles selected for merging.", "Error", JOptionPane.ERROR_MESSAGE);
+            beepAndShowError(this, "No tiles selected for merging.", "Error");
             return;
         }
         if ((! checkBoxSurface.isSelected()) && (! checkBoxNether.isSelected()) && (! checkBoxEnd.isSelected())) {
             checkBoxSurface.requestFocusInWindow();
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, "No dimension selected for merging.", "Error", JOptionPane.ERROR_MESSAGE);
+            beepAndShowError(this, "No dimension selected for merging.", "Error");
             return;
         }
 
@@ -222,8 +219,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
             merger.performSanityChecks();
         } catch (IllegalArgumentException e) {
             logger.error(e.getClass().getSimpleName() + ": " + e.getMessage(), e);
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, e.getLocalizedMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            beepAndShowError(this, e.getLocalizedMessage(), "Error");
             return;
         } catch (IOException e) {
             throw new RuntimeException("I/O error reading level.dat file", e);
@@ -431,8 +427,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
             nameOnlyMaterials.forEach((name, sources) ->
                     sb.append("<tr><td>").append(name).append("</td><td>").append(String.join(",", sources)).append("</td></tr>"));
             sb.append("</table>");
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, sb.toString(), "Map Format Not Compatible", JOptionPane.ERROR_MESSAGE);
+            beepAndShowError(this, sb.toString(), "Map Format Not Compatible");
             fieldSelectedMapDir.requestFocusInWindow();
             return false;
         }

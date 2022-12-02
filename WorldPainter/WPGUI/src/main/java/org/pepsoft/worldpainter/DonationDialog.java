@@ -18,6 +18,8 @@ import java.awt.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import static org.pepsoft.util.swing.MessageUtils.showInfo;
+
 /**
  *
  * @author pepijn
@@ -59,7 +61,7 @@ public final class DonationDialog extends WorldPainterDialog {
             DesktopUtils.open(new URL("https://www.worldpainter.net/donate/paypal"));
             config.setDonationStatus(Configuration.DonationStatus.DONATED);
             config.setShowDonationDialogAfter(config.getLaunchCount() + 100);
-            JOptionPane.showMessageDialog(this, "The donation PayPal page has been opened in your browser.\n\nThank you very much for donating!", "Thank You", JOptionPane.INFORMATION_MESSAGE);
+            showInfo(this, "The donation PayPal page has been opened in your browser.\n\nThank you very much for donating!", "Thank You");
             config.logEvent(new EventVO(Constants.EVENT_KEY_DONATION_DONATE).addTimestamp());
             ok();
         } catch (MalformedURLException e) {
@@ -70,7 +72,7 @@ public final class DonationDialog extends WorldPainterDialog {
     private void alreadyDonated() {
         config.setDonationStatus(Configuration.DonationStatus.DONATED);
         config.setShowDonationDialogAfter(config.getLaunchCount() + 100);
-        JOptionPane.showMessageDialog(this, "Thank you very much for donating!", "Thank You", JOptionPane.INFORMATION_MESSAGE);
+        showInfo(this, "Thank you very much for donating!", "Thank You");
         config.logEvent(new EventVO(Constants.EVENT_KEY_DONATION_ALREADY_DONATED).addTimestamp());
         ok();
     }
@@ -83,7 +85,7 @@ public final class DonationDialog extends WorldPainterDialog {
     private void noThanks() {
         config.setDonationStatus(Configuration.DonationStatus.NO_THANK_YOU);
         config.setShowDonationDialogAfter(config.getLaunchCount() + 50);
-        JOptionPane.showMessageDialog(this, "Alright, no problem. We will not ask you again for a while.\nIf you change your mind, you can donate from the About screen!", "No Problem", JOptionPane.INFORMATION_MESSAGE);
+        showInfo(this, "Alright, no problem. We will not ask you again for a while.\nIf you change your mind, you can donate from the About screen!", "No Problem");
         config.logEvent(new EventVO(Constants.EVENT_KEY_DONATION_NO_THANKS).addTimestamp());
         ok();
     }

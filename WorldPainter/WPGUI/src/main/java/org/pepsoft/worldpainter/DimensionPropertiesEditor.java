@@ -12,7 +12,6 @@ package org.pepsoft.worldpainter;
 
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
-import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.Dimension.LayerAnchor;
 import org.pepsoft.worldpainter.exporting.ExportSettings;
@@ -48,6 +47,8 @@ import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.util.MathUtils.clamp;
+import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
+import static org.pepsoft.util.swing.MessageUtils.showInfo;
 import static org.pepsoft.worldpainter.Constants.V_1_17;
 import static org.pepsoft.worldpainter.DefaultPlugin.ATTRIBUTE_MC_VERSION;
 import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
@@ -313,8 +314,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         // sanity checks
         if ((comboBoxGenerator.getSelectedItem() == CUSTOM) && ((generatorName == null) || generatorName.trim().isEmpty())) {
             buttonGeneratorOptions.requestFocusInWindow();
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, "The custom world generator name has not been set.\nUse the [...] button to set it.", "Error", JOptionPane.ERROR_MESSAGE);
+            beepAndShowError(this, "The custom world generator name has not been set.\nUse the [...] button to set it.", "Error");
             return false;
         }
 
@@ -3852,7 +3852,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         if (checkBoxPopulate.isSelected() && jCheckBox8.isSelected()) {
             jCheckBox8.setSelected(false);
             setControlStates();
-            JOptionPane.showMessageDialog(this, "\"Resources everywhere\" disabled on the Resources tab,\nto avoid duplicate resources. You may enable it again manually.", "Resources Everywhere Disabled", JOptionPane.INFORMATION_MESSAGE);
+            showInfo(this, "\"Resources everywhere\" disabled on the Resources tab,\nto avoid duplicate resources. You may enable it again manually.", "Resources Everywhere Disabled");
         }
     }//GEN-LAST:event_checkBoxPopulateActionPerformed
 

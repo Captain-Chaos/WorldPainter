@@ -10,13 +10,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
+
+import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
 
 /**
  * GUI utility methods for working with images.
@@ -34,13 +35,11 @@ public final class ImageUtils {
             try {
                 return ImageIO.read(file);
             } catch (IOException e) {
-                logger.error("I/O error while loading image " + file ,e);
-                DesktopUtils.beep();
-                JOptionPane.showMessageDialog(parent, "An error occurred while loading the image.\nIt may not be a valid or supported image file, or the file may be corrupted.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
+                logger.error("I/O error while loading image " + file, e);
+                beepAndShowError(parent, "An error occurred while loading the image.\nIt may not be a valid or supported image file, or the file may be corrupted.", "Error Loading Image");
             } catch (RuntimeException | Error e) {
-                logger.error(e.getClass().getSimpleName() + " while loading image " + file ,e);
-                DesktopUtils.beep();
-                JOptionPane.showMessageDialog(parent, "An error occurred while loading the image.\nThere may not be enough available memory, or the image may be too large.", "Error Loading Image", JOptionPane.ERROR_MESSAGE);
+                logger.error(e.getClass().getSimpleName() + " while loading image " + file, e);
+                beepAndShowError(parent, "An error occurred while loading the image.\nThere may not be enough available memory, or the image may be too large.", "Error Loading Image");
             }
         }
         return null;

@@ -39,6 +39,7 @@ import java.util.ResourceBundle;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.util.GUIUtils.scaleWindow;
+import static org.pepsoft.util.swing.MessageUtils.showInfo;
 
 /**
  *
@@ -151,7 +152,7 @@ public class AboutDialog extends javax.swing.JDialog implements WindowListener {
             DesktopUtils.open(new URL("https://www.worldpainter.net/donate/paypal"));
             Configuration config = Configuration.getInstance();
             config.setDonationStatus(Configuration.DonationStatus.DONATED);
-            JOptionPane.showMessageDialog(this, strings.getString("the.donation.paypal.page.has.been.opened"), strings.getString("thank.you"), JOptionPane.INFORMATION_MESSAGE);
+            showInfo(this, strings.getString("the.donation.paypal.page.has.been.opened"), strings.getString("thank.you"));
             config.logEvent(new EventVO(Constants.EVENT_KEY_DONATION_DONATE).addTimestamp());
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);

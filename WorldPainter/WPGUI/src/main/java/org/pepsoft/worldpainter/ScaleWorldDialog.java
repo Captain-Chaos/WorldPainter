@@ -4,7 +4,6 @@
  */
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.util.swing.ProgressDialog;
@@ -18,7 +17,10 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
-import static javax.swing.JOptionPane.*;
+import static javax.swing.JOptionPane.OK_OPTION;
+import static javax.swing.JOptionPane.YES_NO_OPTION;
+import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
+import static org.pepsoft.util.swing.MessageUtils.beepAndShowWarning;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
@@ -58,8 +60,7 @@ public class ScaleWorldDialog extends WorldPainterDialog {
     private void scale() {
         final int percentage = (int) spinnerScaleFactor.getValue();
         if (percentage == 100) {
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, "Select a scaling factor other than 100%", "Select Scaling Factor", JOptionPane.ERROR_MESSAGE);
+            beepAndShowError(this, "Select a scaling factor other than 100%", "Select Scaling Factor");
             return;
         } else if (JOptionPane.showConfirmDialog(this, "Are you sure you want to scale this dimension by " + percentage + "%?\nThis cannot be undone!", "Confirm Scaling", YES_NO_OPTION) != OK_OPTION) {
             return;
@@ -82,8 +83,7 @@ public class ScaleWorldDialog extends WorldPainterDialog {
             }
         }, NOT_CANCELABLE);
         if (affectedDimensions.stream().flatMap(dimension -> dimension.getOverlays().stream()).anyMatch(overlay -> ! overlay.getFile().canRead())) {
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, "One or more overlay image files could not be read,\nand have therefore not been scaled.\nYou will need to scale these manually.", "Not All Overlays Scaled", WARNING_MESSAGE);
+            beepAndShowWarning(this, "One or more overlay image files could not be read,\nand have therefore not been scaled.\nYou will need to scale these manually.", "Not All Overlays Scaled");
         }
         ok();
     }

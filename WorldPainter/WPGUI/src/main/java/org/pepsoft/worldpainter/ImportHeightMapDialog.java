@@ -10,7 +10,6 @@
  */
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
@@ -49,10 +48,11 @@ import java.util.Vector;
 
 import static com.google.common.primitives.Ints.asList;
 import static java.awt.image.DataBuffer.*;
-import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_MCREGION;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
+import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
+import static org.pepsoft.util.swing.MessageUtils.showInfo;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.SpinnerUtils.setMaximum;
 import static org.pepsoft.util.swing.SpinnerUtils.setMinimum;
@@ -221,14 +221,12 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         // TODO keep this? It shouldn't be necessary!
         if ((selectedFile == null) || (! selectedFile.exists())) {
             if (interactive) {
-                DesktopUtils.beep();
-                JOptionPane.showMessageDialog(this, "Please select an image file to import.", "No File Selected", ERROR_MESSAGE);
+                beepAndShowError(this, "Please select an image file to import.", "No File Selected");
             }
             return null;
         } else if (image == null) {
             if (interactive) {
-                DesktopUtils.beep();
-                JOptionPane.showMessageDialog(this, "Please select a valid image file to import.", "No Valid Image Selected", ERROR_MESSAGE);
+                beepAndShowError(this, "Please select a valid image file to import.", "No Valid Image Selected");
             }
             return null;
         }
@@ -544,7 +542,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             Configuration.getInstance().setHeightMapDefaultTheme(null);
             loadDefaults();
             buttonSaveAsDefaults.setEnabled(false);
-            JOptionPane.showMessageDialog(this, "Theme reset to factory defaults.", "Default Theme Reset", JOptionPane.INFORMATION_MESSAGE);
+            showInfo(this, "Theme reset to factory defaults.", "Default Theme Reset");
         }
     }
 

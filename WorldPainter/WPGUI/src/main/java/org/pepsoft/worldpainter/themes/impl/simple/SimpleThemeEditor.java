@@ -23,6 +23,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.ArrayList;
 
+import static org.pepsoft.util.swing.MessageUtils.showWarning;
+
 /**
  *
  * @author pepijn
@@ -43,7 +45,7 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
                 tableTerrain.getCellEditor().stopCellEditing();
             }
             if (! terrainTableModel.isValid()) {
-                JOptionPane.showMessageDialog(this, "You have configured multiple terrain types with the same levels!\nRemove, or change the level of, one of the duplicates.", "Duplicate Levels", JOptionPane.WARNING_MESSAGE);
+                showWarning(this, "You have configured multiple terrain types with the same levels!\nRemove, or change the level of, one of the duplicates.", "Duplicate Levels");
                 return false;
             }
             if (tableLayers.isEditing()) {

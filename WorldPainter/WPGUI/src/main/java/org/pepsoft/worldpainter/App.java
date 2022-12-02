@@ -124,6 +124,7 @@ import static org.pepsoft.util.GUIUtils.getUIScale;
 import static org.pepsoft.util.GUIUtils.getUIScaleInt;
 import static org.pepsoft.util.IconUtils.createScaledLetterIcon;
 import static org.pepsoft.util.IconUtils.scaleIcon;
+import static org.pepsoft.util.swing.MessageUtils.*;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.ProgressDialog.NO_FOCUS_STEALING;
 import static org.pepsoft.worldpainter.App.TerrainMode.SHOW_TERRAIN;
@@ -406,10 +407,9 @@ public final class App extends JFrame implements RadiusControl,
             }
 
             if (! PlatformManager.getInstance().getAllPlatforms().contains(world.getPlatform())) {
-                DesktopUtils.beep();
-                JOptionPane.showMessageDialog(this, "This world is set to a map format (\"" + world.getPlatform().displayName + "\") that is unknown and unsupported.\n" +
+                beepAndShowWarning(this, "This world is set to a map format (\"" + world.getPlatform().displayName + "\") that is unknown and unsupported.\n" +
                         "It cannot be Exported without first changing the format.\n" +
-                        "It is most likely supported by a plugin that is not installed or could not be loaded.", "Unknown Map Format", WARNING_MESSAGE);
+                        "It is most likely supported by a plugin that is not installed or could not be loaded.", "Unknown Map Format");
             }
         }
     }
@@ -526,11 +526,9 @@ public final class App extends JFrame implements RadiusControl,
             // Legacy: if this is an older world with an overlay enabled, warn the user that it may be incorrectly
             // located (we used to offer to fix this, but this should be exceedingly rare).
             if (dimension.isFixOverlayCoords()) {
-                DesktopUtils.beep();
-                showMessageDialog(this,
-                        "This world was created in an older version of WorldPainter\n" +
+                beepAndShowWarning(this, "This world was created in an older version of WorldPainter\n" +
                         "in which the overlay offsets were not stored correctly.\n" +
-                        "You may need to fix the position of your overlay.", "Check Overlay Positioning", WARNING_MESSAGE);
+                        "You may need to fix the position of your overlay.", "Check Overlay Positioning");
                 dimension.setFixOverlayCoords(false);
             }
 
@@ -1039,11 +1037,10 @@ public final class App extends JFrame implements RadiusControl,
                 && (newWorld.getMetadata() != null)
                 && newWorld.getMetadata().containsKey(METADATA_KEY_WP_VERSION)
                 && (! ((String) newWorld.getMetadata().get(METADATA_KEY_WP_VERSION)).contains("SNAPSHOT"))) {
-            DesktopUtils.beep();
-            showMessageDialog(this, "You are running a snapshot version of WorldPainter.\n" +
+            beepAndShowWarning(this, "You are running a snapshot version of WorldPainter.\n" +
                     "This file was last saved by a regular version of WorldPainter.\n" +
                     "If you save the file with this version, you may no longer be able to open it\n" +
-                    "using a regular version of WorldPainter!", "Loading Non-snapshot World", WARNING_MESSAGE);
+                    "using a regular version of WorldPainter!", "Loading Non-snapshot World");
         }
 
         Set<Warning> warnings = newWorld.getWarnings();
@@ -1070,14 +1067,14 @@ public final class App extends JFrame implements RadiusControl,
                         }
                         break;
                     case MISSING_CUSTOM_TERRAINS:
-                        JOptionPane.showMessageDialog(this, "One or more Custom Terrain Types were missing. This can happen in rare\n" +
+                        showWarning(this, "One or more Custom Terrain Types were missing. This can happen in rare\n" +
                                 "circumstances; for example by using Undo after removing a Custom Terrain\n" +
                                 "Type. The missing Custom Terrain Type(s) have been replaced with Magenta\n" +
-                                "Wool and will have to be reconfigured from the Custom Terrain panel.", "Missing Custom Terrain Types", WARNING_MESSAGE);
+                                "Wool and will have to be reconfigured from the Custom Terrain panel.", "Missing Custom Terrain Types");
                         break;
                     case SUPERFLAT_SETTINGS_RESET:
-                        JOptionPane.showMessageDialog(this, "The Superflat preset from this world could not be parsed.\n" +
-                                "It has been reset to default values.", "Superflat Preset Reset", WARNING_MESSAGE);
+                        showWarning(this, "The Superflat preset from this world could not be parsed.\n" +
+                                "It has been reset to default values.", "Superflat Preset Reset");
                         break;
                 }
             }
@@ -1539,8 +1536,7 @@ public final class App extends JFrame implements RadiusControl,
                 rotateAutosaveFile();
             } catch (RuntimeException | Error e) {
                 logger.error("An exception occurred while trying to rotate the autosave", e);
-                DesktopUtils.beep();
-                JOptionPane.showMessageDialog(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed", JOptionPane.WARNING_MESSAGE);
+                beepAndShowWarning(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed");
             }
             return true;
         } finally {
@@ -2190,7 +2186,7 @@ public final class App extends JFrame implements RadiusControl,
                     return false;
                 }
                 if (save(file)) {
-                    showMessageDialog(App.this, strings.getString("file.saved"), strings.getString("success"), INFORMATION_MESSAGE);
+                    showInfo(App.this, strings.getString("file.saved"), strings.getString("success"));
                     return true;
                 }
             }
@@ -2237,8 +2233,7 @@ public final class App extends JFrame implements RadiusControl,
             final File tempFile = new File (normalisedFile.getParentFile(), normalisedFile.getName() + ".tmp");
             if (tempFile.exists()) {
                 logger.error("Temporary save file {} already exists", tempFile);
-                DesktopUtils.beep();
-                JOptionPane.showMessageDialog(this, "A previous save attempt has failed\nand left temporary save file " + tempFile.getName() + " behind.\nPlease remove or rename that file and try again.", "Temporary Save File Exists", ERROR_MESSAGE);
+                beepAndShowError(this, "A previous save attempt has failed\nand left temporary save file " + tempFile.getName() + " behind.\nPlease remove or rename that file and try again.", "Temporary Save File Exists");
                 return false;
             }
 
@@ -2364,8 +2359,7 @@ public final class App extends JFrame implements RadiusControl,
                 rotateAutosaveFile();
             } catch (RuntimeException | Error e) {
                 logger.error("An exception occurred while trying to rotate the autosave", e);
-                DesktopUtils.beep();
-                JOptionPane.showMessageDialog(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed", JOptionPane.WARNING_MESSAGE);
+                beepAndShowWarning(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed");
             }
             lastSelectedFile = file;
             addRecentlyUsedWorld(file);
@@ -2471,11 +2465,10 @@ public final class App extends JFrame implements RadiusControl,
             lastAutosavedState = world.getChangeNo();
         } catch (RuntimeException | Error e) {
             logger.error("An exception occurred while trying to autosave world", e);
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, "An error occurred while trying to autosave the world.\n" +
+            beepAndShowWarning(this, "An error occurred while trying to autosave the world.\n" +
                     "One possibility is that the disk is full; please make space.\n" +
                     "It has not been autosaved. If this keeps happening,\n" +
-                    "please report it to the author.", "Autosave Failed", JOptionPane.WARNING_MESSAGE);
+                    "please report it to the author.", "Autosave Failed");
         }
     }
 
@@ -2526,7 +2519,7 @@ public final class App extends JFrame implements RadiusControl,
             return;
         }
         if (! Configuration.getInstance().isMessageDisplayed(IMPORT_WARNING_KEY)) {
-            showMessageDialog(this, strings.getString("the.import.functionality.only.imports.the.i.landscape"), strings.getString("information"), INFORMATION_MESSAGE);
+            showInfo(this, strings.getString("the.import.functionality.only.imports.the.i.landscape"), strings.getString("information"));
         }
         MapImportDialog dialog = new MapImportDialog(this);
         dialog.setVisible(true);
@@ -4588,8 +4581,7 @@ public final class App extends JFrame implements RadiusControl,
                                 rotateAutosaveFile();
                             } catch (RuntimeException | Error e2) {
                                 logger.error("An exception occurred while trying to rotate the autosave", e2);
-                                DesktopUtils.beep();
-                                JOptionPane.showMessageDialog(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed", JOptionPane.WARNING_MESSAGE);
+                                beepAndShowWarning(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed");
                             }
                         }
                     }
@@ -4871,10 +4863,9 @@ public final class App extends JFrame implements RadiusControl,
                 new ScriptRunner(this, world, dimension, undoManagers.values()).setVisible(true);
             } catch (UnsupportedClassVersionError | NoClassDefFoundError exc) {
                 logger.error("Could not open ScriptRunner", exc);
-                DesktopUtils.beep();
-                JOptionPane.showMessageDialog(App.this, "JavaScript support requires Java 11 or later.\n" +
+                beepAndShowError(App.this, "JavaScript support requires Java 11 or later.\n" +
                         "Please install a newer version of Java and try again.\n" +
-                        "See www.worldpainter.net for links.", "Newer Java Required", JOptionPane.ERROR_MESSAGE);
+                        "See www.worldpainter.net for links.", "Newer Java Required");
             }
         });
         menuItem.setMnemonic('s');
@@ -5008,7 +4999,7 @@ public final class App extends JFrame implements RadiusControl,
                     view.refreshTiles();
                 }
             }
-            showMessageDialog(this, "The " + ceiling.getName() + " was successfully deleted", "Success", INFORMATION_MESSAGE);
+            showInfo(this, "The " + ceiling.getName() + " was successfully deleted", "Success");
         }
     }
 
@@ -5188,7 +5179,7 @@ public final class App extends JFrame implements RadiusControl,
             } else {
                 configureForPlatform();
             }
-            showMessageDialog(this, "The Nether dimension was successfully deleted", "Success", INFORMATION_MESSAGE);
+            showInfo(this, "The Nether dimension was successfully deleted", "Success");
         }
     }
     
@@ -5231,7 +5222,7 @@ public final class App extends JFrame implements RadiusControl,
             } else {
                 configureForPlatform();
             }
-            showMessageDialog(this, "The End dimension was successfully deleted", "Success", INFORMATION_MESSAGE);
+            showInfo(this, "The End dimension was successfully deleted", "Success");
         }
     }
 
@@ -5294,7 +5285,7 @@ public final class App extends JFrame implements RadiusControl,
                 }
                 configureForPlatform();
             }
-            showMessageDialog(this, "The " + master.getName() + " was successfully deleted", "Success", INFORMATION_MESSAGE);
+            showInfo(this, "The " + master.getName() + " was successfully deleted", "Success");
         }
     }
 
@@ -5846,7 +5837,7 @@ public final class App extends JFrame implements RadiusControl,
         MixedMaterial[] customMaterials = MixedMaterialHelper.loadMultiple(this);
         if (customMaterials != null) {
             if (getConfiguredCustomMaterialCount() + customMaterials.length > CUSTOM_TERRAIN_COUNT) {
-                showMessageDialog(this, "Not enough unused Custom Terrain slots available;\nselect " + (CUSTOM_TERRAIN_COUNT - Terrain.getConfiguredCustomMaterialCount()) + " Custom Terrains or fewer.", "Too Many Custom Terrains", WARNING_MESSAGE);
+                showWarning(this, "Not enough unused Custom Terrain slots available;\nselect " + (CUSTOM_TERRAIN_COUNT - getConfiguredCustomMaterialCount()) + " Custom Terrains or fewer.", "Too Many Custom Terrains");
                 return false;
             }
             int nextIndex = 0;
@@ -5916,7 +5907,7 @@ public final class App extends JFrame implements RadiusControl,
             } else {
                 customTerrainPanel.validate();
             }
-            JOptionPane.showMessageDialog(this, "Custom terrain \"" + name + "\" was successfully deleted.", "Custom Terrain Deleted", INFORMATION_MESSAGE);
+            showInfo(this, "Custom terrain \"" + name + "\" was successfully deleted.", "Custom Terrain Deleted");
         }
     }
 
@@ -6018,8 +6009,7 @@ public final class App extends JFrame implements RadiusControl,
                             rotateAutosaveFile();
                         } catch (RuntimeException | Error e2) {
                             logger.error("An exception occurred while trying to rotate the autosave", e2);
-                            DesktopUtils.beep();
-                            JOptionPane.showMessageDialog(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed", JOptionPane.WARNING_MESSAGE);
+                            beepAndShowWarning(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed");
                         }
                     }
                 }
@@ -6175,8 +6165,7 @@ public final class App extends JFrame implements RadiusControl,
             if (p != -1) {
                 type = selectedFile.getName().substring(p + 1).toUpperCase();
             } else {
-                DesktopUtils.beep();
-                showMessageDialog(App.this, "No filename extension specified.", "Missing Extension", ERROR_MESSAGE);
+                beepAndShowError(App.this, "No filename extension specified.", "Missing Extension");
                 return;
             }
             if (selectedFile.exists()) {
@@ -6185,8 +6174,7 @@ public final class App extends JFrame implements RadiusControl,
                 }
             }
             if (! ImageIO.getImageWritersBySuffix(type).hasNext()) {
-                DesktopUtils.beep();
-                showMessageDialog(this, "Filename extension " + type + " is not a supported image type.", "Unsupported Format", ERROR_MESSAGE);
+                beepAndShowError(this, "Filename extension " + type + " is not a supported image type.", "Unsupported Format");
                 return;
             }
             config.setHeightMapsDirectory(selectedFile.getParentFile());
@@ -6203,8 +6191,7 @@ public final class App extends JFrame implements RadiusControl,
                             return heightMapExporter.exportToFile(file);
                         }
                     }, NOT_CANCELABLE)) {
-                DesktopUtils.beep();
-                showMessageDialog(App.this, MessageFormat.format(strings.getString("format.0.not.supported"), type), "Unsupported Format", ERROR_MESSAGE);
+                beepAndShowError(App.this, MessageFormat.format(strings.getString("format.0.not.supported"), type), "Unsupported Format");
             }
         }
     }
@@ -6238,19 +6225,16 @@ public final class App extends JFrame implements RadiusControl,
                         CustomLayer layer = (CustomLayer) in.readObject();
                         for (Layer existingLayer: getCustomLayers()) {
                             if (layer.equals(existingLayer)) {
-                                DesktopUtils.beep();
-                                showMessageDialog(this, "That layer is already present in the dimension.\nThe layer has not been added.", "Layer Already Present", ERROR_MESSAGE);
+                                beepAndShowError(this, "That layer is already present in the dimension.\nThe layer has not been added.", "Layer Already Present");
                                 return;
                             }
                         }
                         if ((filter != null) && (! filter.apply(layer))) {
-                            DesktopUtils.beep();
-                            showMessageDialog(this, "That layer or layer type is not supported for the current dimension.\nThe layer has not been added.", "Inapplicable Layer Type", ERROR_MESSAGE);
+                            beepAndShowError(this, "That layer or layer type is not supported for the current dimension.\nThe layer has not been added.", "Inapplicable Layer Type");
                             return;
                         }
                         if (! layer.isExportable()) {
-                            DesktopUtils.beep();
-                            showMessageDialog(this, "That layer is not importable.\nThe layer has not been added.", "Unimportable Layer", ERROR_MESSAGE);
+                            beepAndShowError(this, "That layer is not importable.\nThe layer has not been added.", "Unimportable Layer");
                             return;
                         }
                         if (paletteName != null) {
@@ -6261,7 +6245,7 @@ public final class App extends JFrame implements RadiusControl,
                             CombinedLayer combinedLayer = (CombinedLayer) layer;
                             addLayersFromCombinedLayer(combinedLayer);
                             if (! combinedLayer.restoreCustomTerrain()) {
-                                showMessageDialog(this, "The layer contained a Custom Terrain which could not be restored. The terrain has been reset.", "Custom Terrain Not Restored", WARNING_MESSAGE);
+                                showWarning(this, "The layer contained a Custom Terrain which could not be restored. The terrain has been reset.", "Custom Terrain Not Restored");
                             } else {
                                 // Check for a custom terrain type and if necessary make
                                 // sure it has a button
@@ -6277,23 +6261,19 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 } catch (FileNotFoundException e) {
                     logger.error("File not found while loading file " + selectedFile, e);
-                    DesktopUtils.beep();
-                    showMessageDialog(this, "The specified path does not exist or is not a file", "Nonexistent File", ERROR_MESSAGE);
+                    beepAndShowError(this, "The specified path does not exist or is not a file", "Nonexistent File");
                     return;
                 } catch (IOException e) {
                     logger.error("I/O error while loading file " + selectedFile, e);
-                    DesktopUtils.beep();
-                    showMessageDialog(this, "I/O error occurred while reading the specified file,\nor is not a (valid) WorldPainter layer file", "I/O Error Or Invalid File", ERROR_MESSAGE);
+                    beepAndShowError(this, "I/O error occurred while reading the specified file,\nor is not a (valid) WorldPainter layer file", "I/O Error Or Invalid File");
                     return;
                 } catch (ClassNotFoundException e) {
                     logger.error("Class not found exception while loading file " + selectedFile, e);
-                    DesktopUtils.beep();
-                    showMessageDialog(this, "The specified file is not a (valid) WorldPainter layer file", "Invalid File", ERROR_MESSAGE);
+                    beepAndShowError(this, "The specified file is not a (valid) WorldPainter layer file", "Invalid File");
                     return;
                 } catch (ClassCastException e) {
                     logger.error("Class cast exception while loading file " + selectedFile, e);
-                    DesktopUtils.beep();
-                    showMessageDialog(this, "The specified file is not a (valid) WorldPainter layer file", "Invalid File", ERROR_MESSAGE);
+                    beepAndShowError(this, "The specified file is not a (valid) WorldPainter layer file", "Invalid File");
                     return;
                 }
             }
@@ -6345,7 +6325,7 @@ public final class App extends JFrame implements RadiusControl,
             }
         });
         if (selectedFile != null) {
-            if (! selectedFile.getName().toLowerCase().endsWith(".layer")) {
+            if (!selectedFile.getName().toLowerCase().endsWith(".layer")) {
                 selectedFile = new File(selectedFile.getPath() + ".layer");
             }
             if (selectedFile.isFile() && (showConfirmDialog(this, "The file " + selectedFile.getName() + " already exists.\nDo you want to overwrite it?", "Overwrite File", YES_NO_OPTION) == NO_OPTION)) {
@@ -6359,7 +6339,7 @@ public final class App extends JFrame implements RadiusControl,
                 throw new RuntimeException("I/O error while trying to write " + selectedFile, e);
             }
             config.setLayerDirectory(selectedFile.getParentFile());
-            showMessageDialog(this, "Layer " + layer.getName() + " exported successfully", "Success", INFORMATION_MESSAGE);
+            showInfo(this, "Layer " + layer.getName() + " exported successfully", "Success");
         }
     }
 
@@ -6569,7 +6549,7 @@ public final class App extends JFrame implements RadiusControl,
                     default:
                         throw new InternalError();
                 }
-                showMessageDialog(this, "The selected world has no, or no importable, custom " + what + ".", "No Custom Items To Import", WARNING_MESSAGE);
+                showWarning(this, "The selected world has no, or no importable, custom " + what + ".", "No Custom Items To Import");
             }
         }
     }
@@ -6697,12 +6677,12 @@ public final class App extends JFrame implements RadiusControl,
         final Set<Layer> layersInUse = dimension.getAllLayers(true);
         unusedLayers.removeAll(layersInUse);
         if (unusedLayers.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "There are no unused layers in this dimension.", "No Unused Layers", JOptionPane.INFORMATION_MESSAGE);
+            showInfo(this, "There are no unused layers in this dimension.", "No Unused Layers");
         } else {
             final DeleteLayersDialog dialog = new DeleteLayersDialog(this, unusedLayers);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
-                JOptionPane.showMessageDialog(this, "The selected layers have been deleted.", "Layers Deleted", JOptionPane.INFORMATION_MESSAGE);
+                showInfo(this, "The selected layers have been deleted.", "Layers Deleted");
             }
         }
     }
@@ -7476,7 +7456,7 @@ public final class App extends JFrame implements RadiusControl,
             Configuration config = Configuration.getInstance();
             config.setDefaultJideLayoutData(dockingManager.getLayoutRawData());
             ACTION_LOAD_LAYOUT.setEnabled(true);
-            showMessageDialog(App.this, "Workspace layout saved", "Workspace layout saved", INFORMATION_MESSAGE);
+            showInfo(App.this, "Workspace layout saved", "Workspace layout saved");
         }
     };
 

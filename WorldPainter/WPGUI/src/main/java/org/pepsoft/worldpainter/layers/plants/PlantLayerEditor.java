@@ -30,7 +30,7 @@ import java.util.jar.JarFile;
 
 import static java.lang.Math.max;
 import static java.util.Arrays.asList;
-import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
+import static org.pepsoft.util.swing.MessageUtils.showInfo;
 import static org.pepsoft.worldpainter.layers.plants.Category.*;
 import static org.pepsoft.worldpainter.layers.plants.Plants.ALL_PLANTS;
 import static org.pepsoft.worldpainter.util.I18nHelper.m;
@@ -516,11 +516,10 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
             final ExportSettings exportSettings = context.getDimension().getExportSettings();
             if ((exportSettings == null) || ((exportSettings instanceof JavaExportSettings) && ((JavaExportSettings) exportSettings).isRemovePlants())) {
                 DesktopUtils.beep();
-                JOptionPane.showMessageDialog(SwingUtilities.windowForComponent(this), "You must also turn off \"Plants: remove from invalid blocks\"\n" +
-                                "on the Post Processing tab of the Export screen! Otherwise\n" +
-                                "plants on invalid blocks will be removed during post-\n" +
-                                "processing.",
-                        "Reminder: Turn Off Remove Plants", INFORMATION_MESSAGE);
+                showInfo(SwingUtilities.windowForComponent(this), "You must also turn off \"Plants: remove from invalid blocks\"\n" +
+                        "on the Post Processing tab of the Export screen! Otherwise\n" +
+                        "plants on invalid blocks will be removed during post-\n" +
+                        "processing.", "Reminder: Turn Off Remove Plants");
             }
         }
     }//GEN-LAST:event_checkBoxOnlyValidBlocksActionPerformed

@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import static java.util.function.Function.identity;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_PEACEFUL;
+import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
@@ -177,17 +178,15 @@ public class ExportWorldDialog extends WorldPainterDialog {
             nameOnlyMaterials.forEach((name, sources) ->
                     sb.append("<tr><td>").append(name).append("</td><td>").append(String.join(",", sources)).append("</td></tr>"));
             sb.append("</table>");
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, sb.toString(), "Map Format Not Compatible", JOptionPane.ERROR_MESSAGE);
+            beepAndShowError(this, sb.toString(), "Map Format Not Compatible");
             return false;
         }
         final String incompatibilityReason = PlatformManager.getInstance().getPlatformProvider(platform).isCompatible(platform, world);
         if (incompatibilityReason != null) {
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, String.format(/* language=HTML */ "<html>" +
+            beepAndShowError(this, String.format(/* language=HTML */ "<html>" +
                     "<p>The world cannot be exported in format %s because it is not compatible:</p>" +
                     "<p>%s</p>" +
-                    "</html>", platform.displayName, incompatibilityReason), "Map Format Not Compatible", JOptionPane.ERROR_MESSAGE);
+                    "</html>", platform.displayName, incompatibilityReason), "Map Format Not Compatible");
             return false;
         }
         return true;
@@ -204,14 +203,12 @@ public class ExportWorldDialog extends WorldPainterDialog {
         // Check for errors
         if (! new File(fieldDirectory.getText().trim()).isDirectory()) {
             fieldDirectory.requestFocusInWindow();
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, "The selected output directory does not exist or is not a directory.", "Error", JOptionPane.ERROR_MESSAGE);
+            beepAndShowError(this, "The selected output directory does not exist or is not a directory.", "Error");
             return;
         }
         if (fieldName.getText().trim().isEmpty()) {
             fieldName.requestFocusInWindow();
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, "You have not specified a name for the map.", "Error", JOptionPane.ERROR_MESSAGE);
+            beepAndShowError(this, "You have not specified a name for the map.", "Error");
             return;
         }
 

@@ -50,9 +50,10 @@ import java.util.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.WARNING_MESSAGE;
 import static org.pepsoft.util.GUIUtils.getUIScale;
+import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
+import static org.pepsoft.util.swing.MessageUtils.beepAndShowWarning;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_PLUGINS;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SAFE_MODE;
 import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
@@ -506,12 +507,10 @@ public class Main {
                     app.open(file);
                 }
                 for (String error: StartupMessages.getErrors()) {
-                    DesktopUtils.beep();
-                    JOptionPane.showMessageDialog(app, error, "Startup Error", ERROR_MESSAGE);
+                    beepAndShowError(app, error, "Startup Error");
                 }
                 for (String error: StartupMessages.getWarnings()) {
-                    DesktopUtils.beep();
-                    JOptionPane.showMessageDialog(app, error, "Startup Warning", WARNING_MESSAGE);
+                    beepAndShowWarning(app, error, "Startup Warning");
                 }
                 if (StartupMessages.getErrors().isEmpty() && StartupMessages.getWarnings().isEmpty()) {
                     // Don't bother the user with this if we've already bothered them with errors and/or warnings

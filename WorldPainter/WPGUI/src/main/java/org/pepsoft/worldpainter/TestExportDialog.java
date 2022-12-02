@@ -4,7 +4,6 @@
  */
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.TileRenderer.LightOrigin;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.exporting.WorldExportSettings;
@@ -16,6 +15,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import static java.util.Collections.singleton;
+import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.exporting.WorldExportSettings.Step.*;
@@ -124,8 +124,7 @@ public class TestExportDialog extends WorldPainterDialog {
     private void export() {
         if ((checkBoxTiles.isSelected()) && ((selectedTiles == null) || selectedTiles.isEmpty())) {
             checkBoxTiles.requestFocusInWindow();
-            DesktopUtils.beep();
-            JOptionPane.showMessageDialog(this, "No tiles have been selected for export.", "Error", JOptionPane.ERROR_MESSAGE);
+            beepAndShowError(this, "No tiles have been selected for export.", "Error");
             return;
         }
         final Set<WorldExportSettings.Step> skipSteps = EnumSet.noneOf(WorldExportSettings.Step.class);

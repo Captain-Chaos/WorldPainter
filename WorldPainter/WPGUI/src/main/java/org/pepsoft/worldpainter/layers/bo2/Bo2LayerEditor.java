@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Material.PERSISTENT;
+import static org.pepsoft.util.swing.MessageUtils.*;
 import static org.pepsoft.worldpainter.ExceptionHandler.doWithoutExceptionReporting;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
@@ -128,7 +129,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                     }
                 }
                 if (missingFiles > 0) {
-                    JOptionPane.showMessageDialog(this, "This is an old custom object layer and " + missingFiles + " objects\ncould NOT be restored because they were missing or\nreading them resulted in an I/O error.\n\nYou will have to re-add these objects before\nsaving the settings, otherwise the existing object\ndata will be gone. You may also cancel the dialog\nwithout affecting the object data.", "Missing Files", JOptionPane.WARNING_MESSAGE);
+                    showWarning(this, "This is an old custom object layer and " + missingFiles + " objects\ncould NOT be restored because they were missing or\nreading them resulted in an I/O error.\n\nYou will have to re-add these objects before\nsaving the settings, otherwise the existing object\ndata will be gone. You may also cancel the dialog\nwithout affecting the object data.", "Missing Files");
                 }
             }
         } else {
@@ -287,11 +288,9 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                         }
                         File[] files = selectedFile.listFiles((FilenameFilter) fileFilter);
                         if (files == null) {
-                            DesktopUtils.beep();
-                            JOptionPane.showMessageDialog(this, selectedFile.getName() + " is not a directory or it cannot be read.", "Not A Valid Directory", JOptionPane.ERROR_MESSAGE);
+                            beepAndShowError(this, selectedFile.getName() + " is not a directory or it cannot be read.", "Not A Valid Directory");
                         } else if (files.length == 0) {
-                            DesktopUtils.beep();
-                            JOptionPane.showMessageDialog(this, "Directory " + selectedFile.getName() + " does not contain any supported custom object files.", "No Custom Object Files", JOptionPane.ERROR_MESSAGE);
+                            beepAndShowError(this, "Directory " + selectedFile.getName() + " does not contain any supported custom object files.", "No Custom Object Files");
                         } else {
                             for (File file: files) {
                                 addFile(checkForNameOnlyMaterials, nameOnlyMaterialsNames, file);
@@ -330,8 +329,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                                 "You will not be able to export this world in this format if you use this layer.",
                                 platform.displayName, String.join(", ", nameOnlyMaterialsNames));
                     }
-                    DesktopUtils.beep();
-                    JOptionPane.showMessageDialog(this, message, "Map Format Not Compatible", JOptionPane.WARNING_MESSAGE);
+                    beepAndShowWarning(this, message, "Map Format Not Compatible");
                 }
             }
         }
@@ -430,7 +428,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
             }
             JOptionPane.showMessageDialog(this, message, "Not All Files Reloaded", JOptionPane.ERROR_MESSAGE);
         } else {
-            JOptionPane.showMessageDialog(this, indices.length + " objects successfully reloaded", "Success", JOptionPane.INFORMATION_MESSAGE);
+            showInfo(this, indices.length + " objects successfully reloaded", "Success");
         }
         refreshLeafDecaySettings();
     }

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 
+import static org.pepsoft.util.swing.MessageUtils.showWarning;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 
 /**
@@ -46,7 +47,7 @@ public class Fill extends AbstractBrushOperation implements PaintOperation {
             }
             try {
                 if (! painter.fill(dimension, centreX, centreY, SwingUtilities.getWindowAncestor(getView()))) {
-                    JOptionPane.showMessageDialog(getView(), "The area to be filled was too large and may not have been completely filled.", "Area Too Large", JOptionPane.WARNING_MESSAGE);
+                    showWarning(getView(), "The area to be filled was too large and may not have been completely filled.", "Area Too Large");
                 }
             } catch (IndexOutOfBoundsException e) {
                 // This most likely indicates that the area being flooded was too large

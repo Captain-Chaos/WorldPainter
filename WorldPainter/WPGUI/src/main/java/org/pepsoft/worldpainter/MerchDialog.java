@@ -18,6 +18,8 @@ import java.awt.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import static org.pepsoft.util.swing.MessageUtils.showInfo;
+
 /**
  *
  * @author pepijn
@@ -50,7 +52,7 @@ public final class MerchDialog extends WorldPainterDialog {
     }
     
     private void noThanks() {
-        JOptionPane.showMessageDialog(this, "Alright, no problem. You can access the merch store\nlater from the Help menu.", "No Problem", JOptionPane.INFORMATION_MESSAGE);
+        showInfo(this, "Alright, no problem. You can access the merch store\nlater from the Help menu.", "No Problem");
         ok();
     }
     

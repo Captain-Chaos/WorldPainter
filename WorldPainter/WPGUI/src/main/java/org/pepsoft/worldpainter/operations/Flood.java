@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import java.awt.*;
 
+import static org.pepsoft.util.swing.MessageUtils.showWarning;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 
 /**
@@ -190,7 +191,7 @@ public class Flood extends MouseOrTabletOperation {
                         return;
                     }
                     if (flooder.isBoundsHit()) {
-                        JOptionPane.showMessageDialog(getView(), "The area to be flooded was too large and may not have been completely flooded.", "Area Too Large", JOptionPane.WARNING_MESSAGE);
+                        showWarning(getView(), "The area to be flooded was too large and may not have been completely flooded.", "Area Too Large");
                     }
                 } catch (IndexOutOfBoundsException e) {
                     // This most likely indicates that the area being flooded was too large

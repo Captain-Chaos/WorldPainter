@@ -42,6 +42,7 @@ import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
+import static org.pepsoft.util.swing.MessageUtils.showInfo;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 import static org.pepsoft.worldpainter.ExceptionHandler.handleException;
@@ -527,7 +528,7 @@ public class PreferencesDialog extends WorldPainterDialog {
             if (! dialog.isCancelled()) {
                 if (reset[0]) {
                     defaultExportSettings = null;
-                    JOptionPane.showMessageDialog(this, "Default post processing settings reset to default values.", "Default Post Processing Settings Reset", JOptionPane.INFORMATION_MESSAGE);
+                    showInfo(this, "Default post processing settings reset to default values.", "Default Post Processing Settings Reset");
                 } else {
                     defaultExportSettings = editor.getExportSettings();
                 }

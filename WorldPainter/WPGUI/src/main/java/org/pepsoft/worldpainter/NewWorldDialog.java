@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.google.common.primitives.Ints.asList;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_END;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_NETHER;
+import static org.pepsoft.util.swing.MessageUtils.showInfo;
 import static org.pepsoft.util.swing.SpinnerUtils.setMinimum;
 import static org.pepsoft.worldpainter.App.NUMBER_FORMAT;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -895,7 +896,7 @@ public class NewWorldDialog extends WorldPainterDialog {
     }
 
     public static void showMasterDimensionInfo(Window parent) {
-        JOptionPane.showMessageDialog(parent, "<html>" +
+        showInfo(parent, "<html>" +
                 "<h1>Master Dimensions [ALPHA]</h1>" +
                 "<p>A Master Dimension is a WorldPainter dimension type (similar to a Ceiling Dimension). It is Exported<br>" +
                 "at 1:16 scale wherever the regular Surface Dimension does not exist. Because the Master Dimension is<br>" +
@@ -907,7 +908,7 @@ public class NewWorldDialog extends WorldPainterDialog {
                 "your world in the Master Dimension, and then fill in the details where necessary in the surface Dimension." +
                 "<p><p>Master Dimensions can use all the features of regular surface Dimensions (terrain types, layers, etc.)<br>" +
                 "so large forests, cave systems, etc. are also easily created with it." +
-                "</html>", "What Is A Master Dimension", JOptionPane.INFORMATION_MESSAGE);
+                "</html>", "What Is A Master Dimension");
     }
 
     /** This method is called from within the constructor to

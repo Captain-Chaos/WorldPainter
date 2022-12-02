@@ -24,6 +24,7 @@ import static java.util.stream.Collectors.toList;
 import static javax.swing.JOptionPane.*;
 import static org.pepsoft.util.DesktopUtils.beep;
 import static org.pepsoft.util.FileUtils.deleteDir;
+import static org.pepsoft.util.swing.MessageUtils.showInfo;
 import static org.pepsoft.worldpainter.Constants.GB;
 import static org.pepsoft.worldpainter.exporting.AbstractWorldExporter.DATE_FORMAT;
 
@@ -136,7 +137,7 @@ public final class BackupUtils {
             }
         } else {
             // Manual cleanup; report the results
-            JOptionPane.showMessageDialog(parent, report.toString(), "Clean Up Results", INFORMATION_MESSAGE);
+            showInfo(parent, report.toString(), "Clean Up Results");
         }
 
         return true;

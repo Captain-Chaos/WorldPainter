@@ -10,20 +10,18 @@
  */
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
-import static javax.swing.JOptionPane.WARNING_MESSAGE;
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.util.mdc.MDCUtils.decorateWithMdcContext;
+import static org.pepsoft.util.swing.MessageUtils.beepAndShowWarning;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.ExceptionHandler.handleException;
 
@@ -73,8 +71,7 @@ public class ShiftWorldDialog extends WorldPainterDialog implements ProgressRece
     public synchronized void done() {
         doOnEventThread(() -> {
             if (affectedDimensions.stream().flatMap(dimension -> dimension.getOverlays().stream()).anyMatch(overlay -> ! overlay.getFile().canRead())) {
-                DesktopUtils.beep();
-                JOptionPane.showMessageDialog(this, "One or more overlay image files could not be read,\nand have therefore not been shifted.\nYou will need to shift these manually.", "Not All Overlays Shifted", WARNING_MESSAGE);
+                beepAndShowWarning(this, "One or more overlay image files could not be read,\nand have therefore not been shifted.\nYou will need to shift these manually.", "Not All Overlays Shifted");
             }
             ok();
         });

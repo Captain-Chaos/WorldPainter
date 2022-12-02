@@ -20,6 +20,9 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
+import static org.pepsoft.util.swing.MessageUtils.showInfo;
+
 /**
  *
  * @author Pepijn Schmitz
@@ -53,12 +56,10 @@ public class MixedMaterialHelper {
                 }
             } catch (IOException e) {
                 logger.error("{} while reading {}", e.getClass().getSimpleName(), selectedFile, e);
-                DesktopUtils.beep();
-                JOptionPane.showMessageDialog(parent, "An input error occurred while reading the file (message: " + e.getMessage() + ")", "Input Error", JOptionPane.ERROR_MESSAGE);
+                beepAndShowError(parent, "An input error occurred while reading the file (message: " + e.getMessage() + ")", "Input Error");
             } catch (ClassCastException e) {
                 logger.error("{} while reading {}", e.getClass().getSimpleName(), selectedFile, e);
-                DesktopUtils.beep();
-                JOptionPane.showMessageDialog(parent, "The selected file is not a valid WorldPainter custom terrain file", "Invalid File", JOptionPane.ERROR_MESSAGE);
+                beepAndShowError(parent, "The selected file is not a valid WorldPainter custom terrain file", "Invalid File");
             }
         }
         return null;
@@ -91,12 +92,10 @@ public class MixedMaterialHelper {
                         }
                     } catch (IOException e) {
                         logger.error("{} while reading {}", e.getClass().getSimpleName(), selectedFile, e);
-                        DesktopUtils.beep();
-                        JOptionPane.showMessageDialog(parent, "An input error occurred while reading " + selectedFile + " (message: " + e.getMessage() + ")", "Input Error", JOptionPane.ERROR_MESSAGE);
+                        beepAndShowError(parent, "An input error occurred while reading " + selectedFile + " (message: " + e.getMessage() + ")", "Input Error");
                     } catch (ClassCastException e) {
                         logger.error("{} while reading {}", e.getClass().getSimpleName(), selectedFile, e);
-                        DesktopUtils.beep();
-                        JOptionPane.showMessageDialog(parent, selectedFile + " is not a valid WorldPainter custom terrain file", "Invalid File", JOptionPane.ERROR_MESSAGE);
+                        beepAndShowError(parent, selectedFile + " is not a valid WorldPainter custom terrain file", "Invalid File");
                     }
                 }
                 return (! materials.isEmpty()) ? materials.toArray(new MixedMaterial[materials.size()]) : null;
@@ -138,7 +137,7 @@ public class MixedMaterialHelper {
                 throw new RuntimeException("I/O error while trying to write " + selectedFile, e);
             }
             config.setTerrainDirectory(selectedFile.getParentFile());
-            JOptionPane.showMessageDialog(parent, "Custom terrain " + material.getName() + " exported successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+            showInfo(parent, "Custom terrain " + material.getName() + " exported successfully", "Success");
         }
     }
 
