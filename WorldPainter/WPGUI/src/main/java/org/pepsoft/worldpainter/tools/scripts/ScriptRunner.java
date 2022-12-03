@@ -6,7 +6,6 @@
 package org.pepsoft.worldpainter.tools.scripts;
 
 import org.jetbrains.annotations.NotNull;
-import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.Dimension;
@@ -36,6 +35,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.joining;
+import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
+import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SCRIPT_FILENAME;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SCRIPT_NAME;
 import static org.pepsoft.worldpainter.ExceptionHandler.doWithoutExceptionReporting;
@@ -327,7 +328,9 @@ public class ScriptRunner extends WorldPainterDialog {
                         } else {
                             scriptEngine = SCRIPT_ENGINE_MANAGER.getEngineByExtension(extension);
                             if (scriptEngine == null) {
-                                throw new MDCCapturingRuntimeException("No script engine found for extension \"" + extension + "\"");
+                                logger.error("No script engine found for extension \"" + extension + "\"");
+                                doLaterOnEventThread(() -> beepAndShowError(ScriptRunner.this, "No script engine installed for extension \"" + extension + "\"", "Error"));
+                                return;
                             }
                             SCRIPT_ENGINES.put(extension, scriptEngine);
                             logger.info("Using script engine {} version {} for scripts of type {}", scriptEngine.getFactory().getEngineName(), scriptEngine.getFactory().getEngineVersion(), extension);
@@ -372,7 +375,7 @@ public class ScriptRunner extends WorldPainterDialog {
                             synchronized (textQueue) {
                                 textQueue.add(new String(cbuf, off, len));
                                 if (! textUpdateScheduled[0]) {
-                                    SwingUtilities.invokeLater(() -> {
+                                    doLaterOnEventThread(() -> {
                                         synchronized (textQueue) {
                                             // Join the fragments first so that
                                             // only one string need be appended
@@ -432,7 +435,7 @@ public class ScriptRunner extends WorldPainterDialog {
                         context.checkGoCalled(null);
                     } catch (RuntimeException e) {
                         logger.error(e.getClass().getSimpleName() + " occurred while executing " + scriptFileName, e);
-                        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(ScriptRunner.this, e.getClass().getSimpleName() + " occurred (message: " + e.getMessage() + ")", "Error", JOptionPane.ERROR_MESSAGE));
+                        doLaterOnEventThread(() -> beepAndShowError(ScriptRunner.this, e.getClass().getSimpleName() + " occurred (message: " + e.getMessage() + ")", "Error"));
                     } catch (javax.script.ScriptException e) {
                         logger.error("ScriptException occurred while executing " + scriptFileName, e);
                         final StringBuilder sb = new StringBuilder();
@@ -446,10 +449,10 @@ public class ScriptRunner extends WorldPainterDialog {
                             }
                             sb.append(')');
                         }
-                        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(ScriptRunner.this, sb.toString(), "Error", JOptionPane.ERROR_MESSAGE));
+                        doLaterOnEventThread(() -> beepAndShowError(ScriptRunner.this, sb.toString(), "Error"));
                     } catch (IOException e) {
                         logger.error("I/O error occurred while executing " + scriptFileName, e);
-                        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(ScriptRunner.this, "I/O errir while executing " + scriptFileName, "Error", JOptionPane.ERROR_MESSAGE));
+                        doLaterOnEventThread(() -> beepAndShowError(ScriptRunner.this, "I/O error while executing " + scriptFileName, "Error"));
                     } finally {
                         if (dimension != null) {
                             dimension.setEventsInhibited(false);
@@ -459,7 +462,7 @@ public class ScriptRunner extends WorldPainterDialog {
                         }
                     }
                 } finally {
-                    SwingUtilities.invokeLater(() -> {
+                    doLaterOnEventThread(() -> {
                         jComboBox1.setEnabled(true);
                         jButton1.setEnabled(true);
                         jTextArea1.setEnabled(true);
