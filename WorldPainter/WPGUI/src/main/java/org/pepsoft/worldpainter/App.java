@@ -4801,59 +4801,60 @@ public final class App extends JFrame implements RadiusControl,
         menu.add(menuItem);
 
         menuItem = new JMenuItem(strings.getString("biomes.viewer") + "...");
-        // Disable the menu item after the biome scheme manager has been initialised, if it turns out there are no
-        // supported biome algorithms (because no supported Minecraft installation could be found, for instance), but
-        // without blocking the GUI
-        final JMenuItem biomesViewerMenuItem = menuItem;
-        new Thread("Biomes Viewer Menu Item Initialiser") {
-            @Override
-            public void run() {
-                if (BiomeSchemeManager.getAvailableBiomeAlgorithms().isEmpty()) {
-                    logger.info("No supported Minecraft installation found; disabling biomes preview and Biomes Viewer");
-                    SwingUtilities.invokeLater(() -> {
-                        biomesViewerMenuItem.setEnabled(false);
-                        biomesViewerMenuItem.setToolTipText("No supported Minecraft installation found");
-                    });
-                }
-            }
-        }.start();
-        menuItem.addActionListener(event -> {
-            if (BiomeSchemeManager.getAvailableBiomeAlgorithms().isEmpty()) {
-                // This could theoretically happen if the user selects the menu item before the biome scheme manager has
-                // been initialised and the menu item is still enabled
-                return;
-            }
-
-            if (biomesViewerFrame != null) {
-                biomesViewerFrame.requestFocus();
-            } else {
-                int preferredAlgorithm = -1;
-                if ((dimension != null) && (dimension.getAnchor().dim == DIM_NORMAL) && (dimension.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL)) {
-                    if (dimension.getGenerator().getType() == LARGE_BIOMES) {
-                        preferredAlgorithm = BIOME_ALGORITHM_1_7_LARGE;
+        menuItem.setEnabled(false);
+        if (Configuration.getInstance().isSafeMode()) {
+            menuItem.setToolTipText("Biomes viewer not available in safe mode");
+        } else {
+            menuItem.setToolTipText("Biomes subsystem initialising...");
+            // Enable the menu item after the biome scheme manager has been initialised, if it turns out there are supported
+            // biome algorithms, but without blocking the GUI
+            final JMenuItem biomesViewerMenuItem = menuItem;
+            new Thread("Biomes Viewer Menu Item Initialiser") {
+                @Override
+                public void run() {
+                    if (BiomeSchemeManager.getAvailableBiomeAlgorithms().isEmpty()) {
+                        logger.info("No supported Minecraft installation found; disabling biomes preview and Biomes Viewer");
+                        doLaterOnEventThread(() -> biomesViewerMenuItem.setToolTipText("No supported Minecraft installation found"));
                     } else {
-                        preferredAlgorithm = BIOME_ALGORITHM_1_7_DEFAULT;
+                        doLaterOnEventThread(() -> {
+                            biomesViewerMenuItem.setToolTipText(null);
+                            biomesViewerMenuItem.setEnabled(true);
+                        });
                     }
                 }
-                logger.info("Opening biomes viewer");
-                biomesViewerFrame = new BiomesViewerFrame(dimension.getMinecraftSeed(), world.getSpawnPoint(), preferredAlgorithm, selectedColourScheme, App.this);
-                biomesViewerFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-                biomesViewerFrame.addWindowListener(new WindowAdapter() {
-                    @Override
-                    public void windowClosing(WindowEvent e) {
-                        // TODO not sure how this can be null, but at least one error has been reported by a user where
-                        //  it was
-                        if (biomesViewerFrame != null) {
-                            biomesViewerFrame.destroy();
-                            biomesViewerFrame.dispose();
-                            biomesViewerFrame = null;
+            }.start();
+            menuItem.addActionListener(event -> {
+                if (biomesViewerFrame != null) {
+                    biomesViewerFrame.requestFocus();
+                } else {
+                    int preferredAlgorithm = -1;
+                    if ((dimension != null) && (dimension.getAnchor().dim == DIM_NORMAL) && (dimension.getMaxHeight() == DEFAULT_MAX_HEIGHT_ANVIL)) {
+                        if (dimension.getGenerator().getType() == LARGE_BIOMES) {
+                            preferredAlgorithm = BIOME_ALGORITHM_1_7_LARGE;
+                        } else {
+                            preferredAlgorithm = BIOME_ALGORITHM_1_7_DEFAULT;
                         }
                     }
-                });
-                biomesViewerFrame.setLocationRelativeTo(App.this);
-                biomesViewerFrame.setVisible(true);
-            }
-        });
+                    logger.info("Opening biomes viewer");
+                    biomesViewerFrame = new BiomesViewerFrame(dimension.getMinecraftSeed(), world.getSpawnPoint(), preferredAlgorithm, selectedColourScheme, App.this);
+                    biomesViewerFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+                    biomesViewerFrame.addWindowListener(new WindowAdapter() {
+                        @Override
+                        public void windowClosing(WindowEvent e) {
+                            // TODO not sure how this can be null, but at least one error has been reported by a user
+                            //  where it was
+                            if (biomesViewerFrame != null) {
+                                biomesViewerFrame.destroy();
+                                biomesViewerFrame.dispose();
+                                biomesViewerFrame = null;
+                            }
+                        }
+                    });
+                    biomesViewerFrame.setLocationRelativeTo(App.this);
+                    biomesViewerFrame.setVisible(true);
+                }
+            });
+        }
         menuItem.setMnemonic('b');
         menu.add(menuItem);
 
