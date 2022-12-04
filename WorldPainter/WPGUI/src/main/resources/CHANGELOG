@@ -1,3 +1,7 @@
+-- Version 2.15.15, released ...
+
+ * Bug fix: make adding ceiling dimensions to worlds with non-standard build heights work
+
 -- Version 2.15.14, released 2-12-2022
 
  * The Import Mask screen (Edit -> Import -> Mask as terrain or layer...) has been made more powerful and easier to use:

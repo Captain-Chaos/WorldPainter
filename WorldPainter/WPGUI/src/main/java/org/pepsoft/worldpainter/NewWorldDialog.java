@@ -71,6 +71,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         super(app);
         this.app = app;
         this.colourScheme = colourScheme;
+        this.platform = platform;
         this.anchor = anchor;
         this.tiles = tiles;
         this.baseDimension = baseDimension;
@@ -94,7 +95,9 @@ public class NewWorldDialog extends WorldPainterDialog {
         comboBoxSurfaceMaterial.setModel(new DefaultComboBoxModel(Terrain.PICK_LIST));
         comboBoxSurfaceMaterial.setRenderer(new TerrainListCellRenderer(app.getColourScheme()));
 
+        initPlatform();
         comboBoxMaxHeight.setSelectedItem(defaultMaxHeight);
+        maxHeightChanged(true);
 
         scale = 1.0f;
         Configuration config = Configuration.getInstance();
@@ -229,8 +232,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         rootPane.setDefaultButton(buttonCreate);
 
         programmaticChange = false;
-        setPlatform(platform);
-        updateWalkingTimes();
+        setControlStates();
     }
 
     /**
@@ -798,14 +800,7 @@ public class NewWorldDialog extends WorldPainterDialog {
         }
     }
 
-    private void setPlatform(Platform platform) {
-        if (programmaticChange) {
-            return;
-        }
-
-        final Platform previousPlatform = this.platform;
-        this.platform = platform;
-
+    private void initPlatform() {
         final int maxWidth = (int) Math.min((((long) platform.maxX - platform.minX) / TILE_SIZE) * TILE_SIZE, Integer.MAX_VALUE);
         final int maxLength = (int) Math.min((((long) platform.maxY - platform.minY) / TILE_SIZE) * TILE_SIZE, Integer.MAX_VALUE);
         SpinnerNumberModel model = (SpinnerNumberModel) spinnerWidth.getModel();
@@ -820,41 +815,61 @@ public class NewWorldDialog extends WorldPainterDialog {
         }
         updateWalkingTimes();
 
-        final int maxMaxHeight, defaultMaxHeight, previousDefaultMaxHeight;
+        final int maxMaxHeight;
         switch (anchor.dim) {
             case DIM_NETHER:
                 maxMaxHeight = Math.min(platform.maxMaxHeight, DEFAULT_MAX_HEIGHT_NETHER);
-                defaultMaxHeight = previousDefaultMaxHeight = DEFAULT_MAX_HEIGHT_NETHER;
                 break;
             case DIM_END:
                 maxMaxHeight = Math.min(platform.maxMaxHeight, DEFAULT_MAX_HEIGHT_END);
-                defaultMaxHeight = previousDefaultMaxHeight = DEFAULT_MAX_HEIGHT_END;
                 break;
             default:
                 maxMaxHeight = platform.maxMaxHeight;
+                break;
+        }
+        final List<Integer> maxHeights = new ArrayList<>(asList(platform.maxHeights));
+        maxHeights.removeIf(height -> height.compareTo(maxMaxHeight) > 0);
+        comboBoxMaxHeight.setModel(new DefaultComboBoxModel<>(maxHeights.toArray(new Integer[maxHeights.size()])));
+        comboBoxMaxHeight.setEnabled((anchor.role == DETAIL) && (! anchor.invert) && (maxHeights.size() > 1));
+
+        setMinimum(spinnerTerrainLevel, platform.minZ);
+        setMinimum(spinnerWaterLevel, platform.minZ);
+    }
+
+    private void setPlatform(Platform platform) {
+        if (programmaticChange) {
+            return;
+        }
+
+        final Platform previousPlatform = this.platform;
+        final Integer previousMaxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
+        this.platform = platform;
+        initPlatform();
+
+        final int defaultMaxHeight, previousDefaultMaxHeight;
+        switch (anchor.dim) {
+            case DIM_NETHER:
+                defaultMaxHeight = previousDefaultMaxHeight = DEFAULT_MAX_HEIGHT_NETHER;
+                break;
+            case DIM_END:
+                defaultMaxHeight = previousDefaultMaxHeight = DEFAULT_MAX_HEIGHT_END;
+                break;
+            default:
                 defaultMaxHeight = platform.standardMaxHeight;
                 previousDefaultMaxHeight = (previousPlatform != null) ? previousPlatform.standardMaxHeight : Integer.MIN_VALUE;
                 break;
         }
-        final Integer currentMaxHeight = (Integer) comboBoxMaxHeight.getSelectedItem();
-        final boolean atDefault = (currentMaxHeight == null) || (currentMaxHeight == previousDefaultMaxHeight);
-        final List<Integer> maxHeights = new ArrayList<>(asList(platform.maxHeights));
-        maxHeights.removeIf(height -> height.compareTo(maxMaxHeight) > 0);
-        comboBoxMaxHeight.setModel(new DefaultComboBoxModel<>(maxHeights.toArray(new Integer[maxHeights.size()])));
+        final boolean atDefault = (previousMaxHeight == null) || (previousMaxHeight == previousDefaultMaxHeight);
         if (atDefault) {
             comboBoxMaxHeight.setSelectedItem(defaultMaxHeight);
-        } else if (currentMaxHeight < platform.minMaxHeight){
+        } else if (previousMaxHeight < platform.minMaxHeight){
             comboBoxMaxHeight.setSelectedItem(platform.minMaxHeight);
-        } else if (currentMaxHeight > platform.maxMaxHeight) {
+        } else if (previousMaxHeight > platform.maxMaxHeight) {
             comboBoxMaxHeight.setSelectedItem(platform.maxMaxHeight);
         } else {
-            comboBoxMaxHeight.setSelectedItem(currentMaxHeight);
+            comboBoxMaxHeight.setSelectedItem(previousMaxHeight);
         }
-        comboBoxMaxHeight.setEnabled((anchor.role == DETAIL) && (! anchor.invert) && (maxHeights.size() > 1));
         maxHeightChanged(true);
-
-        setMinimum(spinnerTerrainLevel, platform.minZ);
-        setMinimum(spinnerWaterLevel, platform.minZ);
 
         setControlStates();
     }
