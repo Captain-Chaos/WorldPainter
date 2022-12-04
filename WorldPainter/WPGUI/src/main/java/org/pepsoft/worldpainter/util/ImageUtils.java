@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
-import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -87,6 +86,11 @@ public final class ImageUtils {
             @Override
             public String getDescription() {
                 return description;
+            }
+
+            @Override
+            public String getExtensions() {
+                return String.join(";", extensions);
             }
         };
     }

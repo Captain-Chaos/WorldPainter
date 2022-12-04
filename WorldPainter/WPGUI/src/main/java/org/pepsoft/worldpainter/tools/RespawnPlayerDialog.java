@@ -13,12 +13,12 @@ package org.pepsoft.worldpainter.tools;
 
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.Configuration;
+import org.pepsoft.worldpainter.util.FileFilter;
 import org.pepsoft.worldpainter.util.FileUtils;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileFilter;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -80,6 +80,11 @@ public class RespawnPlayerDialog extends javax.swing.JDialog {
             @Override
             public String getDescription() {
                 return "Minecraft level.dat files";
+            }
+
+            @Override
+            public String getExtensions() {
+                return "level.dat";
             }
         });
         if (levelDatFile != null) {

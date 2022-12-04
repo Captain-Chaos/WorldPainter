@@ -64,6 +64,7 @@ import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
 import org.pepsoft.worldpainter.tools.BiomesViewerFrame;
 import org.pepsoft.worldpainter.tools.RespawnPlayerDialog;
 import org.pepsoft.worldpainter.tools.scripts.ScriptRunner;
+import org.pepsoft.worldpainter.util.FileFilter;
 import org.pepsoft.worldpainter.util.FileUtils;
 import org.pepsoft.worldpainter.util.*;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
@@ -76,7 +77,6 @@ import javax.swing.Timer;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
@@ -2102,6 +2102,11 @@ public final class App extends JFrame implements RadiusControl,
                     public String getDescription() {
                         return strings.getString("worldpainter.files.world");
                     }
+
+                    @Override
+                    public String getExtensions() {
+                        return "*.world";
+                    }
                 });
         if (selectedFile != null) {
             if (! selectedFile.isFile()) {
@@ -2176,6 +2181,11 @@ public final class App extends JFrame implements RadiusControl,
                 @Override
                 public String getDescription() {
                     return strings.getString("worldpainter.files.world");
+                }
+
+                @Override
+                public String getExtensions() {
+                    return "*.world";
                 }
             });
             if (file != null) {
@@ -6078,6 +6088,11 @@ public final class App extends JFrame implements RadiusControl,
             public String getDescription() {
                 return description;
             }
+
+            @Override
+            public String getExtensions() {
+                return String.join(";", extensions);
+            }
         });
         if (selectedFile != null) {
             final String type;
@@ -6171,6 +6186,11 @@ public final class App extends JFrame implements RadiusControl,
             public String getDescription() {
                 return description;
             }
+
+            @Override
+            public String getExtensions() {
+                return String.join(";", extensions);
+            }
         });
         if (selectedFile != null) {
             final String type;
@@ -6233,6 +6253,11 @@ public final class App extends JFrame implements RadiusControl,
             @Override
             public String getDescription() {
                 return "WorldPainter Custom Layers (*.layer)";
+            }
+
+            @Override
+            public String getExtensions() {
+                return "*.layer";
             }
         });
         if (selectedFiles != null) {
@@ -6341,6 +6366,11 @@ public final class App extends JFrame implements RadiusControl,
             public String getDescription() {
                 return "WorldPainter Custom Layers (*.layer)";
             }
+
+            @Override
+            public String getExtensions() {
+                return "*.layer";
+            }
         });
         if (selectedFile != null) {
             if (!selectedFile.getName().toLowerCase().endsWith(".layer")) {
@@ -6395,6 +6425,11 @@ public final class App extends JFrame implements RadiusControl,
                     @Override
                     public String getDescription() {
                         return strings.getString("worldpainter.files.world");
+                    }
+
+                    @Override
+                    public String getExtensions() {
+                        return "*.world";
                     }
                 });
         if (selectedFile != null) {

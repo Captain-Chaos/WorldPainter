@@ -7,12 +7,12 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.worldpainter.util.FileFilter;
 import org.pepsoft.worldpainter.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.io.*;
 import java.util.ArrayList;
@@ -48,6 +48,11 @@ public class MixedMaterialHelper {
             public String getDescription() {
                 return "WorldPainter Custom Terrains (*.terrain)";
             }
+
+            @Override
+            public String getExtensions() {
+                return "*.terrain";
+            }
         });
         if (selectedFile != null) {
             try {
@@ -80,6 +85,11 @@ public class MixedMaterialHelper {
             @Override
             public String getDescription() {
                 return "WorldPainter Custom Terrains (*.terrain)";
+            }
+
+            @Override
+            public String getExtensions() {
+                return "*.terrain";
             }
         });
         if (selectedFiles != null) {
@@ -120,6 +130,11 @@ public class MixedMaterialHelper {
             @Override
             public String getDescription() {
                 return "WorldPainter Custom Terrains (*.terrain)";
+            }
+
+            @Override
+            public String getExtensions() {
+                return "*.terrain";
             }
         });
         if (selectedFile != null) {

@@ -12,6 +12,7 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.WorldPainterDialog;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.util.FileFilter;
 import org.pepsoft.worldpainter.util.FileUtils;
 import org.pepsoft.worldpainter.vo.EventVO;
 import org.slf4j.Logger;
@@ -23,7 +24,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.io.*;
 import java.nio.charset.Charset;
@@ -104,6 +104,11 @@ public class ScriptRunner extends WorldPainterDialog {
                 sb.append(extensions.stream().map(extension -> "*." + extension).collect(joining(", ")));
                 sb.append(')');
                 return sb.toString();
+            }
+
+            @Override
+            public String getExtensions() {
+                return String.join(";", extensions);
             }
         });
         if ((script != null) && script.isFile()) {
