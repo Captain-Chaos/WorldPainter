@@ -70,11 +70,16 @@ public class ErrorDialog extends javax.swing.JDialog {
         exceptionTypes.add(exception.getClass());
         Throwable rootCause = exception;
         String ioExceptionMessage = (exception instanceof IOException) ? exception.getMessage() : null;
+        // TODO remove this temporary measure to get to the bottom of something
+        boolean forceEmail = forceEmail(exception);
         while (rootCause.getCause() != null) {
             rootCause = rootCause.getCause();
             exceptionTypes.add(rootCause.getClass());
             if (rootCause instanceof IOException) {
                 ioExceptionMessage = rootCause.getMessage();
+            }
+            if (forceEmail(rootCause)) {
+                forceEmail = true;
             }
         }
         final boolean ioException = ioExceptionMessage != null;
@@ -95,7 +100,7 @@ public class ErrorDialog extends javax.swing.JDialog {
                 message = message.substring(0, 247) + "...";
             }
             final String requestedActionLine;
-            if (Main.privateContext != null) {
+            if ((Main.privateContext != null) && (! forceEmail)) {
                 // We can submit the error
                 final Configuration config = Configuration.getInstance();
                 if ((config != null) && TRUE.equals(config.getPingAllowed()) && (! ioException)) {
@@ -330,6 +335,10 @@ public class ErrorDialog extends javax.swing.JDialog {
                 }
             }
         }.start();
+    }
+
+    private static boolean forceEmail(Throwable exception) {
+        return (exception.getMessage() != null) && (exception.getMessage().contains("terrainRanges contains null value") || exception.getMessage().contains("aValue (rowIndex: "));
     }
 
     /** This method is called from within the constructor to

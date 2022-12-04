@@ -23,6 +23,9 @@ public class TerrainRangesTableModel implements TableModel {
         rows = terrainRanges.size();
         int i = 0;
         for (Map.Entry<Integer, Terrain> row: terrainRanges.entrySet()) {
+            // The level in terrainRanges represents the last level the *previous* terrain should be used. This is so
+            // the headMap() method can be used. But we want to present it as the first level *this* terrain should be
+            // used, so add one:
             levels[i] = row.getKey() + 1;
             terrains[i] = row.getValue();
             if (terrains[i] == null) {
@@ -73,6 +76,8 @@ public class TerrainRangesTableModel implements TableModel {
     public SortedMap<Integer, Terrain> getTerrainRanges() {
         SortedMap<Integer, Terrain> terrainRanges = new TreeMap<>();
         for (int i = 0; i < rows; i++) {
+            // We present the level as the first level the terrain should be used for. But it is actually stored in
+            // terrainRanges as the last level the *previous* level should be used, so subtract one:
             terrainRanges.put(levels[i] - 1, terrains[i]);
         }
         return terrainRanges;
