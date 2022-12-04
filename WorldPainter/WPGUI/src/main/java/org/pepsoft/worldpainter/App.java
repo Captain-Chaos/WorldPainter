@@ -6036,6 +6036,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         if (! imageFitsInJavaArray(dimension)) {
             beepAndShowError(this, "The dimension is too large to export to an image.\nThe area (width x height) may not be more than " + NUMBER_FORMAT.format(Integer.MAX_VALUE), "Dimension Too Large");
+            return;
         }
         final Set<String> extensions = new HashSet<>(asList(ImageIO.getReaderFileSuffixes()));
         StringBuilder sb = new StringBuilder(strings.getString("supported.image.formats"));
@@ -6121,6 +6122,7 @@ public final class App extends JFrame implements RadiusControl,
         final HeightMapExporter heightMapExporter = new HeightMapExporter(dimension, highRes);
         if (! imageFitsInJavaArray(dimension)) {
             beepAndShowError(this, "The dimension is too large to export to a height map.\nThe area (width x height) may not be more than " + NUMBER_FORMAT.format(Integer.MAX_VALUE), "Dimension Too Large");
+            return;
         }
         final List<String> extensions = heightMapExporter.getSupportedFileExtensions();
         StringBuilder sb = new StringBuilder(strings.getString("supported.image.formats"));
