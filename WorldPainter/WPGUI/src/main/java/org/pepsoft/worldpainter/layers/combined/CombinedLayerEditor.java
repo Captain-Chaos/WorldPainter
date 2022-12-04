@@ -14,6 +14,8 @@ import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.themes.JSpinnerTableCellEditor;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -208,9 +210,15 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
         final int selectedRow = tableLayers.getSelectedRow();
         if (selectedRow != -1) {
             final Layer layer = (Layer) tableModel.getValueAt(selectedRow, COLUMN_LAYER);
-            if (App.getInstance().editCustomLayer((CustomLayer) layer)) {
-                tableLayers.repaint();
-                settingsChanged();
+            // No idea how this could happen, since the Edit button is disabled for non-custom layers, but we have a
+            // report from the wild so check for it. TODO: find out how this could happen and fix the underlying problem
+            if (layer instanceof CustomLayer) {
+                if (App.getInstance().editCustomLayer((CustomLayer) layer)) {
+                    tableLayers.repaint();
+                    settingsChanged();
+                }
+            } else {
+                logger.error("Selected layer is not a CustomLayer: " + layer);
             }
         }
     }
@@ -436,5 +444,6 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
     private CombinedLayerTableModel tableModel;
     private List<Layer> allLayers;
 
+    private static final Logger logger = LoggerFactory.getLogger(CombinedLayerEditor.class);
     private static final long serialVersionUID = 1L;
 }
