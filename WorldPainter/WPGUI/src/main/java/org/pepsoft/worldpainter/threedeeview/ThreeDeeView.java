@@ -105,12 +105,8 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         this.refreshMode = refreshMode;
     }
 
-    public BufferedImage getImage(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-        final Tile3DRenderer renderer = new Tile3DRenderer(dimension, colourScheme, customBiomeManager, rotation);
-
-        // Paint the complete image
+    public Rectangle getImageBounds() {
         Rectangle imageBounds = null;
-        int tileCount = 0;
         for (Map<Integer, Tile> row: zSortedTiles.values()) {
             for (Tile tile: row.values()) {
                 if (imageBounds == null) {
@@ -118,9 +114,16 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
                 } else {
                     imageBounds = imageBounds.union(getTileBounds(tile));
                 }
-                tileCount++;
             }
         }
+        return imageBounds;
+    }
+
+    public BufferedImage getImage(Rectangle imageBounds, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+        final Tile3DRenderer renderer = new Tile3DRenderer(dimension, colourScheme, customBiomeManager, rotation);
+
+        // Paint the complete image
+        final int tileCount = zSortedTiles.values().stream().mapToInt(Map::size).sum();
         final BufferedImage image = new BufferedImage(imageBounds.width, imageBounds.height, TYPE_INT_ARGB);
         final Graphics2D g2 = image.createGraphics();
         try {
@@ -622,7 +625,7 @@ public class ThreeDeeView extends JComponent implements Dimension.Listener, Tile
         }
         return dimension;
     }
-    
+
     private final Dimension dimension;
     private final Map<Tile, BufferedImage> renderedTiles = new HashMap<>();
     private final ThreeDeeRenderManager threeDeeRenderManager;

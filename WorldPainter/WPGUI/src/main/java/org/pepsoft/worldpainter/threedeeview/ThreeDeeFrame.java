@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.pepsoft.util.GUIUtils.scaleToUI;
+import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
+import static org.pepsoft.worldpainter.App.NUMBER_FORMAT;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.util.LayoutUtils.setDefaultSizeAndLocation;
 
@@ -167,7 +169,12 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
             threeDeeView.refresh();
         }
     }
-    
+
+    private boolean imageFitsInJavaArray(Rectangle imageBounds) {
+        final long area = (long) imageBounds.width * imageBounds.height;
+        return (area >= 0L) && (area <= Integer.MAX_VALUE);
+    }
+
     // WindowListener
 
     @Override
@@ -237,6 +244,11 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
         
         @Override
         public void performAction(ActionEvent e) {
+            final Rectangle imageBounds = threeDeeView.getImageBounds();
+            if (! imageFitsInJavaArray(imageBounds)) {
+                beepAndShowError(ThreeDeeFrame.this, "The 3D image is too large to export to an image.\nThe area (width x height) may not be more than " + NUMBER_FORMAT.format(Integer.MAX_VALUE), "3D Image Too Large");
+                return;
+            }
             final String defaultname = dimension.getWorld().getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getAnchor().dim == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + "_3d.png";
             File selectedFile = ImageUtils.selectImageForSave(ThreeDeeFrame.this, "image file", new File(defaultname));
             if (selectedFile != null) {
@@ -263,7 +275,7 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
                         @Override
                         public Boolean execute(ProgressReceiver progressReceiver) throws OperationCancelled {
                             try {
-                                return ImageIO.write(threeDeeView.getImage(progressReceiver), type, file);
+                                return ImageIO.write(threeDeeView.getImage(imageBounds, progressReceiver), type, file);
                             } catch (IOException e) {
                                 throw new RuntimeException("I/O error while exporting image", e);
                             }
