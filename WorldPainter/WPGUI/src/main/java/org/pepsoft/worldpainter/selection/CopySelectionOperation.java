@@ -27,8 +27,12 @@ public class CopySelectionOperation extends MouseOrTabletOperation {
 
     @Override
     protected void activate() throws PropertyVetoException {
+        final Dimension dimension = getDimension();
+        if (dimension == null) {
+            throw new PropertyVetoException("Dimension not set", null);
+        }
         super.activate();
-        selectionHelper = new SelectionHelper(getDimension());
+        selectionHelper = new SelectionHelper(dimension);
         WorldPainter view = (WorldPainter) getView();
         Rectangle bounds = selectionHelper.getSelectionBounds();
         if (bounds == null) {
