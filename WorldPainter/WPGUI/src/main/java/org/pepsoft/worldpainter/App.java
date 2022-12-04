@@ -3070,6 +3070,10 @@ public final class App extends JFrame implements RadiusControl,
         clearSelectionButton.setEnabled(selectionState.getValue());
         clearSelectionButton.setMargin(App.BUTTON_INSETS);
         clearSelectionButton.addActionListener(e -> {
+            if (dimension == null) {
+                DesktopUtils.beep();
+                return;
+            }
             if (dimension.containsOneOf(SelectionChunk.INSTANCE, SelectionBlock.INSTANCE)) {
                 dimension.setEventsInhibited(true);
                 try {
