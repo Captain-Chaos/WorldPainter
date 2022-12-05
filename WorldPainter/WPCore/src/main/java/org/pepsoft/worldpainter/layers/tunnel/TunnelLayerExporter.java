@@ -79,7 +79,7 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                 : null;
         final boolean customDimension = floorDimension != null;
         final boolean set3DBiomes = (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) && (customDimension || (layer.getTunnelBiome() != null));
-        final BiomeUtils biomeUtils = new BiomeUtils(dimension);
+        final BiomeUtils biomeUtils = new BiomeUtils(customDimension ? floorDimension : dimension);
         final MixedMaterial floorMaterial = (! customDimension) ? layer.getFloorMaterial() : null, wallMaterial = layer.getWallMaterial(), roofMaterial = layer.getRoofMaterial();
         // TODO: increase efficiency and correctness by doing this _after_ the carving and then only for blocks which
         //  adjoin a solid block
@@ -197,7 +197,7 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
             }));
 
         // Carve floor dimension
-        if (floorDimension != null) {
+        if (customDimension) {
             // TODO add support for combined layers
             final List<Layer> floorLayers = new ArrayList<>(floorDimension.getAllLayers(false));
             floorLayers.addAll(floorDimension.getMinimumLayers());

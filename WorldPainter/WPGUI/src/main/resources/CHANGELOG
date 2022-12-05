@@ -1,5 +1,6 @@
 -- Version 2.15.15, released ...
 
+ * Bug fix: use correct Custom Biome names when exporting Custom Cave/Tunnel Layers with Floor Dimensions
  * Bug fix: make adding ceiling dimensions to worlds with non-standard build heights work
  * Various bugs fixes
 
