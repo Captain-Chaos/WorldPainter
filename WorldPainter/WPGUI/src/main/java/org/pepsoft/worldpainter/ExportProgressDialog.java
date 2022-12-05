@@ -19,6 +19,7 @@ import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.exporting.WorldExportSettings;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
+import org.pepsoft.worldpainter.util.FileInUseException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,6 +31,7 @@ import java.text.NumberFormat;
 import java.util.Map;
 
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.util.ExceptionUtils.chainContains;
 import static org.pepsoft.worldpainter.Constants.V_1_17;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
@@ -50,6 +52,10 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
         JButton minimiseButton = new JButton("Minimize");
         minimiseButton.addActionListener(e -> App.getInstance().setState(Frame.ICONIFIED));
         addButton(minimiseButton);
+    }
+
+    public boolean isAllowRetry() {
+        return allowRetry;
     }
 
     // WindowListener
@@ -150,6 +156,11 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
                     return exporter.export(baseDir, name, backupDir, progressReceiver);
                 } catch (IOException e) {
                     throw new RuntimeException("I/O error while exporting world", e);
+                } catch (RuntimeException e) {
+                    if (chainContains(e, FileInUseException.class)) {
+                        allowRetry = true;
+                    }
+                    throw e;
                 }
             }
         };
@@ -187,6 +198,7 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
     private final File baseDir;
     private final WorldExportSettings exportSettings;
     private volatile File backupDir;
+    private volatile boolean allowRetry = false;
     
     private static final long serialVersionUID = 1L;
 }

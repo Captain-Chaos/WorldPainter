@@ -3,7 +3,7 @@
  * The Custom Layers tab of the Exporting screen now has Enable and Disable buttons to quickly select or deselect all selected layers for Export
  * Bug fix: use correct Custom Biome names when exporting Custom Cave/Tunnel Layers with Floor Dimensions
  * Bug fix: make adding ceiling dimensions to worlds with non-standard build heights work
- * Various bugs fixes
+ * Various bugs fixes and usability improvements
 
 -- Version 2.15.14, released 2-12-2022
 

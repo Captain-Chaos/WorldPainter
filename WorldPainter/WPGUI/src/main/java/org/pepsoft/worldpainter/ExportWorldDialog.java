@@ -273,8 +273,8 @@ public class ExportWorldDialog extends WorldPainterDialog {
             }
         }
 
-        File baseDir = new File(fieldDirectory.getText().trim());
-        String name = fieldName.getText().trim();
+        final File baseDir = new File(fieldDirectory.getText().trim());
+        final String name = fieldName.getText().trim();
 
         // Make sure the minimum free disk space is met
         try {
@@ -313,17 +313,29 @@ public class ExportWorldDialog extends WorldPainterDialog {
         checkBoxMapFeatures.setEnabled(false);
         comboBoxDifficulty.setEnabled(false);
 
-        Configuration config = Configuration.getInstance();
+        final Configuration config = Configuration.getInstance();
         config.setExportDirectory(world.getPlatform(), baseDir);
 
-        ExportProgressDialog dialog = new ExportProgressDialog(this, world, exportSettings, baseDir, name);
+        final ExportProgressDialog dialog = new ExportProgressDialog(this, world, exportSettings, baseDir, name);
         view.setInhibitUpdates(true);
         try {
             dialog.setVisible(true);
         } finally {
             view.setInhibitUpdates(false);
         }
-        ok();
+        if (! dialog.isAllowRetry()) {
+            ok();
+        } else {
+            fieldName.setEnabled(true);
+            buttonCancel.setEnabled(true);
+            for (DimensionPropertiesEditor editor: dimensionPropertiesEditors.values()) {
+                editor.setEnabled(true);
+            }
+            checkBoxGoodies.setEnabled(true);
+            comboBoxGameType.setEnabled(true);
+            checkBoxMapFeatures.setEnabled(true);
+            setControlStates();
+        }
     }
 
     private boolean saveDimensionSettings() {
