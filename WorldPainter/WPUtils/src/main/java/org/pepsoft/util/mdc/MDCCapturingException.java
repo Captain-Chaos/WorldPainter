@@ -11,7 +11,7 @@ import java.util.Map;
  * <p>This exception is meant for adding semantic information to the exception chain. To <em>just</em> capture the MDC
  * context, use {@link MDCWrappingException}.
  */
-public class MDCCapturingException extends RuntimeException implements MDCContextProvider {
+public class MDCCapturingException extends Exception implements MDCContextProvider {
     public MDCCapturingException(String message) {
         super(message);
         mdcContext = MDC.getCopyOfContextMap();
