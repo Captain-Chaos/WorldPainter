@@ -50,6 +50,7 @@ import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
 import static org.pepsoft.util.swing.MessageUtils.showInfo;
 import static org.pepsoft.worldpainter.Constants.V_1_17;
+import static org.pepsoft.worldpainter.CustomLayersTableModel.COLUMN_EXPORT;
 import static org.pepsoft.worldpainter.DefaultPlugin.ATTRIBUTE_MC_VERSION;
 import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 import static org.pepsoft.worldpainter.Dimension.Role.*;
@@ -1120,12 +1121,15 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setEnabled(checkBoxCavernsRemoveWater, enabled && (checkBoxCavesBreakSurface.isSelected() || checkBoxCavernsBreakSurface.isSelected() || checkBoxChasmsBreakSurface.isSelected()));
         setEnabled(spinnerCeilingHeight, enabled && ceiling);
         final int[] selectedRows = tableCustomLayers.getSelectedRows();
-        boolean headerIncluded = false;
+        boolean headerIncluded = false, disabledLayersFound = false, enabledLayersFound = false;
         if (selectedRows.length > 0) {
             for (int row = selectedRows[0]; row <= selectedRows[selectedRows.length - 1]; row++) {
                 if (customLayersTableModel.isHeaderRow(row)) {
                     headerIncluded = true;
-                    break;
+                } else if ((boolean) customLayersTableModel.getValueAt(row, COLUMN_EXPORT)) {
+                    enabledLayersFound = true;
+                } else {
+                    disabledLayersFound = true;
                 }
             }
         }
@@ -1133,6 +1137,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setEnabled(buttonCustomLayerTop, buttonCustomLayerUp.isEnabled());
         setEnabled(buttonCustomLayerDown, enabled && (selectedRows.length > 0) && (! headerIncluded) && (! customLayersTableModel.isHeaderRow(selectedRows[selectedRows.length - 1])) && (selectedRows[selectedRows.length - 1] < (tableCustomLayers.getRowCount() - 1)) && (! customLayersTableModel.isHeaderRow(selectedRows[selectedRows.length - 1] + 1)));
         setEnabled(buttonCustomLayerBottom, buttonCustomLayerDown.isEnabled());
+        setEnabled(buttonDisableLayers, enabled && enabledLayersFound);
+        setEnabled(buttonEnableLayers, enabled && disabledLayersFound);
         if (! enabled) {
             setEnabled(comboBoxUndergroundLayerAnchor, false);
         } else {
@@ -1242,6 +1248,24 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         } else {
             buttonGeneratorOptions.setToolTipText(null);
         }
+    }
+
+    private void disableSelectedLayers() {
+        for (int row: tableCustomLayers.getSelectedRows()) {
+            if (! customLayersTableModel.isHeaderRow(row)) {
+                customLayersTableModel.setExport(row, false);
+            }
+        }
+        setControlStates();
+    }
+
+    private void enableSelectedLayers() {
+        for (int row: tableCustomLayers.getSelectedRows()) {
+            if (! customLayersTableModel.isHeaderRow(row)) {
+                customLayersTableModel.setExport(row, true);
+            }
+        }
+        setControlStates();
     }
 
     /**
@@ -1511,6 +1535,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         buttonCustomLayerDown = new javax.swing.JButton();
         buttonCustomLayerTop = new javax.swing.JButton();
         buttonCustomLayerBottom = new javax.swing.JButton();
+        buttonDisableLayers = new javax.swing.JButton();
+        buttonEnableLayers = new javax.swing.JButton();
 
         jLabel6.setText("Underground material:");
 
@@ -3745,6 +3771,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         buttonCustomLayerUp.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/up.png"))); // NOI18N
         buttonCustomLayerUp.setText("Up");
+        buttonCustomLayerUp.setToolTipText("Move the selected layer(s) up");
         buttonCustomLayerUp.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
         buttonCustomLayerUp.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -3754,6 +3781,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         buttonCustomLayerDown.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/down.png"))); // NOI18N
         buttonCustomLayerDown.setText("Down");
+        buttonCustomLayerDown.setToolTipText("Move the selected layer(s) down");
         buttonCustomLayerDown.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
         buttonCustomLayerDown.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -3763,6 +3791,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         buttonCustomLayerTop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/top.png"))); // NOI18N
         buttonCustomLayerTop.setText("To Top");
+        buttonCustomLayerTop.setToolTipText("Move the selected layer(s) to the start of their pass");
         buttonCustomLayerTop.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
         buttonCustomLayerTop.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -3772,10 +3801,27 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         buttonCustomLayerBottom.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/bottom.png"))); // NOI18N
         buttonCustomLayerBottom.setText("To Bottom");
+        buttonCustomLayerBottom.setToolTipText("Move the selected layer(s) to the end of their pass");
         buttonCustomLayerBottom.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
         buttonCustomLayerBottom.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 buttonCustomLayerBottomActionPerformed(evt);
+            }
+        });
+
+        buttonDisableLayers.setText("Disable");
+        buttonDisableLayers.setToolTipText("Disable the selected layer(s)");
+        buttonDisableLayers.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonDisableLayersActionPerformed(evt);
+            }
+        });
+
+        buttonEnableLayers.setText("Enable");
+        buttonEnableLayers.setToolTipText("Enable the selected layer(s)");
+        buttonEnableLayers.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonEnableLayersActionPerformed(evt);
             }
         });
 
@@ -3788,7 +3834,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addGap(0, 131, Short.MAX_VALUE))
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addComponent(jScrollPane1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -3796,7 +3842,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                             .addComponent(buttonCustomLayerBottom, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(buttonCustomLayerDown, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(buttonCustomLayerUp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(buttonCustomLayerTop, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addComponent(buttonCustomLayerTop, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(buttonDisableLayers, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(buttonEnableLayers, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         jPanel7Layout.setVerticalGroup(
@@ -3806,7 +3854,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 369, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 387, Short.MAX_VALUE)
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addComponent(buttonCustomLayerTop)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -3815,6 +3863,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addComponent(buttonCustomLayerDown)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCustomLayerBottom)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonDisableLayers)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonEnableLayers)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -4127,11 +4179,21 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setControlStates();
     }//GEN-LAST:event_checkBoxDecorateChasmsActionPerformed
 
+    private void buttonDisableLayersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonDisableLayersActionPerformed
+        disableSelectedLayers();
+    }//GEN-LAST:event_buttonDisableLayersActionPerformed
+
+    private void buttonEnableLayersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonEnableLayersActionPerformed
+        enableSelectedLayers();
+    }//GEN-LAST:event_buttonEnableLayersActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCustomLayerBottom;
     private javax.swing.JButton buttonCustomLayerDown;
     private javax.swing.JButton buttonCustomLayerTop;
     private javax.swing.JButton buttonCustomLayerUp;
+    private javax.swing.JButton buttonDisableLayers;
+    private javax.swing.JButton buttonEnableLayers;
     private javax.swing.JButton buttonGeneratorOptions;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;

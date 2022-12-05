@@ -1563,12 +1563,12 @@
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="checkBoxDecorationLushCaves">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="[BETA] patches of lush cave"/>
+                    <Property name="text" type="java.lang.String" value="patches of lush cave"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="checkBoxDecorationDripstoneCaves">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="[BETA] patches of dripstone cave"/>
+                    <Property name="text" type="java.lang.String" value="patches of dripstone cave"/>
                   </Properties>
                 </Component>
               </SubComponents>
@@ -3223,7 +3223,7 @@
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" attributes="0">
                               <Component id="jLabel82" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                              <EmptySpace min="0" pref="131" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" attributes="0">
                               <Component id="jScrollPane1" max="32767" attributes="0"/>
@@ -3233,6 +3233,8 @@
                                   <Component id="buttonCustomLayerDown" alignment="0" max="32767" attributes="0"/>
                                   <Component id="buttonCustomLayerUp" alignment="0" max="32767" attributes="0"/>
                                   <Component id="buttonCustomLayerTop" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="buttonDisableLayers" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="buttonEnableLayers" alignment="0" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                       </Group>
@@ -3247,7 +3249,7 @@
                       <Component id="jLabel82" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="jScrollPane1" pref="369" max="32767" attributes="0"/>
+                          <Component id="jScrollPane1" pref="387" max="32767" attributes="0"/>
                           <Group type="102" attributes="0">
                               <Component id="buttonCustomLayerTop" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
@@ -3256,6 +3258,10 @@
                               <Component id="buttonCustomLayerDown" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="buttonCustomLayerBottom" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="buttonDisableLayers" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="buttonEnableLayers" min="-2" max="-2" attributes="0"/>
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                           </Group>
                       </Group>
@@ -3292,6 +3298,7 @@
                   <Image iconType="3" name="/org/pepsoft/worldpainter/icons/up.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Up"/>
+                <Property name="toolTipText" type="java.lang.String" value="Move the selected layer(s) up"/>
                 <Property name="horizontalAlignment" type="int" value="10"/>
               </Properties>
               <Events>
@@ -3304,6 +3311,7 @@
                   <Image iconType="3" name="/org/pepsoft/worldpainter/icons/down.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Down"/>
+                <Property name="toolTipText" type="java.lang.String" value="Move the selected layer(s) down"/>
                 <Property name="horizontalAlignment" type="int" value="10"/>
               </Properties>
               <Events>
@@ -3316,6 +3324,7 @@
                   <Image iconType="3" name="/org/pepsoft/worldpainter/icons/top.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="To Top"/>
+                <Property name="toolTipText" type="java.lang.String" value="Move the selected layer(s) to the start of their pass"/>
                 <Property name="horizontalAlignment" type="int" value="10"/>
               </Properties>
               <Events>
@@ -3328,10 +3337,29 @@
                   <Image iconType="3" name="/org/pepsoft/worldpainter/icons/bottom.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="To Bottom"/>
+                <Property name="toolTipText" type="java.lang.String" value="Move the selected layer(s) to the end of their pass"/>
                 <Property name="horizontalAlignment" type="int" value="10"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonCustomLayerBottomActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JButton" name="buttonDisableLayers">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Disable"/>
+                <Property name="toolTipText" type="java.lang.String" value="Disable the selected layer(s)"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonDisableLayersActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JButton" name="buttonEnableLayers">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Enable"/>
+                <Property name="toolTipText" type="java.lang.String" value="Enable the selected layer(s)"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonEnableLayersActionPerformed"/>
               </Events>
             </Component>
           </SubComponents>

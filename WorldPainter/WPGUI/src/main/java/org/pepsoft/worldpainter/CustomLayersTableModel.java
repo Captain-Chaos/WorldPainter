@@ -57,7 +57,7 @@ public class CustomLayersTableModel implements TableModel {
      */
     public void swap(int rowIndex1, int rowIndex2) {
         if (isHeaderRow(rowIndex1) || isHeaderRow(rowIndex2)) {
-            throw new IllegalStateException("Cannot swap with header rows");
+            throw new IllegalArgumentException("Cannot swap with header rows");
         }
         CustomLayer layer = customLayers.get(rowIndex1);
         customLayers.set(rowIndex1, customLayers.get(rowIndex2));
@@ -66,6 +66,20 @@ public class CustomLayersTableModel implements TableModel {
         TableModelEvent event = new TableModelEvent(this, Math.min(rowIndex1, rowIndex2), Math.max(rowIndex1, rowIndex2));
         for (TableModelListener listener: listeners) {
             listener.tableChanged(event);
+        }
+    }
+
+    public void setExport(int rowIndex, boolean export) {
+        final CustomLayer layer = customLayers.get(rowIndex);
+        if (isHeader(layer)) {
+            throw new IllegalArgumentException("Cannot set export property of header rows");
+        }
+        if (export != layer.isExport()) {
+            layer.setExport(export);
+            final TableModelEvent event = new TableModelEvent(this, rowIndex, rowIndex, COLUMN_EXPORT);
+            for (TableModelListener listener: listeners) {
+                listener.tableChanged(event);
+            }
         }
     }
 
@@ -88,7 +102,7 @@ public class CustomLayersTableModel implements TableModel {
         if (! orderPristine) {
             int index = 0;
             for (CustomLayer layer : customLayers) {
-                if (!isHeader(layer)) {
+                if (! isHeader(layer)) {
                     layer.setIndex(index++);
                 }
             }
@@ -162,13 +176,14 @@ public class CustomLayersTableModel implements TableModel {
     private final List<CustomLayer> customLayers;
     private final List<TableModelListener> listeners = new ArrayList<>();
     private boolean orderPristine = true, exportsPristine = true;
- 
+
+    public static final int COLUMN_LAYER   = 0;
+    public static final int COLUMN_PALETTE = 1;
+    public static final int COLUMN_TYPE    = 2;
+    public static final int COLUMN_EXPORT  = 3;
+
     private static final String[]   COLUMN_NAMES = {"Layer",           "Palette",    "Type",       "Export"};
     private static final Class<?>[] COLUMN_TYPES = {CustomLayer.class, String.class, String.class, Boolean.class};
-    private static final int COLUMN_LAYER   = 0;
-    private static final int COLUMN_PALETTE = 1;
-    private static final int COLUMN_TYPE    = 2;
-    private static final int COLUMN_EXPORT  = 3;
 
     public static final CustomLayer FIRST_PASS_HEADER = new CustomLayer("First export pass", null, null, -1, -1) {};
     public static final CustomLayer SECOND_PASS_HEADER = new CustomLayer("Second export pass", null, null, -1, -1) {};
