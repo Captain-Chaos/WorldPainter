@@ -229,7 +229,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
             if (worldDir.isDirectory()) {
                 if (backupDir != null) {
                     logger.info("Directory already exists; backing up to " + backupDir);
-                    if (!worldDir.renameTo(backupDir)) {
+                    if (! worldDir.renameTo(backupDir)) {
                         throw new FileInUseException("Could not move " + worldDir + " to " + backupDir);
                     }
                 } else {
