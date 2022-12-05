@@ -57,10 +57,10 @@ public class TiledImageViewerContainer extends JPanel implements TiledImageViewe
     public void setView(Component view) {
         if (this.view != null) {
             this.view.setViewListener(null);
-            viewContainer.remove(this.view);
+            viewContainer.removeAll();
         }
         if (view != null) {
-            TiledImageViewer tiledImageViewer = findTiledImageViewer(view);
+            final TiledImageViewer tiledImageViewer = findTiledImageViewer(view);
             if (tiledImageViewer == null) {
                 throw new IllegalArgumentException("Specified component does not contain a TiledImageViewer");
             }
