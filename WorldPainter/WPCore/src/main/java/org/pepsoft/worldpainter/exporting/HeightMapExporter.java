@@ -11,6 +11,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 
 import static java.awt.image.DataBuffer.TYPE_INT;
@@ -41,26 +42,35 @@ public class HeightMapExporter {
 
     public boolean exportToFile(File file) {
         final String type = file.getName().substring(file.getName().lastIndexOf('.') + 1).toUpperCase();
-        // Leave the progress receiver indeterminate, since
-        // by *far* the most time goes into actually writing
-        // the file, and we can't report progress for that
+        // Leave the progress receiver indeterminate, since by *far* the most time goes into actually writing the file,
+        // and we can't report progress for that
         try {
             final BufferedImage image;
             final ImageWriter writer;
             final ImageWriteParam params;
             // TODO fail gracefully if the world is too large because the data buffer would overflow
             if (bitsRequired > 16) {
-                ImageTypeSpecifier imageTypeSpecifier = ImageTypeSpecifiers.createGrayscale(32, TYPE_INT);
+                final ImageTypeSpecifier imageTypeSpecifier = ImageTypeSpecifiers.createGrayscale(32, TYPE_INT);
                 image = imageTypeSpecifier.createBufferedImage(dimension.getWidth() * TILE_SIZE, dimension.getHeight() * TILE_SIZE);
-                writer = ImageIO.getImageWriters(imageTypeSpecifier, type).next();
-                params = writer.getDefaultWriteParam();
-                params.setCompressionMode(MODE_EXPLICIT);
-                params.setCompressionType("LZW");
-                params.setCompressionQuality(0f);
+                final Iterator<ImageWriter> writers = ImageIO.getImageWriters(imageTypeSpecifier, type);
+                if (writers.hasNext()) {
+                    writer = writers.next();
+                    params = writer.getDefaultWriteParam();
+                    params.setCompressionMode(MODE_EXPLICIT);
+                    params.setCompressionType("LZW");
+                    params.setCompressionQuality(0f);
+                } else {
+                    return false;
+                }
             } else {
                 image = new BufferedImage(dimension.getWidth() * TILE_SIZE, dimension.getHeight() * TILE_SIZE, (bitsRequired <= 8) ? BufferedImage.TYPE_BYTE_GRAY : BufferedImage.TYPE_USHORT_GRAY);
-                writer = ImageIO.getImageWriters(ImageTypeSpecifier.createFromRenderedImage(image), type).next();
-                params = writer.getDefaultWriteParam();
+                final Iterator<ImageWriter> writers = ImageIO.getImageWriters(ImageTypeSpecifier.createFromRenderedImage(image), type);
+                if (writers.hasNext()) {
+                    writer = writers.next();
+                    params = writer.getDefaultWriteParam();
+                } else {
+                    return false;
+                }
             }
             final WritableRaster raster = image.getRaster();
             for (Tile tile: dimension.getTiles()) {
