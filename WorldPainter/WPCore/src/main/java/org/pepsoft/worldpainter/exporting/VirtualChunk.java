@@ -114,6 +114,23 @@ public class VirtualChunk implements Chunk {
         return world.getMaxHeight();
     }
 
+    /**
+     * Returns {@code true} in order to support generating 3D previews, but this class does not actually store any
+     * biomes.
+     */
+    @Override
+    public boolean is3DBiomesSupported() {
+        return true;
+    }
+
+    /**
+     * Implemented in order to support generating 3D previews, but this class does not actually store any biomes.
+     */
+    @Override
+    public void set3DBiome(int x, int y, int z, int biome) {
+        // Do nothing
+    }
+
     @Override
     public boolean isReadOnly() {
         return false;
