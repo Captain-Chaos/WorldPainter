@@ -13,11 +13,12 @@ import org.pepsoft.worldpainter.objects.WPObject;
 
 import javax.vecmath.Point3i;
 import java.io.*;
-import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.nio.charset.StandardCharsets.US_ASCII;
 
 /**
  *
@@ -228,9 +229,9 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
      * @throws IOException If an I/O error occurred while reading the stream.
      */
     public static Bo2Object load(String objectName, InputStream stream) throws IOException {
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(stream, Charset.forName("US-ASCII")))) {
-            Map<String, String> properties = new HashMap<>();
-            Map<Point3i, Bo2BlockSpec> blocks = new HashMap<>();
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(stream, US_ASCII))) {
+            final Map<String, String> properties = new HashMap<>();
+            final Map<Point3i, Bo2BlockSpec> blocks = new HashMap<>();
             boolean readingMetaData = false, readingData = false;
             String line;
             int lowestX = Integer.MAX_VALUE, highestX = Integer.MIN_VALUE;
@@ -245,20 +246,23 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
                         readingMetaData = false;
                         readingData = true;
                     } else {
-                        int p = line.indexOf('=');
+                        final int p = line.indexOf('=');
+                        if (p == -1) {
+                            throw new IllegalArgumentException("Invalid metadata line encountered: \"" + line + "\"");
+                        }
                         String name = line.substring(0, p).trim();
                         String value = line.substring(p + 1).trim();
                         properties.put(name, value);
                     }
                 } else if (readingData) {
                     int p = line.indexOf(':');
-                    String coordinates = line.substring(0, p);
-                    String spec = line.substring(p + 1);
+                    final String coordinates = line.substring(0, p);
+                    final String spec = line.substring(p + 1);
                     p = coordinates.indexOf(',');
-                    int x = Integer.parseInt(coordinates.substring(0, p));
+                    final int x = Integer.parseInt(coordinates.substring(0, p));
                     int p2 = coordinates.indexOf(',', p + 1);
-                    int y = Integer.parseInt(coordinates.substring(p + 1, p2));
-                    int z = Integer.parseInt(coordinates.substring(p2 + 1));
+                    final int y = Integer.parseInt(coordinates.substring(p + 1, p2));
+                    final int z = Integer.parseInt(coordinates.substring(p2 + 1));
                     if (x < lowestX) {
                         lowestX = x;
                     }
@@ -278,7 +282,8 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
                         highestZ = z;
                     }
                     p = spec.indexOf('.');
-                    int blockId, data = 0;
+                    final int blockId;
+                    int data = 0;
                     int[] branch = null;
                     if (p == -1) {
                         blockId = Integer.parseInt(spec);
@@ -290,10 +295,10 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
                         } else {
                             data = Integer.parseInt(spec.substring(p + 1, p2));
                             p = spec.indexOf('@', p2 + 1);
-                            branch = new int[]{Integer.parseInt(spec.substring(p2 + 1, p)), Integer.parseInt(spec.substring(p + 1))};
+                            branch = new int[] {Integer.parseInt(spec.substring(p2 + 1, p)), Integer.parseInt(spec.substring(p + 1))};
                         }
                     }
-                    Point3i coords = new Point3i(x, y, z);
+                    final Point3i coords = new Point3i(x, y, z);
                     blocks.put(coords, new Bo2BlockSpec(coords, Material.get(blockId, data), branch));
                 } else {
                     if (line.equals("[META]")) {
