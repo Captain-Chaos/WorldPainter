@@ -6117,10 +6117,9 @@ public final class App extends JFrame implements RadiusControl,
                         }
 
                         @Override
-                        public Boolean execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                            // Leave the progress receiver indeterminate, since
-                            // by *far* the most time goes into actually writing
-                            // the file, and we can't report progress for that
+                        public Boolean execute(ProgressReceiver progressReceiver) {
+                            // Leave the progress receiver indeterminate, since by *far* the most time goes into
+                            // actually writing the file, and we can't report progress for that
                             try {
                                 return ImageIO.write(view.getImage(), type, file);
                             } catch (IOException e) {
