@@ -19,7 +19,7 @@ import static org.pepsoft.util.FileUtils.deleteDir;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
 public class ExportPerformanceTester extends AbstractTool {
-    public static void main(String[] args) throws IOException, ProgressReceiver.OperationCancelled {
+    public static void main(String[] args) throws IOException, ProgressReceiver.OperationCancelled, UnloadableWorldException {
         initialisePlatform();
         logger.info("Available processor count: {}", Runtime.getRuntime().availableProcessors());
 
