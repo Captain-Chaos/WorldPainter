@@ -444,7 +444,9 @@ public final class App extends JFrame implements RadiusControl,
                         break;
                     case MASTER:
                         Dimension detailDimension = world.getDimension(new Anchor(anchor.dim, DETAIL, anchor.invert, 0));
-                        detailDimension.setLastViewPosition(new Point(viewPosition.x << 4, viewPosition.y << 4));
+                        if (detailDimension != null) {
+                            detailDimension.setLastViewPosition(new Point(viewPosition.x << 4, viewPosition.y << 4));
+                        }
                         break;
                     case CAVE_FLOOR:
                         // Keep the surface dimension in sync with the last edited cave floor
