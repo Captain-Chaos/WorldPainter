@@ -6758,8 +6758,8 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void exitDimension() {
-        final Anchor anchor = dimension.getAnchor();
-        if ((dimension != null) && (anchor.role == CAVE_FLOOR)) {
+        if ((dimension != null) && (dimension.getAnchor().role == CAVE_FLOOR)) {
+            final Anchor anchor = dimension.getAnchor();
             setDimension(world.getDimension(new Anchor(anchor.dim, DETAIL, anchor.invert, 0)));
         } else {
             DesktopUtils.beep();
