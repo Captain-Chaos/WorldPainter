@@ -138,7 +138,12 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
 
     public void setLayers(List<Layer> layers) {
         if (layers == null) {
-            throw new NullPointerException();
+            throw new NullPointerException("layers");
+        }
+        for (int i = 0; i < layers.size(); i++) {
+            if (layers.get(i) == null) {
+                throw new IllegalArgumentException("layers[" + i + "] == null");
+            }
         }
         this.layers = layers;
     }
