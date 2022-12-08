@@ -31,7 +31,7 @@ public class Plants {
         @Override
         public Category isValidFoundation(MinecraftWorld world, int x, int y, int z, boolean checkBlockBelow) {
             final Material material = world.getMaterialAt(x, y, z);
-            return ((! checkBlockBelow) || material.modded || material.isNamedOneOf(MC_SAND, MC_RED_SAND, MC_DIRT, MC_TERRACOTTA, MC_PODZOL, MC_COARSE_DIRT)) ? PLANTS_AND_FLOWERS : null;
+            return ((! checkBlockBelow) || material.modded || material.isNamedOneOf(MC_SAND, MC_RED_SAND, MC_DIRT, MC_TERRACOTTA, MC_PODZOL, MC_COARSE_DIRT) || material.name.endsWith("_terracotta")) ? PLANTS_AND_FLOWERS : null;
         }
     };
     public static final Plant DANDELION = new SimplePlant("Dandelion", Material.DANDELION, PLANTS_AND_FLOWERS);
@@ -64,16 +64,16 @@ public class Plants {
     public static final Plant WHEAT = new AgingPlant("Wheat", Material.WHEAT, "block/wheat_stage7.png", 8, CROPS);
     public static final Plant CARROTS = new AgingPlant("Carrots", Material.CARROTS, "block/carrots_stage3.png", 8, CROPS);
     public static final Plant POTATOES = new AgingPlant("Potatoes", Material.POTATOES, "block/potatoes_stage3.png", 8, CROPS);
-    public static final Plant PUMPKIN_STEMS = new AgingPlant("Pumpkin Stems", Material.PUMPKIN_STEM, "block/pumpkin_side.png", 8, CROPS) {
+    public static final Plant PUMPKIN_STEMS = new AgingPlant("Pumpkin Stem", Material.PUMPKIN_STEM, "block/pumpkin_side.png", 8, CROPS) {
         @Override
         public Plant realise(int growth, Platform platform) {
-            return new SimplePlant("Pumpkin Stems", Material.PUMPKIN_STEM.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), categories);
+            return new SimplePlant("Pumpkin Stem", Material.PUMPKIN_STEM.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), categories);
         }
     };
-    public static final Plant MELON_STEMS = new AgingPlant("Melon Stems", Material.MELON_STEM, "block/melon_side.png", 8, CROPS) {
+    public static final Plant MELON_STEMS = new AgingPlant("Melon Stem", Material.MELON_STEM, "block/melon_side.png", 8, CROPS) {
         @Override
         public Plant realise(int growth, Platform platform) {
-            return new SimplePlant("Melon Stems", Material.MELON_STEM.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), categories);
+            return new SimplePlant("Melon Stem", Material.MELON_STEM.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), categories);
         }
     };
     public static final Plant BEETROOTS = new AgingPlant("Beetroots", Material.BEETROOTS, "block/beetroots_stage3.png", 4, CROPS);
