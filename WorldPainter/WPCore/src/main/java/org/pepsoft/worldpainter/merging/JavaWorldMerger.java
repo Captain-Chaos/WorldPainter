@@ -1127,7 +1127,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
     }
 
     private void clearBlock(final Chunk chunk, final int x, final int y, final int height, final Material existingMaterial) {
-        final int maxZ = world.getMaxHeight() - 1;
+        final int maxZ = chunk.getMaxHeight() - 1;
         if (existingMaterial.watery || existingMaterial.is(WATERLOGGED)) {
             chunk.setMaterial(x, height, y, STATIONARY_WATER);
             // TODO skylight adjustment for under water

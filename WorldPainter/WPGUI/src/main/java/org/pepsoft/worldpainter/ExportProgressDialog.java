@@ -104,26 +104,31 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
         if (result.size() == 1) {
             ChunkFactory.Stats stats = result.get(result.keySet().iterator().next());
             sb.append("<br><br>Statistics:<br>");
-            dumpStats(sb, stats);
+            dumpStats(sb, stats, world.getMaxHeight() - platform.minZ);
         } else {
             for (Map.Entry<Integer, ChunkFactory.Stats> entry: result.entrySet()) {
-                int dim = entry.getKey();
+                final int dim = entry.getKey();
+                final int height;
                 ChunkFactory.Stats stats = entry.getValue();
                 switch (dim) {
                     case Constants.DIM_NORMAL:
                         sb.append("<br><br>Statistics for surface:<br>");
+                        height = world.getMaxHeight() - platform.minZ;
                         break;
                     case Constants.DIM_NETHER:
                         sb.append("<br><br>Statistics for Nether:<br>");
+                        height = DEFAULT_MAX_HEIGHT_NETHER;
                         break;
                     case Constants.DIM_END:
                         sb.append("<br><br>Statistics for End:<br>");
+                        height = DEFAULT_MAX_HEIGHT_END;
                         break;
                     default:
                         sb.append("<br><br>Statistics for dimension " + dim + ":<br>");
+                        height = world.getMaxHeight() - platform.minZ;
                         break;
                 }
-                dumpStats(sb, stats);
+                dumpStats(sb, stats, height);
             }
         }
         if (backupDir.isDirectory()) {
@@ -166,7 +171,7 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
         };
     }
 
-    private void dumpStats(final StringBuilder sb, final ChunkFactory.Stats stats) {
+    private void dumpStats(final StringBuilder sb, final ChunkFactory.Stats stats, final int height) {
         final NumberFormat formatter = NumberFormat.getIntegerInstance();
         final long duration = stats.time / 1000;
         if (stats.landArea > 0) {
@@ -178,7 +183,7 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
                 sb.append("Total surface area: " + formatter.format(stats.landArea + stats.waterArea) + " blocks<br>");
             }
         }
-        final long totalBlocks = stats.surfaceArea * world.getMaxHeight();
+        final long totalBlocks = stats.surfaceArea * height;
         if (duration > 0) {
             sb.append("Generated " + formatter.format(totalBlocks) + " blocks, or " + formatter.format(totalBlocks / duration) + " blocks per second<br>");
             if (stats.size > 0) {

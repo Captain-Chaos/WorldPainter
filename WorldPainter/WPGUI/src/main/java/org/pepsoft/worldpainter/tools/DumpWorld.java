@@ -7,6 +7,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
+import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
+
 /**
  * Created by Pepijn Schmitz on 21-09-15.
  */
@@ -170,7 +172,7 @@ public class DumpWorld {
         terrainsUsed.forEach(terrain -> System.out.println("        " + terrain.getName() + " (index: " + terrain.ordinal() + ")"));
 
         List<String> problems = new ArrayList<>();
-        if (dimension.getMaxHeight() != dimension.getWorld().getMaxHeight()) {
+        if ((dimension.getAnchor().dim != DIM_NORMAL) && (dimension.getMaxHeight() != dimension.getWorld().getMaxHeight())) {
             problems.add("Dimension max height (" + dimension.getMaxHeight() + ") does not equal the world max height (" + dimension.getWorld().getMaxHeight() + ")");
         }
         for (Terrain terrain: terrainsUsed) {

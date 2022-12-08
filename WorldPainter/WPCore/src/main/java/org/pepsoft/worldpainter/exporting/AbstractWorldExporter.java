@@ -515,20 +515,20 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 progressReceiver.setMessage("Generating landscape");
             }
         }
-        int lowestChunkX = (regionCoords.x << 5) - 1;
-        int highestChunkX = (regionCoords.x << 5) + 32;
-        int lowestChunkY = (regionCoords.y << 5) - 1;
-        int highestChunkY = (regionCoords.y << 5) + 32;
-        int lowestRegionChunkX = lowestChunkX + 1;
-        int highestRegionChunkX = highestChunkX - 1;
-        int lowestRegionChunkY = lowestChunkY + 1;
-        int highestRegionChunkY = highestChunkY - 1;
-        ExportResults exportResults = new ExportResults();
+        final int lowestChunkX = (regionCoords.x << 5) - 1;
+        final int highestChunkX = (regionCoords.x << 5) + 32;
+        final int lowestChunkY = (regionCoords.y << 5) - 1;
+        final int highestChunkY = (regionCoords.y << 5) + 32;
+        final int lowestRegionChunkX = lowestChunkX + 1;
+        final int highestRegionChunkX = highestChunkX - 1;
+        final int lowestRegionChunkY = lowestChunkY + 1;
+        final int highestRegionChunkY = highestChunkY - 1;
+        final ExportResults exportResults = new ExportResults();
         int chunkNo = 0;
-        int ceilingDelta = dimension.getMaxHeight() - dimension.getCeilingHeight();
+        final int ceilingDelta = dimension.getMaxHeight() - dimension.getCeilingHeight();
         for (int chunkX = lowestChunkX; chunkX <= highestChunkX; chunkX++) {
             for (int chunkY = lowestChunkY; chunkY <= highestChunkY; chunkY++) {
-                ChunkFactory.ChunkCreationResult chunkCreationResult = createChunk(dimension, chunkFactory, tiles, chunkX, chunkY, tileSelection, exporters, ceiling);
+                final ChunkFactory.ChunkCreationResult chunkCreationResult = createChunk(dimension, chunkFactory, tiles, chunkX, chunkY, tileSelection, exporters, ceiling);
                 if (chunkCreationResult != null) {
                     if ((chunkX >= lowestRegionChunkX) && (chunkX <= highestRegionChunkX) && (chunkY >= lowestRegionChunkY) && (chunkY <= highestRegionChunkY)) {
                         exportResults.chunksGenerated = true;
@@ -537,10 +537,10 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                         exportResults.stats.waterArea += chunkCreationResult.stats.waterArea;
                     }
                     if (ceiling) {
-                        Chunk invertedChunk = new InvertedChunk(chunkCreationResult.chunk, ceilingDelta, platform);
+                        final Chunk invertedChunk = new InvertedChunk(chunkCreationResult.chunk, ceilingDelta, platform);
                         Chunk existingChunk = minecraftWorld.getChunkForEditing(chunkX, chunkY);
                         if (existingChunk == null) {
-                            existingChunk = platformProvider.createChunk(platform, chunkX, chunkY, world.getMaxHeight());
+                            existingChunk = platformProvider.createChunk(platform, chunkX, chunkY, dimension.getMaxHeight());
                             minecraftWorld.addChunk(existingChunk);
                         }
                         mergeChunks(invertedChunk, existingChunk);

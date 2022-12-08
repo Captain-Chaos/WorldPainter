@@ -3401,7 +3401,7 @@ public final class App extends JFrame implements RadiusControl,
         final Anchor anchor = dimension.getAnchor();
         menuItem = new JMenuItem(strings.getString("add.a.custom.underground.pockets.layer") + "...");
         menuItem.addActionListener(e -> {
-            UndergroundPocketsDialog dialog = new UndergroundPocketsDialog(App.this, world.getPlatform(), MixedMaterial.create(world.getPlatform(), Material.IRON_BLOCK), selectedColourScheme, world.getMaxHeight(), world.isExtendedBlockIds());
+            UndergroundPocketsDialog dialog = new UndergroundPocketsDialog(App.this, world.getPlatform(), MixedMaterial.create(world.getPlatform(), Material.IRON_BLOCK), selectedColourScheme, dimension.getMaxHeight(), world.isExtendedBlockIds());
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 UndergroundPocketsLayer layer = dialog.getLayer();
