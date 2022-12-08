@@ -5,10 +5,8 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.exporting.JavaWorldExporter;
 
@@ -39,13 +37,6 @@ public class Timings {
         for (int i = 0; i < 5; i++) {
 //            final World2 world = WorldFactory.createDefaultWorld(defaultConfig, random.nextLong());
             world.getDimension(NORMAL_DETAIL).getTileFactory().setSeed(random.nextLong());
-            if (world.getPlatform() == null) {
-                if (world.getMaxHeight() == Constants.DEFAULT_MAX_HEIGHT_ANVIL) {
-                    world.setPlatform(DefaultPlugin.JAVA_ANVIL);
-                } else {
-                    world.setPlatform(DefaultPlugin.JAVA_MCREGION);
-                }
-            }
             final JavaWorldExporter exporter = new JavaWorldExporter(world, EXPORT_EVERYTHING);
             System.out.println("Starting export of world " + world.getName() + " " + i + " (seed: " + world.getDimension(NORMAL_DETAIL).getSeed() + ")");
             File baseDir = new File(System.getProperty("user.dir"));

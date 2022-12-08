@@ -4,7 +4,6 @@
  */
 package org.pepsoft.worldpainter.tools;
 
-import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.TextProgressReceiver;
@@ -41,13 +40,6 @@ public class Export extends AbstractTool {
         for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
             MixedMaterial material = world.getMixedMaterial(i);
             Terrain.setCustomMaterial(i, material);
-        }
-        if (world.getPlatform() == null) {
-            if (world.getMaxHeight() == Constants.DEFAULT_MAX_HEIGHT_ANVIL) {
-                world.setPlatform(DefaultPlugin.JAVA_ANVIL);
-            } else {
-                world.setPlatform(DefaultPlugin.JAVA_MCREGION);
-            }
         }
 
         Platform platform = world.getPlatform();
