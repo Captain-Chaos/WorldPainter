@@ -399,8 +399,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         return aborted;
     }
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent") // It's always there. The API should allow to assert that
-    private void mergeDimension(final File worldDir, File backupWorldDir, final Dimension dimension, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+    private void mergeDimension(final File worldDir, File backupWorldDir, final Dimension dimension, ProgressReceiver progressReceiver) {
         doWithMdcContext(() -> {
             if (progressReceiver != null) {
                 progressReceiver.setMessage("merging " + dimension.getName() + " dimension");
@@ -467,10 +466,20 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     allRegionCoords.addAll(existingRegions.keySet());
                 }
                 allRegionCoords.addAll(tilesByRegion.keySet());
-                final int lowestRegionX = allRegionCoords.stream().mapToInt(p -> p.x).min().getAsInt();
-                final int highestRegionX = allRegionCoords.stream().mapToInt(p -> p.x).max().getAsInt();
-                final int lowestRegionZ = allRegionCoords.stream().mapToInt(p -> p.y).min().getAsInt();
-                final int highestRegionZ = allRegionCoords.stream().mapToInt(p -> p.y).max().getAsInt();
+                final int lowestRegionX;
+                final int highestRegionX;
+                final int lowestRegionZ;
+                final int highestRegionZ;
+                if (allRegionCoords.isEmpty()) {
+                    // This means that the dimension is empty or no tiles were selected, and the existing map also has no
+                    // region files for the dimension. Very strange, but it has been observed in the wild
+                    lowestRegionX = highestRegionX = lowestRegionZ = highestRegionZ = 0;
+                } else {
+                    lowestRegionX = allRegionCoords.stream().mapToInt(p -> p.x).min().getAsInt();
+                    highestRegionX = allRegionCoords.stream().mapToInt(p -> p.x).max().getAsInt();
+                    lowestRegionZ = allRegionCoords.stream().mapToInt(p -> p.y).min().getAsInt();
+                    highestRegionZ = allRegionCoords.stream().mapToInt(p -> p.y).max().getAsInt();
+                }
 
                 // Find all the existing region files of other types than REGION
                 final Map<Point, Map<DataType, File>> additionalRegions = new HashMap<>();
@@ -835,7 +844,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         }
     }
 
-    private String mergeRegion(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter> exporters, ChunkFactory chunkFactory, List<Fixup> fixups, ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
+    private String mergeRegion(MinecraftWorld minecraftWorld, File oldRegionDir, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter> exporters, ChunkFactory chunkFactory, List<Fixup> fixups, ProgressReceiver progressReceiver) {
         return doWithMdcContext(() -> {
             if (progressReceiver != null) {
                 progressReceiver.setMessage("Merging region " + regionCoords.x + "," + regionCoords.y + " of " + dimension.getName());
