@@ -2,6 +2,7 @@
 
  * Allow plants to be placed on mud
  * Bug fix: don't crash when a ceiling dimension has tiles where the surface does no
+ * Various usability improvements
 
 -- Version 2.15.15, released 7-12-2022
 

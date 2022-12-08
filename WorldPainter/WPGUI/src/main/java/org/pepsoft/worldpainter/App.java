@@ -4268,6 +4268,11 @@ public final class App extends JFrame implements RadiusControl,
     private void createNewLayerPalette(CustomLayer layer) {
         String name;
         if ((name = showInputDialog(this, "Enter a unique name for the new palette:", "New Palette", QUESTION_MESSAGE)) != null) {
+            name = name.trim();
+            if (name.isEmpty()) {
+                beepAndShowError(this, "Palette name cannot be empty", "Invalid Name");
+                return;
+            }
             if (paletteManager.getPalette(name) != null) {
                 showMessageDialog(this, "There is already a palette with that name!", "Duplicate Name", ERROR_MESSAGE);
                 return;
