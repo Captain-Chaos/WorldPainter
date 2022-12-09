@@ -339,6 +339,7 @@ public class ErrorDialog extends javax.swing.JDialog {
 
     private static boolean forceEmail(Throwable exception) {
         return (exception.getMessage() != null) && (exception.getMessage().contains("terrainRanges contains null value")
+                || exception.getMessage().contains("terrainRanges may not contain null values")
                 || exception.getMessage().contains("aValue (rowIndex: ")
                 || exception.getMessage().contains("Index -4 out of bounds for length 20"));
     }
