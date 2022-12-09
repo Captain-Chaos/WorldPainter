@@ -5973,7 +5973,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private void saveCustomLayers() {
         if (dimension != null) {
-            if (!paletteManager.isEmpty()) {
+            if (! paletteManager.isEmpty()) {
                 final List<CustomLayer> customLayers = new ArrayList<>();
                 for (Palette palette: paletteManager.getPalettes()) {
                     customLayers.addAll(palette.getLayers());
