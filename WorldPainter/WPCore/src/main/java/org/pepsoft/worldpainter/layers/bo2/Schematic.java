@@ -35,7 +35,9 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
         super(tag);
         this.name = name;
         materials = getString("Materials");
-        if (! materials.equalsIgnoreCase("Alpha")) {
+        if (materials == null) {
+            throw new IllegalArgumentException("Invalid schematic file; Materials tag missing");
+        } else if (! materials.equalsIgnoreCase("Alpha")) {
             throw new IllegalArgumentException("Unsupported materials type " + materials);
         }
         blocks = getByteArray("Blocks");
