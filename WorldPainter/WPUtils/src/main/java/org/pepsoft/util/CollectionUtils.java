@@ -115,4 +115,38 @@ public final class CollectionUtils {
         list.addAll(collection);
         return list;
     }
+
+    /**
+     * Null-safe method for copying a {@link List}.
+     *
+     * @param list The list to copy.
+     * @return A new {@link ArrayList} with the contents of the provided list, or {@code null} if {@code list} was null.
+     * @param <E> The element type of the list.
+     */
+    public static <E> ArrayList<E> copyOf(List<E> list) {
+        return (list != null) ? new ArrayList<>(list) : null;
+    }
+
+    /**
+     * Null-safe method for copying a {@link Set}.
+     *
+     * @param set The set to copy.
+     * @return A new {@link HashSet} with the contents of the provided set, or {@code null} if {@code set} was null.
+     * @param <E> The element type of the set.
+     */
+    public static <E> HashSet<E> copyOf(Set<E> set) {
+        return (set != null) ? new HashSet<>(set) : null;
+    }
+
+    /**
+     * Null-safe method for copying a {@link Map}.
+     *
+     * @param map The map to copy.
+     * @return A new {@link HashMap} with the contents of the provided map, or {@code null} if {@code map} was null.
+     * @param <K> The key type of the map.
+     * @param <V> The value type of the map.
+     */
+    public static <K,V> HashMap<K,V> copyOf(Map<K,V> map) {
+        return (map != null) ? new HashMap<>(map) : null;
+    }
 }

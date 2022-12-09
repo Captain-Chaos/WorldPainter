@@ -20,6 +20,7 @@ import java.util.*;
 
 import static org.pepsoft.minecraft.Block.BLOCKS;
 import static org.pepsoft.minecraft.Material.MINECRAFT;
+import static org.pepsoft.util.CollectionUtils.copyOf;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 
 /**
@@ -127,7 +128,7 @@ public class MaterialSelector extends javax.swing.JPanel {
      * Load the properties of the current material into the properties panel.
      */
     private void loadActualProperties() {
-        properties = (material.getProperties() != null) ? new HashMap<>(material.getProperties()) : null;
+        properties = copyOf(material.getProperties());
         updateProperties();
     }
 
@@ -137,7 +138,7 @@ public class MaterialSelector extends javax.swing.JPanel {
      */
     private void loadDefaultProperties() {
         Material defaultMaterial = Material.getPrototype(namespace + ":" + simpleName);
-        properties = (defaultMaterial.getProperties() != null) ? new HashMap<>(defaultMaterial.getProperties()) : null;
+        properties = copyOf(defaultMaterial.getProperties());
         updateProperties();
     }
 

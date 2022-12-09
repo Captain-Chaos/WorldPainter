@@ -55,6 +55,7 @@ import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.minecraft.Material.*;
+import static org.pepsoft.util.CollectionUtils.copyOf;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.Dimension.Anchor.*;
@@ -1328,13 +1329,13 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public List<CustomBiome> getCustomBiomes() {
-        return customBiomes;
+        return copyOf(customBiomes);
     }
 
     public void setCustomBiomes(List<CustomBiome> customBiomes) {
-        if ((customBiomes != null) ? (! customBiomes.equals(this.customBiomes)) : (this.customBiomes != null)) {
-            List<CustomBiome> oldCustomBiomes = this.customBiomes;
-            this.customBiomes = customBiomes;
+        if (! Objects.equals(customBiomes, this.customBiomes)) {
+            final List<CustomBiome> oldCustomBiomes = this.customBiomes;
+            this.customBiomes = copyOf(customBiomes);
             changeNo++;
             propertyChangeSupport.firePropertyChange("customBiomes", oldCustomBiomes, customBiomes);
         }
@@ -1365,11 +1366,11 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public List<CustomLayer> getCustomLayers() {
-        return customLayers;
+        return copyOf(customLayers);
     }
 
     public void setCustomLayers(List<CustomLayer> customLayers) {
-        this.customLayers = customLayers;
+        this.customLayers = copyOf(customLayers);
     }
 
     /**
@@ -1526,13 +1527,13 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public Set<String> getHiddenPalettes() {
-        return hiddenPalettes;
+        return copyOf(hiddenPalettes);
     }
 
     public void setHiddenPalettes(Set<String> hiddenPalettes) {
         if (! Objects.equals(hiddenPalettes, this.hiddenPalettes)) {
             final Set<String> oldHiddenPalettes = this.hiddenPalettes;
-            this.hiddenPalettes = hiddenPalettes;
+            this.hiddenPalettes = copyOf(hiddenPalettes);
             changeNo++;
             propertyChangeSupport.firePropertyChange("hiddenPalettes", oldHiddenPalettes, hiddenPalettes);
         }

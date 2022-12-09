@@ -8,6 +8,8 @@ import javax.vecmath.Point3i;
 import java.io.Serializable;
 import java.util.*;
 
+import static org.pepsoft.util.CollectionUtils.copyOf;
+
 /**
  * A generic {@link WPObject}, not tied to any particular platform or file
  * format.
@@ -48,8 +50,8 @@ public final class GenericObject extends NamedObjectWithAttributes {
                 }
             }
         }
-        this.entities = (object.getEntities() != null) ? new ArrayList<>(object.getEntities()) : null;
-        this.tileEntities = (object.getTileEntities() != null) ? new ArrayList<>(object.getTileEntities()) : null;
+        this.entities = copyOf(object.getEntities());
+        this.tileEntities = copyOf(object.getTileEntities());
     }
 
     @Override

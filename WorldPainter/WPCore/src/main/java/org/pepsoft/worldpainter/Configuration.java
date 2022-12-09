@@ -35,6 +35,7 @@ import java.util.*;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.minecraft.Material.DIRT;
+import static org.pepsoft.util.CollectionUtils.copyOf;
 import static org.pepsoft.util.XDG.HOME;
 import static org.pepsoft.util.XDG.XDG_DATA_HOME;
 import static org.pepsoft.worldpainter.Configuration.DonationStatus.DONATED;
@@ -802,7 +803,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     }
     
     public synchronized List<EventVO> getEventLog() {
-        return (eventLog != null) ? new ArrayList<>(eventLog) : null;
+        return copyOf(eventLog);
     }
 
     public synchronized void removeEvents(Collection<EventVO> events) {
