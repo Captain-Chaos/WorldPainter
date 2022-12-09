@@ -30,6 +30,7 @@ import java.util.Set;
 
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 
 /**
  *
@@ -450,7 +451,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
                 for (int x = 0; x < TILE_SIZE; x++) {
                     for (int y = 0; y < TILE_SIZE; y++) {
                         if (tile.getLayerValue(Biome.INSTANCE, x, y) == 255) {
-                            tile.setLayerValue(Biome.INSTANCE, x, y, dimension.getAutoBiome(tile, x, y));
+                            tile.setLayerValue(Biome.INSTANCE, x, y, dimension.getAutoBiome(tile, x, y, BIOME_PLAINS));
                         }
                     }
                 }
@@ -461,7 +462,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
                     for (int y = 0; y < TILE_SIZE; y++) {
                         final float strength = filter.modifyStrength(worldTileX | x, worldTileY | y, 1.0f);
                         if (((strength > 0.95f) || (Math.random() < strength)) && (tile.getLayerValue(Biome.INSTANCE, x, y) == 255)) {
-                            tile.setLayerValue(Biome.INSTANCE, x, y, dimension.getAutoBiome(tile, x, y));
+                            tile.setLayerValue(Biome.INSTANCE, x, y, dimension.getAutoBiome(tile, x, y, BIOME_PLAINS));
                         }
                     }
                 }
