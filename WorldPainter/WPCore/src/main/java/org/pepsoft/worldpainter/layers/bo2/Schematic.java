@@ -4,10 +4,7 @@
  */
 package org.pepsoft.worldpainter.layers.bo2;
 
-import org.jnbt.CompoundTag;
-import org.jnbt.DoubleTag;
-import org.jnbt.ListTag;
-import org.jnbt.NBTInputStream;
+import org.jnbt.*;
 import org.pepsoft.minecraft.AbstractNBTItem;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
@@ -268,18 +265,20 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
      */
     public static Schematic load(String name, InputStream stream) throws IOException {
         InputStream in = new BufferedInputStream(stream);
-        //noinspection TryFinallyCanBeTryWithResources // Not possible due to assignment of 'in' inside block
         try {
-            byte[] magicNumber = new byte[2];
+            final byte[] magicNumber = new byte[2];
             in.mark(2);
             in.read(magicNumber);
             in.reset();
             if ((magicNumber[0] == (byte) 0x1f) && (magicNumber[1] == (byte) 0x8b)) {
                 in = new GZIPInputStream(in);
             }
-            NBTInputStream nbtIn = new NBTInputStream(in);
-            CompoundTag tag = (CompoundTag) nbtIn.readTag();
-            return new Schematic(name, tag, null);
+            final NBTInputStream nbtIn = new NBTInputStream(in);
+            final Tag tag = nbtIn.readTag();
+            if (! (tag instanceof CompoundTag)) {
+                throw new IllegalArgumentException("Invalid schematic file; unexpected NBT tag type " + tag.getClass().getSimpleName());
+            }
+            return new Schematic(name, (CompoundTag) tag, null);
         } finally {
             in.close();
         }
