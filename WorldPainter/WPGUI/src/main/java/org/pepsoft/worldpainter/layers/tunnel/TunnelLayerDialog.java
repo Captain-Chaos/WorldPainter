@@ -568,9 +568,9 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     private Dimension createFloorDimension() {
         final int minHeight = dimension.getMinHeight();
         final int maxHeight = dimension.getMaxHeight();
-        final FloorDimensionSettingsDialog dialog = new FloorDimensionSettingsDialog(this, colourScheme,
-                customBiomeManager, platform, minHeight, maxHeight, (int) spinnerFloorLevel.getValue(),
-                noiseSettingsEditorFloor.getNoiseSettings(), checkBoxFlood.isSelected() ? ((int) spinnerFloodLevel.getValue()) : minHeight,
+        final FloorDimensionSettingsDialog dialog = new FloorDimensionSettingsDialog(this, colourScheme, platform,
+                minHeight, maxHeight, (int) spinnerFloorLevel.getValue(), noiseSettingsEditorFloor.getNoiseSettings(),
+                checkBoxFlood.isSelected() ? ((int) spinnerFloodLevel.getValue()) : minHeight,
                 checkBoxFloodWithLava.isSelected(), dimension.getSubsurfaceMaterial());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {

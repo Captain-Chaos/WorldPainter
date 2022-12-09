@@ -83,7 +83,9 @@ public final class BiomeUtils {
         if (platform.capabilities.contains(NAMED_BIOMES)) {
             allBiomes.sort(comparing(biomeScheme::getBiomeName));
         }
-        allBiomes.addAll(customBiomeManager.getCustomBiomes().stream().map(CustomBiome::getId).collect(Collectors.toList()));
+        if (customBiomeManager != null) {
+            allBiomes.addAll(customBiomeManager.getCustomBiomes().stream().map(CustomBiome::getId).collect(Collectors.toList()));
+        }
         return allBiomes;
     }
 

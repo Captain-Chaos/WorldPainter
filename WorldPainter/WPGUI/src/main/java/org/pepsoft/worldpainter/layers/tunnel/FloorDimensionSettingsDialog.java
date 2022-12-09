@@ -5,13 +5,13 @@
 package org.pepsoft.worldpainter.layers.tunnel;
 
 import org.pepsoft.worldpainter.*;
-import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
 import org.pepsoft.worldpainter.util.BiomeUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
+
+import static org.pepsoft.util.CollectionUtils.nullAnd;
 
 /**
  *
@@ -21,7 +21,7 @@ public class FloorDimensionSettingsDialog extends WorldPainterDialog {
     /**
      * Creates new form FloorDimensionSettingsDialog
      */
-    public FloorDimensionSettingsDialog(Window parent, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Platform platform, int minHeight, int maxHeight, int level, NoiseSettings variation, int waterLevel, boolean floodWithLava, Terrain terrain) {
+    public FloorDimensionSettingsDialog(Window parent, ColourScheme colourScheme, Platform platform, int minHeight, int maxHeight, int level, NoiseSettings variation, int waterLevel, boolean floodWithLava, Terrain terrain) {
         super(parent);
 
         initComponents();
@@ -32,14 +32,8 @@ public class FloorDimensionSettingsDialog extends WorldPainterDialog {
         ((SpinnerNumberModel) spinnerFloodLevel.getModel()).setMaximum(maxHeight - 1);
         comboBoxTerrain.setRenderer(new TerrainListCellRenderer(colourScheme));
         comboBoxTerrain.setModel(new DefaultComboBoxModel<>(Terrain.getConfiguredValues()));
-        comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager, platform));
-        final List<Integer> biomes = BiomeUtils.getAllBiomes(platform, customBiomeManager);
-        final Integer[] biomesArray = new Integer[biomes.size() + 1];
-        int p = 1;
-        for (Integer biome: biomes) {
-            biomesArray[p++] = biome;
-        }
-        comboBoxBiome.setModel(new DefaultComboBoxModel<>(biomesArray));
+        comboBoxBiome.setRenderer(new BiomeListCellRenderer(colourScheme, null, platform));
+        comboBoxBiome.setModel(new DefaultComboBoxModel<>(nullAnd(BiomeUtils.getAllBiomes(platform, null)).toArray(new Integer[0])));
 
         spinnerFloorLevel.setValue(level);
         noiseSettingsEditorFloor.setNoiseSettings(variation);
