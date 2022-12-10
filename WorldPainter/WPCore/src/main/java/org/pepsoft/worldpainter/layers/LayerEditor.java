@@ -6,12 +6,16 @@
 
 package org.pepsoft.worldpainter.layers;
 
-import java.util.List;
-import javax.swing.JComponent;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
+
+import static java.util.Collections.emptyList;
 
 /**
  * An editor of {@link Layer} settings.
@@ -29,7 +33,17 @@ public interface LayerEditor<L extends Layer> {
      * @return The actual layer editor component.
      */
     JComponent getComponent();
-    
+
+    /**
+     * Get optional additional buttons which will be placed on the Edit Layer Dialog to the left of the OK and Cancel
+     * buttons. The default implementation returns an empty list.
+     *
+     * @return Additional buttons to present to the user.
+     */
+    default List<Component> getAdditionalButtons() {
+        return emptyList();
+    }
+
     /**
      * Create a new layer with default settings.
      * 

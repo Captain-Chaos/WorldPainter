@@ -24,12 +24,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import static java.lang.Math.max;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.pepsoft.util.swing.MessageUtils.showInfo;
 import static org.pepsoft.worldpainter.layers.plants.Category.*;
 import static org.pepsoft.worldpainter.layers.plants.Plants.ALL_PLANTS;
@@ -69,7 +71,12 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
     }
 
     // LayerEditor
-    
+
+    @Override
+    public List<Component> getAdditionalButtons() {
+        return singletonList(buttonClear);
+    }
+
     @Override
     public PlantLayer createLayer() {
         return new PlantLayer("Plants", "A custom collection of plants", Color.GREEN.getRGB());
@@ -160,6 +167,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         addCategory(panel, NETHER);
         addCategory(panel, "Hanging Plants", "For ceilings and cave/tunnel roofs", HANGING_DRY_PLANTS, HANGING_WATER_PLANTS);
         addFiller(panel);
+        panelPlantControls.setPreferredSize(panelPlantControls.getMinimumSize());
     }
 
     private void addCategory(JPanel panel, Category category) {
@@ -248,7 +256,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
     private void addFiller(final JPanel panel) {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.weighty = 1.0;
-        panel.add(new JPanel(), constraints);
+        panel.add(Box.createGlue(), constraints);
     }
 
     public static void loadIconsInBackground() {
@@ -411,15 +419,22 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        buttonClear = new javax.swing.JButton();
         buttonColour = new javax.swing.JButton();
         labelColour = new javax.swing.JLabel();
-        buttonClear = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         panelPlantControls = new javax.swing.JPanel();
         checkBoxGenerateTilledDirt = new javax.swing.JCheckBox();
         fieldName = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         checkBoxOnlyValidBlocks = new javax.swing.JCheckBox();
+
+        buttonClear.setText("Clear");
+        buttonClear.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonClearActionPerformed(evt);
+            }
+        });
 
         buttonColour.setText("...");
         buttonColour.addActionListener(new java.awt.event.ActionListener() {
@@ -431,13 +446,6 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         labelColour.setText("                 ");
         labelColour.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         labelColour.setOpaque(true);
-
-        buttonClear.setText("Clear");
-        buttonClear.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonClearActionPerformed(evt);
-            }
-        });
 
         jLabel1.setText("Name:");
 
@@ -479,9 +487,6 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
                 .addComponent(labelColour)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(buttonColour))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(buttonClear))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -497,9 +502,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
                     .addComponent(checkBoxGenerateTilledDirt)
                     .addComponent(checkBoxOnlyValidBlocks))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(panelPlantControls, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(buttonClear))
+                .addComponent(panelPlantControls, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -523,7 +526,6 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
             }
         }
     }//GEN-LAST:event_checkBoxOnlyValidBlocksActionPerformed
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonClear;
