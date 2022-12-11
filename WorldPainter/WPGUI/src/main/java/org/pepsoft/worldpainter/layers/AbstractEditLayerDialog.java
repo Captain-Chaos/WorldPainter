@@ -4,14 +4,15 @@
  */
 package org.pepsoft.worldpainter.layers;
 
-import java.awt.Window;
-import org.pepsoft.worldpainter.WorldPainterDialog;
+import org.pepsoft.worldpainter.WorldPainterModalFrame;
+
+import java.awt.*;
 
 /**
  *
  * @author pepijn
  */
-public abstract class AbstractEditLayerDialog<T extends Layer> extends WorldPainterDialog {
+public abstract class AbstractEditLayerDialog<T extends Layer> extends WorldPainterModalFrame {
     public AbstractEditLayerDialog(Window owner) {
         super(owner);
     }

@@ -213,10 +213,10 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
             // No idea how this could happen, since the Edit button is disabled for non-custom layers, but we have a
             // report from the wild so check for it. TODO: find out how this could happen and fix the underlying problem
             if (layer instanceof CustomLayer) {
-                if (App.getInstance().editCustomLayer((CustomLayer) layer)) {
+                App.getInstance().editCustomLayer((CustomLayer) layer, () -> {
                     tableLayers.repaint();
                     settingsChanged();
-                }
+                });
             } else {
                 logger.error("Selected layer is not a CustomLayer: " + layer);
             }

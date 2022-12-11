@@ -431,15 +431,12 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     }
 
     private void editLayer(JTable table, TunnelLayersTableModel tableModel) {
-        int selectedRow = table.getSelectedRow();
+        final int selectedRow = table.getSelectedRow();
         if (selectedRow != -1) {
-            Layer layer = tableModel.getLayer(selectedRow);
+            final Layer layer = tableModel.getLayer(selectedRow);
             if (layer instanceof CustomLayer) {
-                EditLayerDialog<Layer> dialog = new EditLayerDialog<>(this, platform, layer);
-                dialog.setVisible(true);
-                if (! dialog.isCancelled()) {
-                    tableModel.layerChanged(selectedRow);
-                }
+                final EditLayerDialog<Layer> dialog = new EditLayerDialog<>(this, platform, layer);
+                dialog.setVisible(() -> tableModel.layerChanged(selectedRow));
             }
         }
     }
@@ -506,34 +503,31 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         JMenuItem item = new JMenuItem("Custom Objects Layer");
         item.addActionListener(e -> {
             EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog<>(TunnelLayerDialog.this, platform, Bo2Layer.class);
-            dialog.setVisible(true);
-            if (! dialog.isCancelled()) {
+            dialog.setVisible(() -> {
                 Bo2Layer newLayer = dialog.getLayer();
                 newLayer.setHide(true);
                 tableModel.addLayer(newLayer);
-            }
+            });
         });
         popupMenu.add(item);
         item = new JMenuItem("Custom Ground Cover Layer");
         item.addActionListener(e -> {
             EditLayerDialog<GroundCoverLayer> dialog = new EditLayerDialog<>(TunnelLayerDialog.this, platform, GroundCoverLayer.class);
-            dialog.setVisible(true);
-            if (! dialog.isCancelled()) {
+            dialog.setVisible(() -> {
                 GroundCoverLayer newLayer = dialog.getLayer();
                 newLayer.setHide(true);
                 tableModel.addLayer(newLayer);
-            }
+            });
         });
         popupMenu.add(item);
         item = new JMenuItem("Custom Plants Layer");
         item.addActionListener(e -> {
             EditLayerDialog<PlantLayer> dialog = new EditLayerDialog<>(TunnelLayerDialog.this, platform, PlantLayer.class);
-            dialog.setVisible(true);
-            if (! dialog.isCancelled()) {
+            dialog.setVisible(() -> {
                 PlantLayer newLayer = dialog.getLayer();
                 newLayer.setHide(true);
                 tableModel.addLayer(newLayer);
-            }
+            });
         });
         popupMenu.add(item);
         popupMenu.show(button, button.getWidth(), 0);

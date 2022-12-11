@@ -31,7 +31,7 @@ import static org.pepsoft.worldpainter.Dimension.Role.MASTER;
  *
  * @author pepijn
  */
-public class TileEditor extends WorldPainterDialog implements TileSelector.Listener {
+public class TileEditor extends WorldPainterModalFrame implements TileSelector.Listener {
     /** Creates new form TileEditor */
     public TileEditor(java.awt.Frame parent, Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Set<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
         super(parent);

@@ -2520,10 +2520,11 @@ public final class App extends JFrame implements RadiusControl,
     private void addRemoveTiles() {
         TileEditor tileEditor = new TileEditor(this, dimension, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin());
         tileEditor.moveTo(view.getViewLocation());
-        tileEditor.setVisible(true);
-        if (tileEditor.isTilesChanged()) {
-            view.refreshTiles();
-        }
+        tileEditor.setVisible(() -> {
+            if (tileEditor.isTilesChanged()) {
+                view.refreshTiles();
+            }
+        });
     }
     
     private void importWorld() {
@@ -3373,28 +3374,26 @@ public final class App extends JFrame implements RadiusControl,
         JMenuItem menuItem = new JMenuItem(strings.getString("add.a.custom.object.layer") + "...");
         menuItem.addActionListener(e -> {
             EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog<>(App.this, world.getPlatform(), Bo2Layer.class);
-            dialog.setVisible(true);
-            if (! dialog.isCancelled()) {
+            dialog.setVisible(() -> {
                 Bo2Layer layer = dialog.getLayer();
                 if (paletteName != null) {
                     layer.setPalette(paletteName);
                 }
                 registerCustomLayer(layer, true);
-            }
+            });
         });
         customLayerMenu.add(menuItem);
         
         menuItem = new JMenuItem(strings.getString("add.a.custom.ground.cover.layer") + "...");
         menuItem.addActionListener(e -> {
             EditLayerDialog<GroundCoverLayer> dialog = new EditLayerDialog<>(App.this, world.getPlatform(), GroundCoverLayer.class);
-            dialog.setVisible(true);
-            if (! dialog.isCancelled()) {
+            dialog.setVisible(() -> {
                 GroundCoverLayer layer = dialog.getLayer();
                 if (paletteName != null) {
                     layer.setPalette(paletteName);
                 }
                 registerCustomLayer(layer, true);
-            }
+            });
         });
         customLayerMenu.add(menuItem);
 
@@ -3402,14 +3401,13 @@ public final class App extends JFrame implements RadiusControl,
         menuItem = new JMenuItem(strings.getString("add.a.custom.underground.pockets.layer") + "...");
         menuItem.addActionListener(e -> {
             UndergroundPocketsDialog dialog = new UndergroundPocketsDialog(App.this, world.getPlatform(), MixedMaterial.create(world.getPlatform(), Material.IRON_BLOCK), selectedColourScheme, dimension.getMaxHeight(), world.isExtendedBlockIds());
-            dialog.setVisible(true);
-            if (! dialog.isCancelled()) {
+            dialog.setVisible(() -> {
                 UndergroundPocketsLayer layer = dialog.getLayer();
                 if (paletteName != null) {
                     layer.setPalette(paletteName);
                 }
                 registerCustomLayer(layer, true);
-            }
+            });
         });
         if (anchor.role == CAVE_FLOOR) {
             menuItem.setEnabled(false);
@@ -3431,14 +3429,13 @@ public final class App extends JFrame implements RadiusControl,
             }
             // TODO passing in dimension here is a crude mechanism. It is supposed to be the dimension on which this
             //  layer will be used, but that is impossible to enforce. In practice this will usually be right though
-            TunnelLayerDialog dialog = new TunnelLayerDialog(App.this, world.getPlatform(), layer, dimension, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
-            dialog.setVisible(true);
-            if (! dialog.isCancelled()) {
+            final TunnelLayerDialog dialog = new TunnelLayerDialog(App.this, world.getPlatform(), layer, dimension, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
+            dialog.setVisible(() -> {
                 if (paletteName != null) {
                     layer.setPalette(paletteName);
                 }
                 registerCustomLayer(layer, true);
-            }
+            });
         });
         if (anchor.role == CAVE_FLOOR) {
             menuItem.setEnabled(false);
@@ -3448,29 +3445,27 @@ public final class App extends JFrame implements RadiusControl,
         menuItem = new JMenuItem("Add a custom plants layer...");
         menuItem.addActionListener(e -> {
             EditLayerDialog<PlantLayer> dialog = new EditLayerDialog<>(App.this, world.getPlatform(), PlantLayer.class);
-            dialog.setVisible(true);
-            if (! dialog.isCancelled()) {
+            dialog.setVisible(() -> {
                 PlantLayer layer = dialog.getLayer();
                 if (paletteName != null) {
                     layer.setPalette(paletteName);
                 }
                 registerCustomLayer(layer, true);
-            }
+            });
         });
         customLayerMenu.add(menuItem);
         
         menuItem = new JMenuItem("Add a combined layer...");
         menuItem.addActionListener(e -> {
             EditLayerDialog<CombinedLayer> dialog = new EditLayerDialog<>(App.this, world.getPlatform(), CombinedLayer.class);
-            dialog.setVisible(true);
-            if (! dialog.isCancelled()) {
+            dialog.setVisible(() -> {
                 // TODO: get saved layer
                 CombinedLayer layer = dialog.getLayer();
                 if (paletteName != null) {
                     layer.setPalette(paletteName);
                 }
                 registerCustomLayer(layer, true);
-            }
+            });
         });
         customLayerMenu.add(menuItem);
 
@@ -3485,15 +3480,14 @@ public final class App extends JFrame implements RadiusControl,
                 menuItem = new JMenuItem("Add a " + customLayerClass.getSimpleName() + " layer..."); // TODO: introduce a proper display name for custom layers
                 menuItem.addActionListener(e -> {
                     EditLayerDialog<CustomLayer> dialog = new EditLayerDialog<>(App.this, world.getPlatform(), (Class<CustomLayer>) customLayerClass);
-                    dialog.setVisible(true);
-                    if (! dialog.isCancelled()) {
+                    dialog.setVisible(() -> {
                         // TODO: get saved layer
                         CustomLayer layer = dialog.getLayer();
                         if (paletteName != null) {
                             layer.setPalette(paletteName);
                         }
                         registerCustomLayer(layer, true);
-                    }
+                    });
                 });
                 customLayerMenu.add(menuItem);
             }
@@ -4094,11 +4088,7 @@ public final class App extends JFrame implements RadiusControl,
                 duplicate.setColour(colour.getRGB());
                 AbstractEditLayerDialog<CustomLayer> dialog;
                 dialog = createEditLayerDialog(duplicate);
-                dialog.setVisible(true);
-                if ( !dialog.isCancelled()) {
-                    duplicate = dialog.getLayer();
-                    registerCustomLayer(duplicate, true);
-                }
+                dialog.setVisible(() -> registerCustomLayer(dialog.getLayer(), true));
             }
             
             private void remove() {
@@ -4111,11 +4101,14 @@ public final class App extends JFrame implements RadiusControl,
         return buttonComponents;
     }
 
-    public boolean editCustomLayer(CustomLayer layer) {
+    public void editCustomLayer(CustomLayer layer) {
+        editCustomLayer(layer, null);
+    }
+
+    public void editCustomLayer(CustomLayer layer, Runnable callback) {
         int previousColour = layer.getColour();
         AbstractEditLayerDialog<CustomLayer> dialog = createEditLayerDialog(layer);
-        dialog.setVisible(true);
-        if (! dialog.isCancelled()) {
+        dialog.setVisible(() -> {
             final LayerControls layerControls = this.layerControls.get(layer);
             final JComponent control = (layerControls != null) ? layerControls.control : null;
             if (control != null) {
@@ -4140,10 +4133,10 @@ public final class App extends JFrame implements RadiusControl,
             if ((layer instanceof TunnelLayer) && (! viewRefreshed)) {
                 view.refreshTilesForLayer(layer, false);
             }
-            return true;
-        } else {
-            return false;
-        }
+            if (callback != null) {
+                callback.run();
+            }
+        });
     }
 
     public void deleteCustomLayer(CustomLayer layer) {
