@@ -11,11 +11,22 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 /**
- * A {@link JFrame} that acts as much as possible as a resizable {@link JDialog}, but with a minimise and maximise
- * button.
+ * A WorldPainter frame window that acts as much as possible as a resizable dialog window, but with a minimise and
+ * maximise button. Provides the following features:
  *
- * <p>To show the frame, use the {@link #setVisible(Runnable)} method. The {@link #setVisible(boolean)} method throws
- * an {@code UnsupportedOperationException}.
+ * <ul><li>Emulates being application modal by disabling the owner window
+ * <li>A {@link #cancel()} method which dismisses the frame programmatically
+ * <li>The frame is also cancelled if the user presses the {@code Esc} key
+ * <li>An {@link #isCancelled()} method which indicates whether the frame has been cancelled or closed in any other way
+ * besides invoking the {@link #ok()} method
+ * <li>An {@link #ok()} method which dismisses the frame programmatically and clears the {@code cancelled} property
+ * <li>[SAFE MODE] automatically appended to title if WorldPainter is running in safe mode</ul>
+ *
+ * <p>This class is largely compatible with {@link WorldPainterDialog}, except that to show the frame, you use the
+ * {@link #setVisible(Runnable)} method. The {@link #setVisible(boolean)} method throws an
+ * {@code UnsupportedOperationException}.
+ *
+ * @author pepijn
  */
 public class WorldPainterModalFrame extends JFrame {
     public WorldPainterModalFrame(Window owner) {
@@ -65,7 +76,7 @@ public class WorldPainterModalFrame extends JFrame {
     }
 
     /**
-     * Disable the parent and show the frame. This method returns immediately. The callback is <em>only</em> invoked
+     * Disable the owner and show the frame. This method returns immediately. The callback is <em>only</em> invoked
      * when the frame is closed by invoking {@link #ok()}.
      *
      * <p>This method also enforces that only one of these frames is open at the same time. If another frame is already
