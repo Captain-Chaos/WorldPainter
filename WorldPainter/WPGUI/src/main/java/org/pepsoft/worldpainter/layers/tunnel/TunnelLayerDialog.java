@@ -6,6 +6,7 @@
 package org.pepsoft.worldpainter.layers.tunnel;
 
 import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.util.swing.BetterJPopupMenu;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension.Anchor;
@@ -450,7 +451,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     }
 
     private void addLayer(Component button, TunnelLayersTableModel tableModel) {
-        JPopupMenu popupMenu = new JPopupMenu();
+        JPopupMenu popupMenu = new BetterJPopupMenu();
         LayerManager.getInstance().getLayers().stream()
             .filter(l -> (l.getExporterType() != null) && IncidentalLayerExporter.class.isAssignableFrom(l.getExporterType()))
             .forEach(l -> {
@@ -499,7 +500,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     }
 
     private void newLayer(Component button, TunnelLayersTableModel tableModel) {
-        JPopupMenu popupMenu = new JPopupMenu();
+        JPopupMenu popupMenu = new BetterJPopupMenu();
         JMenuItem item = new JMenuItem("Custom Objects Layer");
         item.addActionListener(e -> {
             EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog<>(TunnelLayerDialog.this, platform, Bo2Layer.class);

@@ -6,6 +6,7 @@
 
 package org.pepsoft.worldpainter.tools;
 
+import org.pepsoft.util.swing.BetterJPopupMenu;
 import org.pepsoft.worldpainter.MouseAdapter;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.heightMaps.*;
@@ -132,7 +133,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                 } else {
                     parent = null;
                 }
-                JPopupMenu menu = new JPopupMenu();
+                JPopupMenu menu = new BetterJPopupMenu();
                 JMenuItem menuItem = new JMenuItem("Focus Here");
                 menuItem.addActionListener(actionEvent -> {
                     focusOn(heightMap);

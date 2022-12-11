@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.panels;
 import org.pepsoft.minecraft.Constants;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.ObservableBoolean;
+import org.pepsoft.util.swing.BetterJPopupMenu;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
@@ -426,7 +427,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
 
         popupMenu = breakUpLongMenus(popupMenu, 25);
 
-        JPopupMenu result = new JPopupMenu();
+        JPopupMenu result = new BetterJPopupMenu();
         Arrays.stream(popupMenu.getMenuComponents()).forEach(result::add);
         return result;
     }

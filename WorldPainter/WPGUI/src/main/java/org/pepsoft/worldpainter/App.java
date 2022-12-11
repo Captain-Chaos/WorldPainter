@@ -16,10 +16,7 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.SeededGenerator;
 import org.pepsoft.util.*;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
-import org.pepsoft.util.swing.ProgressDialog;
-import org.pepsoft.util.swing.ProgressTask;
-import org.pepsoft.util.swing.RemoteJCheckBox;
-import org.pepsoft.util.swing.TiledImageViewerContainer;
+import org.pepsoft.util.swing.*;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.biomeschemes.*;
@@ -64,6 +61,7 @@ import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
 import org.pepsoft.worldpainter.tools.BiomesViewerFrame;
 import org.pepsoft.worldpainter.tools.RespawnPlayerDialog;
 import org.pepsoft.worldpainter.tools.scripts.ScriptRunner;
+import org.pepsoft.worldpainter.util.BetterAction;
 import org.pepsoft.worldpainter.util.FileFilter;
 import org.pepsoft.worldpainter.util.FileUtils;
 import org.pepsoft.worldpainter.util.*;
@@ -1646,7 +1644,7 @@ public final class App extends JFrame implements RadiusControl,
 
     public void showCustomTerrainButtonPopup(final AWTEvent event, final int customMaterialIndex) {
         final JToggleButton button = (customMaterialIndex >= 0) ? customMaterialButtons[customMaterialIndex] : null;
-        JPopupMenu popupMenu = new JPopupMenu();
+        JPopupMenu popupMenu = new BetterJPopupMenu();
         final MixedMaterial material = (customMaterialIndex >= 0) ? Terrain.getCustomMaterial(customMaterialIndex) : null;
 //        JLabel label = new JLabel(MessageFormat.format(strings.getString("current.material.0"), (material != null) ? material : "none"));
 //        popupMenu.add(label);
@@ -3370,7 +3368,7 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private JPopupMenu createCustomLayerMenu(final String paletteName) {
-        JPopupMenu customLayerMenu = new JPopupMenu();
+        JPopupMenu customLayerMenu = new BetterJPopupMenu();
         JMenuItem menuItem = new JMenuItem(strings.getString("add.a.custom.object.layer") + "...");
         menuItem.addActionListener(e -> {
             EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog<>(App.this, world.getPlatform(), Bo2Layer.class);
@@ -3963,7 +3961,7 @@ public final class App extends JFrame implements RadiusControl,
             }
 
             private void showPopup(MouseEvent e) {
-                JPopupMenu popup = new JPopupMenu();
+                JPopupMenu popup = new BetterJPopupMenu();
                 JMenuItem menuItem = new JMenuItem(strings.getString("edit") + "...");
                 menuItem.addActionListener(e1 -> editCustomLayer(layer));
                 popup.add(menuItem);

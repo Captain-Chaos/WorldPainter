@@ -2,6 +2,7 @@ package org.pepsoft.worldpainter.layers;
 
 import com.google.common.collect.ImmutableSet;
 import org.pepsoft.util.IconUtils;
+import org.pepsoft.util.swing.BetterJPopupMenu;
 import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Platform;
@@ -301,7 +302,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
                 }
 
                 private void showPopupMenu(MouseEvent e) {
-                    JPopupMenu popup = new JPopupMenu();
+                    JPopupMenu popup = new BetterJPopupMenu();
                     
                     JMenuItem item = new JMenuItem("Edit...");
                     item.addActionListener(actionEvent -> {
