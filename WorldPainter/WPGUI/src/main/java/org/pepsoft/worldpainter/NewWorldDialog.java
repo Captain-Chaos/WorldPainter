@@ -233,6 +233,7 @@ public class NewWorldDialog extends WorldPainterDialog {
 
         programmaticChange = false;
         setControlStates();
+        updatePreview();
     }
 
     /**
