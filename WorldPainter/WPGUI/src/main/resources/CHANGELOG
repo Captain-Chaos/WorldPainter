@@ -1,5 +1,6 @@
 -- Version 2.15.17, released ...
 
+ * Bug fix: correct the light levels of the minecraft:light block, and make it insubstantial so that it does not block solid objects
  * Various usability improvements
 
 -- Version 2.15.16, released 9-12-2022
