@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.*;
 
 import static org.pepsoft.minecraft.Constants.MC_GRASS_BLOCK;
+import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 
 /**
@@ -94,7 +95,7 @@ public final class Platform implements Serializable {
         }
         for (Dimension dimension: world.getDimensions()) {
             final Dimension.Anchor anchor = dimension.getAnchor();
-            if ((! anchor.invert) && (! supportedDimensions.contains(anchor.dim))) {
+            if ((anchor.role == DETAIL) && (! anchor.invert) && (! supportedDimensions.contains(anchor.dim))) {
                 return "Map format does not support dimension " + anchor.getDefaultName();
             }
         }
