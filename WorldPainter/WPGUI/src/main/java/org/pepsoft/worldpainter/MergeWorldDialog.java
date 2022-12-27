@@ -418,31 +418,32 @@ public class MergeWorldDialog extends WorldPainterDialog {
      * @return {@code true} is the platform is compatible with the loaded world.
      */
     private boolean checkCompatibility(Platform platform) {
-        Map<String, Set<String>> nameOnlyMaterials = MaterialUtils.gatherBlocksWithoutIds(world, platform);
-        if ((! nameOnlyMaterials.isEmpty()) && (! platform.capabilities.contains(NAME_BASED))) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("<html>");
-            sb.append("<p>The selected map's format ").append(platform.displayName).append(" is not compatible with this world because this world contains the following incompatible block types:");
-            sb.append("<table><tr><th align='left'>Block Type</th><th align='left'>Source</th></tr>");
-            nameOnlyMaterials.forEach((name, sources) ->
-                    sb.append("<tr><td>").append(name).append("</td><td>").append(String.join(",", sources)).append("</td></tr>"));
-            sb.append("</table>");
-            beepAndShowError(this, sb.toString(), "Map Format Not Compatible");
+        if (! platform.capabilities.contains(NAME_BASED)) {
+            Map<String, Set<String>> nameOnlyMaterials = MaterialUtils.gatherBlocksWithoutIds(world, platform);
+            if (! nameOnlyMaterials.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("<html>");
+                sb.append("<p>The selected map's format ").append(platform.displayName).append(" is not compatible with this world because this world contains the following incompatible block types:");
+                sb.append("<table><tr><th align='left'>Block Type</th><th align='left'>Source</th></tr>");
+                nameOnlyMaterials.forEach((name, sources) ->
+                        sb.append("<tr><td>").append(name).append("</td><td>").append(String.join(",", sources)).append("</td></tr>"));
+                sb.append("</table>");
+                beepAndShowError(this, sb.toString(), "Map Format Not Compatible");
+                fieldSelectedMapDir.requestFocusInWindow();
+                return false;
+            }
+        }
+        final String incompatibilityReason = platform.isCompatible(world);
+        if (incompatibilityReason != null) {
+            DesktopUtils.beep();
+            JOptionPane.showMessageDialog(this, String.format(/* language=HTML */ "<html>" +
+                    "<p>The selected map's format %s is not compatible with this world, for the following reason:" +
+                    "<ul><li>%s" +
+                    "</ul>" +
+                    "</html>", platform.displayName, incompatibilityReason), "Map Format Not Compatible", JOptionPane.ERROR_MESSAGE);
             fieldSelectedMapDir.requestFocusInWindow();
             return false;
         }
-        // TODO check maxHeight, but be smarter about checking dimensions
-//        if (! platform.isCompatible(world)) {
-//            DesktopUtils.beep();
-//            JOptionPane.showMessageDialog(this, String.format(/* language=HTML */ "<html>" +
-//                    "<p>The selected map's format %s is not compatible with this world, for one of these reasons:" +
-//                    "<ul><li>The format does not support the world height of %d blocks" +
-//                    "<li>The format does not support one or more of the dimensions in this world" +
-//                    "</ul>" +
-//                    "</html>", platform.displayName, world.getMaxHeight()), "Map Format Not Compatible", JOptionPane.ERROR_MESSAGE);
-//            fieldLevelDatFile.requestFocusInWindow();
-//            return false;
-//        }
         return true;
     }
 
