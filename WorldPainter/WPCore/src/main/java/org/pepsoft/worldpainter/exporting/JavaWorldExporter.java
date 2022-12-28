@@ -257,7 +257,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                     selectedDimension = -1;
                     boolean first = true;
                     for (Dimension dimension: world.getDimensionsWithRole(DETAIL, false, 0)) {
-                        if ((selectedDimensions != null) && (!selectedDimensions.contains(dimension.getAnchor().dim))) {
+                        if ((selectedDimensions != null) && (! selectedDimensions.contains(dimension.getAnchor().dim))) {
                             // This dimension has not been selected to be exported, so skip it
                             continue;
                         }
