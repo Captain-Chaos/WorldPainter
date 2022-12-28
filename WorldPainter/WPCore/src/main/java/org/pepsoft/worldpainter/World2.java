@@ -28,8 +28,9 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
+import static java.util.Comparator.comparingInt;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Material.WOOL_MAGENTA;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Dimension.Anchor.*;
@@ -221,7 +222,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
                 .filter(dimension -> {
                     final Anchor anchor = dimension.getAnchor();
                     return (anchor.role == role) && (anchor.invert == inverted) && (anchor.id == id);
-                }).collect(toSet());
+                }).collect(toImmutableSortedSet(comparingInt(dimension -> dimension.getAnchor().dim)));
     }
 
     public final void addDimension(Dimension dimension) {
