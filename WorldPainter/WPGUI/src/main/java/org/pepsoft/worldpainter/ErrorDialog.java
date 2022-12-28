@@ -38,6 +38,7 @@ import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.util.mdc.MDCUtils.gatherMdcContext;
 import static org.pepsoft.util.swing.MessageUtils.showInfo;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.util.ThreadUtils.getMostRecentThreadCount;
 
 /**
  *
@@ -86,11 +87,19 @@ public class ErrorDialog extends javax.swing.JDialog {
 
         if (exceptionTypes.contains(OutOfMemoryError.class)) {
             setTitle("Out of Memory");
-            jTextArea1.setText("Not enough memory available for that operation!\n\n"
-                + "WorldPainter is already using the recommended maximum\n"
-                + "amount of memory, so it is not recommended to give it\n"
-                + "more. To be able to perform the operation you should\n"
-                + "install more memory (and reinstall WorldPainter).");
+            final Integer threadCount = getMostRecentThreadCount();
+            if ((threadCount != null) && (threadCount > 1)) {
+                jTextArea1.setText("Not enough memory available for that operation!\n\n" +
+                    "If this happened during an Export or Merge operation,\n" +
+                    "try reducing the maximum thread count to " + (threadCount - 1) + " on the\n" +
+                    "Performance tab of the Preferences screen.");
+            } else {
+                jTextArea1.setText("Not enough memory available for that operation!\n\n"
+                    + "WorldPainter is already using the recommended maximum\n"
+                    + "amount of memory, so it is not recommended to give it\n"
+                    + "more. To be able to perform the operation you should\n"
+                    + "install more memory (and reinstall WorldPainter).");
+            }
             jButton1.setEnabled(false);
             jButton1.setToolTipText("Not necessary to send details of out of memory errors");
             jButton3.setEnabled(false);

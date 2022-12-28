@@ -714,6 +714,14 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         displayedMessages.computeIfAbsent(messageKey, k -> new ArrayList<>()).add(new MessageDisplayed(launchCount));
     }
 
+    public synchronized Integer getMaxThreadCount() {
+        return maxThreadCount;
+    }
+
+    public synchronized void setMaxThreadCount(Integer maxThreadCount) {
+        this.maxThreadCount = maxThreadCount;
+    }
+
     // Transient settings which aren't stored on disk
 
     public boolean isAutosaveInhibited() {
@@ -1265,6 +1273,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private Integer merchStoreDialogDisplayed = 0;
     private Map<String, List<MessageDisplayed>> displayedMessages = new HashMap<>();
     private File overlaysDirectory;
+    private Integer maxThreadCount;
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk

@@ -1,5 +1,10 @@
 -- Version 2.15.17, released ...
 
+ * A setting has been added to the Preferences screen to manually specify the maximum thread count for Export and Merge operations. It is on the Performance tab
+   + You can use this to reduce the number of regions Exported or Merged in parallel, to prevent Out Of Memory conditions, or improve performance
+   + If an Out Of Memory error occurs, WorldPainter tries to suggest a value to try for this setting
+   + You cannot set the value higher than the number of logical processors (processor cores taking into account hyperthreading etc.) in the system
+   + If the org.pepsoft.worldpainter.threads advanced setting is present it overrides this setting. Remove that advanced setting in order to be able to adjust this value in the Preferences
  * Bug fix: correct the light levels of the minecraft:light block, and make it insubstantial so that it does not block solid objects
  * Various usability improvements
 
