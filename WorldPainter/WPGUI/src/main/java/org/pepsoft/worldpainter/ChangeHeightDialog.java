@@ -23,12 +23,16 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.worldpainter.Constants.V_1_17;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
+import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
+import static org.pepsoft.worldpainter.Dimension.Role.MASTER;
 import static org.pepsoft.worldpainter.history.HistoryEntry.*;
 
 /**
@@ -42,8 +46,12 @@ public class ChangeHeightDialog extends WorldPainterDialog {
     public ChangeHeightDialog(Window parent, World2 world) {
         super(parent);
         this.world = world;
-        lowestHeight = world.getDimensions().stream().mapToInt(Dimension::getLowestIntHeight).min().getAsInt();
-        highestHeight = world.getDimensions().stream().mapToInt(Dimension::getHightestIntHeight).max().getAsInt();
+        final Set<Dimension> dimensions = world.getDimensions().stream()
+                .filter(dimension -> (dimension.getAnchor().role == DETAIL || dimension.getAnchor().role == MASTER) && (! dimension.getAnchor().invert))
+                .collect(toSet());
+        lowestHeight = dimensions.stream().mapToInt(Dimension::getLowestIntHeight).min().getAsInt();
+        highestHeight = dimensions.stream().mapToInt(Dimension::getHightestIntHeight).max().getAsInt();
+        lowestMinHeight = dimensions.stream().mapToInt(Dimension::getMinHeight).min().getAsInt();
 
         initComponents();
         labelOldExtents.setText(lowestHeight + " - " + highestHeight);
@@ -55,25 +63,28 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         comboBoxPlatform.setModel(new DefaultComboBoxModel<>(allPlatforms.toArray(new Platform[allPlatforms.size()])));
         final Platform platform = world.getPlatform();
 
-        labelCurrentMinHeight.setText(Integer.toString(platform.minZ));
+        labelCurrentMinHeight.setText(Integer.toString(lowestMinHeight));
         final int maxHeight = world.getMaxHeight();
         labelCurrentMaxHeight.setText(Integer.toString(maxHeight));
         comboBoxNewMaxHeight.setSelectedItem(maxHeight);
         
         getRootPane().setDefaultButton(buttonOK);
 
+        comboBoxPlatform.setSelectedItem(platform);
+        comboBoxNewMinHeight.setSelectedItem(lowestMinHeight);
+        comboBoxNewMaxHeight.setSelectedItem(world.getMaxHeight());
+        updateLabels();
+        setControlStates();
+
         scaleToUI();
         pack();
         setLocationRelativeTo(parent);
-
-        setPlatform(platform);
     }
 
     private void setPlatform(Platform platform) {
-        comboBoxPlatform.setSelectedItem(platform);
         comboBoxNewMinHeight.setModel((platform.minZ != 0) ? new DefaultComboBoxModel<>(new Integer[] {platform.minZ, 0}) : new DefaultComboBoxModel<>(new Integer[] {0}));
         comboBoxNewMaxHeight.setModel(new DefaultComboBoxModel<>(stream(platform.maxHeights).boxed().toArray(Integer[]::new)));
-        comboBoxNewMinHeight.setSelectedItem(Math.max((platform.minZ < world.getPlatform().minZ) ? platform.minZ : world.getPlatform().minZ, platform.minZ));
+        comboBoxNewMinHeight.setSelectedItem(platform.minZ);
         final int desiredMaxHeight = (platform.standardMaxHeight > world.getMaxHeight()) ? platform.standardMaxHeight : world.getMaxHeight();
         int matchingMaxHeight = 0;
         for (int maxHeight : platform.maxHeights) {
@@ -138,7 +149,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
     private void doResize() {
         // TODO warn about platform incompatibility?
         final Platform oldPlatform = world.getPlatform(), newPlatform = (Platform) comboBoxPlatform.getSelectedItem();
-        final int oldMaxHeight = world.getMaxHeight(), oldMinHeight = world.getPlatform().minZ;
+        final int oldMaxHeight = world.getMaxHeight(), oldMinHeight = lowestMinHeight;
         final int newMaxHeight = (Integer) comboBoxNewMaxHeight.getSelectedItem(), newMinHeight = (Integer) comboBoxNewMinHeight.getSelectedItem();
         if (((newPlatform != oldPlatform) || (newMinHeight != oldMinHeight) || (newMaxHeight != oldMaxHeight)) && (world.getImportedFrom() != null) && (JOptionPane.showConfirmDialog(this, "<html>This world was imported from an existing map!<br>Are you <i>sure</i> you want to retarget it?<br>You will not be able to merge it back to the existing map any more!</html>", "Import from Existing Map", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)) {
             return;
@@ -598,7 +609,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
     // End of variables declaration//GEN-END:variables
 
     private final World2 world;
-    private final int lowestHeight, highestHeight;
+    private final int lowestHeight, highestHeight, lowestMinHeight;
     private final List<Platform> supportedPlatforms = new ArrayList<>();
 
     private static final long serialVersionUID = 1L;
