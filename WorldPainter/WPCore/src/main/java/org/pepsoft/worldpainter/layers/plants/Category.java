@@ -54,20 +54,13 @@ public enum Category {
         @Override
         boolean isValidFoundation(MinecraftWorld world, int x, int y, int z, boolean checkBlockBelow) {
             final Material material = world.getMaterialAt(x, y, z);
-            return ((! checkBlockBelow) || ((material.modded
-                    || material.isNamed(MC_GRASS_BLOCK)
-                    || material.isNamed(MC_DIRT)
-                    || material.isNamed(MC_COARSE_DIRT)
-                    || material.isNamed(MC_PODZOL)
-                    || material.isNamed(MC_SAND)
-                    || material.isNamed(MC_RED_SAND)
-                    || material.isNamed(MC_FARMLAND)
-                    || material.isNamed(MC_MOSS_BLOCK)
-                    || material.isNamed(MC_MUD))
+            return ((! checkBlockBelow)
+                    || material.modded
+                    || material.isNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_SAND, MC_RED_SAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK, MC_MUD))
                 && (isWatery(world, x - 1, y, z)
                     || isWatery(world, x, y - 1, z)
                     || isWatery(world, x + 1, y, z)
-                    || isWatery(world, x, y + 1, z))))
+                    || isWatery(world, x, y + 1, z))
                 && (! isFlooded(world, x, y, z));
         }
     },

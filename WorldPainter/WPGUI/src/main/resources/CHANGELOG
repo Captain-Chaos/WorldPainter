@@ -5,6 +5,7 @@
    + If an Out Of Memory error occurs, WorldPainter tries to suggest a value to try for this setting
    + You cannot set the value higher than the number of logical processors (processor cores taking into account hyperthreading etc.) in the system
    + If the org.pepsoft.worldpainter.threads advanced setting is present it overrides this setting. Remove that advanced setting in order to be able to adjust this value in the Preferences
+ * Dead bushes can now be planted on grass blocks
  * Bug fix: correct the light levels of the minecraft:light block, and make it insubstantial so that it does not block solid objects
  * Various usability improvements
 

@@ -239,8 +239,7 @@ public class Java1_15PostProcessor extends PostProcessor {
                     if (! leavePlants) {
                         switch (material.name) {
                             case MC_DEAD_BUSH:
-                                if ((! materialBelow.modded) && (materialBelow != SAND) && (materialBelow != RED_SAND) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT) && (! materialBelow.name.endsWith("_terracotta")) && (materialBelow != TERRACOTTA)) {
-                                    // Dead shrubs can only exist on materials present in Mesa biome
+                                if ((! materialBelow.modded) && materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_SAND, MC_RED_SAND, MC_DIRT, MC_TERRACOTTA, MC_PODZOL, MC_COARSE_DIRT, MC_ROOTED_DIRT, MC_MOSS_BLOCK, MC_MUD) && (! materialBelow.name.endsWith("_terracotta"))) {
                                     material = clearBlock(minecraftWorld, x, y, z);
                                 }
                                 break;
@@ -257,20 +256,17 @@ public class Java1_15PostProcessor extends PostProcessor {
                             case MC_PINK_TULIP:
                             case MC_OXEYE_DAISY:
                                 if ((! materialBelow.modded) && materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_FARMLAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK, MC_MUD)) {
-                                    // Tall grass and flowers can only exist on Grass or Dirt blocks
                                     material = clearBlock(minecraftWorld, x, y, z);
                                 }
                                 break;
                             case MC_RED_MUSHROOM:
                             case MC_BROWN_MUSHROOM:
-                                if ((! materialBelow.modded) && (materialBelow != GRASS_BLOCK) && (materialBelow != DIRT) && (materialBelow != PODZOL) && (materialBelow != PERMADIRT) && (materialBelow != MYCELIUM) && (materialBelow != STONE) && (materialBelow != GRANITE) && (materialBelow != DIORITE) && (materialBelow != ANDESITE)) {
-                                    // Mushrooms can only exist on Grass, Dirt, Mycelium or Stone (in caves) blocks
+                                if ((! materialBelow.modded) && materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_PODZOL, MC_COARSE_DIRT, MC_MYCELIUM, MC_STONE, MC_GRANITE, MC_DIORITE, MC_ANDESITE)) {
                                     material = clearBlock(minecraftWorld, x, y, z);
                                 }
                                 break;
                             case MC_WHEAT:
                                 if ((! materialBelow.modded) && materialBelow.isNotNamed(MC_FARMLAND)) {
-                                    // Wheat can only exist on Tilled Dirt blocks
                                     material = clearBlock(minecraftWorld, x, y, z);
                                 }
                                 break;
@@ -282,7 +278,7 @@ public class Java1_15PostProcessor extends PostProcessor {
                             case MC_PEONY:
                                 if (material.getProperty(HALF).equals("lower")) {
                                     // Lower half of double high plant; check there's grass or dirt below
-                                    if ((! materialBelow.modded) && materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_FARMLAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK)) {
+                                    if ((! materialBelow.modded) && materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_FARMLAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK, MC_MUD)) {
                                         // Double high plants can (presumably) only exist on grass or dirt // TODO: check
                                         // The upper block will be removed below in the next iteration
                                         material = clearBlock(minecraftWorld, x, y, z);
@@ -296,7 +292,7 @@ public class Java1_15PostProcessor extends PostProcessor {
                                 }
                                 break;
                             case MC_SUGAR_CANE:
-                                if ((! materialBelow.modded) && materialBelow.isNotNamed(MC_GRASS_BLOCK) && (materialBelow != DIRT) && materialBelow.isNotNamed(MC_PODZOL) && (materialBelow != PERMADIRT) && (materialBelow != SAND) && (materialBelow != RED_SAND) && materialBelow.isNotNamed(MC_SUGAR_CANE)) {
+                                if ((! materialBelow.modded) && materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_PODZOL, MC_COARSE_DIRT, MC_ROOTED_DIRT, MC_MOSS_BLOCK, MC_MUD, MC_SAND, MC_RED_SAND, MC_SUGAR_CANE)) {
                                     // Sugar cane blocks can only be on top of grass, dirt, sand or other sugar cane
                                     // blocks
                                     material = clearBlock(minecraftWorld, x, y, z);

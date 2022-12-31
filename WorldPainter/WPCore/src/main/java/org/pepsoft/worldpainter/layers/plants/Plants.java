@@ -31,7 +31,12 @@ public class Plants {
         @Override
         public Category isValidFoundation(MinecraftWorld world, int x, int y, int z, boolean checkBlockBelow) {
             final Material material = world.getMaterialAt(x, y, z);
-            return ((! checkBlockBelow) || material.modded || material.isNamedOneOf(MC_SAND, MC_RED_SAND, MC_DIRT, MC_TERRACOTTA, MC_PODZOL, MC_COARSE_DIRT) || material.name.endsWith("_terracotta")) ? PLANTS_AND_FLOWERS : null;
+            return ((! checkBlockBelow)
+                    || material.modded
+                    || material.isNamedOneOf(MC_GRASS_BLOCK, MC_SAND, MC_RED_SAND, MC_DIRT, MC_TERRACOTTA, MC_PODZOL, MC_COARSE_DIRT, MC_ROOTED_DIRT, MC_MOSS_BLOCK, MC_MUD)
+                    || material.name.endsWith("_terracotta"))
+                ? PLANTS_AND_FLOWERS
+                : null;
         }
     };
     public static final Plant DANDELION = new SimplePlant("Dandelion", Material.DANDELION, PLANTS_AND_FLOWERS);
