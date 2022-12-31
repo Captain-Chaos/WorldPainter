@@ -24,8 +24,6 @@ import java.util.zip.GZIPOutputStream;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.util.Arrays.asList;
-import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
@@ -119,10 +117,7 @@ public abstract class JavaLevel extends AbstractNBTItem {
         if (version == VERSION_ANVIL) {
             if (((maxHeight != DEFAULT_MAX_HEIGHT_ANVIL) && (dataVersion > DATA_VERSION_MC_1_14_4) && (dataVersion <= DATA_VERSION_MC_1_17_1))
                     || ((maxHeight != DEFAULT_MAX_HEIGHT_1_18) && (dataVersion > DATA_VERSION_MC_1_17_1))) {
-                enableDataPacks(DATAPACK_VANILLA, DATAPACK_WORLDPAINTER);
                 createWorldPainterDataPack(worldDir);
-            } else if (dataVersion > DATA_VERSION_MC_1_16_5) {
-                enableDataPacks(DATAPACK_VANILLA);
             }
         }
 
@@ -369,32 +364,6 @@ public abstract class JavaLevel extends AbstractNBTItem {
         return platform;
     }
 
-    @SuppressWarnings("unchecked") // Guaranteed by this method/Minecraft
-    public void enableDataPacks(String... dataPacks) {
-        CompoundTag dataPacksTag = (CompoundTag) getTag(TAG_DATA_PACKS);
-        if (dataPacksTag == null) {
-            dataPacksTag = new CompoundTag(TAG_DATA_PACKS, new HashMap<>());
-            setTag(TAG_DATA_PACKS, dataPacksTag);
-        }
-        List<String> enabledDataPacks = new ArrayList<>(), disabledDataPacks = new ArrayList<>();
-        ListTag<StringTag> enabledTag = (ListTag<StringTag>) dataPacksTag.getTag(TAG_ENABLED);
-        if (enabledTag != null) {
-            enabledTag.getValue().forEach(tag -> enabledDataPacks.add(tag.getValue()));
-        }
-        ListTag<StringTag> disabledTag = (ListTag<StringTag>) dataPacksTag.getTag(TAG_DISABLED);
-        if (disabledTag != null) {
-            disabledTag.getValue().forEach(tag -> disabledDataPacks.add(tag.getValue()));
-        }
-        stream(dataPacks).forEach(dataPack -> {
-            if (! enabledDataPacks.contains(dataPack)) {
-                enabledDataPacks.add(dataPack);
-            }
-            disabledDataPacks.remove(dataPack);
-        });
-        dataPacksTag.setTag(TAG_ENABLED, new ListTag<>(TAG_ENABLED, StringTag.class, enabledDataPacks.stream().map(dataPack -> new StringTag("", dataPack)).collect(toList())));
-        dataPacksTag.setTag(TAG_DISABLED, new ListTag<>(TAG_DISABLED, StringTag.class, disabledDataPacks.stream().map(dataPack -> new StringTag("", dataPack)).collect(toList())));
-    }
-    
     @Override
     public CompoundTag toNBT() {
         Map<String, Tag> values = new HashMap<>();
