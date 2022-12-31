@@ -98,6 +98,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         }
         comboBoxNewMaxHeight.setSelectedItem(matchingMaxHeight);
         updateLabels();
+        pack();
         setControlStates();
     }
 
