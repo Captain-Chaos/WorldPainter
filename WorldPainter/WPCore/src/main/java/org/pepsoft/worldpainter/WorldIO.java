@@ -74,7 +74,7 @@ public class WorldIO {
      * is closed before returning.
      *
      * <p>This version uses a format that compresses every region separately, for faster access to individual regions
-     * without having to laod the entire world.
+     * without having to load the entire world.
      *
      * @param out The stream to which to save the world.
      * @throws IOException If an I/O error occurred saving the world.
