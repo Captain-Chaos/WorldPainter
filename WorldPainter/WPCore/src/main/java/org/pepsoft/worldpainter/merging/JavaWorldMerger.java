@@ -209,7 +209,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
 
         // Sanity checks
         int version = level.getVersion();
-        if (version != VERSION_ANVIL) {
+        if ((version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
             throw new IllegalArgumentException("Version of existing map not supported: 0x" + Integer.toHexString(version));
         }
 
@@ -294,6 +294,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 level.setSpawnZ(spawnPoint.y);
             }
 
+            // TODO: copy EVERYTHING and then operate solely on the copied map? No need to copy things from the backup
+
             // Copy everything that we are not going to generate
             File[] files = backupDir.listFiles();
             for (File file: files) {
@@ -305,8 +307,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         && (! file.getName().equalsIgnoreCase("maxheight.txt"))
                         && (! file.getName().equalsIgnoreCase("Height.txt"))
                         && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_NETHER))) || (! file.getName().equalsIgnoreCase("DIM-1"))) // TODO still copy dirs other than region and entities
-                        && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_END))) || (! file.getName().equalsIgnoreCase("DIM1"))) // TODO still copy dirs other than region and entities
-                        && (! file.getName().equalsIgnoreCase("worldpainter.zip"))) {
+                        && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_END))) || (! file.getName().equalsIgnoreCase("DIM1")))) { // TODO still copy dirs other than region and entities
                     if (file.isFile()) {
                         FileUtils.copyFileToDir(file, worldDir);
                     } else if (file.isDirectory()) {
