@@ -251,6 +251,9 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
             try (RandomAccessFile lockedFile = new RandomAccessFile(levelDatFile, "rw")) {
                 lockedFile.getChannel().lock();
 
+                // Copy the manually configured data packs, if any
+                copyDataPacks(worldDir);
+
                 Map<Integer, ChunkFactory.Stats> stats = new HashMap<>();
                 int selectedDimension;
                 if (selectedTiles == null) {
@@ -273,8 +276,8 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                     stats.put(selectedDimension, exportDimension(worldDir, world.getDimension(new Anchor(selectedDimension, DETAIL, false, 0)), progressReceiver));
                 }
 
-                // Update the session.lock file, hopefully kicking out any Minecraft instances which may have tried to open the
-                // map in the mean time:
+                // Update the session.lock file, hopefully kicking out any Minecraft instances which may have tried to
+                // open the map in the mean time:
                 File sessionLockFile = new File(worldDir, "session.lock");
                 try (DataOutputStream sessionOut = new DataOutputStream(new FileOutputStream(sessionLockFile))) {
                     sessionOut.writeLong(System.currentTimeMillis());
@@ -363,6 +366,28 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
 
             return collectedStats;
         }, "dimension.anchor", dimension.getAnchor(), "dimension.minHeight", dimension.getMinHeight(), "dimension.maxHeight", dimension.getMaxHeight());
+    }
+
+    private void copyDataPacks(File worldDir) throws IOException {
+        if (world.getDataPacks() != null) {
+            final File dataPacksDir = new File(worldDir, "datapacks");
+            for (File dataPackFile: world.getDataPacks()) {
+                if (! dataPackFile.exists()) {
+                    logger.error("Data pack file " + dataPackFile + " does not exist; skipping data pack");
+                } else if (! dataPackFile.isFile()) {
+                    logger.error("Data pack file " + dataPackFile + " is not a regular file; skipping data pack");
+                } else if (! dataPackFile.canRead()) {
+                    logger.error("Access denied to data pack file " + dataPackFile + "; skipping data pack");
+                } else {
+                    if (!dataPacksDir.exists()) {
+                        if (!dataPacksDir.mkdirs()) {
+                            throw new IOException("Could not create data packs directory");
+                        }
+                    }
+                    FileUtils.copyFileToDir(dataPackFile, dataPacksDir);
+                }
+            }
+        }
     }
 
     protected final JavaPlatformProvider platformProvider;

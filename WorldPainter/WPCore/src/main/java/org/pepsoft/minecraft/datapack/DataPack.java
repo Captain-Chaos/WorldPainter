@@ -32,6 +32,14 @@ public class DataPack {
         }
     }
 
+    public void addDescriptor(String name, Descriptor descriptor) {
+        descriptors.put(name, descriptor);
+    }
+
+    public Map<String, Descriptor> getDescriptors() {
+        return unmodifiableMap(descriptors);
+    }
+
     public static DataPack load(File dir, String name) throws IOException {
         final DataPack dataPack = new DataPack();
         final File packFile = new File(dir, "datapacks/" + name.substring(5));
@@ -79,12 +87,12 @@ public class DataPack {
         return dataPack;
     }
 
-    public void addDescriptor(String name, Descriptor descriptor) {
-        descriptors.put(name, descriptor);
-    }
-
-    public Map<String, Descriptor> getDescriptors() {
-        return unmodifiableMap(descriptors);
+    public static boolean isDataPackFile(File packFile) {
+        try (ZipFile in = new ZipFile(packFile)) {
+            return in.getEntry("pack.mcmeta") != null;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private final Map<String, Descriptor> descriptors = new HashMap<>();

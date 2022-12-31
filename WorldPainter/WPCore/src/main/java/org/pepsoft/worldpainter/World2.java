@@ -8,10 +8,7 @@ package org.pepsoft.worldpainter;
 import org.jnbt.CompoundTag;
 import org.jnbt.XMLTransformer;
 import org.pepsoft.minecraft.*;
-import org.pepsoft.util.AttributeKey;
-import org.pepsoft.util.MemoryUtils;
-import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.util.SubProgressReceiver;
+import org.pepsoft.util.*;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.exporting.WorldExportSettings;
@@ -463,6 +460,19 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
+    public List<File> getDataPacks() {
+        return dataPacks;
+    }
+
+    public void setDataPacks(List<File> dataPacks) {
+        if (! Objects.equals(dataPacks, this.dataPacks)) {
+            final List<File> oldDataPacks = this.dataPacks;
+            this.dataPacks = dataPacks;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("dataPacks", oldDataPacks, dataPacks);
+        }
+    }
+
     public <T> Optional<T> getAttribute(AttributeKey<T> key) {
         return Optional.ofNullable(
                 (attributes != null)
@@ -582,6 +592,15 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         } else {
             warnings.add(warning);
         }
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        // We keep having difficulties on Windows with Files being Windows- specific subclasses of File which don't
+        // serialise correctly and end up being null somehow. Work around the problem by making sure all Files are
+        // actually java.io.Files
+        dataPacks = FileUtils.absolutise(dataPacks);
+
+        out.defaultWriteObject();
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -857,6 +876,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private SuperflatPreset superflatPreset;
     private Map<Anchor, Dimension> dimensionsByAnchor = new HashMap<>();
     private WorldExportSettings exportSettings;
+    private List<File> dataPacks;
     private transient Set<Warning> warnings;
     private transient Map<String, Object> metadata;
     private transient long changeNo;

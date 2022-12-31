@@ -328,6 +328,11 @@ public final class Platform implements Serializable {
         /**
          * Leaf blocks have a {@code waterlogged} property and can therefore be placed in water.
          */
-        WATERLOGGED_LEAVES
+        WATERLOGGED_LEAVES,
+
+        /**
+         * Supports Minecraft-style data packs.
+         */
+        DATA_PACKS
     }
 }

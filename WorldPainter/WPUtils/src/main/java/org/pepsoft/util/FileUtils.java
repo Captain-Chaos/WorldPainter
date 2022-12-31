@@ -300,25 +300,25 @@ public class FileUtils {
             return null;
         } else if (collection instanceof List) {
             for (ListIterator<File> i = ((List<File>) collection).listIterator(); i.hasNext(); ) {
-                Object object = i.next();
+                final File file = i.next();
                 try {
-                    i.set(absolutise((File) object));
+                    i.set(absolutise(file));
                 } catch (UnsupportedOperationException e) {
-                    Collection<File> newCollection;
+                    final Collection<File> newCollection;
                     if (collection instanceof RandomAccess) {
                         newCollection = new ArrayList<>(collection.size());
                     } else {
                         newCollection = new LinkedList<>();
                     }
-                    for (Object object2: collection) {
-                        newCollection.add(absolutise((File) object2));
+                    for (File file2: collection) {
+                        newCollection.add(absolutise(file2));
                     }
                     return (T) newCollection;
                 }
             }
             return collection;
         } else {
-            Collection<File> newCollection;
+            final Collection<File> newCollection;
             if (collection instanceof SortedSet) {
                 newCollection = new TreeSet<>();
             } else if (collection instanceof Set) {
@@ -326,8 +326,8 @@ public class FileUtils {
             } else {
                 newCollection = new ArrayList<>(collection.size());
             }
-            for (Object object: collection) {
-                newCollection.add(absolutise((File) object));
+            for (File file: collection) {
+                newCollection.add(absolutise(file));
             }
             return (T) newCollection;
         }

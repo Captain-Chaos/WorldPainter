@@ -13,6 +13,7 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.Dimension.Anchor;
+import org.pepsoft.worldpainter.World2.BorderSettings;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.exporting.WorldExportSettings;
 import org.pepsoft.worldpainter.layers.CustomLayer;
@@ -20,6 +21,7 @@ import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Populate;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.util.EnumListCellRenderer;
+import org.pepsoft.worldpainter.util.FileFilter;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -32,18 +34,21 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
+import static javax.swing.JOptionPane.YES_NO_OPTION;
+import static javax.swing.JOptionPane.YES_OPTION;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_HARD;
 import static org.pepsoft.minecraft.Constants.DIFFICULTY_PEACEFUL;
+import static org.pepsoft.minecraft.datapack.DataPack.isDataPackFile;
 import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 import static org.pepsoft.worldpainter.ExceptionHandler.doWithoutExceptionReporting;
 import static org.pepsoft.worldpainter.GameType.*;
-import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
-import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
+import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.exporting.WorldExportSettings.EXPORT_EVERYTHING;
 import static org.pepsoft.worldpainter.util.BackupUtils.cleanUpBackups;
+import static org.pepsoft.worldpainter.util.FileUtils.selectFileForOpen;
 import static org.pepsoft.worldpainter.util.MaterialUtils.gatherBlocksWithoutIds;
 
 /**
@@ -101,6 +106,13 @@ public class ExportWorldDialog extends WorldPainterDialog {
         comboBoxGameType.setEnabled(comboBoxGameType.getItemCount() > 1);
         comboBoxGameType.setRenderer(new EnumListCellRenderer());
         checkBoxAllowCheats.setSelected(world.isAllowCheats());
+        if (world.getDataPacks() != null) {
+            for (File dataPackFile: world.getDataPacks()) {
+                dataPacksListModel.addElement(dataPackFile);
+            }
+        }
+        listDataPacks.setModel(dataPacksListModel);
+        listDataPacks.setEnabled(platform.capabilities.contains(DATA_PACKS));
         checkBoxMapFeatures.setSelected(world.isMapFeatures());
         comboBoxDifficulty.setSelectedIndex(world.getDifficulty());
 
@@ -122,6 +134,16 @@ public class ExportWorldDialog extends WorldPainterDialog {
         };
         fieldDirectory.getDocument().addDocumentListener(documentListener);
         fieldName.getDocument().addDocumentListener(documentListener);
+
+        // Minecraft world border
+        World2.BorderSettings borderSettings = world.getBorderSettings();
+        spinnerMcBorderCentreX.setValue(borderSettings.getCentreX());
+        spinnerMcBorderCentreY.setValue(borderSettings.getCentreY());
+        spinnerMcBorderSize.setValue(borderSettings.getSize());
+//        spinnerMcBorderBuffer.setValue(borderSettings.getSafeZone());
+//        spinnerMcBorderDamage.setValue(borderSettings.getDamagePerBlock());
+//        spinnerMcBorderWarningTime.setValue(borderSettings.getWarningTime());
+//        spinnerMcBorderWarningDistance.setValue(borderSettings.getWarningBlocks());
 
         disableDisabledLayersWarning = true;
         dims:
@@ -265,10 +287,23 @@ public class ExportWorldDialog extends WorldPainterDialog {
             }
             showWarning = showWarning || (! disableDisabledLayersWarning);
         }
+        for (int i = 0; i < dataPacksListModel.size(); i++) {
+            final File dataPackFile = dataPacksListModel.getElementAt(i);
+            if (! dataPackFile.exists()) {
+                sb.append("<li>Data pack file " + dataPackFile.getName() + " cannot be found.<br>It will not be installed.");
+                showWarning = true;
+            } else if (! dataPackFile.isFile()) {
+                sb.append("<li>Data pack file " + dataPackFile.getName() + " is not a regular file.<br>It will not be installed.");
+                showWarning = true;
+            } else if (! dataPackFile.canRead()) {
+                sb.append("<li>Data pack file " + dataPackFile.getName() + " is not accessible.<br>It will not be installed.");
+                showWarning = true;
+            }
+        }
         sb.append("</ul>Do you want to continue with the export?</html>");
         if (showWarning) {
             DesktopUtils.beep();
-            if (JOptionPane.showConfirmDialog(this, sb.toString(), "Review Warnings", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+            if (JOptionPane.showConfirmDialog(this, sb.toString(), "Review Warnings", YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
                 return;
             }
         }
@@ -297,7 +332,18 @@ public class ExportWorldDialog extends WorldPainterDialog {
         world.setAllowCheats(checkBoxAllowCheats.isSelected());
         world.setMapFeatures(checkBoxMapFeatures.isSelected());
         world.setDifficulty(comboBoxDifficulty.getSelectedIndex());
-        
+        world.setDataPacks(dataPacksListModel.isEmpty() ? null : Collections.list(dataPacksListModel.elements()));
+
+        // Minecraft world border
+        BorderSettings borderSettings = world.getBorderSettings();
+        borderSettings.setCentreX((Integer) spinnerMcBorderCentreX.getValue());
+        borderSettings.setCentreY((Integer) spinnerMcBorderCentreY.getValue());
+        borderSettings.setSize((Integer) spinnerMcBorderSize.getValue());
+//        borderSettings.setSafeZone((Integer) spinnerMcBorderBuffer.getValue());
+//        borderSettings.setDamagePerBlock((Float) spinnerMcBorderDamage.getValue());
+//        borderSettings.setWarningTime((Integer) spinnerMcBorderWarningTime.getValue());
+//        borderSettings.setWarningBlocks((Integer) spinnerMcBorderWarningDistance.getValue());
+
         fieldDirectory.setEnabled(false);
         fieldName.setEnabled(false);
         buttonSelectDirectory.setEnabled(false);
@@ -312,6 +358,9 @@ public class ExportWorldDialog extends WorldPainterDialog {
         checkBoxAllowCheats.setEnabled(false);
         checkBoxMapFeatures.setEnabled(false);
         comboBoxDifficulty.setEnabled(false);
+        listDataPacks.setEnabled(false);
+        buttonAddDataPack.setEnabled(false);
+        buttonRemoveDataPack.setEnabled(false);
 
         final Configuration config = Configuration.getInstance();
         config.setExportDirectory(world.getPlatform(), baseDir);
@@ -334,6 +383,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
             checkBoxGoodies.setEnabled(true);
             comboBoxGameType.setEnabled(true);
             checkBoxMapFeatures.setEnabled(true);
+            listDataPacks.setEnabled(platform.capabilities.contains(DATA_PACKS));
             setControlStates();
         }
     }
@@ -365,6 +415,9 @@ public class ExportWorldDialog extends WorldPainterDialog {
         buttonSelectDirectory.setEnabled(platformSupported);
         buttonExport.setEnabled(platformSupported);
         buttonTestExport.setEnabled(platformSupported);
+        final boolean dataPacksEnabled = listDataPacks.isEnabled();
+        buttonAddDataPack.setEnabled(dataPacksEnabled);
+        buttonRemoveDataPack.setEnabled(dataPacksEnabled && (listDataPacks.getSelectedIndex() != -1));
         if (! platformSupported) {
             buttonExport.setToolTipText(labelPlatformWarning.getToolTipText());
             buttonTestExport.setToolTipText(labelPlatformWarning.getToolTipText());
@@ -390,17 +443,61 @@ public class ExportWorldDialog extends WorldPainterDialog {
             return;
         }
         if (App.getInstance().changeWorldHeight(this)) {
-            jTabbedPane1.removeAll();
+            while (jTabbedPane1.getTabCount() > 1) {
+                jTabbedPane1.removeTabAt(jTabbedPane1.getTabCount() - 1);
+            }
             createDimensionPropertiesEditors();
             platformChanged();
         }
     }
 
-    // Change the line adding jTabbedPane1 to the vertical group to:
-    //
-    //     .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE)
-    //
-    // in order to fix a bug where the tabbed pane is made much too tall.
+    private void addDataPack() {
+        final File dataPackFile = selectFileForOpen(this, "Select a data pack", null, new FileFilter() {
+            @Override
+            public String getExtensions() {
+                return "*.zip";
+            }
+
+            @Override
+            public boolean accept(File f) {
+                return f.isDirectory() || f.getName().toLowerCase().endsWith(".zip");
+            }
+
+            @Override
+            public String getDescription() {
+                return "Data packs (*.zip)";
+            }
+        });
+        if (dataPackFile != null) {
+            if (! isDataPackFile(dataPackFile)) {
+                beepAndShowError(this, "The selected file \"" + dataPackFile.getName() + "\" is not a Minecraft data pack.", "Not A Data Pack");
+                return;
+            } else if (dataPackFile.getName().equalsIgnoreCase("worldpainter.zip")) {
+                beepAndShowError(this, "The WorldPainter data pack is managed by WorldPainter.", "Cannot Add WorldPainter Data Pack");
+                return;
+            } else {
+                for (Enumeration<File> e = dataPacksListModel.elements(); e.hasMoreElements(); ) {
+                    final File existingDataPack = e.nextElement();
+                    if (existingDataPack.getName().equalsIgnoreCase(dataPackFile.getName())) {
+                        if (JOptionPane.showConfirmDialog(this, "There is already a data pack selected with the mame \"" + dataPackFile.getName() + "\"\nDo you want to replaced it?", "Data Pack Name Already Present", YES_NO_OPTION) == YES_OPTION) {
+                            dataPacksListModel.removeElement(existingDataPack);
+                            break;
+                        } else {
+                            return;
+                        }
+                    }
+                }
+            }
+            dataPacksListModel.addElement(dataPackFile);
+        }
+    }
+
+    private void removeSelectedDataPacks() {
+        final int[] selectedIndices = listDataPacks.getSelectedIndices();
+        for (int i = selectedIndices.length - 1; i >= 0; i--) {
+            dataPacksListModel.remove(selectedIndices[i]);
+        }
+    }
 
     /** This method is called from within the constructor to
      * initialize the form.
@@ -412,44 +509,50 @@ public class ExportWorldDialog extends WorldPainterDialog {
     private void initComponents() {
 
         buttonGroup2 = new javax.swing.ButtonGroup();
-        jLabel2 = new javax.swing.JLabel();
-        fieldDirectory = new javax.swing.JTextField();
-        buttonSelectDirectory = new javax.swing.JButton();
-        jLabel3 = new javax.swing.JLabel();
-        fieldName = new javax.swing.JTextField();
         buttonCancel = new javax.swing.JButton();
         buttonExport = new javax.swing.JButton();
         jTabbedPane1 = new javax.swing.JTabbedPane();
+        jPanel1 = new javax.swing.JPanel();
         checkBoxGoodies = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
-        checkBoxAllowCheats = new javax.swing.JCheckBox();
+        labelPlatform = new javax.swing.JLabel();
+        labelPlatformWarning = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         comboBoxGameType = new javax.swing.JComboBox<>();
+        checkBoxAllowCheats = new javax.swing.JCheckBox();
         jLabel6 = new javax.swing.JLabel();
         comboBoxDifficulty = new javax.swing.JComboBox();
-        labelPlatform = new javax.swing.JLabel();
         checkBoxMapFeatures = new javax.swing.JCheckBox();
-        jLabel4 = new javax.swing.JLabel();
-        labelPlatformWarning = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        jSeparator1 = new javax.swing.JSeparator();
+        jLabel8 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        fieldDirectory = new javax.swing.JTextField();
+        fieldName = new javax.swing.JTextField();
+        buttonSelectDirectory = new javax.swing.JButton();
+        jLabel11 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        listDataPacks = new javax.swing.JList<>();
+        buttonAddDataPack = new javax.swing.JButton();
+        buttonRemoveDataPack = new javax.swing.JButton();
+        jLabel12 = new javax.swing.JLabel();
+        panelMinecraftWorldBorder = new javax.swing.JPanel();
+        jLabel79 = new javax.swing.JLabel();
+        spinnerMcBorderCentreX = new javax.swing.JSpinner();
+        jLabel80 = new javax.swing.JLabel();
+        spinnerMcBorderCentreY = new javax.swing.JSpinner();
+        jLabel81 = new javax.swing.JLabel();
+        spinnerMcBorderSize = new javax.swing.JSpinner();
+        jLabel85 = new javax.swing.JLabel();
+        jLabel86 = new javax.swing.JLabel();
         buttonTestExport = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Exporting");
-
-        jLabel2.setText("Directory:");
-
-        fieldDirectory.setText("jTextField1");
-
-        buttonSelectDirectory.setText("...");
-        buttonSelectDirectory.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonSelectDirectoryActionPerformed(evt);
-            }
-        });
-
-        jLabel3.setText("Name:");
-
-        fieldName.setText("jTextField2");
 
         buttonCancel.setText("Cancel");
         buttonCancel.addActionListener(new java.awt.event.ActionListener() {
@@ -468,27 +571,10 @@ public class ExportWorldDialog extends WorldPainterDialog {
         jTabbedPane1.setTabPlacement(javax.swing.JTabbedPane.RIGHT);
 
         checkBoxGoodies.setSelected(true);
-        checkBoxGoodies.setText("Include chest of goodies");
+        checkBoxGoodies.setText(" ");
         checkBoxGoodies.setToolTipText("Include a chest with tools and resources near spawn for you as the level designer");
 
         jLabel1.setText("Map format:");
-
-        checkBoxAllowCheats.setSelected(true);
-        checkBoxAllowCheats.setText("allow cheats:");
-        checkBoxAllowCheats.setToolTipText("Whether to allow cheats (single player commands)");
-        checkBoxAllowCheats.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-
-        jLabel5.setText("mode:");
-
-        comboBoxGameType.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboBoxGameTypeActionPerformed(evt);
-            }
-        });
-
-        jLabel6.setText("difficulty:");
-
-        comboBoxDifficulty.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Peaceful", "Easy", "Normal", "Hard" }));
 
         labelPlatform.setForeground(new java.awt.Color(0, 0, 255));
         labelPlatform.setText("<html><u>[EXPERIMENTAL] Minecraft 1.17</u></html>");
@@ -499,15 +585,272 @@ public class ExportWorldDialog extends WorldPainterDialog {
             }
         });
 
-        checkBoxMapFeatures.setSelected(true);
-        checkBoxMapFeatures.setText("generate structures:");
-        checkBoxMapFeatures.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-
-        jLabel4.setText("Minecraft settings:");
-
         labelPlatformWarning.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/error.png"))); // NOI18N
         labelPlatformWarning.setText("<html><b>unknown format</b></html>");
         labelPlatformWarning.setToolTipText("<html>This map format is unknown and cannot be Exported. Most likely it<br>\nis supported by a plugin that is not installed or cannot be loaded.</html>");
+
+        jLabel4.setText("Game settings");
+
+        jLabel5.setText("Game mode:");
+
+        comboBoxGameType.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxGameTypeActionPerformed(evt);
+            }
+        });
+
+        checkBoxAllowCheats.setSelected(true);
+        checkBoxAllowCheats.setText(" ");
+        checkBoxAllowCheats.setToolTipText("Whether to allow cheats (single player commands)");
+
+        jLabel6.setText("Difficulty:");
+
+        comboBoxDifficulty.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Peaceful", "Easy", "Normal", "Hard" }));
+
+        checkBoxMapFeatures.setSelected(true);
+        checkBoxMapFeatures.setText(" ");
+
+        jLabel7.setText("General settings");
+
+        jLabel8.setLabelFor(checkBoxAllowCheats);
+        jLabel8.setText("Allow cheats:");
+
+        jLabel9.setLabelFor(checkBoxMapFeatures);
+        jLabel9.setText("Generate structures:");
+
+        jLabel10.setLabelFor(checkBoxGoodies);
+        jLabel10.setText("Include chest of goodies:");
+
+        jLabel2.setText("Directory:");
+
+        jLabel3.setText("Name:");
+
+        fieldDirectory.setText("jTextField1");
+
+        fieldName.setText("jTextField2");
+
+        buttonSelectDirectory.setText("...");
+        buttonSelectDirectory.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonSelectDirectoryActionPerformed(evt);
+            }
+        });
+
+        jLabel11.setText("Data packs:");
+
+        listDataPacks.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                listDataPacksValueChanged(evt);
+            }
+        });
+        jScrollPane1.setViewportView(listDataPacks);
+
+        buttonAddDataPack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/brick_add.png"))); // NOI18N
+        buttonAddDataPack.setToolTipText("Add a data pack");
+        buttonAddDataPack.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        buttonAddDataPack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonAddDataPackActionPerformed(evt);
+            }
+        });
+
+        buttonRemoveDataPack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/brick_delete.png"))); // NOI18N
+        buttonRemoveDataPack.setToolTipText("Remove the selected data pack(s)");
+        buttonRemoveDataPack.setEnabled(false);
+        buttonRemoveDataPack.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        buttonRemoveDataPack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonRemoveDataPackActionPerformed(evt);
+            }
+        });
+
+        jLabel12.setText("<html><i>Use at own risk. WorldPainter does</i> not <i>check the validity or version! <i></html>");
+
+        panelMinecraftWorldBorder.setBorder(javax.swing.BorderFactory.createTitledBorder("World Border"));
+
+        jLabel79.setText("Centre:");
+
+        spinnerMcBorderCentreX.setModel(new javax.swing.SpinnerNumberModel(0, -99999, 99999, 1));
+
+        jLabel80.setText(", ");
+
+        spinnerMcBorderCentreY.setModel(new javax.swing.SpinnerNumberModel(0, -99999, 99999, 1));
+
+        jLabel81.setText("Size:");
+
+        spinnerMcBorderSize.setModel(new javax.swing.SpinnerNumberModel(0, 0, 60000000, 1));
+
+        jLabel85.setText(" blocks");
+
+        jLabel86.setText(" blocks");
+
+        javax.swing.GroupLayout panelMinecraftWorldBorderLayout = new javax.swing.GroupLayout(panelMinecraftWorldBorder);
+        panelMinecraftWorldBorder.setLayout(panelMinecraftWorldBorderLayout);
+        panelMinecraftWorldBorderLayout.setHorizontalGroup(
+            panelMinecraftWorldBorderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelMinecraftWorldBorderLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(panelMinecraftWorldBorderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(panelMinecraftWorldBorderLayout.createSequentialGroup()
+                        .addComponent(jLabel79)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spinnerMcBorderCentreX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, 0)
+                        .addComponent(jLabel80)
+                        .addGap(0, 0, 0)
+                        .addComponent(spinnerMcBorderCentreY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, 0)
+                        .addComponent(jLabel85))
+                    .addGroup(panelMinecraftWorldBorderLayout.createSequentialGroup()
+                        .addComponent(jLabel81)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spinnerMcBorderSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, 0)
+                        .addComponent(jLabel86)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        panelMinecraftWorldBorderLayout.setVerticalGroup(
+            panelMinecraftWorldBorderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelMinecraftWorldBorderLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(panelMinecraftWorldBorderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel79)
+                    .addComponent(spinnerMcBorderCentreX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel80)
+                    .addComponent(spinnerMcBorderCentreY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel85))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(panelMinecraftWorldBorderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel81)
+                    .addComponent(spinnerMcBorderSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel86))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jSeparator1)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(fieldDirectory)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonSelectDirectory))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(fieldName))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jScrollPane1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(buttonAddDataPack, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(buttonRemoveDataPack, javax.swing.GroupLayout.Alignment.TRAILING)))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel7)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel10)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(checkBoxGoodies))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(labelPlatform, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(labelPlatformWarning, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel4)
+                            .addComponent(jLabel11))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel8)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(checkBoxAllowCheats))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel6)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(comboBoxDifficulty, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel5)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(comboBoxGameType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel9)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(checkBoxMapFeatures)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
+                        .addComponent(panelMinecraftWorldBorder, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel7)
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(fieldDirectory, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(buttonSelectDirectory))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(labelPlatform, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(labelPlatformWarning, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(checkBoxGoodies)
+                    .addComponent(jLabel10))
+                .addGap(18, 18, 18)
+                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel4)
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel5)
+                            .addComponent(comboBoxGameType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel6)
+                            .addComponent(comboBoxDifficulty, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(checkBoxAllowCheats)
+                            .addComponent(jLabel8))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel9)
+                            .addComponent(checkBoxMapFeatures))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel11))
+                    .addComponent(panelMinecraftWorldBorder, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(buttonAddDataPack)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonRemoveDataPack)))
+                .addContainerGap())
+        );
+
+        jTabbedPane1.addTab("General", jPanel1);
 
         buttonTestExport.setText("Test Export");
         buttonTestExport.addActionListener(new java.awt.event.ActionListener() {
@@ -523,79 +866,25 @@ public class ExportWorldDialog extends WorldPainterDialog {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(fieldName)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(fieldDirectory)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(buttonSelectDirectory))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel5)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(comboBoxGameType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(checkBoxAllowCheats)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel6)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(comboBoxDifficulty, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(checkBoxMapFeatures)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(buttonTestExport)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonExport)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCancel))
-                    .addComponent(jTabbedPane1)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2)
-                            .addComponent(jLabel3)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(checkBoxGoodies)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel1)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(labelPlatform, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(labelPlatformWarning, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                    .addComponent(jTabbedPane1))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(fieldDirectory, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(buttonSelectDirectory))
-                .addGap(18, 18, 18)
-                .addComponent(jLabel3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
                 .addComponent(jTabbedPane1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(checkBoxGoodies)
-                    .addComponent(jLabel1)
-                    .addComponent(labelPlatform, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(labelPlatformWarning, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
                     .addComponent(buttonExport)
-                    .addComponent(checkBoxAllowCheats)
-                    .addComponent(jLabel5)
-                    .addComponent(comboBoxGameType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel6)
-                    .addComponent(comboBoxDifficulty, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel4)
-                    .addComponent(checkBoxMapFeatures)
                     .addComponent(buttonTestExport))
                 .addContainerGap())
         );
@@ -631,6 +920,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
         } else {
             checkBoxAllowCheats.setSelected(false);
         }
+        listDataPacks.setEnabled(newPlatform.capabilities.contains(DATA_PACKS));
 
         if (supportedPlatforms.contains(newPlatform)) {
             labelPlatformWarning.setVisible(false);
@@ -670,10 +960,24 @@ public class ExportWorldDialog extends WorldPainterDialog {
         testExport();
     }//GEN-LAST:event_buttonTestExportActionPerformed
 
+    private void buttonAddDataPackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonAddDataPackActionPerformed
+        addDataPack();
+    }//GEN-LAST:event_buttonAddDataPackActionPerformed
+
+    private void buttonRemoveDataPackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonRemoveDataPackActionPerformed
+        removeSelectedDataPacks();
+    }//GEN-LAST:event_buttonRemoveDataPackActionPerformed
+
+    private void listDataPacksValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listDataPacksValueChanged
+        setControlStates();
+    }//GEN-LAST:event_listDataPacksValueChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton buttonAddDataPack;
     private javax.swing.JButton buttonCancel;
     private javax.swing.JButton buttonExport;
     private javax.swing.ButtonGroup buttonGroup2;
+    private javax.swing.JButton buttonRemoveDataPack;
     private javax.swing.JButton buttonSelectDirectory;
     private javax.swing.JButton buttonTestExport;
     private javax.swing.JCheckBox checkBoxAllowCheats;
@@ -684,14 +988,33 @@ public class ExportWorldDialog extends WorldPainterDialog {
     private javax.swing.JTextField fieldDirectory;
     private javax.swing.JTextField fieldName;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel79;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel80;
+    private javax.swing.JLabel jLabel81;
+    private javax.swing.JLabel jLabel85;
+    private javax.swing.JLabel jLabel86;
+    private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel labelPlatform;
     private javax.swing.JLabel labelPlatformWarning;
+    private javax.swing.JList<File> listDataPacks;
+    private javax.swing.JPanel panelMinecraftWorldBorder;
+    private javax.swing.JSpinner spinnerMcBorderCentreX;
+    private javax.swing.JSpinner spinnerMcBorderCentreY;
+    private javax.swing.JSpinner spinnerMcBorderSize;
     // End of variables declaration//GEN-END:variables
 
     private final World2 world;
@@ -704,6 +1027,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
     private final WorldPainter view;
     private final Map<Anchor, DimensionPropertiesEditor> dimensionPropertiesEditors = new HashMap<>();
     private final List<Platform> supportedPlatforms = new ArrayList<>();
+    private final DefaultListModel<File> dataPacksListModel = new DefaultListModel<>();
     private boolean disableDisabledLayersWarning;
 
     private static final long serialVersionUID = 1L;
