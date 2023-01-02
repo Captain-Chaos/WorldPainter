@@ -1022,17 +1022,17 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         existingChunk = platformProvider.createChunk(platform, tags, maxHeight);
                     }
                     if (existingChunk != null) {
+                        // Sanity checks
+                        final Set<Platform> chunkNativePlatforms = determineNativePlatforms(existingChunk);
+                        if ((chunkNativePlatforms != null) && (! chunkNativePlatforms.contains(platform))) {
+                            throw createInvalidMapException("At least one of the existing chunks to be merged is in a different format (" + chunkNativePlatforms.stream().map(p -> p.displayName).collect(joining(" or ")) + ")", oldRegionDir.getParentFile());
+                        } else if (existingChunk.getMinHeight() > dimension.getMinHeight()) {
+                            throw createInvalidMapException("At least one of the existing chunks to be merged has a higher minimum build height (" + existingChunk.getMinHeight() + ") than the dimension being merged (" + dimension.getMinHeight() + ")", oldRegionDir.getParentFile());
+                        } else if (existingChunk.getMaxHeight() < dimension.getMaxHeight()) {
+                            throw createInvalidMapException("At least one of the existing chunks to be merged has a lower maximum build height (" + existingChunk.getMaxHeight() + ") than the dimension being merged (" + dimension.getMaxHeight() + ")", oldRegionDir.getParentFile());
+                        }
                         if (newChunk != null) {
                             // Chunk exists in existing and new world; merge it
-                            // Sanity checks
-                            final Set<Platform> chunkNativePlatforms = determineNativePlatforms(existingChunk);
-                            if ((chunkNativePlatforms != null) && (! chunkNativePlatforms.contains(platform))) {
-                                throw createInvalidMapException("At least one of the existing chunks to be merged is in a different format (" + chunkNativePlatforms.stream().map(p -> p.displayName).collect(joining(" or ")) + ")", oldRegionDir.getParentFile());
-                            } else if (existingChunk.getMinHeight() > newChunk.getMinHeight()) {
-                                throw createInvalidMapException("At least one of the existing chunks to be merged has a higher minimum build height (" + existingChunk.getMinHeight() + ") than the dimension being merged (" + newChunk.getMinHeight() + ")", oldRegionDir.getParentFile());
-                            } else if (existingChunk.getMaxHeight() < newChunk.getMaxHeight()) {
-                                throw createInvalidMapException("At least one of the existing chunks to be merged has a lower maximum build height (" + existingChunk.getMaxHeight() + ") than the dimension being merged (" + newChunk.getMaxHeight() + ")", oldRegionDir.getParentFile());
-                            }
                             // Do any necessary processing of the existing chunk (clearing trees, etc.) No need to check
                             // for read-only; if the chunk was read-only it wouldn't exist in the new map, and we
                             // wouldn't be here
