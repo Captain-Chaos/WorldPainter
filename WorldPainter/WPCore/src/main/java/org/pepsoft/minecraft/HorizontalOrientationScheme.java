@@ -127,7 +127,7 @@ enum HorizontalOrientationScheme {
     },
 
     /**
-     * {code rotation} property containing an integer from 0 to 15 (inclusive) where 0 is south, 4 is west, etc.
+     * {@code rotation} property containing an integer from 0 to 15 (inclusive) where 0 is south, 4 is west, etc.
      */
     ROTATION {
         @Override
