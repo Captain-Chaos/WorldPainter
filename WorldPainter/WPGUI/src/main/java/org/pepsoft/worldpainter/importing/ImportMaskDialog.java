@@ -10,6 +10,7 @@
  */
 package org.pepsoft.worldpainter.importing;
 
+import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.swing.ProgressDialog;
 import org.pepsoft.util.swing.ProgressTask;
@@ -78,8 +79,6 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
         });
 
         rootPane.setDefaultButton(buttonOk);
-
-        loadDefaults();
 
         scaleToUI();
         pack();
@@ -210,9 +209,15 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
                 labelImageDimensions.setText("Premultiplied alpha not supported! Please convert to non-premultiplied.");
                 selectedFile = null;
             } else {
+                maskImporter = new MaskImporter(dimension, selectedFile, image);
+                if (! maskImporter.isSupported()) {
+                    labelImageDimensions.setForeground(Color.RED);
+                    labelImageDimensions.setText(maskImporter.getUnsupportedReason());
+                    selectedFile = null;
+                    return;
+                }
                 labelImageDimensions.setForeground(null);
                 int width = image.getWidth(), height = image.getHeight();
-                maskImporter = new MaskImporter(dimension, selectedFile, image);
                 maskImporter.setRemoveExistingLayer(checkBoxRemoveExisting.isSelected());
                 MaskImporter.InputType inputType = maskImporter.getInputType();
                 if (inputType == EIGHT_BIT_GREY_SCALE || inputType == SIXTEEN_BIT_GREY_SCALE) {
@@ -232,12 +237,24 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
                 }
                 labelReason.setText(null);
 
-                if (inputType == COLOUR) {
-                    labelImageDimensions.setText(String.format("Image size: %d x %d, indexed colour, %d bits", width, height, image.getSampleModel().getSampleSize(0)));
-                } else if (inputType == ONE_BIT_GREY_SCALE) {
-                    labelImageDimensions.setText(String.format("Image size: %d x %d, black and white", width, height));
+                final String scalingNotSupportedReason = maskImporter.getScalingNotSupportedReason();
+                if (scalingNotSupportedReason != null) {
+                    spinnerScale.setValue(100);
+                    spinnerScale.setEnabled(false);
+                    spinnerScale.setToolTipText(scalingNotSupportedReason);
+                    labelImageDimensions.setIcon(ICON_WARNING);
+                    labelImageDimensions.setText(scalingNotSupportedReason);
                 } else {
-                    labelImageDimensions.setText(String.format("Image size: %d x %d, grey scale, %d bits, lowest value: %d, highest value: %d", width, height, image.getSampleModel().getSampleSize(0), maskImporter.getImageLowValue(), maskImporter.getImageHighValue()));
+                    spinnerScale.setEnabled(true);
+                    spinnerScale.setToolTipText(null);
+                    labelImageDimensions.setIcon(null);
+                    if (inputType == COLOUR) {
+                        labelImageDimensions.setText(String.format("Image size: %d x %d, colour, %d bits", width, height, image.getSampleModel().getSampleSize(0)));
+                    } else if (inputType == ONE_BIT_GREY_SCALE) {
+                        labelImageDimensions.setText(String.format("Image size: %d x %d, black and white", width, height));
+                    } else {
+                        labelImageDimensions.setText(String.format("Image size: %d x %d, grey scale, %d bits, lowest value: %d, highest value: %d", width, height, image.getSampleModel().getSampleSize(0), maskImporter.getImageLowValue(), maskImporter.getImageHighValue()));
+                    }
                 }
                 updateWorldDimensions();
             }
@@ -252,10 +269,6 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
     private void updateWorldDimensions() {
         int scale = (Integer) spinnerScale.getValue();
         labelWorldDimensions.setText("Scaled size: " + (image.getWidth() * scale / 100) + " x " + (image.getHeight() * scale / 100) + " blocks");
-    }
-
-    private void loadDefaults() {
-        // TODO
     }
 
     @Override
@@ -694,6 +707,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
     private volatile BufferedImage image;
     private MaskImporter maskImporter;
 
+    private static final Icon ICON_WARNING = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/error.png");
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ImportMaskDialog.class);
     private static final long serialVersionUID = 1L;
 }

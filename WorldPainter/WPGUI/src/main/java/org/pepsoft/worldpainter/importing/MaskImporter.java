@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 
+import static java.awt.image.BufferedImage.*;
 import static java.util.Collections.emptySet;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
@@ -48,20 +49,25 @@ public class MaskImporter {
         if (sampleSize == 1) {
             inputType = InputType.ONE_BIT_GREY_SCALE;
             imageMaxValue = 1;
+            unsupportedReason = null;
         } else if (image.getColorModel().getColorSpace().getType() == ColorSpace.TYPE_GRAY) {
             if (sampleSize == 8) {
                 inputType = InputType.EIGHT_BIT_GREY_SCALE;
                 imageMaxValue = 255;
+                unsupportedReason = null;
             } else if (sampleSize == 16) {
                 inputType = InputType.SIXTEEN_BIT_GREY_SCALE;
                 imageMaxValue = 65535;
+                unsupportedReason = null;
             } else {
                 inputType = InputType.UNSUPPORTED;
                 imageMaxValue = -1;
+                unsupportedReason = "Grey scale images of " + sampleSize + " bits not yet supported";
             }
         } else {
             inputType = InputType.COLOUR;
             imageMaxValue = 0xffffffff;
+            unsupportedReason = null;
         }
 
         switch (inputType) {
@@ -232,6 +238,17 @@ outer:          for (int x = 0; x < width; x++) {
 
     public boolean isSupported() {
         return inputType != InputType.UNSUPPORTED;
+    }
+
+    public String getScalingNotSupportedReason() {
+        final int imageType = image.getType();
+        if ((image.getColorModel() instanceof IndexColorModel) && (imageType != TYPE_BYTE_BINARY) && (imageType != TYPE_BYTE_INDEXED)) {
+            return "Scaling not supported for indexed images of type " + imageType;
+        }
+        if (imageType == TYPE_CUSTOM) {
+            return "Scaling not supported for unrecognised image parameters";
+        }
+        return null;
     }
 
     public Layer getApplyToLayer() {
@@ -458,10 +475,15 @@ outer:          for (int x = 0; x < width; x++) {
         return imageMaxValue;
     }
 
+    public String getUnsupportedReason() {
+        return unsupportedReason;
+    }
+
     private final Dimension dimension;
     private final InputType inputType;
     private final int imageLowValue, imageHighValue, imageMaxValue;
     private final File imageFile;
+    private final String unsupportedReason;
     private BufferedImage image;
     private boolean applyToTerrain, removeExistingLayer;
     private Layer applyToLayer;
