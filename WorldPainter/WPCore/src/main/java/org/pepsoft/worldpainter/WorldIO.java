@@ -129,7 +129,7 @@ public class WorldIO {
         } catch (ZipException | StreamCorruptedException | IllegalArgumentException | ClassNotFoundException | InvalidClassException | EOFException e) {
             throw new UnloadableWorldException(e.getClass().getSimpleName() + " while loading world", e, metadata);
         } catch (IOException e) {
-            if (e.getMessage().equals("Not in GZIP format")) {
+            if ("Not in GZIP format".equals(e.getMessage())) {
                 throw new UnloadableWorldException("Not in GZIP format", e, metadata);
             } else {
                 throw e;
