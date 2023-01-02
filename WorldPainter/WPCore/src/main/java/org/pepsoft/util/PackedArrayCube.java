@@ -42,6 +42,13 @@ public class PackedArrayCube<T> {
     public PackedArrayCube(int size, long[] data, T[] palette, int minimumWordSize, boolean straddleLongs, Class<T> type) {
         this(size, minimumWordSize, straddleLongs, type);
 
+        // Sanity check
+        for (int i = 0; i < palette.length; i++) {
+            if ((palette[i] != null) && (! type.isAssignableFrom(palette[i].getClass()))) {
+                throw new IllegalArgumentException("Palette[" + i + "] is not a " + type.getSimpleName() + " (actual type: " + palette[i].getClass().getName() + "; value: " + palette[i] + ")");
+            }
+        }
+
         final int wordSize = Math.max(minimumWordSize, (int) Math.ceil(Math.log(palette.length) / Math.log(2)));
         final int expectedPackedDataArrayLengthInBytes = wordSize * arraySize / 8;
         final int dataArrayLengthInBytes = data.length * 8;
