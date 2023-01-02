@@ -20,11 +20,11 @@ public class VersionTest {
         assertEquals(0, new Version(1).compareTo(new Version(1, 0, 0)));
         assertEquals(0, new Version(1, 0, 0).compareTo(new Version(1)));
 
-        assertEquals(1, new Version(1, 0, 0).compareTo(new Version(1, 0, 0, "SNAPSHOT")));
-        assertEquals(-1, new Version(1, 0, 0, "SNAPSHOT").compareTo(new Version(1, 0, 0)));
+        assertEquals(-1, new Version(1, 0, 0).compareTo(new Version(1, 0, 0, "SNAPSHOT")));
+        assertEquals(1, new Version(1, 0, 0, "SNAPSHOT").compareTo(new Version(1, 0, 0)));
         assertEquals(0, new Version(1, 0, 0, "SNAPSHOT").compareTo(new Version(1, 0, 0, "SNAPSHOT")));
-        assertEquals(1, new Version(1).compareTo(new Version(1, 0, 0, "SNAPSHOT")));
-        assertEquals(-1, new Version(1, 0, 0, "SNAPSHOT").compareTo(new Version(1)));
+        assertEquals(-1, new Version(1).compareTo(new Version(1, 0, 0, "SNAPSHOT")));
+        assertEquals(1, new Version(1, 0, 0, "SNAPSHOT").compareTo(new Version(1)));
         assertEquals(0, new Version(1, 0, 0, "SNAPSHOT").compareTo(new Version(1, "SNAPSHOT")));
 
         assertEquals(-1, new Version(0, 9, 9).compareTo(new Version(1)));
