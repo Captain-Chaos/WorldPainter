@@ -1644,6 +1644,13 @@ public final class App extends JFrame implements RadiusControl,
 
     public void showCustomTerrainButtonPopup(final AWTEvent event, final int customMaterialIndex) {
         final JToggleButton button = (customMaterialIndex >= 0) ? customMaterialButtons[customMaterialIndex] : null;
+        // This is sometimes invoked when the source is not showing. No idea why, but it has been observed in the wild.
+        // TODO: find out why and solve the underlying issue
+        if ((button != null) ? (! button.isShowing()) : ((event.getSource() instanceof Component) && (! ((Component) event.getSource()).isShowing()))) {
+            DesktopUtils.beep();
+            logger.warn("Event source {} not showing; not opening popup", event.getSource());
+            return;
+        }
         JPopupMenu popupMenu = new BetterJPopupMenu();
         final MixedMaterial material = (customMaterialIndex >= 0) ? Terrain.getCustomMaterial(customMaterialIndex) : null;
 //        JLabel label = new JLabel(MessageFormat.format(strings.getString("current.material.0"), (material != null) ? material : "none"));
