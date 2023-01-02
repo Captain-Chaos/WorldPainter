@@ -21,13 +21,14 @@ import static org.pepsoft.worldpainter.Platform.Capability.*;
  * <p>Created by Pepijn on 11-12-2016.
  */
 public final class Platform implements Serializable {
-    Platform(String id, String displayName, int minMaxHeight, int standardMaxHeight, int maxMaxHeight, int minX,
+    public Platform(String id, String displayName, int minMaxHeight, int standardMaxHeight, int maxMaxHeight, int minX,
                     int maxX, int minY, int maxY, List<GameType> supportedGameTypes,
                     List<Generator> supportedGenerators, List<Integer> supportedDimensions,
                     Set<Capability> capabilities, Object... attributes) {
         this(id, displayName, defaultMaxHeightsFromTo(minMaxHeight, maxMaxHeight), standardMaxHeight, minX, maxX, minY, maxY, 0, supportedGameTypes, supportedGenerators, supportedDimensions, capabilities, attributes);
     }
 
+    // Kept for backwards compatibility with existing plugins
     public Platform(String id, String displayName, int minMaxHeight, int standardMaxHeight, int maxMaxHeight, int minX,
                     int maxX, int minY, int maxY, List<GameType> supportedGameTypes,
                     List<Generator> supportedGenerators, List<Integer> supportedDimensions,
@@ -35,7 +36,7 @@ public final class Platform implements Serializable {
         this(id, displayName, defaultMaxHeightsFromTo(minMaxHeight, maxMaxHeight), standardMaxHeight, minX, maxX, minY, maxY, 0, supportedGameTypes, supportedGenerators, supportedDimensions, capabilities, (Object[]) null);
     }
 
-    Platform(String id, String displayName, int[] maxHeights, int standardMaxHeight, int minX, int maxX,
+    public Platform(String id, String displayName, int[] maxHeights, int standardMaxHeight, int minX, int maxX,
                     int minY, int maxY, int minZ, List<GameType> supportedGameTypes, List<Generator> supportedGeneratorTypes,
                     List<Integer> supportedDimensions, Set<Capability> capabilities, Object... attributes) {
         synchronized (ALL_PLATFORMS) {
@@ -58,8 +59,16 @@ public final class Platform implements Serializable {
             this.supportedDimensions = ImmutableList.copyOf(supportedDimensions);
             this.capabilities = Sets.immutableEnumSet(capabilities);
             if ((attributes != null) && (attributes.length > 0)) {
+                if (attributes.length % 2 != 0) {
+                    throw new IllegalArgumentException("attributes array must have even length");
+                }
                 final ImmutableMap.Builder<String, Serializable> mapBuilder = ImmutableMap.builder();
                 for (int i = 0; i < attributes.length; i += 2) {
+                    if (attributes[i] == null) {
+                        throw new NullPointerException("attributes[" + i + "]");
+                    } else if (attributes[i + 1] == null) {
+                        throw new NullPointerException("attributes[" + (i + 1) + "]");
+                    }
                     mapBuilder.put(((AttributeKey<?>) attributes[i]).key, (Serializable) attributes[i + 1]);
                 }
                 this.attributes = mapBuilder.build();
@@ -70,6 +79,7 @@ public final class Platform implements Serializable {
         }
     }
 
+    // Kept for backwards compatibility with existing plugins
     public Platform(String id, String displayName, int[] maxHeights, int standardMaxHeight, int minX, int maxX,
                     int minY, int maxY, int minZ, List<GameType> supportedGameTypes, List<Generator> supportedGeneratorTypes,
                     List<Integer> supportedDimensions, Set<Capability> capabilities) {
