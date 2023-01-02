@@ -47,14 +47,12 @@ public interface Plugin {
     Set<UUID> getUUIDs();
     
     /**
-     * Get the minimum supported WorldPainter version of the plugin. Convenience
-     * method for (and must return the same as):
-     * 
-     * <p>{@code getPoperties().getProperty(Plugin.PROPERTY_MINIMUM_WORLDPAINTER_VERSION)}
-     * 
-     * @return The minimum supported WorldPainter version of the plugin.
+     * Deprecated. Use the {@code minimumHostVersion} property in the JSON descriptor instead. This will never be
+     * invoked.
      */
-    String getMinimumWorldPainterVersion();
+    @Deprecated default String getMinimumWorldPainterVersion() {
+        return getProperties().getProperty(PROPERTY_MINIMUM_WORLDPAINTER_VERSION);
+    }
     
     /**
      * Get the properties of the plugin.
@@ -80,8 +78,7 @@ public interface Plugin {
     String PROPERTY_UUIDS   = "uuids";
     
     /**
-     * The minimum supported version of WorldPainter. Optional, when not present
-     * the plugin works with any version of WorldPainter.
+     * Deprecated. Use the {@code minimumHostVersion} property in the JSON descriptor instead.
      */
-    String PROPERTY_MINIMUM_WORLDPAINTER_VERSION = "minimumWorldPainterVersion";
+    @Deprecated String PROPERTY_MINIMUM_WORLDPAINTER_VERSION = "minimumWorldPainterVersion";
 }

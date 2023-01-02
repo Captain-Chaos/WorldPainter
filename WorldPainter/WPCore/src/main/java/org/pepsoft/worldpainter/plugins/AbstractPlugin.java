@@ -76,11 +76,6 @@ public abstract class AbstractPlugin implements Plugin {
     }
 
     @Override
-    public final String getMinimumWorldPainterVersion() {
-        return properties.getProperty(PROPERTY_MINIMUM_WORLDPAINTER_VERSION);
-    }
-
-    @Override
     public final Properties getProperties() {
         return (Properties) properties.clone();
     }
