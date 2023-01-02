@@ -1,11 +1,13 @@
 package org.pepsoft.worldpainter.layers;
 
 import com.google.common.collect.ImmutableSet;
+import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.swing.BetterJPopupMenu;
 import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.biomeschemes.*;
 
 import javax.swing.*;
@@ -107,13 +109,18 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         addCustomBiomeButton.setMargin(App.BUTTON_INSETS);
         addCustomBiomeButton.setToolTipText("Add a custom biome");
         addCustomBiomeButton.addActionListener(e -> {
+            final World2 world = App.getInstance().getWorld();
+            if (world == null) {
+                DesktopUtils.beep();
+                return;
+            }
             final Window parent = SwingUtilities.getWindowAncestor(BiomesPanel.this);
             final int id = customBiomeManager.getNextId();
             if (id == -1) {
                 JOptionPane.showMessageDialog(parent, "Maximum number of custom biomes reached", "Maximum Reached", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            final Platform platform = App.getInstance().getWorld().getPlatform();
+            final Platform platform = world.getPlatform();
             CustomBiome customBiome = new CustomBiome(platform.capabilities.contains(NAMED_BIOMES) ? "namespace:biome" : "Custom", id, Color.ORANGE.getRGB());
             CustomBiomeDialog dialog = new CustomBiomeDialog(parent, customBiome, true, platform);
             dialog.setVisible(true);
