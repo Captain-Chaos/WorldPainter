@@ -176,9 +176,9 @@ public final class DimensionPainter {
      */
     @SuppressWarnings("SuspiciousNameCombination")
     public void drawText(Dimension dimension, int x, int y, String text) {
-        String[] lines = text.split("\\n");
+        final String[] lines = text.split("\\n");
         for (String line: lines) {
-            int lineHeight = drawTextLine(dimension, x, y, line);
+            final int lineHeight = drawTextLine(dimension, x, y, line);
             switch (textAngle) {
                 case 0:
                     y += lineHeight;
@@ -412,16 +412,19 @@ public final class DimensionPainter {
 
     private int drawTextLine(Dimension dimension, int x, int y, String text) {
         BufferedImage image = new BufferedImage(1000, 100, BufferedImage.TYPE_BYTE_BINARY);
-        Rectangle2D bounds;
+        final Rectangle2D bounds;
         Graphics2D g2 = image.createGraphics();
         g2.setRenderingHint(KEY_TEXT_ANTIALIASING, VALUE_TEXT_ANTIALIAS_OFF);
         final int textWidth, textHeight;
         try {
             g2.setFont(font);
-            FontRenderContext frc = g2.getFontRenderContext();
+            final FontRenderContext frc = g2.getFontRenderContext();
             bounds = font.getStringBounds(text, frc);
             textWidth = (int) Math.ceil(bounds.getWidth());
             textHeight = (int) Math.ceil(bounds.getHeight());
+            if ((textWidth < 1) || (textHeight < 1)) {
+                return (int) bounds.getHeight();
+            }
             if ((textWidth > 1000) || (textHeight > 100)) {
                 g2.dispose();
                 image = new BufferedImage(textWidth, textHeight, BufferedImage.TYPE_BYTE_BINARY);

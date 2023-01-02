@@ -67,14 +67,16 @@ public class Text extends AbstractBrushOperation implements PaintOperation {
             settings.setDefaultFont(font.getFamily());
             settings.setDefaultSize(font.getSize());
             dimension.setLayerSettings(Annotations.INSTANCE, settings);
-            painter.setFont(font);
-            painter.setTextAngle(dialog.getSelectedAngle());
             savedText = dialog.getText();
-            dimension.setEventsInhibited(true);
-            try {
-                painter.drawText(dimension, centreX, centreY, savedText);
-            } finally {
-                dimension.setEventsInhibited(false);
+            if (! savedText.trim().isEmpty()) {
+                painter.setFont(font);
+                painter.setTextAngle(dialog.getSelectedAngle());
+                dimension.setEventsInhibited(true);
+                try {
+                    painter.drawText(dimension, centreX, centreY, savedText);
+                } finally {
+                    dimension.setEventsInhibited(false);
+                }
             }
         }
     }

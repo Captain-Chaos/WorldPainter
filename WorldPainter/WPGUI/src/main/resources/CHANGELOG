@@ -12,6 +12,7 @@
    + If the org.pepsoft.worldpainter.threads advanced setting is present it overrides this setting. Remove that advanced setting in order to be able to adjust this value in the Preferences
  * Dead bushes can now be planted on grass blocks
  * Bug fix: correct the light levels of the minecraft:light block, and make it insubstantial so that it does not block solid objects
+ * Bug fix: prevent an error when rendering very large text with empty lines
  * Various bug fixes and usability improvements
 
 -- Version 2.15.16, released 9-12-2022
