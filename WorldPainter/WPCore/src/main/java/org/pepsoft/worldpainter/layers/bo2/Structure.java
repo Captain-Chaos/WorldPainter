@@ -144,6 +144,9 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
 
         // Load the palette
         final ListTag<CompoundTag> paletteTag = (ListTag<CompoundTag>) root.getTag(TAG_PALETTE_);
+        if (paletteTag == null) {
+            throw new IllegalArgumentException(TAG_PALETTE_ + " tag missing from object " + objectName + " (root tag contents: " + root.getValue() + ")");
+        }
         final Material[] palette = new Material[paletteTag.getValue().size()];
         for (int i = 0; i < palette.length; i++) {
             final CompoundTag entryTag = paletteTag.getValue().get(i);
@@ -158,6 +161,9 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
         // Load the blocks and tile entities
         final Map<Point3i, Material> blocks = new HashMap<>();
         final ListTag<CompoundTag> blocksTag = (ListTag<CompoundTag>) root.getTag(TAG_BLOCKS_);
+        if (blocksTag == null) {
+            throw new IllegalArgumentException(TAG_BLOCKS_ + " tag missing from object " + objectName + " (root tag contents: " + root.getValue() + ")");
+        }
         final List<TileEntity> tileEntities = new ArrayList<>();
         for (CompoundTag blockTag: blocksTag.getValue()) {
             final List<IntTag> posTags = ((ListTag<IntTag>) blockTag.getTag(TAG_POS_)).getValue();
