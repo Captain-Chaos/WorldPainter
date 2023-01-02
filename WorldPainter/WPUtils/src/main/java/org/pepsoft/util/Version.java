@@ -91,14 +91,10 @@ public final class Version implements Comparable<Version>, Serializable {
             if (o.extension != null) {
                 return this.extension.compareTo(o.extension);
             } else {
-                // A version with an extension (e.g. -SNAPSHOT) is considered newer than an otherwise identical version
-                // without an extension
-                return 1;
+                return -1;
             }
         } else if (o.extension != null) {
-            // A version without an extension is considered older than an otherwise identical version with an extension
-            // (e.g. -SNAPSHOT)
-            return -1;
+            return 1;
         } else {
             return 0;
         }
