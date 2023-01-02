@@ -116,6 +116,11 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
                 // something we can do anything about, so ignore it
                 return topOfStack.getClassName().equals("sun.nio.fs.WindowsPathParser")
                         && topOfStack.getMethodName().equals("normalize");
+            } else if (rootCause instanceof NoClassDefFoundError) {
+                // This seems to be some kind of bug in Java2D in Java 8. Not something we can do anything about, so
+                // don't bother the user with dozens of error dialogs
+                return topOfStack.getClassName().equalsIgnoreCase("sun.dc.DuctusRenderingEngine")
+                        && topOfStack.getMethodName().equalsIgnoreCase("getRasterizer");
             }
         }
         return false;
