@@ -14,6 +14,10 @@ public class StartupMessages {
         WARNINGS.add(warning);
     }
 
+    public static void addMessage(String message) {
+        MESSAGES.add(message);
+    }
+
     public static List<String> getErrors() {
         return unmodifiableList(ERRORS);
     }
@@ -22,5 +26,9 @@ public class StartupMessages {
         return unmodifiableList(WARNINGS);
     }
 
-    private static final List<String> ERRORS = new ArrayList<>(), WARNINGS = new ArrayList<>();
+    public static List<String> getMessages() {
+        return unmodifiableList(MESSAGES);
+    }
+
+    private static final List<String> ERRORS = new ArrayList<>(), WARNINGS = new ArrayList<>(), MESSAGES = new ArrayList<>();
 }

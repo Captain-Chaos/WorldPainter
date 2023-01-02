@@ -1,6 +1,5 @@
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.slf4j.Logger;
@@ -17,7 +16,7 @@ import java.util.regex.Pattern;
 import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
 
 public class WorldLoadTester {
-    public static void main(String[] args) throws IOException, ClassNotFoundException, UnloadableWorldException, ProgressReceiver.OperationCancelled {
+    public static void main(String[] args) throws IOException, ClassNotFoundException, UnloadableWorldException {
         // Load the default platform descriptors so that they don't get blocked
         // by older versions of them which might be contained in the
         // configuration. Do this by loading and initialising (but not
@@ -52,7 +51,7 @@ public class WorldLoadTester {
 
         // Load the plugins
         if (trustedCert != null) {
-            PluginManager.loadPlugins(new File(Configuration.getConfigDir(), "plugins"), trustedCert.getPublicKey(), DESCRIPTOR_PATH);
+            PluginManager.loadPlugins(new File(Configuration.getConfigDir(), "plugins"), trustedCert.getPublicKey(), DESCRIPTOR_PATH, Version.VERSION_OBJ, false);
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
         }

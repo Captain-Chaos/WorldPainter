@@ -52,8 +52,7 @@ import java.util.prefs.Preferences;
 
 import static javax.swing.JOptionPane.WARNING_MESSAGE;
 import static org.pepsoft.util.GUIUtils.getUIScale;
-import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
-import static org.pepsoft.util.swing.MessageUtils.beepAndShowWarning;
+import static org.pepsoft.util.swing.MessageUtils.*;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_PLUGINS;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SAFE_MODE;
 import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
@@ -289,10 +288,10 @@ public class Main {
             logger.error("Certificate exception while loading trusted root certificate", e);
         }
 
-        // Load the plugins
+        // Load the plugins, checking for updates
         if (! safeMode) {
             if (trustedCert != null) {
-                PluginManager.loadPlugins(new File(configDir, "plugins"), trustedCert.getPublicKey(), DESCRIPTOR_PATH);
+                PluginManager.loadPlugins(new File(configDir, "plugins"), trustedCert.getPublicKey(), DESCRIPTOR_PATH, Version.VERSION_OBJ, true);
             } else {
                 logger.error("Trusted root certificate not available; not loading plugins");
             }
@@ -509,10 +508,13 @@ public class Main {
                 for (String error: StartupMessages.getErrors()) {
                     beepAndShowError(app, error, "Startup Error");
                 }
-                for (String error: StartupMessages.getWarnings()) {
-                    beepAndShowWarning(app, error, "Startup Warning");
+                for (String warning: StartupMessages.getWarnings()) {
+                    beepAndShowWarning(app, warning, "Startup Warning");
                 }
-                if (StartupMessages.getErrors().isEmpty() && StartupMessages.getWarnings().isEmpty()) {
+                for (String message: StartupMessages.getMessages()) {
+                    showInfo(app, message, "Startup Message");
+                }
+                if (StartupMessages.getErrors().isEmpty() && StartupMessages.getWarnings().isEmpty() && StartupMessages.getMessages().isEmpty()) {
                     // Don't bother the user with this if we've already bothered them with errors and/or warnings
                     if (! DonationDialog.maybeShowDonationDialog(app)) {
                         MerchDialog.maybeShowMerchDialog(app);

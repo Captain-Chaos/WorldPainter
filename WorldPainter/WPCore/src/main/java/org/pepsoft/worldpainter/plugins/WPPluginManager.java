@@ -4,8 +4,9 @@
  */
 package org.pepsoft.worldpainter.plugins;
 
-import org.jetbrains.annotations.NotNull;
+import org.pepsoft.util.Version;
 import org.pepsoft.util.plugins.PluginManager;
+import org.pepsoft.worldpainter.StartupMessages;
 
 import java.io.File;
 import java.security.PublicKey;
@@ -22,13 +23,14 @@ import static java.util.Collections.unmodifiableList;
 public class WPPluginManager {
     private WPPluginManager(UUID uuid, ClassLoader classLoader) {
         allPlugins = PluginManager.findPlugins(Plugin.class, DESCRIPTOR_PATH, classLoader);
-        errors.addAll(PluginManager.getErrors());
+        PluginManager.getErrors().forEach(StartupMessages::addError);
+        PluginManager.getMessages().forEach(StartupMessages::addMessage);
         Set<String> namesEncountered = new HashSet<>();
         for (Iterator<Plugin> i = allPlugins.iterator(); i.hasNext(); ) {
             Plugin plugin = i.next();
             if ((plugin.getUUIDs() != null) && (uuid != null) && (! plugin.getUUIDs().contains(uuid))) {
                 String message = plugin.getName() + " plugin is not authorised for this installation";
-                errors.add(message);
+                StartupMessages.addError(message);
                 logger.error(message + "; not loading it");
                 i.remove();
                 continue;
@@ -70,44 +72,32 @@ public class WPPluginManager {
     }
 
     /**
-     * Get the list of errors, if any, that occurred while loading the plugins.
+     * Initialise the WorldPainter plugin manager for a particular WorldPainter installation. This method or
+     * {@link #initialise(UUID, ClassLoader)} should be invoked only once, before {@link #getInstance()} is invoked.
      *
-     * @return The list of errors, if any, that occurred while loading the
-     * plugins. May be empty, but is never {@code null}.
-     */
-    public @NotNull List<String> getErrors() {
-        return unmodifiableList(errors);
-    }
-
-    /**
-     * Initialise the WorldPainter plugin manager for a particular WorldPainter
-     * installation. This method or {@link #initialise(UUID, ClassLoader)}
-     * should be invoked only once, before {@link #getInstance()} is invoked.
+     * <p><strong>Please note!</strong> If plugins should be loaded from plugin jars,
+     * {@link PluginManager#loadPlugins(File, PublicKey, String, Version, boolean)} must be invoked <em>before</em> this
+     * method, to ensure the jars are discovered.
      *
-     * <p><strong>Please note!</strong> If plugins should be loaded from plugin
-     * jars, {@link PluginManager#loadPlugins(File, PublicKey, String)} must be
-     * invoked <em>before</em> this method, to ensure the jars are discovered.
-     *
-     * @param uuid The unique identifier of the WorldPainter installation for
-     *             which to initialise the WorldPainter plugin manager.
+     * @param uuid The unique identifier of the WorldPainter installation for which to initialise the WorldPainter
+     *             plugin manager.
      */
     public static synchronized void initialise(UUID uuid) {
         initialise(uuid, ClassLoader.getSystemClassLoader());
     }
     
     /**
-     * Initialise the WorldPainter plugin manager for a particular WorldPainter
-     * installation. This method or {@link #initialise(UUID)} should be invoked
-     * only once, before {@link #getInstance()} is invoked.
+     * Initialise the WorldPainter plugin manager for a particular WorldPainter installation. This method or
+     * {@link #initialise(UUID)} should be invoked only once, before {@link #getInstance()} is invoked.
      *
-     * <p><strong>Please note!</strong> If plugins should be loaded from plugin
-     * jars, {@link PluginManager#loadPlugins(File, PublicKey, String)} must be
-     * invoked <em>before</em> this method, to ensure the jars are discovered.
+     * <p><strong>Please note!</strong> If plugins should be loaded from plugin jars,
+     * {@link PluginManager#loadPlugins(File, PublicKey, String, Version, boolean)} must be invoked <em>before</em> this
+     * method, to ensure the jars are discovered.
      *
-     * @param uuid The unique identifier of the WorldPainter installation for
-     *             which to initialise the WorldPainter plugin manager.
-     * @param classLoader The class loader from which to discover the default/
-     *                    system plugins (those not loaded from plugin jars).
+     * @param uuid The unique identifier of the WorldPainter installation for which to initialise the WorldPainter
+     *             plugin manager.
+     * @param classLoader The class loader from which to discover the default/system plugins (those not loaded from
+     *                    plugin jars).
      */
     public static synchronized void initialise(UUID uuid, ClassLoader classLoader) {
         if (instance != null) {
@@ -128,12 +118,10 @@ public class WPPluginManager {
     }
     
     private final List<Plugin> allPlugins;
-    private final List<String> errors = new ArrayList<>();
 
     /**
-     * The resource filename in which WorldPainter plugin descriptors are
-     * stored. Pass this into the {@code filename} parameter of the
-     * {@link PluginManager#loadPlugins(File, PublicKey, String)} method.
+     * The resource filename in which WorldPainter plugin descriptors are stored. Pass this into the {@code filename}
+     * parameter of the {@link PluginManager#loadPlugins(File, PublicKey, String, Version, boolean)} method.
      */
     public static final String DESCRIPTOR_PATH = "org.pepsoft.worldpainter.plugins";
 

@@ -40,42 +40,19 @@ public final class PluginManager {
     }
 
     /**
-     * Load plugin jars from a directory, which are signed with a particular
-     * private key. Do <em>not</em> check for updates.
+     * Load plugin jars from a directory, which are signed with a particular private key. Optionally check for updates
+     * and replace versions which have updates with their newer versions.
      *
-     * <p>This method should be invoked only once. Any discovered and properly
-     * signed plugin jars will be available to be returned by later invocations
-     * of the {@link #findPlugins(Class, String, ClassLoader)} method.
-     *
-     * @param pluginDir The directory from which to load the plugins.
-     * @param publicKey The public key corresponding to the private key with
-     *                  which the plugins must have been signed.
-     * @param descriptorPath The resource path of the file containing the plugin
-     *                       descriptor.
-     */
-    public static void loadPlugins(File pluginDir, PublicKey publicKey, String descriptorPath) {
-        loadPlugins(pluginDir, publicKey, descriptorPath, null);
-    }
-
-    /**
-     * Load plugin jars from a directory, which are signed with a particular
-     * private key. Optionally check for updates and replace versions which have
-     * updates with their newer versions.
-     *
-     * <p>This method should be invoked only once. Any discovered and properly
-     * signed plugin jars will be available to be returned by later invocations
-     * of the {@link #findPlugins(Class, String, ClassLoader)} method.
+     * <p>This method should be invoked only once. Any discovered and properly signed plugin jars will be available to
+     * be returned by later invocations of the {@link #findPlugins(Class, String, ClassLoader)} method.
      *
      * @param pluginDir The directory from which to load the plugins.
-     * @param publicKey The public key corresponding to the private key with
-     *                  which the plugins must have been signed.
-     * @param descriptorPath The resource path of the file containing the plugin
-     *                       descriptor.
-     * @param hostVersion The version of the host, for the update checking
-     *                    process, or {@code null} if no update check should be
-     *                    performed.
+     * @param publicKey The public key corresponding to the private key with which the plugins must have been signed.
+     * @param descriptorPath The resource path of the file containing the plugin descriptor.
+     * @param hostVersion The version of the host, for the update checking process and for checking the minimum required
+     *                    WorldPainter version of the plugins.
      */
-    public static void loadPlugins(File pluginDir, PublicKey publicKey, String descriptorPath, Version hostVersion) {
+    public static void loadPlugins(File pluginDir, PublicKey publicKey, String descriptorPath, Version hostVersion, boolean updatePlugins) {
         if (logger.isDebugEnabled()) {
             logger.debug("Loading plugins");
         }
@@ -90,8 +67,15 @@ public final class PluginManager {
                         logger.error(message + "; not loading it");
                         continue;
                     }
-                    if (hostVersion != null) {
+                    if (updatePlugins) {
                         checkForUpdates(jarFile, publicKey, descriptorPath, hostVersion);
+                    }
+                    final Descriptor descriptor = loadDescriptor(jarFile, descriptorPath);
+                    if ((descriptor.minimumHostVersion != null) && (! hostVersion.isAtLeast(descriptor.minimumHostVersion))) {
+                        String message = "Plugin " + descriptor.name + " requires at least version " + descriptor.minimumHostVersion + " of WorldPainter";
+                        errors.add(message);
+                        logger.error(message + "; not loading it");
+                        continue;
                     }
                     ClassLoader pluginClassLoader = new URLClassLoader(new URL[] {pluginFile.toURI().toURL()});
                     jarClassLoaders.put(jarFile, pluginClassLoader);
@@ -104,19 +88,16 @@ public final class PluginManager {
     }
 
     /**
-     * Obtain a list of instances of all plugins available through a particular
-     * classloader, or from plugin jars discovered by a previous invocation of
-     * {@link #loadPlugins(File, PublicKey, String)}, which implement a
-     * particular type.
+     * Obtain a list of instances of all plugins available through a particular classloader, or from plugin jars
+     * discovered by a previous invocation of {@link #loadPlugins(File, PublicKey, String, Version, boolean)}, which
+     * implement a particular type.
      *
      * @param type The type of plugin to return.
-     * @param descriptorPath The resource path of the file containing the plugin
-     *                       descriptor.
+     * @param descriptorPath The resource path of the file containing the plugin descriptor.
      * @param classLoader The classloader from which to discover plugins.
      * @param <T> The type of plugin to return.
-     * @return A list of newly instantiated plugin objects of the specified
-     * type available from the specified classloader and/or any earlier
-     * discovered plugin jars.
+     * @return A list of newly instantiated plugin objects of the specified type available from the specified
+     * classloader and/or any earlier discovered plugin jars.
      */
     public static <T> List<T> findPlugins(Class<T> type, String descriptorPath, ClassLoader classLoader) {
         try {

@@ -22,6 +22,7 @@ public class Version {
     
     public static final String VERSION;
     public static final String BUILD;
+    public static final org.pepsoft.util.Version VERSION_OBJ;
 
     static {
         Properties versionProps = new Properties();
@@ -29,6 +30,7 @@ public class Version {
             versionProps.load(Version.class.getResourceAsStream("/org.pepsoft.worldpainter.properties"));
             VERSION = versionProps.getProperty("org.pepsoft.worldpainter.version");
             BUILD = versionProps.getProperty("org.pepsoft.worldpainter.build");
+            VERSION_OBJ = org.pepsoft.util.Version.parse(VERSION);
         } catch (IOException e) {
             throw new RuntimeException("I/O error loading version number from classpath", e);
         }

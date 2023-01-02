@@ -14,6 +14,7 @@ import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.Main;
 import org.pepsoft.worldpainter.MouseAdapter;
+import org.pepsoft.worldpainter.Version;
 import org.pepsoft.worldpainter.mapexplorer.Node;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.slf4j.Logger;
@@ -85,7 +86,7 @@ public class MapExplorer {
 
         // Load the plugins
         if (trustedCert != null) {
-            PluginManager.loadPlugins(new File(configDir, "plugins"), trustedCert.getPublicKey(), DESCRIPTOR_PATH);
+            PluginManager.loadPlugins(new File(configDir, "plugins"), trustedCert.getPublicKey(), DESCRIPTOR_PATH, Version.VERSION_OBJ, false);
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
         }
