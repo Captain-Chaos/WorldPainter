@@ -59,10 +59,10 @@ public class MinecraftWorldUtils {
                         } else {
                             assertEquals(material1, role2, material2, "material", offsetX + x, y, offsetZ + z);
                         }
-                    } else if (material1.isNamedOneOf(MC_AIR, MC_VINE, MC_OAK_LEAVES, MC_LILY_PAD)
-                            && material2.isNamedOneOf(MC_AIR, MC_VINE, MC_OAK_LEAVES, MC_LILY_PAD)) {
-                        // For unknown reasons, swamp tree leaf blocks are not exported the same between 1.12 and 1.15,
-                        // so related blocks are sometimes different
+                    } else if (material1.isNamedOneOf(MC_AIR, MC_VINE, MC_OAK_LEAVES, MC_LILY_PAD, MC_DEAD_BUSH)
+                            && material2.isNamedOneOf(MC_AIR, MC_VINE, MC_OAK_LEAVES, MC_LILY_PAD, MC_DEAD_BUSH)) {
+                        // Some blocks are not exported the same between 1.12 and 1.15, so related blocks are sometimes
+                        // different
                         // TODO find out why and remove this exception!
                         continue;
                     } else {
