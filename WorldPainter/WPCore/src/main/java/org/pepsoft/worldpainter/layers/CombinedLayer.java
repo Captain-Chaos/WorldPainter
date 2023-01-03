@@ -45,7 +45,10 @@ public class CombinedLayer extends CustomLayer implements LayerContainer {
             }
         } else {
             for (Point coords: selectedTiles) {
-                addedLayers.addAll(apply(dimension.getTile(coords)));
+                final Tile tile = dimension.getTile(coords);
+                if (tile != null) {
+                    addedLayers.addAll(apply(tile));
+                }
             }
         }
         return addedLayers;
