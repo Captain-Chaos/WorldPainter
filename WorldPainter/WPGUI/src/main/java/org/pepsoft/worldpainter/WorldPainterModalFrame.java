@@ -1,6 +1,5 @@
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.GUIUtils;
 
 import javax.swing.*;
@@ -79,45 +78,35 @@ public class WorldPainterModalFrame extends JFrame {
      * Disable the owner and show the frame. This method returns immediately. The callback is <em>only</em> invoked
      * when the frame is closed by invoking {@link #ok()}.
      *
-     * <p>This method also enforces that only one of these frames is open at the same time. If another frame is already
-     * open, this method will sound a beep and surface that frame. It will <em>not</em> open this frame, or invoke the
-     * callback.
-     *
      * @param okCallback The callback to invoke when the frame is closed by invoking {@link #ok()}.
-     * @return {@code true} if the frame was opened.
      */
-    public boolean setVisible(Runnable okCallback) {
-        if (openFrame == null) {
-            openFrame = this;
-            addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosing(WindowEvent e) {
-                    owner.setEnabled(true);
-                }
-
-                @Override
-                public void windowClosed(WindowEvent e) {
-                    // This should already have happened. If we really do it here for the first time, some Java or Swing
-                    // bug causes the owner to be hidden. This is a fallback:
-                    owner.setEnabled(true);
-                    // TODO this should not be necessary, but some Java or Swing bug sometimes causes the owner to be
-                    //  hidden even if it is already enabled by this point:
-                    owner.toFront();
-                    if (! cancelled) {
-                        okCallback.run();
-                    }
-                    openFrame = null;
-                }
-            });
-            super.setVisible(true);
-            owner.setEnabled(false);
-            return true;
-        } else {
-            DesktopUtils.beep();
-            openFrame.setState(NORMAL);
-            openFrame.toFront();
-            return false;
+    public void setVisible(Runnable okCallback) {
+        if (open) {
+            throw new IllegalStateException("Window is already open");
         }
+        open = true;
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                owner.setEnabled(true);
+            }
+
+            @Override
+            public void windowClosed(WindowEvent e) {
+                // This should already have happened. If we really do it here for the first time, some Java or Swing
+                // bug causes the owner to be hidden. This is a fallback:
+                owner.setEnabled(true);
+                // TODO this should not be necessary, but some Java or Swing bug sometimes causes the owner to be
+                //  hidden even if it is already enabled by this point:
+                owner.toFront();
+                if (! cancelled) {
+                    okCallback.run();
+                }
+                open = false;
+            }
+        });
+        super.setVisible(true);
+        owner.setEnabled(false);
     }
 
     public final boolean isCancelled() {
@@ -181,8 +170,7 @@ public class WorldPainterModalFrame extends JFrame {
 
     private final Window owner;
     private boolean cancelled = true;
-
-    private static WorldPainterModalFrame openFrame;
+    private volatile boolean open;
 
     private static final long serialVersionUID = 1L;
 }
