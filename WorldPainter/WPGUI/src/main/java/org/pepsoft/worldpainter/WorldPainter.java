@@ -258,7 +258,13 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         return colourRamp;
     }
 
-    public void setColourRamp(ColourRamp colourRamp) {
+    /**
+     * Set or remove the colour ramp.
+     *
+     * @param colourRamp The colour ramp to set. May be {@code null} to remove the colour ramp.
+     * @return A boolean which indicates whether the tiles have been refreshed as a result of changing the colour ramp.
+     */
+    public boolean setColourRamp(ColourRamp colourRamp) {
         if (! Objects.equals(colourRamp, this.colourRamp)) {
             final ColourRamp oldColourRamp = this.colourRamp;
             this.colourRamp = colourRamp;
@@ -267,6 +273,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             }
             firePropertyChange("colourRamp", oldColourRamp, colourRamp);
         }
+        return (hiddenLayers != null) && hiddenLayers.contains(TERRAIN_AS_LAYER);
     }
 
     public void refreshBrush() {

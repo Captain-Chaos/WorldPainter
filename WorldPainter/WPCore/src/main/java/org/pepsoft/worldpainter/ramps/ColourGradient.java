@@ -24,7 +24,7 @@ public class ColourGradient implements ColourRamp, Serializable {
 
     public ColourGradient(float n1, int colour1, float n2, int colour2, Transition transition) {
         if (n1 >= n2) {
-            throw new IllegalArgumentException("n1 >= n2");
+            throw new IllegalArgumentException("n1 (" + n1 + ") >= n2 (" + n2 + ")");
         }
         this.n1 = n1;
         this.colour1 = colour1;

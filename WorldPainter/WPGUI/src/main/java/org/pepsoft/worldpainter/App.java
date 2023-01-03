@@ -676,7 +676,9 @@ public final class App extends JFrame implements RadiusControl,
                 view.componentResized(new ComponentEvent(view, COMPONENT_RESIZED));
             }
 
-            view.refreshTiles();
+            if (! refreshTerrainMode()) {
+                view.refreshTiles();
+            }
 
             if (dimension.getTileCount() == 0) {
                 doLaterOnEventThread(this::addRemoveTiles);
@@ -3241,20 +3243,38 @@ public final class App extends JFrame implements RadiusControl,
                 case DEFAULT_COLOUR_RAMP:
                     hiddenLayers.add(TERRAIN_AS_LAYER);
                     if (dimension != null) {
-                        final int waterLevel = (dimension.getTileFactory() instanceof HeightMapTileFactory) ? ((HeightMapTileFactory) dimension.getTileFactory()).getWaterHeight() : 62;
-                        view.setColourRamp(new DefaultColourRamp(dimension.getMinHeight(), waterLevel, dimension.getMaxHeight()));
+                        setDefaultColourRamp();
                     }
                     break;
                 case DEFAULT_GREYSCALE_RAMP:
                     hiddenLayers.add(TERRAIN_AS_LAYER);
                     if (dimension != null) {
-                        view.setColourRamp(new ColourGradient(dimension.getMinHeight(), 0x000000, dimension.getMaxHeight(), 0xffffff, LINEAR));
+                        setDefaultGreyscaleRamp();
                     }
                     break;
             }
             updateLayerVisibility();
         });
         return createLayerRow(TERRAIN_AS_LAYER, false, true, comboBox);
+    }
+
+    private boolean refreshTerrainMode() {
+        switch (terrainMode) {
+            case DEFAULT_COLOUR_RAMP:
+                return setDefaultColourRamp();
+            case DEFAULT_GREYSCALE_RAMP:
+                return setDefaultGreyscaleRamp();
+        }
+        return false;
+    }
+
+    private boolean setDefaultColourRamp() {
+        final int waterLevel = (dimension.getTileFactory() instanceof HeightMapTileFactory) ? ((HeightMapTileFactory) dimension.getTileFactory()).getWaterHeight() : 62;
+        return view.setColourRamp(new DefaultColourRamp(dimension.getMinHeight(), waterLevel, dimension.getMaxHeight()));
+    }
+
+    private boolean setDefaultGreyscaleRamp() {
+        return view.setColourRamp(new ColourGradient(dimension.getMinHeight(), 0x000000, dimension.getMaxHeight(), 0xffffff, LINEAR));
     }
 
     private JPanel createBiomesPanelContainer() {
