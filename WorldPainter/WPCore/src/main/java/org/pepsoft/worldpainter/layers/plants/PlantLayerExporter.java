@@ -57,7 +57,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
         final long seed = dimension.getSeed();
         final int tileX1 = exportedArea.x >> TILE_SIZE_BITS, tileX2 = (exportedArea.x + exportedArea.width - 1) >> TILE_SIZE_BITS;
         final int tileY1 = exportedArea.y >> TILE_SIZE_BITS, tileY2 = (exportedArea.y + exportedArea.height - 1) >> TILE_SIZE_BITS;
-        final int maxY = minecraftWorld.getMaxHeight() - 1;
+        final int minHeight = minecraftWorld.getMinHeight(), maxY = minecraftWorld.getMaxHeight() - 1;
         final boolean generateTilledDirt = layer.isGenerateFarmland();
         final boolean blockRulesEnforced = ! "false".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.enforceBlockRules"));
         final boolean onlyOnValidBlocks = layer.isOnlyOnValidBlocks();
@@ -76,7 +76,7 @@ public class PlantLayerExporter extends WPObjectExporter<PlantLayer> implements 
                         if (tile.getBitLayerValue(layer, x, y)) {
                             // Possibly place a plant
                             final int height = tile.getIntHeight(x, y);
-                            if (height < maxY) {
+                            if ((height >= minHeight) && (height < maxY)) {
                                 final int worldX = (tileX << TILE_SIZE_BITS) | x, worldY = (tileY << TILE_SIZE_BITS) | y;
                                 Plant plant = (Plant) objectProvider.getObject();
                                 Category category = plant.isValidFoundation(minecraftWorld, worldX, worldY, height, onlyOnValidBlocks);
