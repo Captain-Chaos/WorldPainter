@@ -53,6 +53,9 @@ public class Java118Level extends JavaLevel {
 
     @Override
     public void setGenerator(int dim, MapGenerator generator) {
+        if (generator == null) {
+            throw new NullPointerException("generator");
+        }
         this.generators.put(dim, generator);
     }
 
