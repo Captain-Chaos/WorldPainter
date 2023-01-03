@@ -1,11 +1,11 @@
--- Version 2.15.17, released ...
+-- Version 2.15.17, released 3-1-2023
 
  * Data packs can now be specified on the Export screen, which WorldPainter will copy into the datapacks directory of the generated map for you
    + WorldPainter does no validation of these files. In particular, it does not check whether they support the appropriate Minecraft version. Use at your own risk
    + The data packs must be .zip files. Extracted data pack directories are not supported
    + The list of data pack files is stored in the .world file, but the contents of the data packs are not. The data packs must be accessible from the original locations whenever the world is Exported, otherwise a warning will be given and the data pack skipped
    + As part of this work, the Export screen has been redesigned. The general and Minecraft-specific settings are now on their own tab named General
- * The default colour ramp should have ended in purple, but it was actually pink. This has been fixed
+ * The default terrain colour ramp should have topped with purple, but it was actually pink. This has been fixed
  * A setting has been added to the Preferences screen to manually specify the maximum thread count for Export and Merge operations. It is on the Performance tab
    + You can use this to reduce the number of regions Exported or Merged in parallel, to prevent Out Of Memory conditions, or improve performance
    + If an Out Of Memory error occurs, WorldPainter suggests a value to lower this setting to, if it is not already on 1
