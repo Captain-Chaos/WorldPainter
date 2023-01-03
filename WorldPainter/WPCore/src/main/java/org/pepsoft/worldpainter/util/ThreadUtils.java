@@ -31,7 +31,7 @@ public final class ThreadUtils {
         final long maxMemoryAvailable = maxMemory - memoryInUse;
         final int threadCount;
         final String sysProp = System.getProperty("org.pepsoft.worldpainter.threads");
-        final Integer configProp = Configuration.getInstance().getMaxThreadCount();
+        final Integer configProp = (Configuration.getInstance() != null) ? Configuration.getInstance().getMaxThreadCount() : null;
         if (sysProp != null) {
             threadCount = Math.max(Math.min(Integer.parseInt(sysProp), jobCount), 1);
             logger.info("Using " + threadCount + " thread(s) for " + operation + " (max. thread count source: org.pepsoft.worldpainter.threads advanced setting set to " + sysProp + ")");
