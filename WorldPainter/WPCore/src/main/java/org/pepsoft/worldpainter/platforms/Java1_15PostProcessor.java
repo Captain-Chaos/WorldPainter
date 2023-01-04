@@ -276,7 +276,7 @@ public class Java1_15PostProcessor extends PostProcessor {
                             case MC_LARGE_FERN:
                             case MC_ROSE_BUSH:
                             case MC_PEONY:
-                                if (material.getProperty(HALF).equals("lower")) {
+                                if ("lower".equals(material.getProperty(HALF))) {
                                     // Lower half of double high plant; check there's grass or dirt below
                                     if ((! materialBelow.modded) && materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_FARMLAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK, MC_MUD)) {
                                         // Double high plants can (presumably) only exist on grass or dirt // TODO: check
@@ -349,12 +349,12 @@ public class Java1_15PostProcessor extends PostProcessor {
                     }
                     if (material.vegetation && material.isPropertySet(MC_HALF)) {
                         // Check that all lower and upper halves of plants have their corresponding opposite half
-                        if (material.getProperty(HALF).equals("upper")) {
-                            if (materialBelow.isNotNamedSameAs(material) || (! materialBelow.isPropertySet(MC_HALF)) || (! materialBelow.getProperty(HALF).equals("lower"))) {
+                        if ("upper".equals(material.getProperty(HALF))) {
+                            if (materialBelow.isNotNamedSameAs(material) || (! materialBelow.isPropertySet(MC_HALF)) || (! "lower".equals(materialBelow.getProperty(HALF)))) {
                                 material = clearBlock(minecraftWorld, x, y, z);
                             }
                         } else {
-                            if (materialAbove.isNotNamedSameAs(material) || (! materialAbove.isPropertySet(MC_HALF)) || (! materialAbove.getProperty(HALF).equals("upper"))) {
+                            if (materialAbove.isNotNamedSameAs(material) || (! materialAbove.isPropertySet(MC_HALF)) || (! "upper".equals(materialAbove.getProperty(HALF)))) {
                                 material = clearBlock(minecraftWorld, x, y, z);
                             }
                         }
