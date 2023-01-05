@@ -1,7 +1,8 @@
--- Version 2.15.18, released ...
+-- Version 2.15.18, released 4-1-2023
 
  * Many screens that contain previews are now maximisable
  * Bug fix: make adding Custom Cave/Tunnel layer floor or roof layers work again (and possibly other nested popups)
+ * Various bug fixes
 
 -- Version 2.15.17, released 3-1-2023
 
