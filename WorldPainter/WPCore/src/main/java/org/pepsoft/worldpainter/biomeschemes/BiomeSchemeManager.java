@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.pepsoft.worldpainter.Constants.*;
@@ -260,23 +261,21 @@ public class BiomeSchemeManager {
     }
 
     private static void scanDir(File dir) {
-        File[] files = dir.listFiles(pathname -> pathname.isDirectory() || pathname.getName().toLowerCase().endsWith(".jar"));
-        // files can only be null if dir does not exist or is not a directory,
-        // which really should not be possible, but we've had reports from the
-        // wild that it does, so check for it
+        final File[] files = dir.listFiles(file -> {
+            final String name = file.getName().toLowerCase();
+            return (file.isDirectory() && VERSION_NUMBERS_ONLY.matcher(name).matches())
+                    || (name.endsWith(".jar") && VERSION_NUMBERS_ONLY.matcher(name.substring(0, name.length() - 4)).matches());
+        });
         if (files != null) {
             for (File file: files) {
                 try  {
-                    if (file.getName().toLowerCase().contains("optifine")) {
-                        // Skip anything OptiFine-related, as OptiFine creates Minecraft profiles with invalid json files.
-                        continue;
-                    } if (file.isDirectory()) {
+                    if (file.isDirectory()) {
                         scanDir(file);
                     } else {
                         if (logger.isTraceEnabled()) {
                             logger.trace("Scanning file {}", file);
                         }
-                        Checksum hash = FileUtils.getMD5(file);
+                        final Checksum hash = FileUtils.getMD5(file);
                         if (DESCRIPTORS.containsKey(hash)) {
                             for (BiomeSchemeDescriptor descriptor: DESCRIPTORS.get(hash)) {
                                 BIOME_JARS.computeIfAbsent(descriptor.biomeScheme, k -> new TreeMap<>())
@@ -285,16 +284,9 @@ public class BiomeSchemeManager {
                                 ALL_JARS.put(descriptor.minecraftVersion, file);
                             }
                         } else {
-                            // It's not a supported jar, but see if the filename is
-                            // just a version number so that we can assume it's a
-                            // Minecraft jar we can at least use for loading
-                            // resources
-                            try {
-                                Version version = Version.parse(file.getName().substring(0, file.getName().length() - 4));
-                                ALL_JARS.put(version, file);
-                            } catch (NumberFormatException e) {
-                                // Skip silently
-                            }
+                            // It's not a supported jar, but at least use for loading resources
+                            Version version = Version.parse(file.getName().substring(0, file.getName().length() - 4));
+                            ALL_JARS.put(version, file);
                         }
                     }
                 } catch (IOException e) {
@@ -342,35 +334,30 @@ public class BiomeSchemeManager {
                 // Scan the Minecraft directory for supported jars
                 minecraftDir = MinecraftUtil.findMinecraftDir();
                 if (minecraftDir != null) {
-                    scanDir(new File(minecraftDir, "bin"));
                     scanDir(new File(minecraftDir, "versions"));
                 }
 
-                // Collect the names of the files we already looked at so we can skip
-                // them below
-                Set<File> processedFiles = new HashSet<>();
+                // Collect the names of the files we already looked at so we can skip them below
+                final Set<File> processedFiles = new HashSet<>();
                 for (Map.Entry<Integer, SortedMap<Version, BiomeJar>> entry: BIOME_JARS.entrySet()) {
                     processedFiles.addAll(entry.getValue().values().stream().map(biomeJar -> biomeJar.file).collect(Collectors.toList()));
                 }
 
-                // Check the jars stored in the configuration (if we haven't
-                // encountered them above)
-                Configuration config = Configuration.getInstance();
-                Map<Integer, File> minecraftJars = config.getMinecraftJars();
+                // Check the jars stored in the configuration (if we haven't encountered them above)
+                final Configuration config = Configuration.getInstance();
+                final Map<Integer, File> minecraftJars = config.getMinecraftJars();
                 for (Iterator<Map.Entry<Integer, File>> i = minecraftJars.entrySet().iterator(); i.hasNext(); ) {
-                    Map.Entry<Integer, File> entry = i.next();
-                    File file = entry.getValue();
-                    if (file.getAbsolutePath().toLowerCase().contains("optifine")) {
-                        // OptiFine-created files create problems, so filter
-                        // them out if the configuration somehow got polluted
-                        // with them
+                    final Map.Entry<Integer, File> entry = i.next();
+                    final File file = entry.getValue();
+                    final String name = file.getName();
+                    if ((name.length() <= 4) || (! VERSION_NUMBERS_ONLY.matcher(name.substring(0, name.length() - 4)).matches())) {
+                        // We are only interested in vanilla jars
                         i.remove();
                         continue;
                     } else if (processedFiles.contains(file)) {
                         continue;
                     } else if ((! file.isFile()) || (! file.canRead())) {
-                        // The file is no longer there, or it's not accessible;
-                        // remove it from the configuration
+                        // The file is no longer there, or it's not accessible; remove it from the configuration
                         i.remove();
                         continue;
                     }
@@ -384,19 +371,9 @@ public class BiomeSchemeManager {
                                 ALL_JARS.put(descriptor.minecraftVersion, file);
                             }
                         } else {
-                            // It's not a supported jar, but see if the filename is
-                            // just a version number so that we can assume it's a
-                            // Minecraft jar we can at least use for loading
-                            // resources
-                            try {
-                                Version version = Version.parse(file.getName().substring(0, file.getName().length() - 4));
-                                ALL_JARS.put(version, file);
-                            } catch (NumberFormatException e) {
-                                // We don't recognize this jar. Perhaps it has been
-                                // replaced with an unsupported version. In any
-                                // case, remove it from the configuration
-                                i.remove();
-                            }
+                            // It's not a supported jar, but at least use it for loading resources
+                            Version version = Version.parse(name.substring(0, name.length() - 4));
+                            ALL_JARS.put(version, file);
                         }
                     } catch (IOException e) {
                         logger.error("I/O error while scanning Minecraft jar " + file.getAbsolutePath() + "; skipping file", e);
@@ -475,6 +452,7 @@ public class BiomeSchemeManager {
         descriptors.add(descriptor);
     }
 
+    private static final Pattern VERSION_NUMBERS_ONLY = Pattern.compile("([0-9]+\\.)*[0-9]+");
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(BiomeSchemeManager.class);
 
     static class BiomeSchemeDescriptor {
