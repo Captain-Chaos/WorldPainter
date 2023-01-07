@@ -2594,10 +2594,11 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             }
         }
 
+        private final boolean readOnly;
         private Filter filter;
         private Brush brush;
         private int x, y;
-        private boolean selection, readOnly;
+        private boolean selection;
     }
 
     private class WPGarden implements Garden {
