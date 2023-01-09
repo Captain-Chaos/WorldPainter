@@ -12,10 +12,7 @@ import ch.qos.logback.core.util.StatusPrinter;
 import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.utils.Lm;
 import org.intellij.lang.annotations.Language;
-import org.pepsoft.util.DesktopUtils;
-import org.pepsoft.util.FileUtils;
-import org.pepsoft.util.GUIUtils;
-import org.pepsoft.util.SystemUtils;
+import org.pepsoft.util.*;
 import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
@@ -437,9 +434,11 @@ public class Main {
                             break;
                         case DARK_METAL:
                             laf = "org.netbeans.swing.laf.dark.DarkMetalLookAndFeel";
+                            IconUtils.setTheme("dark_metal");
                             break;
                         case DARK_NIMBUS:
                             laf = "org.netbeans.swing.laf.dark.DarkNimbusLookAndFeel";
+                            IconUtils.setTheme("dark_nimbus");
                             break;
                         default:
                             throw new InternalError();

@@ -37,6 +37,14 @@ public final class IconUtils {
         // Prevent instantiation
     }
 
+    public static String getTheme() {
+        return theme;
+    }
+
+    public static void setTheme(String theme) {
+        IconUtils.theme = theme;
+    }
+
     /**
      * Load an icon from the classpath using the system class loader.
      *
@@ -67,18 +75,26 @@ public final class IconUtils {
     }
 
     /**
-     * Load an image from the classpath using the system class loader.
+     * Load an image from the classpath using the system class loader. If {@code theme} is set it will first look for a
+     * themed version of the image by appending {@code _<theme>} to the filename.
      *
-     * <p>The image will be returned at its original resolution and not be
-     * rescaled.
+     * <p>The image will be returned at its original resolution and not be rescaled.
      *
      * @param path The path of the image to load.
-     * @return The specified image, or {@code null} if the specified path
-     *     did not contain a resource.
+     * @return The specified image, or {@code null} if the specified path did not contain a resource.
+     * @see #setTheme(String)
      */
     public static BufferedImage loadUnscaledImage(String path) {
         try {
-            URL url = ClassLoader.getSystemResource(path.startsWith("/") ? path.substring(1) : path);
+            path = path.startsWith("/") ? path.substring(1) : path;
+            if (theme != null) {
+                final String themedPath = path.substring(0, path.lastIndexOf('.')) + '_' + theme + path.substring(path.lastIndexOf('.'));
+                final URL url = ClassLoader.getSystemResource(themedPath);
+                if (url != null) {
+                    return ImageIO.read(url);
+                }
+            }
+            final URL url = ClassLoader.getSystemResource(path);
             if (url != null) {
                 return ImageIO.read(url);
             } else {
@@ -108,18 +124,26 @@ public final class IconUtils {
     }
     
     /**
-     * Load an image from the classpath using a specific class loader.
+     * Load an image from the classpath using a specific class loader. If {@code theme} is set it will first look for a
+     * themed version of the image by appending {@code _<theme>} to the filename.
      *
      * <p>The image will automatically be scaled up for HiDPI displays.
      *
      * @param classLoader The class loader to use to load the image.
      * @param path The path of the image to load.
-     * @return The specified image, or {@code null} if the specified path
-     *     did not contain a resource.
+     * @return The specified image, or {@code null} if the specified path did not contain a resource.
+     * @see #setTheme(String)
      */
     public static BufferedImage loadScaledImage(ClassLoader classLoader, String path) {
         try {
-            URL url = classLoader.getResource(path);
+            if (theme != null) {
+                final String themedPath = path.substring(0, path.lastIndexOf('.')) + '_' + theme + path.substring(path.lastIndexOf('.'));
+                final URL url = classLoader.getResource(themedPath);
+                if (url != null) {
+                    return scaleToUI(ImageIO.read(url));
+                }
+            }
+            final URL url = classLoader.getResource(path);
             if (url != null) {
                 return scaleToUI(ImageIO.read(url));
             } else {
@@ -246,4 +270,6 @@ public final class IconUtils {
                 ? new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB)
                 : GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(size, size, TRANSLUCENT);
     }
+
+    private static volatile String theme;
 }
