@@ -45,7 +45,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if (platform == null) {
             throw new NullPointerException();
         } else if ((maxHeight < platform.minMaxHeight) || (maxHeight > platform.maxMaxHeight)) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("maxHeight " + maxHeight + " outside platform " + platform.displayName + " maxHeight limits (" + platform.minMaxHeight + " - " + platform.maxMaxHeight + ")");
         }
         this.platform = platform;
         this.maxheight = maxHeight;
