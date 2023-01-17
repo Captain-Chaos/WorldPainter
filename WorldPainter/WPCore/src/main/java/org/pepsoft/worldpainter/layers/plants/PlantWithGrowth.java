@@ -1,0 +1,24 @@
+package org.pepsoft.worldpainter.layers.plants;
+
+import org.pepsoft.minecraft.Material;
+import org.pepsoft.worldpainter.Platform;
+
+/**
+ * A plant with growth stages.
+ */
+abstract class PlantWithGrowth extends SimplePlant {
+    PlantWithGrowth(String name, Material material, String iconName, int maxGrowth, Category... category) {
+        super(name, material, iconName, category);
+        this.maxGrowth = maxGrowth;
+    }
+
+    @Override
+    public final int getMaxGrowth() {
+        return maxGrowth;
+    }
+
+    @Override
+    public abstract Plant realise(int growth, Platform platform);
+
+    protected final int maxGrowth;
+}

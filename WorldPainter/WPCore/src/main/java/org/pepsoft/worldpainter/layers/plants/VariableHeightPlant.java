@@ -10,7 +10,7 @@ import java.util.Optional;
  * A plant with variable height. Bottom and top blocks are provided by
  * overridable methods so that subclasses can optionally manage them.
  */
-class VariableHeightPlant extends Plant {
+class VariableHeightPlant extends PlantWithGrowth {
     VariableHeightPlant(String name, Material middleMaterial, int defaultHeight, Category... category) {
         this(name, category, "block/" + middleMaterial.simpleName + ".png", null, middleMaterial, null, defaultHeight, defaultHeight, null);
     }
@@ -36,18 +36,13 @@ class VariableHeightPlant extends Plant {
     }
 
     private VariableHeightPlant(String name, Category[] categories, String iconName, Material bottomMaterial, Material middleMaterial, Material topMaterial, int defaultGrowth, int growth, Platform platform) {
-        super(name, middleMaterial, iconName, categories);
+        super(name, middleMaterial, iconName, DEFAULT_MAX_GROWTH, categories);
         this.bottomMaterial = bottomMaterial;
         this.topMaterial = topMaterial;
         this.defaultGrowth = defaultGrowth;
         this.growth = growth;
         this.platform = platform;
         dimensions = new Point3i(1, 1, growth);
-    }
-
-    @Override
-    public int getMaxGrowth() {
-        return DEFAULT_MAX_GROWTH;
     }
 
     @Override

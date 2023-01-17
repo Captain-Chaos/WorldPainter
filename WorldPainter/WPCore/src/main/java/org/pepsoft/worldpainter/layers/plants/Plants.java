@@ -72,13 +72,13 @@ public class Plants {
     public static final Plant PUMPKIN_STEMS = new AgingPlant("Pumpkin Stem", Material.PUMPKIN_STEM, "block/pumpkin_side.png", 8, CROPS) {
         @Override
         public Plant realise(int growth, Platform platform) {
-            return new SimplePlant("Pumpkin Stem", Material.PUMPKIN_STEM.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), categories);
+            return new SimplePlant("Pumpkin Stem", Material.PUMPKIN_STEM.withProperty(AGE, growth - 1).withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), categories);
         }
     };
     public static final Plant MELON_STEMS = new AgingPlant("Melon Stem", Material.MELON_STEM, "block/melon_side.png", 8, CROPS) {
         @Override
         public Plant realise(int growth, Platform platform) {
-            return new SimplePlant("Melon Stem", Material.MELON_STEM.withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), categories);
+            return new SimplePlant("Melon Stem", Material.MELON_STEM.withProperty(AGE, growth - 1).withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), categories);
         }
     };
     public static final Plant BEETROOTS = new AgingPlant("Beetroots", Material.BEETROOTS, "block/beetroots_stage3.png", 4, CROPS);
@@ -117,10 +117,10 @@ public class Plants {
     };
     public static final Plant SEAGRASS = new SimplePlant("Seagrass", Material.SEAGRASS, WATER_PLANTS);
     public static final Plant TALL_SEAGRASS = new DoubleHighPlant("Tall Seagrass", Material.TALL_SEAGRASS_LOWER, WATER_PLANTS);
-    public static final Plant SEA_PICKLE = new AgingPlant("Sea Pickle", Material.SEA_PICKLE_1, "item/sea_pickle.png", 4, WATER_PLANTS) {
+    public static final Plant SEA_PICKLE = new PlantWithGrowth("Sea Pickle", Material.SEA_PICKLE_1, "item/sea_pickle.png", 4, WATER_PLANTS) {
         @Override
-        public AgingPlant realise(int growth, Platform platform) {
-            return new AgingPlant(name, material.withProperty(PICKLES, growth), iconName, maxGrowth, categories);
+        public SimplePlant realise(int growth, Platform platform) {
+            return new SimplePlant(name, material.withProperty(PICKLES, growth), iconName, categories);
         }
     };
     public static final Plant BAMBOO = new VariableHeightPlant("Bamboo", BAMBOO_NO_LEAVES, BAMBOO_LARGE_LEAVES, "item/bamboo.png", 16, PLANTS_AND_FLOWERS) {
