@@ -6,7 +6,9 @@
 
 package org.pepsoft.worldpainter.layers.plants;
 
+import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.exporting.ExportSettings;
 import org.pepsoft.worldpainter.layers.AbstractLayerEditor;
@@ -33,6 +35,7 @@ import static java.lang.Math.max;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.pepsoft.util.swing.MessageUtils.showInfo;
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.layers.plants.Category.*;
 import static org.pepsoft.worldpainter.layers.plants.Plants.ALL_PLANTS;
 import static org.pepsoft.worldpainter.util.I18nHelper.m;
@@ -41,13 +44,13 @@ import static org.pepsoft.worldpainter.util.I18nHelper.m;
  *
  * @author Pepijn Schmitz
  */
+@SuppressWarnings({"unused", "FieldCanBeLocal"}) // Managed by NetBeans
 public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
     /**
      * Creates new form PlantLayerEditor
      */
     public PlantLayerEditor() {
         initComponents();
-        initPlantControls();
 
         fieldName.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -65,9 +68,6 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
                 settingsChanged();
             }
         });
-        
-        setLabelColour();
-        setControlStates();
     }
 
     // LayerEditor
@@ -89,6 +89,12 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
     }
 
     @Override
+    public void setContext(LayerEditorContext context) {
+        super.setContext(context);
+        initPlantControls();
+    }
+
+    @Override
     public void commit() {
         if (! isCommitAvailable()) {
             throw new IllegalStateException("Settings invalid or incomplete");
@@ -100,12 +106,30 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
     public void reset() {
         fieldName.setText(layer.getName());
         selectedColour = layer.getColour();
+        setLabelColour();
         checkBoxGenerateTilledDirt.setSelected(layer.isGenerateFarmland());
         checkBoxOnlyValidBlocks.setSelected(layer.isOnlyOnValidBlocks());
+        final Platform platform = context.getDimension().getWorld().getPlatform();
         for (int i = 0; i < ALL_PLANTS.length; i++) {
             PlantLayer.PlantSettings settings = layer.getSettings(i);
-            if (settings != null) {
+            if (! isCompatibleWithPlatform(ALL_PLANTS[i], platform)) {
+                // Force incompatible plants to zero, since the user can't edit them to do that
+                spinners[i].setValue(0);
+                if ((settings != null) && (settings.occurrence > 0)) {
+                    // The plant was previously selected, so make that clear by making the label struck through
+                    // instead of disabled
+                    plantLabels[i].setEnabled(true);
+                    plantLabels[i].setText("<html><s>" + ALL_PLANTS[i].getName() + "</s></html>");
+                } else {
+                    plantLabels[i].setEnabled(false);
+                    plantLabels[i].setText(ALL_PLANTS[i].getName());
+                }
+                plantLabels[i].setToolTipText("This plant is not compatible with the current map format");
+            } else if (settings != null) {
                 spinners[i].setValue((int) settings.occurrence);
+                plantLabels[i].setEnabled(true);
+                plantLabels[i].setText(ALL_PLANTS[i].getName());
+                plantLabels[i].setToolTipText(null);
                 if (growthFromSpinners[i] != null) {
                     growthFromSpinners[i].setValue(settings.growthFrom);
                     growthToSpinners[i].setValue(settings.growthTo);
@@ -116,9 +140,13 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
                     growthFromSpinners[i].setValue(max(ALL_PLANTS[i].getDefaultGrowth() / 2, 1));
                     growthToSpinners[i].setValue(ALL_PLANTS[i].getDefaultGrowth());
                 }
+                plantLabels[i].setEnabled(true);
+                plantLabels[i].setText(ALL_PLANTS[i].getName());
+                plantLabels[i].setToolTipText(null);
             }
         }
         updatePercentages();
+        setControlStates();
     }
 
     @Override
@@ -149,7 +177,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
     public boolean isCommitAvailable() {
         return (! fieldName.getText().trim().isEmpty()) && (totalOccurrence > 0L) && (totalOccurrence <= Integer.MAX_VALUE);
     }
-    
+
     private void initPlantControls() {
         JPanel panel = new JPanel(new GridBagLayout());
         panelPlantControls.add(panel);
@@ -179,30 +207,47 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
     }
 
     private void addCategory(JPanel panel, String title, String subTitle, Category... categories) {
-        GridBagConstraints constraints = new GridBagConstraints();
-        constraints.gridwidth = GridBagConstraints.REMAINDER;
+        final boolean newColumn = panel.getComponentCount() == 0;
+        final GridBagConstraints constraints = new GridBagConstraints();
+        constraints.gridwidth = newColumn ? 3 : GridBagConstraints.REMAINDER;
         constraints.anchor = GridBagConstraints.BASELINE_LEADING;
         constraints.insets = new Insets(4, 0, 4, 0);
         panel.add(new JLabel("<html><b>" + title + "</b></html>"), constraints);
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+        if (newColumn) {
+            panel.add(new JLabel("Growth:"), constraints);
+        }
         if (subTitle != null) {
             panel.add(new JLabel(subTitle), constraints);
         }
+        final Platform platform = context.getDimension().getWorld().getPlatform();
         for (Category category: categories) {
             for (int i = 0; i < ALL_PLANTS.length; i++) {
-                Plant plant = ALL_PLANTS[i];
+                final Plant plant = ALL_PLANTS[i];
                 if (plant.getCategories()[0] == category) {
-                    addPlantRow(panel, plant, i);
+                    addPlantRow(panel, plant, i, isCompatibleWithPlatform(plant, platform));
                 }
             }
         }
     }
 
-    private void addPlantRow(final JPanel panel, final Plant plant, final int index) {
-        GridBagConstraints constraints = new GridBagConstraints();
+    private boolean isCompatibleWithPlatform(Plant plant, Platform platform) {
+        if (! platform.capabilities.contains(NAME_BASED)) {
+            for (Material material: plant.getAllMaterials()) {
+                if (material.blockType == -1) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private void addPlantRow(final JPanel panel, final Plant plant, final int index, final boolean enabled) {
+        final GridBagConstraints constraints = new GridBagConstraints();
         constraints.anchor = GridBagConstraints.BASELINE_LEADING;
         constraints.insets = new Insets(1, 0, 1, 4);
         synchronized (icons) {
-            BufferedImage icon = icons.get(plant.getIconName());
+            final BufferedImage icon = icons.get(plant.getIconName());
             if (icon != null) {
                 plantLabels[index] = new JLabel(plant.getName(), new ImageIcon(icon), JLabel.TRAILING);
             } else {
@@ -216,13 +261,16 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         ((JSpinner.NumberEditor) spinners[index].getEditor()).getTextField().setColumns(3);
         spinners[index].addChangeListener(percentageListener);
         panel.add(spinners[index], constraints);
-        
+
         percentageLabels[index] = new JLabel("100%");
         panel.add(percentageLabels[index], constraints);
 
+        if (! enabled) {
+            spinners[index].setEnabled(false);
+            spinners[index].setToolTipText("This plant is not compatible with the current map format");
+        }
+
         if (plant.getMaxGrowth() > 1) {
-            panel.add(new JLabel("Growth:"), constraints);
-            
             spinnerModel = new SpinnerNumberModel(max(plant.getDefaultGrowth() / 2, 1), 1, plant.getMaxGrowth(), 1);
             growthFromSpinners[index] = new JSpinner(spinnerModel);
             growthFromSpinners[index].addChangeListener(e -> {
@@ -233,20 +281,27 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
                 settingsChanged();
             });
             panel.add(growthFromSpinners[index], constraints);
-            
-            panel.add(new JLabel("-"));
+
+            final JLabel dashLabel = new JLabel("-");
+            panel.add(dashLabel);
 
             constraints.gridwidth = GridBagConstraints.REMAINDER;
             spinnerModel = new SpinnerNumberModel(plant.getDefaultGrowth(), 1, plant.getMaxGrowth(), 1);
             growthToSpinners[index] = new JSpinner(spinnerModel);
             growthToSpinners[index].addChangeListener(e -> {
-                int newValue = (Integer) growthToSpinners[index].getValue();
+                final int newValue = (Integer) growthToSpinners[index].getValue();
                 if ((Integer) growthFromSpinners[index].getValue() > newValue) {
                     growthFromSpinners[index].setValue(newValue);
                 }
                 settingsChanged();
             });
             panel.add(growthToSpinners[index], constraints);
+
+            if (! enabled) {
+                growthFromSpinners[index].setEnabled(false);
+                dashLabel.setEnabled(false);
+                growthToSpinners[index].setEnabled(false);
+            }
         } else {
             constraints.gridwidth = GridBagConstraints.REMAINDER;
             panel.add(new JLabel(), constraints);
@@ -415,7 +470,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
      * WARNING: Do NOT modify this code. The content of this method is always
      * regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"Convert2Lambda", "Anonymous2MethodRef"}) // Managed by NetBeans
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -544,7 +599,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
     private final JSpinner[] growthFromSpinners = new JSpinner[ALL_PLANTS.length], growthToSpinners = new JSpinner[ALL_PLANTS.length];
     private int selectedColour = Color.ORANGE.getRGB();
     private long totalOccurrence;
-    private boolean cropsSelected;
+    private boolean cropsSelected, initialised;
     private Font normalFont, boldFont;
 
     private final ChangeListener percentageListener = e -> updatePercentages();

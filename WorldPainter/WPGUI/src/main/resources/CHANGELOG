@@ -1,5 +1,6 @@
 -- Version 2.15.19, released ...
 
+ * Plants on the Custom Plants Layer settings screen are now disabled if they are not supported by the current map format
  * Bug fix: make pumpkin and melon stems from Custom Plants Layers export with the correct ages
  * Various bug fixes
 
