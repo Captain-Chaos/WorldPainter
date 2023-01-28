@@ -1960,7 +1960,7 @@ public final class App extends JFrame implements RadiusControl,
     private void loadCustomBrushes() {
         customBrushes = new TreeMap<>();
         if (! Configuration.getInstance().isSafeMode()) {
-            File brushesDir = new File(Configuration.getConfigDir(), "brushes");
+            final File brushesDir = new File(Configuration.getConfigDir(), "brushes");
             if (brushesDir.isDirectory()) {
                 loadCustomBrushes(CUSTOM_BRUSHES_DEFAULT_TITLE, brushesDir);
             }
@@ -1970,7 +1970,7 @@ public final class App extends JFrame implements RadiusControl,
     }
     
     private void loadCustomBrushes(String category, File brushesDir) {
-        File[] files = brushesDir.listFiles(new java.io.FileFilter() {
+        final File[] files = brushesDir.listFiles(new java.io.FileFilter() {
             @Override
             public boolean accept(File pathname) {
                 if (pathname.isDirectory()) {
@@ -1987,7 +1987,12 @@ public final class App extends JFrame implements RadiusControl,
 
             private final String[] extensions = ImageIO.getReaderFileSuffixes();
         });
-        List<Brush> brushes = new ArrayList<>();
+        if ((files == null) || (files.length == 0)) {
+            // No idea how files could be null since this is only invoked from loadCustomBrushes(), which checks that
+            // the path is an existing directory, but it has been observed in the wild
+            return;
+        }
+        final List<Brush> brushes = new ArrayList<>();
         BufferedImage icon = null;
         for (File file: files) {
             if (file.isDirectory()) {
