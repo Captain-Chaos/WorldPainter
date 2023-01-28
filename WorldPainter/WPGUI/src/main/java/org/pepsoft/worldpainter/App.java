@@ -4602,36 +4602,39 @@ public final class App extends JFrame implements RadiusControl,
             menu.addSeparator();
 
             menuItem = new JMenuItem(strings.getString("preferences") + "...");
-            menuItem.addActionListener(e -> {
-                PreferencesDialog dialog = new PreferencesDialog(App.this, selectedColourScheme);
-                dialog.setVisible(true);
-                if (! dialog.isCancelled()) {
-                    setMaxRadius(config.getMaximumBrushSize());
-                    if (! config.isAutosaveInhibited()) {
-                        if (config.isAutosaveEnabled()) {
-                            autosaveTimer.setInitialDelay(config.getAutosaveDelay());
-                            autosaveTimer.setDelay(config.getAutosaveDelay() / 2);
-                            if (!autosaveTimer.isRunning()) {
-                                autosaveTimer.start();
-                            }
-                        } else {
-                            autosaveTimer.stop();
-                            try {
-                                rotateAutosaveFile();
-                            } catch (RuntimeException | Error e2) {
-                                logger.error("An exception occurred while trying to rotate the autosave", e2);
-                                beepAndShowWarning(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed");
-                            }
-                        }
-                    }
-                }
-            });
+            menuItem.addActionListener(e -> openPreferences());
             menuItem.setMnemonic('f');
             menu.add(menuItem);
         }
 
         menu.putClientProperty(KEY_HELP_KEY, "Menu/Edit");
         return menu;
+    }
+
+    private void openPreferences() {
+        final Configuration config = Configuration.getInstance();
+        final PreferencesDialog dialog = new PreferencesDialog(App.this, selectedColourScheme);
+        dialog.setVisible(true);
+        if (! dialog.isCancelled()) {
+            setMaxRadius(config.getMaximumBrushSize());
+            if (! config.isAutosaveInhibited()) {
+                if (config.isAutosaveEnabled()) {
+                    autosaveTimer.setInitialDelay(config.getAutosaveDelay());
+                    autosaveTimer.setDelay(config.getAutosaveDelay() / 2);
+                    if (! autosaveTimer.isRunning()) {
+                        autosaveTimer.start();
+                    }
+                } else {
+                    autosaveTimer.stop();
+                    try {
+                        rotateAutosaveFile();
+                    } catch (RuntimeException | Error e2) {
+                        logger.error("An exception occurred while trying to rotate the autosave", e2);
+                        beepAndShowWarning(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed");
+                    }
+                }
+            }
+        }
     }
 
     private JMenu createViewMenu() {
@@ -6030,31 +6033,7 @@ public final class App extends JFrame implements RadiusControl,
                 open(files.get(0), true);
             }
         });
-        hidePreferences = MacUtils.installPreferencesHandler(() -> {
-            PreferencesDialog dialog = new PreferencesDialog(App.this, selectedColourScheme);
-            dialog.setVisible(true);
-            if (! dialog.isCancelled()) {
-                Configuration config = Configuration.getInstance();
-                setMaxRadius(config.getMaximumBrushSize());
-                if (! config.isAutosaveInhibited()) {
-                    if (config.isAutosaveEnabled()) {
-                        autosaveTimer.setInitialDelay(config.getAutosaveDelay());
-                        autosaveTimer.setDelay(config.getAutosaveDelay() / 2);
-                        if (!autosaveTimer.isRunning()) {
-                            autosaveTimer.start();
-                        }
-                    } else {
-                        autosaveTimer.stop();
-                        try {
-                            rotateAutosaveFile();
-                        } catch (RuntimeException | Error e2) {
-                            logger.error("An exception occurred while trying to rotate the autosave", e2);
-                            beepAndShowWarning(this, "An error occurred while trying to clear the autosave.\nWorldPainter may try to load the autosave on the next start.\nIf this keeps happening, please report it to the author.", "Clearing Autosave Failed");
-                        }
-                    }
-                }
-            }
-        });
+        hidePreferences = MacUtils.installPreferencesHandler(this::openPreferences);
     }
     
     private void showGlobalOperations() {
