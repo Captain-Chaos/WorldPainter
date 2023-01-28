@@ -30,7 +30,8 @@ public class TileEntity extends AbstractNBTItem {
     }
 
     public String getId() {
-        return getString(TAG_ID_, getString(TAG_ID));
+        final String id = getString(TAG_ID_);
+        return (id != null) ? id : getString(TAG_ID);
     }
 
     public int getX() {
