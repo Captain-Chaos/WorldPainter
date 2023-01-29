@@ -592,6 +592,7 @@ public class NewWorldDialog extends WorldPainterDialog {
                 cavernsSettings.setSurfaceBreaking(true);
                 cavernsSettings.setFloodWithLava(true);
                 cavernsSettings.setWaterLevel(16);
+                cavernsSettings.setCaveDecorationSettings(null);
                 dimension.setLayerSettings(Caverns.INSTANCE, cavernsSettings);
             } else {
                 dimension.setSubsurfaceMaterial(NETHERLIKE);
