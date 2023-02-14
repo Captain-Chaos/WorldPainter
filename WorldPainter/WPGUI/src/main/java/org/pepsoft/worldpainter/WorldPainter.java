@@ -958,11 +958,8 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         try {
             for (Overlay overlay: dimension.getOverlays()) {
                 final float overlayTransparency = overlay.getTransparency();
-                if (! overlay.isEnabled()) {
-                    // Not enabled
-                    continue;
-                } else if (overlay.getTransparency() == 1.0f) {
-                    // Fully transparent
+                if ((! overlay.isEnabled()) || (overlay.getTransparency() == 1.0f)) {
+                    // Not enabled, or fully transparent
                     continue;
                 } else {
                     if (overlay.getImage() == null) {

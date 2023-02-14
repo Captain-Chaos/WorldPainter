@@ -6146,11 +6146,11 @@ public final class App extends JFrame implements RadiusControl,
             DesktopUtils.beep();
             return;
         }
-        final HeightMapExporter heightMapExporter = new HeightMapExporter(dimension, highRes);
         if (! imageFitsInJavaArray(dimension)) {
             beepAndShowError(this, "The dimension is too large to export to a height map.\nThe area (width x height) may not be more than " + NUMBER_FORMAT.format(Integer.MAX_VALUE), "Dimension Too Large");
             return;
         }
+        final HeightMapExporter heightMapExporter = new HeightMapExporter(dimension, highRes);
         final List<String> extensions = heightMapExporter.getSupportedFileExtensions();
         StringBuilder sb = new StringBuilder(strings.getString("supported.image.formats"));
         sb.append(" (");

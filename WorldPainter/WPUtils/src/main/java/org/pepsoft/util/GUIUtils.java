@@ -180,7 +180,11 @@ public class GUIUtils {
                     BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), TYPE_INT_ARGB);
                     Graphics2D g2 = image.createGraphics();
                     try {
-                        icon.paintIcon(null, g2, 0, 0);
+                        try {
+                            icon.paintIcon(null, g2, 0, 0);
+                        } finally {
+                            g2.dispose();
+                        }
                         Image scaledImage = image.getScaledInstance(Math.round(icon.getIconWidth() * scale), -1, SCALE_SMOOTH);
                         UIManager.put(key, new ImageIcon(scaledImage));
                         logger.trace("Scaled Icon {}", key);
