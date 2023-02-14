@@ -1,5 +1,6 @@
 -- Version 2.15.19, released ...
 
+ * The scale for importing height maps and masks, as well as the scale for overlay images, can now be specified with up to two decimals precision, for more accurate size control
  * Plants on the Custom Plants Layer settings screen are now disabled if they are not supported by the current map format
  * Bug fix: make pumpkin and melon stems from Custom Plants Layers export with the correct ages
  * Various bug fixes and usability improvements

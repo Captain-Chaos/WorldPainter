@@ -231,14 +231,14 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             return null;
         }
         HeightMap heightMap = BitmapHeightMap.build().withName(selectedFile.getName()).withImage(image).withFile(selectedFile).now();
-        final int scale = (Integer) spinnerScale.getValue();
-        final int offsetX = (Integer) spinnerOffsetX.getValue();
-        final int offsetY = (Integer) spinnerOffsetY.getValue();
-        if ((scale != 100) || (offsetX != 0) || (offsetY != 0)) {
-            if (scale != 100) {
+        final float scale = (float) spinnerScale.getValue();
+        final int offsetX = (int) spinnerOffsetX.getValue();
+        final int offsetY = (int) spinnerOffsetY.getValue();
+        if ((scale != 100.0f) || (offsetX != 0) || (offsetY != 0)) {
+            if (scale != 100.0f) {
                 ((BitmapHeightMap) heightMap).setSmoothScaling(true);
             }
-            heightMap = new TransformingHeightMap(heightMap.getName() + " transformed", heightMap, scale / 100.0f, scale / 100.0f, offsetX, offsetY, 0.0f);
+            heightMap = new TransformingHeightMap(heightMap.getName() + " transformed", heightMap, scale / 100, scale / 100, offsetX, offsetY, 0.0f);
         }
         if (checkBoxInvert.isSelected()) {
             heightMap = new DifferenceHeightMap(new ConstantHeightMap((float) (Math.pow(2, bitDepth) - 1)), heightMap);
@@ -334,7 +334,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                     try {
                         labelImageDimensions.setForeground(null);
                         if (image.getColorModel().hasAlpha()) {
-                            spinnerScale.setValue(100);
+                            spinnerScale.setValue(100.0f);
                             spinnerScale.setEnabled(false);
                             spinnerScale.setToolTipText("<html>Scaling not supported for grey scale images with an alpha channel!<br>To enable scaling, please remove the alpha channel.</html>");
                             labelImageDimensions.setIcon(ICON_WARNING);
@@ -435,9 +435,9 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         if (image == null) {
             return;
         }
-        final int importScale = (Integer) spinnerScale.getValue();
-        final int scaledWidth = image.getWidth() * importScale / 100;
-        final int scaledHeight = image.getHeight() * importScale / 100;
+        final float importScale = (float) spinnerScale.getValue();
+        final int scaledWidth = Math.round(image.getWidth() * (importScale / 100));
+        final int scaledHeight = Math.round(image.getHeight() * (importScale / 100));
         labelWorldDimensions.setText("Scaled size: " + NUMBER_FORMAT.format(scaledWidth) + " x " + NUMBER_FORMAT.format(scaledHeight) + " blocks");
         final int exportedWidth = Math.round(scaledWidth * dimensionScale);
         final int exportedHeight = Math.round(scaledHeight * dimensionScale);
@@ -813,7 +813,8 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
         jLabel3.setText("Scale:");
 
-        spinnerScale.setModel(new javax.swing.SpinnerNumberModel(100, 1, 999, 1));
+        spinnerScale.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(100.0f), Float.valueOf(0.01f), Float.valueOf(999.99f), Float.valueOf(0.1f)));
+        spinnerScale.setEditor(new javax.swing.JSpinner.NumberEditor(spinnerScale, "0.00"));
         spinnerScale.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 spinnerScaleStateChanged(evt);

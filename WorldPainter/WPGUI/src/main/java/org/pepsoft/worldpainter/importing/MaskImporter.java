@@ -14,14 +14,12 @@ import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.Layer;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.IndexColorModel;
 import java.awt.image.Raster;
 import java.io.File;
-import java.io.IOException;
 import java.util.Set;
 
 import static java.awt.image.BufferedImage.*;
@@ -37,10 +35,6 @@ import static org.pepsoft.worldpainter.layers.Layer.DataSize.BIT;
  * @author pepijn
  */
 public class MaskImporter {
-    public MaskImporter(Dimension dimension, File imageFile) throws IOException {
-        this(dimension, imageFile, ImageIO.read(imageFile));
-    }
-
     public MaskImporter(Dimension dimension, File imageFile, BufferedImage image) {
         this.dimension = dimension;
         this.imageFile = imageFile;
@@ -122,11 +116,12 @@ outer:          for (int x = 0; x < width; x++) {
 
         // Scale the mask, if necessary
         BufferedImage scaledImage;
-        if (scale == 100) {
+        final int oldWidth = image.getWidth(), oldHeight = image.getHeight();
+        final int newWidth = Math.round(oldWidth * scale), newHeight = Math.round(oldHeight * scale);
+        if ((newWidth == oldWidth) && (newHeight == oldHeight)) {
             // No scaling necessary
             scaledImage = image;
         } else {
-            final int newWidth = image.getWidth() * scale / 100, newHeight = image.getHeight() * scale / 100;
             if (image.getColorModel() instanceof IndexColorModel) {
                 scaledImage = new BufferedImage(newWidth, newHeight, image.getType(), (IndexColorModel) image.getColorModel());
             } else {
@@ -420,11 +415,11 @@ outer:          for (int x = 0; x < width; x++) {
         this.mapping = mapping;
     }
 
-    public int getScale() {
+    public float getScale() {
         return scale;
     }
 
-    public void setScale(int scale) {
+    public void setScale(float scale) {
         this.scale = scale;
     }
 
@@ -488,7 +483,8 @@ outer:          for (int x = 0; x < width; x++) {
     private boolean applyToTerrain, removeExistingLayer;
     private Layer applyToLayer;
     private Mapping mapping;
-    private int scale, xOffset, yOffset, threshold = -1;
+    private float scale;
+    private int xOffset, yOffset, threshold = -1;
     private Integer applyToLayerValue;
     private Terrain applyToTerrainType;
 

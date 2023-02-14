@@ -239,7 +239,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
 
                 final String scalingNotSupportedReason = maskImporter.getScalingNotSupportedReason();
                 if (scalingNotSupportedReason != null) {
-                    spinnerScale.setValue(100);
+                    spinnerScale.setValue(100.0f);
                     spinnerScale.setEnabled(false);
                     spinnerScale.setToolTipText(scalingNotSupportedReason);
                     labelImageDimensions.setIcon(ICON_WARNING);
@@ -267,8 +267,8 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
     }
 
     private void updateWorldDimensions() {
-        int scale = (Integer) spinnerScale.getValue();
-        labelWorldDimensions.setText("Scaled size: " + (image.getWidth() * scale / 100) + " x " + (image.getHeight() * scale / 100) + " blocks");
+        float scale = (float) spinnerScale.getValue();
+        labelWorldDimensions.setText("Scaled size: " + Math.round(image.getWidth() * (scale / 100)) + " x " + Math.round(image.getHeight() * (scale / 100)) + " blocks");
     }
 
     @Override
@@ -276,7 +276,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
         maskImporter.setThreshold((int) spinnerThreshold.getValue());
         maskImporter.setMapping((Mapping) comboBoxMapping.getSelectedItem());
         maskImporter.setRemoveExistingLayer(radioButtonLayer.isSelected() && checkBoxRemoveExisting.isSelected());
-        maskImporter.setScale((Integer) spinnerScale.getValue());
+        maskImporter.setScale((float) spinnerScale.getValue() / 100);
         maskImporter.setxOffset((Integer) spinnerOffsetX.getValue());
         maskImporter.setyOffset((Integer) spinnerOffsetY.getValue());
         ProgressDialog.executeTask(this, new ProgressTask<Void>() {
@@ -398,7 +398,8 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
 
         jLabel4.setText("Scale:");
 
-        spinnerScale.setModel(new javax.swing.SpinnerNumberModel(100, 1, 999, 1));
+        spinnerScale.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(100.0f), Float.valueOf(0.01f), Float.valueOf(999.99f), Float.valueOf(0.1f)));
+        spinnerScale.setEditor(new javax.swing.JSpinner.NumberEditor(spinnerScale, "0.00"));
         spinnerScale.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 spinnerScaleStateChanged(evt);

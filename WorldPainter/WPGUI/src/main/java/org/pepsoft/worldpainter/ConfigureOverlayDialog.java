@@ -14,6 +14,7 @@ import static org.pepsoft.worldpainter.util.ImageUtils.loadImage;
  *
  * @author pepijn
  */
+@SuppressWarnings({"FieldCanBeLocal", "unused"}) // Managed by NetBeans
 public class ConfigureOverlayDialog extends WorldPainterDialog {
 
     /**
@@ -33,7 +34,7 @@ public class ConfigureOverlayDialog extends WorldPainterDialog {
         initComponents();
         labelFile.setText(overlay.getFile().getAbsolutePath());
         checkBoxImageOverlay.setSelected(overlay.isEnabled());
-        spinnerScale.setValue(Math.round(overlay.getScale() * 100));
+        spinnerScale.setValue(overlay.getScale() * 100);
         spinnerTransparency.setValue(Math.round(overlay.getTransparency() * 100));
         spinnerXOffset.setValue(overlay.getOffsetX());
         spinnerYOffset.setValue(overlay.getOffsetY());
@@ -91,7 +92,7 @@ public class ConfigureOverlayDialog extends WorldPainterDialog {
             overlay.setOffsetX(xOffset);
             overlay.setOffsetY(yOffset);
             overlay.setScale(desiredScale);
-            spinnerScale.setValue(Math.round(desiredScale * 100));
+            spinnerScale.setValue(desiredScale * 100);
             spinnerXOffset.setValue(xOffset);
             spinnerYOffset.setValue(yOffset);
         } finally {
@@ -131,7 +132,8 @@ public class ConfigureOverlayDialog extends WorldPainterDialog {
 
         jLabel3.setText("Scale:");
 
-        spinnerScale.setModel(new javax.swing.SpinnerNumberModel(100, 1, 9999, 1));
+        spinnerScale.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(100.0f), Float.valueOf(0.01f), Float.valueOf(9999.99f), Float.valueOf(0.1f)));
+        spinnerScale.setEditor(new javax.swing.JSpinner.NumberEditor(spinnerScale, "0.00"));
         spinnerScale.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 spinnerScaleStateChanged(evt);
@@ -290,7 +292,7 @@ public class ConfigureOverlayDialog extends WorldPainterDialog {
 
     private void spinnerScaleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerScaleStateChanged
         if (! programmaticChange) {
-            overlay.setScale(((Number) spinnerScale.getValue()).intValue() / 100.0f);
+            overlay.setScale(((float) spinnerScale.getValue()) / 100);
         }
     }//GEN-LAST:event_spinnerScaleStateChanged
 

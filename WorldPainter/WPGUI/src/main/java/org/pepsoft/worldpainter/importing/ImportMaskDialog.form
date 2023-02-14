@@ -271,7 +271,10 @@
     <Component class="javax.swing.JSpinner" name="spinnerScale">
       <Properties>
         <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
-          <SpinnerModel initial="100" maximum="999" minimum="1" numberType="java.lang.Integer" stepSize="1" type="number"/>
+          <SpinnerModel initial="100.0" maximum="999.99" minimum="0.01" numberType="java.lang.Float" stepSize="0.1" type="number"/>
+        </Property>
+        <Property name="editor" type="javax.swing.JComponent" editor="org.netbeans.modules.form.editors.SpinnerEditorEditor">
+          <SpinnerEditor format="0.00" type="3"/>
         </Property>
       </Properties>
       <Events>
