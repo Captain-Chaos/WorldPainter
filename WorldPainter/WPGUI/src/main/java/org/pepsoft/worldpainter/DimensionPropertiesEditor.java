@@ -3774,7 +3774,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     }//GEN-LAST:event_radioButtonNoBorderActionPerformed
 
     private void checkBoxPopulateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxPopulateActionPerformed
-        if (checkBoxPopulate.isSelected() && jCheckBox8.isSelected()) {
+        if (checkBoxPopulate.isSelected() && jCheckBox8.isSelected() && (! endlessBorder)) {
             jCheckBox8.setSelected(false);
             setControlStates();
             showInfo(this, "\"Resources everywhere\" disabled on the Resources tab,\nto avoid duplicate resources. You may enable it again manually.", "Resources Everywhere Disabled");
