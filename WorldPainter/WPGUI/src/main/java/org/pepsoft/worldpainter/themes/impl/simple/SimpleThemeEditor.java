@@ -106,8 +106,7 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
             
             checkBoxBeaches.setSelected(theme.isBeaches());
             spinnerWaterLevel.setModel(new SpinnerNumberModel(theme.getWaterHeight(), minHeight, maxHeight - 1, 1));
-            spinnerWaterLevel.setEnabled(checkBoxBeaches.isSelected());
-            
+
             checkBoxRandomise.setSelected(theme.isRandomise());
             
             layerTableModel = new LayerRangesTableModel(minHeight, maxHeight, theme.getLayerMap());
@@ -126,7 +125,7 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
         super.setEnabled(enabled);
         tableTerrain.setEnabled(enabled);
         checkBoxBeaches.setEnabled(enabled);
-        spinnerWaterLevel.setEnabled(enabled && checkBoxBeaches.isSelected());
+        spinnerWaterLevel.setEnabled(enabled);
         buttonAddTerrain.setEnabled(enabled);
         checkBoxRandomise.setEnabled(enabled);
     }
@@ -208,6 +207,7 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
         buttonAddTerrain = new javax.swing.JButton();
         spinnerWaterLevel = new javax.swing.JSpinner();
         checkBoxRandomise = new javax.swing.JCheckBox();
+        jLabel1 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
         buttonAddLayer = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -215,7 +215,7 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
 
         jButton1.setText("jButton1");
 
-        checkBoxBeaches.setText("beaches around water level:");
+        checkBoxBeaches.setText("beaches");
         checkBoxBeaches.setToolTipText("Whether to add beaches from two levels below the water level to two levels above.");
         checkBoxBeaches.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -233,7 +233,6 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
             }
         });
 
-        spinnerWaterLevel.setEnabled(false);
         spinnerWaterLevel.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 spinnerWaterLevelStateChanged(evt);
@@ -248,17 +247,21 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
             }
         });
 
+        jLabel1.setText("Default water level:");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addComponent(checkBoxBeaches)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(spinnerWaterLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
+                .addComponent(checkBoxBeaches)
+                .addGap(18, 18, 18)
                 .addComponent(checkBoxRandomise)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 26, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 8, Short.MAX_VALUE)
                 .addComponent(buttonAddTerrain))
             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
         );
@@ -271,7 +274,8 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
                     .addComponent(buttonAddTerrain)
                     .addComponent(checkBoxBeaches)
                     .addComponent(spinnerWaterLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(checkBoxRandomise))
+                    .addComponent(checkBoxRandomise)
+                    .addComponent(jLabel1))
                 .addGap(0, 0, 0))
         );
 
@@ -334,7 +338,6 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
     }//GEN-LAST:event_buttonAddTerrainActionPerformed
 
     private void checkBoxBeachesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxBeachesActionPerformed
-        spinnerWaterLevel.setEnabled(checkBoxBeaches.isSelected());
         notifyChangeListener();
     }//GEN-LAST:event_checkBoxBeachesActionPerformed
 
@@ -348,6 +351,7 @@ public class SimpleThemeEditor extends javax.swing.JPanel implements ButtonPress
     private javax.swing.JCheckBox checkBoxBeaches;
     private javax.swing.JCheckBox checkBoxRandomise;
     private javax.swing.JButton jButton1;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;

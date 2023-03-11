@@ -49,16 +49,18 @@
           <Layout>
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" alignment="1" attributes="0">
-                      <Component id="checkBoxBeaches" min="-2" max="-2" attributes="0"/>
+                  <Group type="102" attributes="0">
+                      <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="spinnerWaterLevel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Component id="checkBoxBeaches" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="checkBoxRandomise" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="26" max="32767" attributes="0"/>
+                      <EmptySpace pref="8" max="32767" attributes="0"/>
                       <Component id="buttonAddTerrain" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="jScrollPane1" alignment="0" pref="0" max="32767" attributes="0"/>
+                  <Component id="jScrollPane1" pref="0" max="32767" attributes="0"/>
               </Group>
             </DimensionLayout>
             <DimensionLayout dim="1">
@@ -71,6 +73,7 @@
                           <Component id="checkBoxBeaches" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="spinnerWaterLevel" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="checkBoxRandomise" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
                   </Group>
@@ -80,7 +83,7 @@
           <SubComponents>
             <Component class="javax.swing.JCheckBox" name="checkBoxBeaches">
               <Properties>
-                <Property name="text" type="java.lang.String" value="beaches around water level:"/>
+                <Property name="text" type="java.lang.String" value="beaches"/>
                 <Property name="toolTipText" type="java.lang.String" value="Whether to add beaches from two levels below the water level to two levels above."/>
               </Properties>
               <Events>
@@ -110,9 +113,6 @@
               </Events>
             </Component>
             <Component class="javax.swing.JSpinner" name="spinnerWaterLevel">
-              <Properties>
-                <Property name="enabled" type="boolean" value="false"/>
-              </Properties>
               <Events>
                 <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spinnerWaterLevelStateChanged"/>
               </Events>
@@ -125,6 +125,11 @@
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxRandomiseActionPerformed"/>
               </Events>
+            </Component>
+            <Component class="javax.swing.JLabel" name="jLabel1">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Default water level:"/>
+              </Properties>
             </Component>
           </SubComponents>
         </Container>
