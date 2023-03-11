@@ -167,19 +167,18 @@ public final class TileRenderer {
         final long seed;
         boolean noOpposites = true;
         if (tileProvider instanceof Dimension) {
-            final Dimension dim = (Dimension) tileProvider;
+            final Dimension dim = (Dimension) tileProvider, oppositeDim = (Dimension) relatedTileProvider;
             bottomless = dim.isBottomless();
             topLayersRelativeToTerrain = dim.getTopLayerAnchor() == Dimension.LayerAnchor.TERRAIN;
             seed = dim.getSeed();
             if (renderCeilingIntersection) {
-                final int totalRange = dim.getMaxHeight() + dim.getMinHeight();
-                final Tile relatedTile = relatedTileProvider.getTile(tile.getX(), tile.getY());
+                final int reflectionPoint = (dim.getAnchor().invert ? dim.getCeilingHeight() : oppositeDim.getCeilingHeight()) + oppositeDim.getMinHeight();
+                final Tile relatedTile = oppositeDim.getTile(tile.getX(), tile.getY());
                 if (relatedTile != null) {
                     Arrays.fill(oppositesOverlap, false);
-                    final int oppositesDelta = Math.abs(dim.getCeilingHeight() - ((Dimension) relatedTileProvider).getCeilingHeight());
                     for (int x = 0; x < TILE_SIZE; x++) {
                         for (int y = 0; y < TILE_SIZE; y++) {
-                            if ((relatedTile.getIntHeight(x, y) + intHeightCache[x | (y << TILE_SIZE_BITS)] + oppositesDelta) >= totalRange) {
+                            if ((reflectionPoint - relatedTile.getIntHeight(x, y)) <= intHeightCache[x | (y << TILE_SIZE_BITS)]) {
                                 oppositesOverlap[x | (y << TILE_SIZE_BITS)] = true;
                                 noOpposites = false;
                             }

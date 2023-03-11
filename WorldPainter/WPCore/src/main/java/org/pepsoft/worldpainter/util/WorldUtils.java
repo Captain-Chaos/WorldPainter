@@ -80,6 +80,13 @@ public final class WorldUtils {
             dim.setMinHeight(dimNewMinHeight);
             dim.setMaxHeight(dimNewMaxHeight);
             dim.getTileFactory().setMinMaxHeight(dimNewMinHeight, dimNewMaxHeight, transform);
+            if (dim.getAnchor().invert) {
+                // Adjust ceiling height if necessary
+                final int minHeightDelta = dimNewMinHeight - oldMinHeight;
+                dim.setCeilingHeight(dim.getCeilingHeight() - minHeightDelta);
+            } else {
+                dim.setCeilingHeight(dimNewMaxHeight);
+            }
             if (transformLayers) {
                 for (ExporterSettings exporterSettings: dim.getAllLayerSettings().values()) {
                     exporterSettings.setMinMaxHeight(oldMinHeight, dimNewMinHeight, oldMaxHeight, dimNewMaxHeight, transform);
