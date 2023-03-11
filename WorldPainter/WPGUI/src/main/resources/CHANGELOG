@@ -1,10 +1,11 @@
--- Version 2.15.19, released ...
+-- Version 2.15.19, released 11-3-2023
 
  * The material selection control has been simplified. Instead of always showing both legacy (numerical) and modern (name-based) choices it now only shows the appropriate choices for the currently selected map format
    + If you try to edit a material without a numerical ID with a map format selected that requires numerical IDs, an error message will be shown and you will be required to select a different, compatible material
  * The scale for importing height maps and masks, as well as the scale for overlay images, can now be specified with up to two decimals precision, for more accurate size control
  * Plants on the Custom Plants Layer settings screen are now disabled if they are not supported by the current map format
  * When changing between map formats with different minimum heights, the ceiling height of Ceiling Dimensions is now automatically adjusted to keep it at the same distance from the surface
+ * New inverted icons have been added to make the Dark Metal visual theme look better, contributed by github.com/almic
  * Bug fix: fixed the crosshatching that shows where the surface and ceiling dimensions intersects, for the Minecraft 1.18 and higher map formats
  * Bug fix: fixed a bug that made it impossible to select block ID 31 for numerical ID-based map formats such as Minecraft 1.12
  * Bug fix: make pumpkin and melon stems from Custom Plants Layers export with the correct ages
