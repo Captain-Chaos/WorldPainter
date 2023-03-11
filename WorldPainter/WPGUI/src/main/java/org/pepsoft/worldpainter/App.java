@@ -1078,6 +1078,10 @@ public final class App extends JFrame implements RadiusControl,
                         showWarning(this, "The Superflat preset from this world could not be parsed.\n" +
                                 "It has been reset to default values.", "Superflat Preset Reset");
                         break;
+                    case GAME_TYPE_RESET:
+                        showWarning(this, "The Game Mode from this world was lost.\n" +
+                                "It has been reset to Surbial.", "Game Mode Reset");
+                        break;
                 }
             }
         }

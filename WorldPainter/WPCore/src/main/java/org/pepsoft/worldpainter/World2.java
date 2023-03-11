@@ -743,8 +743,14 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
                     platform = (maxheight == org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL) ? DefaultPlugin.JAVA_ANVIL : DefaultPlugin.JAVA_MCREGION;
             }
             version = -1;
-            gameTypeObj = GameType.values()[gameType];
-            gameType = -1;
+            if (gameType == -1) {
+                // No idea how this can happen, but it has been observed in the wild
+                addWarning(Warning.GAME_TYPE_RESET);
+                gameTypeObj = GameType.SURVIVAL;
+            } else {
+                gameTypeObj = GameType.values()[gameType];
+                gameType = -1;
+            }
         }
         if (wpVersion < 7) {
             if ((generatorOptions != null) && (! generatorOptions.trim().isEmpty())) {
@@ -948,7 +954,12 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         /**
          * Warn the user that the Superflat settings could not be parsed and were reset to defaults.
          */
-        SUPERFLAT_SETTINGS_RESET
+        SUPERFLAT_SETTINGS_RESET,
+
+        /**
+         * The game type was lost and was reset to Survival.
+         */
+        GAME_TYPE_RESET
     }
     
     public static class BorderSettings implements Serializable, org.pepsoft.util.undo.Cloneable<BorderSettings> {
