@@ -1,4 +1,4 @@
--- Version 2.15.19, released 11-3-2023
+-- Version 2.16.0, released 12-3-2023
 
  * The material selection control has been simplified. Instead of always showing both legacy (numerical) and modern (name-based) choices it now only shows the appropriate choices for the currently selected map format
    + If you try to edit a material without a numerical ID with a map format selected that requires numerical IDs, an error message will be shown and you will be required to select a different, compatible material
