@@ -180,12 +180,12 @@
   <SubComponents>
     <Component class="javax.swing.JLabel" name="jLabel1">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Current height limits:"/>
+        <Property name="text" type="java.lang.String" value="Current build limits:"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel2">
       <Properties>
-        <Property name="text" type="java.lang.String" value="New height limits:"/>
+        <Property name="text" type="java.lang.String" value="New build limits:"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="labelCurrentMaxHeight">
@@ -318,7 +318,7 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel9">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Minimum"/>
+        <Property name="text" type="java.lang.String" value="Lower"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JComboBox" name="comboBoxNewMinHeight">
@@ -331,7 +331,7 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel10">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Maximum"/>
+        <Property name="text" type="java.lang.String" value="Upper"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JCheckBox" name="checkBoxAdjustLayers">

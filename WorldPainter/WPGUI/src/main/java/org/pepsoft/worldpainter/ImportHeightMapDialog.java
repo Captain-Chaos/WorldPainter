@@ -1,9 +1,4 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/*
  * ImportHeightMapDialog.java
  *
  * Created on 22-jan-2012, 19:47:55
@@ -58,6 +53,7 @@ import static org.pepsoft.util.swing.SpinnerUtils.setMaximum;
 import static org.pepsoft.util.swing.SpinnerUtils.setMinimum;
 import static org.pepsoft.worldpainter.App.NUMBER_FORMAT;
 import static org.pepsoft.worldpainter.Constants.MAX_HEIGHT;
+import static org.pepsoft.worldpainter.Constants.MIN_HEIGHT;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_MASTER;
@@ -251,7 +247,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         }
 
         final int waterLevel = (int) spinnerWorldMiddle.getValue();
-        final int minHeight = platform.minZ /* TODO: make configurable */, maxHeight = (int) comboBoxHeight.getSelectedItem();
+        final int minHeight = (int) comboBoxMinHeight.getSelectedItem(), maxHeight = (int) comboBoxMaxHeight.getSelectedItem();
 
         final HeightMapImporter importer = new HeightMapImporter();
         final Platform platform = (Platform) comboBoxPlatform.getSelectedItem();
@@ -415,7 +411,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         final Vector<ImportPreset> presets = new Vector<>(ImportPreset.PRESETS.length + 1);
         presets.add(null);
         for (ImportPreset preset: ImportPreset.PRESETS) {
-            if (preset.isValid(imageMinHeight, imageMaxHeight, imageLowValue, imageHighValue, platform, platform.minZ /* TODO: make configurable */, (Integer) comboBoxHeight.getSelectedItem())) {
+            if (preset.isValid(imageMinHeight, imageMaxHeight, imageLowValue, imageHighValue, platform, (Integer) comboBoxMinHeight.getSelectedItem(), (Integer) comboBoxMaxHeight.getSelectedItem())) {
                 presets.add(preset);
             }
         }
@@ -456,8 +452,8 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         if (programmaticChange) {
             return;
         }
-        final int minHeight        = platform.minZ; // TODO: make configurable
-        final int maxHeight        = (Integer) comboBoxHeight.getSelectedItem() - 1;
+        final int minHeight        = (Integer) comboBoxMinHeight.getSelectedItem();
+        final int maxHeight        = (Integer) comboBoxMaxHeight.getSelectedItem() - 1;
         final long imageLowLevel   = (Long) spinnerImageLow.getValue();
         final long imageHighLevel  = (Long) spinnerImageHigh.getValue();
         final int worldLowLevel    = (Integer) spinnerWorldLow.getValue();
@@ -503,7 +499,8 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     }
 
     private void loadDefaultTheme() {
-        final int minHeight = platform.minZ /* TODO: make configurable */, maxHeight = comboBoxHeight.getSelectedItem() != null ? (Integer) comboBoxHeight.getSelectedItem() : platform.standardMaxHeight;
+        final int minHeight = comboBoxMinHeight.getSelectedItem() != null ? (Integer) comboBoxMinHeight.getSelectedItem() : platform.minZ;
+        final int maxHeight = comboBoxMaxHeight.getSelectedItem() != null ? (Integer) comboBoxMaxHeight.getSelectedItem() : platform.standardMaxHeight;
         Theme defaultTheme = Configuration.getInstance().getHeightMapDefaultTheme();
         if (defaultTheme == null) {
             defaultTheme = SimpleTheme.createDefault(GRASS, minHeight, maxHeight, DEFAULT_WATER_LEVEL, true, true);
@@ -587,29 +584,38 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             return;
         }
         platform = (Platform) comboBoxPlatform.getSelectedItem();
-        final int minHeight = platform.minZ /* TODO: make configurable */, maxHeight;
+        final int maxHeight;
         programmaticChange = true;
         try {
             if (currentDimension != null) {
+                final int minHeight = currentDimension.getMinHeight();
                 maxHeight = currentDimension.getMaxHeight();
-                comboBoxHeight.setModel(new DefaultComboBoxModel<>(new Integer[] { maxHeight }));
-                comboBoxHeight.setSelectedItem(maxHeight);
-                comboBoxHeight.setEnabled(false);
+                comboBoxMinHeight.setModel(new DefaultComboBoxModel<>(new Integer[] { minHeight }));
+                comboBoxMinHeight.setSelectedItem(minHeight);
+                comboBoxMinHeight.setEnabled(false);
+                comboBoxMaxHeight.setModel(new DefaultComboBoxModel<>(new Integer[] { maxHeight }));
+                comboBoxMaxHeight.setSelectedItem(maxHeight);
+                comboBoxMaxHeight.setEnabled(false);
             } else {
+                final List<Integer> minHeights = new ArrayList<>(asList(platform.minHeights));
+                minHeights.removeIf(height -> height < MIN_HEIGHT);
+                if (minHeights.isEmpty()) {
+                    minHeights.add(MIN_HEIGHT);
+                }
+                comboBoxMinHeight.setModel(new DefaultComboBoxModel<>(minHeights.toArray(new Integer[minHeights.size()])));
+                comboBoxMinHeight.setSelectedItem(Math.max(platform.minZ, MIN_HEIGHT));
+                comboBoxMinHeight.setEnabled(minHeights.size() > 1);
                 maxHeight = platform.standardMaxHeight;
                 final List<Integer> maxHeights = new ArrayList<>(asList(platform.maxHeights));
                 maxHeights.removeIf(height -> height > MAX_HEIGHT);
                 if (maxHeights.isEmpty()) {
                     maxHeights.add(MAX_HEIGHT);
                 }
-                comboBoxHeight.setModel(new DefaultComboBoxModel<>(maxHeights.toArray(new Integer[maxHeights.size()])));
-                comboBoxHeight.setSelectedItem(Math.min(platform.standardMaxHeight, MAX_HEIGHT));
-                comboBoxHeight.setEnabled(maxHeights.size() > 1);
+                comboBoxMaxHeight.setModel(new DefaultComboBoxModel<>(maxHeights.toArray(new Integer[maxHeights.size()])));
+                comboBoxMaxHeight.setSelectedItem(Math.min(platform.standardMaxHeight, MAX_HEIGHT));
+                comboBoxMaxHeight.setEnabled(maxHeights.size() > 1);
             }
-            setMinimum(spinnerWorldLow, minHeight);
-            setMinimum(spinnerWorldMiddle, minHeight);
-            setMinimum(spinnerWorldHigh, minHeight);
-            labelMinHeight.setText(String.valueOf(minHeight));
+            minHeightChanged();
             maxHeightChanged();
             spinnerWorldHigh.setValue((int) Math.min(maxHeight - 1, (long) Math.pow(2, bitDepth) - 1)); // TODO overflow
             loadDefaultTheme();
@@ -618,14 +624,31 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         }
     }
 
-    private void maxHeightChanged() {
-        int platformMaxHeight = (int) comboBoxHeight.getSelectedItem();
+    private void minHeightChanged() {
+        int minHeight = (int) comboBoxMinHeight.getSelectedItem();
         programmaticChange = true;
         try {
-            setMaximum(spinnerWorldLow, platformMaxHeight - 1);
-            setMaximum(spinnerWorldMiddle, platformMaxHeight - 1);
-            setMaximum(spinnerWorldHigh, platformMaxHeight - 1);
-            labelMaxHeight.setText(NUMBER_FORMAT.format(platformMaxHeight - 1));
+            setMinimum(spinnerWorldLow, minHeight);
+            setMinimum(spinnerWorldMiddle, minHeight);
+            setMinimum(spinnerWorldHigh, minHeight);
+            labelMinHeight.setText(NUMBER_FORMAT.format(minHeight));
+        } finally {
+            programmaticChange = false;
+        }
+
+        // Set levels to reasonable defaults
+        selectDefaultVerticalScaling();
+        updatePreview(false);
+    }
+
+    private void maxHeightChanged() {
+        int maxHeight = (int) comboBoxMaxHeight.getSelectedItem();
+        programmaticChange = true;
+        try {
+            setMaximum(spinnerWorldLow, maxHeight - 1);
+            setMaximum(spinnerWorldMiddle, maxHeight - 1);
+            setMaximum(spinnerWorldHigh, maxHeight - 1);
+            labelMaxHeight.setText(NUMBER_FORMAT.format(maxHeight - 1));
         } finally {
             programmaticChange = false;
         }
@@ -634,7 +657,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         selectDefaultVerticalScaling();
         updatePreview(false);
 
-        labelWarning.setVisible((comboBoxPlatform.getSelectedItem() == JAVA_MCREGION) && (platformMaxHeight != DEFAULT_MAX_HEIGHT_MCREGION));
+        labelWarning.setVisible((comboBoxPlatform.getSelectedItem() == JAVA_MCREGION) && (maxHeight != DEFAULT_MAX_HEIGHT_MCREGION));
     }
 
     private void updatePreview(boolean recentre) {
@@ -662,7 +685,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         if (preset != null) {
             programmaticChange = true;
             try {
-                final long[][] mappings = preset.getMapping(imageMaxHeight, imageLowValue, imageHighValue, platform, (Integer) comboBoxHeight.getSelectedItem());
+                final long[][] mappings = preset.getMapping(imageMaxHeight, imageLowValue, imageHighValue, platform, (Integer) comboBoxMaxHeight.getSelectedItem());
                 spinnerImageLow.setValue(mappings[0][0]);
                 spinnerWorldLow.setValue((int) mappings[1][0]);
                 spinnerImageHigh.setValue(mappings[0][1]);
@@ -709,7 +732,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         jLabel3 = new javax.swing.JLabel();
         spinnerScale = new javax.swing.JSpinner();
         labelWorldDimensions = new javax.swing.JLabel();
-        comboBoxHeight = new javax.swing.JComboBox<>();
+        comboBoxMaxHeight = new javax.swing.JComboBox<>();
         jLabel4 = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
@@ -755,6 +778,8 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         labelExportedSize = new javax.swing.JLabel();
         jLabel22 = new javax.swing.JLabel();
         labelExportedOffset = new javax.swing.JLabel();
+        comboBoxMinHeight = new javax.swing.JComboBox<>();
+        jLabel21 = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         themeEditor = new org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor();
         buttonLoadDefaults = new javax.swing.JButton();
@@ -825,9 +850,9 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
         labelWorldDimensions.setText("Scaled size: ? x ? blocks");
 
-        comboBoxHeight.addActionListener(new java.awt.event.ActionListener() {
+        comboBoxMaxHeight.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboBoxHeightActionPerformed(evt);
+                comboBoxMaxHeightActionPerformed(evt);
             }
         });
 
@@ -1055,7 +1080,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 19);
         jPanel1.add(labelMaxHeight, gridBagConstraints);
 
-        jLabel2.setText("Height:");
+        jLabel2.setText("Build limits: lower:");
 
         jLabel10.setText("blocks");
 
@@ -1144,6 +1169,14 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
         labelExportedOffset.setText("0, 0");
 
+        comboBoxMinHeight.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxMinHeightActionPerformed(evt);
+            }
+        });
+
+        jLabel21.setText(", upper:");
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -1175,7 +1208,11 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(comboBoxHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(comboBoxMinHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, 0)
+                        .addComponent(jLabel21)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxMaxHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, 0)
                         .addComponent(jLabel10)
                         .addGap(18, 18, 18)
@@ -1230,9 +1267,11 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(comboBoxHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(comboBoxMaxHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel10)
-                    .addComponent(labelWarning))
+                    .addComponent(labelWarning)
+                    .addComponent(comboBoxMinHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel21))
                 .addGap(18, 18, 18)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
@@ -1519,9 +1558,9 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         }
     }//GEN-LAST:event_buttonOkActionPerformed
 
-    private void comboBoxHeightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxHeightActionPerformed
+    private void comboBoxMaxHeightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxMaxHeightActionPerformed
         maxHeightChanged();
-    }//GEN-LAST:event_comboBoxHeightActionPerformed
+    }//GEN-LAST:event_comboBoxMaxHeightActionPerformed
 
     private void jTabbedPane1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jTabbedPane1StateChanged
         if (!programmaticChange) {
@@ -1619,6 +1658,10 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         NewWorldDialog.showMasterDimensionInfo(this);
     }//GEN-LAST:event_buttonMasterInfoActionPerformed
 
+    private void comboBoxMinHeightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxMinHeightActionPerformed
+        minHeightChanged();
+    }//GEN-LAST:event_comboBoxMinHeightActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
@@ -1633,7 +1676,8 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     private javax.swing.JCheckBox checkBoxMasterDimension;
     private javax.swing.JCheckBox checkBoxOnlyRaise;
     private javax.swing.JCheckBox checkBoxVoid;
-    private javax.swing.JComboBox<Integer> comboBoxHeight;
+    private javax.swing.JComboBox<Integer> comboBoxMaxHeight;
+    private javax.swing.JComboBox<Integer> comboBoxMinHeight;
     private javax.swing.JComboBox<Platform> comboBoxPlatform;
     private javax.swing.JComboBox<ImportPreset> comboBoxPreset;
     private javax.swing.JComboBox<Terrain> comboBoxSingleTerrain;
@@ -1651,6 +1695,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel20;
+    private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;

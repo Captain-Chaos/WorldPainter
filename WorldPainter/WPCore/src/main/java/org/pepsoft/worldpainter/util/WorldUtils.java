@@ -32,6 +32,7 @@ public final class WorldUtils {
      * Change the build limits of a {@link World2 WorldPainter world}.
      */
     public static void resizeWorld(final World2 world, final HeightTransform transform, final int newMinHeight, final int newMaxHeight, final boolean transformLayers, final ProgressReceiver progressReceiver) throws OperationCancelled {
+        world.setMinHeight(newMinHeight);
         world.setMaxHeight(newMaxHeight);
         final Set<Dimension> dimensions = world.getDimensions();
         final int total = dimensions.size();

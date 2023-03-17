@@ -117,8 +117,8 @@ public abstract class JavaLevel extends AbstractNBTItem {
             }
         }
         if (version == VERSION_ANVIL) {
-            if (((maxHeight != DEFAULT_MAX_HEIGHT_ANVIL) && (dataVersion > DATA_VERSION_MC_1_14_4) && (dataVersion <= DATA_VERSION_MC_1_17_1))
-                    || ((maxHeight != DEFAULT_MAX_HEIGHT_1_18) && (dataVersion > DATA_VERSION_MC_1_17_1))) {
+            if (((dataVersion > DATA_VERSION_MC_1_14_4) && (dataVersion <= DATA_VERSION_MC_1_17_1) && (maxHeight != DEFAULT_MAX_HEIGHT_ANVIL))
+                    || ((dataVersion > DATA_VERSION_MC_1_17_1) && ((minHeight != DEFAULT_MIN_HEIGHT_1_18) || (maxHeight != DEFAULT_MAX_HEIGHT_1_18)))) {
                 createWorldPainterDataPack(worldDir);
             }
         }

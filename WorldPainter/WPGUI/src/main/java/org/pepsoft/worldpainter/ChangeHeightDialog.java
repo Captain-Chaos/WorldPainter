@@ -56,21 +56,23 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         labelOldExtents.setText(lowestHeight + " - " + highestHeight);
         supportedPlatforms.addAll(PlatformManager.getInstance().getAllPlatforms());
         final List<Platform> allPlatforms = new ArrayList<>(supportedPlatforms);
-        if (! allPlatforms.contains(world.getPlatform())) {
-            allPlatforms.add(0, world.getPlatform());
+        final Platform platform = world.getPlatform();
+        if (! allPlatforms.contains(platform)) {
+            allPlatforms.add(0, platform);
         }
         comboBoxPlatform.setModel(new DefaultComboBoxModel<>(allPlatforms.toArray(new Platform[allPlatforms.size()])));
-        final Platform platform = world.getPlatform();
+        comboBoxPlatform.setSelectedItem(platform);
+        setPlatform(platform);
 
         final int minHeight = world.getMinHeight(), maxHeight = world.getMaxHeight();
         labelCurrentMinHeight.setText(Integer.toString(minHeight));
         comboBoxNewMinHeight.setSelectedItem(minHeight);
         labelCurrentMaxHeight.setText(Integer.toString(maxHeight));
         comboBoxNewMaxHeight.setSelectedItem(maxHeight);
-        
+
         getRootPane().setDefaultButton(buttonOK);
 
-        comboBoxPlatform.setSelectedItem(platform);
+        initialising = false;
         updateLabels();
         setControlStates();
 
@@ -81,6 +83,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
 
     private void setPlatform(Platform platform) {
         comboBoxNewMinHeight.setModel(new DefaultComboBoxModel<>(stream(platform.minHeights).boxed().toArray(Integer[]::new)));
+        comboBoxNewMinHeight.setEnabled(platform.minHeights.length > 1);
         final int desiredMinHeight = (platform.minZ < world.getMinHeight()) ? platform.minZ : world.getMinHeight();
         int matchingMinHeight = 0;
         for (int minHeight : platform.minHeights) {
@@ -92,8 +95,9 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         if (matchingMinHeight == 0) {
             matchingMinHeight = platform.minZ;
         }
-        comboBoxNewMaxHeight.setSelectedItem(matchingMinHeight);
+        comboBoxNewMinHeight.setSelectedItem(matchingMinHeight);
         comboBoxNewMaxHeight.setModel(new DefaultComboBoxModel<>(stream(platform.maxHeights).boxed().toArray(Integer[]::new)));
+        comboBoxNewMaxHeight.setEnabled(platform.maxHeights.length > 1);
         final int desiredMaxHeight = (platform.standardMaxHeight > world.getMaxHeight()) ? platform.standardMaxHeight : world.getMaxHeight();
         int matchingMaxHeight = 0;
         for (int maxHeight : platform.maxHeights) {
@@ -283,9 +287,9 @@ public class ChangeHeightDialog extends WorldPainterDialog {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Change Map Format");
 
-        jLabel1.setText("Current height limits:");
+        jLabel1.setText("Current build limits:");
 
-        jLabel2.setText("New height limits:");
+        jLabel2.setText("New build limits:");
 
         labelCurrentMaxHeight.setText("jLabel3");
 
@@ -376,7 +380,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
 
         labelCurrentMinHeight.setText("jLabel4");
 
-        jLabel9.setText("Minimum");
+        jLabel9.setText("Lower");
 
         comboBoxNewMinHeight.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -384,7 +388,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
             }
         });
 
-        jLabel10.setText("Maximum");
+        jLabel10.setText("Upper");
 
         checkBoxAdjustLayers.setSelected(true);
         checkBoxAdjustLayers.setText("Also apply to theme and layer settings");
@@ -537,6 +541,9 @@ public class ChangeHeightDialog extends WorldPainterDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void comboBoxNewMaxHeightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxNewMaxHeightActionPerformed
+        if (initialising) {
+            return;
+        }
         updateLabels();
         setControlStates();
     }//GEN-LAST:event_comboBoxNewMaxHeightActionPerformed
@@ -546,10 +553,16 @@ public class ChangeHeightDialog extends WorldPainterDialog {
     }//GEN-LAST:event_buttonCancelActionPerformed
 
     private void checkBoxScaleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_checkBoxScaleStateChanged
+        if (initialising) {
+            return;
+        }
         setControlStates();
     }//GEN-LAST:event_checkBoxScaleStateChanged
 
     private void checkBoxTranslateStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_checkBoxTranslateStateChanged
+        if (initialising) {
+            return;
+        }
         setControlStates();
     }//GEN-LAST:event_checkBoxTranslateStateChanged
 
@@ -559,29 +572,47 @@ public class ChangeHeightDialog extends WorldPainterDialog {
     }//GEN-LAST:event_buttonOKActionPerformed
 
     private void spinnerScaleAmountStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerScaleAmountStateChanged
+        if (initialising) {
+            return;
+        }
         updateLabels();
         setControlStates();
     }//GEN-LAST:event_spinnerScaleAmountStateChanged
 
     private void spinnerTranslateAmountStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerTranslateAmountStateChanged
+        if (initialising) {
+            return;
+        }
         updateLabels();
         setControlStates();
     }//GEN-LAST:event_spinnerTranslateAmountStateChanged
 
     private void comboBoxPlatformActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxPlatformActionPerformed
+        if (initialising) {
+            return;
+        }
         setPlatform((Platform) comboBoxPlatform.getSelectedItem());
     }//GEN-LAST:event_comboBoxPlatformActionPerformed
 
     private void comboBoxNewMinHeightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxNewMinHeightActionPerformed
+        if (initialising) {
+            return;
+        }
         updateLabels();
         setControlStates();
     }//GEN-LAST:event_comboBoxNewMinHeightActionPerformed
 
     private void checkBoxScaleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxScaleActionPerformed
+        if (initialising) {
+            return;
+        }
         updateLabels();
     }//GEN-LAST:event_checkBoxScaleActionPerformed
 
     private void checkBoxTranslateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxTranslateActionPerformed
+        if (initialising) {
+            return;
+        }
         updateLabels();
     }//GEN-LAST:event_checkBoxTranslateActionPerformed
 
@@ -621,6 +652,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
     private final World2 world;
     private final int lowestHeight, highestHeight;
     private final List<Platform> supportedPlatforms = new ArrayList<>();
+    private boolean initialising = true;
 
     private static final long serialVersionUID = 1L;
 }
