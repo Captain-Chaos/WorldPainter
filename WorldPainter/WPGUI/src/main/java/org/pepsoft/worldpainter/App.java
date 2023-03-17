@@ -35,6 +35,7 @@ import org.pepsoft.worldpainter.importing.ImportCustomItemsDialog;
 import org.pepsoft.worldpainter.importing.ImportMaskDialog;
 import org.pepsoft.worldpainter.importing.MapImportDialog;
 import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.layers.exporters.AnnotationsExporter;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 import org.pepsoft.worldpainter.layers.plants.PlantLayer;
 import org.pepsoft.worldpainter.layers.plants.PlantLayerEditor;
@@ -7232,36 +7233,41 @@ public final class App extends JFrame implements RadiusControl,
                 DesktopUtils.beep();
                 return;
             }
-            boolean previousCoverSteepTerrain = dimension.isCoverSteepTerrain();
-            int previousTopLayerMinDepth = dimension.getTopLayerMinDepth();
-            int previousTopLayerVariation = dimension.getTopLayerVariation();
-            Dimension.Border previousBorder = dimension.getBorder();
-            int previousBorderSize = dimension.getBorderSize();
-            long previousMinecraftSeed = dimension.getMinecraftSeed();
-            int previousCeilingHeight = dimension.getCeilingHeight();
-            Dimension.WallType previousWallType = dimension.getWallType();
-            BorderSettings previousBorderSettings = (dimension.getWorld() != null) ? dimension.getWorld().getBorderSettings().clone() : null;
-            Dimension.LayerAnchor previousTopLayerAnchor = dimension.getTopLayerAnchor();
-            DimensionPropertiesDialog dialog = new DimensionPropertiesDialog(App.this, dimension, selectedColourScheme);
+            final boolean previousCoverSteepTerrain = dimension.isCoverSteepTerrain();
+            final int previousTopLayerMinDepth = dimension.getTopLayerMinDepth();
+            final int previousTopLayerVariation = dimension.getTopLayerVariation();
+            final Dimension.Border previousBorder = dimension.getBorder();
+            final int previousBorderSize = dimension.getBorderSize();
+            final long previousMinecraftSeed = dimension.getMinecraftSeed();
+            final int previousCeilingHeight = dimension.getCeilingHeight();
+            final Dimension.WallType previousWallType = dimension.getWallType();
+            final BorderSettings previousBorderSettings = (dimension.getWorld() != null) ? dimension.getWorld().getBorderSettings().clone() : null;
+            final Dimension.LayerAnchor previousTopLayerAnchor = dimension.getTopLayerAnchor();
+            final boolean previousAnnotationsExport = (dimension.getLayerSettings(Annotations.INSTANCE) != null) && ((AnnotationsExporter.AnnotationsSettings) dimension.getLayerSettings(Annotations.INSTANCE)).isExport();
+            final DimensionPropertiesDialog dialog = new DimensionPropertiesDialog(App.this, dimension, selectedColourScheme);
             dialog.setVisible(true);
-            if ((dimension.isCoverSteepTerrain() != previousCoverSteepTerrain)
-                    || (dimension.getTopLayerMinDepth() != previousTopLayerMinDepth)
-                    || (dimension.getTopLayerVariation() != previousTopLayerVariation)
-                    || (dimension.getTopLayerAnchor() != previousTopLayerAnchor)) {
+            if (! dialog.isCancelled()) {
                 if (threeDeeFrame != null) {
-                    threeDeeFrame.refresh();
+                    final boolean newAnnotationsExport = (dimension.getLayerSettings(Annotations.INSTANCE) != null) && ((AnnotationsExporter.AnnotationsSettings) dimension.getLayerSettings(Annotations.INSTANCE)).isExport();
+                    if ((dimension.isCoverSteepTerrain() != previousCoverSteepTerrain)
+                            || (dimension.getTopLayerMinDepth() != previousTopLayerMinDepth)
+                            || (dimension.getTopLayerVariation() != previousTopLayerVariation)
+                            || (dimension.getTopLayerAnchor() != previousTopLayerAnchor)
+                            || (newAnnotationsExport != previousAnnotationsExport)) {
+                        threeDeeFrame.refresh();
+                    }
                 }
-            }
-            if ((dimension.getBorder() != previousBorder)
-                    || ((dimension.getBorder() != null) && (dimension.getBorderSize() != previousBorderSize))
-                    || (dimension.getMinecraftSeed() != previousMinecraftSeed)
-                    || (dimension.getCeilingHeight() != previousCeilingHeight)
-                    || (dimension.getWallType() != previousWallType)
-                    || (dimension.getTopLayerAnchor() != previousTopLayerAnchor)) {
-                view.refreshTiles();
-            }
-            if ((previousBorderSettings != null) && (! previousBorderSettings.equals(dimension.getWorld().getBorderSettings()))) {
-                view.repaint();
+                if ((dimension.getBorder() != previousBorder)
+                        || ((dimension.getBorder() != null) && (dimension.getBorderSize() != previousBorderSize))
+                        || (dimension.getMinecraftSeed() != previousMinecraftSeed)
+                        || (dimension.getCeilingHeight() != previousCeilingHeight)
+                        || (dimension.getWallType() != previousWallType)
+                        || (dimension.getTopLayerAnchor() != previousTopLayerAnchor)) {
+                    view.refreshTiles();
+                }
+                if ((previousBorderSettings != null) && (!previousBorderSettings.equals(dimension.getWorld().getBorderSettings()))) {
+                    view.repaint();
+                }
             }
         }
 

@@ -9,6 +9,7 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.layers.exporters.AnnotationsExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
@@ -38,6 +40,9 @@ public class Tile3DRenderer {
         this.rotation = rotation;
         tileRenderer = new TileRenderer(dimension, colourScheme, customBiomeManager, 0, true, null);
         tileRenderer.addHiddenLayers(DEFAULT_HIDDEN_LAYERS);
+        if ((dimension.getLayerSettings(Annotations.INSTANCE) == null) || (! ((AnnotationsExporter.AnnotationsSettings) dimension.getLayerSettings(Annotations.INSTANCE)).isExport())) {
+            tileRenderer.addHiddenLayers(singleton(Annotations.INSTANCE));
+        }
         tileRenderer.setContourLines(false);
         stoneColour = colourScheme.getColour(STONE);
         waterColour = colourScheme.getColour(WATER);
