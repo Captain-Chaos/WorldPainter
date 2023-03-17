@@ -41,7 +41,7 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
             checkBoxSmooth.setVisible(false);
             labelWesterosCraftFeature.setVisible(false);
         }
-        final int maxThickness = platform.maxMaxHeight - platform.minZ;
+        final int maxThickness = platform.maxMaxHeight - platform.minMinHeight;
         ((SpinnerNumberModel) spinnerThickness.getModel()).setMaximum(maxThickness);
         ((SpinnerNumberModel) spinnerThickness.getModel()).setMinimum(-maxThickness);
 

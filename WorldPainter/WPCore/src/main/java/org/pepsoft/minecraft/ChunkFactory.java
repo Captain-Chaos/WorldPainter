@@ -23,7 +23,14 @@ public interface ChunkFactory {
      *     the specified coordinates.
      */
     ChunkCreationResult createChunk(int x, int z);
-    
+
+    /**
+     * Get the depth of the chunks this factory will create.
+     *
+     * @return The depth of the chunks this factory will create.
+     */
+    int getMinHeight();
+
     /**
      * Get the height of the chunks this chunk factory will create.
      * 

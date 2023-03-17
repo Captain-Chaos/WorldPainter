@@ -19,6 +19,11 @@ public abstract class HeightMapChunkFactory implements ChunkFactory {
     }
 
     @Override
+    public int getMinHeight() {
+        return 0;
+    }
+
+    @Override
     public final int getMaxHeight() {
         return maxHeight;
     }

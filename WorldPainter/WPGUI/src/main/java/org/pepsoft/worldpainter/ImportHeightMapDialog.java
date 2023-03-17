@@ -251,7 +251,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         }
 
         final int waterLevel = (int) spinnerWorldMiddle.getValue();
-        final int maxHeight = (int) comboBoxHeight.getSelectedItem();
+        final int minHeight = platform.minZ /* TODO: make configurable */, maxHeight = (int) comboBoxHeight.getSelectedItem();
 
         final HeightMapImporter importer = new HeightMapImporter();
         final Platform platform = (Platform) comboBoxPlatform.getSelectedItem();
@@ -262,7 +262,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         if (currentDimension != null) {
             importer.setTileFactory(currentDimension.getTileFactory());
             if (radioButtonSingleTerrain.isSelected()) {
-                final SimpleTheme theme = SimpleTheme.createSingleTerrain((Terrain) comboBoxSingleTerrain.getSelectedItem(), platform.minZ, maxHeight, waterLevel);
+                final SimpleTheme theme = SimpleTheme.createSingleTerrain((Terrain) comboBoxSingleTerrain.getSelectedItem(), minHeight, maxHeight, waterLevel);
                 theme.setSeed(seed);
                 importer.setTheme(theme);
             }
@@ -270,14 +270,15 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             themeEditor.save();
             final SimpleTheme theme;
             if (radioButtonSingleTerrain.isSelected()) {
-                theme = SimpleTheme.createSingleTerrain((Terrain) comboBoxSingleTerrain.getSelectedItem(), platform.minZ, maxHeight, waterLevel);
+                theme = SimpleTheme.createSingleTerrain((Terrain) comboBoxSingleTerrain.getSelectedItem(), minHeight, maxHeight, waterLevel);
             } else {
                 theme = themeEditor.getTheme();
-                theme.setMinMaxHeight(platform.minZ, maxHeight, IDENTITY); // TODO add support for adjusting minHeight
+                theme.setMinMaxHeight(minHeight, maxHeight, IDENTITY);
             }
             theme.setSeed(seed);
-            importer.setTileFactory(new HeightMapTileFactory(seed, new SumHeightMap(new ConstantHeightMap(waterLevel - 4), new NoiseHeightMap((float) 20, 1.0, 1, 0)), platform.minZ, maxHeight, false, theme));
+            importer.setTileFactory(new HeightMapTileFactory(seed, new SumHeightMap(new ConstantHeightMap(waterLevel - 4), new NoiseHeightMap((float) 20, 1.0, 1, 0)), minHeight, maxHeight, false, theme));
         }
+        importer.setMinHeight(minHeight);
         importer.setMaxHeight(maxHeight);
         importer.setImageLowLevel((Long) spinnerImageLow.getValue());
         importer.setImageHighLevel((Long) spinnerImageHigh.getValue());
@@ -414,7 +415,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         final Vector<ImportPreset> presets = new Vector<>(ImportPreset.PRESETS.length + 1);
         presets.add(null);
         for (ImportPreset preset: ImportPreset.PRESETS) {
-            if (preset.isValid(imageMinHeight, imageMaxHeight, imageLowValue, imageHighValue, platform, (Integer) comboBoxHeight.getSelectedItem())) {
+            if (preset.isValid(imageMinHeight, imageMaxHeight, imageLowValue, imageHighValue, platform, platform.minZ /* TODO: make configurable */, (Integer) comboBoxHeight.getSelectedItem())) {
                 presets.add(preset);
             }
         }
@@ -455,6 +456,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         if (programmaticChange) {
             return;
         }
+        final int minHeight        = platform.minZ; // TODO: make configurable
         final int maxHeight        = (Integer) comboBoxHeight.getSelectedItem() - 1;
         final long imageLowLevel   = (Long) spinnerImageLow.getValue();
         final long imageHighLevel  = (Long) spinnerImageHigh.getValue();
@@ -472,8 +474,8 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         } else {
             labelImageWaterLevel.setText(NUMBER_FORMAT.format(imageMiddleLevel));
         }
-        if (worldLowestLevel < platform.minZ) {
-            labelWorldLowestLevel.setText("<html><b>&lt; " + platform.minZ + "</b></html>");
+        if (worldLowestLevel < minHeight) {
+            labelWorldLowestLevel.setText("<html><b>&lt; " + NUMBER_FORMAT.format(minHeight) + "</b></html>");
             labelWarningCutOffBelow.setVisible(true);
         } else if (worldLowestLevel > maxHeight) {
             labelWorldLowestLevel.setText("<html><b>&gt; " + NUMBER_FORMAT.format(maxHeight) + "</b></html>");
@@ -482,8 +484,8 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             labelWorldLowestLevel.setText(NUMBER_FORMAT.format(worldLowestLevel));
             labelWarningCutOffBelow.setVisible(false);
         }
-        if (worldHighestLevel < platform.minZ) {
-            labelWorldHighestLevel.setText("<html><b>&lt; " + platform.minZ + "</b></html>");
+        if (worldHighestLevel < minHeight) {
+            labelWorldHighestLevel.setText("<html><b>&lt; " + NUMBER_FORMAT.format(minHeight) + "</b></html>");
             labelWarningCutOffAbove.setVisible(false);
         } else if (worldHighestLevel > maxHeight) {
             labelWorldHighestLevel.setText("<html><b>&gt; " + NUMBER_FORMAT.format(maxHeight) + "</b></html>");
@@ -501,17 +503,17 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     }
 
     private void loadDefaultTheme() {
-        final int maxHeight = comboBoxHeight.getSelectedItem() != null ? (Integer) comboBoxHeight.getSelectedItem() : platform.standardMaxHeight;
+        final int minHeight = platform.minZ /* TODO: make configurable */, maxHeight = comboBoxHeight.getSelectedItem() != null ? (Integer) comboBoxHeight.getSelectedItem() : platform.standardMaxHeight;
         Theme defaultTheme = Configuration.getInstance().getHeightMapDefaultTheme();
         if (defaultTheme == null) {
-            defaultTheme = SimpleTheme.createDefault(GRASS, platform.minZ, maxHeight, DEFAULT_WATER_LEVEL, true, true);
+            defaultTheme = SimpleTheme.createDefault(GRASS, minHeight, maxHeight, DEFAULT_WATER_LEVEL, true, true);
             if (currentDimension == null) {
                 buttonResetDefaults.setEnabled(false);
             }
         } else {
             buttonResetDefaults.setEnabled(true);
         }
-        defaultTheme.setMinMaxHeight(platform.minZ, maxHeight, IDENTITY);
+        defaultTheme.setMinMaxHeight(minHeight, maxHeight, IDENTITY);
         spinnerWorldMiddle.setValue(defaultTheme.getWaterHeight());
         themeEditor.setTheme((SimpleTheme) defaultTheme);
         buttonLoadDefaults.setEnabled(false);
@@ -585,7 +587,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             return;
         }
         platform = (Platform) comboBoxPlatform.getSelectedItem();
-        final int maxHeight;
+        final int minHeight = platform.minZ /* TODO: make configurable */, maxHeight;
         programmaticChange = true;
         try {
             if (currentDimension != null) {
@@ -604,10 +606,10 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                 comboBoxHeight.setSelectedItem(Math.min(platform.standardMaxHeight, MAX_HEIGHT));
                 comboBoxHeight.setEnabled(maxHeights.size() > 1);
             }
-            setMinimum(spinnerWorldLow, platform.minZ);
-            setMinimum(spinnerWorldMiddle, platform.minZ);
-            setMinimum(spinnerWorldHigh, platform.minZ);
-            labelMinHeight.setText(String.valueOf(platform.minZ));
+            setMinimum(spinnerWorldLow, minHeight);
+            setMinimum(spinnerWorldMiddle, minHeight);
+            setMinimum(spinnerWorldHigh, minHeight);
+            labelMinHeight.setText(String.valueOf(minHeight));
             maxHeightChanged();
             spinnerWorldHigh.setValue((int) Math.min(maxHeight - 1, (long) Math.pow(2, bitDepth) - 1)); // TODO overflow
             loadDefaultTheme();

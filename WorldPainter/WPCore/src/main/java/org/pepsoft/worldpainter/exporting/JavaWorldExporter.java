@@ -61,7 +61,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
     @SuppressWarnings("ConstantConditions") // Clarity
     protected JavaLevel createWorld(File worldDir, String name) throws IOException {
         Dimension dim0 = world.getDimension(NORMAL_DETAIL);
-        JavaLevel level = JavaLevel.create(platform, world.getMaxHeight());
+        JavaLevel level = JavaLevel.create(platform, world.getMinHeight(), world.getMaxHeight());
         level.setSeed(dim0.getMinecraftSeed());
         level.setName(name);
 
@@ -147,7 +147,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                     case ENDLESS_WATER:
                         superflatPresetBuilder = SuperflatPreset.builder(biome, structures);
                         final boolean bottomless = dimension.isBottomless();
-                        final int borderLevel = dimension.getBorderLevel() - platform.minZ + 1;
+                        final int borderLevel = dimension.getBorderLevel() - dimension.getMinHeight() + 1;
                         final int oceanDepth = Math.max(Math.min(borderLevel / 2, 20), 1);
                         final int deepSlateDepth = (dimension.getMinHeight() < 0)
                                 ? Math.min(Math.max(borderLevel - oceanDepth - (bottomless ? 0 : 1) - 5, 0), bottomless ? 64 : 63)
@@ -176,7 +176,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                         break;
                     case ENDLESS_BARRIER:
                         superflatPresetBuilder = SuperflatPreset.builder(biome);
-                        superflatPresetBuilder.addLayer(MC_BARRIER, dimension.getMaxHeight() - platform.minZ - ((dimension.getRoofType() == Dimension.WallType.BEDROCK) ? 1 : 0));
+                        superflatPresetBuilder.addLayer(MC_BARRIER, dimension.getMaxHeight() - dimension.getMinHeight() - ((dimension.getRoofType() == Dimension.WallType.BEDROCK) ? 1 : 0));
                         if (dimension.getRoofType() == Dimension.WallType.BEDROCK) {
                             superflatPresetBuilder.addLayer(MC_BEDROCK, 1);
                         }
@@ -186,7 +186,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                 }
                 if ((dimension.getRoofType() != null) && (dimensionBorder != ENDLESS_BARRIER)) {
                     int totalDepth = superflatPresetBuilder.getLayerDepth();
-                    superflatPresetBuilder.addLayer(MC_AIR, dimension.getMaxHeight() - platform.minZ - totalDepth - 1);
+                    superflatPresetBuilder.addLayer(MC_AIR, dimension.getMaxHeight() - dimension.getMinHeight() - totalDepth - 1);
                     superflatPresetBuilder.addLayer((dimension.getRoofType() == Dimension.WallType.BEDROCK) ? MC_BEDROCK : MC_BARRIER, 1);
                 }
                 level.setGenerator(anchor.dim, new SuperflatGenerator(superflatPresetBuilder.build()));

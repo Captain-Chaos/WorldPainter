@@ -27,16 +27,48 @@ public interface BlockBasedPlatformProvider extends PlatformProvider {
      */
     int[] getDimensions(Platform platform, File worldDir);
 
+//    /**
+//     * Create a new, empty chunk for a platform supported by this provider with a lower build limit of zero.
+//     *
+//     * <p>The default implementation delegates to {@link #createChunk(Platform, int, int, int, int)} with a
+//     * {@code minHeight} of zero.
+//     *
+//     * <p>Implementations MUST implement at least on of {@link #createChunk(Platform, int, int, int, int)} or
+//     * {@link #createChunk(Platform, int, int, int)}.
+//     *
+//     * @param platform The platform for which to create a chunk.
+//     * @param x The X coordinate (in chunks) of the chunk to create.
+//     * @param z The Z coordinate (in chunks) of the chunk to create.
+//     * @param maxHeight The height (in blocks) of the chunk to create.
+//     * @return The newly created chunk.
+//     */
+//    default Chunk createChunk(Platform platform, int x, int z, int maxHeight) {
+//        return createChunk(platform, x, z, 0, maxHeight);
+//    }
+
     /**
      * Create a new, empty chunk for a platform supported by this provider.
+     *
+     * <p>The default implementation delegates to {@link #createChunk(Platform, int, int, int)} if {@code minHeight} is
+     * zero, or throws an {@link IllegalArgumentException} otherwise.
+     *
+     * <p>Implementations MUST implement at least on of {@link #createChunk(Platform, int, int, int, int)} or
+     * {@link #createChunk(Platform, int, int, int)}.
      *
      * @param platform The platform for which to create a chunk.
      * @param x The X coordinate (in chunks) of the chunk to create.
      * @param z The Z coordinate (in chunks) of the chunk to create.
+     * @param minHeight The depth (in blocks) ot the chunk to create.
      * @param maxHeight The height (in blocks) of the chunk to create.
      * @return The newly created chunk.
      */
-    Chunk createChunk(Platform platform, int x, int z, int maxHeight);
+    default Chunk createChunk(Platform platform, int x, int z, int minHeight, int maxHeight) {
+//        if (minHeight == 0) {
+//            return createChunk(platform, x, z, maxHeight);
+//        } else {
+            throw new IllegalArgumentException("minHeight " + minHeight);
+//        }
+    }
 
     /**
      * Obtain a {@link ChunkStore} which will save chunks in the format of the

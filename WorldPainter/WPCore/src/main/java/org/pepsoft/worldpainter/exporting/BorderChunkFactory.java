@@ -34,7 +34,7 @@ import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
  */
 public class BorderChunkFactory {
     public static ChunkFactory.ChunkCreationResult create(int chunkX, int chunkZ, Dimension dimension, Platform platform, Map<Layer, LayerExporter> exporters) {
-        final int minHeight = platform.minZ, maxHeight = dimension.getMaxHeight();
+        final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
         final Border border = dimension.getBorder();
         final int borderLevel = dimension.getBorderLevel();
         final Dimension.WallType roofType = dimension.getRoofType();
@@ -56,7 +56,7 @@ public class BorderChunkFactory {
         final BiomeUtils biomeUtils = new BiomeUtils();
 
         final ChunkFactory.ChunkCreationResult result = new ChunkFactory.ChunkCreationResult();
-        result.chunk = PlatformManager.getInstance().createChunk(platform, chunkX, chunkZ, maxHeight);
+        result.chunk = PlatformManager.getInstance().createChunk(platform, chunkX, chunkZ, minHeight, maxHeight);
         final int maxY = maxHeight - 1;
         final int biome;
         switch (dimension.getAnchor().dim) {

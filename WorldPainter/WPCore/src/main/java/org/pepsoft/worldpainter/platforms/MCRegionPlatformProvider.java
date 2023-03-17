@@ -23,7 +23,10 @@ final class MCRegionPlatformProvider extends AbstractJavaPlatformProviderImpl {
     }
 
     @Override
-    NBTChunk createChunk(Map<DataType, Tag> tags, int maxHeight, boolean readOnly) {
+    NBTChunk createChunk(Map<DataType, Tag> tags, int minHeight, int maxHeight, boolean readOnly) {
+        if (minHeight != 0) {
+            throw new IllegalArgumentException("minHeight " + minHeight);
+        }
         return new MCRegionChunk((CompoundTag) tags.get(REGION), maxHeight, readOnly);
     }
 
@@ -49,7 +52,10 @@ final class MCRegionPlatformProvider extends AbstractJavaPlatformProviderImpl {
     }
 
     @Override
-    NBTChunk createChunk(int x, int z, int maxHeight) {
+    NBTChunk createChunk(int x, int z, int minHeight, int maxHeight) {
+        if (minHeight != 0) {
+            throw new IllegalArgumentException("minHeight " + minHeight);
+        }
         return new MCRegionChunk(x, z, maxHeight);
     }
 

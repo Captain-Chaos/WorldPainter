@@ -222,8 +222,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
 
         if (mergeBlocksAboveGround || mergeBlocksUnderground || mergeBiomesUnderground) {
             // TODO support different map heights; just give a warning
-            if (platform.minZ != world.getPlatform().minZ) {
-                throw new IllegalArgumentException("Existing map has different min height (" + platform.minZ + ") than WorldPainter world (" + world.getPlatform().minZ + ")");
+            if (level.getMinHeight() != world.getMinHeight()) {
+                throw new IllegalArgumentException("Existing map has different min height (" + level.getMinHeight() + ") than WorldPainter world (" + world.getMinHeight() + ")");
             }
             if (level.getMaxHeight() != world.getMaxHeight()) {
                 throw new IllegalArgumentException("Existing map has different max height (" + level.getMaxHeight() + ") than WorldPainter world (" + world.getMaxHeight() + ")");
@@ -239,7 +239,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 final int mapDimMinHeight, mapDimMaxHeight;
                 switch (dim) {
                     case DIM_NORMAL:
-                        mapDimMinHeight = platform.minZ;
+                        mapDimMinHeight = level.getMinHeight();
                         mapDimMaxHeight = level.getMaxHeight();
                         break;
                     case DIM_NETHER:
@@ -561,7 +561,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                         final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(combined, exporters, platform, combined.getMaxHeight());
 
                                         final List<Fixup> regionFixups = new ArrayList<>();
-                                        final WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, combined.getMaxHeight(), platform);
+                                        final WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, combined.getMinHeight(), combined.getMaxHeight(), platform);
                                         try {
                                             final String regionWarnings = mergeRegion(minecraftWorld, backupRegionDir, combined, regionCoords, tiles, selectedTiles != null, exporters, chunkFactory, regionFixups, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
                                             if (regionWarnings != null) {
@@ -650,7 +650,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                     final Map<Layer, LayerExporter> exporters = getExportersForRegion(combined, regionCoords);
                                     final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(combined, exporters, platform, combined.getMaxHeight());
 
-                                    final WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, combined.getMaxHeight(), platform);
+                                    final WorldRegion minecraftWorld = new WorldRegion(regionCoords.x, regionCoords.y, combined.getMinHeight(), combined.getMaxHeight(), platform);
                                     ExportResults exportResults = null;
                                     try {
                                         exportResults = exportRegion(minecraftWorld, combined, null, regionCoords, selectedTiles != null, exporters, null, chunkFactory, null, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.9f, 0.1f) : null);
@@ -957,6 +957,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             final int highestChunkX = (regionCoords.x << 5) + 31;
             final int lowestChunkY = regionCoords.y << 5;
             final int highestChunkY = (regionCoords.y << 5) + 31;
+            final int minHeight = dimension.getMinHeight();
             final int maxHeight = dimension.getMaxHeight();
             int chunkNo = 0;
             for (int chunkX = lowestChunkX; chunkX <= highestChunkX; chunkX++) {
@@ -1019,7 +1020,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         if (! tags.containsKey(REGION)) {
                             continue;
                         }
-                        existingChunk = platformProvider.createChunk(platform, tags, maxHeight);
+                        existingChunk = platformProvider.createChunk(platform, tags, minHeight, maxHeight);
                     }
                     if (existingChunk != null) {
                         // Sanity checks
@@ -1137,7 +1138,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
     }
 
     private void clearBlock(final Chunk chunk, final int x, final int y, final int height, final Material existingMaterial) {
-        final int maxZ = chunk.getMaxHeight() - 1;
+        final int minZ = chunk.getMinHeight(), maxZ = chunk.getMaxHeight() - 1;
         if (existingMaterial.watery || existingMaterial.is(WATERLOGGED)) {
             chunk.setMaterial(x, height, y, STATIONARY_WATER);
             // TODO skylight adjustment for under water
@@ -1154,12 +1155,12 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 // Propagate full daylight down
                 chunk.setSkyLightLevel(x, height, y, 15);
             } else {
-                int skyLightLevelBelow = (height > platform.minZ) ? chunk.getSkyLightLevel(x, height - 1, y) : 0;
+                int skyLightLevelBelow = (height > minZ) ? chunk.getSkyLightLevel(x, height - 1, y) : 0;
                 chunk.setSkyLightLevel(x, height, y, Math.max(Math.max(skyLightLevelAbove, skyLightLevelBelow) - 1, 0));
             }
         }
         int blockLightLevelAbove = (height < maxZ) ? chunk.getSkyLightLevel(x, height + 1, y) : 0;
-        int blockLightLevelBelow = (height > platform.minZ) ? chunk.getBlockLightLevel(x, height - 1, y) : 0;
+        int blockLightLevelBelow = (height > minZ) ? chunk.getBlockLightLevel(x, height - 1, y) : 0;
         chunk.setBlockLightLevel(x, height, y, Math.max(Math.max(blockLightLevelAbove, blockLightLevelBelow) - 1, 0));
     }
 
@@ -1218,6 +1219,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             final int highestChunkX = (regionCoords.x << 5) + 31;
             final int lowestChunkY = regionCoords.y << 5;
             final int highestChunkY = (regionCoords.y << 5) + 31;
+            final int minHeight = dimension.getMinHeight();
             final int maxHeight = dimension.getMaxHeight();
             int chunkNo = 0;
             for (int chunkX = lowestChunkX; chunkX <= highestChunkX; chunkX++) {
@@ -1262,7 +1264,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                             continue;
                         }
                         // TODO: support any platform
-                        minecraftWorld.addChunk(platformProvider.createChunk(platform, tags, maxHeight));
+                        minecraftWorld.addChunk(platformProvider.createChunk(platform, tags, minHeight, maxHeight));
                     }
                 }
             }

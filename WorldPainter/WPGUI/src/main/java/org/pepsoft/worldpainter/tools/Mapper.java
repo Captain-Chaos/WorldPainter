@@ -19,7 +19,6 @@ import org.pepsoft.worldpainter.exporting.WorldRegion;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -39,7 +38,6 @@ public class Mapper {
     public static void main(String[] args) throws IOException, InterruptedException {
         File worldDir = null;
         int dim = 0;
-        String colourSchemeName = "classic";
         File output = null;
         for (int i = 0; i < args.length; i++) {
             String arg = args[i].trim();
@@ -59,7 +57,6 @@ public class Mapper {
                 case "-c":
                     if (i < args.length - 1) {
                         i++;
-                        colourSchemeName = args[i].trim();
                     } else {
                         error("Missing argument to -c option");
                     }
@@ -112,6 +109,7 @@ public class Mapper {
         File levelDatFile = new File(worldDir, "level.dat");
         JavaLevel level = JavaLevel.load(levelDatFile);
         final Platform platform = level.getVersion() == VERSION_MCREGION ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL;
+        minHeight = level.getMinHeight();
         maxHeight = level.getMaxHeight();
         File dimensionDir;
         switch (dim) {
@@ -137,13 +135,13 @@ public class Mapper {
         if ((level instanceof Java115Level) && (((Java115Level) level).getGeneratorName() != null)) {
             System.out.println("Generator: " + ((Java115Level) level).getGeneratorName() + " (version " + ((Java115Level) level).getGeneratorVersion() + ")");
         }
-        System.out.println("Map height: " + maxHeight);
+        System.out.println("Map build limits: " + minHeight + " - " + maxHeight);
         System.out.println("Storage format: " + ((platform == DefaultPlugin.JAVA_MCREGION) ? "McRegion (Minecraft 1.1 or earlier)" : "Anvil (Minecraft 1.2 or later)"));
 
         // Determine size
         File[] regionFiles = regionDir.listFiles((platform == DefaultPlugin.JAVA_MCREGION)
-            ? (dir, name) -> name.toLowerCase().endsWith(".mcr")
-                : (FilenameFilter) (dir, name) -> name.toLowerCase().endsWith(".mca"));
+                ? (dir, name) -> name.toLowerCase().endsWith(".mcr")
+                : (dir, name) -> name.toLowerCase().endsWith(".mca"));
         int tmpLowestRegionX = Integer.MAX_VALUE, tmpHighestRegionX = Integer.MIN_VALUE;
         int tmpLowestRegionZ = Integer.MAX_VALUE, tmpHighestRegionZ = Integer.MIN_VALUE;
         for (File regionFile: regionFiles) {
@@ -172,8 +170,7 @@ public class Mapper {
             if (file.exists()) {
                 int regionChunkX = regionX << 5;
                 int regionChunkZ = lowestRegionZ << 5;
-                RegionFile region = new RegionFile(file);
-                try {
+                try (RegionFile region = new RegionFile(file)) {
                     for (int chunkX = 0; chunkX < 32; chunkX++) {
                         for (int chunkZ = 0; chunkZ < 32; chunkZ++) {
                             if (region.containsChunk(chunkX, chunkZ)) {
@@ -194,16 +191,13 @@ public class Mapper {
                             }
                         }
                     }
-                } finally {
-                    region.close();
                 }
             }
             file = new File(regionDir, "r." + regionX + "." + highestRegionZ + ((platform == DefaultPlugin.JAVA_MCREGION) ? ".mcr" : ".mca"));
             if (file.exists()) {
                 int regionChunkX = regionX << 5;
                 int regionChunkZ = highestRegionZ << 5;
-                RegionFile region = new RegionFile(file);
-                try {
+                try (RegionFile region = new RegionFile(file)) {
                     for (int chunkX = 0; chunkX < 32; chunkX++) {
                         for (int chunkZ = 0; chunkZ < 32; chunkZ++) {
                             if (region.containsChunk(chunkX, chunkZ)) {
@@ -224,8 +218,6 @@ public class Mapper {
                             }
                         }
                     }
-                } finally {
-                    region.close();
                 }
             }
         }
@@ -234,8 +226,7 @@ public class Mapper {
             if (file.exists()) {
                 int regionChunkX = lowestRegionX << 5;
                 int regionChunkZ = regionZ << 5;
-                RegionFile region = new RegionFile(file);
-                try {
+                try (RegionFile region = new RegionFile(file)) {
                     for (int chunkX = 0; chunkX < 32; chunkX++) {
                         for (int chunkZ = 0; chunkZ < 32; chunkZ++) {
                             if (region.containsChunk(chunkX, chunkZ)) {
@@ -256,16 +247,13 @@ public class Mapper {
                             }
                         }
                     }
-                } finally {
-                    region.close();
                 }
             }
             file = new File(regionDir, "r." + highestRegionX + "." + regionZ + ((platform == DefaultPlugin.JAVA_MCREGION) ? ".mcr" : ".mca"));
             if (file.exists()) {
                 int regionChunkX = highestRegionX << 5;
                 int regionChunkZ = regionZ << 5;
-                RegionFile region = new RegionFile(file);
-                try {
+                try (RegionFile region = new RegionFile(file)) {
                     for (int chunkX = 0; chunkX < 32; chunkX++) {
                         for (int chunkZ = 0; chunkZ < 32; chunkZ++) {
                             if (region.containsChunk(chunkX, chunkZ)) {
@@ -286,8 +274,6 @@ public class Mapper {
                             }
                         }
                     }
-                } finally {
-                    region.close();
                 }
             }
         }
@@ -314,7 +300,7 @@ public class Mapper {
                     String[] parts = finalFile.getName().split("\\.");
                     int regionX = Integer.parseInt(parts[1]);
                     int regionY = Integer.parseInt(parts[2]);
-                    WorldRegion world = new WorldRegion(worldDir, dim, regionX, regionY, maxHeight, platform);
+                    WorldRegion world = new WorldRegion(worldDir, dim, regionX, regionY, minHeight, maxHeight, platform);
                     int[][] heightCache = new int[544][544];
                     for (int i = 0; i < 544; i++) {
                         Arrays.fill(heightCache[i], -1);
@@ -330,7 +316,7 @@ public class Mapper {
                                         int worldY = (worldChunkY << 4) | y;
                                         boolean snow = false, water = false, lava = false;
                                         int waterLevel = 0;
-                                        for (int height = maxHeight - 1; height >= 0; height--) {
+                                        for (int height = maxHeight - 1; height >= minHeight; height--) {
                                             int blockType = world.getBlockTypeAt(worldX, worldY, height);
                                             if (blockType != BLK_AIR) {
                                                 if (blockType == BLK_SNOW) {
@@ -422,7 +408,7 @@ public class Mapper {
         if (heightCache[x][y] == -1) {
             int worldX = (regionX << 9) + x - 16;
             int worldY = (regionY << 9) + y - 16;
-            for (int height = maxHeight - 1; height >= 0; height--) {
+            for (int height = maxHeight - 1; height >= minHeight; height--) {
                 if (TERRAIN_BLOCKS.contains(world.getBlockTypeAt(worldX, worldY, height))) {
                     heightCache[x][y] = height;
                     return height;
@@ -434,7 +420,7 @@ public class Mapper {
     }
     
 //    private static JavaMinecraftWorld world;
-    private static int maxHeight;
+    private static int minHeight, maxHeight;
     private static final Set<Integer> TERRAIN_BLOCKS = new HashSet<>();
     
     static {

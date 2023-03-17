@@ -19,12 +19,12 @@ import static org.pepsoft.worldpainter.Generator.*;
  * The {@code level.dat} file for a Minecraft 1.16 or 1.17 map.
  */
 public class Java116Level extends JavaLevel {
-    Java116Level(int mapHeight, Platform platform) {
-        super(mapHeight, platform);
+    Java116Level(int minHeight, int maxHeight, Platform platform) {
+        super(minHeight, maxHeight, platform);
     }
 
-    Java116Level(CompoundTag tag, int mapHeight) {
-        super(tag, mapHeight);
+    Java116Level(CompoundTag tag, int minHeight, int maxHeight) {
+        super(tag, minHeight, maxHeight);
         loadWorldGenSettings();
     }
 

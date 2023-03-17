@@ -48,6 +48,7 @@ public class FillDialog extends WorldPainterDialog implements Listener {
         
         initComponents();
         brushOptions1.setPlatform(platform);
+        brushOptions1.setMinHeight(dimension.getMinHeight());
         brushOptions1.setMaxHeight(dimension.getMaxHeight());
         brushOptions1.setSelectionState(selectionState);
 

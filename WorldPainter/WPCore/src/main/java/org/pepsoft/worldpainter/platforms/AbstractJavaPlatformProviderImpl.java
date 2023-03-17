@@ -19,12 +19,12 @@ abstract class AbstractJavaPlatformProviderImpl {
     /**
      * Create an existing chunk from map data.
      */
-    abstract NBTChunk createChunk(Map<DataType, Tag> tags, int maxHeight, boolean readOnly);
+    abstract NBTChunk createChunk(Map<DataType, Tag> tags, int minHeight, int maxHeight, boolean readOnly);
 
     /**
      * Create a new, empty chunk.
      */
-    abstract NBTChunk createChunk(int x, int z, int maxHeight);
+    abstract NBTChunk createChunk(int x, int z, int minHeight, int maxHeight);
 
     /**
      * Get all region files in a specific directory of the specified type(s). May return {@code null} if there are none.

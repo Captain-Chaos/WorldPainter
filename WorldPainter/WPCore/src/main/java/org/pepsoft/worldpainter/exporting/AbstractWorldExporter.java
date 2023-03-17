@@ -249,13 +249,13 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                             }
                         }
                         try {
-                            final int maxHeight = dimension.getMaxHeight();
+                            final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
                             final Map<Layer, LayerExporter> exporters = getExportersForRegion(combined, regionCoords);
                             final Map<Layer, LayerExporter> ceilingExporters = (ceiling != null) ? getExportersForRegion(ceiling, region) : null;
                             final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(combined, exporters, platform, maxHeight);
                             final WorldPainterChunkFactory ceilingChunkFactory = (ceiling != null) ? new WorldPainterChunkFactory(ceiling, ceilingExporters, platform, maxHeight) : null;
 
-                            WorldRegion worldRegion = new WorldRegion(regionCoords.x, regionCoords.y, maxHeight, platform);
+                            WorldRegion worldRegion = new WorldRegion(regionCoords.x, regionCoords.y, minHeight, maxHeight, platform);
                             ExportResults exportResults = null;
                             try {
                                 exportResults = exportRegion(worldRegion, combined, ceiling, regionCoords, tilesSelected, exporters, ceilingExporters, chunkFactory, ceilingChunkFactory, (progressReceiver1 != null) ? new SubProgressReceiver(progressReceiver1, 0.0f, 0.9f) : null);
@@ -540,7 +540,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                         final Chunk invertedChunk = new InvertedChunk(chunkCreationResult.chunk, ceilingDelta, platform);
                         Chunk existingChunk = minecraftWorld.getChunkForEditing(chunkX, chunkY);
                         if (existingChunk == null) {
-                            existingChunk = platformProvider.createChunk(platform, chunkX, chunkY, dimension.getMaxHeight());
+                            existingChunk = platformProvider.createChunk(platform, chunkX, chunkY, dimension.getMinHeight(), dimension.getMaxHeight());
                             minecraftWorld.addChunk(existingChunk);
                         }
                         mergeChunks(invertedChunk, existingChunk);
@@ -926,7 +926,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             total += entry.getValue().size();
         }
         // Make sure to honour the read-only layer: TODO: this means nothing at the moment. Is it still relevant?
-        try (CachingMinecraftWorld minecraftWorld = new CachingMinecraftWorld(worldDir, dimension.getAnchor().dim, dimension.getMaxHeight(), platform, false, 512)) {
+        try (CachingMinecraftWorld minecraftWorld = new CachingMinecraftWorld(worldDir, dimension.getAnchor().dim, dimension.getMinHeight(), dimension.getMaxHeight(), platform, false, 512)) {
             final ExportSettings exportSettings = getExportSettings(dimension, platform);
             for (Entry<Point, List<Fixup>> entry: fixups.entrySet()) {
                 if (progressReceiver != null) {

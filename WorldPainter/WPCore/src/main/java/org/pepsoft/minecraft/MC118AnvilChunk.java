@@ -35,14 +35,16 @@ import static org.pepsoft.minecraft.Material.LEVEL;
  * @author pepijn
  */
 public final class MC118AnvilChunk extends MCNamedBlocksChunk implements SectionedChunk, MinecraftWorld {
-    public MC118AnvilChunk(int xPos, int zPos, int maxHeight) {
+    public MC118AnvilChunk(int xPos, int zPos, int minHeight, int maxHeight) {
         super(ImmutableMap.of(REGION, new CompoundTag("", new HashMap<>())));
         this.xPos = xPos;
         this.zPos = zPos;
+        this.minHeight = minHeight;
         this.maxHeight = maxHeight;
 
         inputDataVersion = null;
-        sections = new Section[(maxHeight >> 4) + UNDERGROUND_SECTIONS];
+        undergroundSections = (-minHeight) >> 4;
+        sections = new Section[(maxHeight >> 4) + undergroundSections];
         heightMaps = new HashMap<>();
         entities = new ArrayList<>();
         blockEntities = new ArrayList<>();
@@ -53,19 +55,21 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
         setTerrainPopulated(true);
     }
 
-    public MC118AnvilChunk(Map<DataType, CompoundTag> tags, int maxHeight) {
-        this(tags, maxHeight, false);
+    public MC118AnvilChunk(Map<DataType, CompoundTag> tags, int minHeight, int maxHeight) {
+        this(tags, minHeight, maxHeight, false);
     }
 
     @SuppressWarnings("ConstantConditions") // Guaranteed by containsTag()
-    public MC118AnvilChunk(Map<DataType, CompoundTag> tags, int maxHeight, boolean readOnly) {
+    public MC118AnvilChunk(Map<DataType, CompoundTag> tags, int minHeight, int maxHeight, boolean readOnly) {
         super(tags);
         try {
+            this.minHeight = minHeight;
             this.maxHeight = maxHeight;
             this.readOnly = readOnly;
 
             inputDataVersion = getInt(REGION, TAG_DATA_VERSION);
-            sections = new Section[(maxHeight >> 4) + UNDERGROUND_SECTIONS];
+            undergroundSections = (-minHeight) >> 4;
+            sections = new Section[(maxHeight >> 4) + undergroundSections];
             List<CompoundTag> sectionTags = getList(REGION, TAG_SECTIONS_);
             // MC 1.18 has chunks without any sections; we're not sure yet if
             // this is a bug
@@ -73,8 +77,8 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
                 for (CompoundTag sectionTag: sectionTags) {
                     try {
                         Section section = new Section(sectionTag);
-                        if ((section.level >= -UNDERGROUND_SECTIONS) && (section.level < (sections.length - UNDERGROUND_SECTIONS))) {
-                            sections[section.level + UNDERGROUND_SECTIONS] = section;
+                        if ((section.level >= -undergroundSections) && (section.level < (sections.length - undergroundSections))) {
+                            sections[section.level + undergroundSections] = section;
                             if ((section.skyLight != null) && (section.level > highestSectionWithSkylight)) {
                                 highestSectionWithSkylight = section.level;
                             }
@@ -137,7 +141,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
     }
 
     public boolean isSectionPresent(int y) {
-        return (y + UNDERGROUND_SECTIONS >= 0) && (y + UNDERGROUND_SECTIONS < sections.length) && (sections[y + UNDERGROUND_SECTIONS] != null);
+        return (y + undergroundSections >= 0) && (y + undergroundSections < sections.length) && (sections[y + undergroundSections] != null);
     }
 
     public Section[] getSections() {
@@ -231,7 +235,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
         setList(REGION, TAG_BLOCK_ENTITIES_, CompoundTag.class, blockEntityTags);
         setLong(REGION, TAG_LAST_UPDATE, lastUpdate);
         setInt(REGION, TAG_X_POS_, xPos);
-        setInt(REGION, TAG_Y_POS_, -UNDERGROUND_SECTIONS);
+        setInt(REGION, TAG_Y_POS_, -undergroundSections);
         setInt(REGION, TAG_Z_POS_, zPos);
         setString(REGION, TAG_STATUS, status);
         setBoolean(REGION, TAG_IS_LIGHT_ON_, lightOn);
@@ -254,7 +258,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
 
     @Override
     public int getMinHeight() {
-        return -(UNDERGROUND_SECTIONS << 4);
+        return -(undergroundSections << 4);
     }
 
     @Override
@@ -324,10 +328,10 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
     @Override
     public int getSkyLightLevel(int x, int y, int z) {
         int level = y >> 4;
-        if ((sections[level + UNDERGROUND_SECTIONS] == null) || (sections[level + UNDERGROUND_SECTIONS].skyLight == null)) {
+        if ((sections[level + undergroundSections] == null) || (sections[level + undergroundSections].skyLight == null)) {
             return (level > highestSectionWithSkylight) ? 15 : 0;
         } else {
-            return getDataByte(sections[level + UNDERGROUND_SECTIONS].skyLight, x, y, z);
+            return getDataByte(sections[level + undergroundSections].skyLight, x, y, z);
         }
     }
 
@@ -337,13 +341,13 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
             return;
         }
         int level = y >> 4;
-        Section section = sections[level + UNDERGROUND_SECTIONS];
+        Section section = sections[level + undergroundSections];
         if (section == null) {
             if (skyLightLevel == ((level > highestSectionWithSkylight) ? 15 : 0)) {
                 return;
             }
             section = new Section((byte) level);
-            sections[level + UNDERGROUND_SECTIONS] = section;
+            sections[level + undergroundSections] = section;
         }
         if (section.skyLight == null) {
             if (skyLightLevel == ((level > highestSectionWithSkylight) ? 15 : 0)) {
@@ -362,10 +366,10 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
     @Override
     public int getBlockLightLevel(int x, int y, int z) {
         int level = y >> 4;
-        if ((sections[level + UNDERGROUND_SECTIONS] == null) || (sections[level + UNDERGROUND_SECTIONS].blockLight == null)) {
+        if ((sections[level + undergroundSections] == null) || (sections[level + undergroundSections].blockLight == null)) {
             return 0;
         } else {
-            return getDataByte(sections[level + UNDERGROUND_SECTIONS].blockLight, x, y, z);
+            return getDataByte(sections[level + undergroundSections].blockLight, x, y, z);
         }
     }
 
@@ -375,13 +379,13 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
             return;
         }
         int level = y >> 4;
-        Section section = sections[level + UNDERGROUND_SECTIONS];
+        Section section = sections[level + undergroundSections];
         if (section == null) {
             if (blockLightLevel == 0) {
                 return;
             }
             section = new Section((byte) level);
-            sections[level + UNDERGROUND_SECTIONS] = section;
+            sections[level + undergroundSections] = section;
         }
         if (section.blockLight == null) {
             if (blockLightLevel == 0) {
@@ -408,7 +412,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
 
     @Override
     public String getNamedBiome(int x, int y, int z) {
-        final Section section = sections[(y >> 2) + UNDERGROUND_SECTIONS];
+        final Section section = sections[(y >> 2) + undergroundSections];
         return (section != null)
                 ? ((section.singleBiome != null) ? section.singleBiome : ((section.biomes != null) ? section.biomes.getValue(x, z, y & 0x3) : null))
                 : null;
@@ -422,11 +426,11 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
         }
         biome = biome.intern();
         final int level = y >> 2;
-        Section section = sections[level + UNDERGROUND_SECTIONS];
+        Section section = sections[level + undergroundSections];
         if (section == null) {
             section = new Section((byte) level);
             section.singleBiome = biome;
-            sections[level + UNDERGROUND_SECTIONS] = section;
+            sections[level + undergroundSections] = section;
         } else if (section.singleBiome != null) {
             if (biome != section.singleBiome) {
                 section.biomes = new PackedArrayCube<>(4, 1, false, String.class);
@@ -480,7 +484,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
 
     @Override
     public Material getMaterial(int x, int y, int z) {
-        Section section = sections[(y >> 4) + UNDERGROUND_SECTIONS];
+        Section section = sections[(y >> 4) + undergroundSections];
         if (section == null) {
             return AIR;
         } else {
@@ -499,13 +503,13 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
             return;
         }
         int level = y >> 4;
-        Section section = sections[level + UNDERGROUND_SECTIONS];
+        Section section = sections[level + undergroundSections];
         if (section == null) {
             if (material == AIR) {
                 return;
             }
             section = new Section((byte) level);
-            sections[level + UNDERGROUND_SECTIONS] = section;
+            sections[level + undergroundSections] = section;
         }
         if (section.singleMaterial != null) {
             if (material != section.singleMaterial) {
@@ -553,12 +557,12 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
                 if (sections[yy].singleMaterial == AIR) {
                     continue;
                 } else if (sections[yy].singleMaterial != null) {
-                    return ((yy - UNDERGROUND_SECTIONS) << 4) | (blockOffset(x, 15, z) >> 8);
+                    return ((yy - undergroundSections) << 4) | (blockOffset(x, 15, z) >> 8);
                 }
                 for (int y = 15; y >= 0; y--) {
                     final Material material = sections[yy].materials.getValue(x, z, y);
                     if ((material != null) && (material != AIR)) {
-                        return ((yy - UNDERGROUND_SECTIONS) << 4) | y;
+                        return ((yy - undergroundSections) << 4) | y;
                     }
                 }
             }
@@ -573,14 +577,14 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
                 if (sections[yy].singleMaterial == AIR) {
                     continue;
                 } else if (sections[yy].singleMaterial != null) {
-                    return ((yy - UNDERGROUND_SECTIONS) << 4) | (4095 >> 8);
+                    return ((yy - undergroundSections) << 4) | (4095 >> 8);
                 }
                 for (int y = 15; y >= 0; y--) {
                     for (int x = 0; x < 16; x++) {
                         for (int z = 0; z < 16; z++) {
                             final Material material = sections[yy].materials.getValue(x, z, y);
                             if ((material != null) && (material != AIR)) {
-                                return ((yy - UNDERGROUND_SECTIONS) << 4) | y;
+                                return ((yy - undergroundSections) << 4) | y;
                             }
                         }
                     }
@@ -773,7 +777,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
 
     public final boolean readOnly;
 
-    final int xPos, zPos, maxHeight;
+    final int xPos, zPos, minHeight, maxHeight, undergroundSections;
     final Section[] sections;
     final List<Entity> entities;
     final List<TileEntity> blockEntities;
@@ -786,7 +790,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
     long inhabitedTime, lastUpdate;
     String status;
 
-    public static final int UNDERGROUND_SECTIONS = 4, LIGHT_ARRAY_SIZE = 2048;
+    public static final int LIGHT_ARRAY_SIZE = 2048;
     private static final Random RANDOM = new Random();
     private static final Map<DataType, Set<String>> KNOWN_TAGS = ImmutableMap.of(
             REGION, ImmutableSet.of(TAG_DATA_VERSION, TAG_SECTIONS_, TAG_HEIGHT_MAPS, TAG_BLOCK_ENTITIES_, TAG_LAST_UPDATE, TAG_X_POS_, TAG_Z_POS_, TAG_STATUS, TAG_IS_LIGHT_ON_, TAG_INHABITED_TIME, TAG_FLUID_TICKS_),

@@ -17,11 +17,11 @@ import static org.pepsoft.worldpainter.Generator.*;
  */
 public class Java115Level extends JavaLevel {
     Java115Level(int mapHeight, Platform platform) {
-        super(mapHeight, platform);
+        super(0, mapHeight, platform);
     }
 
     Java115Level(CompoundTag tag, int mapHeight) {
-        super(tag, mapHeight);
+        super(tag, 0, mapHeight);
     }
 
     @Override

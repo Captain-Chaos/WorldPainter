@@ -231,7 +231,7 @@ public class BiomesViewerFrame extends JFrame {
         }
         BiomeScheme biomeScheme1 = BiomesViewerFrame.this.biomeScheme;
         final Platform platform = (biomeScheme1 instanceof Minecraft1_1BiomeScheme) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL;
-        JavaLevel level = JavaLevel.create(platform, platform.standardMaxHeight);
+        JavaLevel level = JavaLevel.create(platform, platform.minZ, platform.standardMaxHeight);
         final long seed = ((Number) seedSpinner.getValue()).longValue();
         if (! (biomeScheme1 instanceof Minecraft1_1BiomeScheme)) {
             final Generator generatorType = ((biomeScheme1 instanceof Minecraft1_3LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_7LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_8LargeBiomeScheme) || (biomeScheme1 instanceof Minecraft1_12LargeBiomeScheme)) ? Generator.LARGE_BIOMES : Generator.DEFAULT;
@@ -273,6 +273,7 @@ public class BiomesViewerFrame extends JFrame {
             ((Number) seedSpinner.getValue()).longValue(),
             ((Integer) schemeChooser.getSelectedItem() == BIOME_ALGORITHM_1_1) ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL,
             NORMAL_DETAIL,
+            0,
             Configuration.getInstance().getDefaultMaxHeight(),
             null,
             imageViewer.getSelectedTiles());

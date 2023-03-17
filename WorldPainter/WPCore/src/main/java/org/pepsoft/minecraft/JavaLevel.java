@@ -33,16 +33,17 @@ import static org.pepsoft.worldpainter.DefaultPlugin.*;
  * @author pepijn
  */
 public abstract class JavaLevel extends AbstractNBTItem {
-    protected JavaLevel(int mapHeight, Platform platform) {
+    protected JavaLevel(int minHeight, int maxHeight, Platform platform) {
         super(new CompoundTag(TAG_DATA, new HashMap<>()));
         this.platform = platform;
         if (! DEFAULT_JAVA_PLATFORMS.contains(platform)) {
             throw new IllegalArgumentException("Not a supported platform: " + platform);
         }
-        if (mapHeight != ((platform == JAVA_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL)) {
-            setInt(TAG_MAP_HEIGHT, mapHeight);
+        if (maxHeight != ((platform == JAVA_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL)) {
+            setInt(TAG_MAP_HEIGHT, maxHeight);
         }
-        this.maxHeight = mapHeight;
+        this.minHeight = minHeight;
+        this.maxHeight = maxHeight;
         extraTags = null;
         setInt(TAG_VERSION_, (platform == JAVA_MCREGION) ? VERSION_MCREGION : VERSION_ANVIL);
         final Integer dataVersion = platform.getAttribute(ATTRIBUTE_EXPORT_DATA_VERSION);
@@ -56,17 +57,18 @@ public abstract class JavaLevel extends AbstractNBTItem {
         }
     }
 
-    protected JavaLevel(CompoundTag tag, int mapHeight) {
+    protected JavaLevel(CompoundTag tag, int minHeight, int maxHeight) {
         super((CompoundTag) tag.getTag(TAG_DATA));
         final int version = getInt(TAG_VERSION_);
         if ((version != VERSION_UNKNOWN) && (version != VERSION_MCREGION) && (version != VERSION_ANVIL)) {
             // TODO refactor support for non-vanilla level.dat files (VERSION_UNKNOWN) out of here
             throw new IllegalArgumentException("Not a supported version: 0x" + Integer.toHexString(version));
         }
-        if (mapHeight != ((version == VERSION_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL)) {
-            setInt(TAG_MAP_HEIGHT, mapHeight);
+        if (maxHeight != ((version == VERSION_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : DEFAULT_MAX_HEIGHT_ANVIL)) {
+            setInt(TAG_MAP_HEIGHT, maxHeight);
         }
-        this.maxHeight = mapHeight;
+        this.minHeight = minHeight;
+        this.maxHeight = maxHeight;
         if (tag.getValue().size() == 1) {
             // No extra tags
             extraTags = null;
@@ -209,6 +211,10 @@ public abstract class JavaLevel extends AbstractNBTItem {
 
     public boolean isAllowCommands() {
         return getBoolean(TAG_ALLOW_COMMANDS_);
+    }
+
+    public int getMinHeight() {
+        return minHeight;
     }
 
     public int getMaxHeight() {
@@ -390,14 +396,14 @@ public abstract class JavaLevel extends AbstractNBTItem {
         cachedLevel = level;
     }
 
-    public static JavaLevel create(Platform platform, int mapHeight) {
+    public static JavaLevel create(Platform platform, int minHeight, int maxHeight) {
         final org.pepsoft.util.Version platformMcVersion = platform.getAttribute(ATTRIBUTE_MC_VERSION);
         if (platformMcVersion.isAtLeast(V_1_18)) {
-            return new Java118Level(mapHeight, platform);
+            return new Java118Level(minHeight, maxHeight, platform);
         } else if (platformMcVersion.isAtLeast(V_1_16)) {
-            return new Java116Level(mapHeight, platform);
+            return new Java116Level(minHeight, maxHeight, platform);
         } else {
-            return new Java115Level(mapHeight, platform);
+            return new Java115Level(maxHeight, platform);
         }
     }
 
@@ -413,13 +419,15 @@ public abstract class JavaLevel extends AbstractNBTItem {
         }
 
         final CompoundTag data = (CompoundTag) ((CompoundTag) tag).getTag(TAG_DATA);
-        int maxHeight;
+        int minHeight, maxHeight;
         final File worldDir = levelDatFile.getParentFile();
         final int version = ((IntTag) data.getTag(TAG_VERSION_)).getValue();
         final int dataVersion = data.containsTag (TAG_DATA_VERSION) ? ((IntTag) data.getTag(TAG_DATA_VERSION)).getValue() : -1;
         if (data.containsTag("isCubicWorld") && (((ByteTag) data.getTag("isCubicWorld")).getValue() == (byte) 1)) { // TODO hardcoded support for CC plugin; make this dynamic
+            minHeight = 0;
             maxHeight = MAX_HEIGHT;
         } else if (data.containsTag(TAG_VERSION_)) {
+            minHeight = (version == VERSION_MCREGION) ? 0 : ((dataVersion <= DATA_VERSION_MC_1_17_1) ? 0 : -64);
             maxHeight = (version == VERSION_MCREGION) ? DEFAULT_MAX_HEIGHT_MCREGION : ((dataVersion <= DATA_VERSION_MC_1_17_1) ? DEFAULT_MAX_HEIGHT_ANVIL : DEFAULT_MAX_HEIGHT_1_18);
             // TODO get rid of this hardcoded stuff and move it into the platform provider plugin API
             if (version == VERSION_MCREGION) {
@@ -444,7 +452,7 @@ public abstract class JavaLevel extends AbstractNBTItem {
                 CompoundTag dataPacksTag = (CompoundTag) data.getTag("DataPacks");
                 ListTag<StringTag> enabledTag = (ListTag<StringTag>) dataPacksTag.getTag("Enabled");
                 if (enabledTag != null) {
-                    boolean maxHeightEncountered = false;
+                    boolean buildLimitsEncounterd = false;
                     for (StringTag datapackTag: enabledTag.getValue()) {
                         String name = datapackTag.getValue();
                         if (name.startsWith("file/")) {
@@ -455,12 +463,15 @@ public abstract class JavaLevel extends AbstractNBTItem {
                                         int minY = ((org.pepsoft.minecraft.datapack.Dimension) entry.getValue()).getMinY();
                                         int height = ((org.pepsoft.minecraft.datapack.Dimension) entry.getValue()).getHeight();
                                         if (height != 0) {
-                                            if (maxHeightEncountered && ((minY + height) != maxHeight)) {
+                                            if (buildLimitsEncounterd && (minY != minHeight)) {
+                                                throw new IllegalArgumentException(String.format("Multiple different minHeights (%d and %d) encountered in data packs", minHeight, minY));
+                                            } else if (buildLimitsEncounterd && ((minY + height) != maxHeight)) {
                                                 throw new IllegalArgumentException(String.format("Multiple different maxHeights (%d and %d) encountered in data packs", maxHeight, minY + height));
                                             } else {
-                                                logger.debug("Map height {} detected from data pack {} while loading {}", minY + height, entry.getKey(), levelDatFile);
+                                                logger.debug("Map build limits {} to {} detected from data pack {} while loading {}", minY, minY + height, entry.getKey(), levelDatFile);
+                                                minHeight = minY;
                                                 maxHeight = minY + height;
-                                                maxHeightEncountered = true;
+                                                buildLimitsEncounterd = true;
                                             }
                                         }
                                     }
@@ -487,9 +498,9 @@ public abstract class JavaLevel extends AbstractNBTItem {
         if (dataVersion <= DATA_VERSION_MC_1_15_2) {
             return new Java115Level((CompoundTag) tag, maxHeight);
         } else if (dataVersion <= DATA_VERSION_MC_1_17_1) {
-            return new Java116Level((CompoundTag) tag, maxHeight);
+            return new Java116Level((CompoundTag) tag, minHeight, maxHeight);
         } else {
-            return new Java118Level((CompoundTag) tag, maxHeight);
+            return new Java118Level((CompoundTag) tag, minHeight, maxHeight);
         }
     }
 
@@ -503,7 +514,7 @@ public abstract class JavaLevel extends AbstractNBTItem {
                     .pack(Meta.Pack.builder()
                             .packFormat((platform == JAVA_ANVIL_1_17) ? 7 : 9)
                             .description("WorldPainter Settings").build()).build());
-            datapack.addDescriptor("data/minecraft/dimension_type/overworld.json", Dimension.createDefault(platform, DIM_NORMAL, maxHeight));
+            datapack.addDescriptor("data/minecraft/dimension_type/overworld.json", Dimension.createDefault(platform, DIM_NORMAL, minHeight, maxHeight));
             datapack.write(new FileOutputStream(datapackFile));
         } catch (IOException e) {
             throw new MDCCapturingRuntimeException("I/O error creating datapack", e);
@@ -511,7 +522,7 @@ public abstract class JavaLevel extends AbstractNBTItem {
     }
 
     protected final Platform platform;
-    protected final int maxHeight;
+    protected final int minHeight, maxHeight;
     protected final Set<Tag> extraTags;
 
     private static volatile File cachedFile;

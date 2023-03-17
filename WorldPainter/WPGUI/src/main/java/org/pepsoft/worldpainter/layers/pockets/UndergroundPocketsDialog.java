@@ -21,21 +21,21 @@ public class UndergroundPocketsDialog extends AbstractEditLayerDialog<Undergroun
     /**
      * Creates new form UndergroundPocketsDialog
      */
-    public UndergroundPocketsDialog(Window parent, Platform platform, MixedMaterial material, ColourScheme colourScheme, int maxHeight, boolean extendedBlockIds) {
-        this(parent, platform, material, null, colourScheme, maxHeight, extendedBlockIds);
+    public UndergroundPocketsDialog(Window parent, Platform platform, MixedMaterial material, ColourScheme colourScheme, int minHeight, int maxHeight, boolean extendedBlockIds) {
+        this(parent, platform, material, null, colourScheme, minHeight, maxHeight, extendedBlockIds);
     }
     
     /**
      * Creates new form UndergroundPocketsDialog
      */
-    public UndergroundPocketsDialog(Window parent, Platform platform, UndergroundPocketsLayer existingLayer, ColourScheme colourScheme, int maxHeight, boolean extendedBlockIds) {
-        this(parent, platform, null, existingLayer, colourScheme, maxHeight, extendedBlockIds);
+    public UndergroundPocketsDialog(Window parent, Platform platform, UndergroundPocketsLayer existingLayer, ColourScheme colourScheme, int minHeight, int maxHeight, boolean extendedBlockIds) {
+        this(parent, platform, null, existingLayer, colourScheme, minHeight, maxHeight, extendedBlockIds);
     }
     
     /**
      * Creates new form UndergroundPocketsDialog
      */
-    private UndergroundPocketsDialog(Window parent, Platform platform, MixedMaterial material, UndergroundPocketsLayer existingLayer, ColourScheme colourScheme, int maxHeight, boolean extendedBlockIds) {
+    private UndergroundPocketsDialog(Window parent, Platform platform, MixedMaterial material, UndergroundPocketsLayer existingLayer, ColourScheme colourScheme, int minHeight, int maxHeight, boolean extendedBlockIds) {
         super(parent);
         this.colourScheme = colourScheme;
         
@@ -61,12 +61,12 @@ public class UndergroundPocketsDialog extends AbstractEditLayerDialog<Undergroun
             spinnerScale.setValue(existingLayer.getScale());
         } else {
             mixedMaterialChooser.setMaterial(material);
-            spinnerMinLevel.setValue(platform.minZ);
+            spinnerMinLevel.setValue(minHeight);
             spinnerMaxLevel.setValue(maxHeight - 1);
         }
-        ((SpinnerNumberModel) spinnerMinLevel.getModel()).setMinimum(platform.minZ);
+        ((SpinnerNumberModel) spinnerMinLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerMinLevel.getModel()).setMaximum(maxHeight - 1);
-        ((SpinnerNumberModel) spinnerMaxLevel.getModel()).setMinimum(platform.minZ);
+        ((SpinnerNumberModel) spinnerMaxLevel.getModel()).setMinimum(minHeight);
         ((SpinnerNumberModel) spinnerMaxLevel.getModel()).setMaximum(maxHeight - 1);
         spinnerOccurrence.setEditor(new JSpinner.NumberEditor(spinnerOccurrence, "0"));
         JSpinner.NumberEditor scaleEditor = new JSpinner.NumberEditor(spinnerScale, "0");

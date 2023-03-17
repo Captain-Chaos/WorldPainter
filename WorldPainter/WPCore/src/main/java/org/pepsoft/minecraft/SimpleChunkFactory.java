@@ -18,6 +18,11 @@ public class SimpleChunkFactory implements ChunkFactory {
     }
 
     @Override
+    public int getMinHeight() {
+        return 0;
+    }
+
+    @Override
     public int getMaxHeight() {
         return maxHeight;
     }

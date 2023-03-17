@@ -22,7 +22,10 @@ final class Anvil1_2PlatformProvider extends AnvilPlatformProvider {
     }
 
     @Override
-    NBTChunk createChunk(int x, int z, int maxHeight) {
+    NBTChunk createChunk(int x, int z, int minHeight, int maxHeight) {
+        if (minHeight != 0) {
+            throw new IllegalArgumentException("minHeight " + minHeight);
+        }
         return new MC12AnvilChunk(x, z, maxHeight);
     }
 

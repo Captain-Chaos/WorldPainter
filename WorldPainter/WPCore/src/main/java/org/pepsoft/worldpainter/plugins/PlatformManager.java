@@ -39,8 +39,8 @@ public class PlatformManager extends AbstractProviderManager<Platform, PlatformP
         return getImplementation(platform);
     }
 
-    public Chunk createChunk(Platform platform, int x, int z, int maxHeight) {
-        return ((BlockBasedPlatformProvider) getImplementation(platform)).createChunk(platform, x, z, maxHeight);
+    public Chunk createChunk(Platform platform, int x, int z, int minHeight, int maxHeight) {
+        return ((BlockBasedPlatformProvider) getImplementation(platform)).createChunk(platform, x, z, minHeight, maxHeight);
     }
 
     public ChunkStore getChunkStore(Platform platform, File worldDir, int dimension) {

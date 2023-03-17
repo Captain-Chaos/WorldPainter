@@ -278,21 +278,24 @@ public class MapImportDialog extends WorldPainterDialog {
             @Override
             public World2 execute(ProgressReceiver progressReceiver) throws OperationCancelled {
                 try {
-                    final int maxHeight, waterLevel;
+                    final int minHeight, maxHeight, waterLevel;
                     final Platform platform = mapStatistics.platform;
-                    if (mapStatistics.levelDat != null) {
-                        maxHeight = mapStatistics.levelDat.getMaxHeight();
-                        if (mapStatistics.levelDat.getVersion() == VERSION_MCREGION) {
+                    final JavaLevel levelDat = mapStatistics.levelDat;
+                    if (levelDat != null) {
+                        minHeight = levelDat.getMinHeight();
+                        maxHeight = levelDat.getMaxHeight();
+                        if (levelDat.getVersion() == VERSION_MCREGION) {
                             waterLevel = maxHeight / 2 - 2;
                         } else {
                             waterLevel = DEFAULT_WATER_LEVEL;
                         }
                     } else {
+                        minHeight = platform.minZ;
                         maxHeight = platform.maxMaxHeight;
                         waterLevel = DEFAULT_WATER_LEVEL;
                     }
                     final int terrainLevel = waterLevel - 4;
-                    final TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0, Terrain.GRASS, platform.minZ, maxHeight, terrainLevel, waterLevel, false, true, 20, 1.0);
+                    final TileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(0, Terrain.GRASS, minHeight, maxHeight, terrainLevel, waterLevel, false, true, 20, 1.0);
                     final Set<Integer> dimensionsToImport = new HashSet<>(3);
                     dimensionsToImport.add(DIM_NORMAL);
                     if (checkBoxImportNether.isSelected()) {

@@ -66,7 +66,7 @@ public final class TestData {
 
     public static final int MAX_HEIGHT = PLATFORM.standardMaxHeight;
 
-    public static final World2 WORLD = new World2(PLATFORM, MAX_HEIGHT);
+    public static final World2 WORLD = new World2(PLATFORM, MIN_HEIGHT, MAX_HEIGHT);
 
     public static final long SEED = 0L;
 

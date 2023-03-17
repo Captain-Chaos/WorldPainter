@@ -38,14 +38,14 @@ public class Dimension extends Descriptor {
     int monsterSpawnBlockLightLimit;
     @Builder.Default IntProvider monsterSpawnLightLevel = IntProvider.builder().type("minecraft:uniform").value(ImmutableMap.of("min_inclusive", 0, "max_inclusive", 7)).build();
 
-    public static Dimension createDefault(Platform platform, int dim, int maxHeight) {
+    public static Dimension createDefault(Platform platform, int dim, int minHeight, int maxHeight) {
         switch (dim) {
             case DIM_NORMAL:
                 return builder()
                         .infiniburn((platform == JAVA_ANVIL_1_17) ? "minecraft:infiniburn_overworld" : "#minecraft:infiniburn_overworld")
-                        .logicalHeight(maxHeight - platform.minZ)
-                        .minY(platform.minZ)
-                        .height(maxHeight - platform.minZ)
+                        .logicalHeight(maxHeight - minHeight)
+                        .minY(minHeight)
+                        .height(maxHeight - minHeight)
                         .effects((platform == JAVA_ANVIL_1_17) ? "minecraft:overworld" : "#minecraft:overworld")
                         .build();
             case DIM_NETHER:

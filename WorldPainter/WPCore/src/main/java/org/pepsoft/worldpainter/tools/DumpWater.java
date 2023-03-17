@@ -27,7 +27,7 @@ public class DumpWater {
         int y = Integer.parseInt(args[2]);
         int z = Integer.parseInt(args[3]);
         JavaLevel level = JavaLevel.load(levelDatFile);
-        MinecraftWorld world = new JavaMinecraftWorld(levelDatFile.getParentFile(), 0, level.getMaxHeight(), level.getVersion() == VERSION_MCREGION ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL, true, CACHE_SIZE);
+        MinecraftWorld world = new JavaMinecraftWorld(levelDatFile.getParentFile(), 0, level.getMinHeight(), level.getMaxHeight(), level.getVersion() == VERSION_MCREGION ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL, true, CACHE_SIZE);
         for (int dy = 16; dy >= -16; dy--) {
             for (int dx = -16; dx <= 16; dx++) {
                 int blockX = x + dx, blockZ = z;

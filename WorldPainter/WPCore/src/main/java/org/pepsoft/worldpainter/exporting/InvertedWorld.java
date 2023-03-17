@@ -32,7 +32,7 @@ public class InvertedWorld implements MinecraftWorld {
         this.world = world;
         this.delta = delta;
         this.platform = platform;
-        minHeight = platform.minZ;
+        minHeight = world.getMinHeight();
         maxHeight = world.getMaxHeight();
         maxZ = maxHeight + minHeight - delta - 1;
     }

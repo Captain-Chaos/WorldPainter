@@ -11,10 +11,10 @@ public abstract class ImportPreset {
         return description;
     }
 
-    public boolean isValid(long imageMinHeight, long imageMaxHeight, long imageLow, long imageHigh, Platform platform, int maxHeight) {
+    public boolean isValid(long imageMinHeight, long imageMaxHeight, long imageLow, long imageHigh, Platform platform, int minHeight, int maxHeight) {
         final long[][] mapping = getMapping(imageMaxHeight, imageLow, imageHigh, platform, maxHeight);
         return (mapping[0][0] >= imageMinHeight) && (mapping[0][1] < imageMaxHeight)
-                && (mapping[1][0] >= platform.minZ) && (mapping[1][1] < maxHeight)
+                && (mapping[1][0] >= minHeight) && (mapping[1][1] < maxHeight)
                 && (getWorldValue(imageHigh, mapping) < maxHeight);
     }
 

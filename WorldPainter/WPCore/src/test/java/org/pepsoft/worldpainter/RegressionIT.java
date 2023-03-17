@@ -79,8 +79,8 @@ public class RegressionIT {
                 File anvil115worldDir = exportDimension(dimension, tmpBaseDir);
                 logger.info("Comparing dimension " + dimension.getName());
                 Rectangle area = new Rectangle(dimension.getLowestX() << 5, dimension.getLowestY() << 5, dimension.getWidth() << 5, dimension.getHeight() << 5);
-                try (MinecraftWorld anvil12World = new JavaMinecraftWorld(anvil12worldDir, dimension.getAnchor().dim, dimension.getMaxHeight(), JAVA_ANVIL, true, 256);
-                     MinecraftWorld anvil115World = new JavaMinecraftWorld(anvil115worldDir, dimension.getAnchor().dim, dimension.getMaxHeight(), JAVA_ANVIL_1_15, true, 256)) {
+                try (MinecraftWorld anvil12World = new JavaMinecraftWorld(anvil12worldDir, dimension.getAnchor().dim, dimension.getMinHeight(), dimension.getMaxHeight(), JAVA_ANVIL, true, 256);
+                     MinecraftWorld anvil115World = new JavaMinecraftWorld(anvil115worldDir, dimension.getAnchor().dim, dimension.getMinHeight(), dimension.getMaxHeight(), JAVA_ANVIL_1_15, true, 256)) {
                     MinecraftWorldUtils.assertEquals("Anvil 1.2", anvil12World, "Anvil 1.15", anvil115World, area);
                 }
             } finally {

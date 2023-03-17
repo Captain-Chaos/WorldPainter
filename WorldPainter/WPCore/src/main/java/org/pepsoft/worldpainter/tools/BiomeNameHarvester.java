@@ -57,7 +57,7 @@ public class BiomeNameHarvester {
             if (worldDir.isDirectory()) {
                 FileUtils.deleteDir(worldDir);
             }
-            JavaLevel level = JavaLevel.create(JAVA_ANVIL_1_15, DEFAULT_MAX_HEIGHT_ANVIL);
+            JavaLevel level = JavaLevel.create(JAVA_ANVIL_1_15, 0, DEFAULT_MAX_HEIGHT_ANVIL);
             level.setSeed(0L);
             level.setName("BiomeNames");
             level.setGameType(GAME_TYPE_CREATIVE);
@@ -72,7 +72,7 @@ public class BiomeNameHarvester {
             level.save(worldDir);
             File regionDir = new File(worldDir, "region");
             regionDir.mkdirs();
-            JavaMinecraftWorld world = new JavaMinecraftWorld(worldDir, DIM_NORMAL, DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL_1_15, false, 256);
+            JavaMinecraftWorld world = new JavaMinecraftWorld(worldDir, DIM_NORMAL, 0, DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL_1_15, false, 256);
             try {
                 for (int x = -8; x < 8; x++) {
                     for (int z = -8; z < 8; z++) {
@@ -114,7 +114,7 @@ public class BiomeNameHarvester {
             Map<String, Set<Integer>> legacyIds = new HashMap<>();
             File savesDir = new File(MinecraftUtil.findMinecraftDir(), "saves");
             File worldDir = new File(savesDir, "BiomeNames");
-            JavaMinecraftWorld world = new JavaMinecraftWorld(worldDir, DIM_NORMAL, DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL_1_18, true, DEFAULT_MAX_HEIGHT_1_18);
+            JavaMinecraftWorld world = new JavaMinecraftWorld(worldDir, DIM_NORMAL, 0, DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL_1_18, true, DEFAULT_MAX_HEIGHT_1_18);
             for (int x = -8; x < 8; x++) {
                 for (int z = -8; z < 8; z++) {
                     final int biomeId = (x + 8) * 16 + z + 8;

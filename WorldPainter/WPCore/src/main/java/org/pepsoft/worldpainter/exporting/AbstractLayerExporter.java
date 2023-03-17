@@ -26,7 +26,7 @@ public abstract class AbstractLayerExporter<L extends Layer> implements LayerExp
         this.platform = platform;
         this.settings = settings;
         this.layer = layer;
-        minHeight = Math.max(dimension.getMinHeight(), platform.minZ);
+        minHeight = Math.max(dimension.getMinHeight(), platform.minMinHeight);
         minZ = dimension.isBottomless() ? minHeight : (minHeight + 1);
         maxHeight = Math.min(dimension.getMaxHeight(), platform.maxMaxHeight);
         maxZ = maxHeight - 1;

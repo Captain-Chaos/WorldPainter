@@ -89,5 +89,5 @@ public final class MapUtils {
         });
     }
 
-    static final PlatformProvider.MapInfo NOT_A_MAP = new PlatformProvider.MapInfo(null, null, null, null, -1);
+    static final PlatformProvider.MapInfo NOT_A_MAP = new PlatformProvider.MapInfo(null, null, null, null, -1, -1);
 }

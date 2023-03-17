@@ -22,10 +22,10 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.BIOME_PL
  */
 public class WallChunk {
     public static ChunkFactory.ChunkCreationResult create(int chunkX, int chunkZ, Dimension dimension, Platform platform) {
-        final int minHeight = platform.minZ, maxHeight = dimension.getMaxHeight();
+        final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
         final BiomeUtils biomeUtils = new BiomeUtils();
         final ChunkFactory.ChunkCreationResult result = new ChunkFactory.ChunkCreationResult();
-        result.chunk = PlatformManager.getInstance().createChunk(platform, chunkX, chunkZ, maxHeight);
+        result.chunk = PlatformManager.getInstance().createChunk(platform, chunkX, chunkZ, minHeight, maxHeight);
         final int maxY = maxHeight - 1;
         final Material wallMaterial = (dimension.getWallType() == Dimension.WallType.BEDROCK) ? BEDROCK : BARRIER;
         for (int x = 0; x < 16; x++) {

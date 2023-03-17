@@ -25,19 +25,11 @@ public final class Platform implements Serializable {
                     int maxX, int minY, int maxY, List<GameType> supportedGameTypes,
                     List<Generator> supportedGenerators, List<Integer> supportedDimensions,
                     Set<Capability> capabilities, Object... attributes) {
-        this(id, displayName, defaultMaxHeightsFromTo(minMaxHeight, maxMaxHeight), standardMaxHeight, minX, maxX, minY, maxY, 0, supportedGameTypes, supportedGenerators, supportedDimensions, capabilities, attributes);
-    }
-
-    // Kept for backwards compatibility with existing plugins
-    public Platform(String id, String displayName, int minMaxHeight, int standardMaxHeight, int maxMaxHeight, int minX,
-                    int maxX, int minY, int maxY, List<GameType> supportedGameTypes,
-                    List<Generator> supportedGenerators, List<Integer> supportedDimensions,
-                    Set<Capability> capabilities) {
-        this(id, displayName, defaultMaxHeightsFromTo(minMaxHeight, maxMaxHeight), standardMaxHeight, minX, maxX, minY, maxY, 0, supportedGameTypes, supportedGenerators, supportedDimensions, capabilities, (Object[]) null);
+        this(id, displayName, defaultMaxHeightsFromTo(minMaxHeight, maxMaxHeight), standardMaxHeight, minX, maxX, minY, maxY, new int[] { 0 }, 0, supportedGameTypes, supportedGenerators, supportedDimensions, capabilities, attributes);
     }
 
     public Platform(String id, String displayName, int[] maxHeights, int standardMaxHeight, int minX, int maxX,
-                    int minY, int maxY, int minZ, List<GameType> supportedGameTypes, List<Generator> supportedGeneratorTypes,
+                    int minY, int maxY, int[] minHeights, int standardMinHeight, List<GameType> supportedGameTypes, List<Generator> supportedGeneratorTypes,
                     List<Integer> supportedDimensions, Set<Capability> capabilities, Object... attributes) {
         synchronized (ALL_PLATFORMS) {
             if (ALL_PLATFORMS.containsKey(id)) {
@@ -53,7 +45,10 @@ public final class Platform implements Serializable {
             this.maxX = maxX;
             this.minY = minY;
             this.maxY = maxY;
-            this.minZ = minZ;
+            this.minMinHeight = minHeights[minHeights.length - 1];
+            this.minHeights = minHeights;
+            this.minZ = standardMinHeight;
+            this.maxMinHeight = minHeights[0];
             this.supportedGameTypes = ImmutableList.copyOf(supportedGameTypes);
             this.supportedGenerators = ImmutableList.copyOf(supportedGeneratorTypes);
             this.supportedDimensions = ImmutableList.copyOf(supportedDimensions);
@@ -80,10 +75,28 @@ public final class Platform implements Serializable {
     }
 
     // Kept for backwards compatibility with existing plugins
+    @Deprecated
+    public Platform(String id, String displayName, int minMaxHeight, int standardMaxHeight, int maxMaxHeight, int minX,
+                    int maxX, int minY, int maxY, List<GameType> supportedGameTypes,
+                    List<Generator> supportedGenerators, List<Integer> supportedDimensions,
+                    Set<Capability> capabilities) {
+        this(id, displayName, defaultMaxHeightsFromTo(minMaxHeight, maxMaxHeight), standardMaxHeight, minX, maxX, minY, maxY, new int[] { 0 }, 0, supportedGameTypes, supportedGenerators, supportedDimensions, capabilities, (Object[]) null);
+    }
+
+    // Kept for backwards compatibility with existing plugins
+    @Deprecated
+    public Platform(String id, String displayName, int[] maxHeights, int standardMaxHeight, int minX, int maxX,
+                    int minY, int maxY, int minZ, List<GameType> supportedGameTypes, List<Generator> supportedGeneratorTypes,
+                    List<Integer> supportedDimensions, Set<Capability> capabilities, Object... attributes) {
+        this(id, displayName, maxHeights, standardMaxHeight, minX, maxX, minY, maxY, new int[] { minZ }, minZ, supportedGameTypes, supportedGeneratorTypes, supportedDimensions, capabilities, attributes);
+    }
+
+    // Kept for backwards compatibility with existing plugins
+    @Deprecated
     public Platform(String id, String displayName, int[] maxHeights, int standardMaxHeight, int minX, int maxX,
                     int minY, int maxY, int minZ, List<GameType> supportedGameTypes, List<Generator> supportedGeneratorTypes,
                     List<Integer> supportedDimensions, Set<Capability> capabilities) {
-        this(id, displayName, maxHeights, standardMaxHeight, minX, maxX, minY, maxY, minZ, supportedGameTypes, supportedGeneratorTypes, supportedDimensions, capabilities, (Object[]) null);
+        this(id, displayName, maxHeights, standardMaxHeight, minX, maxX, minY, maxY, new int[] { minZ }, minZ, supportedGameTypes, supportedGeneratorTypes, supportedDimensions, capabilities, (Object[]) null);
     }
 
     /**
@@ -94,14 +107,15 @@ public final class Platform implements Serializable {
      * reason if it cannot.
      */
     public String isCompatible(World2 world) {
-        final Platform worldPlatform = world.getPlatform();
-        if (worldPlatform.minZ < minZ) {
-            return "World minimum build height (" + worldPlatform.minZ + ") is lower than map format supports (" + minZ + ")";
+        if (world.getMinHeight() < minMinHeight) {
+            return "World lower build limit (" + world.getMinHeight() + ") is lower than the minimum lower build limit supported by map format (" + minMinHeight + ")";
+        } else if (world.getMinHeight() > maxMinHeight) {
+            return "World lower build limit (" + world.getMinHeight() + ") is higher than the maximum lower build limit supported by map format (" + maxMinHeight + ")";
         }
         if (world.getMaxHeight() < minMaxHeight) {
-            return "World maximum build height (" + world.getMaxHeight() + ") is lower than the minimum build height supported by map format (" + minMaxHeight + ")";
+            return "World upper build limit (" + world.getMaxHeight() + ") is lower than the minimum upper build limit supported by map format (" + minMaxHeight + ")";
         } else if (world.getMaxHeight() > maxMaxHeight) {
-            return "World maximum build height (" + world.getMaxHeight() + ") is higher than the maximum build height supported by map format (" + maxMaxHeight + ")";
+            return "World upper build limit (" + world.getMaxHeight() + ") is higher than the maximum upper build limit supported by map format (" + maxMaxHeight + ")";
         }
         for (Dimension dimension: world.getDimensions()) {
             final Dimension.Anchor anchor = dimension.getAnchor();
@@ -172,17 +186,17 @@ public final class Platform implements Serializable {
     public final String displayName;
 
     /**
-     * The lowest map height supported by this platform.
+     * The lowest upper build limit supported by this platform.
      */
     public final int minMaxHeight;
 
     /**
-     * The default height of maps for this platform.
+     * The default upper build limit of maps for this platform.
      */
     public final int standardMaxHeight;
 
     /**
-     * The highest map height supported by this platform.
+     * The highest upper build limit supported by this platform.
      */
     public final int maxMaxHeight;
 
@@ -233,7 +247,7 @@ public final class Platform implements Serializable {
     public final int[] maxHeights;
 
     /**
-     * The lowest possible Z coordinate (height; in blocks) for this platform.
+     * The default lower build limit of maps for this platform.
      */
     public final int minZ;
 
@@ -241,6 +255,22 @@ public final class Platform implements Serializable {
      * Additional custom defined attributes that do not apply to all platforms. May be {@code null}.
      */
     public final Map<String, Serializable> attributes;
+
+    /**
+     * The lowest lower build limit of maps for this platform.
+     */
+    public final int minMinHeight;
+
+    /**
+     * The highest lower build limit of maps for this platform.
+     */
+    public final int maxMinHeight;
+
+    /**
+     * The list of minHeights to present to the user. The plugin <em>may</em> support other minHeights, or may not, but
+     * if it is in this list it must be supported. The list must be in descending order.
+     */
+    public final int[] minHeights;
 
     /**
      * The name of the "grass block" block type for the platform. Default value: {@code minecraft:grass_block}.

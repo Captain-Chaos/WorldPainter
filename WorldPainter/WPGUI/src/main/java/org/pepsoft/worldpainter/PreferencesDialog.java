@@ -43,6 +43,8 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.util.swing.MessageUtils.showInfo;
+import static org.pepsoft.util.swing.SpinnerUtils.setMaximum;
+import static org.pepsoft.util.swing.SpinnerUtils.setMinimum;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 import static org.pepsoft.worldpainter.ExceptionHandler.handleException;
@@ -439,16 +441,19 @@ public class PreferencesDialog extends WorldPainterDialog {
             final boolean useStandardMaxHeight = (currentMaxHeight == null) || (currentMaxHeight == previousPlatform.standardMaxHeight);
             final List<Integer> supportedMaxHeights = stream(platform.maxHeights).boxed().collect(toList());
             comboBoxHeight.setModel(new DefaultComboBoxModel<>(supportedMaxHeights.toArray(new Integer[0])));
-            final int newMaxHeight;
+            final int newMinHeight = platform.minZ /* TODO: make configurable */, newMaxHeight;
             if ((! useStandardMaxHeight) && supportedMaxHeights.contains(currentMaxHeight)) {
                 newMaxHeight = currentMaxHeight;
             } else {
                 newMaxHeight = platform.standardMaxHeight;
             }
             comboBoxHeight.setSelectedItem(newMaxHeight);
-            ((SpinnerNumberModel) spinnerGroundLevel.getModel()).setMaximum(newMaxHeight - 1);
-            ((SpinnerNumberModel) spinnerWaterLevel.getModel()).setMaximum(newMaxHeight - 1);
-            ((SpinnerNumberModel) spinnerRange.getModel()).setMaximum(newMaxHeight - 1);
+            setMinimum(spinnerGroundLevel, newMinHeight);
+            setMaximum(spinnerGroundLevel, newMaxHeight - 1);
+            setMinimum(spinnerWaterLevel, newMinHeight);
+            setMaximum(spinnerWaterLevel, newMaxHeight - 1);
+            setMinimum(spinnerRange, newMinHeight);
+            setMaximum(spinnerRange, newMaxHeight - 1);
             final GameType currentGameType = (GameType) comboBoxMode.getSelectedItem();
             final List<GameType> supportedGameTypes = platform.supportedGameTypes;
             comboBoxMode.setModel(new DefaultComboBoxModel<>(supportedGameTypes.toArray(new GameType[0])));
@@ -458,7 +463,7 @@ public class PreferencesDialog extends WorldPainterDialog {
             checkBoxChestOfGoodies.setEnabled((platform != JAVA_ANVIL_1_15) && (platform != JAVA_ANVIL_1_17));
             checkBoxExtendedBlockIds.setEnabled(platform.capabilities.contains(BLOCK_BASED) && (!platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION));
             try {
-                resizeDimension(defaultTerrainAndLayerSettings, platform.minZ, newMaxHeight, IDENTITY, true, null);
+                resizeDimension(defaultTerrainAndLayerSettings, newMinHeight, newMaxHeight, IDENTITY, true, null);
             } catch (ProgressReceiver.OperationCancelled e) {
                 throw new InternalError(); // Can't happen since we don't pass in a ProgressReceiver
             }

@@ -657,6 +657,7 @@ public final class App extends JFrame implements RadiusControl,
                 programmaticChange = false;
             }
 
+            brushOptions.setMinHeight(dimension.getMinHeight());
             brushOptions.setMaxHeight(dimension.getMaxHeight());
 
             dimension.addPropertyChangeListener(this);
@@ -1200,6 +1201,7 @@ public final class App extends JFrame implements RadiusControl,
             if (threeDeeFrame != null) {
                 threeDeeFrame.refresh();
             }
+            brushOptions.setMinHeight(dimension.getMinHeight());
             brushOptions.setMaxHeight(dimension.getMaxHeight());
             return true;
         } else {
@@ -2062,7 +2064,7 @@ public final class App extends JFrame implements RadiusControl,
             return;
         }
         Configuration config = Configuration.getInstance();
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, strings.getString("generated.world"), DEFAULT_OCEAN_SEED, config.getDefaultPlatform(), NORMAL_DETAIL, config.getDefaultMaxHeight(), null);
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, strings.getString("generated.world"), DEFAULT_OCEAN_SEED, config.getDefaultPlatform(), NORMAL_DETAIL, config.getDefaultPlatform().minZ, config.getDefaultMaxHeight(), null);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             clearWorld(); // Free up memory of the world and the undo buffers
@@ -3004,10 +3006,10 @@ public final class App extends JFrame implements RadiusControl,
             warningsLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
             statusBar.add(warningsLabel);
         }
-        locationLabel = new JLabel(MessageFormat.format(strings.getString("location.0.1"), -99999, -99999));
+        locationLabel = new JLabel(MessageFormat.format(strings.getString("location.0.1"), "-99,999", "-99,999"));
         locationLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         statusBar.add(locationLabel);
-        heightLabel = new JLabel(MessageFormat.format(strings.getString("height.0.of.1"), 9999, 9999));
+        heightLabel = new JLabel(MessageFormat.format(strings.getString("height.0.of.1"), "-9,999", "9,999"));
         heightLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         statusBar.add(heightLabel);
         slopeLabel = new JLabel("Slope: 90°");
@@ -3016,7 +3018,7 @@ public final class App extends JFrame implements RadiusControl,
         materialLabel = new JLabel(MessageFormat.format(strings.getString("material.0"), Material.MOSSY_COBBLESTONE.toString()));
         materialLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         statusBar.add(materialLabel);
-        waterLabel = new JLabel(MessageFormat.format(strings.getString("fluid.level.1.depth.2"), 9999, 9999));
+        waterLabel = new JLabel(MessageFormat.format(strings.getString("fluid.level.1.depth.2"), 0, "-9,999", "9,999"));
         waterLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         statusBar.add(waterLabel);
         biomeLabel = new JLabel("Auto biome: Mega Spruce Taiga Hills (ID 161)");
@@ -3436,7 +3438,7 @@ public final class App extends JFrame implements RadiusControl,
         final Anchor anchor = dimension.getAnchor();
         menuItem = new JMenuItem(strings.getString("add.a.custom.underground.pockets.layer") + "...");
         menuItem.addActionListener(e -> {
-            UndergroundPocketsDialog dialog = new UndergroundPocketsDialog(App.this, world.getPlatform(), MixedMaterial.create(world.getPlatform(), Material.IRON_BLOCK), selectedColourScheme, dimension.getMaxHeight(), world.isExtendedBlockIds());
+            UndergroundPocketsDialog dialog = new UndergroundPocketsDialog(App.this, world.getPlatform(), MixedMaterial.create(world.getPlatform(), Material.IRON_BLOCK), selectedColourScheme, dimension.getMinHeight(), dimension.getMaxHeight(), world.isExtendedBlockIds());
             dialog.setVisible(() -> {
                 UndergroundPocketsLayer layer = dialog.getLayer();
                 if (paletteName != null) {
@@ -4249,7 +4251,7 @@ public final class App extends JFrame implements RadiusControl,
         if ((layer instanceof Bo2Layer) || (layer instanceof GroundCoverLayer) || (layer instanceof CombinedLayer) || (layer instanceof PlantLayer)) {
             dialog = new EditLayerDialog<>(App.this, world.getPlatform(), layer);
         } else if (layer instanceof UndergroundPocketsLayer) {
-            dialog = (AbstractEditLayerDialog<L>) new UndergroundPocketsDialog(App.this, world.getPlatform(), (UndergroundPocketsLayer) layer, selectedColourScheme, dimension.getMaxHeight(), world.isExtendedBlockIds());
+            dialog = (AbstractEditLayerDialog<L>) new UndergroundPocketsDialog(App.this, world.getPlatform(), (UndergroundPocketsLayer) layer, selectedColourScheme, dimension.getMinHeight(), dimension.getMaxHeight(), world.isExtendedBlockIds());
         } else if (layer instanceof TunnelLayer) {
             final int baseHeight, waterLevel;
             final TileFactory tileFactory = dimension.getTileFactory();
@@ -5007,7 +5009,7 @@ public final class App extends JFrame implements RadiusControl,
         if (world.isDimensionPresent(newAnchor)) {
             throw new IllegalStateException("Ceiling dimension already exists");
         }
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), dimension.getSeed() + newAnchor.hashCode(), world.getPlatform(), newAnchor, dimension.getMaxHeight(), dimension, dimension.getTileCoords());
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), dimension.getSeed() + newAnchor.hashCode(), world.getPlatform(), newAnchor, dimension.getMinHeight(), dimension.getMaxHeight(), dimension, dimension.getTileCoords());
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -5194,7 +5196,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private void addNether() {
         final Dimension surface = world.getDimension(NORMAL_DETAIL);
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), surface.getSeed() + 1, world.getPlatform(), NETHER_DETAIL, Math.min(world.getMaxHeight(), DEFAULT_MAX_HEIGHT_NETHER), surface);
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), surface.getSeed() + 1, world.getPlatform(), NETHER_DETAIL, Math.max(world.getMinHeight(), 0), Math.min(world.getMaxHeight(), DEFAULT_MAX_HEIGHT_NETHER), surface);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -5239,7 +5241,7 @@ public final class App extends JFrame implements RadiusControl,
     
     private void addEnd() {
         final Dimension surface = world.getDimension(NORMAL_DETAIL);
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), surface.getSeed() + 2, world.getPlatform(), END_DETAIL, Math.min(world.getMaxHeight(), DEFAULT_MAX_HEIGHT_END), surface);
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), surface.getSeed() + 2, world.getPlatform(), END_DETAIL, Math.max(world.getMinHeight(), 0), Math.min(world.getMaxHeight(), DEFAULT_MAX_HEIGHT_END), surface);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {
@@ -5291,7 +5293,7 @@ public final class App extends JFrame implements RadiusControl,
         if (world.isDimensionPresent(newAnchor)) {
             throw new IllegalStateException("Master dimension already exists");
         }
-        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), dimension.getSeed(), world.getPlatform(), newAnchor, dimension.getMaxHeight(), dimension);
+        final NewWorldDialog dialog = new NewWorldDialog(this, selectedColourScheme, world.getName(), dimension.getSeed(), world.getPlatform(), newAnchor, dimension.getMinHeight(), dimension.getMaxHeight(), dimension);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             if (! dialog.checkMemoryRequirements(this)) {

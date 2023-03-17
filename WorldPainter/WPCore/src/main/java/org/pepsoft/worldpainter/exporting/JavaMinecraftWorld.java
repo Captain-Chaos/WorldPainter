@@ -14,8 +14,8 @@ import java.io.File;
  * @author pepijn
  */
 public class JavaMinecraftWorld extends CachingMinecraftWorld {
-    public JavaMinecraftWorld(File worldDir, int dimension, int maxHeight, Platform platform, boolean readOnly, int cacheSize) {
-        super(worldDir, dimension, maxHeight, platform, readOnly, cacheSize);
+    public JavaMinecraftWorld(File worldDir, int dimension, int minHeight, int maxHeight, Platform platform, boolean readOnly, int cacheSize) {
+        super(worldDir, dimension, minHeight, maxHeight, platform, readOnly, cacheSize);
         if (! worldDir.isDirectory()) {
             throw new IllegalArgumentException(worldDir + " does not exist or is not a directory");
         }

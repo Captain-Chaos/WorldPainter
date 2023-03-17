@@ -125,7 +125,7 @@ public class JavaMapImporter extends MapImporter {
         world.addDimension(dimension);
         int dimNo = 1;
         if (dimensionsToImport.contains(DIM_NETHER)) {
-            final HeightMapTileFactory netherTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 1, Terrain.NETHERRACK, Math.max(0, platform.minZ), Math.min(DEFAULT_MAX_HEIGHT_NETHER, world.getMaxHeight()), 188, 192, true, false, 20f, 1.0);
+            final HeightMapTileFactory netherTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 1, Terrain.NETHERRACK, Math.max(0, world.getMinHeight()), Math.min(DEFAULT_MAX_HEIGHT_NETHER, world.getMaxHeight()), 188, 192, true, false, 20f, 1.0);
             final SimpleTheme theme = (SimpleTheme) netherTileFactory.getTheme();
             final SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
             terrainRanges.clear();
@@ -154,7 +154,7 @@ public class JavaMapImporter extends MapImporter {
             world.addDimension(dimension);
         }
         if (dimensionsToImport.contains(DIM_END)) {
-            final HeightMapTileFactory endTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 2, Terrain.END_STONE, Math.max(0, platform.minZ), Math.min(DEFAULT_MAX_HEIGHT_NETHER, world.getMaxHeight()), 32, 0, false, false, 20f, 1.0);
+            final HeightMapTileFactory endTileFactory = TileFactoryFactory.createNoiseTileFactory(minecraftSeed + 2, Terrain.END_STONE, Math.max(0, world.getMaxHeight()), Math.min(DEFAULT_MAX_HEIGHT_NETHER, world.getMaxHeight()), 32, 0, false, false, 20f, 1.0);
             final SimpleTheme theme = (SimpleTheme) endTileFactory.getTheme();
             final SortedMap<Integer, Terrain> terrainRanges = theme.getTerrainRanges();
             terrainRanges.clear();
@@ -201,9 +201,9 @@ public class JavaMapImporter extends MapImporter {
     }
 
     protected World2 importWorld(JavaLevel level) {
-        String name = level.getName().trim();
-        int maxHeight = level.getMaxHeight();
-        World2 world = new World2(platform, maxHeight);
+        final String name = level.getName().trim();
+        final int minHeight = level.getMinHeight(), maxHeight = level.getMaxHeight();
+        final World2 world = new World2(platform, minHeight, maxHeight);
         world.addHistoryEntry(HistoryEntry.WORLD_IMPORTED_FROM_MINECRAFT_MAP, level.getName(), levelDatFile.getParentFile());
         world.setCreateGoodiesChest(false);
         world.setName(name);

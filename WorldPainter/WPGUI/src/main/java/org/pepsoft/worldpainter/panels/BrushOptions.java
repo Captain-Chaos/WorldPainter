@@ -201,7 +201,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
         setControlStates();
     }
 
-    private void setMinHeight(int minHeight) {
+    public void setMinHeight(int minHeight) {
         boolean updateFilter = false;
         ((SpinnerNumberModel) spinnerAbove.getModel()).setMinimum(minHeight);
         if ((Integer) spinnerAbove.getValue() < minHeight) {
@@ -245,7 +245,6 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
 
     public void setPlatform(Platform platform) {
         this.platform = platform;
-        setMinHeight(platform.minZ);
     }
 
     // Observer

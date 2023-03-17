@@ -18,21 +18,21 @@ import static org.pepsoft.minecraft.Constants.BLK_AIR;
  * @author pepijn
  */
 public class WorldRegion implements MinecraftWorld {
-    public WorldRegion(int regionX, int regionZ, int maxHeight, Platform platform) {
+    public WorldRegion(int regionX, int regionZ, int minHeight, int maxHeight, Platform platform) {
         this.regionX = regionX;
         this.regionZ = regionZ;
+        this.minHeight = minHeight;
         this.maxHeight = maxHeight;
         this.platform = platform;
-        minHeight = platform.minZ;
         platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
     }
     
-    public WorldRegion(File worldDir, int dimension, int regionX, int regionZ, int maxHeight, Platform platform) {
+    public WorldRegion(File worldDir, int dimension, int regionX, int regionZ, int minHeight, int maxHeight, Platform platform) {
         this.regionX = regionX;
         this.regionZ = regionZ;
+        this.minHeight = minHeight;
         this.maxHeight = maxHeight;
         this.platform = platform;
-        minHeight = platform.minZ;
         platformProvider = (BlockBasedPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         int lowestX = (regionX << 5) - 1;
         int highestX = lowestX + 33;

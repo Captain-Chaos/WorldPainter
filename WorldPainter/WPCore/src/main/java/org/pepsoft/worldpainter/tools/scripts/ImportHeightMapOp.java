@@ -110,9 +110,9 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
         importer.setHeightMap(adjustedHeightMap);
         importer.setImageFile(heightMap.getImageFile());
 
-        // Use the platform's default maxHeight if that suffices, or if not the next highest supported maxHeight which
-        // does suffice
-        int maxHeight = Integer.MIN_VALUE;
+        // Use the platform's default min- and maxHeight if they suffice, or if not the next larger supported value
+        // which does suffice
+        int minHeight = Integer.MAX_VALUE, maxHeight = Integer.MIN_VALUE;
         for (int platformMaxHeight: platform.maxHeights) {
             if ((platformMaxHeight >= platform.standardMaxHeight)
                     && (platformMaxHeight > Math.max(importer.getWorldHighLevel(), importer.getWorldWaterLevel()))) {
@@ -123,9 +123,20 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
         if (maxHeight == Integer.MIN_VALUE) {
             throw new ScriptException("Map format " + platform + " not high enough to accommodate maximum terrain height of " + importer.getWorldHighLevel() + " or water level of " + importer.getWorldWaterLevel());
         }
+        for (int platformMinHeight: platform.minHeights) {
+            if ((platformMinHeight <= platform.minZ)
+                    && (platformMinHeight <= Math.min(importer.getWorldLowLevel(), importer.getWorldWaterLevel()))) {
+                minHeight = platformMinHeight;
+                break;
+            }
+        }
+        if (minHeight == Integer.MAX_VALUE) {
+            throw new ScriptException("Map format " + platform + " not deep enough to accommodate minimum terrain height of " + importer.getWorldLowLevel() + " or water level of " + importer.getWorldWaterLevel());
+        }
+        importer.setMinHeight(minHeight);
         importer.setMaxHeight(maxHeight);
 
-        HeightMapTileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, platform.minZ, maxHeight, 58, waterLevel, false, true, 20, 1.0);
+        HeightMapTileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, minHeight, maxHeight, 58, waterLevel, false, true, 20, 1.0);
         Theme defaults = Configuration.getInstance().getHeightMapDefaultTheme();
         if (defaults != null) {
             tileFactory.setTheme(defaults);

@@ -58,7 +58,7 @@ public class BlockNameHarvester {
             if (worldDir.isDirectory()) {
                 FileUtils.deleteDir(worldDir);
             }
-            JavaLevel level = JavaLevel.create(JAVA_ANVIL, DEFAULT_MAX_HEIGHT_ANVIL);
+            JavaLevel level = JavaLevel.create(JAVA_ANVIL, 0, DEFAULT_MAX_HEIGHT_ANVIL);
             level.setSeed(0L);
             level.setName("BlockNames");
             level.setGameType(GAME_TYPE_CREATIVE);
@@ -73,7 +73,7 @@ public class BlockNameHarvester {
             level.save(worldDir);
             File regionDir = new File(worldDir, "region");
             regionDir.mkdirs();
-            JavaMinecraftWorld world = new JavaMinecraftWorld(worldDir, DIM_NORMAL, DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL, false, 256);
+            JavaMinecraftWorld world = new JavaMinecraftWorld(worldDir, DIM_NORMAL, 0, DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL, false, 256);
             try {
                 for (int x = -32; x < 32; x++) {
                     for (int z = -32; z < 32; z++) {
@@ -107,7 +107,7 @@ public class BlockNameHarvester {
             List<Object> blockSpecs = new ArrayList<>();
             File savesDir = new File(MinecraftUtil.findMinecraftDir(), "saves");
             File worldDir = new File(savesDir, "BlockNames");
-            JavaMinecraftWorld world = new JavaMinecraftWorld(worldDir, DIM_NORMAL, DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL_1_15, true, 256);
+            JavaMinecraftWorld world = new JavaMinecraftWorld(worldDir, DIM_NORMAL, 0, DEFAULT_MAX_HEIGHT_ANVIL, JAVA_ANVIL_1_15, true, 256);
             for (int x = -32; x < 32; x++) {
                 for (int z = -32; z < 32; z++) {
                     int index = z + 32 + 64 * (x + 32);

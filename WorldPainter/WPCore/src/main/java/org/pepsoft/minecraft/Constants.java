@@ -1231,6 +1231,8 @@ public final class Constants {
     /** 2x2 paintings */
     public static final String[] LARGE_PAINTINGS = {MOTIVE_MATCH, MOTIVE_BUST, MOTIVE_STAGE, MOTIVE_VOID, MOTIVE_SKULL_AND_ROSES};
 
+    public static final int DEFAULT_MIN_HEIGHT = 0;
+    public static final int DEFAULT_MIN_HEIGHT_1_18 = -64;
     public static final int DEFAULT_MAX_HEIGHT_MCREGION = 128;
     public static final int DEFAULT_MAX_HEIGHT_ANVIL = 256;
     public static final int DEFAULT_MAX_HEIGHT_1_18 = 320;

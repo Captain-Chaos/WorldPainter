@@ -19,11 +19,11 @@ import static org.pepsoft.minecraft.Constants.BLK_AIR;
  * Created by Pepijn on 15-12-2016.
  */
 public class CachingMinecraftWorld implements MinecraftWorld {
-    public CachingMinecraftWorld(File worldDir, int dimension, int maxHeight, Platform platform, boolean readOnly, int cacheSize) {
+    public CachingMinecraftWorld(File worldDir, int dimension, int minHeight, int maxHeight, Platform platform, boolean readOnly, int cacheSize) {
+        this.minHeight = minHeight;
         this.maxHeight = maxHeight;
         this.cacheSize = cacheSize;
         this.readOnly = readOnly;
-        minHeight = platform.minZ;
         cache = new HashMap<>(cacheSize);
         lruList = new HashList<>(cacheSize);
         dirtyChunks = new HashSet<>(cacheSize);

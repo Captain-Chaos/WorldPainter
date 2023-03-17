@@ -36,13 +36,12 @@ public class Statistics extends AbstractTool {
             throw new UnsupportedOperationException("Level format version " + level.getVersion() + " not supported");
         }
         final int maxHeight = level.getMaxHeight();
-        final int maxY = maxHeight - 1;
+        final int minY = level.getMinHeight(), maxY = maxHeight - 1;
 
 //        int totalBlockCount = 0, totalBlocksPerLevel = 0;
         System.out.println("Scanning " + worldDir);
         final PlatformManager platformManager = PlatformManager.getInstance();
         final Platform platform = platformManager.identifyPlatform(worldDir);
-        final int minY = platform.minZ;
         final Map<String, AtomicInteger>[] blockTypeCounts = new Map[(maxHeight - minY) >> 4];
         for (int i = 0; i < blockTypeCounts.length; i++) {
             blockTypeCounts[i] = new HashMap<>();

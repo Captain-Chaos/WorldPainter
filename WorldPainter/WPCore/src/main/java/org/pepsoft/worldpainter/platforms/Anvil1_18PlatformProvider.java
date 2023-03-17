@@ -18,8 +18,8 @@ final class Anvil1_18PlatformProvider extends AnvilPlatformProvider {
     }
 
     @Override
-    NBTChunk createChunk(int x, int z, int maxHeight) {
-        return new MC118AnvilChunk(x, z, maxHeight);
+    NBTChunk createChunk(int x, int z, int minHeight, int maxHeight) {
+        return new MC118AnvilChunk(x, z, minHeight, maxHeight);
     }
 
     @Override

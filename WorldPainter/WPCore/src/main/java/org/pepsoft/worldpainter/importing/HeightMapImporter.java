@@ -120,7 +120,9 @@ public class HeightMapImporter {
 
     public void importToDimension(Dimension dimension, boolean createTiles, ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         // Sanity checks
-        if (dimension.getMaxHeight() != maxHeight) {
+        if (dimension.getMinHeight() != minHeight) {
+            throw new IllegalArgumentException(String.format("Dimension has different minHeight (%d) than configured (%d)", dimension.getMinHeight(), minHeight));
+        } else if (dimension.getMaxHeight() != maxHeight) {
             throw new IllegalArgumentException(String.format("Dimension has different maxHeight (%d) than configured (%d)", dimension.getMaxHeight(), maxHeight));
         }
 
@@ -128,7 +130,7 @@ public class HeightMapImporter {
             dimension.getWorld().addHistoryEntry(HistoryEntry.WORLD_HEIGHT_MAP_IMPORTED_TO_DIMENSION, dimension.getName(), imageFile);
         }
 
-        final boolean useVoidBelow = voidBelowLevel > platform.minZ;
+        final boolean useVoidBelow = voidBelowLevel > minHeight;
         final Rectangle extent = heightMap.getExtent();
         final int x1 = extent.x;
         final int x2 = extent.x + extent.width - 1;
@@ -140,7 +142,7 @@ public class HeightMapImporter {
         final int tileX2 = extentInTiles.x + extentInTiles.width - 1;
         final int tileY2 = extentInTiles.y + extentInTiles.height - 1;
         final int totalTileCount = extentInTiles.width * extentInTiles.height;
-        final int floor = Math.max(worldWaterLevel - 20, platform.minZ);
+        final int floor = Math.max(worldWaterLevel - 20, minHeight);
         final int variation = Math.min(15, (worldWaterLevel - floor) / 2);
         final PerlinNoise noiseGenerator = new PerlinNoise(0);
         noiseGenerator.setSeed(dimension.getSeed());
@@ -234,7 +236,7 @@ public class HeightMapImporter {
             final HeightMapTileFactory heightMapTileFactory = (HeightMapTileFactory) this.tileFactory;
             final Theme theme = ((this.theme != null) ? this.theme : heightMapTileFactory.getTheme()).clone();
             theme.setWaterHeight(worldWaterLevel);
-            final HeightMapTileFactory tileFactory = new PreviewTileFactory(1L, previewHeightMap, targetDimension, platform.minZ, maxHeight, heightMapTileFactory.isFloodWithLava(), theme, heightMap, voidBelowLevel);
+            final HeightMapTileFactory tileFactory = new PreviewTileFactory(1L, previewHeightMap, targetDimension, minHeight, maxHeight, heightMapTileFactory.isFloodWithLava(), theme, heightMap, voidBelowLevel);
             return new WPTileProvider(tileFactory, colourScheme, null, null, contourLines, contourSeparation, lightOrigin, null);
         } else {
             return null;
@@ -300,6 +302,14 @@ public class HeightMapImporter {
 
     public void setImageHighLevel(long imageHighLevel) {
         this.imageHighLevel = imageHighLevel;
+    }
+
+    public int getMinHeight() {
+        return minHeight;
+    }
+
+    public void setMinHeight(int minHeight) {
+        this.minHeight = minHeight;
     }
 
     public int getMaxHeight() {
@@ -393,9 +403,9 @@ public class HeightMapImporter {
 
     private float calculateHeight(final float imageLevel) {
         if (highRes) {
-            return MathUtils.clamp(platform.minZ, (imageLevel - imageLowLevel) * levelScale + worldLowLevel, maxZ);
+            return MathUtils.clamp(minHeight, (imageLevel - imageLowLevel) * levelScale + worldLowLevel, maxZ);
         } else {
-            return MathUtils.clamp(platform.minZ, oneOnOne
+            return MathUtils.clamp(minHeight, oneOnOne
                 ? (mayBeScaled ? imageLevel : (imageLevel - 0.4375f))
                 : ((imageLevel - imageLowLevel) * levelScale + worldLowLevel), maxZ);
         }
@@ -403,7 +413,7 @@ public class HeightMapImporter {
 
     private Platform platform = Configuration.getInstance().getDefaultPlatform();
     private HeightMap heightMap;
-    private int worldLowLevel, worldWaterLevel = DEFAULT_WATER_LEVEL, worldHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, maxHeight = DEFAULT_MAX_HEIGHT_ANVIL, maxZ;
+    private int worldLowLevel, worldWaterLevel = DEFAULT_WATER_LEVEL, worldHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, minHeight = 0, maxHeight = DEFAULT_MAX_HEIGHT_ANVIL, maxZ;
     private long imageLowLevel, imageHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, voidBelowLevel;
     private TileFactory tileFactory;
     private Theme theme;

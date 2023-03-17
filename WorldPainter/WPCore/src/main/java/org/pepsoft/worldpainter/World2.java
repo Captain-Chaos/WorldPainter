@@ -41,23 +41,29 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLA
  * @author pepijn
  */
 public class World2 extends InstanceKeeper implements Serializable, Cloneable {
-    public World2(Platform platform, int maxHeight) {
+    public World2(Platform platform, int minHeight, int maxHeight) {
         if (platform == null) {
             throw new NullPointerException();
+        } else if ((minHeight < platform.minMinHeight) || (minHeight > platform.maxMinHeight)) {
+            throw new IllegalArgumentException("minHeight " + minHeight + " outside platform " + platform.displayName + " minHeight limits (" + platform.minMinHeight + " - " + platform.maxMinHeight + ")");
         } else if ((maxHeight < platform.minMaxHeight) || (maxHeight > platform.maxMaxHeight)) {
             throw new IllegalArgumentException("maxHeight " + maxHeight + " outside platform " + platform.displayName + " maxHeight limits (" + platform.minMaxHeight + " - " + platform.maxMaxHeight + ")");
         }
         this.platform = platform;
+        this.minHeight = minHeight;
         this.maxheight = maxHeight;
     }
     
     public World2(Platform platform, long minecraftSeed, TileFactory tileFactory) {
         if (platform == null) {
             throw new NullPointerException();
+        } else if ((tileFactory.getMinHeight() < platform.minMinHeight) || (tileFactory.getMinHeight() > platform.maxMinHeight)) {
+            throw new IllegalArgumentException("tileFactory.minHeight " + tileFactory.getMinHeight() + " < " + platform.minMinHeight + " or > " + platform.maxMinHeight);
         } else if ((tileFactory.getMaxHeight() < platform.minMaxHeight) || (tileFactory.getMaxHeight() > platform.maxMaxHeight)) {
             throw new IllegalArgumentException("tileFactory.maxHeight " + tileFactory.getMaxHeight() + " < " + platform.minMaxHeight + " or > " + platform.maxMaxHeight);
         }
         this.platform = platform;
+        this.minHeight = tileFactory.getMinHeight();
         this.maxheight = tileFactory.getMaxHeight();
         Dimension dim = new Dimension(this, "Surface", minecraftSeed, tileFactory, NORMAL_DETAIL);
         addDimension(dim);
@@ -271,13 +277,26 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
+    public int getMinHeight() {
+        return minHeight;
+    }
+
+    public void setMinHeight(int minHeight) {
+        if (minHeight != this.minHeight) {
+            final int oldMinHeight = this.minHeight;
+            this.minHeight = minHeight;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("minHeight", oldMinHeight, minHeight);
+        }
+    }
+
     public int getMaxHeight() {
         return maxheight;
     }
 
     public void setMaxHeight(int maxHeight) {
         if (maxHeight != this.maxheight) {
-            int oldMaxHeight = this.maxheight;
+            final int oldMaxHeight = this.maxheight;
             this.maxheight = maxHeight;
             changeNo++;
             propertyChangeSupport.firePropertyChange("maxHeight", oldMaxHeight, maxHeight);
@@ -825,6 +844,9 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             dimensionsToExport = null;
             tilesToExport = null;
         }
+        if (wpVersion < 12) {
+            minHeight = platform.minZ;
+        }
         wpVersion = CURRENT_WP_VERSION;
 
         // The number of custom terrains increases now and again; correct old
@@ -883,6 +905,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private Map<Anchor, Dimension> dimensionsByAnchor = new HashMap<>();
     private WorldExportSettings exportSettings;
     private List<File> dataPacks;
+    private int minHeight;
     private transient Set<Warning> warnings;
     private transient Map<String, Object> metadata;
     private transient long changeNo;
@@ -930,7 +953,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
      */
     public static final String METADATA_KEY_NAME = "name";
 
-    private static final int CURRENT_WP_VERSION = 11;
+    private static final int CURRENT_WP_VERSION = 12;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(World2.class);
     private static final long serialVersionUID = 2011062401L;

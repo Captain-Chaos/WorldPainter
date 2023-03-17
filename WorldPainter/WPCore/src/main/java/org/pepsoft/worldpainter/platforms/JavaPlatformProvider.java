@@ -49,12 +49,12 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
         return implementations.get(platform).getDataTypes();
     }
 
-    public NBTChunk createChunk(Platform platform, Map<DataType, Tag> tags, int maxHeight) {
-        return createChunk(platform, tags, maxHeight, false);
+    public NBTChunk createChunk(Platform platform, Map<DataType, Tag> tags, int minHeight, int maxHeight) {
+        return createChunk(platform, tags, minHeight, maxHeight, false);
     }
 
-    public NBTChunk createChunk(Platform platform, Map<DataType, Tag> tags, int maxHeight, boolean readOnly) {
-        return implementations.get(platform).createChunk(tags, maxHeight, readOnly);
+    public NBTChunk createChunk(Platform platform, Map<DataType, Tag> tags, int minHeight, int maxHeight, boolean readOnly) {
+        return implementations.get(platform).createChunk(tags, minHeight, maxHeight, readOnly);
     }
 
     public File[] getRegionFiles(Platform platform, File regionDir, DataType dataType) {
@@ -97,8 +97,8 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
     }
 
     @Override
-    public Chunk createChunk(Platform platform, int x, int z, int maxHeight) {
-        return implementations.get(platform).createChunk(x, z, maxHeight);
+    public Chunk createChunk(Platform platform, int x, int z, int minHeight, int maxHeight) {
+        return implementations.get(platform).createChunk(x, z, minHeight, maxHeight);
     }
 
     @Override
@@ -111,7 +111,7 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
         } catch (IOException e) {
             throw new RuntimeException("I/O error while trying to read level.dat", e);
         }
-        return new JavaChunkStore(platform, getRegionDir(worldDir, dimension), level.getMaxHeight());
+        return new JavaChunkStore(platform, getRegionDir(worldDir, dimension), level.getMinHeight(), level.getMaxHeight());
     }
 
     @Override
@@ -145,7 +145,7 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
                 && (! new File(dir, "levelname.txt").isFile())) {
             try {
                 JavaLevel level = JavaLevel.load(file);
-                return new MapInfo(dir, level.getPlatform(), level.getName(), ICON, level.getMaxHeight());
+                return new MapInfo(dir, level.getPlatform(), level.getName(), ICON, level.getMinHeight(), level.getMaxHeight());
             } catch (IOException e) {
                 if (logger.isDebugEnabled()) {
                     logger.info("I/O error reading {}; assuming it is not a (supported) Java Minecraft level.dat file", file.getAbsolutePath(), e);

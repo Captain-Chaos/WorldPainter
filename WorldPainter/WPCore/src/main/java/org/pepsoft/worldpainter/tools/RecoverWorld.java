@@ -142,11 +142,11 @@ public class RecoverWorld {
                 if (worlds.size() > 0) {
                     World2 world = worlds.get(0);
                     if (world.getPlatform() != null) {
-                        newWorld = new World2(world.getPlatform(), maxHeight);
+                        newWorld = new World2(world.getPlatform(), minHeight, maxHeight);
                     } else if (maxHeight == DEFAULT_MAX_HEIGHT_ANVIL) {
-                        newWorld = new World2(JAVA_ANVIL, maxHeight);
+                        newWorld = new World2(JAVA_ANVIL, minHeight, maxHeight);
                     } else {
-                        newWorld = new World2(JAVA_MCREGION, maxHeight);
+                        newWorld = new World2(JAVA_MCREGION, minHeight, maxHeight);
                     }
                     if (world.getName() != null) {
                         newWorld.setName(worlds.get(0).getName() + " (recovered)");
@@ -175,9 +175,9 @@ public class RecoverWorld {
                 } else {
                     System.err.println("No world recovered; all world settings lost");
                     if (maxHeight == DEFAULT_MAX_HEIGHT_ANVIL) {
-                        newWorld = new World2(JAVA_ANVIL, maxHeight);
+                        newWorld = new World2(JAVA_ANVIL, minHeight, maxHeight);
                     } else {
-                        newWorld = new World2(JAVA_MCREGION, maxHeight);
+                        newWorld = new World2(JAVA_MCREGION, minHeight, maxHeight);
                     }
                 }
                 newWorld.addHistoryEntry(HistoryEntry.WORLD_RECOVERED);

@@ -38,9 +38,10 @@ import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
  * Created by Pepijn on 15-12-2016.
  */
 public class JavaChunkStore implements ChunkStore {
-    public JavaChunkStore(Platform platform, File regionDir, int maxHeight) {
+    public JavaChunkStore(Platform platform, File regionDir, int minHeight, int maxHeight) {
         this.platform = platform;
         this.regionDir = regionDir;
+        this.minHeight = minHeight;
         this.maxHeight = maxHeight;
         platformProvider = (JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform);
         if (! DEFAULT_JAVA_PLATFORMS.contains(platform)) {
@@ -184,7 +185,7 @@ public class JavaChunkStore implements ChunkStore {
             if (! tags.containsKey(REGION)) {
                 return null;
             }
-            return platformProvider.createChunk(platform, tags, maxHeight, false);
+            return platformProvider.createChunk(platform, tags, minHeight, maxHeight, false);
         } catch (IOException e) {
             throw new RuntimeException("I/O error loading chunk", e);
         }
@@ -415,7 +416,7 @@ public class JavaChunkStore implements ChunkStore {
                                         }
                                     }
                                 }
-                                Chunk chunk = platformProvider.createChunk(platform, tags, maxHeight, readOnly);
+                                Chunk chunk = platformProvider.createChunk(platform, tags, minHeight, maxHeight, readOnly);
                                 exceptionFromChunkVisitor = true;
                                 if (visitor.visitChunk(chunk)) {
                                     if (! readOnly) {
@@ -452,7 +453,7 @@ public class JavaChunkStore implements ChunkStore {
     private final JavaPlatformProvider platformProvider;
     private final File regionDir;
     private final Map<RegionKey, RegionFile> regionFiles = new HashMap<>();
-    private final int maxHeight;
+    private final int minHeight, maxHeight;
     private final Set<DataType> dataTypes;
 
     public static void main(String[] args) {
