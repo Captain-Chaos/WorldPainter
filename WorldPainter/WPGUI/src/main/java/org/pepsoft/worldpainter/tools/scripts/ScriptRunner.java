@@ -305,9 +305,10 @@ public class ScriptRunner extends WorldPainterDialog {
         jButton2.setEnabled(false);
         jButton3.setEnabled(false);
         jTextArea2.setText(null);
-        File scriptFile = (File) jComboBox1.getSelectedItem();
-        String scriptFileName = scriptFile.getName(), scriptName;
-        Map<String, Object> params;
+        final File scriptFile = (File) jComboBox1.getSelectedItem();
+        final String scriptFilePath = scriptFile.getParentFile().getAbsolutePath();
+        final String scriptFileName = scriptFile.getName(), scriptName;
+        final Map<String, Object> params;
         if (scriptDescriptor != null) {
             params = scriptDescriptor.getValues();
             if (scriptDescriptor.name != null) {
@@ -346,10 +347,10 @@ public class ScriptRunner extends WorldPainterDialog {
                     config.setRecentScriptFiles(new ArrayList<>(recentScriptFiles));
 
                     // Initialise script context
-                    final ScriptingContext context = new ScriptingContext(false);
                     final Bindings bindings = scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE);
+                    final ScriptingContext context = new ScriptingContext(false);
                     bindings.put("wp", context);
-                    final String[] parameters = jTextArea1.getText().split("\\R");
+                    final String[] parameters = jTextArea1.getText().isEmpty() ? new String[0] : jTextArea1.getText().split("\\R");
                     bindings.put("argc", parameters.length + 1);
                     final String[] argv = new String[parameters.length + 1];
                     argv[0] = scriptFileName;
@@ -370,6 +371,7 @@ public class ScriptRunner extends WorldPainterDialog {
                         dataSizes.put(dataSize.name(), dataSize);
                     }
                     bindings.put("DataSize", dataSizes);
+                    bindings.put("scriptDir", scriptFilePath);
 
                     // Capture output
                     final List<String> textQueue = new LinkedList<>();

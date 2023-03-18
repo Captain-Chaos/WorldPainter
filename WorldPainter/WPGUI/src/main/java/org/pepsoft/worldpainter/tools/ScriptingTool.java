@@ -69,30 +69,30 @@ public class ScriptingTool {
         }
 
         // Load script
-        File scriptFile = new File(args[0]);
+        final File scriptFile = new File(args[0]);
         if (! scriptFile.isFile()) {
             System.err.println(args[0] + " does not exist or is not a regular file");
             System.exit(1);
         }
-        String scriptFileName = scriptFile.getName();
+        final String scriptFilePath = scriptFile.getCanonicalFile().getParent();
+        final String scriptFileName = scriptFile.getName();
         int p = scriptFileName.lastIndexOf('.');
         if (p == -1) {
             System.err.println("Script file name " + scriptFileName + " has no extension");
             System.exit(1);
         }
-        String extension = scriptFileName.substring(p + 1);
-        ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-        ScriptEngine scriptEngine = scriptEngineManager.getEngineByExtension(extension);
+        final String extension = scriptFileName.substring(p + 1);
+        final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+        final ScriptEngine scriptEngine = scriptEngineManager.getEngineByExtension(extension);
         if (scriptEngine == null) {
             System.err.println("Script file language " + extension + " not supported");
             System.exit(1);
         }
         scriptEngine.put(ScriptEngine.FILENAME, scriptFileName);
 
-        // Load the default platform descriptors so that they don't get blocked
-        // by older versions of them which might be contained in the
-        // configuration. Do this by loading and initialising (but not
-        // instantiating) the DefaultPlugin class
+        // Load the default platform descriptors so that they don't get blocked by older versions of them which might be
+        // contained in the configuration. Do this by loading and initialising (but not instantiating) the DefaultPlugin
+        // class
         try {
             Class.forName("org.pepsoft.worldpainter.DefaultPlugin");
         } catch (ClassNotFoundException e) {
@@ -110,7 +110,7 @@ public class ScriptingTool {
         // Load trusted WorldPainter root certificate
         X509Certificate trustedCert = null;
         try {
-            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+            final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             trustedCert = (X509Certificate) certificateFactory.generateCertificate(ClassLoader.getSystemResourceAsStream("wproot.pem"));
         } catch (CertificateException e) {
             logger.error("Certificate exception while loading trusted root certificate", e);
@@ -118,7 +118,7 @@ public class ScriptingTool {
         
         // Load the plugins
         if (trustedCert != null) {
-            File pluginsDir = new File(Configuration.getConfigDir(), "plugins");
+            final File pluginsDir = new File(Configuration.getConfigDir(), "plugins");
             if (pluginsDir.isDirectory()) {
                 PluginManager.loadPlugins(pluginsDir, trustedCert.getPublicKey(), DESCRIPTOR_PATH, Version.VERSION_OBJ, false);
             }
@@ -141,14 +141,14 @@ public class ScriptingTool {
         }
 
         // Parse arguments
-        List<String> argList = new ArrayList<>();
-        Map<String, String> paramMap = new HashMap<>();
+        final List<String> argList = new ArrayList<>();
+        final Map<String, String> paramMap = new HashMap<>();
         for (String arg: args) {
             if (arg.startsWith("--") && (arg.length() > 2) && (arg.charAt(2) != '-')) {
                 p = arg.indexOf('=');
                 if (p != -1) {
-                    String key = arg.substring(2, p);
-                    String value = arg.substring(p + 1);
+                    final String key = arg.substring(2, p);
+                    final String value = arg.substring(p + 1);
                     paramMap.put(key, value);
                 } else {
                     paramMap.put(arg.substring(2), "true");
@@ -171,13 +171,13 @@ public class ScriptingTool {
         }
 
         // Initialise script context
-        ScriptingContext context = new ScriptingContext(true);
-        Bindings bindings = scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE);
+        final Bindings bindings = scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE);
+        final ScriptingContext context = new ScriptingContext(true);
         bindings.put("wp", context);
-        String[] argArray = argList.toArray(new String[argList.size()]);
+        final String[] argArray = argList.toArray(new String[argList.size()]);
         bindings.put("argc", argArray.length);
         bindings.put("argv", argArray);
-        String[] scriptArgs = new String[argArray.length - 1];
+        final String[] scriptArgs = new String[argArray.length - 1];
         System.arraycopy(argArray, 1, scriptArgs, 0, scriptArgs.length);
         bindings.put("arguments", scriptArgs);
         bindings.put("params", paramMap);
@@ -186,6 +186,7 @@ public class ScriptingTool {
             dataSizes.put(dataSize.name(), dataSize);
         }
         bindings.put("DataSize", dataSizes);
+        bindings.put("scriptDir", scriptFilePath);
 
         // Execute script
         try {

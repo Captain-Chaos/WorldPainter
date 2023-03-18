@@ -1,3 +1,8 @@
+-- Version 2.16.1, released ...
+
+ * The annotations are no longer displayed in the 3D view if they are not configured to be Exported
+ * Scripting: the full path to the directory containing the script file is now available as the `scriptDir` global variable
+
 -- Version 2.16.0, released 12-3-2023
 
  * The material selection control has been simplified. Instead of always showing both legacy (numerical) and modern (name-based) choices it now only shows the appropriate choices for the currently selected map format
