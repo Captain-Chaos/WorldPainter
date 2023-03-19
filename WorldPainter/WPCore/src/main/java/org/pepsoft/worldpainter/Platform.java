@@ -86,17 +86,17 @@ public final class Platform implements Serializable {
     // Kept for backwards compatibility with existing plugins
     @Deprecated
     public Platform(String id, String displayName, int[] maxHeights, int standardMaxHeight, int minX, int maxX,
-                    int minY, int maxY, int minZ, List<GameType> supportedGameTypes, List<Generator> supportedGeneratorTypes,
+                    int minY, int maxY, int standardMinHeight, List<GameType> supportedGameTypes, List<Generator> supportedGeneratorTypes,
                     List<Integer> supportedDimensions, Set<Capability> capabilities, Object... attributes) {
-        this(id, displayName, maxHeights, standardMaxHeight, minX, maxX, minY, maxY, new int[] { minZ }, minZ, supportedGameTypes, supportedGeneratorTypes, supportedDimensions, capabilities, attributes);
+        this(id, displayName, maxHeights, standardMaxHeight, minX, maxX, minY, maxY, new int[] { standardMinHeight }, standardMinHeight, supportedGameTypes, supportedGeneratorTypes, supportedDimensions, capabilities, attributes);
     }
 
     // Kept for backwards compatibility with existing plugins
     @Deprecated
     public Platform(String id, String displayName, int[] maxHeights, int standardMaxHeight, int minX, int maxX,
-                    int minY, int maxY, int minZ, List<GameType> supportedGameTypes, List<Generator> supportedGeneratorTypes,
+                    int minY, int maxY, int standardMinHeight, List<GameType> supportedGameTypes, List<Generator> supportedGeneratorTypes,
                     List<Integer> supportedDimensions, Set<Capability> capabilities) {
-        this(id, displayName, maxHeights, standardMaxHeight, minX, maxX, minY, maxY, new int[] { minZ }, minZ, supportedGameTypes, supportedGeneratorTypes, supportedDimensions, capabilities, (Object[]) null);
+        this(id, displayName, maxHeights, standardMaxHeight, minX, maxX, minY, maxY, new int[] { standardMinHeight }, standardMinHeight, supportedGameTypes, supportedGeneratorTypes, supportedDimensions, capabilities, (Object[]) null);
     }
 
     /**

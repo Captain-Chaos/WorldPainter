@@ -329,7 +329,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
             } finally {
                 JavaLevel.setCachedLevel(null, null);
             }
-        }, "world.name", world.getName(), "platform.id", platform.id, "world.maxHeight", world.getMaxHeight(), "baseDir", baseDir);
+        }, "world.name", world.getName(), "platform.id", platform.id, "world.minHeight", world.getMinHeight(), "world.maxHeight", world.getMaxHeight(), "baseDir", baseDir);
     }
 
     protected ChunkFactory.Stats exportDimension(File worldDir, Dimension dimension, ProgressReceiver progressReceiver) {

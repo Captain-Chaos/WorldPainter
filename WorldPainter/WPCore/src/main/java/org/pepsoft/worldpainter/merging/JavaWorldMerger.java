@@ -389,7 +389,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
 
             aborted = false;
             return null;
-        }, "world.name", world.getName(), "platform.id", platform.id, "world.maxHeight", world.getMaxHeight(), "mapDir", worldDir, "level.platform.id", level.getPlatform().id, "level.maxHeight", level.getMaxHeight());
+        }, "world.name", world.getName(), "platform.id", platform.id, "world.minHeight", world.getMinHeight(), "world.maxHeight", world.getMaxHeight(), "mapDir", worldDir, "level.platform.id", level.getPlatform().id, "level.maxHeight", level.getMaxHeight());
     }
 
     public String getWarnings() {

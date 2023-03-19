@@ -290,7 +290,7 @@ public class MapImportDialog extends WorldPainterDialog {
                             waterLevel = DEFAULT_WATER_LEVEL;
                         }
                     } else {
-                        minHeight = platform.minZ;
+                        minHeight = platform.minMinHeight;
                         maxHeight = platform.maxMaxHeight;
                         waterLevel = DEFAULT_WATER_LEVEL;
                     }
