@@ -135,8 +135,11 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
             final int height = ((object.getAttribute(ATTRIBUTE_HEIGHT_MODE) == HEIGHT_MODE_TERRAIN) ? location.z : 0)
                     + object.getAttribute(ATTRIBUTE_VERTICAL_OFFSET)
                     + ((variation > 0) ? (applyRandom.nextInt(variation + 1) - ((variation + 1) / 2)) : 0); // Bias odd variation downwards
+            if ((height < minHeight) || (height >= maxHeight)) {
+                return null;
+            }
             final Material existingMaterial = minecraftWorld.getMaterialAt(location.x, location.y, height);
-            final Material materialBelow = minecraftWorld.getMaterialAt(location.x, location.y, height - 1);
+            final Material materialBelow = (height > minHeight) ? minecraftWorld.getMaterialAt(location.x, location.y, height - 1) : AIR;
             if ((object.getAttribute(ATTRIBUTE_SPAWN_IN_LAVA) && existingMaterial.isNamed(MC_LAVA))
                     || (object.getAttribute(ATTRIBUTE_SPAWN_IN_WATER) && existingMaterial.isNamed(MC_WATER))
                     || (object.getAttribute(ATTRIBUTE_SPAWN_ON_LAND) && (! materialBelow.veryInsubstantial))
