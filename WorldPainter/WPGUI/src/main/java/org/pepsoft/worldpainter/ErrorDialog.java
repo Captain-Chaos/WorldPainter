@@ -25,6 +25,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.image.ImagingOpException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -347,10 +348,14 @@ public class ErrorDialog extends javax.swing.JDialog {
     }
 
     private static boolean forceEmail(Throwable exception) {
-        return (exception.getMessage() != null) && (exception.getMessage().contains("terrainRanges contains null value")
-                || exception.getMessage().contains("terrainRanges may not contain null values")
-                || exception.getMessage().contains("aValue (rowIndex: ")
-                || exception.getMessage().contains("Index -4 out of bounds for length 20"));
+        final String message = exception.getMessage();
+        return (message != null) && (message.contains("terrainRanges contains null value")
+                || message.contains("terrainRanges may not contain null values")
+                || message.contains("aValue (rowIndex: ")
+                || message.contains("Index -4 out of bounds for length 20")
+                || ((exception instanceof IllegalArgumentException) && message.equals("Comparison method violates its general contract!")) // Strange Java GUI bug in JFileChooser
+                || ((exception instanceof ImagingOpException) && message.equals("Unable to transform src image")) // Observed when rotating icon image
+        );
     }
 
     /** This method is called from within the constructor to
