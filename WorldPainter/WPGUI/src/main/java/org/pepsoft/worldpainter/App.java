@@ -1097,7 +1097,7 @@ public final class App extends JFrame implements RadiusControl,
 
                     @Override
                     public Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
-                        WorldUtils.resizeWorld(world, HeightTransform.IDENTITY, 0, DEFAULT_MAX_HEIGHT_ANVIL, true, progressReceiver);
+                        WorldUtils.resizeWorld(newWorld, HeightTransform.IDENTITY, 0, DEFAULT_MAX_HEIGHT_ANVIL, true, progressReceiver);
                         return null;
                     }
                 }, NOT_CANCELABLE);
