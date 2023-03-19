@@ -7,10 +7,12 @@ package org.pepsoft.util;
 
 import org.pepsoft.util.undo.Cloneable;
 
+import javax.annotation.Nonnull;
 import java.awt.*;
 import java.awt.image.*;
 import java.util.List;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  *
@@ -181,5 +183,34 @@ public final class ObjectUtils {
             clone[i] = array[i].clone();
         }
         return clone;
+    }
+
+    /**
+     * Analog of the SQL COALESCE function: returns the first non-null value. An additional property is that all but the
+     * first value are supplied by {@link Supplier}s, so that the value need not actually be created if it is not
+     * needed.
+     *
+     * @param firstValue               The first value.
+     * @param subsequentValueSuppliers One or more suppliers of subsequent values. If {@code firstValue} is null then at
+     *                                 least one of these MUST return a non {@code null} value, or a
+     *                                 {@link NullPointerException} will be thrown.
+     * @return The first non {@code null} value.
+     * @param <T> The type of the value.
+     * @throws NullPointerException If {@code firstValue} is {@code null} and all {@code subsequentValueSuppliers}
+     * return {@code null}.
+     */
+    @SafeVarargs
+    public static @Nonnull <T> T coalesce(T firstValue, Supplier<T>... subsequentValueSuppliers) {
+        if (firstValue != null) {
+            return firstValue;
+        } else {
+            for (Supplier<T> subsequentValueSupplier: subsequentValueSuppliers) {
+                final T value = subsequentValueSupplier.get();
+                if (value != null) {
+                    return value;
+                }
+            }
+            throw new NullPointerException("All suppliers returned null");
+        }
     }
 }

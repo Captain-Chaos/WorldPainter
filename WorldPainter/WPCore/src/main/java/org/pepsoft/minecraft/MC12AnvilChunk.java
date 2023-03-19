@@ -15,6 +15,7 @@ import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.util.ObjectUtils.coalesce;
 
 /**
  * An "Anvil" chunk for Minecraft 1.2 - 1.12.2.
@@ -46,7 +47,7 @@ public final class MC12AnvilChunk extends MCNumberedBlocksChunk implements Minec
         this.readOnly = readOnly;
         
         sections = new Section[maxHeight >> 4];
-        List<CompoundTag> sectionTags = getList(TAG_SECTIONS);
+        List<CompoundTag> sectionTags = coalesce(getList(TAG_SECTIONS), Collections::emptyList);
         for (CompoundTag sectionTag: sectionTags) {
             Section section = new Section(sectionTag);
             sections[section.level] = section;
@@ -66,11 +67,11 @@ public final class MC12AnvilChunk extends MCNumberedBlocksChunk implements Minec
 //            }
 //        }
         biomes = getByteArray(TAG_BIOMES);
-        heightMap = getIntArray(TAG_HEIGHT_MAP);
-        List<CompoundTag> entityTags = getList(TAG_ENTITIES);
+        heightMap = coalesce(getIntArray(TAG_HEIGHT_MAP), () -> new int[256]);
+        List<CompoundTag> entityTags = coalesce(getList(TAG_ENTITIES), Collections::emptyList);
         entities = new ArrayList<>(entityTags.size());
         entities.addAll(entityTags.stream().map(Entity::fromNBT).collect(toList()));
-        List<CompoundTag> tileEntityTags = getList(TAG_TILE_ENTITIES);
+        List<CompoundTag> tileEntityTags = coalesce(getList(TAG_TILE_ENTITIES), Collections::emptyList);
         tileEntities = new ArrayList<>(tileEntityTags.size());
         tileEntities.addAll(tileEntityTags.stream().map(TileEntity::fromNBT).collect(toList()));
         lastUpdate = getLong(TAG_LAST_UPDATE);

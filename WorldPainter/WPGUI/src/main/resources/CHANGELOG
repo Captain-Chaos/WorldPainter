@@ -2,6 +2,7 @@
 
  * The annotations are no longer displayed in the 3D view if they are not configured to be Exported
  * Scripting: the full path to the directory containing the script file is now available as the `scriptDir` global variable
+ * Some small error handling improvements
 
 -- Version 2.16.0, released 12-3-2023
 
