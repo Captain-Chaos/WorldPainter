@@ -16,6 +16,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.jnbt</groupId>
+            <artifactId>JNBT</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.pepsoft.worldpainter</groupId>
             <artifactId>WPValueObjects</artifactId>
             <version>1.1.0</version>
@@ -24,7 +29,7 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>23.0.0</version>
+            <version>24.0.1</version>
             <scope>provided</scope> <!-- Not really, but these annotations aren't needed at runtime. -->
         </dependency>
 
