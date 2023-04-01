@@ -16,7 +16,7 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jnbt</groupId>
+            <groupId>org.pepsoft.jnbt</groupId>
             <artifactId>JNBT</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
