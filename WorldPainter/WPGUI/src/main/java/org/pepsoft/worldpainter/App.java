@@ -2644,6 +2644,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         view.setDrawBorders(config.isShowBorders());
         view.setDrawBiomes(config.isShowBiomes());
+        view.setViewDistance(config.getViewDistance());
         view.setBackgroundImageMode(config.getBackgroundImageMode());
         if (config.getBackgroundImage() != null) {
             if (! config.isSafeMode()) {

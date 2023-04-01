@@ -722,6 +722,14 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         this.maxThreadCount = maxThreadCount;
     }
 
+    public synchronized int getViewDistance() {
+        return viewDistance;
+    }
+
+    public synchronized void setViewDistance(int viewDistance) {
+        this.viewDistance = viewDistance;
+    }
+
     // Transient settings which aren't stored on disk
 
     public boolean isAutosaveInhibited() {
@@ -873,6 +881,9 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
         }
         if (defaultTerrainAndLayerSettings == null) {
             defaultTerrainAndLayerSettings = new World2(JAVA_ANVIL_1_15, World2.DEFAULT_OCEAN_SEED, TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), surface, JAVA_ANVIL_1_15.minZ, defaultMaxHeight, level, waterLevel, lava, beaches, 20, 1.0)).getDimension(NORMAL_DETAIL);
+        }
+        if (viewDistance == 0) {
+            viewDistance = 192; // 12 chunks (default of Minecraft 1.18.2)
         }
         
         // New legacy mechanism with version number
@@ -1274,6 +1285,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private Map<String, List<MessageDisplayed>> displayedMessages = new HashMap<>();
     private File overlaysDirectory;
     private Integer maxThreadCount;
+    private int viewDistance = 192; // 12 chunks (default of Minecraft 1.18.2)
 
     /**
      * The acceleration type is only stored here at runtime. It is saved to disk

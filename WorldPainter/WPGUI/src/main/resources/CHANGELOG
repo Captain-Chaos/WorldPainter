@@ -1,6 +1,9 @@
 -- Version 2.16.1, released ...
 
  * The annotations are no longer displayed in the 3D view if they are not configured to be Exported
+ * You can now change the size of the render distance circle that you can activate with the "eye" toolbar button
+   + Set the radius of the circle in chunks on the Configure View screen (Ctrl+V or View menu)
+   + By default it is set to 12 chunks
  * Scripting: the full path to the directory containing the script file is now available as the `scriptDir` global variable
  * Some small bug fixes and error handling improvements
 

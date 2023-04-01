@@ -153,8 +153,25 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         if (drawViewDistance != this.drawViewDistance) {
             this.drawViewDistance = drawViewDistance;
             firePropertyChange("drawViewDistance", !drawViewDistance, drawViewDistance);
-            final int scaledRadius = (dimension != null) ? (int) Math.ceil(VIEW_DISTANCE_RADIUS / dimension.getScale()) : VIEW_DISTANCE_RADIUS;
+            final int scaledRadius = (dimension != null) ? (int) Math.ceil(viewDistance / dimension.getScale()) : viewDistance;
             repaintWorld(mouseX - scaledRadius, mouseY - scaledRadius, (2 * scaledRadius) + 1, (2 * scaledRadius) + 1);
+        }
+    }
+
+    public int getViewDistance() {
+        return viewDistance;
+    }
+
+    public void setViewDistance(int viewDistance) {
+        if (viewDistance != this.viewDistance) {
+            final int oldViewDistance = this.viewDistance;
+            this.viewDistance = viewDistance;
+            firePropertyChange("viewDistance", oldViewDistance, viewDistance);
+            if (drawViewDistance) {
+                final int largestDistance = Math.max(oldViewDistance, viewDistance);
+                final int scaledRadius = (dimension != null) ? (int) Math.ceil(largestDistance / dimension.getScale()) : largestDistance;
+                repaintWorld(mouseX - scaledRadius, mouseY - scaledRadius, (2 * scaledRadius) + 1, (2 * scaledRadius) + 1);
+            }
         }
     }
 
@@ -572,7 +589,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         }
         if (dimension != null) {
             if (drawViewDistance) {
-                final int scaledRadius = (int) Math.ceil(VIEW_DISTANCE_RADIUS / dimension.getScale());
+                final int scaledRadius = (int) Math.ceil(viewDistance / dimension.getScale());
                 Rectangle viewDistanceArea = new Rectangle(-scaledRadius, -scaledRadius, scaledRadius * 2, scaledRadius * 2);
                 if (repaintArea != null) {
                     repaintArea = repaintArea.union(viewDistanceArea);
@@ -581,7 +598,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
                 }
             }
             if (drawWalkingDistance) {
-                final int scaledRadius = (int) Math.ceil(VIEW_DISTANCE_RADIUS / dimension.getScale());
+                final int scaledRadius = (int) Math.ceil(viewDistance / dimension.getScale());
                 Rectangle walkingDistanceArea = new Rectangle(-scaledRadius, -scaledRadius, scaledRadius * 2, scaledRadius * 2);
                 if (repaintArea != null) {
                     repaintArea = repaintArea.union(walkingDistanceArea);
@@ -785,7 +802,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             if (dashed) {
                 g2.setStroke(new BasicStroke(onePixel, CAP_SQUARE, JOIN_MITER, 10.0f, new float[] { 9 * onePixel, 11 * onePixel }, 0));
             }
-            final int scaledRadius = (int) Math.ceil(VIEW_DISTANCE_RADIUS / dimension.getScale());
+            final int scaledRadius = (int) Math.ceil(viewDistance / dimension.getScale());
             g2.drawOval(mouseX - scaledRadius, mouseY - scaledRadius, scaledRadius * 2, scaledRadius * 2);
         }
         if (drawWalkingDistance) {
@@ -1024,7 +1041,8 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private HashSet<Layer> hiddenLayers = new HashSet<>();
     private final CustomBiomeManager customBiomeManager;
     private Dimension dimension, backgroundDimension; // TODO make this more generic
-    private int mouseX, mouseY, radius, effectiveRadius, contourSeparation, brushRotation, backgroundDimensionZoom;
+    private int mouseX, mouseY, radius, effectiveRadius, contourSeparation, brushRotation, backgroundDimensionZoom,
+            viewDistance;
     private boolean drawBrush, drawOverlays, drawContours, drawViewDistance, drawWalkingDistance,
             drawMinecraftBorder = true, drawBorders = true, drawBiomes = true;
     private BrushShape brushShape;
@@ -1036,7 +1054,6 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     private ColourRamp colourRamp;
     private Timer repaintTimer;
 
-    private static final int VIEW_DISTANCE_RADIUS = 192; // 12 chunks (default of Minecraft 1.18.2)
     private static final int FIVE_MINUTE_WALK_DISTANCE_RADIUS = 1280;
     private static final int DAY_WALK_DISTANCE_RADIUS = 3328;
     private static final int DAY_NIGHT_WALK_DISTANCE_RADIUS = 5120;
