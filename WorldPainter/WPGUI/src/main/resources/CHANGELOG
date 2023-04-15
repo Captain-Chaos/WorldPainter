@@ -1,5 +1,9 @@
--- Version 2.16.1, released ...
+-- Version 2.17.0, released ...
 
+ * WorldPainter now supports changing the lower build limit for Minecraft 1.18 and later map formats!
+   + It can be changed when creating a new world, or from the Change Height screen (Edit menu), just like the upper build limit
+   + It uses a data pack to implement the deviating build limit. Maps with deviating build limits may not load in newer versions of Minecraft!
+   + The allowable range is between -2032 and 0, in steps of powers of two, just like the upper build limit
  * The annotations are no longer displayed in the 3D view if they are not configured to be Exported
  * You can now change the size of the render distance circle that you can activate with the "eye" toolbar button
    + Set the radius of the circle in chunks on the Configure View screen (Ctrl+V or View menu)
