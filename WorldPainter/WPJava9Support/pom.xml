@@ -13,9 +13,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.pepsoft.worldpainter</groupId>
-            <artifactId>WPUtils</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.pepsoft.utils</groupId>
+            <artifactId>SwingUtils</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

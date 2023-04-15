@@ -34,7 +34,6 @@
     </developers>
 
     <modules>
-        <module>WPUtils</module>
         <module>WPCore</module>
         <module>WPDynmapPreviewer</module>
         <module>WPGUI</module>
