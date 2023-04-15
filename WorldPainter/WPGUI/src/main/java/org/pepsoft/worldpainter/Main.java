@@ -79,6 +79,25 @@ public class Main {
         // Disable Java2D's automatic UI scaling, as it does not do a good job with the editor view; we want to do it
         // ourselves
         System.setProperty("sun.java2d.uiScale.enabled", "false");
+        // Propagate a few system properties to libraries
+        final String devMode = System.getProperty("org.pepsoft.worldpainter.devMode");
+        if (devMode != null) {
+            System.setProperty("org.pepsoft.devMode", devMode);
+        }
+        boolean safeMode = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"));
+        for (String arg: args) {
+            if (arg.trim().equalsIgnoreCase("--safe")) {
+                safeMode = true;
+            }
+        }
+        if (safeMode) {
+            logger.info("WorldPainter running in safe mode");
+            System.setProperty("org.pepsoft.worldpainter.safeMode", "true");
+            System.setProperty("org.pepsoft.util.GUIUtils.disableScaling", "true");
+        }
+        if (Version.isSnapshot()) {
+            System.setProperty("org.pepsoft.snapshotVersion", "true");
+        }
 
         // Use a file lock to make sure only one instance is running with autosave enabled
         File configDir = Configuration.getConfigDir();
@@ -146,21 +165,14 @@ public class Main {
 
         // Parse the command line
         File myFile = null;
-        boolean safeMode = "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"));
         for (String arg: args) {
-            if (arg.trim().equalsIgnoreCase("--safe")) {
-                safeMode = true;
-            } else if (new File(arg).isFile() && (myFile == null)) {
+            if (new File(arg).isFile() && (myFile == null)) {
                 myFile = new File(arg);
             } else {
                 throw new IllegalArgumentException("Unrecognised or invalid command line option, or file does not exist: " + arg);
             }
         }
         final File file = myFile;
-        if (safeMode) {
-            logger.info("WorldPainter running in safe mode");
-            System.setProperty("org.pepsoft.worldpainter.safeMode", "true");
-        }
 
         // If the config file does not exist, also reset the persistent settings that are not stored in that, since the
         // user may be trying to reset the configuration
