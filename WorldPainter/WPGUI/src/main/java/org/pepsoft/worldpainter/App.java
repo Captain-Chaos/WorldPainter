@@ -69,6 +69,7 @@ import org.pepsoft.worldpainter.util.*;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
 import org.pepsoft.worldpainter.vo.EventVO;
 import org.pepsoft.worldpainter.vo.UsageVO;
+import org.pepsoft.worldpainter.wplink.Teleport;
 
 import javax.imageio.ImageIO;
 import javax.swing.Box;
@@ -3129,6 +3130,7 @@ public final class App extends JFrame implements RadiusControl,
         });
         clearSelectionButton.putClientProperty(KEY_HELP_KEY, "Operation/ClearSelection");
         toolPanel.add(clearSelectionButton);
+        toolPanel.add(createButtonForOperation(new Teleport(view)));
 
         for (Operation operation: operations) {
             operation.setView(view);

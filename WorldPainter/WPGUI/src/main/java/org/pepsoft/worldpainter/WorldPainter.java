@@ -7,6 +7,8 @@ package org.pepsoft.worldpainter;
 
 import com.google.common.collect.Sets;
 import org.pepsoft.minecraft.MapGenerator;
+import org.pepsoft.simplerpc.Message;
+import org.pepsoft.simplerpc.RPCClient;
 import org.pepsoft.util.MemoryUtils;
 import org.pepsoft.worldpainter.Configuration.OverlayType;
 import org.pepsoft.worldpainter.Dimension.Anchor;
@@ -21,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
+import javax.swing.Timer;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -31,15 +34,15 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.net.InetAddress;
+import java.net.SocketAddress;
+import java.util.*;
 
 import static java.awt.BasicStroke.CAP_SQUARE;
 import static java.awt.BasicStroke.JOIN_MITER;
 import static java.util.Collections.singleton;
 import static java.util.Collections.unmodifiableSet;
+import static org.pepsoft.simplerpc.Constants.DEFAULT_PORT;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.worldpainter.Configuration.OverlayType.SCALE_ON_LOAD;
@@ -65,6 +68,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         setOpaque(true);
         addMouseMotionListener(this);
         enableInputMethods(false);
+        startWPLink();
     }
 
     public WorldPainter(Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager) {
@@ -1038,6 +1042,29 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         });
     }
 
+    private void startWPLink() {
+        try {
+            rpcClient = new RPCClient(InetAddress.getLoopbackAddress(), DEFAULT_PORT, this::handleWPLinkMessage);
+        } catch (IOException e) {
+            logger.error("I/O error connecting to WPLink plugin", e);
+        }
+    }
+
+    private void handleWPLinkMessage(SocketAddress remoteAddress, Message message) {
+        switch (message.getType()) {
+            case "PLAYERMOVED":
+                final Map<String, Object> params = message.getParams();
+                final double x = Double.parseDouble((String) params.get("x"));
+                final double z = Double.parseDouble((String) params.get("z"));
+                doLaterOnEventThread(() -> setMarkerCoords(new Point((int) x, (int) z)));
+                break;
+            default:
+                logger.error("Unsupported message received from WPLink plugin: {}", message);
+                break;
+        }
+    }
+
+    public RPCClient rpcClient;
     private HashSet<Layer> hiddenLayers = new HashSet<>();
     private final CustomBiomeManager customBiomeManager;
     private Dimension dimension, backgroundDimension; // TODO make this more generic
