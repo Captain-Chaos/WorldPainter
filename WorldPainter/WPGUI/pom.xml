@@ -16,6 +16,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.pepsoft.utils</groupId>
+            <artifactId>SwingUtils</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.pepsoft.worldpainter</groupId>
             <artifactId>WPDynmapPreviewer</artifactId>
             <version>${project.version}</version>
