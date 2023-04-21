@@ -1,4 +1,4 @@
--- Version 2.17.0, released ...
+-- Version 2.17.0, released 21-4-2023
 
  * WorldPainter now supports changing the lower build limit for Minecraft 1.18 and later map formats!
    + It can be changed when creating a new world, or from the Change Height screen (Edit menu), just like the upper build limit
