@@ -328,6 +328,8 @@ public class Main {
         if (privateContext == null) {
             logger.debug("No private context found on classpath; update checks and usage data submission disabled");
             config.setPingAllowed(false);
+        } else {
+            privateContext.init();
         }
 
         // Check for updates (if update checker is available)
@@ -481,6 +483,11 @@ public class Main {
             UIManager.put("Slider.paintValue", Boolean.FALSE);
 
             final App app = App.getInstance();
+
+            if (privateContext != null) {
+                privateContext.install(app);
+            }
+
             app.setVisible(true);
             // Swing quirk:
             if (myConfig.isMaximised() && (System.getProperty("org.pepsoft.worldpainter.size") == null)) {
