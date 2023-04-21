@@ -775,7 +775,7 @@ public final class App extends JFrame implements RadiusControl,
             return;
         }
         final int height = tile.getIntHeight(xInTile, yInTile);
-        setTextIfDifferent(heightLabel, MessageFormat.format(strings.getString("height.0.of.1"), height, dimension.getMaxHeight() - 1));
+        setTextIfDifferent(heightLabel, MessageFormat.format(strings.getString("height.0.of.1"), height, (height >= 0) ? dimension.getMaxHeight() - 1 : dimension.getMinHeight()));
         setTextIfDifferent(slopeLabel, MessageFormat.format("Slope: {0}°", (int) round(Math.atan(dimension.getSlope(x, y)) * 180 / Math.PI)));
         if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint)) {
             final Layer layer = ((LayerPaint) paint).getLayer();
