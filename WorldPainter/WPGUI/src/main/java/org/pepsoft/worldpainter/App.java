@@ -19,7 +19,10 @@ import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.swing.*;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.Dimension.Anchor;
-import org.pepsoft.worldpainter.biomeschemes.*;
+import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
+import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager.CustomBiomeListener;
 import org.pepsoft.worldpainter.brushes.BitmapBrush;
 import org.pepsoft.worldpainter.brushes.Brush;
@@ -142,6 +145,7 @@ import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_TWENTYFIVE_
 import static org.pepsoft.worldpainter.World2.*;
 import static org.pepsoft.worldpainter.ramps.ColourGradient.Transition.LINEAR;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
+import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
 
 /**
  *
@@ -640,7 +644,7 @@ public final class App extends JFrame implements RadiusControl,
             // Load custom biomes. But first remove any that are now regular biomes
             List<CustomBiome> customBiomes = dimension.getCustomBiomes();
             if (customBiomes != null) {
-                final BiomeScheme biomeScheme = world.getPlatform().capabilities.contains(NAMED_BIOMES) ? StaticBiomeInfo.INSTANCE : Minecraft1_17BiomeInfo.INSTANCE;
+                final BiomeScheme biomeScheme = getBiomeScheme(world.getPlatform());
                 customBiomes.removeIf(customBiome -> biomeScheme.isBiomePresent(customBiome.getId()));
                 if (customBiomes.isEmpty()) {
                     customBiomes = null;

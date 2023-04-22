@@ -42,6 +42,7 @@ import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.*;
 import static org.pepsoft.worldpainter.importing.MapImporter.ReadOnlyOption.*;
 import static org.pepsoft.worldpainter.platforms.PlatformUtils.determineNativePlatforms;
+import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
 import static org.pepsoft.worldpainter.util.ChunkUtils.skipChunk;
 
 /**
@@ -244,8 +245,10 @@ public class JavaMapImporter extends MapImporter {
         final int maxY = maxHeight - 1;
         final Set<Point> newChunks = synchronizedSet(new HashSet<>());
         final Set<String> manMadeBlockTypes = synchronizedSet(new HashSet<>());
+        final BiomeScheme standardBiomes = getBiomeScheme(platform);
         final Set<Integer> unknownBiomes = synchronizedSet(new HashSet<>());
         final boolean importBiomes = platform.capabilities.contains(BIOMES) || platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES);
+        final Set<Integer> customNumberedBiomes = synchronizedSet(new HashSet<>());
         final Map<String, Integer> customNamedBiomes = synchronizedMap(new HashMap<>());
         final AtomicInteger nextCustomBiomeId = new AtomicInteger(FIRST_UNALLOCATED_ID);
         final Set<String> allBiomes = synchronizedSet(new HashSet<>());
@@ -388,12 +391,18 @@ public class JavaMapImporter extends MapImporter {
                                         int biome = 255;
                                         if (chunk.isBiomesAvailable()) {
                                             biome = chunk.getBiome(xx, zz);
+                                            if ((! standardBiomes.isBiomePresent(biome)) && (! customNumberedBiomes.contains(biome))) {
+                                                customNumberedBiomes.add(biome);
+                                            }
                                         } else if (chunk.is3DBiomesAvailable()) {
                                             // We accept a reduction in resolution here, and we lose 3D biome
                                             // information
                                             // TODO make this clear to the user
                                             // TODO add way of editing 3D biomes
                                             biome = chunk.get3DBiome(xx >> 2, dimension.getIntHeightAt(blockX, blockY) >> 2, zz >> 2);
+                                            if ((! standardBiomes.isBiomePresent(biome)) && (! customNumberedBiomes.contains(biome))) {
+                                                customNumberedBiomes.add(biome);
+                                            }
                                         } else if (chunk.isNamedBiomesAvailable()) {
                                             // We accept a reduction in resolution here, and we lose 3D biome
                                             // information
@@ -506,10 +515,16 @@ public class JavaMapImporter extends MapImporter {
                         + platform + " to bring the map fully up to date.");
             }
 
-            if (! customNamedBiomes.isEmpty()) {
-                List<CustomBiome> customBiomes = new ArrayList<>(customNamedBiomes.size());
+            if (! customNumberedBiomes.isEmpty()) {
+                final List<CustomBiome> customBiomes = new ArrayList<>(customNumberedBiomes.size());
+                for (int biomeId: customNumberedBiomes) {
+                    customBiomes.add(new CustomBiome("Biome " + biomeId, biomeId));
+                }
+                dimension.setCustomBiomes(customBiomes);
+            } else if (! customNamedBiomes.isEmpty()) {
+                final List<CustomBiome> customBiomes = new ArrayList<>(customNamedBiomes.size());
                 for (Map.Entry<String, Integer> entry: customNamedBiomes.entrySet()) {
-                    customBiomes.add(new CustomBiome(entry.getKey(), entry.getValue(), 0xff00ff));
+                    customBiomes.add(new CustomBiome(entry.getKey(), entry.getValue()));
                 }
                 dimension.setCustomBiomes(customBiomes);
             }

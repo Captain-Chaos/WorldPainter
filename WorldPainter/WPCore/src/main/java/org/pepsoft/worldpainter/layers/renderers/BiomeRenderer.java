@@ -15,6 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.pepsoft.worldpainter.biomeschemes.CustomBiome.pickColour;
+
 /**
  *
  * @author pepijn
@@ -89,15 +91,7 @@ public class BiomeRenderer implements ByteLayerRenderer, ColourSchemeRenderer, C
             } else if (StaticBiomeInfo.INSTANCE.isBiomePresent(i) && (colourScheme != null)) {
                 colours[i] = StaticBiomeInfo.INSTANCE.getColour(i, colourScheme);
             } else {
-                colours[i] = ((((i & 0x02) == 0x02)
-                        ? (((i & 0x01) == 0x01) ? 255 : 192)
-                        : (((i & 0x01) == 0x01) ? 128 :   0)) << 16)
-                    | ((((i & 0x08) == 0x08)
-                        ? (((i & 0x04) == 0x04) ? 255 : 192)
-                        : (((i & 0x04) == 0x04) ? 128 :   0)) << 8)
-                    | (((i & 0x20) == 0x20)
-                        ? (((i & 0x10) == 0x10) ? 255 : 192)
-                        : (((i & 0x10) == 0x10) ? 128 :   0));
+                colours[i] = pickColour(i);
             }
         }
         

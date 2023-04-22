@@ -13,6 +13,10 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.FIRST_UN
  * @author pepijn
  */
 public class CustomBiome implements Serializable {
+    public CustomBiome(String name, int id) {
+        this(name, id, pickColour(id));
+    }
+
     public CustomBiome(String name, int id, int colour) {
         setName(name);
         setId(id);
@@ -48,7 +52,19 @@ public class CustomBiome implements Serializable {
     public final void setColour(int colour) {
         this.colour = colour;
     }
-    
+
+    public static int pickColour(int biomeId) {
+        return ((((biomeId & 0x02) == 0x02)
+                ? (((biomeId & 0x01) == 0x01) ? 255 : 192)
+                : (((biomeId & 0x01) == 0x01) ? 128 :   0)) << 16)
+            | ((((biomeId & 0x08) == 0x08)
+                ? (((biomeId & 0x04) == 0x04) ? 255 : 192)
+                : (((biomeId & 0x04) == 0x04) ? 128 :   0)) << 8)
+            | (((biomeId & 0x20) == 0x20)
+                ? (((biomeId & 0x10) == 0x10) ? 255 : 192)
+                : (((biomeId & 0x10) == 0x10) ? 128 :   0));
+    }
+
     private String name;
     private int id, colour;
 

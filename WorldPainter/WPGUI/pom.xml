@@ -18,7 +18,7 @@
         <dependency>
             <groupId>org.pepsoft.utils</groupId>
             <artifactId>SwingUtils</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.pepsoft.worldpainter</groupId>
