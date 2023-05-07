@@ -93,6 +93,16 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
         return this;
     }
 
+    public ImportHeightMapOp withLowerBuildLimit(int lowerBuildLimit) {
+        this.lowerBuildLimit = lowerBuildLimit;
+        return this;
+    }
+
+    public ImportHeightMapOp withUpperBuildLimit(int upperBuildLimit) {
+        this.upperBuildLimit = upperBuildLimit;
+        return this;
+    }
+
     @Override
     public World2 go() throws ScriptException {
         goCalled();
@@ -113,25 +123,43 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
         // Use the platform's default min- and maxHeight if they suffice, or if not the next larger supported value
         // which does suffice
         int minHeight = Integer.MAX_VALUE, maxHeight = Integer.MIN_VALUE;
-        for (int platformMaxHeight: platform.maxHeights) {
-            if ((platformMaxHeight >= platform.standardMaxHeight)
-                    && (platformMaxHeight > Math.max(importer.getWorldHighLevel(), importer.getWorldWaterLevel()))) {
-                maxHeight = platformMaxHeight;
-                break;
+        if (lowerBuildLimit != Integer.MIN_VALUE) {
+            minHeight = lowerBuildLimit;
+            if (minHeight < platform.minMinHeight) {
+                throw new ScriptException("Lower build limit " + lowerBuildLimit + " lower than map format minimum lower build limit of " + platform.minMinHeight);
+            } else if (minHeight > platform.maxMinHeight) {
+                throw new ScriptException("Lower build limit " + lowerBuildLimit + " higher than map format maximum lower build limit of " + platform.maxMinHeight);
+            }
+        } else {
+            for (int platformMinHeight: platform.minHeights) {
+                if ((platformMinHeight <= platform.minZ)
+                        && (platformMinHeight <= Math.min(importer.getWorldLowLevel(), importer.getWorldWaterLevel()))) {
+                    minHeight = platformMinHeight;
+                    break;
+                }
+            }
+            if (minHeight == Integer.MAX_VALUE) {
+                throw new ScriptException("Map format " + platform + " not deep enough to accommodate minimum terrain height of " + importer.getWorldLowLevel() + " or water level of " + importer.getWorldWaterLevel());
             }
         }
-        if (maxHeight == Integer.MIN_VALUE) {
-            throw new ScriptException("Map format " + platform + " not high enough to accommodate maximum terrain height of " + importer.getWorldHighLevel() + " or water level of " + importer.getWorldWaterLevel());
-        }
-        for (int platformMinHeight: platform.minHeights) {
-            if ((platformMinHeight <= platform.minZ)
-                    && (platformMinHeight <= Math.min(importer.getWorldLowLevel(), importer.getWorldWaterLevel()))) {
-                minHeight = platformMinHeight;
-                break;
+        if (upperBuildLimit != Integer.MAX_VALUE) {
+            maxHeight = upperBuildLimit;
+            if (maxHeight < platform.minMaxHeight) {
+                throw new ScriptException("Upper build limit " + upperBuildLimit + " lower than map format minimum upper build limit of " + platform.minMaxHeight);
+            } else if (maxHeight > platform.maxMaxHeight) {
+                throw new ScriptException("Upper build limit " + upperBuildLimit + " higher than map format maximum upper build limit of " + platform.maxMaxHeight);
             }
-        }
-        if (minHeight == Integer.MAX_VALUE) {
-            throw new ScriptException("Map format " + platform + " not deep enough to accommodate minimum terrain height of " + importer.getWorldLowLevel() + " or water level of " + importer.getWorldWaterLevel());
+        } else {
+            for (int platformMaxHeight: platform.maxHeights) {
+                if ((platformMaxHeight >= platform.standardMaxHeight)
+                        && (platformMaxHeight > Math.max(importer.getWorldHighLevel(), importer.getWorldWaterLevel()))) {
+                    maxHeight = platformMaxHeight;
+                    break;
+                }
+            }
+            if (maxHeight == Integer.MIN_VALUE) {
+                throw new ScriptException("Map format " + platform + " not high enough to accommodate maximum terrain height of " + importer.getWorldHighLevel() + " or water level of " + importer.getWorldWaterLevel());
+            }
         }
         importer.setMinHeight(minHeight);
         importer.setMaxHeight(maxHeight);
@@ -160,6 +188,6 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
     private final HeightMapImporter importer = new HeightMapImporter();
     private BitmapHeightMap heightMap;
     private boolean fromLevelsSpecified, toLevelsSpecified;
-    private int scale = 100, waterLevel = DEFAULT_WATER_LEVEL, offsetX, offsetY;
+    private int scale = 100, waterLevel = DEFAULT_WATER_LEVEL, offsetX, offsetY, lowerBuildLimit = Integer.MIN_VALUE, upperBuildLimit = Integer.MAX_VALUE;
     private Platform platform = Configuration.getInstance().getDefaultPlatform();
 }

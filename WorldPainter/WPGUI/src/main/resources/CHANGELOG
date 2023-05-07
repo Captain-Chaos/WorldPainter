@@ -8,6 +8,10 @@
      - This also applies to the filter on the Global Operations screen
    + In the near future this support will be extended to other places where a paint is selected, such as the terrain, layer and biome drop-downs on th Global Operations screen and other places
  * Icons and other UI elements are now scaled smoothly according to the UI scale setting, rather than only at integer increments, to make the UI scaling more consistent
+ * Scripting: it is now possible to specify the lower and upper build limits of newly created worlds
+   + This is done with the new withLowerBuildLimit(int) and withUpperBuildLimit(int) modifiers on the createWorld() operation
+   + Both are optional, and default to the default build limit for the map format, or greater if that is necessary to accommodate the configured height mapping
+   + Note that in WorldPainter the lower build limit is inclusive, but the upper build limit is exclusive (e.g for Minecraft 1.19 the default upper build limit is 320, meaning the highest a block may be placed is 319)
  * Some small usability improvements
  * Bug fix: custom biomes from pre-1.17 maps are now correctly added to the Biomes panel when Importing a map from Minecraft, with arbitrary colours and named "Biome n" where n is the numerical biome ID
 
