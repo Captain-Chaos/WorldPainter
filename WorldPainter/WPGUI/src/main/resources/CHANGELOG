@@ -5,6 +5,7 @@
    + To cancel without selecting anything, press the Esc key
    + The "only on" and "except on" brush settings filter menus now also have a "Select on Map" choice which allows you to similarly select the value from the map
    + In the near future this support will be extended to other places where a paint is selected, such as the terrain, layer and biome drop-downs on th Global Operations screen and other places
+ * Icons and other UI elements are now scaled smoothly according to the UI scale setting, rather than only at integer increments, to make the UI scaling more consistent
  * Some small usability improvements
  * Bug fix: custom biomes from pre-1.17 maps are now correctly added to the Biomes panel when Importing a map from Minecraft, with arbitrary colours and named "Biome n" where n is the numerical biome ID
 
