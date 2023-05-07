@@ -561,7 +561,7 @@
     </Container>
     <Component class="javax.swing.JButton" name="buttonTestExport">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Test Export"/>
+        <Property name="text" type="java.lang.String" value="Test Export..."/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonTestExportActionPerformed"/>

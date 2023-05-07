@@ -852,7 +852,7 @@ public class ExportWorldDialog extends WorldPainterDialog {
 
         jTabbedPane1.addTab("General", jPanel1);
 
-        buttonTestExport.setText("Test Export");
+        buttonTestExport.setText("Test Export...");
         buttonTestExport.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 buttonTestExportActionPerformed(evt);
