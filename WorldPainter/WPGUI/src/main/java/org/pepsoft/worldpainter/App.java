@@ -124,9 +124,7 @@ import static org.pepsoft.minecraft.Material.WOOLS;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.util.GUIUtils.getUIScale;
-import static org.pepsoft.util.GUIUtils.getUIScaleInt;
-import static org.pepsoft.util.IconUtils.createScaledLetterIcon;
-import static org.pepsoft.util.IconUtils.scaleIcon;
+import static org.pepsoft.util.IconUtils.*;
 import static org.pepsoft.util.swing.MessageUtils.*;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.ProgressDialog.NO_FOCUS_STEALING;
@@ -2734,7 +2732,7 @@ public final class App extends JFrame implements RadiusControl,
 
         glassPane = new GlassPane();
         final BufferedImage cursorImage = IconUtils.loadUnscaledImage("org/pepsoft/worldpainter/cursor.png");
-        final java.awt.Dimension bestCursorSize = Toolkit.getDefaultToolkit().getBestCursorSize(32 * getUIScaleInt(), 32 * getUIScaleInt());
+        final java.awt.Dimension bestCursorSize = Toolkit.getDefaultToolkit().getBestCursorSize(Math.round(32 * getUIScale()), Math.round(32 * getUIScale()));
         if ((bestCursorSize.width != 0) && (bestCursorSize.height == bestCursorSize.width)) {
             int hotspot = 15;
             if (bestCursorSize.width != 32) {
@@ -3872,7 +3870,7 @@ public final class App extends JFrame implements RadiusControl,
         constraints.insets = new Insets(1, 1, 1, 1);
         optionsPanel.add(brushPanel, constraints);
 
-        optionsPanel.putClientProperty(KEY_ICON, createBrushThumbnail(SymmetricBrush.COSINE_CIRCLE, 16 * getUIScaleInt()));
+        optionsPanel.putClientProperty(KEY_ICON, createBrushThumbnail(SymmetricBrush.COSINE_CIRCLE, Math.round(16 * getUIScale())));
 
         return optionsPanel;
     }
@@ -6793,16 +6791,17 @@ public final class App extends JFrame implements RadiusControl,
             if ((icon == null) && (component instanceof Container)) {
                 icon = findIcon((Container) component);
                 if (icon != null) {
-                    if (((icon.getIconHeight() > 16 * getUIScaleInt()) || (icon.getIconWidth() > 16 * getUIScaleInt()))
+                    final int desiredSize = Math.round(16 * getUIScale());
+                    if (((icon.getIconHeight() > desiredSize) || (icon.getIconWidth() > desiredSize))
                             && (icon instanceof ImageIcon)
                             && (((ImageIcon) icon).getImage() instanceof BufferedImage)) {
                         float s;
                         if (icon.getIconWidth() > icon.getIconHeight()) {
                             // Wide icon
-                            s = 16f * getUIScaleInt() / icon.getIconWidth();
+                            s = (float) desiredSize / icon.getIconWidth();
                         } else {
                             // Tall (or square) icon
-                            s = 16f * getUIScaleInt() / icon.getIconHeight();
+                            s = (float) desiredSize / icon.getIconHeight();
                         }
                         BufferedImageOp op = new AffineTransformOp(AffineTransform.getScaleInstance(s, s), AffineTransformOp.TYPE_BICUBIC);
                         BufferedImage iconImage = op.filter((BufferedImage) ((ImageIcon) icon).getImage(), null);

@@ -224,7 +224,7 @@ public class BiomeSchemeManager {
                 }
             }
         }
-        return GUIUtils.scaleToUI(image);
+        return GUIUtils.scaleToUI(image, true);
     }
 
     public static List<Integer> getAvailableBiomeAlgorithms() {
