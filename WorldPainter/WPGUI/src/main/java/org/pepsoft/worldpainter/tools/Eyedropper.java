@@ -58,9 +58,9 @@ public final class Eyedropper extends MouseOrTabletOperation {
         } else {
             // Conscious choice to always show the popup menu, even if there is only one choice, to always give feedback
             // to the user as to exactly what value was selected
-            final JPopupMenu menu = new JPopupMenu();
+            popupMenu = new JPopupMenu();
             if (terrain != null) {
-                menu.add(new AbstractAction(terrain.getName(), new ImageIcon(terrain.getScaledIcon(16, colourScheme))) {
+                popupMenu.add(new AbstractAction(terrain.getName(), new ImageIcon(terrain.getScaledIcon(16, colourScheme))) {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         callback.terrainSelected(terrain);
@@ -85,7 +85,7 @@ public final class Eyedropper extends MouseOrTabletOperation {
                     } else {
                         throw new UnsupportedOperationException("Discrete layer " + layer + " not supported");
                     }
-                    menu.add(new AbstractAction(name, icon) {
+                    popupMenu.add(new AbstractAction(name, icon) {
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             callback.layerSelected(layer, value);
@@ -95,13 +95,23 @@ public final class Eyedropper extends MouseOrTabletOperation {
             }
             final WorldPainterView view = getView();
             final Point menuCoords = view.worldToView(x, y);
-            menu.show(view, menuCoords.x, menuCoords.y);
+            popupMenu.show(view, menuCoords.x, menuCoords.y);
         }
+    }
+
+    @Override
+    protected void deactivate() {
+        if ((popupMenu != null) && popupMenu.isShowing()) {
+            popupMenu.setVisible(false);
+            popupMenu = null;
+        }
+        super.deactivate();
     }
 
     private final ColourScheme colourScheme;
     private final CustomBiomeManager customBiomeManager;
     private SelectionListener callback;
+    private JPopupMenu popupMenu;
 
     /**
      * A selection callback that will be notified of the selected value, or if the operation was cancelled.
