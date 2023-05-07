@@ -187,7 +187,7 @@ public class ScriptingContext {
     /**
      * Get a map format by id or name.
      */
-    public GetPlatformOp getMapFormat(String name) {
+    public GetPlatformOp getMapFormat() {
         checkGoCalled("getMapFormat");
         return new GetPlatformOp(this);
     }
