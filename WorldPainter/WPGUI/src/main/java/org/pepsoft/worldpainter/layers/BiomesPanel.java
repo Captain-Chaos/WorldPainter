@@ -12,6 +12,7 @@ import org.pepsoft.worldpainter.biomeschemes.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
@@ -23,9 +24,11 @@ import static java.util.Collections.emptySet;
 import static java.util.EnumSet.noneOf;
 import static java.util.stream.Collectors.joining;
 import static javax.swing.BoxLayout.PAGE_AXIS;
+import static org.pepsoft.worldpainter.App.KEY_PAINT_ID;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.*;
 import static org.pepsoft.worldpainter.layers.BiomesPanel.BiomeOption.*;
+import static org.pepsoft.worldpainter.painting.PaintFactory.createDiscreteLayerPaintId;
 
 /**
  * Created by pepijn on 27-05-15.
@@ -56,6 +59,50 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         }
         if (biomesSet != desiredSet) {
             loadBiomes(desiredSet, colourScheme);
+        }
+    }
+
+    public void selectBiome(int biomeId) {
+        if (selectedBiome == biomeId) {
+            // Biome already selected
+            selectCurrentBaseBiomeButton();
+            notifyListener();
+        } else {
+            final BiomeDescriptor descriptor = findBiomeDescriptor(biomeId);
+            if (descriptor.baseId == selectedBaseBiome) {
+                // The corresponding base biome is already selected; just update the options if necessary
+                selectCurrentBaseBiomeButton();
+                for (Component component: optionsPanel.getComponents()) {
+                    final JCheckBox checkBox = (JCheckBox) component;
+                    if (descriptor.options.contains(checkBox.getClientProperty(KEY_BIOME_OPTION))) {
+                        // Checkbox should be checked
+                        if (! checkBox.isSelected()) {
+                            checkBox.setSelected(true);
+                        }
+                    } else {
+                        // Checkbox should be unchecked
+                        if (checkBox.isSelected()) {
+                            checkBox.setSelected(false);
+                        }
+                    }
+                }
+                updateOptions();
+                updateLabels();
+            } else {
+                // Base biome also needs to be updated
+                selectedBaseBiome = descriptor.baseId;
+                selectCurrentBaseBiomeButton();
+                resetOptions();
+                for (Component component: optionsPanel.getComponents()) {
+                    final JCheckBox checkBox = (JCheckBox) component;
+                    if (descriptor.options.contains(checkBox.getClientProperty(KEY_BIOME_OPTION))) {
+                        checkBox.setSelected(true);
+                    }
+                }
+                updateOptions();
+                updateLabels();
+            }
+            notifyListener();
         }
     }
 
@@ -195,6 +242,19 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         updateLabels();
     }
 
+    private void selectCurrentBaseBiomeButton() {
+        for (Component component: grid.getComponents()) {
+            if (component instanceof JToggleButton) {
+                final JToggleButton button = (JToggleButton) component;
+                if ((int) button.getClientProperty(KEY_BIOME) == selectedBaseBiome) {
+                    button.setSelected(true);
+                    return;
+                }
+            }
+        }
+        throw new IllegalArgumentException("No button found for currently selected base biome ID " + selectedBaseBiome);
+    }
+
     private void resetOptions() {
         Set<BiomeOption> availableOptions = findAvailableOptions(selectedBaseBiome);
         optionsPanel.removeAll();
@@ -283,6 +343,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         final int biome = customBiome.getId();
         final JToggleButton button = new JToggleButton(IconUtils.createScaledColourIcon(customBiome.getColour()));
         button.putClientProperty(KEY_BIOME, biome);
+        button.putClientProperty(KEY_PAINT_ID, createDiscreteLayerPaintId(Biome.INSTANCE, biome));
         button.putClientProperty(KEY_CUSTOM_BIOME, TRUE);
         button.setMargin(App.BUTTON_INSETS);
         button.setToolTipText(customBiome.getName() + " (" + biome + "); right-click for options");
@@ -333,8 +394,8 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
                 }
             });
         buttonGroup.add(button);
-        button.addActionListener(e -> {
-            if (button.isSelected()) {
+        button.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
                 selectBaseBiome(biome);
             }
         });
@@ -402,6 +463,15 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
             }
         }
         return options;
+    }
+
+    private BiomeDescriptor findBiomeDescriptor(int biomeId) {
+        for (BiomeDescriptor descriptor: biomesSet.descriptors) {
+            if (descriptor.id == biomeId) {
+                return descriptor;
+            }
+        }
+        throw new IllegalArgumentException("Biome ID not found in current biomes set: " + biomeId);
     }
 
     private void notifyListener() {

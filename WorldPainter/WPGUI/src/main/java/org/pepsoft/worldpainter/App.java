@@ -63,6 +63,7 @@ import org.pepsoft.worldpainter.ramps.DefaultColourRamp;
 import org.pepsoft.worldpainter.selection.*;
 import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
 import org.pepsoft.worldpainter.tools.BiomesViewerFrame;
+import org.pepsoft.worldpainter.tools.Eyedropper;
 import org.pepsoft.worldpainter.tools.RespawnPlayerDialog;
 import org.pepsoft.worldpainter.tools.scripts.ScriptRunner;
 import org.pepsoft.worldpainter.util.BetterAction;
@@ -143,6 +144,7 @@ import static org.pepsoft.worldpainter.TileRenderer.TERRAIN_AS_LAYER;
 import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_FIFTY_PERCENT;
 import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_TWENTYFIVE_PERCENT;
 import static org.pepsoft.worldpainter.World2.*;
+import static org.pepsoft.worldpainter.painting.PaintFactory.*;
 import static org.pepsoft.worldpainter.ramps.ColourGradient.Transition.LINEAR;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
@@ -189,6 +191,8 @@ public final class App extends JFrame implements RadiusControl,
         loadCustomBrushes();
         
         brushOptions = new BrushOptions();
+        brushOptions.setColourScheme(selectedColourScheme);
+        brushOptions.setCustomBiomeManager(customBiomeManager);
         brushOptions.setListener(this);
         brushOptions.setSelectionState(selectionState);
 
@@ -288,6 +292,7 @@ public final class App extends JFrame implements RadiusControl,
         }
 
         MainFrame.setMainFrame(this);
+        mapSelectionController = new MapSelectionController(this, view);
 
         PlantLayerEditor.loadIconsInBackground();
     }
@@ -516,6 +521,9 @@ public final class App extends JFrame implements RadiusControl,
             layersWithNoButton.clear();
 
             saveCustomBiomes();
+
+            mapSelectionController.cancelPaintSelection(true, false);
+            eyedropperToggleButton.setSelected(false);
 
             view.setDimension(null);
         }
@@ -1193,6 +1201,46 @@ public final class App extends JFrame implements RadiusControl,
         pauseAutosave = Math.max(pauseAutosave - 1, 0);
     }
 
+
+    public void selectPaint(String paintId) {
+        if (paintId == null) {
+            throw new NullPointerException();
+        } else {
+            for (Enumeration<AbstractButton> e = paintButtonGroup.getElements(); e.hasMoreElements(); ) {
+                final AbstractButton button = e.nextElement();
+                final String buttonPaintId = (String) button.getClientProperty(KEY_PAINT_ID);
+                if ((buttonPaintId != null) && buttonPaintId.equals(paintId)) {
+                    // Make sure that the dock the button is on is showing:
+                    Component parent = button.getParent();
+                    while (parent != null) {
+                        if (parent instanceof DockableFrame) {
+                            if (! parent.isShowing()) {
+                                dockingManager.showFrame(((DockableFrame) parent).getKey());
+                            }
+                            break;
+                        }
+                        parent = parent.getParent();
+                    }
+                    // Make sure that the button itself is selected:
+                    if (! button.isSelected()) {
+                        button.setSelected(true);
+                    }
+                    return;
+                }
+            }
+            // If we reach here it might be a non-custom biome, which don't all have buttons so we delegate to the
+            // biomes panel
+            if (paintId.startsWith("Layer/Biome/")) {
+                biomesPanel.selectBiome(Integer.parseInt(paintId.substring(12)));
+                if (! biomesPanelFrame.isShowing()) {
+                    dockingManager.showFrame("biomes");
+                }
+                return;
+            }
+        }
+        throw new IllegalArgumentException("No button found for paint " + paint);
+    }
+
     boolean changeWorldHeight(Window parent) {
         if ((world == null) || (dimension == null)) {
             DesktopUtils.beep();
@@ -1796,53 +1844,8 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    private String encodeForURL(String str) {
-        String[] parts = str.split("/");
-        try {
-            for (int i = 0; i < parts.length; i++) {
-                parts[i] = URLEncoder.encode(parts[i], "UTF-8");
-            }
-        } catch (UnsupportedEncodingException e) {
-            throw new InternalError("VM does not support mandatory encoding UTF-8");
-        }
-        return String.join("/", parts);
-    }
-
-    private int findNextCustomTerrainIndex() {
-        for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
-            if (! Terrain.isCustomMaterialConfigured(i)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private void addButtonForNewCustomTerrain(int index, MixedMaterial customMaterial, boolean select) {
-        Terrain.setCustomMaterial(index, customMaterial);
-
-        if (customTerrainPanel == null) {
-            dockingManager.addFrame(new DockableFrameBuilder(createCustomTerrainPanel(), "Custom Terrain", DOCK_SIDE_WEST, 3).withId("customTerrain").build());
-        }
-
-        JToggleButton newButton = createTerrainButton(Terrain.getCustomTerrain(index));
-        customMaterialButtons[index] = newButton;
-        newButton.setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
-        addMaterialSelectionTo(newButton, index);
-        customTerrainPanel.add(newButton, customTerrainPanel.getComponentCount() - 1);
-        customTerrainPanel.validate();
-        if (Terrain.getConfiguredCustomMaterialCount() == CUSTOM_TERRAIN_COUNT) {
-            ACTION_SHOW_CUSTOM_TERRAIN_POPUP.setEnabled(false);
-        }
-
-        if (select) {
-            newButton.setSelected(true);
-            paintUpdater = () -> {
-                paint = PaintFactory.createTerrainPaint(getCustomTerrain(index));
-                paintChanged();
-            };
-            paintUpdater.updatePaint();
-            dockingManager.activateFrame("customTerrain");
-        }
+    public void selectPaintOnMap(Eyedropper.SelectionListener selectionListener) {
+        mapSelectionController.selectPaintOnMap(selectionListener);
     }
 
     // BrushOptions.Listener
@@ -1948,6 +1951,63 @@ public final class App extends JFrame implements RadiusControl,
     void exit() {
         if (saveIfNecessary()) {
             System.exit(0);
+        }
+    }
+
+    void setGlassPaneComponent(Component component) {
+        glassPane.setPanelComponent(component);
+    }
+
+    void removeGlassPaneComponent() {
+        glassPane.removePanelComponent();
+    }
+
+    private String encodeForURL(String str) {
+        String[] parts = str.split("/");
+        try {
+            for (int i = 0; i < parts.length; i++) {
+                parts[i] = URLEncoder.encode(parts[i], "UTF-8");
+            }
+        } catch (UnsupportedEncodingException e) {
+            throw new InternalError("VM does not support mandatory encoding UTF-8");
+        }
+        return String.join("/", parts);
+    }
+
+    private int findNextCustomTerrainIndex() {
+        for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
+            if (! Terrain.isCustomMaterialConfigured(i)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void addButtonForNewCustomTerrain(int index, MixedMaterial customMaterial, boolean select) {
+        Terrain.setCustomMaterial(index, customMaterial);
+
+        if (customTerrainPanel == null) {
+            dockingManager.addFrame(new DockableFrameBuilder(createCustomTerrainPanel(), "Custom Terrain", DOCK_SIDE_WEST, 3).withId("customTerrain").build());
+        }
+
+        JToggleButton newButton = createTerrainButton(Terrain.getCustomTerrain(index));
+        customMaterialButtons[index] = newButton;
+        newButton.setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), customMaterial));
+        addMaterialSelectionTo(newButton, index);
+        customTerrainPanel.add(newButton, customTerrainPanel.getComponentCount() - 1);
+        customTerrainPanel.validate();
+        if (Terrain.getConfiguredCustomMaterialCount() == CUSTOM_TERRAIN_COUNT) {
+            ACTION_SHOW_CUSTOM_TERRAIN_POPUP.setEnabled(false);
+        }
+
+        if (select) {
+            newButton.setSelected(true);
+            paintUpdater = () -> {
+                paint = PaintFactory.createTerrainPaint(getCustomTerrain(index));
+                paintChanged();
+            };
+            paintUpdater.updatePaint();
+            dockingManager.activateFrame("customTerrain");
         }
     }
 
@@ -2898,7 +2958,7 @@ public final class App extends JFrame implements RadiusControl,
         actionMap.put("intensity80", ACTION_INTENSITY_80_PERCENT);
         actionMap.put("intensity90", ACTION_INTENSITY_90_PERCENT);
         actionMap.put("intensity100", ACTION_INTENSITY_100_PERCENT);
-        actionMap.put(ACTION_EXIT_DIMENSION.getName(), ACTION_EXIT_DIMENSION);
+        actionMap.put(ACTION_ESCAPE.getName(), ACTION_ESCAPE);
 
         int platformCommandMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
         InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
@@ -2947,7 +3007,7 @@ public final class App extends JFrame implements RadiusControl,
         inputMap.put(getKeyStroke(VK_NUMPAD8, 0),                                      "intensity80");
         inputMap.put(getKeyStroke(VK_NUMPAD9, 0),                                      "intensity90");
         inputMap.put(getKeyStroke(VK_NUMPAD0, 0),                                      "intensity100");
-        inputMap.put(ACTION_EXIT_DIMENSION.getAcceleratorKey(),                        ACTION_EXIT_DIMENSION.getName());
+        inputMap.put(ACTION_ESCAPE.getAcceleratorKey(),                        ACTION_ESCAPE.getName());
 
         programmaticChange = true;
         try {
@@ -3079,9 +3139,40 @@ public final class App extends JFrame implements RadiusControl,
 
         toolPanel.add(createButtonForOperation(new Flood(view, false), 'f'));
         toolPanel.add(createButtonForOperation(new Flood(view, true)));
-//        toolPanel.add(createButtonForOperation(new RiverPaint(view, this, mapDragControl)));
         toolPanel.add(createButtonForOperation(new Sponge(view, this, mapDragControl)));
-        toolPanel.add(Box.createGlue());
+        eyedropperToggleButton = new JToggleButton(loadScaledIcon("eyedropper"));
+        eyedropperToggleButton.setMargin(App.BUTTON_INSETS);
+        eyedropperToggleButton.addActionListener(e -> {
+            if (! eyedropperToggleButton.isSelected()) {
+                return;
+            } else if (dimension == null) {
+                eyedropperToggleButton.setSelected(false);
+                DesktopUtils.beep();
+                return;
+            }
+            mapSelectionController.selectPaintOnMap(new Eyedropper.SelectionListener() {
+                @Override
+                public void terrainSelected(Terrain terrain) {
+                    eyedropperToggleButton.setSelected(false);
+                    App.getInstance().selectPaint(createTerrainPaintId(terrain));
+                }
+
+                @Override
+                public void layerSelected(Layer layer, int value) {
+                    eyedropperToggleButton.setSelected(false);
+                    if (layer.discrete) {
+                        App.getInstance().selectPaint(createDiscreteLayerPaintId(layer, value));
+                    } else {
+                        App.getInstance().selectPaint(createLayerPaintId(layer));
+                    }
+                }
+
+                @Override public void selectionCancelled(boolean byUser) {}
+            });
+        });
+        eyedropperToggleButton.setToolTipText("Eyedropper: Select a paint from the map");
+        eyedropperToggleButton.putClientProperty(KEY_HELP_KEY, "Operation/Eyedropper");
+        toolPanel.add(eyedropperToggleButton);
 
         toolPanel.add(createButtonForOperation(new Height(view, this, mapDragControl), 'h'));
         toolPanel.add(createButtonForOperation(new Flatten(view, this, mapDragControl), 'a'));
@@ -3090,7 +3181,7 @@ public final class App extends JFrame implements RadiusControl,
 
 //        toolPanel.add(createButtonForOperation(new Erode(view, this, mapDragControl), 'm'));
         toolPanel.add(createButtonForOperation(new SetSpawnPoint(view)));
-        JButton button = new JButton(loadScaledIcon("globals"));
+        final JButton button = new JButton(loadScaledIcon("globals"));
         button.setMargin(App.BUTTON_INSETS);
         button.addActionListener(e -> showGlobalOperations());
         button.setToolTipText(strings.getString("global.operations.fill.or.clear.the.world.with.a.terrain.biome.or.layer"));
@@ -3099,11 +3190,11 @@ public final class App extends JFrame implements RadiusControl,
         toolPanel.add(createButtonForOperation(new RaiseRotatedPyramid(view)));
         toolPanel.add(createButtonForOperation(new RaisePyramid(view)));
 
-        JToggleButton copySelectionButton = createButtonForOperation(new CopySelectionOperation(view));
+        final JToggleButton copySelectionButton = createButtonForOperation(new CopySelectionOperation(view));
         copySelectionButton.setEnabled(selectionState.getValue());
         toolPanel.add(createButtonForOperation(new EditSelectionOperation(view, this, mapDragControl, selectionState)));
         toolPanel.add(copySelectionButton);
-        JButton clearSelectionButton = new JButton(loadScaledIcon("clear_selection"));
+        final JButton clearSelectionButton = new JButton(loadScaledIcon("clear_selection"));
         clearSelectionButton.setEnabled(selectionState.getValue());
         clearSelectionButton.setMargin(App.BUTTON_INSETS);
         clearSelectionButton.addActionListener(e -> {
@@ -3332,7 +3423,7 @@ public final class App extends JFrame implements RadiusControl,
 
         biomesPanel = new BiomesPanel(customBiomeManager, biomeId -> {
             paintUpdater = () -> {
-                paint = PaintFactory.createDiscreteLayerPaint(Biome.INSTANCE, biomeId);
+                paint = createDiscreteLayerPaint(Biome.INSTANCE, biomeId);
                 paintChanged();
             };
             paintUpdater.updatePaint();
@@ -3386,20 +3477,23 @@ public final class App extends JFrame implements RadiusControl,
         JPanel colourGrid = new JPanel(new GridLayout(0, 4));
         for (int i = 1; i < 16; i++) {
             final int selectedColour = i, dataValue = i - ((i < 8) ? 1 : 0);
-            JToggleButton button = new JToggleButton(IconUtils.createScaledColourIcon(selectedColourScheme.getColour(WOOLS[dataValue])));
+            JToggleButton button = new JToggleButton(createScaledColourIcon(selectedColourScheme.getColour(WOOLS[dataValue])));
             button.setToolTipText(COLOUR_NAMES[dataValue]);
             button.setMargin(App.BUTTON_INSETS);
             if (i == 1) {
                 button.setSelected(true);
             }
             paintButtonGroup.add(button);
-            button.addActionListener(e -> {
-                paintUpdater = () -> {
-                    paint = PaintFactory.createDiscreteLayerPaint(Annotations.INSTANCE, selectedColour);
-                    paintChanged();
-                };
-                paintUpdater.updatePaint();
+            button.addItemListener(e -> {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    paintUpdater = () -> {
+                        paint = createDiscreteLayerPaint(Annotations.INSTANCE, selectedColour);
+                        paintChanged();
+                    };
+                    paintUpdater.updatePaint();
+                }
             });
+            button.putClientProperty(KEY_PAINT_ID, createDiscreteLayerPaintId(Annotations.INSTANCE, selectedColour));
             colourGrid.add(button);
         }
         layerPanel.add(colourGrid, constraints);
@@ -5430,6 +5524,7 @@ public final class App extends JFrame implements RadiusControl,
                     refreshOptionsPanel = true;
                 }
             } else {
+                mapSelectionController.cancelPaintSelection(true, false);
                 if (operation instanceof PaintOperation) {
                     programmaticChange = true;
                     try {
@@ -5553,6 +5648,7 @@ public final class App extends JFrame implements RadiusControl,
             paintButtonGroup.add(button);
             button.setText(layer.getName());
             button.putClientProperty(KEY_HELP_KEY, "Layer/" + layer.getId());
+            button.putClientProperty(KEY_PAINT_ID, createLayerPaintId(layer));
             return createLayerRow(layer, true, createSoloCheckbox, button);
         } else {
             JLabel label = new JLabel(layer.getName(), new ImageIcon(layer.getIcon()), JLabel.LEADING);
@@ -5603,6 +5699,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private JToggleButton createTerrainButton(final Terrain terrain) {
         final JToggleButton button = new JToggleButton();
+        button.putClientProperty(KEY_PAINT_ID, createTerrainPaintId(terrain));
         button.setMargin(App.BUTTON_INSETS);
         button.setIcon(new ImageIcon(terrain.getScaledIcon(16, selectedColourScheme)));
         button.setToolTipText(terrain.getName() + ": " + terrain.getDescription());
@@ -5637,6 +5734,8 @@ public final class App extends JFrame implements RadiusControl,
         }
         updateLayerVisibility();
         closeCallout("callout_3");
+        mapSelectionController.cancelPaintSelection(true, false);
+        eyedropperToggleButton.setSelected(false);
     }
 
     /**
@@ -6062,6 +6161,12 @@ public final class App extends JFrame implements RadiusControl,
         final List<Integer> allBiomes = getAllBiomes(world.getPlatform(), customBiomeManager);
         final FillDialog dialog = new FillDialog(App.this, dimension, allLayers.toArray(new Layer[allLayers.size()]), selectedColourScheme, allBiomes.toArray(new Integer[allBiomes.size()]), customBiomeManager, view, selectionState);
         dialog.setVisible(true);
+        final Eyedropper.SelectionListener selectionListener = dialog.getSelectionListener();
+        if (selectionListener != null) {
+            // The user requested to select a paint from the map, so do that and allow the selectionListener to reopen
+            // the dialog
+            mapSelectionController.selectPaintOnMap(selectionListener);
+        }
     }
 
     private void exportImage() {
@@ -6774,6 +6879,15 @@ public final class App extends JFrame implements RadiusControl,
         glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         glassPane.addMouseListener(mouseListener);
         glassPane.setVisible(true);
+    }
+
+    private void escapePressed() {
+        if (mapSelectionController.isSelectionActive()) {
+            mapSelectionController.cancelPaintSelection(true, true);
+            eyedropperToggleButton.setSelected(false);
+        } else {
+            exitDimension();
+        }
     }
 
     private void exitDimension() {
@@ -7606,16 +7720,35 @@ public final class App extends JFrame implements RadiusControl,
         }
     };
 
-    private final BetterAction ACTION_EXIT_DIMENSION = new BetterAction("exitDimension", "Exit the current dimension") {
+    private final BetterAction ACTION_ESCAPE = new BetterAction("exitDimension", "Leave the current operation") {
         {
             setAcceleratorKey(getKeyStroke(VK_ESCAPE, 0));
         }
 
         @Override
         protected void performAction(ActionEvent e) {
-            exitDimension();
+            escapePressed();
         }
     };
+
+    private final ButtonGroup toolButtonGroup = new ButtonGroup(), brushButtonGroup = new ButtonGroup(), paintButtonGroup = new ButtonGroup();
+    private final Map<Brush, JToggleButton> brushButtons = new HashMap<>();
+    private final Map<Anchor, UndoManager> undoManagers = new HashMap<>();
+    private final JToggleButton[] customMaterialButtons = new JToggleButton[CUSTOM_TERRAIN_COUNT];
+    private final ColourScheme[] colourSchemes;
+    private final ColourScheme defaultColourScheme;
+    private final List<Layer> layers = LayerManager.getInstance().getLayers();
+    private final List<Operation> operations;
+    private final BrushOptions brushOptions;
+    private final CustomBiomeManager customBiomeManager = new CustomBiomeManager();
+    private final Set<CustomLayer> layersWithNoButton = new HashSet<>();
+    private final Map<Layer, JCheckBox> layerSoloCheckBoxes = new HashMap<>();
+    private final PaletteManager paletteManager = new PaletteManager(this);
+    private final Map<String, BufferedImage> callouts = new HashMap<>();
+    private final ObservableBoolean selectionState = new ObservableBoolean(true);
+    private final Map<Layer, LayerControls> layerControls = new HashMap<>();
+    private final boolean darkMode;
+    private final MapSelectionController mapSelectionController;
 
     private World2 world;
     private long lastSavedState = -1, lastAutosavedState = -1, lastSaveTimestamp = -1;
@@ -7628,12 +7761,9 @@ public final class App extends JFrame implements RadiusControl,
     private File lastSelectedFile;
     private JLabel heightLabel, slopeLabel, locationLabel, waterLabel, materialLabel, radiusLabel, zoomLabel, biomeLabel, levelLabel, brushRotationLabel;
     private int radius = 50;
-    private final ButtonGroup toolButtonGroup = new ButtonGroup(), brushButtonGroup = new ButtonGroup(), paintButtonGroup = new ButtonGroup();
     private Brush brush = SymmetricBrush.PLATEAU_CIRCLE, toolBrush = SymmetricBrush.COSINE_CIRCLE;
-    private final Map<Brush, JToggleButton> brushButtons = new HashMap<>();
     private boolean programmaticChange;
     private UndoManager currentUndoManager;
-    private final Map<Anchor, UndoManager> undoManagers = new HashMap<>();
     private JSlider levelSlider, brushRotationSlider;
     private float level = 0.51f, toolLevel = 0.51f;
     private Set<Layer> hiddenLayers = new HashSet<>();
@@ -7641,46 +7771,32 @@ public final class App extends JFrame implements RadiusControl,
     private GlassPane glassPane;
     private JComboBox<TerrainMode> terrainModeComboBox;
     private JCheckBox terrainSoloCheckBox;
-    private JToggleButton setSpawnPointToggleButton;
+    private JToggleButton setSpawnPointToggleButton, eyedropperToggleButton;
     private JMenuItem addNetherMenuItem, removeNetherMenuItem, addEndMenuItem, removeEndMenuItem, addCeilingMenuItem, removeCeilingMenuItem, addMasterMenuItem, removeMasterMenuItem;
     private JCheckBoxMenuItem viewSurfaceMenuItem, viewNetherMenuItem, viewEndMenuItem, extendedBlockIdsMenuItem;
-    private final JToggleButton[] customMaterialButtons = new JToggleButton[CUSTOM_TERRAIN_COUNT];
-    private final ColourScheme[] colourSchemes;
-    private final ColourScheme defaultColourScheme;
     private ColourScheme selectedColourScheme;
     private BiomeHelper biomeHelper;
     private SortedMap<String, BrushGroup> customBrushes;
-    private final List<Layer> layers = LayerManager.getInstance().getLayers();
-    private final List<Operation> operations;
     private ThreeDeeFrame threeDeeFrame;
     private BiomesViewerFrame biomesViewerFrame;
     private MapDragControl mapDragControl;
     private BiomesPanel biomesPanel;
     private DockableFrame biomesPanelFrame;
     private Filter filter, toolFilter;
-    private final BrushOptions brushOptions;
-    private final CustomBiomeManager customBiomeManager = new CustomBiomeManager();
-    private final Set<CustomLayer> layersWithNoButton = new HashSet<>();
-    private final Map<Layer, JCheckBox> layerSoloCheckBoxes = new HashMap<>();
     private Layer soloLayer;
-    private final PaletteManager paletteManager = new PaletteManager(this);
     private DockingManager dockingManager;
     private boolean hideAbout, hidePreferences, hideExit;
     private Paint paint = PaintFactory.NULL_PAINT;
     private PaintUpdater paintUpdater = () -> {
         // Do nothing
     };
-    private final Map<String, BufferedImage> callouts = new HashMap<>();
     private JMenu recentMenu;
     private JPanel toolSettingsPanel, customTerrainPanel;
-    private final ObservableBoolean selectionState = new ObservableBoolean(true);
     private Timer autosaveTimer;
     private int pauseAutosave;
     private long autosaveInhibitedUntil;
-    private final Map<Layer, LayerControls> layerControls = new HashMap<>();
     private InfoPanel infoPanel;
     private String outsideDimensionLabel;
-    private final boolean darkMode;
     private TerrainMode terrainMode = SHOW_TERRAIN;
 
     public static final Image ICON = IconUtils.loadScaledImage("org/pepsoft/worldpainter/icons/shovel-icon.png");
@@ -7690,6 +7806,7 @@ public final class App extends JFrame implements RadiusControl,
     public static final String KEY_HELP_KEY = "org.pepsoft.worldpainter.helpKey";
     public static final String KEY_ICON = "org.pepsoft.worldpainter.icon";
     public static final String KEY_THUMBNAIL = "org.pepsoft.worldpainter.thumbnail";
+    public static final String KEY_PAINT_ID = "org.pepsoft.worldpainter.paint.id";
 
     public static final Insets BUTTON_INSETS = new Insets(3, 5, 3, 5) {
         @Override

@@ -31,6 +31,11 @@ import java.awt.image.BufferedImage;
  * Created by pepijn on 15-05-15.
  */
 public interface Paint {
+    /**
+     * Get the stable and unique ID of this paint.
+     */
+    String getId();
+
     Brush getBrush();
 
     void setBrush(Brush brush);

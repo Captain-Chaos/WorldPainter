@@ -58,6 +58,11 @@ public abstract class AbstractPaint implements Paint {
         this.dither = dither;
     }
 
+    @Override
+    public String toString() {
+        return getId();
+    }
+
     protected final float getStrength(int centerX, int centerY, int x, int y) {
         return filterEnabled
             ? filter.modifyStrength(x, y, brush.getStrength(x - centerX, y - centerY))

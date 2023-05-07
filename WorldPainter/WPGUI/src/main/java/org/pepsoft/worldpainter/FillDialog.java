@@ -10,6 +10,7 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.ObservableBoolean;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
@@ -20,9 +21,11 @@ import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.operations.Filter;
 import org.pepsoft.worldpainter.panels.BrushOptions.Listener;
+import org.pepsoft.worldpainter.panels.BrushOptions.MapSelectionListener;
 import org.pepsoft.worldpainter.selection.SelectionBlock;
 import org.pepsoft.worldpainter.selection.SelectionChunk;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
+import org.pepsoft.worldpainter.tools.Eyedropper;
 
 import javax.swing.*;
 import java.util.Arrays;
@@ -31,15 +34,18 @@ import java.util.Set;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
+import static org.pepsoft.worldpainter.panels.BrushOptions.MENU_EXCEPT_ON;
+import static org.pepsoft.worldpainter.panels.BrushOptions.MENU_ONLY_ON;
 
 /**
  *
  * @author pepijn
  */
-public class FillDialog extends WorldPainterDialog implements Listener {
+public class FillDialog extends WorldPainterDialog implements Listener, MapSelectionListener {
     /** Creates new form FillDialog */
-    public FillDialog(java.awt.Frame parent, Dimension dimension, Layer[] layers, ColourScheme colourScheme, Integer[] biomes, CustomBiomeManager customBiomeManager, WorldPainterView view, ObservableBoolean selectionState) {
-        super(parent);
+    public FillDialog(App app, Dimension dimension, Layer[] layers, ColourScheme colourScheme, Integer[] biomes, CustomBiomeManager customBiomeManager, WorldPainterView view, ObservableBoolean selectionState) {
+        super(app);
+        this.app = app;
         this.dimension = dimension;
         this.colourScheme = colourScheme;
         this.view = view;
@@ -47,6 +53,8 @@ public class FillDialog extends WorldPainterDialog implements Listener {
         biomeHelper = new BiomeHelper(colourScheme, customBiomeManager, platform);
         
         initComponents();
+        brushOptions1.setColourScheme(colourScheme);
+        brushOptions1.setCustomBiomeManager(customBiomeManager);
         brushOptions1.setPlatform(platform);
         brushOptions1.setMinHeight(dimension.getMinHeight());
         brushOptions1.setMaxHeight(dimension.getMaxHeight());
@@ -72,18 +80,30 @@ public class FillDialog extends WorldPainterDialog implements Listener {
         comboBoxInvertLayer.setRenderer(new LayerListCellRenderer());
 
         brushOptions1.setListener(this);
+        brushOptions1.setMapSelectionListener(this);
         
         getRootPane().setDefaultButton(buttonFill);
 
         scaleToUI();
         pack();
-        setLocationRelativeTo(parent);
+        setLocationRelativeTo(app);
         
         setControlStates();
     }
 
     public ColourScheme getColourScheme() {
         return colourScheme;
+    }
+
+    /**
+     * Should be invoked after the dialog is closed to detect whether it is being closed temporarily in order for the
+     * user to select a value from the map, using the provided listener.
+     *
+     * @return If the map selection should be activated, a listener to report the result to. {@code null} if no map
+     * selection is requested.
+     */
+    public Eyedropper.SelectionListener getSelectionListener() {
+        return selectionListener;
     }
 
     // BrushOptions.Listener
@@ -93,7 +113,61 @@ public class FillDialog extends WorldPainterDialog implements Listener {
         filter = newFilter;
         pack();
     }
-    
+
+    // BrushOptions.MapSelectionListener
+
+    @Override
+    public void mapSelectionRequested(String descriptor) {
+        selectionListener = new Eyedropper.SelectionListener() {
+            @Override
+            public void terrainSelected(Terrain terrain) {
+                switch (descriptor) {
+                    case MENU_ONLY_ON:
+                        brushOptions1.setOnlyOn(terrain);
+                        break;
+                    case MENU_EXCEPT_ON:
+                        brushOptions1.setExceptOn(terrain);
+                        break;
+                }
+                showAgain();
+            }
+
+            @Override
+            public void layerSelected(Layer layer, int value) {
+                switch (descriptor) {
+                    case MENU_ONLY_ON:
+                        brushOptions1.setOnlyOn(layer, value);
+                        break;
+                    case MENU_EXCEPT_ON:
+                        brushOptions1.setExceptOn(layer, value);
+                        break;
+                }
+                showAgain();
+            }
+
+            @Override
+            public void selectionCancelled(boolean byUser) {
+                if (byUser) {
+                    showAgain();
+                } else {
+                    DesktopUtils.beep();
+                    dispose();
+                }
+            }
+
+            private void showAgain() {
+                selectionListener = null;
+                setVisible(true);
+                if (selectionListener != null) {
+                    // The user requested to select a paint from the map, so do that and allow the selectionListener to reopen
+                    // the dialog
+                    app.selectPaintOnMap(selectionListener);
+                }
+            }
+        };
+        setVisible(false);
+    }
+
     private void setControlStates() {
         comboBoxTerrain.setEnabled(radioButtonTerrain.isSelected());
         comboBoxSetLayer.setEnabled(radioButtonSetLayer.isSelected());
@@ -1136,19 +1210,19 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     }//GEN-LAST:event_radioButtonRemoveFromSelectionActionPerformed
 
     private void jLabel3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel3MouseClicked
-        App.getInstance().changeWorldHeight(this);
+        app.changeWorldHeight(this);
     }//GEN-LAST:event_jLabel3MouseClicked
 
     private void jLabel5MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel5MouseClicked
-        App.getInstance().rotateWorld(this);
+        app.rotateWorld(this);
     }//GEN-LAST:event_jLabel5MouseClicked
 
     private void jLabel7MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel7MouseClicked
-        App.getInstance().shiftWorld(this);
+        app.shiftWorld(this);
     }//GEN-LAST:event_jLabel7MouseClicked
 
     private void jLabel9MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel9MouseClicked
-        App.getInstance().scaleWorld(this);
+        app.scaleWorld(this);
     }//GEN-LAST:event_jLabel9MouseClicked
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -1187,11 +1261,13 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     private javax.swing.JSlider sliderLayerValue;
     // End of variables declaration//GEN-END:variables
 
+    private final App app;
     private final ColourScheme colourScheme;
     private final Dimension dimension;
     private final BiomeHelper biomeHelper;
     private final WorldPainterView view;
     private Filter filter;
+    private Eyedropper.SelectionListener selectionListener;
     
     private static final long serialVersionUID = 1L;
 }

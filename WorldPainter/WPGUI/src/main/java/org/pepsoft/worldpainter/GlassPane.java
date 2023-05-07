@@ -24,7 +24,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static org.pepsoft.util.GUIUtils.getUIScaleInt;
+import static java.awt.BorderLayout.CENTER;
+import static org.pepsoft.util.GUIUtils.getUIScale;
 
 /**
  *
@@ -48,7 +49,7 @@ public class GlassPane extends javax.swing.JPanel {
     }
 
     public void setHiddenLayers(Set<Layer> hiddenLayers) {
-        hiddenLayers.stream().filter(layer -> (!layer.equals(Biome.INSTANCE)) && (layer.getIcon() != null) && (!this.hiddenLayers.containsKey(layer))).forEach(layer -> {
+        hiddenLayers.stream().filter(layer -> (! layer.equals(Biome.INSTANCE)) && (layer.getIcon() != null) && (! this.hiddenLayers.containsKey(layer))).forEach(layer -> {
             JLabel label = createLabel(layer);
             this.hiddenLayers.put(layer, label);
         });
@@ -63,6 +64,17 @@ public class GlassPane extends javax.swing.JPanel {
             soloLayerLabel = null;
         }
         updateIcons();
+    }
+
+    public void setPanelComponent(Component component) {
+        jPanel2.removeAll();
+        jPanel2.add(component, CENTER);
+        jPanel2.revalidate();
+    }
+
+    public void removePanelComponent() {
+        jPanel2.removeAll();
+        jPanel2.revalidate();
     }
 
     private void updateIcons() {
@@ -117,10 +129,10 @@ public class GlassPane extends javax.swing.JPanel {
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
+        jPanel2 = new javax.swing.JPanel();
 
         setOpaque(false);
 
-        jLabel1.setForeground(java.awt.Color.black);
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/scale_bar.png"))); // NOI18N
         jLabel1.setText("100 blocks");
 
@@ -128,6 +140,8 @@ public class GlassPane extends javax.swing.JPanel {
 
         jPanel1.setOpaque(false);
         jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.LINE_AXIS));
+
+        jPanel2.setLayout(new java.awt.BorderLayout());
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -142,7 +156,9 @@ public class GlassPane extends javax.swing.JPanel {
                             .addComponent(jLabel2))
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(0, 0, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
@@ -150,6 +166,8 @@ public class GlassPane extends javax.swing.JPanel {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -161,6 +179,7 @@ public class GlassPane extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     // End of variables declaration//GEN-END:variables
 
     private WorldPainter view;

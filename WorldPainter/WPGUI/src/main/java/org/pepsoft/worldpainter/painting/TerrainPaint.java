@@ -43,6 +43,11 @@ public final class TerrainPaint extends AbstractPaint {
     }
 
     @Override
+    public String getId() {
+        return "Terrain/" + terrain.ordinal();
+    }
+
+    @Override
     public void apply(Dimension dimension, int centreX, int centreY, float dynamicLevel) {
         if (brush.getRadius() == 0) {
             // Special case: if the radius is 0, assume that the user wants to paint complete pixels instead of trying

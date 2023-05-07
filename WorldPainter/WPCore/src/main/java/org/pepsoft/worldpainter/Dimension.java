@@ -808,15 +808,14 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     /**
-     * Gets all layers that are set at the specified location, along with their
-     * intensities. For bit valued layers the intensity is zero for off, one for
+     * Gets all layers that are set at the specified location, along with their intensities or values. For bit-valued
+     * layers the intensity is zero for off, one for
      * on.
      *
      * @param x The X location for which to retrieve all layers.
      * @param y The Y location for which to retrieve all layers.
-     * @return A map with all layers set at the specified location, mapped to
-     *     their intensities at that location. May either be {@code null}
-     *     or an empty map if no layers are present.
+     * @return A map with all layers set at the specified location, mapped to their intensities or values at that
+     * location. May either be {@code null} or an empty map if no layers are present.
      */
     public Map<Layer, Integer> getLayersAt(int x, int y) {
         Tile tile = getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);

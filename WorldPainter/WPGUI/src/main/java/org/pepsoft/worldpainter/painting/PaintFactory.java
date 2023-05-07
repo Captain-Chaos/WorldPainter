@@ -62,11 +62,24 @@ public final class PaintFactory {
         }
     }
 
+    public static String createTerrainPaintId(Terrain terrain) {
+        return "Terrain/" + terrain.ordinal();
+    }
+
+    public static String createLayerPaintId(Layer layer) {
+        return "Layer/" + layer.getId();
+    }
+
+    public static String createDiscreteLayerPaintId(Layer layer, int value) {
+        return createLayerPaintId(layer) + '/' + value;
+    }
+
     public static Paint createTerrainPaint(Terrain terrain) {
         return new TerrainPaint(terrain);
     }
 
     public static class NullPaint implements Paint {
+        @Override public String getId() {return "null";}
         @Override public Brush getBrush() {return null;}
         @Override public void setBrush(Brush brush) {}
         @Override public Filter getFilter() {return null;}
@@ -78,6 +91,9 @@ public final class PaintFactory {
         @Override public void applyPixel(Dimension dimension, int x, int y) {}
         @Override public void removePixel(Dimension dimension, int x, int y) {}
         @Override public BufferedImage getIcon(ColourScheme colourScheme) {return null;}
+        @Override public boolean equals(Object obj) {return false;}
+        @Override public int hashCode() {return 0;}
+        @Override public String toString() {return "null";}
     }
 
     public static final Paint NULL_PAINT = new NullPaint();

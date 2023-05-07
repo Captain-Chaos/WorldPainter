@@ -6,8 +6,6 @@ import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.painting.AbstractPaint;
 
-import javax.vecmath.Point3i;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /**
@@ -17,6 +15,11 @@ import java.awt.image.BufferedImage;
  * <p>Created by Pepijn Schmitz on 31-01-17.
  */
 public class SelectionPaint extends AbstractPaint {
+    @Override
+    public String getId() {
+        return "Layer/org.pepsoft.worldpainter.selection";
+    }
+
     @Override
     public void apply(Dimension dimension, int x, int y, float dynamicLevel) {
         if (dimension != this.dimension) {

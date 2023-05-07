@@ -38,6 +38,11 @@ public abstract class LayerPaint extends AbstractPaint {
     }
 
     @Override
+    public String getId() {
+        return "Layer/" + layer.getId();
+    }
+
+    @Override
     public final BufferedImage getIcon(ColourScheme colourScheme) {
         return layer.getIcon();
     }
