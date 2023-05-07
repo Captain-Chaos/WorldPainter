@@ -3139,6 +3139,7 @@ public final class App extends JFrame implements RadiusControl,
         toolPanel.add(createButtonForOperation(new Flood(view, true)));
         toolPanel.add(createButtonForOperation(new Sponge(view, this, mapDragControl)));
         eyedropperToggleButton = new JToggleButton(loadScaledIcon("eyedropper"));
+        eyedropperToggleButton.setMnemonic('y');
         eyedropperToggleButton.setMargin(App.BUTTON_INSETS);
         eyedropperToggleButton.addActionListener(e -> {
             if (! eyedropperToggleButton.isSelected()) {
@@ -3168,7 +3169,7 @@ public final class App extends JFrame implements RadiusControl,
                 @Override public void selectionCancelled(boolean byUser) {}
             });
         });
-        eyedropperToggleButton.setToolTipText("Eyedropper: Select a paint from the map");
+        eyedropperToggleButton.setToolTipText("Eyedropper: Select a paint from the map (Alt+y)");
         eyedropperToggleButton.putClientProperty(KEY_HELP_KEY, "Operation/Eyedropper");
         toolPanel.add(eyedropperToggleButton);
 
@@ -5497,14 +5498,17 @@ public final class App extends JFrame implements RadiusControl,
         if (icon != null) {
             button.setIcon(new ImageIcon(icon));
         }
-        if (operation.getName().equalsIgnoreCase(operation.getDescription())) {
-            button.setToolTipText(operation.getName());
-        } else {
-            button.setToolTipText(operation.getName() + ": " + operation.getDescription());
+        final StringBuilder tooltip = new StringBuilder();
+        tooltip.append(operation.getName());
+        final String description = operation.getDescription();
+        if ((description != null) && (! operation.getName().equalsIgnoreCase(description))) {
+            tooltip.append(": ").append(description);
         }
         if (mnemonic != 0) {
             button.setMnemonic(mnemonic);
+            tooltip.append(" (Alt+").append(mnemonic).append(')');
         }
+        button.setToolTipText(tooltip.toString());
         button.addItemListener(event -> {
             boolean refreshOptionsPanel = false;
             if (event.getStateChange() == ItemEvent.DESELECTED) {
