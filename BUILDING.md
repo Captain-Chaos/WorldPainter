@@ -15,13 +15,7 @@ Of course if you are not interested in running the code on Apple Mac OS X, or ru
 WorldPainter uses the [Maven toolchain framework](https://maven.apache.org/guides/mini/guide-using-toolchains.html) to find the JDKs it needs. You need to follow the instructions on that page to configure two toolchains: one of type jdk and version 1.8 pointing to a Java 8 JDK, and one of type jdk and version 9 (or higher) pointing to a Java 9 (or higher) JDK. Note that it has not been tested whether WorldPainter will run correctly on older Java versions if you substitute a newer JDK for version 9.
 
 ## Build WorldPainter
-Once all dependencies are installed and the toolchains set up you can build WorldPainter from the command line or using your favourite IDE:
-
-### Build WPValueObjects
-The other modules depend on `WPValueObjects`, so build that first by invoking the `install` goal on the `WPValueObjects` module. You only need to do this once, as long as you don't change any code in the WPValueObjects module.
-
-### Build WorldPainter
-Now you can build WorldPainter itself, by invoking the `install` goal on the `WorldPainter` module. There are some rudimentary unit tests, but they take a while to run and don't contribute much, so I recommend skipping them by adding `-DskipTests=true`.
+Once all dependencies are installed and the toolchains set up you can build WorldPainter from the command line or using your favourite IDE by invoking the `install` goal on the `WorldPainter` module. There are some rudimentary tests, but they take a while to run and don't contribute much, so I recommend skipping them by adding `-DskipTests=true`.
 
 ## Run WorldPainter
 Once it is built, you can run WorldPainter by invoking the `exec:exec` goal on the `WPGUI` module, or by running the main class: `org.pepsoft.worldpainter.Main`.
