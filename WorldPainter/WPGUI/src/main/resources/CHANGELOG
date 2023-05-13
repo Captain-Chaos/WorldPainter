@@ -1,4 +1,4 @@
--- Version 2.17.1, released ...
+-- Version 2.17.1, released 13-5-2023
 
  * A new Eyedropper tool has been introduced that allows you to select paints directly from the map
    + It is available on the Tools panel in the shape of an eyedropper
@@ -6,7 +6,7 @@
    + To cancel without selecting anything, press the Esc key
    + The "only on" and "except on" brush settings filter menus now also have a "Select on Map" choice which allows you to similarly select the value from the map
      - This also applies to the filter on the Global Operations screen
-   + In the near future this support will be extended to other places where a paint is selected, such as the terrain, layer and biome drop-downs on th Global Operations screen and other places
+   + In the near future this support will be extended to other places where a paint is selected, such as the terrain, layer and biome drop-downs on the Global Operations screen and other places
  * Icons and other UI elements are now scaled smoothly according to the UI scale setting, rather than only at integer increments, to make the UI scaling more consistent
  * Scripting: it is now possible to specify the lower and upper build limits of newly created worlds
    + This is done with the new withLowerBuildLimit(int) and withUpperBuildLimit(int) modifiers on the createWorld() operation
