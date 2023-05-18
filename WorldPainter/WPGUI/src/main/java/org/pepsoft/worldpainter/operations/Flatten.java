@@ -5,6 +5,7 @@
 
 package org.pepsoft.worldpainter.operations;
 
+import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.MapDragControl;
 import org.pepsoft.worldpainter.RadiusControl;
@@ -35,6 +36,12 @@ public class Flatten extends RadiusOperation {
         }
         if (first) {
             targetHeight = dimension.getHeightAt(centreX, centreY);
+            if (targetHeight == -Float.MAX_VALUE) {
+                DesktopUtils.beep();
+            }
+        }
+        if (targetHeight == -Float.MAX_VALUE) {
+            return;
         }
         dimension.setEventsInhibited(true);
         try {
@@ -60,5 +67,5 @@ public class Flatten extends RadiusOperation {
     
     private final TerrainShapingOptions<Flatten> options = new TerrainShapingOptions<>();
     private final TerrainShapingOptionsPanel optionsPanel = new TerrainShapingOptionsPanel("Flatten", "<p>Click to flatten the terrain", options);
-    private float targetHeight;
+    private float targetHeight = -Float.MAX_VALUE;
 }
