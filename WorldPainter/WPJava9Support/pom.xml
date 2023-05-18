@@ -15,7 +15,7 @@
         <dependency>
             <groupId>org.pepsoft.utils</groupId>
             <artifactId>SwingUtils</artifactId>
-            <version>1.1.0</version>
+            <version>${pepsoft.swingutils.version}</version>
         </dependency>
     </dependencies>
 
@@ -23,7 +23,7 @@
         <plugins>
             <plugin>
                 <artifactId>maven-toolchains-plugin</artifactId>
-                <version>1.1</version>
+                <version>${maven-toolchains-plugin.version}</version>
                 <configuration>
                     <toolchains>
                         <jdk>
@@ -42,7 +42,7 @@
             <!-- Create a fake Javadoc jar to appease OSSRH -->
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>${maven-jar-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>fake-javadoc</id>

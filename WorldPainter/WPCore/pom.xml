@@ -13,73 +13,73 @@
         <dependency>
             <groupId>org.pepsoft.utils</groupId>
             <artifactId>Utils</artifactId>
-            <version>1.0.0</version>
+            <version>${pepsoft.utils.version}</version>
         </dependency>
         <dependency>
             <groupId>org.pepsoft.jnbt</groupId>
             <artifactId>JNBT</artifactId>
-            <version>1.0.0</version>
+            <version>${pepsoft.jnbt.version}</version>
         </dependency>
         <dependency>
             <groupId>org.pepsoft.utils</groupId>
             <artifactId>SwingUtils</artifactId>
-            <version>1.0.0</version>
+            <version>${pepsoft.swingutils.version}</version>
         </dependency>
         <dependency>
             <groupId>org.pepsoft.worldpainter</groupId>
             <artifactId>WPValueObjects</artifactId>
-            <version>1.1.0</version>
+            <version>${wp.valueobjects.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>24.0.1</version>
+            <version>${jetbrains.annotations.version}</version>
             <scope>provided</scope> <!-- Not really, but these annotations aren't needed at runtime. -->
         </dependency>
 
         <dependency>
             <groupId>java3d</groupId>
             <artifactId>vecmath</artifactId>
-            <version>1.3.1</version>
+            <version>${vecmath.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
             <artifactId>imageio-tiff</artifactId>
-            <version>3.8.2</version>
+            <version>${imageio-tiff.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.36</version>
+            <version>${slf4j.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.openjdk.nashorn</groupId>
             <artifactId>nashorn-core</artifactId>
-            <version>15.4</version>
+            <version>${nashorn-core.version}</version>
             <scope>runtime</scope>
         </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.22</version>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13.2</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>1.7.36</version>
+            <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -107,7 +107,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>1.3</version>
+                <version>${buildnumber-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <goals>
