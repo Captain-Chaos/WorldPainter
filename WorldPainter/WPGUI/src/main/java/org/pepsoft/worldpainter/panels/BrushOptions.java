@@ -376,7 +376,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
         if (mapSelectionListener != null) {
             eyedropperItem.addActionListener(e -> mapSelectionListener.mapSelectionRequested(descriptor));
         } else {
-            eyedropperItem.addActionListener(e -> App.getInstance().selectPaintOnMap(new Eyedropper.SelectionListener() {
+            eyedropperItem.addActionListener(e -> App.getInstance().selectPaintOnMap(null, new Eyedropper.SelectionListener() {
                 @Override
                 public void terrainSelected(Terrain terrain) {
                     switch (descriptor) {

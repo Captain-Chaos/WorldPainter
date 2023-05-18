@@ -10,7 +10,6 @@
  */
 package org.pepsoft.worldpainter;
 
-import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.ObservableBoolean;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
@@ -25,10 +24,12 @@ import org.pepsoft.worldpainter.panels.BrushOptions.MapSelectionListener;
 import org.pepsoft.worldpainter.selection.SelectionBlock;
 import org.pepsoft.worldpainter.selection.SelectionChunk;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
-import org.pepsoft.worldpainter.tools.Eyedropper;
+import org.pepsoft.worldpainter.tools.Eyedropper.PaintType;
+import org.pepsoft.worldpainter.tools.Eyedropper.SelectionListener;
 
 import javax.swing.*;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Set;
 
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
@@ -36,16 +37,16 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 import static org.pepsoft.worldpainter.panels.BrushOptions.MENU_EXCEPT_ON;
 import static org.pepsoft.worldpainter.panels.BrushOptions.MENU_ONLY_ON;
+import static org.pepsoft.worldpainter.tools.Eyedropper.PaintType.*;
 
 /**
  *
  * @author pepijn
  */
-public class FillDialog extends WorldPainterDialog implements Listener, MapSelectionListener {
+public class FillDialog extends WPDialogWithPaintSelection implements Listener, MapSelectionListener {
     /** Creates new form FillDialog */
     public FillDialog(App app, Dimension dimension, Layer[] layers, ColourScheme colourScheme, Integer[] biomes, CustomBiomeManager customBiomeManager, WorldPainterView view, ObservableBoolean selectionState) {
         super(app);
-        this.app = app;
         this.dimension = dimension;
         this.colourScheme = colourScheme;
         this.view = view;
@@ -95,17 +96,6 @@ public class FillDialog extends WorldPainterDialog implements Listener, MapSelec
         return colourScheme;
     }
 
-    /**
-     * Should be invoked after the dialog is closed to detect whether it is being closed temporarily in order for the
-     * user to select a value from the map, using the provided listener.
-     *
-     * @return If the map selection should be activated, a listener to report the result to. {@code null} if no map
-     * selection is requested.
-     */
-    public Eyedropper.SelectionListener getSelectionListener() {
-        return selectionListener;
-    }
-
     // BrushOptions.Listener
     
     @Override
@@ -118,7 +108,7 @@ public class FillDialog extends WorldPainterDialog implements Listener, MapSelec
 
     @Override
     public void mapSelectionRequested(String descriptor) {
-        selectionListener = new Eyedropper.SelectionListener() {
+        selectFromMap(null, new SelectionListener() {
             @Override
             public void terrainSelected(Terrain terrain) {
                 switch (descriptor) {
@@ -129,7 +119,6 @@ public class FillDialog extends WorldPainterDialog implements Listener, MapSelec
                         brushOptions1.setExceptOn(terrain);
                         break;
                 }
-                showAgain();
             }
 
             @Override
@@ -142,39 +131,24 @@ public class FillDialog extends WorldPainterDialog implements Listener, MapSelec
                         brushOptions1.setExceptOn(layer, value);
                         break;
                 }
-                showAgain();
             }
 
-            @Override
-            public void selectionCancelled(boolean byUser) {
-                if (byUser) {
-                    showAgain();
-                } else {
-                    DesktopUtils.beep();
-                    dispose();
-                }
-            }
-
-            private void showAgain() {
-                selectionListener = null;
-                setVisible(true);
-                if (selectionListener != null) {
-                    // The user requested to select a paint from the map, so do that and allow the selectionListener to reopen
-                    // the dialog
-                    app.selectPaintOnMap(selectionListener);
-                }
-            }
-        };
-        setVisible(false);
+            @Override public void selectionCancelled(boolean byUser) {}
+        });
     }
 
     private void setControlStates() {
         comboBoxTerrain.setEnabled(radioButtonTerrain.isSelected());
+        buttonFillTerrainSelectOnMap.setEnabled(radioButtonTerrain.isSelected());
         comboBoxSetLayer.setEnabled(radioButtonSetLayer.isSelected());
+        buttonFillLayerSelectOnMap.setEnabled(radioButtonSetLayer.isSelected());
         sliderLayerValue.setEnabled(radioButtonSetLayer.isSelected() && ((((Layer) comboBoxSetLayer.getSelectedItem()).getDataSize() == Layer.DataSize.BYTE) || (((Layer) comboBoxSetLayer.getSelectedItem()).getDataSize() == Layer.DataSize.NIBBLE)));
         comboBoxClearLayer.setEnabled(radioButtonClearLayer.isSelected());
+        buttonRemoveLayerSelectOnMap.setEnabled(radioButtonClearLayer.isSelected());
         comboBoxInvertLayer.setEnabled(radioButtonInvertLayer.isSelected());
+        buttonInvertLayerSelectOnMap.setEnabled(radioButtonInvertLayer.isSelected());
         comboBoxBiome.setEnabled(radioButtonBiome.isSelected());
+        buttonFillBiomeSelectOnMap.setEnabled(radioButtonBiome.isSelected());
         buttonFill.setEnabled(radioButtonTerrain.isSelected() || radioButtonSetLayer.isSelected() || radioButtonClearLayer.isSelected() || radioButtonInvertLayer.isSelected() || radioButtonBiome.isSelected() || radioButtonResetBiomes.isSelected() || radioButtonResetWater.isSelected() || radioButtonResetTerrain.isSelected() || radioButtonMakeBiomesPermanent.isSelected() || radioButtonAddToSelection.isSelected() || radioButtonRemoveFromSelection.isSelected());
     }
     
@@ -253,6 +227,8 @@ public class FillDialog extends WorldPainterDialog implements Listener, MapSelec
                 dimension.armSavePoint();
                 if (! checkBoxKeepOpen.isSelected()) {
                     ok();
+                } else {
+                    buttonCancel.setText("Close");
                 }
             }
         } finally {
@@ -773,6 +749,26 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             }, progressReceiver);
         }
     }
+    
+    private void selectOnMap(JComboBox<?> comboBox, PaintType... paintTypes) {
+        selectFromMap(EnumSet.copyOf(Arrays.asList(paintTypes)), new SelectionListener() {
+            @Override
+            public void terrainSelected(Terrain terrain) {
+                comboBox.setSelectedItem(terrain);
+            }
+
+            @Override
+            public void layerSelected(Layer layer, int value) {
+                if (comboBox == comboBoxBiome) {
+                    comboBox.setSelectedItem(value);
+                } else {
+                    comboBox.setSelectedItem(layer);
+                }
+            }
+
+            @Override public void selectionCancelled(boolean byUser) {}
+        });
+    }
 
     /** This method is called from within the constructor to
      * initialize the form.
@@ -807,6 +803,11 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         radioButtonMakeBiomesPermanent = new javax.swing.JRadioButton();
         radioButtonAddToSelection = new javax.swing.JRadioButton();
         radioButtonRemoveFromSelection = new javax.swing.JRadioButton();
+        buttonFillTerrainSelectOnMap = new javax.swing.JButton();
+        buttonFillLayerSelectOnMap = new javax.swing.JButton();
+        buttonRemoveLayerSelectOnMap = new javax.swing.JButton();
+        buttonInvertLayerSelectOnMap = new javax.swing.JButton();
+        buttonFillBiomeSelectOnMap = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
@@ -952,6 +953,56 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
             }
         });
 
+        buttonFillTerrainSelectOnMap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/eyedropper.png"))); // NOI18N
+        buttonFillTerrainSelectOnMap.setToolTipText("Select a terrain type from the map.");
+        buttonFillTerrainSelectOnMap.setEnabled(false);
+        buttonFillTerrainSelectOnMap.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        buttonFillTerrainSelectOnMap.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonFillTerrainSelectOnMapActionPerformed(evt);
+            }
+        });
+
+        buttonFillLayerSelectOnMap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/eyedropper.png"))); // NOI18N
+        buttonFillLayerSelectOnMap.setToolTipText("Select a layer from the map.");
+        buttonFillLayerSelectOnMap.setEnabled(false);
+        buttonFillLayerSelectOnMap.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        buttonFillLayerSelectOnMap.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonFillLayerSelectOnMapActionPerformed(evt);
+            }
+        });
+
+        buttonRemoveLayerSelectOnMap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/eyedropper.png"))); // NOI18N
+        buttonRemoveLayerSelectOnMap.setToolTipText("Select a layer from the map.");
+        buttonRemoveLayerSelectOnMap.setEnabled(false);
+        buttonRemoveLayerSelectOnMap.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        buttonRemoveLayerSelectOnMap.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonRemoveLayerSelectOnMapActionPerformed(evt);
+            }
+        });
+
+        buttonInvertLayerSelectOnMap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/eyedropper.png"))); // NOI18N
+        buttonInvertLayerSelectOnMap.setToolTipText("Select a layer from the map.");
+        buttonInvertLayerSelectOnMap.setEnabled(false);
+        buttonInvertLayerSelectOnMap.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        buttonInvertLayerSelectOnMap.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonInvertLayerSelectOnMapActionPerformed(evt);
+            }
+        });
+
+        buttonFillBiomeSelectOnMap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/eyedropper.png"))); // NOI18N
+        buttonFillBiomeSelectOnMap.setToolTipText("Select a biome from the map.");
+        buttonFillBiomeSelectOnMap.setEnabled(false);
+        buttonFillBiomeSelectOnMap.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        buttonFillBiomeSelectOnMap.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonFillBiomeSelectOnMapActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -961,26 +1012,36 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(radioButtonSetLayer)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(comboBoxSetLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(comboBoxSetLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonFillLayerSelectOnMap))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(12, 12, 12)
                         .addComponent(sliderLayerValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(radioButtonClearLayer)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(comboBoxClearLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(comboBoxClearLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonRemoveLayerSelectOnMap))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(radioButtonBiome)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(comboBoxBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(comboBoxBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonFillBiomeSelectOnMap))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(radioButtonInvertLayer)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(comboBoxInvertLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(comboBoxInvertLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonInvertLayerSelectOnMap))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(radioButtonTerrain)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonFillTerrainSelectOnMap))
                     .addComponent(radioButtonResetTerrain)
                     .addComponent(radioButtonResetBiomes)
                     .addComponent(radioButtonMakeBiomesPermanent)
@@ -995,37 +1056,49 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(radioButtonTerrain)
-                    .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(buttonFillTerrainSelectOnMap))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(radioButtonResetTerrain)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(radioButtonResetWater)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(radioButtonSetLayer)
-                    .addComponent(comboBoxSetLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(radioButtonSetLayer)
+                                        .addComponent(comboBoxSetLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(buttonFillLayerSelectOnMap))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(sliderLayerValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(radioButtonClearLayer)
+                                    .addComponent(comboBoxClearLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(buttonRemoveLayerSelectOnMap))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(radioButtonInvertLayer)
+                            .addComponent(comboBoxInvertLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(buttonInvertLayerSelectOnMap))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(sliderLayerValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(radioButtonClearLayer)
-                    .addComponent(comboBoxClearLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(radioButtonInvertLayer)
-                    .addComponent(comboBoxInvertLayer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(radioButtonBiome)
-                    .addComponent(comboBoxBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(radioButtonMakeBiomesPermanent)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(radioButtonResetBiomes)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(radioButtonAddToSelection)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(radioButtonRemoveFromSelection)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(radioButtonBiome)
+                            .addComponent(comboBoxBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(radioButtonMakeBiomesPermanent)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(radioButtonResetBiomes)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(radioButtonAddToSelection)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(radioButtonRemoveFromSelection))
+                    .addComponent(buttonFillBiomeSelectOnMap))
                 .addContainerGap())
         );
 
@@ -1225,11 +1298,36 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
         app.scaleWorld(this);
     }//GEN-LAST:event_jLabel9MouseClicked
 
+    private void buttonFillTerrainSelectOnMapActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonFillTerrainSelectOnMapActionPerformed
+        selectOnMap(comboBoxTerrain, TERRAIN);
+    }//GEN-LAST:event_buttonFillTerrainSelectOnMapActionPerformed
+
+    private void buttonFillLayerSelectOnMapActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonFillLayerSelectOnMapActionPerformed
+        selectOnMap(comboBoxSetLayer, LAYER);
+    }//GEN-LAST:event_buttonFillLayerSelectOnMapActionPerformed
+
+    private void buttonRemoveLayerSelectOnMapActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonRemoveLayerSelectOnMapActionPerformed
+        selectOnMap(comboBoxClearLayer, LAYER, ANNOTATION);
+    }//GEN-LAST:event_buttonRemoveLayerSelectOnMapActionPerformed
+
+    private void buttonInvertLayerSelectOnMapActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonInvertLayerSelectOnMapActionPerformed
+        selectOnMap(comboBoxInvertLayer, LAYER);
+    }//GEN-LAST:event_buttonInvertLayerSelectOnMapActionPerformed
+
+    private void buttonFillBiomeSelectOnMapActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonFillBiomeSelectOnMapActionPerformed
+        selectOnMap(comboBoxBiome, BIOME);
+    }//GEN-LAST:event_buttonFillBiomeSelectOnMapActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.pepsoft.worldpainter.panels.BrushOptions brushOptions1;
     private javax.swing.JButton buttonCancel;
     private javax.swing.JButton buttonFill;
+    private javax.swing.JButton buttonFillBiomeSelectOnMap;
+    private javax.swing.JButton buttonFillLayerSelectOnMap;
+    private javax.swing.JButton buttonFillTerrainSelectOnMap;
     private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.JButton buttonInvertLayerSelectOnMap;
+    private javax.swing.JButton buttonRemoveLayerSelectOnMap;
     private javax.swing.JCheckBox checkBoxKeepOpen;
     private javax.swing.JComboBox comboBoxBiome;
     private javax.swing.JComboBox comboBoxClearLayer;
@@ -1261,13 +1359,11 @@ chunks:         for (int chunkX = 0; chunkX < TILE_SIZE; chunkX += 16) {
     private javax.swing.JSlider sliderLayerValue;
     // End of variables declaration//GEN-END:variables
 
-    private final App app;
     private final ColourScheme colourScheme;
     private final Dimension dimension;
     private final BiomeHelper biomeHelper;
     private final WorldPainterView view;
     private Filter filter;
-    private Eyedropper.SelectionListener selectionListener;
-    
+
     private static final long serialVersionUID = 1L;
 }

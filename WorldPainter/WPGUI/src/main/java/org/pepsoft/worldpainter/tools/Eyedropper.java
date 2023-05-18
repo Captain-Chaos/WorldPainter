@@ -16,11 +16,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.Map;
+import java.util.Set;
 
 import static org.pepsoft.minecraft.Constants.COLOUR_NAMES;
 import static org.pepsoft.minecraft.Material.WOOLS;
 import static org.pepsoft.util.IconUtils.createScaledColourIcon;
 import static org.pepsoft.util.IconUtils.scaleIcon;
+import static org.pepsoft.worldpainter.tools.Eyedropper.PaintType.*;
 
 /**
  * A one-click operation that shows a list of paints where the user has clicked and allows the user to select one. Once
@@ -45,14 +47,22 @@ public final class Eyedropper extends MouseOrTabletOperation {
         this.callback = callback;
     }
 
+    public Set<PaintType> getPaintTypes() {
+        return paintTypes;
+    }
+
+    public void setPaintTypes(Set<PaintType> paintTypes) {
+        this.paintTypes = paintTypes;
+    }
+
     @Override
     protected void tick(int x, int y, boolean inverse, boolean first, float dynamicLevel) {
         if (! first) {
             throw new InternalError("Should never happen");
         }
         final Dimension dimension = getDimension();
-        final Terrain terrain = dimension.getTerrainAt(x, y);
-        final Map<Layer, Integer> layers = dimension.getLayersAt(x, y);
+        final Terrain terrain = ((paintTypes == null) || paintTypes.contains(TERRAIN)) ? dimension.getTerrainAt(x, y) : null;
+        final Map<Layer, Integer> layers = ((paintTypes == null) || paintTypes.contains(LAYER) || paintTypes.contains(BIOME) || paintTypes.contains(ANNOTATION)) ? dimension.getLayersAt(x, y) : null;
         if ((terrain == null) && (layers == null)) {
             DesktopUtils.beep();
         } else {
@@ -73,13 +83,22 @@ public final class Eyedropper extends MouseOrTabletOperation {
                     final String name;
                     final Icon icon;
                     if (layer instanceof Biome) {
+                        if ((paintTypes != null) && (! paintTypes.contains(BIOME))) {
+                            return;
+                        }
                         name = biomeHelper.getBiomeName(value);
                         icon = biomeHelper.getBiomeIcon(value);
                     } else if (layer instanceof Annotations) {
+                        if ((paintTypes != null) && (! paintTypes.contains(ANNOTATION))) {
+                            return;
+                        }
                         final int colourIndex = value - ((value < 8) ? 1 : 0);
                         name = COLOUR_NAMES[colourIndex] + " Annotations";
                         icon = createScaledColourIcon(colourScheme.getColour(WOOLS[colourIndex]));
                     } else if (! layer.discrete) {
+                        if ((paintTypes != null) && (! paintTypes.contains(LAYER))) {
+                            return;
+                        }
                         name = layer.getName();
                         icon = new ImageIcon(scaleIcon(layer.getIcon(), 16));
                     } else {
@@ -92,6 +111,10 @@ public final class Eyedropper extends MouseOrTabletOperation {
                         }
                     });
                 });
+            }
+            if (popupMenu.getComponentCount() == 0) {
+                DesktopUtils.beep();
+                return;
             }
             final WorldPainterView view = getView();
             final Point menuCoords = view.worldToView(x, y);
@@ -111,7 +134,10 @@ public final class Eyedropper extends MouseOrTabletOperation {
     private final ColourScheme colourScheme;
     private final CustomBiomeManager customBiomeManager;
     private SelectionListener callback;
+    private Set<PaintType> paintTypes;
     private JPopupMenu popupMenu;
+
+    public enum PaintType { TERRAIN, /** All layers except biomes and annotations. */ LAYER, BIOME, ANNOTATION}
 
     /**
      * A selection callback that will be notified of the selected value, or if the operation was cancelled.

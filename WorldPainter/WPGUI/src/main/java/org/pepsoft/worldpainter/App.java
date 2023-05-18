@@ -63,7 +63,8 @@ import org.pepsoft.worldpainter.ramps.DefaultColourRamp;
 import org.pepsoft.worldpainter.selection.*;
 import org.pepsoft.worldpainter.threedeeview.ThreeDeeFrame;
 import org.pepsoft.worldpainter.tools.BiomesViewerFrame;
-import org.pepsoft.worldpainter.tools.Eyedropper;
+import org.pepsoft.worldpainter.tools.Eyedropper.PaintType;
+import org.pepsoft.worldpainter.tools.Eyedropper.SelectionListener;
 import org.pepsoft.worldpainter.tools.RespawnPlayerDialog;
 import org.pepsoft.worldpainter.tools.scripts.ScriptRunner;
 import org.pepsoft.worldpainter.util.BetterAction;
@@ -1842,8 +1843,8 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    public void selectPaintOnMap(Eyedropper.SelectionListener selectionListener) {
-        mapSelectionController.selectPaintOnMap(selectionListener);
+    public void selectPaintOnMap(Set<PaintType> paintTypes, SelectionListener selectionListener) {
+        mapSelectionController.selectPaintOnMap(paintTypes, selectionListener);
     }
 
     // BrushOptions.Listener
@@ -1858,7 +1859,7 @@ public final class App extends JFrame implements RadiusControl,
     @Override
     public void customBiomeAdded(CustomBiome customBiome) {
         if ((! programmaticChange) && (dimension != null)) {
-            // It's possible that the biome ID already exists in the world, for instance of the user removed a biome and
+            // It's possible that the biome ID already exists in the world, for instance if the user removed a biome and
             // then performed an undo, so repaint it
             view.refreshTilesForLayer(Biome.INSTANCE, false);
         }
@@ -3149,7 +3150,7 @@ public final class App extends JFrame implements RadiusControl,
                 DesktopUtils.beep();
                 return;
             }
-            mapSelectionController.selectPaintOnMap(new Eyedropper.SelectionListener() {
+            mapSelectionController.selectPaintOnMap(null, new SelectionListener() {
                 @Override
                 public void terrainSelected(Terrain terrain) {
                     eyedropperToggleButton.setSelected(false);
@@ -6162,13 +6163,7 @@ public final class App extends JFrame implements RadiusControl,
         final List<Layer> allLayers = getAllLayers();
         final List<Integer> allBiomes = getAllBiomes(world.getPlatform(), customBiomeManager);
         final FillDialog dialog = new FillDialog(App.this, dimension, allLayers.toArray(new Layer[allLayers.size()]), selectedColourScheme, allBiomes.toArray(new Integer[allBiomes.size()]), customBiomeManager, view, selectionState);
-        dialog.setVisible(true);
-        final Eyedropper.SelectionListener selectionListener = dialog.getSelectionListener();
-        if (selectionListener != null) {
-            // The user requested to select a paint from the map, so do that and allow the selectionListener to reopen
-            // the dialog
-            mapSelectionController.selectPaintOnMap(selectionListener);
-        }
+        dialog.setVisible();
     }
 
     private void exportImage() {
