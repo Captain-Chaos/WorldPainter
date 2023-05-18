@@ -4,6 +4,7 @@ import org.pepsoft.util.Box;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.plugins.PluginManager;
+import org.pepsoft.util.swing.ManagesScale;
 import org.pepsoft.util.swing.TiledImageViewer;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
@@ -39,7 +40,7 @@ import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
  *
  * <p>Created by Pepijn Schmitz on 05-06-15.
  */
-public class DynmapPreviewer extends TiledImageViewer {
+public class DynmapPreviewer extends TiledImageViewer implements ManagesScale {
     public DynmapPreviewer() {
         this(135.0, 60.0, 0);
     }
@@ -245,7 +246,7 @@ public class DynmapPreviewer extends TiledImageViewer {
             }
         };
 
-    private final Action zoomOut = new AbstractAction("Zoom In", IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_out.png")) {
+    private final Action zoomOut = new AbstractAction("Zoom Out", IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/magnifier_zoom_out.png")) {
             public void actionPerformed(ActionEvent e) {
                 if (getZoom() > -4) {
                     setZoom(getZoom() - 1);
@@ -254,7 +255,7 @@ public class DynmapPreviewer extends TiledImageViewer {
             }
         };
 
-    private final Action rotateLeft = new AbstractAction("Zoom In", IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_left.png")) {
+    private final Action rotateLeft = new AbstractAction("Rotate Left", IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_left.png")) {
             public void actionPerformed(ActionEvent e) {
                 azimuth = MathUtils.mod(azimuth - 15.0, 360.0);
                 tileProvider.setAzimuth(azimuth);
@@ -262,7 +263,7 @@ public class DynmapPreviewer extends TiledImageViewer {
             }
         };
 
-    private final Action rotateRight = new AbstractAction("Zoom In", IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_right.png")) {
+    private final Action rotateRight = new AbstractAction("Rotate Right", IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_right.png")) {
             public void actionPerformed(ActionEvent e) {
                 azimuth = MathUtils.mod(azimuth + 15.0, 360.0);
                 tileProvider.setAzimuth(azimuth);
@@ -270,7 +271,7 @@ public class DynmapPreviewer extends TiledImageViewer {
             }
         };
 
-    private final Action rotateUp = new AbstractAction("Zoom In", IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_up.png")) {
+    private final Action rotateUp = new AbstractAction("Rotate Up", IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_up.png")) {
             public void actionPerformed(ActionEvent e) {
                 double oldInclination = inclination;
                 inclination = Math.max(inclination - 15.0, 30.0);
@@ -282,7 +283,7 @@ public class DynmapPreviewer extends TiledImageViewer {
             }
         };
 
-    private final Action rotateDown = new AbstractAction("Zoom In", IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_down.png")) {
+    private final Action rotateDown = new AbstractAction("Rotate Down", IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_down.png")) {
             public void actionPerformed(ActionEvent e) {
                 double oldInclination = inclination;
                 inclination = Math.min(inclination + 15.0, 90.0);
