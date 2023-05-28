@@ -7823,7 +7823,7 @@ public final class App extends JFrame implements RadiusControl,
     private static final String ACTION_NAME_DECREASE_RADIUS_BY_ONE = "decreaseRadiusByOne"; // NOI18N
     private static final String ACTION_NAME_REDO                   = "redo"; // NOI18N
     private static final String ACTION_NAME_ZOOM_IN                = "zoomIn"; // NOI18N
-    private static final String ACTION_NAME_ZOOM_OUT               = "zoomPut"; // NOI18N
+    private static final String ACTION_NAME_ZOOM_OUT               = "zoomOut"; // NOI18N
     
     private static final long ONE_MEGABYTE = 1024 * 1024;
     
