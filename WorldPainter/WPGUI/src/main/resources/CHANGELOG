@@ -1,3 +1,7 @@
+-- Version 2.17.3, released xx-xx-2023
+
+ * Bug fix: selecting a paint from the map from the Global Operations screen now works more than once
+
 -- Version 2.17.2, released 21-5-2023
 
  * The Eyedropper is now also available for selecting paints for the operations on the Global Operations screen

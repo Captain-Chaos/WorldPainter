@@ -74,7 +74,7 @@ public class WPDialogWithPaintSelection extends WorldPainterDialog {
 
                 private void showAgain() {
                     selectFromMapListener = null;
-                    WPDialogWithPaintSelection.super.setVisible(true);
+                    setVisible(okCallback);
                 }
             });
         }
