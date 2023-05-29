@@ -59,9 +59,9 @@ public class DisplacementHeightMap extends DelegatingHeightMap {
     // HeightMap
     
     @Override
-    protected float doGetHeight(float x, float y) {
-        float angle = children[1].getHeight(x, y);
-        float distance = children[2].getHeight(x, y);
+    protected double doGetHeight(float x, float y) {
+        double angle = children[1].getHeight(x, y);
+        double distance = children[2].getHeight(x, y);
         float actualX = (float) (x + Math.sin(angle) * distance);
         float actualY = (float) (y + Math.cos(angle) * distance);
         return children[0].getHeight(actualX, actualY);
@@ -74,8 +74,8 @@ public class DisplacementHeightMap extends DelegatingHeightMap {
 
     @Override
     protected int doGetColour(int x, int y) {
-        float angle = children[1].getHeight(x, y);
-        float distance = children[2].getHeight(x, y);
+        double angle = children[1].getHeight(x, y);
+        double distance = children[2].getHeight(x, y);
         double actualX = x + Math.sin(angle) * distance;
         double actualY = y + Math.cos(angle) * distance;
         return children[0].getColour((int) Math.round(actualX), (int) Math.round(actualY));
@@ -87,7 +87,7 @@ public class DisplacementHeightMap extends DelegatingHeightMap {
     }
 
     @Override
-    public float[] getRange() {
+    public double[] getRange() {
         return children[0].getRange();
     }
 

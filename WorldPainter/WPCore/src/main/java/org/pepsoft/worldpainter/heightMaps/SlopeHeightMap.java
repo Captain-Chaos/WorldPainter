@@ -17,12 +17,11 @@
 
 package org.pepsoft.worldpainter.heightMaps;
 
-import java.awt.Rectangle;
-
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.HeightMap;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * A height map which calculates the slope of an underlying height map, in
@@ -72,18 +71,18 @@ public class SlopeHeightMap extends DelegatingHeightMap {
     // HeightMap
 
     @Override
-    protected float doGetHeight(float x, float y) {
+    protected double doGetHeight(float x, float y) {
         HeightMap baseHeightMap = children[0];
         if (verticalScaling != 1.0f) {
-            return (float) (Math.tan(Math.max(Math.max(Math.abs(baseHeightMap.getHeight(x + 1, y) / verticalScaling - baseHeightMap.getHeight(x - 1, y) / verticalScaling) / 2,
+            return Math.tan(Math.max(Math.max(Math.abs(baseHeightMap.getHeight(x + 1, y) / verticalScaling - baseHeightMap.getHeight(x - 1, y) / verticalScaling) / 2,
                 Math.abs(baseHeightMap.getHeight(x + 1, y + 1) / verticalScaling - baseHeightMap.getHeight(x - 1, y - 1) / verticalScaling) / ROOT_EIGHT),
                 Math.max(Math.abs(baseHeightMap.getHeight(x, y + 1) / verticalScaling - baseHeightMap.getHeight(x, y - 1) / verticalScaling) / 2,
-                Math.abs(baseHeightMap.getHeight(x - 1, y + 1) / verticalScaling - baseHeightMap.getHeight(x + 1, y - 1) / verticalScaling) / ROOT_EIGHT))) * RADIANS_TO_DEGREES);
+                Math.abs(baseHeightMap.getHeight(x - 1, y + 1) / verticalScaling - baseHeightMap.getHeight(x + 1, y - 1) / verticalScaling) / ROOT_EIGHT))) * RADIANS_TO_DEGREES;
         } else {
-            return (float) (Math.tan(Math.max(Math.max(Math.abs(baseHeightMap.getHeight(x + 1, y) / verticalScaling - baseHeightMap.getHeight(x - 1, y)) / 2,
+            return Math.tan(Math.max(Math.max(Math.abs(baseHeightMap.getHeight(x + 1, y) / verticalScaling - baseHeightMap.getHeight(x - 1, y)) / 2,
                 Math.abs(baseHeightMap.getHeight(x + 1, y + 1) - baseHeightMap.getHeight(x - 1, y - 1)) / ROOT_EIGHT),
                 Math.max(Math.abs(baseHeightMap.getHeight(x, y + 1) - baseHeightMap.getHeight(x, y - 1)) / 2,
-                Math.abs(baseHeightMap.getHeight(x - 1, y + 1) - baseHeightMap.getHeight(x + 1, y - 1)) / ROOT_EIGHT))) * RADIANS_TO_DEGREES);
+                Math.abs(baseHeightMap.getHeight(x - 1, y + 1) - baseHeightMap.getHeight(x + 1, y - 1)) / ROOT_EIGHT))) * RADIANS_TO_DEGREES;
         }
     }
 
@@ -103,7 +102,7 @@ public class SlopeHeightMap extends DelegatingHeightMap {
     }
 
     @Override
-    public float[] getRange() {
+    public double[] getRange() {
         return RANGE;
     }
 
@@ -113,5 +112,5 @@ public class SlopeHeightMap extends DelegatingHeightMap {
     private static final double ROOT_EIGHT = Math.sqrt(8.0);
     private static final double RADIANS_TO_DEGREES = 180 / Math.PI;
     private static final Icon ICON_SLOPE_HEIGHTMAP = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/integral.png");
-    private static final float[] RANGE = {0.0f, 90.0f};
+    private static final double[] RANGE = {0.0, 90.0};
 }

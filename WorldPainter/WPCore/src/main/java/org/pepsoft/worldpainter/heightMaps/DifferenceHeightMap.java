@@ -18,12 +18,12 @@ public class DifferenceHeightMap extends CombiningHeightMap {
     }
 
     @Override
-    protected float doGetHeight(int x, int y) {
+    protected double doGetHeight(int x, int y) {
         return children[0].getHeight(x, y) - children[1].getHeight(x, y);
     }
 
     @Override
-    protected float doGetHeight(float x, float y) {
+    protected double doGetHeight(float x, float y) {
         return children[0].getHeight(x, y) - children[1].getHeight(x, y);
     }
 
@@ -33,10 +33,10 @@ public class DifferenceHeightMap extends CombiningHeightMap {
     }
 
     @Override
-    public float[] getRange() {
-        float[] range0 = children[0].getRange();
-        float[] range1 = children[1].getRange();
-        return new float[] {range0[0] - range1[0], range0[1] - range1[1]};
+    public double[] getRange() {
+        double[] range0 = children[0].getRange();
+        double[] range1 = children[1].getRange();
+        return new double[] {range0[0] - range1[0], range0[1] - range1[1]};
     }
 
     @Override

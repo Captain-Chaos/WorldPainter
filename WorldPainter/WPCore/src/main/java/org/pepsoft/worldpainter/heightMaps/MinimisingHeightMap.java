@@ -25,12 +25,12 @@ public class MinimisingHeightMap extends CombiningHeightMap {
     }
 
     @Override
-    protected float doGetHeight(int x, int y) {
+    protected double doGetHeight(int x, int y) {
         return Math.min(children[0].getHeight(x, y), children[1].getHeight(x, y));
     }
 
     @Override
-    protected float doGetHeight(float x, float y) {
+    protected double doGetHeight(float x, float y) {
         return Math.min(children[0].getHeight(x, y), children[1].getHeight(x, y));
     }
 
@@ -47,10 +47,10 @@ public class MinimisingHeightMap extends CombiningHeightMap {
     }
 
     @Override
-    public float[] getRange() {
-        float[] range0 = children[0].getRange();
-        float[] range1 = children[1].getRange();
-        return new float[]{Math.min(range0[0], range1[0]), Math.min(range0[1], range1[1])};
+    public double[] getRange() {
+        double[] range0 = children[0].getRange();
+        double[] range1 = children[1].getRange();
+        return new double[]{Math.min(range0[0], range1[0]), Math.min(range0[1], range1[1])};
     }
 
     private static final long serialVersionUID = 1L;

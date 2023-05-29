@@ -37,7 +37,7 @@ public class ScalingHelper {
         maxHeight = tileFactory.getMaxHeight();
         heightMap = new AbstractHeightMap() {
             @Override
-            public float getHeight(int x, int y) {
+            public double getHeight(int x, int y) {
                 final Tile tile = tiles.get(new Point(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS));
                 if (tile != null) {
                     return tile.getHeight(x & TILE_SIZE_MASK, y & TILE_SIZE_MASK);
@@ -53,8 +53,8 @@ public class ScalingHelper {
             }
 
             @Override
-            public float[] getRange() {
-                return new float[] { minHeight, maxHeight };
+            public double[] getRange() {
+                return new double[] { minHeight, maxHeight };
             }
 
             private final Map<Point, Tile> additionalTiles = new ConcurrentHashMap<>();
@@ -67,7 +67,7 @@ public class ScalingHelper {
                 .filter(layer -> ! layer.discrete)
                 .collect(toMap(identity(), layer -> new AbstractHeightMap() {
                     @Override
-                    public float getHeight(int x, int y) {
+                    public double getHeight(int x, int y) {
                         final Tile tile = tiles.get(new Point(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS));
                         if (tile != null) {
                             switch (dataSize) {
@@ -91,15 +91,15 @@ public class ScalingHelper {
                     }
 
                     @Override
-                    public float[] getRange() {
+                    public double[] getRange() {
                         switch (dataSize) {
                             case BIT:
                             case BIT_PER_CHUNK:
-                                return new float[] {0, 1};
+                                return new double[] {0, 1};
                             case NIBBLE:
-                                return new float[] {0, 15};
+                                return new double[] {0, 15};
                             case BYTE:
-                                return new float[] {0, 255};
+                                return new double[] {0, 255};
                             default:
                                 throw new IllegalStateException("Unsupported data size " + dataSize + " for layer " + layer);
                         }
@@ -164,12 +164,12 @@ public class ScalingHelper {
                     notPresentBlocksPerChunk[((xInTile >> 4) << 3) | (yInTile >> 4)]++;
                     continue;
                 }
-                scaledTile.setHeight(xInTile, yInTile, heightMap.getHeight(x, y));
+                scaledTile.setHeight(xInTile, yInTile, (float) heightMap.getHeight(x, y));
                 scaledTile.setWaterLevel(xInTile, yInTile, cachedUnscaledTile.getWaterLevel(intX & TILE_SIZE_MASK, intY & TILE_SIZE_MASK));
                 scaledTile.setTerrain(xInTile, yInTile, cachedUnscaledTile.getTerrain(intX & TILE_SIZE_MASK, intY & TILE_SIZE_MASK)); // TODO smooth scaling
                 for (Map.Entry<Layer, HeightMap> entry: layerHeightMaps.entrySet()) {
                     final Layer layer = entry.getKey();
-                    final int layerValue = Math.round(entry.getValue().getHeight(x, y));
+                    final int layerValue = (int) Math.round(entry.getValue().getHeight(x, y));
                     if (layerValue != layer.getDefaultValue()) {
                         switch (layer.dataSize) {
                             case BIT:
@@ -248,11 +248,11 @@ public class ScalingHelper {
     }
 
     public float getHeightAt(int x, int y) {
-        return heightMap.getHeight(x, y);
+        return (float) heightMap.getHeight(x, y);
     }
 
     public int getLayerValueAt(Layer layer, int x, int y) {
-        return layerHeightMaps.containsKey(layer) ? Math.round(layerHeightMaps.get(layer).getHeight(x, y)) : layer.getDefaultValue();
+        return layerHeightMaps.containsKey(layer) ? (int) Math.round(layerHeightMaps.get(layer).getHeight(x, y)) : layer.getDefaultValue();
     }
 
     public boolean getBitLayerValueAt(Layer layer, int x, int y) {

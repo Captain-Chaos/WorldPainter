@@ -149,7 +149,7 @@ public class CreateMountain extends MouseOrTabletOperation {
         GeometryUtil.visitFilledCircle((int) Math.ceil(z / 1.5), (dx, dy, d) -> {
             int localX = x + dx;
             int localY = y + dy;
-            float localZ = z - d * 2 + dx / 1.5f - Math.min(d / 50, 1) * RANDOM_VARIATION.getHeight(localX, localY); // TODO: make slope and bias configurable, and take it into account for radius of visited circle
+            float localZ = z - d * 2 + dx / 1.5f - Math.min(d / 50, 1) * (float) RANDOM_VARIATION.getHeight(localX, localY); // TODO: make slope and bias configurable, and take it into account for radius of visited circle
             float existingHeight = dimension.getHeightAt(localX, localY);
             if ((existingHeight != -Float.MAX_VALUE) && localZ >= existingHeight) {
                 dimension.setHeightAt(localX, localY, localZ);
@@ -205,5 +205,5 @@ public class CreateMountain extends MouseOrTabletOperation {
         Ridge start;
     }
 
-    private static final NoiseHeightMap RANDOM_VARIATION = new NoiseHeightMap(20f, 1f, 3);
+    private static final NoiseHeightMap RANDOM_VARIATION = new NoiseHeightMap(20.0, 1.0, 3);
 }

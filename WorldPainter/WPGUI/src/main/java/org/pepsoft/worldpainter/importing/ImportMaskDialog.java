@@ -27,6 +27,8 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -77,6 +79,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
                 return this;
             }
         });
+        labelMaskRange.setVisible(false);
 
         rootPane.setDefaultButton(buttonOk);
 
@@ -85,6 +88,13 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
         setLocationRelativeTo(parent);
 
         setControlStates();
+
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                selectFile();
+            }
+        });
     }
 
     // DocumentListener
@@ -140,7 +150,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
         checkBoxRemoveExisting.setEnabled(fileSelected && radioButtonLayer.isSelected());
         boolean targetSelected = (radioButtonLayer.isSelected() && (comboBoxLayer.getSelectedItem() != null)) || radioButtonTerrain.isSelected();
         comboBoxMapping.setEnabled(fileSelected && targetSelected);
-        spinnerThreshold.setEnabled(fileSelected && targetSelected && (comboBoxMapping.getSelectedItem() instanceof Mapping.ThresholdMapping));
+        spinnerThreshold.setEnabled(fileSelected && targetSelected && (comboBoxMapping.getSelectedItem() != null) && ((Mapping) comboBoxMapping.getSelectedItem()).isThreshold());
         boolean mappingSelected = comboBoxMapping.getSelectedItem() != null;
         buttonOk.setEnabled(fileSelected && targetSelected && mappingSelected);
     }
@@ -220,11 +230,27 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
                 int width = image.getWidth(), height = image.getHeight();
                 maskImporter.setRemoveExistingLayer(checkBoxRemoveExisting.isSelected());
                 MaskImporter.InputType inputType = maskImporter.getInputType();
-                if (inputType == EIGHT_BIT_GREY_SCALE || inputType == SIXTEEN_BIT_GREY_SCALE) {
+                if (inputType == EIGHT_BIT_GREY_SCALE || inputType == SIXTEEN_BIT_GREY_SCALE || inputType == THIRTY_TWO_BIT_GREY_SCALE || inputType == FLOAT_GREY_SCALE || inputType == DOUBLE_GREY_SCALE) {
                     SpinnerNumberModel thresholdModel = (SpinnerNumberModel) spinnerThreshold.getModel();
                     thresholdModel.setMinimum(maskImporter.getImageLowValue());
                     thresholdModel.setMaximum(maskImporter.getImageHighValue());
                     thresholdModel.setValue((maskImporter.getImageLowValue() + maskImporter.getImageHighValue()) / 2);
+                    final double stepSize;
+                    if ((inputType == FLOAT_GREY_SCALE) || (inputType == DOUBLE_GREY_SCALE)) {
+                        final double range = maskImporter.getImageHighValue() - maskImporter.getImageLowValue();
+                        if (range <= 1.0) {
+                            stepSize = 0.001;
+                        } else if (range <= 10.0) {
+                            stepSize = 0.01;
+                        } else if (range <= 100.0) {
+                            stepSize = 0.1;
+                        } else {
+                            stepSize = 1.0;
+                        }
+                    } else {
+                        stepSize = 1.0;
+                    }
+                    thresholdModel.setStepSize(stepSize);
                 }
                 comboBoxApplyToTerrain.setSelectedItem(null);
                 if (inputType == COLOUR) {
@@ -249,12 +275,23 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
                     spinnerScale.setToolTipText(null);
                     labelImageDimensions.setIcon(null);
                     if (inputType == COLOUR) {
-                        labelImageDimensions.setText(String.format("Image size: %d x %d, colour, %d bits", width, height, image.getSampleModel().getSampleSize(0)));
+                        labelImageDimensions.setText(String.format("Image size: %,d x %,d, colour, %d bits", width, height, image.getSampleModel().getSampleSize(0)));
                     } else if (inputType == ONE_BIT_GREY_SCALE) {
-                        labelImageDimensions.setText(String.format("Image size: %d x %d, black and white", width, height));
+                        labelImageDimensions.setText(String.format("Image size: %,d x %,d, black and white", width, height));
+                    } else if ((inputType == FLOAT_GREY_SCALE) || (inputType == DOUBLE_GREY_SCALE)) {
+                        labelImageDimensions.setText(String.format("<html>Image size: %,d x %,d, grey scale, %d bits floating point<br>Lowest value: %,f, highest value: %,f</html>", width, height, image.getSampleModel().getSampleSize(0), maskImporter.getImageLowValue(), maskImporter.getImageHighValue()));
                     } else {
-                        labelImageDimensions.setText(String.format("Image size: %d x %d, grey scale, %d bits, lowest value: %d, highest value: %d", width, height, image.getSampleModel().getSampleSize(0), maskImporter.getImageLowValue(), maskImporter.getImageHighValue()));
+                        labelImageDimensions.setText(String.format("<html>Image size: %,d x %,d, grey scale, %d bits integer<br>Lowest value: %,d, highest value: %,d</html>", width, height, image.getSampleModel().getSampleSize(0), Math.round(maskImporter.getImageLowValue()), Math.round(maskImporter.getImageHighValue())));
                     }
+                }
+                if ((inputType == FLOAT_GREY_SCALE) || (inputType == DOUBLE_GREY_SCALE)) {
+                    labelMaskRange.setText(String.format("Actual mask range: %,f - %,f", maskImporter.getImageLowValue(), maskImporter.getImageHighValue()));
+                    labelMaskRange.setVisible(true);
+                } else if ((inputType != ONE_BIT_GREY_SCALE) && (inputType != COLOUR) && (inputType != UNSUPPORTED)) {
+                    labelMaskRange.setText(String.format("Actual mask range: %,d - %,d", (long) maskImporter.getImageLowValue(), (long) maskImporter.getImageHighValue()));
+                    labelMaskRange.setVisible(true);
+                } else {
+                    labelMaskRange.setVisible(false);
                 }
                 updateWorldDimensions();
             }
@@ -268,12 +305,12 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
 
     private void updateWorldDimensions() {
         float scale = (float) spinnerScale.getValue();
-        labelWorldDimensions.setText("Scaled size: " + Math.round(image.getWidth() * (scale / 100)) + " x " + Math.round(image.getHeight() * (scale / 100)) + " blocks");
+        labelWorldDimensions.setText(String.format("Scaled size: %,d x %,d blocks", Math.round(image.getWidth() * (scale / 100)), Math.round(image.getHeight() * (scale / 100))));
     }
 
     @Override
     protected void ok() {
-        maskImporter.setThreshold((int) spinnerThreshold.getValue());
+        maskImporter.setThreshold((double) spinnerThreshold.getValue());
         maskImporter.setMapping((Mapping) comboBoxMapping.getSelectedItem());
         maskImporter.setRemoveExistingLayer(radioButtonLayer.isSelected() && checkBoxRemoveExisting.isSelected());
         maskImporter.setScale((float) spinnerScale.getValue() / 100);
@@ -294,6 +331,21 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
         Configuration.getInstance().setMasksDirectory(selectedFile.getParentFile());
         dimension.armSavePoint();
         super.ok();
+    }
+
+    private void selectFile() {
+        File myHeightMapDir = masksDir;
+        if (myHeightMapDir == null) {
+            myHeightMapDir = Configuration.getInstance().getMasksDirectory();
+        }
+        if (myHeightMapDir == null) {
+            myHeightMapDir = Configuration.getInstance().getHeightMapsDirectory();
+        }
+        final File file = ImageUtils.selectImageForOpen(this, "a mask image file", myHeightMapDir);
+        if (file != null) {
+            masksDir = file.getParentFile();
+            fieldFilename.setText(file.getAbsolutePath());
+        }
     }
 
     /** This method is called from within the constructor to
@@ -334,6 +386,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
         labelReason = new javax.swing.JLabel();
         comboBoxMapping = new javax.swing.JComboBox<>();
         jLabel6 = new javax.swing.JLabel();
+        labelMaskRange = new javax.swing.JLabel();
 
         jLabel14.setText("jLabel14");
 
@@ -349,7 +402,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
             }
         });
 
-        labelImageDimensions.setText("Image size: ? x ?, bit depth: ?, lowest value: ?, highest value: ?");
+        labelImageDimensions.setText("<html>Image size: ? x ?, bit depth: ?<br>\nLowest value: ?, highest value: ?</html>");
 
         buttonCancel.setText("Cancel");
         buttonCancel.addActionListener(new java.awt.event.ActionListener() {
@@ -393,7 +446,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
 
         jLabel3.setText("Select the mapping:");
 
-        spinnerThreshold.setModel(new javax.swing.SpinnerNumberModel(0, 0, 255, 1));
+        spinnerThreshold.setModel(new javax.swing.SpinnerNumberModel(0.0d, 0.0d, 255.0d, 1.0d));
         spinnerThreshold.setEnabled(false);
 
         jLabel4.setText("Scale:");
@@ -462,6 +515,8 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
 
         jLabel6.setText("Threshold:");
 
+        labelMaskRange.setText("Actual mask range: -999,999 - 999,999");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -474,6 +529,8 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
                         .addComponent(jLabel6)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(spinnerThreshold, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(labelMaskRange)
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -491,7 +548,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel1)
-                                    .addComponent(labelImageDimensions)
+                                    .addComponent(labelImageDimensions, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addGroup(layout.createSequentialGroup()
                                         .addComponent(jLabel4)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -542,7 +599,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
                     .addComponent(fieldFilename, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(buttonSelectFile))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(labelImageDimensions)
+                .addComponent(labelImageDimensions, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
@@ -573,7 +630,8 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6)
-                    .addComponent(spinnerThreshold, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(spinnerThreshold, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(labelMaskRange))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
@@ -590,18 +648,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
     }//GEN-LAST:event_buttonCancelActionPerformed
 
     private void buttonSelectFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSelectFileActionPerformed
-        File myHeightMapDir = masksDir;
-        if (myHeightMapDir == null) {
-            myHeightMapDir = Configuration.getInstance().getMasksDirectory();
-        }
-        if (myHeightMapDir == null) {
-            myHeightMapDir = Configuration.getInstance().getHeightMapsDirectory();
-        }
-        final File file = ImageUtils.selectImageForOpen(this, "a mask image file", myHeightMapDir);
-        if (file != null) {
-            masksDir = file.getParentFile();
-            fieldFilename.setText(file.getAbsolutePath());
-        }
+        selectFile();
     }//GEN-LAST:event_buttonSelectFileActionPerformed
 
     private void buttonOkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonOkActionPerformed
@@ -690,6 +737,7 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel labelImageDimensions;
+    private javax.swing.JLabel labelMaskRange;
     private javax.swing.JLabel labelReason;
     private javax.swing.JLabel labelWorldDimensions;
     private javax.swing.JRadioButton radioButtonLayer;

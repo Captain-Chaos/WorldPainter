@@ -67,7 +67,7 @@ public class NoiseSettingsDialog extends WorldPainterDialog implements ChangeLis
         final NoiseHeightMap noiseHeightMap = new NoiseHeightMap(noiseSettingsEditor1.getNoiseSettings(), 0);
         for (int x = 0; x < image.getWidth(); x++) {
             for (int y = 0; y < image.getHeight(); y++) {
-                final int value = clamp(0, Math.round((baseValue + noiseHeightMap.getValue(x, y) - noiseHeightMap.getHeight() / 2) * 2.55f), 255);
+                final int value = (int) clamp(0L, Math.round((baseValue + noiseHeightMap.getValue(x, y) - noiseHeightMap.getHeight() / 2) * 2.55), 255L);
                 image.setRGB(x, y, 0xff000000 | (value << 16) | (value << 8) | value);
             }
         }

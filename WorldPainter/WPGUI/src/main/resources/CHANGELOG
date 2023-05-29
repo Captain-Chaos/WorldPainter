@@ -1,5 +1,8 @@
--- Version 2.17.3, released xx-xx-2023
+-- Version 2.18.0, released xx-xx-2023
 
+ * Floating point images are now supported for importing as height maps and masks
+ * 32-bit unsigned integer images are now supported for importing masks (they already were for height maps)
+ * When opening the Import Height Map or Import Mask screens, the file selection dialog is now immediately shown
  * Bug fix: selecting a paint from the map from the Global Operations screen now works more than once
 
 -- Version 2.17.2, released 21-5-2023

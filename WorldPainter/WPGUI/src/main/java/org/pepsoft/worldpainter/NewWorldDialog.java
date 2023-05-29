@@ -46,7 +46,7 @@ import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_NETHER;
 import static org.pepsoft.util.swing.MessageUtils.showInfo;
 import static org.pepsoft.util.swing.SpinnerUtils.setMaximum;
 import static org.pepsoft.util.swing.SpinnerUtils.setMinimum;
-import static org.pepsoft.worldpainter.App.NUMBER_FORMAT;
+import static org.pepsoft.worldpainter.App.INT_NUMBER_FORMAT;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.ATTRIBUTE_MC_VERSION;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
@@ -792,9 +792,9 @@ public class NewWorldDialog extends WorldPainterDialog {
         if (scale == 1.0f) {
             labelScaledDimensions.setText(" ");
         } else if (checkBoxCircular.isSelected()) {
-            labelScaledDimensions.setText("(Scaled: " + NUMBER_FORMAT.format(width) + ")");
+            labelScaledDimensions.setText("(Scaled: " + INT_NUMBER_FORMAT.format(width) + ")");
         } else {
-            labelScaledDimensions.setText("(Scaled: " + NUMBER_FORMAT.format(width) + " x " + NUMBER_FORMAT.format(length) + ")");
+            labelScaledDimensions.setText("(Scaled: " + INT_NUMBER_FORMAT.format(width) + " x " + INT_NUMBER_FORMAT.format(length) + ")");
         }
     }
     

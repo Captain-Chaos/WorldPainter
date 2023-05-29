@@ -82,7 +82,7 @@ public class HeightMapTileFactory extends AbstractTileFactory {
         return heightMap;
     }
     
-    public final float getBaseHeight() {
+    public final double getBaseHeight() {
         return heightMap.getBaseHeight();
     }
 
@@ -118,7 +118,7 @@ public class HeightMapTileFactory extends AbstractTileFactory {
             for (int x = 0; x < TILE_SIZE; x++) {
                 for (int y = 0; y < TILE_SIZE; y++) {
                     final int blockX = worldTileX + x, blockY = worldTileY + y;
-                    final float height = clamp(minHeight, heightMap.getHeight(blockX, blockY), maxZ);
+                    final float height = clamp(minHeight, (float) heightMap.getHeight(blockX, blockY), maxZ);
                     tile.setHeight(x, y, height);
                     tile.setWaterLevel(x, y, myWaterHeight);
                     if (floodWithLava) {

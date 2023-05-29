@@ -22,7 +22,7 @@ import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
 import static org.pepsoft.util.swing.MessageUtils.beepAndShowWarning;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
-import static org.pepsoft.worldpainter.App.NUMBER_FORMAT;
+import static org.pepsoft.worldpainter.App.INT_NUMBER_FORMAT;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.util.MinecraftUtil.blocksToWalkingTime;
@@ -49,7 +49,7 @@ public class ScaleWorldDialog extends WorldPainterDialog {
         setTitle("Scale " + new Anchor(anchor.dim, DETAIL, false, 0).getDefaultName() + " Dimension");
         final Dimension dimension = world.getDimension(anchor);
         final int width = dimension.getWidth() * TILE_SIZE, height = dimension.getHeight() * TILE_SIZE;
-        labelCurrentSize.setText(format("%s x %s blocks", NUMBER_FORMAT.format(width), NUMBER_FORMAT.format(height)));
+        labelCurrentSize.setText(format("%s x %s blocks", INT_NUMBER_FORMAT.format(width), INT_NUMBER_FORMAT.format(height)));
         labelCurrentWalkingTime.setText(getWalkingTime(width, height));
         updateNewSize();
 
@@ -93,7 +93,7 @@ public class ScaleWorldDialog extends WorldPainterDialog {
         final Dimension dimension = world.getDimension(anchor);
         final float scale = (int) spinnerScaleFactor.getValue() / 100f;
         final int newWidth = Math.round(dimension.getWidth() * TILE_SIZE * scale), newHeight = Math.round(dimension.getHeight() * TILE_SIZE * scale);
-        labelNewSize.setText(format("%s x %s blocks", NUMBER_FORMAT.format(newWidth), NUMBER_FORMAT.format(newHeight)));
+        labelNewSize.setText(format("%s x %s blocks", INT_NUMBER_FORMAT.format(newWidth), INT_NUMBER_FORMAT.format(newHeight)));
         labelNewWalkingTime.setText(getWalkingTime(newWidth, newHeight));
     }
     

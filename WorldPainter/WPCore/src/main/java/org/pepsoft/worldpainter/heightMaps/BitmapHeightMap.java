@@ -33,11 +33,35 @@ public final class BitmapHeightMap extends AbstractHeightMap {
         width = image.getWidth();
         height = image.getHeight();
         extent = repeat ? null : new Rectangle(0, 0, width, height);
-        bits = raster.getSampleModel().getSampleSize(0);
+        bitDepth = raster.getSampleModel().getSampleSize(0);
         final int transferType = raster.getTransferType();
-        signed = (transferType == TYPE_SHORT) || (transferType == TYPE_FLOAT) || (transferType == TYPE_DOUBLE);
-        minHeight = signed ? -(1 << (bits - 1)) : 0;
-        maxHeight = signed ? (1 << (bits - 1)) - 1 : (1 << bits) - 1;
+        switch (transferType) {
+            case TYPE_FLOAT:
+                minHeight = -Float.MAX_VALUE;
+                maxHeight = Float.MAX_VALUE;
+                floatingPoint = true;
+                signed = true;
+                break;
+            case TYPE_DOUBLE:
+                minHeight = -Double.MAX_VALUE;
+                maxHeight = Double.MAX_VALUE;
+                floatingPoint = true;
+                signed = true;
+                break;
+            case TYPE_SHORT:
+                minHeight = -(1L << (bitDepth - 1));
+                maxHeight = (1L << (bitDepth - 1)) - 1L;
+                floatingPoint = false;
+                signed = true;
+                break;
+            default:
+                minHeight = 0;
+                maxHeight = (1L << bitDepth) - 1L;
+                floatingPoint = false;
+                signed = false;
+                break;
+        }
+        hasAlpha = image.getColorModel().hasAlpha();
     }
 
     public BufferedImage getImage() {
@@ -56,14 +80,48 @@ public final class BitmapHeightMap extends AbstractHeightMap {
         return smoothScaling;
     }
 
-    public void setSmoothScaling(boolean smoothScaling) {
-        this.smoothScaling = smoothScaling;
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    /**
+     * Get the theoretical minimum value as determined by the image format, regardless of the actual minimum value.
+     */
+    public double getMinHeight() {
+        return minHeight;
+    }
+
+    /**
+     * Get the theoretical maximum value as determined by the image format, regardless of the actual maximum value.
+     */
+    public double getMaxHeight() {
+        return maxHeight;
+    }
+
+    public boolean isFloatingPoint() {
+        return floatingPoint;
+    }
+
+    public int getBitDepth() {
+        return bitDepth;
+    }
+
+    public boolean hasAlpha() {
+        return hasAlpha;
+    }
+
+    public boolean isSigned() {
+        return signed;
     }
 
     // HeightMap
     
     @Override
-    public float getHeight(int x, int y) {
+    public double getHeight(int x, int y) {
         if (repeat) {
             return getSample(MathUtils.mod(x, width), MathUtils.mod(y, height));
         } else if (extent.contains(x, y)) {
@@ -74,7 +132,7 @@ public final class BitmapHeightMap extends AbstractHeightMap {
     }
 
     @Override
-    public float getHeight(float x, float y) {
+    public double getHeight(float x, float y) {
         if (! smoothScaling) {
             return getHeight((int) x, (int) y);
         } else {
@@ -83,10 +141,10 @@ public final class BitmapHeightMap extends AbstractHeightMap {
             y -= Math.signum(y) / 2;
             int xFloor = (int) Math.floor(x), yFloor = (int) Math.floor(y);
             float xDelta = x - xFloor, yDelta = y - yFloor;
-            float val1 = cubicInterpolate(getExtHeight(xFloor - 1, yFloor - 1), getExtHeight(xFloor - 1, yFloor), getExtHeight(xFloor - 1, yFloor + 1), getExtHeight(xFloor - 1, yFloor + 2), yDelta);
-            float val2 = cubicInterpolate(getExtHeight(xFloor,     yFloor - 1), getExtHeight(xFloor,     yFloor), getExtHeight(xFloor,     yFloor + 1), getExtHeight(xFloor,     yFloor + 2), yDelta);
-            float val3 = cubicInterpolate(getExtHeight(xFloor + 1, yFloor - 1), getExtHeight(xFloor + 1, yFloor), getExtHeight(xFloor + 1, yFloor + 1), getExtHeight(xFloor + 1, yFloor + 2), yDelta);
-            float val4 = cubicInterpolate(getExtHeight(xFloor + 2, yFloor - 1), getExtHeight(xFloor + 2, yFloor), getExtHeight(xFloor + 2, yFloor + 1), getExtHeight(xFloor + 2, yFloor + 2), yDelta);
+            double val1 = cubicInterpolate(getExtHeight(xFloor - 1, yFloor - 1), getExtHeight(xFloor - 1, yFloor), getExtHeight(xFloor - 1, yFloor + 1), getExtHeight(xFloor - 1, yFloor + 2), yDelta);
+            double val2 = cubicInterpolate(getExtHeight(xFloor,     yFloor - 1), getExtHeight(xFloor,     yFloor), getExtHeight(xFloor,     yFloor + 1), getExtHeight(xFloor,     yFloor + 2), yDelta);
+            double val3 = cubicInterpolate(getExtHeight(xFloor + 1, yFloor - 1), getExtHeight(xFloor + 1, yFloor), getExtHeight(xFloor + 1, yFloor + 1), getExtHeight(xFloor + 1, yFloor + 2), yDelta);
+            double val4 = cubicInterpolate(getExtHeight(xFloor + 2, yFloor - 1), getExtHeight(xFloor + 2, yFloor), getExtHeight(xFloor + 2, yFloor + 1), getExtHeight(xFloor + 2, yFloor + 2), yDelta);
             return cubicInterpolate(val1, val2, val3, val4, xDelta);
         }
     }
@@ -96,7 +154,7 @@ public final class BitmapHeightMap extends AbstractHeightMap {
      * edge pixels of the image if it is non-repeating, to make the bicubic
      * interpolation work correctly around the edges.
      */
-    private float getExtHeight(int x, int y) {
+    private double getExtHeight(int x, int y) {
         if (repeat) {
             return getSample(MathUtils.mod(x, width), MathUtils.mod(y, height));
         } else if (extent.contains(x, y)) {
@@ -158,9 +216,32 @@ public final class BitmapHeightMap extends AbstractHeightMap {
         return ICON_BITMAP_HEIGHTMAP;
     }
 
+    /**
+     * Get the <em>actual</em>> minimum and maximum values contained in the image data.
+     */
     @Override
-    public float[] getRange() {
-        return new float[] { minHeight, maxHeight };
+    public double[] getRange() {
+        if (range == null) {
+            double imageLowValue = Double.MAX_VALUE, imageHighValue = -Double.MAX_VALUE;
+            outer:
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    final double value = getSample(x, y);
+                    if (value < imageLowValue) {
+                        imageLowValue = value;
+                    }
+                    if (value > imageHighValue) {
+                        imageHighValue = value;
+                    }
+                    if ((imageLowValue <= minHeight) && (imageHighValue >= maxHeight)) {
+                        // No point in looking any further!
+                        break outer;
+                    }
+                }
+            }
+            range = new double[] { imageLowValue, imageHighValue };
+        }
+        return range;
     }
 
     public File getImageFile() {
@@ -174,24 +255,26 @@ public final class BitmapHeightMap extends AbstractHeightMap {
     /**
      * Cubic interpolation using Catmull-Rom splines.
      */
-    private float cubicInterpolate(float y0, float y1, float y2, float y3, float μ) {
-        return y1 + 0.5f * μ * (y2 - y0 + μ * (2.0f * y0 - 5.0f * y1 + 4.0f * y2 - y3 + μ * (3.0f * (y1 - y2) + y3 - y0)));
+    private double cubicInterpolate(double y0, double y1, double y2, double y3, float μ) {
+        return y1 + 0.5 * μ * (y2 - y0 + μ * (2.0 * y0 - 5.0 * y1 + 4.0 * y2 - y3 + μ * (3.0 * (y1 - y2) + y3 - y0)));
     }
 
-    private long getSample(int x, int y) {
-        return signed
-                ? raster.getSample(x, y, channel)
-                : raster.getSample(x, y, channel) & 0xffffffffL; // Convert to unsigned integer
+    private double getSample(int x, int y) {
+        if (floatingPoint) {
+            return raster.getSampleDouble(x, y, channel);
+        } else {
+            return signed ? raster.getSample(x, y, channel) : (raster.getSample(x, y, channel) & 0xffffffffL);
+        }
     }
 
     private final BufferedImage image;
-    private final int channel, width, height, bits;
+    private final int channel, width, height, bitDepth;
     private final Raster raster;
     private final Rectangle extent;
     private final File imageFile;
-    private final boolean repeat, signed;
-    private final float minHeight, maxHeight;
-    private boolean smoothScaling;
+    private final boolean repeat, smoothScaling, floatingPoint, hasAlpha, signed;
+    private final double minHeight, maxHeight;
+    private double[] range;
 
     private static final long serialVersionUID = 1L;
     private static final Icon ICON_BITMAP_HEIGHTMAP = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/height_map.png");

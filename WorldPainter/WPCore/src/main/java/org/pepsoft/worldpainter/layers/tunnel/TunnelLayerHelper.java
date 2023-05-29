@@ -79,7 +79,7 @@ public class TunnelLayerHelper {
     }
 
     public int calculateTopLedgeHeight(int x, int y) {
-        return calculateTopLedgeHeight(wallDistanceCache.getHeight(x, y) - 1);
+        return calculateTopLedgeHeight((float) wallDistanceCache.getHeight(x, y) - 1);
     }
 
     public int calculateTopLedgeHeight(float distanceToWall) {
@@ -92,7 +92,7 @@ public class TunnelLayerHelper {
     }
 
     public int calculateBottomLedgeHeight(int x, int y) {
-        return calculateBottomLedgeHeight(wallDistanceCache.getHeight(x, y) - 1);
+        return calculateBottomLedgeHeight((float) wallDistanceCache.getHeight(x, y) - 1);
     }
 
     public int calculateBottomLedgeHeight(float distanceToWall) {

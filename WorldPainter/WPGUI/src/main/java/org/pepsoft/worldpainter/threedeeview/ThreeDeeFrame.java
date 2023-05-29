@@ -27,7 +27,7 @@ import java.io.IOException;
 
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
-import static org.pepsoft.worldpainter.App.NUMBER_FORMAT;
+import static org.pepsoft.worldpainter.App.INT_NUMBER_FORMAT;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.util.LayoutUtils.setDefaultSizeAndLocation;
 
@@ -246,7 +246,7 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
         public void performAction(ActionEvent e) {
             final Rectangle imageBounds = threeDeeView.getImageBounds();
             if (! imageFitsInJavaArray(imageBounds)) {
-                beepAndShowError(ThreeDeeFrame.this, "The 3D image is too large to export to an image.\nThe area (width x height) may not be more than " + NUMBER_FORMAT.format(Integer.MAX_VALUE), "3D Image Too Large");
+                beepAndShowError(ThreeDeeFrame.this, "The 3D image is too large to export to an image.\nThe area (width x height) may not be more than " + INT_NUMBER_FORMAT.format(Integer.MAX_VALUE), "3D Image Too Large");
                 return;
             }
             final String defaultname = dimension.getWorld().getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getAnchor().dim == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + "_3d.png";

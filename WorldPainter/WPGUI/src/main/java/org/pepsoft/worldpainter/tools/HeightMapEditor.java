@@ -227,7 +227,7 @@ public class HeightMapEditor extends javax.swing.JFrame implements HeightMapProp
                 replaceMenu.add(menuItem);
                 menuItem = new JMenuItem("Bands");
                 menuItem.addActionListener(actionEvent -> {
-                    BandedHeightMap bandedHeightMap = new BandedHeightMap();
+                    BandedHeightMap bandedHeightMap = new BandedHeightMap(100, 1.0, 100, 1.0, false);
                     replace(parent, heightMap, bandedHeightMap);
                 });
                 replaceMenu.add(menuItem);

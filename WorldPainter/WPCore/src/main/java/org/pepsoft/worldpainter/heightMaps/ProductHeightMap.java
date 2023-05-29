@@ -24,15 +24,15 @@ public class ProductHeightMap extends CombiningHeightMap {
     }
 
     @Override
-    public float doGetHeight(int x, int y) {
-        float height1 = children[0].getHeight(x, y);
-        return (height1 == 0.0f) ? 0.0f : height1 * children[1].getHeight(x, y);
+    public double doGetHeight(int x, int y) {
+        double height1 = children[0].getHeight(x, y);
+        return (height1 == 0.0) ? 0.0 : height1 * children[1].getHeight(x, y);
     }
 
     @Override
-    public float doGetHeight(float x, float y) {
-        float height1 = children[0].getHeight(x, y);
-        return (height1 == 0.0f) ? 0.0f : height1 * children[1].getHeight(x, y);
+    public double doGetHeight(float x, float y) {
+        double height1 = children[0].getHeight(x, y);
+        return (height1 == 0.0) ? 0.0 : height1 * children[1].getHeight(x, y);
     }
 
     @Override
@@ -48,10 +48,10 @@ public class ProductHeightMap extends CombiningHeightMap {
     }
 
     @Override
-    public float[] getRange() {
-        float[] range0 = children[0].getRange();
-        float[] range1 = children[1].getRange();
-        return new float[] {range0[0] * range1[0], range0[1] * range1[1]};
+    public double[] getRange() {
+        double[] range0 = children[0].getRange();
+        double[] range1 = children[1].getRange();
+        return new double[] {range0[0] * range1[0], range0[1] * range1[1]};
     }
 
     private static final long serialVersionUID = 1L;

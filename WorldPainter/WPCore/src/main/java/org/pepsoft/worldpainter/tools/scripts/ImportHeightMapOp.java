@@ -26,6 +26,7 @@ package org.pepsoft.worldpainter.tools.scripts;
 
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.heightMaps.BicubicHeightMap;
 import org.pepsoft.worldpainter.heightMaps.BitmapHeightMap;
 import org.pepsoft.worldpainter.heightMaps.TransformingHeightMap;
 import org.pepsoft.worldpainter.importing.HeightMapImporter;
@@ -113,9 +114,9 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
         HeightMap adjustedHeightMap = heightMap;
         if ((scale != 100) || (offsetX != 0) || (offsetY != 0)) {
             if (scale != 100) {
-                heightMap.setSmoothScaling(true);
+                adjustedHeightMap = new BicubicHeightMap(adjustedHeightMap);
             }
-            adjustedHeightMap = new TransformingHeightMap(heightMap.getName() + " transformed", heightMap, scale / 100.0f, scale / 100.0f, offsetX, offsetY, 0.0f);
+            adjustedHeightMap = new TransformingHeightMap(heightMap.getName() + " transformed", adjustedHeightMap, scale / 100.0f, scale / 100.0f, offsetX, offsetY, 0.0f);
         }
         importer.setHeightMap(adjustedHeightMap);
         importer.setImageFile(heightMap.getImageFile());

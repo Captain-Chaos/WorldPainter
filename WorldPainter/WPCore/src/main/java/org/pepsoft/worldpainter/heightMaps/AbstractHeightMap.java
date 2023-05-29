@@ -8,12 +8,21 @@ import org.pepsoft.util.MathUtils;
 import org.pepsoft.worldpainter.HeightMap;
 
 import java.awt.*;
+import java.io.Serializable;
 
 /**
+ * An abstract base class for height maps which provides default implementations of most methods. To implement you must
+ * at the very least:
+ *
+ * <ul>
+ *     <li>Override one or both of {@link #getHeight(int, int)} and {@link #getHeight(float, float)}.
+ *     <li>Implement {@link #getRange()}
+ *     <li>Implement {@link #getIcon()}
+ * </ul>
  *
  * @author pepijn
  */
-public abstract class AbstractHeightMap implements HeightMap, Cloneable {
+public abstract class AbstractHeightMap implements HeightMap, Cloneable, Serializable {
     public AbstractHeightMap() {
         name = null;
     }
@@ -61,17 +70,17 @@ public abstract class AbstractHeightMap implements HeightMap, Cloneable {
 
     @Override
     public int getColour(int x, int y) {
-        int value = MathUtils.clamp(0, Math.round(getHeight(x, y)), 255);
+        int value = (int) MathUtils.clamp(0L, Math.round(getHeight(x, y)), 255L);
         return (value << 16) | (value << 8) | value;
     }
 
     @Override
-    public float getHeight(float x, float y) {
+    public double getHeight(float x, float y) {
         return getHeight(Math.round(x), Math.round(y));
     }
 
     @Override
-    public float getHeight(int x, int y) {
+    public double getHeight(int x, int y) {
         return getHeight((float) x, (float) y);
     }
 
@@ -81,12 +90,12 @@ public abstract class AbstractHeightMap implements HeightMap, Cloneable {
     }
 
     @Override
-    public float getConstantValue() {
+    public double getConstantValue() {
         throw new UnsupportedOperationException("Not a constant height map");
     }
 
     @Override
-    public float getBaseHeight() {
+    public double getBaseHeight() {
         return getRange()[0];
     }
 

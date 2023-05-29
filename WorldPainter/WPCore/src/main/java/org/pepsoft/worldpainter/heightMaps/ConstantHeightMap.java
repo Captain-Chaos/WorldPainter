@@ -7,39 +7,37 @@ package org.pepsoft.worldpainter.heightMaps;
 import org.pepsoft.util.IconUtils;
 
 import javax.swing.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 
 /**
  *
  * @author pepijn
  */
 public final class ConstantHeightMap extends AbstractHeightMap {
-    public ConstantHeightMap(float height) {
-        this.height = height;
+    public ConstantHeightMap(double height) {
+        this.dHeight = height;
     }
 
-    public ConstantHeightMap(String name, float height) {
+    public ConstantHeightMap(String name, double height) {
         super(name);
-        this.height = height;
+        this.dHeight = height;
     }
 
-    public float getHeight() {
-        return height;
-    }
-
-    public void setHeight(float height) {
-        this.height = height;
+    public double getHeight() {
+        return dHeight;
     }
 
     // HeightMap
 
     @Override
-    public float getHeight(int x, int y) {
-        return height;
+    public double getHeight(int x, int y) {
+        return dHeight;
     }
 
     @Override
-    public float getHeight(float x, float y) {
-        return height;
+    public double getHeight(float x, float y) {
+        return dHeight;
     }
 
     @Override
@@ -48,8 +46,8 @@ public final class ConstantHeightMap extends AbstractHeightMap {
     }
 
     @Override
-    public float getConstantValue() {
-        return height;
+    public double getConstantValue() {
+        return dHeight;
     }
 
     @Override
@@ -58,11 +56,22 @@ public final class ConstantHeightMap extends AbstractHeightMap {
     }
 
     @Override
-    public float[] getRange() {
-        return new float[] {height, height};
+    public double[] getRange() {
+        return new double[] {dHeight, dHeight};
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if (version == 0) {
+            dHeight = height;
+            height = 0.0f;
+            version = 1;
+        }
     }
 
     private float height;
+    private double dHeight;
+    private int version = 1;
     
     private static final long serialVersionUID = 1L;
     private static final Icon ICON_CONSTANT_HEIGHTMAP = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/x.png");
