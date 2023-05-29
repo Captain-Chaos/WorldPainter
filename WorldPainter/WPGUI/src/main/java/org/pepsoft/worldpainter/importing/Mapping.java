@@ -36,30 +36,55 @@ abstract class Mapping {
         this.tile = tile;
     }
 
-    void setThreshold(int threshold) {
+    void setThreshold(double threshold) {
         this.threshold = threshold;
     }
 
-    void setMaskLowValue(int maskLowValue) {
+    void setMaskLowValue(double maskLowValue) {
         this.maskLowValue = maskLowValue;
     }
 
-    void setMaskHighValue(int maskHighValue) {
+    void setMaskHighValue(double maskHighValue) {
         this.maskHighValue = maskHighValue;
     }
 
-    void setMaskMaxValue(int maskMaxValue) {
+    void setMaskMaxValue(double maskMaxValue) {
         this.maskMaxValue = maskMaxValue;
     }
 
-    abstract void apply(int x, int y, int maskValue);
+    void applyGreyScale(int x, int y, double maskValue) {
+        throw new UnsupportedOperationException();
+    }
+
+    void applyColour(int x, int y, int rgb) {
+        throw new UnsupportedOperationException();
+    }
+
+    void applyDiscrete(int x, int y, int maskValue) {
+        throw new UnsupportedOperationException();
+    }
+
+    boolean isRanged() {
+        return false;
+    }
+
+    boolean isThreshold() {
+        return false;
+    }
 
     Mapping ditheredActualRange() {
         return new Mapping(aspect, description + " (dithered from actual mask range)") {
             @Override
-            void apply(int x, int y, int maskValue) {
-                if ((maskValue >= maskHighValue) || ((maskValue > maskLowValue) && (maskValue > (random.nextInt(maskHighValue - maskLowValue) + maskLowValue)))) {
-                    Mapping.this.apply(x, y, maskValue);
+            void applyGreyScale(int x, int y, double maskValue) {
+                if ((maskValue >= maskHighValue) || ((maskValue > maskLowValue) && (maskValue > (random.nextDouble() * (maskHighValue - maskLowValue) + maskLowValue)))) {
+                    Mapping.this.applyGreyScale(x, y, maskValue);
+                }
+            }
+
+            @Override
+            void applyDiscrete(int x, int y, int maskValue) {
+                if ((maskValue >= maskHighValue) || ((maskValue > maskLowValue) && (maskValue > (random.nextDouble() * (maskHighValue - maskLowValue) + maskLowValue)))) {
+                    Mapping.this.applyDiscrete(x, y, maskValue);
                 }
             }
 
@@ -70,27 +95,37 @@ abstract class Mapping {
             }
 
             @Override
-            void setThreshold(int threshold) {
+            void setThreshold(double threshold) {
                 super.setThreshold(threshold);
                 Mapping.this.setThreshold(threshold);
             }
 
             @Override
-            void setMaskLowValue(int maskLowValue) {
+            void setMaskLowValue(double maskLowValue) {
                 super.setMaskLowValue(maskLowValue);
                 Mapping.this.setMaskLowValue(maskLowValue);
             }
 
             @Override
-            void setMaskHighValue(int maskHighValue) {
+            void setMaskHighValue(double maskHighValue) {
                 super.setMaskHighValue(maskHighValue);
                 Mapping.this.setMaskHighValue(maskHighValue);
             }
 
             @Override
-            void setMaskMaxValue(int maskMaxValue) {
+            void setMaskMaxValue(double maskMaxValue) {
                 super.setMaskMaxValue(maskMaxValue);
                 Mapping.this.setMaskMaxValue(maskMaxValue);
+            }
+
+            @Override
+            boolean isRanged() {
+                return Mapping.this.isRanged();
+            }
+
+            @Override
+            boolean isThreshold() {
+                return Mapping.this.isThreshold();
             }
 
             private final Random random = new Random(0L);
@@ -100,9 +135,16 @@ abstract class Mapping {
     Mapping ditheredFullRange() {
         return new Mapping(aspect, description + " (dithered from full mask range)") {
             @Override
-            void apply(int x, int y, int maskValue) {
-                if ((maskValue > 0) && (maskValue > random.nextInt(maskMaxValue))) {
-                    Mapping.this.apply(x, y, maskValue);
+            void applyGreyScale(int x, int y, double maskValue) {
+                if ((maskValue > 0.0) && (maskValue > random.nextDouble() * maskMaxValue)) {
+                    Mapping.this.applyGreyScale(x, y, maskValue);
+                }
+            }
+
+            @Override
+            void applyDiscrete(int x, int y, int maskValue) {
+                if ((maskValue > 0.0) && (maskValue > random.nextDouble() * maskMaxValue)) {
+                    Mapping.this.applyDiscrete(x, y, maskValue);
                 }
             }
 
@@ -113,45 +155,56 @@ abstract class Mapping {
             }
 
             @Override
-            void setThreshold(int threshold) {
+            void setThreshold(double threshold) {
                 super.setThreshold(threshold);
                 Mapping.this.setThreshold(threshold);
             }
 
             @Override
-            void setMaskLowValue(int maskLowValue) {
+            void setMaskLowValue(double maskLowValue) {
                 super.setMaskLowValue(maskLowValue);
                 Mapping.this.setMaskLowValue(maskLowValue);
             }
 
             @Override
-            void setMaskHighValue(int maskHighValue) {
+            void setMaskHighValue(double maskHighValue) {
                 super.setMaskHighValue(maskHighValue);
                 Mapping.this.setMaskHighValue(maskHighValue);
             }
 
             @Override
-            void setMaskMaxValue(int maskMaxValue) {
+            void setMaskMaxValue(double maskMaxValue) {
                 super.setMaskMaxValue(maskMaxValue);
                 Mapping.this.setMaskMaxValue(maskMaxValue);
+            }
+
+            @Override
+            boolean isRanged() {
+                return Mapping.this.isRanged();
+            }
+
+            @Override
+            boolean isThreshold() {
+                return Mapping.this.isThreshold();
             }
 
             private final Random random = new Random(0L);
         };
     }
 
-    static abstract class ThresholdMapping extends Mapping {
-        ThresholdMapping(String aspect, String description) {
-            super(aspect, description);
-        }
-    }
-
-    ThresholdMapping threshold() {
-        return new ThresholdMapping(aspect, description + " where mask is at or above threshold") {
+    Mapping threshold() {
+        return new Mapping(aspect, description + " where mask is at or above threshold") {
             @Override
-            void apply(int x, int y, int maskValue) {
+            void applyGreyScale(int x, int y, double maskValue) {
                 if (maskValue >= threshold) {
-                    Mapping.this.apply(x, y, maskValue);
+                    Mapping.this.applyGreyScale(x, y, maskValue);
+                }
+            }
+
+            @Override
+            void applyDiscrete(int x, int y, int maskValue) {
+                if (maskValue >= threshold) {
+                    Mapping.this.applyDiscrete(x, y, maskValue);
                 }
             }
 
@@ -162,27 +215,37 @@ abstract class Mapping {
             }
 
             @Override
-            void setThreshold(int threshold) {
+            void setThreshold(double threshold) {
                 super.setThreshold(threshold);
                 Mapping.this.setThreshold(threshold);
             }
 
             @Override
-            void setMaskLowValue(int maskLowValue) {
+            void setMaskLowValue(double maskLowValue) {
                 super.setMaskLowValue(maskLowValue);
                 Mapping.this.setMaskLowValue(maskLowValue);
             }
 
             @Override
-            void setMaskHighValue(int maskHighValue) {
+            void setMaskHighValue(double maskHighValue) {
                 super.setMaskHighValue(maskHighValue);
                 Mapping.this.setMaskHighValue(maskHighValue);
             }
 
             @Override
-            void setMaskMaxValue(int maskMaxValue) {
+            void setMaskMaxValue(double maskMaxValue) {
                 super.setMaskMaxValue(maskMaxValue);
                 Mapping.this.setMaskMaxValue(maskMaxValue);
+            }
+
+            @Override
+            boolean isRanged() {
+                return Mapping.this.isRanged();
+            }
+
+            @Override
+            boolean isThreshold() {
+                return true;
             }
         };
     }
@@ -190,8 +253,8 @@ abstract class Mapping {
     static Mapping setTerrainValue(Terrain terrain) {
         return new Mapping("terrain " + terrain, "Set terrain type to " + terrain) {
             @Override
-            void apply(int x, int y, int maskValue) {
-                if (maskValue != 0) {
+            void applyGreyScale(int x, int y, double maskValue) {
+                if (maskValue > 0.5) {
                     tile.setTerrain(x, y, terrain);
                 }
             }
@@ -202,8 +265,8 @@ abstract class Mapping {
         if (layer.dataSize.maxValue == 1) {
             return new Mapping("layer " + layer + " (value " + targetValue + ")", "Set layer " + layer + " to selected value") {
                 @Override
-                void apply(int x, int y, int maskValue) {
-                    if ((targetValue != 0) && (maskValue != 0)) {
+                void applyGreyScale(int x, int y, double maskValue) {
+                    if ((targetValue != 0) && (maskValue > 0.5)) {
                         tile.setBitLayerValue(layer, x, y, true);
                     }
                 }
@@ -211,8 +274,8 @@ abstract class Mapping {
         } else if (layer.discrete) {
             return new Mapping("layer " + layer + " (value " + targetValue + ")", "Set layer " + layer + " to selected value") {
                 @Override
-                void apply(int x, int y, int maskValue) {
-                    if (maskValue != 0) {
+                void applyGreyScale(int x, int y, double maskValue) {
+                    if (maskValue > 0.5) {
                         tile.setLayerValue(layer, x, y, targetValue);
                     }
                 }
@@ -220,7 +283,7 @@ abstract class Mapping {
         } else {
             return new Mapping("layer " + layer + " (value " + targetValue + ")", "Set layer " + layer + " to selected value") {
                 @Override
-                void apply(int x, int y, int maskValue) {
+                void applyGreyScale(int x, int y, double maskValue) {
                     tile.setLayerValue(layer, x, y, Math.max(targetValue, tile.getLayerValue(layer, x, y)));
                 }
             };
@@ -230,18 +293,27 @@ abstract class Mapping {
     static Mapping mapToTerrain() {
         return new Mapping("terrain", "Set terrain type index to mask value") {
             @Override
-            void apply(int x, int y, int maskValue) {
+            void applyDiscrete(int x, int y, int maskValue) {
                 tile.setTerrain(x, y, Terrain.VALUES[maskValue]);
             }
         };
     }
 
     static Mapping mapToLayer(Layer layer) {
-        if (layer.dataSize.maxValue == 1) {
+        if (layer.discrete) {
             return new Mapping("layer " + layer, "Set layer " + layer + " to mask value") {
                 @Override
-                void apply(int x, int y, int maskValue) {
+                void applyDiscrete(int x, int y, int maskValue) {
                     if (maskValue != 0) {
+                        tile.setLayerValue(layer, x, y, Math.max(maskValue, tile.getLayerValue(layer, x, y)));
+                    }
+                }
+            };
+        } else if (layer.dataSize.maxValue == 1) {
+            return new Mapping("layer " + layer, "Set layer " + layer + " to mask value") {
+                @Override
+                void applyGreyScale(int x, int y, double maskValue) {
+                    if (maskValue > 0.5) {
                         tile.setBitLayerValue(layer, x, y, true);
                     }
                 }
@@ -249,18 +321,12 @@ abstract class Mapping {
         } else {
             return new Mapping("layer " + layer, "Set layer " + layer + " to mask value") {
                 @Override
-                void apply(int x, int y, int maskValue) {
-                    if (maskValue != 0) {
-                        tile.setLayerValue(layer, x, y, Math.max(maskValue, tile.getLayerValue(layer, x, y)));
+                void applyGreyScale(int x, int y, double maskValue) {
+                    if (maskValue > 0.0) {
+                        tile.setLayerValue(layer, x, y, (int) Math.max(Math.round(maskValue), tile.getLayerValue(layer, x, y)));
                     }
                 }
             };
-        }
-    }
-
-    abstract static class RangedMapping extends Mapping {
-        RangedMapping(String aspect, String description) {
-            super(aspect, description);
         }
     }
 
@@ -271,17 +337,22 @@ abstract class Mapping {
         if (layer.discrete) {
             return new Mapping("layer " + layer, "Map layer " + layer + " to actual mask range") {
                 @Override
-                void apply(int x, int y, int maskValue) {
-                    if (maskValue != 0) {
-                        tile.setLayerValue(layer, x, y, (maskValue - maskLowValue) * layer.dataSize.maxValue / (maskHighValue - maskLowValue));
+                void applyGreyScale(int x, int y, double maskValue) {
+                    if (maskValue > 0.0) {
+                        tile.setLayerValue(layer, x, y, (int) Math.round((maskValue - maskLowValue) * layer.dataSize.maxValue / (maskHighValue - maskLowValue)));
                     }
                 }
             };
         } else {
-            return new RangedMapping("layer " + layer, "Map layer " + layer + " to actual mask range") {
+            return new Mapping("layer " + layer, "Map layer " + layer + " to actual mask range") {
                 @Override
-                void apply(int x, int y, int maskValue) {
-                    tile.setLayerValue(layer, x, y, Math.max((maskValue - maskLowValue) * layer.dataSize.maxValue / (maskHighValue - maskLowValue), tile.getLayerValue(layer, x, y)));
+                void applyGreyScale(int x, int y, double maskValue) {
+                    tile.setLayerValue(layer, x, y, Math.max((int) Math.round((maskValue - maskLowValue) * layer.dataSize.maxValue / (maskHighValue - maskLowValue)), tile.getLayerValue(layer, x, y)));
+                }
+
+                @Override
+                boolean isRanged() {
+                    return true;
                 }
             };
         }
@@ -294,17 +365,22 @@ abstract class Mapping {
         if (layer.discrete) {
             return new Mapping("layer " + layer, "Map layer " + layer + " to full mask range") {
                 @Override
-                void apply(int x, int y, int maskValue) {
-                    if (maskValue != 0) {
-                        tile.setLayerValue(layer, x, y, maskValue * layer.dataSize.maxValue / maskMaxValue);
+                void applyGreyScale(int x, int y, double maskValue) {
+                    if (maskValue > 0.0) {
+                        tile.setLayerValue(layer, x, y, (int) Math.round(maskValue * layer.dataSize.maxValue / maskMaxValue));
                     }
                 }
             };
         } else {
-            return new RangedMapping("layer " + layer, "Map layer " + layer + " to full mask range") {
+            return new Mapping("layer " + layer, "Map layer " + layer + " to full mask range") {
                 @Override
-                void apply(int x, int y, int maskValue) {
-                    tile.setLayerValue(layer, x, y, Math.max(maskValue * layer.dataSize.maxValue / maskMaxValue, tile.getLayerValue(layer, x, y)));
+                void applyGreyScale(int x, int y, double maskValue) {
+                    tile.setLayerValue(layer, x, y, Math.max((int) Math.round(maskValue * layer.dataSize.maxValue / maskMaxValue), tile.getLayerValue(layer, x, y)));
+                }
+
+                @Override
+                boolean isRanged() {
+                    return true;
                 }
             };
         }
@@ -321,9 +397,9 @@ abstract class Mapping {
     static ColourToAnnotationsMapping colourToAnnotations() {
         return new ColourToAnnotationsMapping("annotations", "Map layer Annotations to mask colours") {
             @Override
-            void apply(int x, int y, int maskValue) {
-                if (((maskValue >> 24) & 0xff) > 0x7f) {
-                    tile.setLayerValue(Annotations.INSTANCE, x, y, COLOUR_ANNOTATION_MAPPING[((maskValue >> 12) & 0xf00) | ((maskValue >> 8) & 0xf0) | ((maskValue >> 4) & 0xf)]);
+            void applyColour(int x, int y, int rgb) {
+                if (((rgb >> 24) & 0xff) > 0x7f) {
+                    tile.setLayerValue(Annotations.INSTANCE, x, y, COLOUR_ANNOTATION_MAPPING[((rgb >> 12) & 0xf00) | ((rgb >> 8) & 0xf0) | ((rgb >> 4) & 0xf)]);
                 }
             }
 
@@ -335,9 +411,9 @@ abstract class Mapping {
                     }
 
                     @Override
-                    void apply(int x, int y, int maskValue) {
-                        if (((maskValue >> 24) & 0xff) > 0x7f) {
-                            tile.setLayerValue(Annotations.INSTANCE, x, y, COLOUR_ANNOTATION_MAPPING[((maskValue >> 12) & 0xf00) | ((maskValue >> 8) & 0xf0) | ((maskValue >> 4) & 0xf)]);
+                    void applyColour(int x, int y, int rgb) {
+                        if (((rgb >> 24) & 0xff) > 0x7f) {
+                            tile.setLayerValue(Annotations.INSTANCE, x, y, COLOUR_ANNOTATION_MAPPING[((rgb >> 12) & 0xf00) | ((rgb >> 8) & 0xf0) | ((rgb >> 4) & 0xf)]);
                         }
                     }
                 };
@@ -379,7 +455,7 @@ abstract class Mapping {
 
     private final String aspect, description;
     protected Tile tile;
-    protected int threshold, maskLowValue, maskHighValue, maskMaxValue;
+    protected double threshold, maskLowValue, maskHighValue, maskMaxValue;
 
     private static final int[][] ANNOTATIONS_PALETTE = {
             {0xdd, 0xdd, 0xdd},

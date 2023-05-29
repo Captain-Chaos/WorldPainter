@@ -47,7 +47,7 @@ public class HeightMapTileProvider implements TileProvider {
     public boolean paintTile(Image tileImage, int x, int y, int imageX, int imageY) {
         final BufferedImage image = renderBufferRef.get();
         final WritableRaster raster = image.getRaster();
-        final float vertScale = 255 / heightMap.getRange()[1];
+        final double vertScale = 255 / heightMap.getRange()[1];
         if (zoom < 0) {
             final int scale = -zoom;
             final int xOffset = x << 7 << scale, yOffset = y << 7 << scale;

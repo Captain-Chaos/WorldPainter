@@ -1004,12 +1004,12 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             }
 
             @Override
-            public float[] getRange() {
-                return new float[] {0.0f, maxDistance};
+            public double[] getRange() {
+                return new double[] {0.0f, maxDistance};
             }
 
             @Override
-            public float getHeight(int x, int y) {
+            public double getHeight(int x, int y) {
                 final int tileX = (x >> TILE_SIZE_BITS) - tileXOffset, tileY = (y >> TILE_SIZE_BITS) - tileYOffset;
                 if ((tileX < 0) || (tileX >= distanceCache.length) || (tileY < 0) || (tileY >= distanceCache[0].length) || (distanceCache[tileX][tileY] == null)) {
                     return 0.0f;

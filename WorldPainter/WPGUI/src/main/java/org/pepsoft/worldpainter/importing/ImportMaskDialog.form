@@ -41,6 +41,8 @@
                       <Component id="jLabel6" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="spinnerThreshold" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Component id="labelMaskRange" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="32767" attributes="0"/>
                   </Group>
                   <Group type="102" attributes="0">
@@ -162,6 +164,7 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="jLabel6" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="spinnerThreshold" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="labelMaskRange" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="32767" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
@@ -192,7 +195,7 @@
     </Component>
     <Component class="javax.swing.JLabel" name="labelImageDimensions">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Image size: ? x ?, bit depth: ?, lowest value: ?, highest value: ?"/>
+        <Property name="text" type="java.lang.String" value="&lt;html&gt;Image size: ? x ?, bit depth: ?&lt;br&gt;&#xa;Lowest value: ?, highest value: ?&lt;/html&gt;"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="buttonCancel">
@@ -258,7 +261,7 @@
     <Component class="javax.swing.JSpinner" name="spinnerThreshold">
       <Properties>
         <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
-          <SpinnerModel initial="0" maximum="255" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
+          <SpinnerModel initial="0.0" maximum="255.0" minimum="0.0" numberType="java.lang.Double" stepSize="1.0" type="number"/>
         </Property>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
@@ -381,6 +384,11 @@
     <Component class="javax.swing.JLabel" name="jLabel6">
       <Properties>
         <Property name="text" type="java.lang.String" value="Threshold:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="labelMaskRange">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Actual mask range: -999,999 - 999,999"/>
       </Properties>
     </Component>
   </SubComponents>

@@ -130,7 +130,6 @@ public class HeightMapImporter {
             dimension.getWorld().addHistoryEntry(HistoryEntry.WORLD_HEIGHT_MAP_IMPORTED_TO_DIMENSION, dimension.getName(), imageFile);
         }
 
-        final boolean useVoidBelow = voidBelowLevel > minHeight;
         final Rectangle extent = heightMap.getExtent();
         final int x1 = extent.x;
         final int x2 = extent.x + extent.width - 1;
@@ -173,7 +172,7 @@ public class HeightMapImporter {
                         final int imageX = xOffset + x;
                         final int imageY = yOffset + y;
                         if ((imageX >= x1) && (imageX <= x2) && (imageY >= y1) && (imageY <= y2)) {
-                            final float imageLevel = heightMap.getHeight(imageX, imageY);
+                            final double imageLevel = heightMap.getHeight(imageX, imageY);
                             final float height = calculateHeight(imageLevel);
                             if (onlyRaise && (! tileIsNew)) {
                                 if (height > tile.getHeight(x, y)) {
@@ -185,7 +184,7 @@ public class HeightMapImporter {
                             } else {
                                 tile.setHeight(x, y, height);
                                 tile.setWaterLevel(x, y, worldWaterLevel);
-                                if (useVoidBelow && (imageLevel < voidBelowLevel)) {
+                                if (useVoidBelow && (imageLevel <= voidBelowLevel)) {
                                     tile.setBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, x, y, true);
                                 }
                                 if (theme != null) {
@@ -236,7 +235,7 @@ public class HeightMapImporter {
             final HeightMapTileFactory heightMapTileFactory = (HeightMapTileFactory) this.tileFactory;
             final Theme theme = ((this.theme != null) ? this.theme : heightMapTileFactory.getTheme()).clone();
             theme.setWaterHeight(worldWaterLevel);
-            final HeightMapTileFactory tileFactory = new PreviewTileFactory(1L, previewHeightMap, targetDimension, minHeight, maxHeight, heightMapTileFactory.isFloodWithLava(), theme, heightMap, voidBelowLevel);
+            final HeightMapTileFactory tileFactory = new PreviewTileFactory(1L, previewHeightMap, targetDimension, minHeight, maxHeight, heightMapTileFactory.isFloodWithLava(), theme, heightMap, useVoidBelow, voidBelowLevel);
             return new WPTileProvider(tileFactory, colourScheme, null, null, contourLines, contourSeparation, lightOrigin, null);
         } else {
             return null;
@@ -288,19 +287,19 @@ public class HeightMapImporter {
         this.worldHighLevel = worldHighLevel;
     }
 
-    public long getImageLowLevel() {
+    public double getImageLowLevel() {
         return imageLowLevel;
     }
 
-    public void setImageLowLevel(long imageLowLevel) {
+    public void setImageLowLevel(double imageLowLevel) {
         this.imageLowLevel = imageLowLevel;
     }
 
-    public long getImageHighLevel() {
+    public double getImageHighLevel() {
         return imageHighLevel;
     }
 
-    public void setImageHighLevel(long imageHighLevel) {
+    public void setImageHighLevel(double imageHighLevel) {
         this.imageHighLevel = imageHighLevel;
     }
 
@@ -320,11 +319,19 @@ public class HeightMapImporter {
         this.maxHeight = maxHeight;
     }
 
-    public long getVoidBelowLevel() {
+    public boolean isVoidBelow() {
+        return useVoidBelow;
+    }
+
+    public void setVoidBelow(boolean voidBelow) {
+        useVoidBelow = voidBelow;
+    }
+
+    public double getVoidBelowLevel() {
         return voidBelowLevel;
     }
 
-    public void setVoidBelowLevel(long voidBelowLevel) {
+    public void setVoidBelowLevel(double voidBelowLevel) {
         this.voidBelowLevel = voidBelowLevel;
     }
 
@@ -390,7 +397,7 @@ public class HeightMapImporter {
                     && (((TransformingHeightMap) heightMap).getBaseHeightMap() instanceof BitmapHeightMap)));
         oneOnOne = (worldLowLevel == imageLowLevel) && (worldHighLevel == imageHighLevel);
         highRes = (imageHighLevel >= maxHeight) && (worldHighLevel < maxHeight);
-        levelScale = (float) (worldHighLevel - worldLowLevel) / (imageHighLevel - imageLowLevel);
+        levelScale = (worldHighLevel - worldLowLevel) / (imageHighLevel - imageLowLevel);
         maxZ = maxHeight - 1;
 
         Rectangle extent = heightMap.getExtent();
@@ -401,37 +408,38 @@ public class HeightMapImporter {
         extentInTiles = new Rectangle(tileX1, tileY1, tileX2 - tileX1 + 1, tileY2 - tileY1 + 1);
     }
 
-    private float calculateHeight(final float imageLevel) {
+    private float calculateHeight(final double imageLevel) {
         if (highRes) {
-            return MathUtils.clamp(minHeight, (imageLevel - imageLowLevel) * levelScale + worldLowLevel, maxZ);
+            return MathUtils.clamp(minHeight, (float) ((imageLevel - imageLowLevel) * levelScale + worldLowLevel), maxZ);
         } else {
-            return MathUtils.clamp(minHeight, oneOnOne
-                ? (mayBeScaled ? imageLevel : (imageLevel - 0.4375f))
-                : ((imageLevel - imageLowLevel) * levelScale + worldLowLevel), maxZ);
+            return MathUtils.clamp(minHeight, (float) (oneOnOne
+                ? (mayBeScaled ? imageLevel : (imageLevel - 0.4375))
+                : ((imageLevel - imageLowLevel) * levelScale + worldLowLevel)), maxZ);
         }
     }
 
     private Platform platform = Configuration.getInstance().getDefaultPlatform();
     private HeightMap heightMap;
     private int worldLowLevel, worldWaterLevel = DEFAULT_WATER_LEVEL, worldHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, minHeight = 0, maxHeight = DEFAULT_MAX_HEIGHT_ANVIL, maxZ;
-    private long imageLowLevel, imageHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, voidBelowLevel;
+    private double imageLowLevel, imageHighLevel = DEFAULT_MAX_HEIGHT_ANVIL - 1, /** The input level <strong>at or</strong> below which Void should be generated. */ voidBelowLevel;
     private TileFactory tileFactory;
     private Theme theme;
     private String name;
-    private boolean onlyRaise, oneOnOne, highRes, mayBeScaled;
+    private boolean onlyRaise, oneOnOne, highRes, mayBeScaled, useVoidBelow;
     private File imageFile;
-    private float levelScale;
+    private double levelScale;
     private long minecraftSeed = World2.DEFAULT_OCEAN_SEED;
     private Rectangle extentInTiles;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(HeightMapImporter.class);
 
     private static class PreviewTileFactory extends HeightMapTileFactory {
-        private PreviewTileFactory(long seed, HeightMap heightMap, Dimension targetDimension, int minHeight, int maxHeight, boolean floodWithLava, Theme theme, HeightMap imageHeightMap, long voidBelow) {
+        private PreviewTileFactory(long seed, HeightMap heightMap, Dimension targetDimension, int minHeight, int maxHeight, boolean floodWithLava, Theme theme, HeightMap imageHeightMap, boolean voidBelow, double voidBelowLevel) {
             super(seed, heightMap, minHeight, maxHeight, floodWithLava, theme);
             this.targetDimension = targetDimension;
             this.imageHeightMap = imageHeightMap;
-            this.voidBelow = voidBelow;
+            useVoidBelow = voidBelow;
+            this.voidBelowLevel = voidBelowLevel;
         }
 
         @Override
@@ -453,25 +461,31 @@ public class HeightMapImporter {
                     }
                 }
             }
-            tile.inhibitEvents();
-            final int worldTileX = tileX * TILE_SIZE, worldTileY = tileY * TILE_SIZE;
-            try {
-                for (int x = 0; x < TILE_SIZE; x++) {
-                    for (int y = 0; y < TILE_SIZE; y++) {
-                        final int blockX = worldTileX + x, blockY = worldTileY + y;
-                        if (imageHeightMap.getHeight(blockX, blockY) < voidBelow) {
-                            tile.setBitLayerValue(Void.INSTANCE, x, y, true);
+            if (useVoidBelow) {
+                final int worldTileX = tileX * TILE_SIZE, worldTileY = tileY * TILE_SIZE;
+                tile.inhibitEvents();
+                try {
+                    for (int x = 0; x < TILE_SIZE; x++) {
+                        for (int y = 0; y < TILE_SIZE; y++) {
+                            final int blockX = worldTileX + x, blockY = worldTileY + y;
+                            if (imageHeightMap.getHeight(blockX, blockY) <= voidBelowLevel) {
+                                tile.setBitLayerValue(Void.INSTANCE, x, y, true);
+                            }
                         }
                     }
+                } finally {
+                    tile.releaseEvents();
                 }
-                return tile;
-            } finally {
-                tile.releaseEvents();
             }
+            return tile;
         }
 
         private final HeightMap imageHeightMap;
-        private final long voidBelow;
+        private final boolean useVoidBelow;
+        /**
+         * The input level <strong>at or</strong> below which Void should be generated.
+         */
+        private final double voidBelowLevel;
         private final Dimension targetDimension;
     }
 }

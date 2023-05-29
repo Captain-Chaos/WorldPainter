@@ -318,7 +318,7 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                             for (int i = 0; i < floorExporters.length; i++) {
                                 if ((z >= floorLayerSettings[i].getMinLevel()) && (z <= floorLayerSettings[i].getMaxLevel())) {
                                     final int intensity = floorLayerNoise[i] != null
-                                            ? clamp(0, Math.round(floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z) - floorLayerNoise[i].getHeight() / 2), 100)
+                                            ? (int) clamp(0L, Math.round(floorLayerSettings[i].getIntensity() + floorLayerNoise[i].getValue(x, y, z) - floorLayerNoise[i].getHeight() / 2), 100L)
                                             : floorLayerSettings[i].getIntensity();
                                     if (intensity > 0) {
                                         Fixup fixup = floorExporters[i].apply(location, intensity, exportedArea, world);
@@ -357,7 +357,7 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                         for (int i = 0; i < roofExporters.length; i++) {
                             if ((z >= roofLayerSettings[i].getMinLevel()) && (z <= roofLayerSettings[i].getMaxLevel())) {
                                 final int intensity = roofLayerNoise[i] != null
-                                        ? clamp(0, Math.round(roofLayerSettings[i].getIntensity() + roofLayerNoise[i].getValue(x, y, z) - roofLayerNoise[i].getHeight() / 2), 100)
+                                        ? (int) clamp(0L, Math.round(roofLayerSettings[i].getIntensity() + roofLayerNoise[i].getValue(x, y, z) - roofLayerNoise[i].getHeight() / 2), 100L)
                                         : roofLayerSettings[i].getIntensity();
                                 if (intensity > 0) {
                                     roofExporters[i].apply(location, intensity, exportedArea, invertedWorld);

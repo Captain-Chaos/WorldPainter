@@ -75,7 +75,7 @@
                           <Component id="jTabbedPane1" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="tiledImageViewerContainer1" pref="384" max="32767" attributes="0"/>
+                      <Component id="tiledImageViewerContainer1" pref="397" max="32767" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
                       <Component id="checkBoxMasterDimension" min="-2" max="-2" attributes="0"/>
@@ -402,7 +402,7 @@
                 <Component class="javax.swing.JSpinner" name="spinnerImageLow">
                   <Properties>
                     <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
-                      <SpinnerModel initial="0" maximum="4294967295" minimum="0" numberType="java.lang.Long" stepSize="1" type="number"/>
+                      <SpinnerModel initial="0.0" maximum="4.294967295E9" minimum="0.0" numberType="java.lang.Double" stepSize="1.0" type="number"/>
                     </Property>
                   </Properties>
                   <Events>
@@ -486,7 +486,7 @@
                 <Component class="javax.swing.JSpinner" name="spinnerImageHigh">
                   <Properties>
                     <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
-                      <SpinnerModel initial="255" maximum="4294967295" minimum="0" numberType="java.lang.Long" stepSize="1" type="number"/>
+                      <SpinnerModel initial="255.0" maximum="4.294967295E9" minimum="0.0" numberType="java.lang.Double" stepSize="1.0" type="number"/>
                     </Property>
                   </Properties>
                   <Events>
@@ -680,7 +680,7 @@
             <Component class="javax.swing.JSpinner" name="spinnerVoidBelow">
               <Properties>
                 <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
-                  <SpinnerModel initial="1" maximum="4294967295" minimum="1" numberType="java.lang.Long" stepSize="1" type="number"/>
+                  <SpinnerModel initial="1.0" maximum="4.294967295E9" minimum="1.0" numberType="java.lang.Double" stepSize="1.0" type="number"/>
                 </Property>
                 <Property name="enabled" type="boolean" value="false"/>
               </Properties>

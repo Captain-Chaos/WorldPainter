@@ -88,7 +88,7 @@ public class TransformingHeightMap extends DelegatingHeightMap {
     }
 
     @Override
-    public float doGetHeight(int x, int y) {
+    public double doGetHeight(int x, int y) {
         if (translateOnly) {
             return children[0].getHeight(x - offsetX, y - offsetY);
         } else {
@@ -99,7 +99,7 @@ public class TransformingHeightMap extends DelegatingHeightMap {
     }
 
     @Override
-    public float doGetHeight(float x, float y) {
+    public double doGetHeight(float x, float y) {
         if (translateOnly) {
             return children[0].getHeight(x - offsetX, y - offsetY);
         } else {
@@ -156,7 +156,7 @@ public class TransformingHeightMap extends DelegatingHeightMap {
     }
 
     @Override
-    public float[] getRange() {
+    public double[] getRange() {
         return children[0].getRange();
     }
 

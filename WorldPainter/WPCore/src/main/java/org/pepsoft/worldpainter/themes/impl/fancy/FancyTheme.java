@@ -41,10 +41,10 @@ public class FancyTheme implements Theme, Cloneable {
     @Override
     public void apply(Tile tile, int x, int y) {
         final int worldX = (tile.getX() << 7) | x, worldY = (tile.getY() << 7) | y;
-        float temperature = temperatureMap.getHeight(worldX, worldY);
+        double temperature = temperatureMap.getHeight(worldX, worldY);
         float height = tile.getHeight(x, y);
-        temperature = temperature - Math.max(height - waterHeight, 0) / 2f + randomNoiseMap.getHeight(worldX, worldY);
-        float humidity = humidityMap.getHeight(worldX, worldY) + randomNoiseMap.getHeight(worldX, worldY);
+        temperature = temperature - Math.max(height - waterHeight, 0) / 2 + randomNoiseMap.getHeight(worldX, worldY);
+        double humidity = humidityMap.getHeight(worldX, worldY) + randomNoiseMap.getHeight(worldX, worldY);
         final float slopeNOSO = Math.abs(getHeight(    worldX, worldY - 1) - getHeight(    worldX, worldY + 1));
         final float slopeNWSE = Math.abs(getHeight(worldX + 1, worldY - 1) - getHeight(worldX - 1, worldY + 1));
         final float slopeEAWE = Math.abs(getHeight(worldX + 1,     worldY) - getHeight(worldX - 1,     worldY));
@@ -213,7 +213,7 @@ public class FancyTheme implements Theme, Cloneable {
     }
 
     protected float getHeight(int x, int y) {
-        return heightMap.getHeight(x, y);
+        return (float) heightMap.getHeight(x, y);
     }
 
     private boolean isWaterNear(int x, int y) {

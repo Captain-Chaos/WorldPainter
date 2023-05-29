@@ -750,7 +750,7 @@ public final class App extends JFrame implements RadiusControl,
             return;
         }
         final float scale = dimension.getScale();
-        setTextIfDifferent(locationLabel, MessageFormat.format(strings.getString("location.0.1"), NUMBER_FORMAT.format(round(x * scale)), NUMBER_FORMAT.format(round(y * scale))));
+        setTextIfDifferent(locationLabel, MessageFormat.format(strings.getString("location.0.1"), INT_NUMBER_FORMAT.format(round(x * scale)), INT_NUMBER_FORMAT.format(round(y * scale))));
         Tile tile = dimension.getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
         if (showBackgroundStatus
@@ -6172,7 +6172,7 @@ public final class App extends JFrame implements RadiusControl,
             return;
         }
         if (! imageFitsInJavaArray(dimension)) {
-            beepAndShowError(this, "The dimension is too large to export to an image.\nThe area (width x height) may not be more than " + NUMBER_FORMAT.format(Integer.MAX_VALUE), "Dimension Too Large");
+            beepAndShowError(this, "The dimension is too large to export to an image.\nThe area (width x height) may not be more than " + INT_NUMBER_FORMAT.format(Integer.MAX_VALUE), "Dimension Too Large");
             return;
         }
         final Set<String> extensions = new HashSet<>(asList(ImageIO.getReaderFileSuffixes()));
@@ -6261,7 +6261,7 @@ public final class App extends JFrame implements RadiusControl,
             return;
         }
         if (! imageFitsInJavaArray(dimension)) {
-            beepAndShowError(this, "The dimension is too large to export to a height map.\nThe area (width x height) may not be more than " + NUMBER_FORMAT.format(Integer.MAX_VALUE), "Dimension Too Large");
+            beepAndShowError(this, "The dimension is too large to export to a height map.\nThe area (width x height) may not be more than " + INT_NUMBER_FORMAT.format(Integer.MAX_VALUE), "Dimension Too Large");
             return;
         }
         final HeightMapExporter heightMapExporter = new HeightMapExporter(dimension, highRes);
@@ -7813,7 +7813,8 @@ public final class App extends JFrame implements RadiusControl,
         }
     };
 
-    public static final NumberFormat NUMBER_FORMAT = NumberFormat.getIntegerInstance();
+    public static final NumberFormat INT_NUMBER_FORMAT = NumberFormat.getIntegerInstance();
+    public static final NumberFormat FLOAT_NUMBER_FORMAT = NumberFormat.getNumberInstance();
 
     private static Mode mode = Mode.WORLDPAINTER;
 

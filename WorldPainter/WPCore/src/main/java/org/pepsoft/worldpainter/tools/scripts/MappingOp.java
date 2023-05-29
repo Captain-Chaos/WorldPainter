@@ -374,11 +374,11 @@ public class MappingOp extends AbstractOperation<Void> {
                             continue;
                         }
                     } else {
-                        int valueIn = Math.round(scaledHeightMap.getHeight(x, y));
+                        long valueIn = Math.round(scaledHeightMap.getHeight(x, y));
                         if ((valueIn < 0) || (valueIn > 65535)) {
                             continue;
                         }
-                        valueOut = mapping[valueIn];
+                        valueOut = mapping[(int) valueIn];
                         if (valueOut == -1) {
                             continue;
                         }

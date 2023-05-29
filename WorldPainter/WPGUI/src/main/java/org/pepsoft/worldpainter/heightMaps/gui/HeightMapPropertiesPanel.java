@@ -72,7 +72,7 @@ public class HeightMapPropertiesPanel extends JPanel {
             addField("Shelve height:", heightMap, "shelveHeight");
             addField("Shelve strength:", heightMap, "shelveStrength");
         }
-        float[] range = heightMap.getRange();
+        double[] range = heightMap.getRange();
         addField("Range:", "[" + range[0] + ", " + range[1] + "]");
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.weighty = 1.0;

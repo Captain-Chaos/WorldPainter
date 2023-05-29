@@ -26,19 +26,19 @@ import javax.swing.*;
  * @author pepijn
  */
 public final class NinePatchHeightMap extends AbstractHeightMap {
-    public NinePatchHeightMap(int innerRadius, int coastSize, float height) {
+    public NinePatchHeightMap(int innerRadius, int coastSize, double height) {
         this(null, 0, innerRadius, coastSize, height);
     }
     
-    public NinePatchHeightMap(int innerSize, int borderSize, int coastSize, float height) {
+    public NinePatchHeightMap(int innerSize, int borderSize, int coastSize, double height) {
         this(null, innerSize, borderSize, coastSize, height);
     }
     
-    public NinePatchHeightMap(String name, int innerRadius, int coastSize, float height) {
+    public NinePatchHeightMap(String name, int innerRadius, int coastSize, double height) {
         this(name, 0, innerRadius, coastSize, height);
     }
     
-    public NinePatchHeightMap(String name, int innerSize, int borderSize, int coastSize, float height) {
+    public NinePatchHeightMap(String name, int innerSize, int borderSize, int coastSize, double height) {
         super(name);
         if ((innerSize < 0) || (borderSize < 0) || (coastSize < 0) || (height <= 0.0f)) {
             throw new IllegalArgumentException();
@@ -51,7 +51,11 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
         this.borderSize = borderSize;
         this.coastSize = coastSize;
         this.height = height;
-        sizesChanged();
+        halfHeight = this.height / 2;
+        borderTotalX = innerSizeX + this.borderSize;
+        borderTotalY = innerSizeY + this.borderSize;
+        coastTotalX = borderTotalX + this.coastSize;
+        coastTotalY = borderTotalY + this.coastSize;
     }
 
     public int getInnerSizeX() {
@@ -70,45 +74,14 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
         return coastSize;
     }
 
-    public float getHeight() {
+    public double getHeight() {
         return height;
-    }
-
-    public void setBorderSize(int borderSize) {
-        this.borderSize = borderSize;
-        sizesChanged();
-    }
-
-    public void setCoastSize(int coastSize) {
-        this.coastSize = coastSize;
-        sizesChanged();
-    }
-
-    public void setHeight(float height) {
-        this.height = height;
-        sizesChanged();
-    }
-
-    public void setInnerSizeX(int innerSizeX) {
-        this.innerSizeX = innerSizeX;
-        sizesChanged();
-    }
-
-    public void setInnerSizeY(int innerSizeY) {
-        this.innerSizeY = innerSizeY;
-        sizesChanged();
-    }
-
-    public void setInnerSize(int innerSize) {
-        this.innerSizeX = innerSize;
-        this.innerSizeY = innerSize;
-        sizesChanged();
     }
 
     // HeightMap
 
     @Override
-    public float getHeight(float x, float y) {
+    public double getHeight(float x, float y) {
         x = Math.abs(x);
         y = Math.abs(y);
         if (x < innerSizeX) {
@@ -120,7 +93,7 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
                 return height;
             } else if (y < coastTotalY) {
                 // Coast
-                return (float) (Math.cos((y - borderTotalY) / coastSize * Math.PI) * halfHeight) + halfHeight;
+                return (Math.cos((y - borderTotalY) / coastSize * Math.PI) * halfHeight) + halfHeight;
             } else {
                 // Outside the continent
                 return 0;
@@ -136,7 +109,7 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
                     // Border
                     return height;
                 } else if (distanceFromCorner - borderSize < coastSize) {
-                    return (float) (Math.cos((distanceFromCorner - borderSize) / coastSize * Math.PI) * halfHeight) + halfHeight;
+                    return (Math.cos((distanceFromCorner - borderSize) / coastSize * Math.PI) * halfHeight) + halfHeight;
                     // Coast
                 } else {
                     // Outside the continent
@@ -149,7 +122,7 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
         } else if (x < coastTotalX) {
             if (y < innerSizeY) {
                 // Coast
-                return (float) (Math.cos((x - borderTotalX) / coastSize * Math.PI) * halfHeight) + halfHeight;
+                return (Math.cos((x - borderTotalX) / coastSize * Math.PI) * halfHeight) + halfHeight;
             } else if (y < coastTotalY) {
                 // Corner
                 float distanceFromCorner = MathUtils.getDistance(x - innerSizeX, y - innerSizeY);
@@ -157,7 +130,7 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
                     // Border
                     return height;
                 } else if (distanceFromCorner - borderSize < coastSize) {
-                    return (float) (Math.cos((distanceFromCorner - borderSize) / coastSize * Math.PI) * halfHeight) + halfHeight;
+                    return (Math.cos((distanceFromCorner - borderSize) / coastSize * Math.PI) * halfHeight) + halfHeight;
                     // Coast
                 } else {
                     // Outside the continent
@@ -179,21 +152,13 @@ public final class NinePatchHeightMap extends AbstractHeightMap {
     }
 
     @Override
-    public float[] getRange() {
-        return new float[] {0.0f, height};
+    public double[] getRange() {
+        return new double[] {0.0, height};
     }
 
-    private void sizesChanged() {
-        halfHeight = height / 2;
-        borderTotalX = innerSizeX + borderSize;
-        borderTotalY = innerSizeY + borderSize;
-        coastTotalX = borderTotalX + coastSize;
-        coastTotalY = borderTotalY + coastSize;
-    }
-
-    private int innerSizeX, innerSizeY, borderSize, coastSize;
-    private int borderTotalX, borderTotalY, coastTotalX, coastTotalY;
-    private float height, halfHeight;
+    private final int innerSizeX, innerSizeY, borderSize, coastSize;
+    private final int borderTotalX, borderTotalY, coastTotalX, coastTotalY;
+    private final double height, halfHeight;
     
     private static final long serialVersionUID = 1L;
     private static final Icon ICON_NINE_PATCH_HEIGHTMAP = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/nine_patch.png");

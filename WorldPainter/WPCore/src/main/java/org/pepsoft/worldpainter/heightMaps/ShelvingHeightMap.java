@@ -33,9 +33,9 @@ public class ShelvingHeightMap extends DelegatingHeightMap {
     // HeightMap
 
     @Override
-    public float doGetHeight(float x, float y) {
-        float value = children[0].getHeight(x, y);
-        return (float) (value - Math.sin(value * DOUBLE_PI / shelveHeight) * shelveStrength);
+    public double doGetHeight(float x, float y) {
+        double value = children[0].getHeight(x, y);
+        return value - Math.sin(value * DOUBLE_PI / shelveHeight) * shelveStrength;
     }
 
     @Override
@@ -44,9 +44,10 @@ public class ShelvingHeightMap extends DelegatingHeightMap {
     }
 
     @Override
-    public float[] getRange() {
-        float[] range0 = children[0].getRange();
-        return new float[] {(float) (range0[1] - Math.sin(range0[1] * DOUBLE_PI / shelveHeight) * shelveStrength)};
+    public double[] getRange() {
+        double[] range0 = children[0].getRange();
+        // TODO this is wrong! It should return two values:
+        return new double[] {range0[1] - Math.sin(range0[1] * DOUBLE_PI / shelveHeight) * shelveStrength};
     }
 
     private int shelveHeight = 32, shelveStrength = 8;
