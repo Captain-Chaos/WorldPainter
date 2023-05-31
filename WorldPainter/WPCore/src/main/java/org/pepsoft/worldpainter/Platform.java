@@ -14,23 +14,88 @@ import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 
 /**
- * A descriptor for a WorldPainter-supported map storage format. Implements the
- * Enumeration pattern, meaning there is only ever one instance of each unique
- * platform, allowing the {@code ==} operator to be used with it.
+ * A descriptor for a WorldPainter-supported map storage format. Implements the Enumeration pattern, meaning there is
+ * only ever one instance of each unique platform, allowing the {@code ==} operator to be used with it.
  *
  * <p>Created by Pepijn on 11-12-2016.
  */
 public final class Platform implements Serializable {
-    public Platform(String id, String displayName, int minMaxHeight, int standardMaxHeight, int maxMaxHeight, int minX,
-                    int maxX, int minY, int maxY, List<GameType> supportedGameTypes,
-                    List<Generator> supportedGenerators, List<Integer> supportedDimensions,
+    /**
+     * Define a new platform which only supports a {@code minHeight} of zero. This version of the constructor
+     * auto-generates the list of {@code maxHeights} from the {@code minMaxHeight} and {@code maxMaxHeight}, instead of
+     * having to specify the list explicitly. The list will contain every power of two between {@code minMaxHeight} and
+     * {@code maxMaxHeight}.
+     *
+     * @param id                      The globally unique identifier, preferably in Java package/reverse domain name style, of the platform. This must never change.
+     * @param displayName             The name of the platform to display to the user.
+     * @param minMaxHeight            The minimum {@code maxHeight} supported by the platform.
+     * @param standardMaxHeight       The default {@code maxHeight} of the platform. The {@code maxHeight} is <em>exclusive</em>.
+     * @param maxMaxHeight            The maximum {@code maxHeight} supported by the platform.
+     * @param minX                    The lowest possible x (east-west) coordinate supported by the platform.
+     * @param maxX                    The highest possible x (east-west) coordinate supported by the platform.
+     * @param minY                    The lowest possible y (north-south) coordinate supported by the platform.
+     * @param maxY                    The highest possible y (north-south) coordinate supported by the platform.
+     * @param supportedGameTypes      The {@link GameType game types} supported by the platform.
+     * @param supportedGeneratorTypes The {@link Generator generator types} supported by the platform.
+     * @param supportedDimensions     The dimensions supported by the platform as expressed by the constants {@link Constants#DIM_NORMAL}, {@link Constants#DIM_NETHER} and {@link Constants#DIM_END}.
+     * @param capabilities            The {@link Capability capabilities} of the platform.
+     * @param attributes              Optional custom attributes of the platform. If specified there must be an even number of values, which form key-value pairs. The keys must be {@link String}s and the values must be {@link Serializable}.
+     */
+    public Platform(String id, String displayName, int minMaxHeight, int standardMaxHeight, int maxMaxHeight, int minX, int maxX,
+                    int minY, int maxY, List<GameType> supportedGameTypes,
+                    List<Generator> supportedGeneratorTypes, List<Integer> supportedDimensions,
                     Set<Capability> capabilities, Object... attributes) {
-        this(id, displayName, defaultMaxHeightsFromTo(minMaxHeight, maxMaxHeight), standardMaxHeight, minX, maxX, minY, maxY, new int[] { 0 }, 0, supportedGameTypes, supportedGenerators, supportedDimensions, capabilities, attributes);
+        this(id, displayName, defaultMaxHeightsFromTo(minMaxHeight, maxMaxHeight), standardMaxHeight, minX, maxX, minY, maxY, new int[] { 0 }, 0, supportedGameTypes, supportedGeneratorTypes, supportedDimensions, capabilities, attributes);
     }
 
+    /**
+     * Define a new platform which has a fixed {@code minHeight} other than zero.
+     *
+     * @param id                      The globally unique identifier, preferably in Java package/reverse domain name style, of the platform. This must never change.
+     * @param displayName             The name of the platform to display to the user.
+     * @param maxHeights              The list of {@code maxHeight}s to present to the user. The platform <em>may</em> support {@code maxHeight}s not in this list. The list must be in ascending order.
+     * @param standardMaxHeight       The default {@code maxHeight} of the platform. The {@code maxHeight} is <em>exclusive</em>.
+     * @param minX                    The lowest possible x (east-west) coordinate supported by the platform.
+     * @param maxX                    The highest possible x (east-west) coordinate supported by the platform.
+     * @param minY                    The lowest possible y (north-south) coordinate supported by the platform.
+     * @param maxY                    The highest possible y (north-south) coordinate supported by the platform.
+     * @param standardMinHeight       The default {@code minHeight} of the platform. The {@code minHeight} is <em>inclusive</em>.
+     * @param supportedGameTypes      The {@link GameType game types} supported by the platform.
+     * @param supportedGeneratorTypes The {@link Generator generator types} supported by the platform.
+     * @param supportedDimensions     The dimensions supported by the platform as expressed by the constants {@link Constants#DIM_NORMAL}, {@link Constants#DIM_NETHER} and {@link Constants#DIM_END}.
+     * @param capabilities            The {@link Capability capabilities} of the platform.
+     * @param attributes              Optional custom attributes of the platform. If specified there must be an even number of values, which form key-value pairs. The keys must be {@link String}s and the values must be {@link Serializable}.
+     */
     public Platform(String id, String displayName, int[] maxHeights, int standardMaxHeight, int minX, int maxX,
-                    int minY, int maxY, int[] minHeights, int standardMinHeight, List<GameType> supportedGameTypes, List<Generator> supportedGeneratorTypes,
-                    List<Integer> supportedDimensions, Set<Capability> capabilities, Object... attributes) {
+                    int minY, int maxY, int standardMinHeight, List<GameType> supportedGameTypes,
+                    List<Generator> supportedGeneratorTypes, List<Integer> supportedDimensions,
+                    Set<Capability> capabilities, Object... attributes) {
+        this(id, displayName, maxHeights, standardMaxHeight, minX, maxX, minY, maxY, new int[] { standardMinHeight }, standardMinHeight, supportedGameTypes, supportedGeneratorTypes, supportedDimensions, capabilities, attributes);
+    }
+
+    /**
+     * Define a new platform which has variable {@code minHeight}s.
+     *
+     * @param id                      The globally unique identifier, preferably in Java package/reverse domain name style, of the platform. This must never change.
+     * @param displayName             The name of the platform to display to the user.
+     * @param maxHeights              The list of {@code maxHeight}s to present to the user. The platform <em>may</em> support {@code maxHeight}s not in this list. The list must be in ascending order.
+     * @param standardMaxHeight       The default {@code maxHeight} of the platform. The {@code maxHeight} is <em>exclusive</em>.
+     * @param minX                    The lowest possible x (east-west) coordinate supported by the platform.
+     * @param maxX                    The highest possible x (east-west) coordinate supported by the platform.
+     * @param minY                    The lowest possible y (north-south) coordinate supported by the platform.
+     * @param maxY                    The highest possible y (north-south) coordinate supported by the platform.
+     * @param minHeights              The {@code minHeight}s supported by the platform. The list must be in descending order.
+     * @param standardMinHeight       The default {@code minHeight} of the platform. The {@code minHeight} is <em>inclusive</em>.
+     * @param supportedGameTypes      The {@link GameType game types} supported by the platform.
+     * @param supportedGeneratorTypes The {@link Generator generator types} supported by the platform.
+     * @param supportedDimensions     The dimensions supported by the platform as expressed by the constants {@link Constants#DIM_NORMAL}, {@link Constants#DIM_NETHER} and {@link Constants#DIM_END}.
+     * @param capabilities            The {@link Capability capabilities} of the platform.
+     * @param attributes              Optional custom attributes of the platform. If specified there must be an even number of values, which form key-value pairs. The keys must be {@link String}s and the values must be {@link Serializable}.
+     */
+    public Platform(String id, String displayName, int[] maxHeights, int standardMaxHeight, int minX, int maxX,
+                    int minY, int maxY, int[] minHeights, int standardMinHeight, List<GameType> supportedGameTypes,
+                    List<Generator> supportedGeneratorTypes, List<Integer> supportedDimensions,
+                    Set<Capability> capabilities, Object... attributes) {
         synchronized (ALL_PLATFORMS) {
             if (ALL_PLATFORMS.containsKey(id)) {
                 throw new IllegalStateException("There is already a platform with ID " + id);
@@ -81,14 +146,6 @@ public final class Platform implements Serializable {
                     List<Generator> supportedGenerators, List<Integer> supportedDimensions,
                     Set<Capability> capabilities) {
         this(id, displayName, defaultMaxHeightsFromTo(minMaxHeight, maxMaxHeight), standardMaxHeight, minX, maxX, minY, maxY, new int[] { 0 }, 0, supportedGameTypes, supportedGenerators, supportedDimensions, capabilities, (Object[]) null);
-    }
-
-    // Kept for backwards compatibility with existing plugins
-    @Deprecated
-    public Platform(String id, String displayName, int[] maxHeights, int standardMaxHeight, int minX, int maxX,
-                    int minY, int maxY, int standardMinHeight, List<GameType> supportedGameTypes, List<Generator> supportedGeneratorTypes,
-                    List<Integer> supportedDimensions, Set<Capability> capabilities, Object... attributes) {
-        this(id, displayName, maxHeights, standardMaxHeight, minX, maxX, minY, maxY, new int[] { standardMinHeight }, standardMinHeight, supportedGameTypes, supportedGeneratorTypes, supportedDimensions, capabilities, attributes);
     }
 
     // Kept for backwards compatibility with existing plugins
