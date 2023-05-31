@@ -232,8 +232,8 @@ public class PackedArrayCube<T> {
         return x | ((y | (z << bitsPerCoordinate)) << bitsPerCoordinate);
     }
 
-    private T substituteNull(T value, T nullSubsitute) {
-        return (value == null) ? nullSubsitute : value;
+    private T substituteNull(T value, T nullSubstitute) {
+        return (value == null) ? nullSubstitute : value;
     }
 
     private final Class<T> type;
