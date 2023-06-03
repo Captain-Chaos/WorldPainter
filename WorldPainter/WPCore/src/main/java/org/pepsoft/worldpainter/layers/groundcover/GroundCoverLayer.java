@@ -8,7 +8,6 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.CustomLayer;
-import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
 import java.io.IOException;
@@ -103,16 +102,6 @@ public class GroundCoverLayer extends CustomLayer {
     @Override
     public GroundCoverLayerExporter getExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
         return new GroundCoverLayerExporter(dimension, platform, this);
-    }
-
-    // Comparable
-    @Override
-    public int compareTo(Layer layer) {
-        if ((layer instanceof GroundCoverLayer) && (Math.abs(((GroundCoverLayer) layer).thickness) != Math.abs(thickness))) {
-            return Math.abs(((GroundCoverLayer) layer).thickness) - Math.abs(thickness);
-        } else {
-            return super.compareTo(layer);
-        }
     }
 
     // Cloneable

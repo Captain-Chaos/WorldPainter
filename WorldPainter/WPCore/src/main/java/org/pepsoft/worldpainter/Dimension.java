@@ -1365,7 +1365,18 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public List<CustomLayer> getCustomLayers() {
-        return copyOf(customLayers);
+        return getCustomLayers(false);
+    }
+
+    @SuppressWarnings("DataFlowIssue") // The applyLayerContainer may have added non-CustomLayers
+    public List<CustomLayer> getCustomLayers(boolean applyCombinedLayers) {
+        final List<CustomLayer> copyOfCustomLayers = copyOf(customLayers);
+        if (applyCombinedLayers) {
+            applyLayerContainers(copyOfCustomLayers);
+            // This may have added non-custom layers, so remove those again
+            copyOfCustomLayers.removeIf(layer -> ! (layer instanceof CustomLayer));
+        }
+        return copyOfCustomLayers;
     }
 
     public void setCustomLayers(List<CustomLayer> customLayers) {
@@ -1381,27 +1392,34 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
      * @return The set of all layers currently in use on the world.
      */
     public Set<Layer> getAllLayers(boolean applyCombinedLayers) {
-        Set<Layer> allLayers = new HashSet<>();
+        final Set<Layer> allLayers = new HashSet<>();
         for (Tile tile: tiles.values()) {
             allLayers.addAll(tile.getLayers());
         }
-
         if (applyCombinedLayers) {
-            Set<LayerContainer> containersProcessed = new HashSet<>();
-            boolean containersFound;
-            do {
-                containersFound = false;
-                for (Layer layer: new HashSet<>(allLayers)) {
-                    if ((layer instanceof LayerContainer) && (! containersProcessed.contains(layer))) {
-                        allLayers.addAll(((LayerContainer) layer).getLayers());
+            applyLayerContainers(allLayers);
+        }
+        return allLayers;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"}) // Necessary due to dumb Java type system that does not consider Collection<CustomLayer> compatible with Collection<Layer>
+    private void applyLayerContainers(Collection layers) {
+        final Set<LayerContainer> containersProcessed = new HashSet<>();
+        final Set<Layer> additionalLayers = new HashSet<>();
+        do {
+            additionalLayers.clear();
+            for (Iterator i = layers.iterator(); i.hasNext(); ) {
+                final Layer layer = (Layer) i.next();
+                if (layer instanceof LayerContainer) {
+                    i.remove();
+                    if (! containersProcessed.contains(layer)) {
+                        additionalLayers.addAll(((LayerContainer) layer).getLayers());
                         containersProcessed.add((LayerContainer) layer);
-                        containersFound = true;
                     }
                 }
-            } while (containersFound);
-        }
-
-        return allLayers;
+            }
+            layers.addAll(additionalLayers);
+        } while (! additionalLayers.isEmpty());
     }
 
     /**

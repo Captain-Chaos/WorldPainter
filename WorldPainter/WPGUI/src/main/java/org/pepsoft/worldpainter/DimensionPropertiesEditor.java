@@ -1031,7 +1031,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         
         // custom layers
         if (mode == Mode.EXPORT) {
-            customLayersTableModel = new CustomLayersTableModel(dimension.getCustomLayers());
+            customLayersTableModel = new CustomLayersTableModel(dimension.getCustomLayers(true));
             tableCustomLayers.setModel(customLayersTableModel);
         }
 

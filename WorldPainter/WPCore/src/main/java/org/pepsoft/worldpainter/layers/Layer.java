@@ -12,6 +12,7 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
+import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 import org.pepsoft.worldpainter.layers.renderers.LayerRenderer;
 
 import java.awt.image.BufferedImage;
@@ -163,13 +164,13 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
         return (obj instanceof Layer)
             && id.equals(((Layer) obj).id);
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return id.hashCode();
     }
 
@@ -181,8 +182,20 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
     // Comparable
 
     @Override
-    public int compareTo(Layer layer) {
-        if (priority < layer.priority) {
+    public final int compareTo(Layer layer) {
+        if ((this instanceof CustomLayer) && (((CustomLayer) this).getIndex() != null)
+                && (layer instanceof CustomLayer) && (((CustomLayer) layer).getIndex() != null)) {
+            // TODO: is this stable?
+            if (((CustomLayer) this).getIndex() < ((CustomLayer) layer).getIndex()) {
+                return -1;
+            } else if (((CustomLayer) this).getIndex() > ((CustomLayer) layer).getIndex()) {
+                return 1;
+            }
+        }
+        if ((this instanceof GroundCoverLayer) && (layer instanceof GroundCoverLayer)
+                && (Math.abs(((GroundCoverLayer) layer).getThickness()) != Math.abs(((GroundCoverLayer) this).getThickness()))) {
+            return Math.abs(((GroundCoverLayer) layer).getThickness()) - Math.abs(((GroundCoverLayer) this).getThickness());
+        } else if (priority < layer.priority) {
             return -1;
         } else if (priority > layer.priority) {
             return 1;

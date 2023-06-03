@@ -141,21 +141,6 @@ public abstract class CustomLayer extends Layer implements Cloneable {
         return null;
     }
 
-    // Comparable
-    
-    @Override
-    public int compareTo(Layer layer) {
-        if ((index != null) && (layer instanceof CustomLayer) && (((CustomLayer) layer).index != null)) {
-            // TODO: is this stable?
-            if (index < ((CustomLayer) layer).index) {
-                return -1;
-            } else if (index > ((CustomLayer) layer).index) {
-                return 1;
-            }
-        }
-        return super.compareTo(layer);
-    }
-
     // Cloneable
 
     /**

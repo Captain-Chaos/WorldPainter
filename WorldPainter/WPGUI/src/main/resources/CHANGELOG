@@ -5,9 +5,11 @@
  * When opening the Import Height Map or Import Mask screens, the file selection dialog is now immediately shown
  * It is now possible to add a Nether or End dimension to Imported worlds
  * Crimson and Warped stems and hyphae are now treated as "logs" for purposes of leaf distance calculations
+ * The Custom Layers tab on the Export screen now shows the constituent layers of Combined Layers, instead of the Combined Layers themselves
  * Bug fix: selecting a paint from the map from the Global Operations screen now works more than once
  * Bug fix: selecting a paint from the map does not crash inside the selection (or when other system layers are present)
  * Bug fix: Merging a world that was not Imported will no longer cause it to be considered an Imported world afterwards
+ * Bug fix: fix a crash on the Export screen related to the sorting of Combined Layers
 
 -- Version 2.17.2, released 21-5-2023
 

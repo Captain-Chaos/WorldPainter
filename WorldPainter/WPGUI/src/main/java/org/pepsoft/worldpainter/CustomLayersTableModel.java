@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
 import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
+import org.pepsoft.worldpainter.layers.CombinedLayer;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 
 import javax.swing.event.TableModelEvent;
@@ -21,6 +22,10 @@ import java.util.List;
  * @author pepijn
  */
 public class CustomLayersTableModel implements TableModel {
+    /**
+     * This assumes that no exporter is both first pass <em>and</em> second pass, which is currently the case for
+     * {@link CombinedLayer}s, so those should be excluded
+     */
     public CustomLayersTableModel(Collection<CustomLayer> allCustomLayers) {
         customLayers = new ArrayList<>(allCustomLayers);
 
