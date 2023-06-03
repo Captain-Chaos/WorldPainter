@@ -12,6 +12,7 @@ package org.pepsoft.worldpainter;
 
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
+import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.Dimension.LayerAnchor;
 import org.pepsoft.worldpainter.exporting.ExportSettings;
@@ -30,6 +31,7 @@ import org.pepsoft.worldpainter.plugins.PlatformProvider;
 import org.pepsoft.worldpainter.superflat.EditSuperflatPresetDialog;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
 import org.pepsoft.worldpainter.themes.TerrainListCellRenderer;
+import org.pepsoft.worldpainter.tools.Eyedropper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +44,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
@@ -60,6 +63,7 @@ import static org.pepsoft.worldpainter.Platform.Capability.GENERATOR_PER_DIMENSI
 import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
 import static org.pepsoft.worldpainter.layers.exporters.AbstractCavesExporter.CaveDecorationSettings.Decoration.BROWN_MUSHROOM;
 import static org.pepsoft.worldpainter.layers.exporters.AbstractCavesExporter.CaveDecorationSettings.Decoration.*;
+import static org.pepsoft.worldpainter.tools.Eyedropper.PaintType.LAYER;
 
 /**
  * @author pepijn
@@ -1031,8 +1035,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         
         // custom layers
         if (mode == Mode.EXPORT) {
-            customLayersTableModel = new CustomLayersTableModel(dimension.getCustomLayers(true));
-            tableCustomLayers.setModel(customLayersTableModel);
+            final List<CustomLayer> customLayers = dimension.getCustomLayers(true);
+            if (! customLayers.isEmpty()) {
+                customLayersTableModel = new CustomLayersTableModel(customLayers);
+                tableCustomLayers.setModel(customLayersTableModel);
+            }
         }
 
         // world generation settings
@@ -1093,6 +1100,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 }
             }
         }
+        setEnabled(buttonSelectPaint, enabled && (customLayersTableModel != null));
         setEnabled(buttonCustomLayerUp, enabled && (selectedRows.length > 0) && (! headerIncluded) && (! customLayersTableModel.isHeaderRow(selectedRows[0])) && (selectedRows[0] > 0) && (! customLayersTableModel.isHeaderRow(selectedRows[0] - 1)));
         setEnabled(buttonCustomLayerTop, buttonCustomLayerUp.isEnabled());
         setEnabled(buttonCustomLayerDown, enabled && (selectedRows.length > 0) && (! headerIncluded) && (! customLayersTableModel.isHeaderRow(selectedRows[selectedRows.length - 1])) && (selectedRows[selectedRows.length - 1] < (tableCustomLayers.getRowCount() - 1)) && (! customLayersTableModel.isHeaderRow(selectedRows[selectedRows.length - 1] + 1)));
@@ -1223,6 +1231,36 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             }
         }
         setControlStates();
+    }
+
+    private void selectPaintOnMap() {
+        Container parent = getParent();
+        while ((parent != null) && (! (parent instanceof WPDialogWithPaintSelection))) {
+            parent = parent.getParent();
+        }
+        if (parent != null) {
+            ((WPDialogWithPaintSelection) parent).selectFromMap(singleton(LAYER), new Eyedropper.SelectionListener() {
+                @Override
+                public void layerSelected(Layer layer, int value) {
+                    if (layer instanceof CustomLayer) {
+                        final int index = customLayersTableModel.getLayerIndex((CustomLayer) layer);
+                        if (index != -1) {
+                            tableCustomLayers.getSelectionModel().setSelectionInterval(index, index);
+                            tableCustomLayers.scrollRectToVisible(tableCustomLayers.getCellRect(index, 0, true));
+                        } else {
+                            beepAndShowError(DimensionPropertiesEditor.this, "Layer " + layer.getName() + " not in list", "Not In List");
+                        }
+                    } else {
+                        beepAndShowError(DimensionPropertiesEditor.this, "Layer " + layer.getName() + " is not a Custom Layer", "Not A Custom Layer");
+                    }
+                }
+
+                @Override public void terrainSelected(Terrain terrain) {}
+                @Override public void selectionCancelled(boolean byUser) {}
+            });
+        } else {
+            DesktopUtils.beep();
+        }
     }
 
     /**
@@ -1484,6 +1522,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         buttonCustomLayerBottom = new javax.swing.JButton();
         buttonDisableLayers = new javax.swing.JButton();
         buttonEnableLayers = new javax.swing.JButton();
+        buttonSelectPaint = new javax.swing.JButton();
 
         jLabel6.setText("Underground material:");
 
@@ -3698,6 +3737,15 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             }
         });
 
+        buttonSelectPaint.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/eyedropper.png"))); // NOI18N
+        buttonSelectPaint.setText("Select");
+        buttonSelectPaint.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
+        buttonSelectPaint.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonSelectPaintActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
         jPanel7Layout.setHorizontalGroup(
@@ -3707,7 +3755,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 131, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addComponent(jScrollPane1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -3715,9 +3763,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                             .addComponent(buttonCustomLayerBottom, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(buttonCustomLayerDown, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(buttonCustomLayerUp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(buttonCustomLayerTop, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(buttonDisableLayers, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(buttonEnableLayers, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addComponent(buttonEnableLayers, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(buttonCustomLayerTop, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(buttonSelectPaint, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         jPanel7Layout.setVerticalGroup(
@@ -3729,6 +3778,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 387, Short.MAX_VALUE)
                     .addGroup(jPanel7Layout.createSequentialGroup()
+                        .addComponent(buttonSelectPaint)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCustomLayerTop)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCustomLayerUp)
@@ -4060,6 +4111,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         enableSelectedLayers();
     }//GEN-LAST:event_buttonEnableLayersActionPerformed
 
+    private void buttonSelectPaintActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSelectPaintActionPerformed
+        selectPaintOnMap();
+    }//GEN-LAST:event_buttonSelectPaintActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCustomLayerBottom;
     private javax.swing.JButton buttonCustomLayerDown;
@@ -4072,6 +4127,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.ButtonGroup buttonGroup3;
     private javax.swing.ButtonGroup buttonGroup5;
+    private javax.swing.JButton buttonSelectPaint;
     private javax.swing.JCheckBox checkBoxBottomless;
     private javax.swing.JCheckBox checkBoxCavernsBreakSurface;
     private javax.swing.JCheckBox checkBoxCavernsEverywhere;
@@ -4323,6 +4379,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private boolean endlessBorder, programmaticChange;
     private Tag customGeneratorSettings;
     private Generator savedGeneratorType;
+    private Eyedropper.SelectionListener selectionListener;
 
     private static final int TAB_GENERAL       = 0;
     private static final int TAB_THEME         = 1;

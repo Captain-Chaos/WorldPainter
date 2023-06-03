@@ -56,7 +56,7 @@ import static org.pepsoft.worldpainter.util.MaterialUtils.gatherBlocksWithoutIds
  * @author pepijn
  */
 @SuppressWarnings({"unused", "FieldCanBeLocal", "rawtypes", "Convert2Lambda", "Anonymous2MethodRef", "ConstantConditions"}) // Managed by NetBeans
-public class ExportWorldDialog extends WorldPainterDialog {
+public class ExportWorldDialog extends WPDialogWithPaintSelection {
     /** Creates new form ExportWorldDialog */
     public ExportWorldDialog(Window parent, World2 world, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Set<Layer> hiddenLayers, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, WorldPainter view) {
         super(parent);

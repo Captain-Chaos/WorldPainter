@@ -1,11 +1,14 @@
 -- Version 2.18.0, released xx-xx-2023
 
- * Floating point images are now supported for importing as height maps and masks
- * 32-bit unsigned integer images are now supported for importing masks (they already were for height maps)
- * When opening the Import Height Map or Import Mask screens, the file selection dialog is now immediately shown
+ * Height map and mask import changes:
+   + Floating point images are now supported for height maps and masks
+   + 32-bit unsigned integer images are now supported for masks (they already were for height maps)
+   + When opening the screen, the file selection dialog is now immediately shown
+ * Custom Layers tab on the Export screen:
+   + It now shows the constituent layers of Combined Layers, instead of the Combined Layers themselves
+   + A "select" button has been added to allow selection of the layer from the map with the eyedropper
  * It is now possible to add a Nether or End dimension to Imported worlds
  * Crimson and Warped stems and hyphae are now treated as "logs" for purposes of leaf distance calculations
- * The Custom Layers tab on the Export screen now shows the constituent layers of Combined Layers, instead of the Combined Layers themselves
  * Bug fix: selecting a paint from the map from the Global Operations screen now works more than once
  * Bug fix: selecting a paint from the map does not crash inside the selection (or when other system layers are present)
  * Bug fix: Merging a world that was not Imported will no longer cause it to be considered an Imported world afterwards

@@ -3094,7 +3094,7 @@
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" attributes="0">
                               <Component id="jLabel82" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="0" pref="131" max="32767" attributes="0"/>
+                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" attributes="0">
                               <Component id="jScrollPane1" max="32767" attributes="0"/>
@@ -3103,9 +3103,10 @@
                                   <Component id="buttonCustomLayerBottom" max="32767" attributes="0"/>
                                   <Component id="buttonCustomLayerDown" alignment="0" max="32767" attributes="0"/>
                                   <Component id="buttonCustomLayerUp" alignment="0" max="32767" attributes="0"/>
-                                  <Component id="buttonCustomLayerTop" alignment="0" max="32767" attributes="0"/>
                                   <Component id="buttonDisableLayers" alignment="0" max="32767" attributes="0"/>
                                   <Component id="buttonEnableLayers" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="buttonCustomLayerTop" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="buttonSelectPaint" alignment="0" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                       </Group>
@@ -3122,6 +3123,8 @@
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="jScrollPane1" pref="387" max="32767" attributes="0"/>
                           <Group type="102" attributes="0">
+                              <Component id="buttonSelectPaint" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
                               <Component id="buttonCustomLayerTop" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="buttonCustomLayerUp" min="-2" max="-2" attributes="0"/>
@@ -3231,6 +3234,18 @@
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonEnableLayersActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JButton" name="buttonSelectPaint">
+              <Properties>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                  <Image iconType="3" name="/org/pepsoft/worldpainter/icons/eyedropper.png"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Select"/>
+                <Property name="horizontalAlignment" type="int" value="10"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonSelectPaintActionPerformed"/>
               </Events>
             </Component>
           </SubComponents>

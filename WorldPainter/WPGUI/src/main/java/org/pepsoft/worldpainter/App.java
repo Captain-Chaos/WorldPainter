@@ -7010,13 +7010,12 @@ public final class App extends JFrame implements RadiusControl,
                 saveCustomBiomes();
                 saveCustomLayers();
                 ExportWorldDialog dialog = new ExportWorldDialog(App.this, world, selectedColourScheme, customBiomeManager, hiddenLayers, false, 10, view.getLightOrigin(), view);
-                dialog.setVisible(true);
-                if (! dialog.isCancelled()) {
+                dialog.setVisible(() -> {
                     view.refreshTiles();
                     if (threeDeeFrame != null) {
                         threeDeeFrame.refresh();
                     }
-                }
+                });
             } finally {
                 resumeAutosave();
             }

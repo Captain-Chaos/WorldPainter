@@ -115,6 +115,10 @@ public class CustomLayersTableModel implements TableModel {
         // The exports have already been set directly on the layers. TODO: fix
     }
 
+    public int getLayerIndex(CustomLayer layer) {
+        return customLayers.indexOf(layer);
+    }
+
     // TableModel
     
     @Override
