@@ -189,7 +189,7 @@ minecraft:crimson_door,,"open:b,hinge:e[left;right],facing:e[north;south;west;ea
 minecraft:crimson_fence,,"west:b,east:b,south:b,north:b,waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff653046,crimson_planks.png
 minecraft:crimson_fence_gate,,"in_wall:b,open:b,facing:e[north;south;west;east],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff653046,crimson_planks.png
 minecraft:crimson_fungus,,,0,false,false,true,true,false,false,,false,true,0,true,false,ff8d2c1d,crimson_fungus.png
-minecraft:crimson_hyphae,,axis:e[x;y;z],0,false,false,false,false,false,false,,false,false,0,false,false,ff653046,crimson_planks.png
+minecraft:crimson_hyphae,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,true,false,ff653046,crimson_stem.png
 minecraft:crimson_nylium,,,15,false,true,false,false,false,false,,false,false,0,true,false,ff821f1f,crimson_nylium.png
 minecraft:crimson_planks,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff653046,crimson_planks.png
 minecraft:crimson_pressure_plate,,powered:b,0,false,false,false,false,false,false,,false,false,0,false,false,ff653046,crimson_planks.png
@@ -197,7 +197,7 @@ minecraft:crimson_roots,,,0,false,false,true,true,false,false,,false,true,0,true
 minecraft:crimson_sign,,"rotation:i[0-15],waterlogged:b",0,false,false,false,false,false,true,minecraft:sign,false,false,0,false,false,ff653046,crimson_planks.png
 minecraft:crimson_slab,,"type:e[top;bottom;double],waterlogged:b",15,true,false,false,false,false,false,,false,false,0,false,false,ff653046,crimson_planks.png
 minecraft:crimson_stairs,,"facing:e[north;south;west;east],half:e[top;bottom],waterlogged:b,shape:e[straight;inner_left;inner_right;outer_left;outer_right]",15,true,false,false,false,false,false,,false,false,0,false,false,ff653046,crimson_planks.png
-minecraft:crimson_stem,,axis:e[x;y;z],15,false,false,true,true,false,false,,false,false,0,true,false,ff5c191d,crimson_stem.png
+minecraft:crimson_stem,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,true,false,ff5c191d,crimson_stem.png
 minecraft:crimson_trapdoor,,"open:b,facing:e[north;south;west;east],powered:b,half:e[top;bottom],waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff673248,crimson_trapdoor.png
 minecraft:crimson_wall_sign,,"facing:e[north;south;west;east],waterlogged:b",0,false,false,false,false,false,true,minecraft:sign,false,false,0,false,false,ff653046,crimson_planks.png
 minecraft:crying_obsidian,,,15,false,false,false,false,false,false,,false,false,10,false,false,ff200a3c,crying_obsidian.png
@@ -850,7 +850,7 @@ minecraft:warped_door,,"open:b,hinge:e[left;right],facing:e[north;south;west;eas
 minecraft:warped_fence,,"west:b,east:b,south:b,north:b,waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff2b6863,warped_planks.png
 minecraft:warped_fence_gate,,"in_wall:b,open:b,facing:e[north;south;west;east],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff2b6863,warped_planks.png
 minecraft:warped_fungus,,,0,false,false,true,true,false,false,,false,true,0,true,false,ff4a6d57,warped_fungus.png
-minecraft:warped_hyphae,,axis:e[x;y;z],0,false,false,false,false,false,false,,false,false,0,false,false,ff2b6863,warped_planks.png
+minecraft:warped_hyphae,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,true,false,ff2b6863,warped_stem.png
 minecraft:warped_nylium,,,15,false,true,false,false,false,false,,false,false,0,true,false,ff2b7265,warped_nylium.png
 minecraft:warped_planks,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff2b6863,warped_planks.png
 minecraft:warped_pressure_plate,,powered:b,0,false,false,false,false,false,false,,false,false,0,false,false,ff2b6863,warped_planks.png
@@ -858,7 +858,7 @@ minecraft:warped_roots,,,0,false,false,true,true,false,false,,false,true,0,true,
 minecraft:warped_sign,,"rotation:i[0-15],waterlogged:b",0,false,false,false,false,false,true,minecraft:sign,false,false,0,false,false,ff2b6863,warped_planks.png
 minecraft:warped_slab,,"type:e[top;bottom;double],waterlogged:b",15,true,false,false,false,false,false,,false,false,0,false,false,ff2b6863,warped_planks.png
 minecraft:warped_stairs,,"facing:e[north;south;west;east],half:e[top;bottom],waterlogged:b,shape:e[straight;inner_left;inner_right;outer_left;outer_right]",15,true,false,false,false,false,false,,false,false,0,false,false,ff2b6863,warped_planks.png
-minecraft:warped_stem,,axis:e[x;y;z],15,false,false,true,true,false,false,,false,false,0,true,false,ff3a3a4d,warped_stem.png
+minecraft:warped_stem,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,true,false,ff3a3a4d,warped_stem.png
 minecraft:warped_trapdoor,,"open:b,facing:e[north;south;west;east],powered:b,half:e[top;bottom],waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff2f776f,warped_trapdoor.png
 minecraft:warped_wall_sign,,"facing:e[north;south;west;east],waterlogged:b",0,false,false,false,false,false,true,minecraft:sign,false,false,0,false,false,ff2b6863,warped_planks.png
 minecraft:warped_wart_block,,,15,false,false,false,false,false,false,,false,false,0,true,false,ff167779,warped_wart_block.png
