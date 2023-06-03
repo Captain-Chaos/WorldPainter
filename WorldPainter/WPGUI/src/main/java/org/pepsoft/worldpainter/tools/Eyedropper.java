@@ -7,10 +7,7 @@ import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.WorldPainterView;
 import org.pepsoft.worldpainter.biomeschemes.BiomeHelper;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.layers.Annotations;
-import org.pepsoft.worldpainter.layers.Biome;
-import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.ReadOnly;
+import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.operations.MouseOrTabletOperation;
 
 import javax.swing.*;
@@ -63,6 +60,10 @@ public final class Eyedropper extends MouseOrTabletOperation {
             throw new InternalError("Should never happen");
         }
         final Dimension dimension = getDimension();
+        if (dimension.getBitLayerValueAt(NotPresent.INSTANCE, x, y)) {
+            DesktopUtils.beep();
+            return;
+        }
         final Terrain terrain = ((paintTypes == null) || paintTypes.contains(TERRAIN)) ? dimension.getTerrainAt(x, y) : null;
         final Map<Layer, Integer> layers = ((paintTypes == null) || paintTypes.contains(LAYER) || paintTypes.contains(BIOME) || paintTypes.contains(ANNOTATION)) ? dimension.getLayersAt(x, y) : null;
         if ((terrain == null) && (layers == null)) {
