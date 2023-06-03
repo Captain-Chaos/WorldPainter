@@ -12,7 +12,7 @@ package org.pepsoft.worldpainter.layers;
  */
 public class ReadOnly extends Layer {
     public ReadOnly() {
-        super("Read Only", "Marks chunks that will not be changed when merging", Layer.DataSize.BIT_PER_CHUNK, true, 90);
+        super("Read Only", "Marks chunks that will not be changed when merging", Layer.DataSize.BIT_PER_CHUNK, false, 90);
     }
     
     public static final ReadOnly INSTANCE = new ReadOnly();

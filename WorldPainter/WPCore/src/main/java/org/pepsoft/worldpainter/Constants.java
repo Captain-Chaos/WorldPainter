@@ -5,9 +5,18 @@
 
 package org.pepsoft.worldpainter;
 
+import com.google.common.collect.ImmutableSet;
 import org.pepsoft.util.Version;
+import org.pepsoft.worldpainter.layers.FloodWithLava;
+import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.NotPresent;
+import org.pepsoft.worldpainter.layers.NotPresentBlock;
+import org.pepsoft.worldpainter.selection.SelectionBlock;
+import org.pepsoft.worldpainter.selection.SelectionChunk;
 import org.pepsoft.worldpainter.vo.AttributeKeyVO;
 import org.pepsoft.worldpainter.vo.ExceptionVO;
+
+import java.util.Set;
 
 /**
  *
@@ -110,4 +119,11 @@ public final class Constants {
     public static final int MAX_HEIGHT = 8388608;
 
     public static final long GB = 1024L * 1024L * 1024L;
+
+    /**
+     * Technical system layers that are not manipulated directly by the user and should therefore not be visible or
+     * selectable to them.
+     */
+    public static final Set<Layer> SYSTEM_LAYERS = ImmutableSet.of(SelectionChunk.INSTANCE, SelectionBlock.INSTANCE,
+            FloodWithLava.INSTANCE, NotPresent.INSTANCE, NotPresentBlock.INSTANCE);
 }

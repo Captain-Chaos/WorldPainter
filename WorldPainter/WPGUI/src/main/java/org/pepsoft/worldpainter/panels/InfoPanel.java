@@ -5,6 +5,7 @@
  */
 package org.pepsoft.worldpainter.panels;
 
+import com.google.common.collect.ImmutableSet;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
@@ -466,8 +467,7 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
     private Terrain currentTerrain;
     private int currentBiome;
 
-    private static final Set<Layer> HIDDEN_LAYERS = new HashSet<>(Arrays.asList(Biome.INSTANCE, SelectionChunk.INSTANCE,
-            SelectionBlock.INSTANCE, FloodWithLava.INSTANCE, NotPresent.INSTANCE));
+    private static final Set<Layer> HIDDEN_LAYERS = ImmutableSet.<Layer>builder().addAll(SYSTEM_LAYERS).add(Biome.INSTANCE).build();
     private static final Icon ICON_BLANK = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/transparent.png");
     private static final Logger logger = LoggerFactory.getLogger(InfoPanel.class);
 

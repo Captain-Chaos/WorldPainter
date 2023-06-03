@@ -6,6 +6,7 @@
  * It is now possible to add a Nether or End dimension to Imported worlds
  * Crimson and Warped stems and hyphae are now treated as "logs" for purposes of leaf distance calculations
  * Bug fix: selecting a paint from the map from the Global Operations screen now works more than once
+ * Bug fix: selecting a paint from the map does not crash inside the selection (or when other system layers are present)
  * Bug fix: Merging a world that was not Imported will no longer cause it to be considered an Imported world afterwards
 
 -- Version 2.17.2, released 21-5-2023

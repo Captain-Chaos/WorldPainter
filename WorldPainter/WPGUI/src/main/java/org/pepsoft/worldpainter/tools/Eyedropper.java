@@ -10,6 +10,7 @@ import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.ReadOnly;
 import org.pepsoft.worldpainter.operations.MouseOrTabletOperation;
 
 import javax.swing.*;
@@ -22,6 +23,7 @@ import static org.pepsoft.minecraft.Constants.COLOUR_NAMES;
 import static org.pepsoft.minecraft.Material.WOOLS;
 import static org.pepsoft.util.IconUtils.createScaledColourIcon;
 import static org.pepsoft.util.IconUtils.scaleIcon;
+import static org.pepsoft.worldpainter.Constants.SYSTEM_LAYERS;
 import static org.pepsoft.worldpainter.tools.Eyedropper.PaintType.*;
 
 /**
@@ -95,7 +97,9 @@ public final class Eyedropper extends MouseOrTabletOperation {
                         final int colourIndex = value - ((value < 8) ? 1 : 0);
                         name = COLOUR_NAMES[colourIndex] + " Annotations";
                         icon = createScaledColourIcon(colourScheme.getColour(WOOLS[colourIndex]));
-                    } else if (! layer.discrete) {
+                    } else if (SYSTEM_LAYERS.contains(layer)) {
+                        return;
+                    } else if ((! layer.discrete) || (layer instanceof ReadOnly)) {
                         if ((paintTypes != null) && (! paintTypes.contains(LAYER))) {
                             return;
                         }
