@@ -100,6 +100,13 @@ public final class Material implements Serializable {
         legacyStringRep = createLegacyStringRep();
         horizontalOrientationSchemes = determineHorizontalOrientations(identity);
         verticalOrientationScheme = determineVerticalOrientation(identity);
+        modded = (namespace != MINECRAFT);
+        // TODO make this dynamic:
+        leafBlock = simpleName.endsWith("_leaves");
+        // TODO make this dynamic:
+        sustainsLeaves = simpleName.endsWith("_log") || simpleName.endsWith("_wood")
+                || simpleName == MC_CRIMSON_HYPHAE || simpleName == MC_CRIMSON_STEM
+                || simpleName == MC_WARPED_HYPHAE || simpleName == MC_WARPED_STEM;
 
         Map<String, Object> spec = findSpec(identity);
         if (spec != null) {
@@ -132,7 +139,7 @@ public final class Material implements Serializable {
             resource = guessResource(name);
             tileEntity = false;
             tileEntityId = null;
-            treeRelated = guessTreeRelated(name);
+            treeRelated = leafBlock || sustainsLeaves || guessTreeRelated(name);
             vegetation = false;
             blockLight = 0;
             natural = false;
@@ -149,7 +156,6 @@ public final class Material implements Serializable {
         solid = ! veryInsubstantial;
         hasPropertySnowy = hasProperty(MC_SNOWY);
         canSupportSnow = determineCanSupportSnow();
-        modded = (namespace != MINECRAFT);
 
         if (namespace != null) {
             SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, s -> new HashSet<>()).add(simpleName);
@@ -231,6 +237,13 @@ public final class Material implements Serializable {
         legacyStringRep = createLegacyStringRep();
         horizontalOrientationSchemes = determineHorizontalOrientations(identity);
         verticalOrientationScheme = determineVerticalOrientation(identity);
+        modded = (namespace != MINECRAFT);
+        // TODO make this dynamic:
+        leafBlock = simpleName.endsWith("_leaves");
+        // TODO make this dynamic:
+        sustainsLeaves = simpleName.endsWith("_log") || simpleName.endsWith("_wood")
+                || simpleName == MC_CRIMSON_HYPHAE || simpleName == MC_CRIMSON_STEM
+                || simpleName == MC_WARPED_HYPHAE || simpleName == MC_WARPED_STEM;
 
         Map<String, Object> spec = findSpec(identity);
         if (spec != null) {
@@ -267,7 +280,7 @@ public final class Material implements Serializable {
             resource = guessResource(name);
             tileEntity = false;
             tileEntityId = null;
-            treeRelated = guessTreeRelated(name);
+            treeRelated = leafBlock || sustainsLeaves || guessTreeRelated(name);
             vegetation = false;
             blockLight = 0;
             natural = false;
@@ -284,7 +297,6 @@ public final class Material implements Serializable {
         solid = ! veryInsubstantial;
         hasPropertySnowy = hasProperty(MC_SNOWY);
         canSupportSnow = determineCanSupportSnow();
-        modded = (namespace != MINECRAFT);
 
         SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, s -> new HashSet<>()).add(simpleName);
         if (! DEFAULT_MATERIALS_BY_NAME.containsKey(name)) {
@@ -1027,7 +1039,7 @@ public final class Material implements Serializable {
                     && (! ("bottom".equals(getProperty(MC_TYPE)) && (name.endsWith("_slab") || name.endsWith("_stairs"))))
                     && (! NO_SNOW_ON.contains(name)))
                 || SNOW_ON.contains(name)
-                || name.endsWith("_leaves");
+                || leafBlock;
     }
 
     private String createStringRep() {
@@ -1520,6 +1532,16 @@ public final class Material implements Serializable {
      * {@code minecraft}.
      */
     public final transient boolean modded;
+
+    /**
+     * The material should be treated as a leaf block for the purposes of leaf decay calculations.
+     */
+    public final transient boolean leafBlock;
+
+    /**
+     * Whether the material should keep connected leaf blocks from decaying for the purposes of leaf decay calculations.
+     */
+    public final transient boolean sustainsLeaves;
 
     // Optimised versions of hasProperty(...):
 

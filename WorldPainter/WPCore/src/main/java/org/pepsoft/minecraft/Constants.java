@@ -558,6 +558,10 @@ public final class Constants {
     public static final String MC_MUDDY_MANGROVE_ROOTS = "minecraft:muddy_mangrove_roots";
     public static final String MC_MANGROVE_PROPAGULE = "minecraft:mangrove_propagule";
     public static final String MC_OAK_WALL_SIGN = "minecraft:oak_wall_sign";
+    public static final String MC_CRIMSON_HYPHAE = "minecraft:crimson_hyphae";
+    public static final String MC_CRIMSON_STEM = "minecraft:crimson_stem";
+    public static final String MC_WARPED_HYPHAE = "minecraft:warped_hyphae";
+    public static final String MC_WARPED_STEM = "minecraft:warped_stem";
 
     // MC 1.18 biome names
 

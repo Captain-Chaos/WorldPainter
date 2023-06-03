@@ -141,10 +141,10 @@ public class DynmapBlockStateHelper {
         if (material.isNamedOneOf(MC_AIR, MC_CAVE_AIR)) {
             blockState.setAir();
         }
-        if (material.simpleName.endsWith("_log")) {
+        if (material.sustainsLeaves) {
             blockState.setLog();
         }
-        if (material.simpleName.endsWith("_leaves")) {
+        if (material.leafBlock) {
             blockState.setLeaves();
         }
         if (material.solid) {

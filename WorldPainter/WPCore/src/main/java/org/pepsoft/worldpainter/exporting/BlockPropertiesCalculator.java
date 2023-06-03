@@ -591,7 +591,7 @@ public class BlockPropertiesCalculator {
         } else {
             material = world.getMaterialAt(x, z, y);
         }
-        if (material.name.endsWith("_log") || material.name.endsWith("_wood")) {
+        if (material.sustainsLeaves) {
             return 1;
         } else if (material.name.endsWith("_leaves") && material.isPropertySet(MC_DISTANCE)) {
             return material.getProperty(DISTANCE) + 1;
