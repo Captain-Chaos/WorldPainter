@@ -287,7 +287,7 @@ public class MergeWorldDialog extends WorldPainterDialog {
         Configuration config = Configuration.getInstance();
         config.setSavesDirectory(mapDir.getParentFile());
         config.setMessageDisplayed(MERGE_WARNING_KEY);
-        world.setImportedFrom(new File(mapDir, "level.dat"));
+        world.setMergedWith(new File(mapDir, "level.dat"));
 
         try {
             backupDir = merger.selectBackupDir(mapDir);

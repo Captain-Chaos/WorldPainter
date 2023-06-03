@@ -2671,7 +2671,7 @@ public final class App extends JFrame implements RadiusControl,
     private void merge() {
         pauseAutosave();
         try {
-            if ((world.getImportedFrom() != null) && (!world.isAllowMerging())) {
+            if ((world.getImportedFrom() != null) && (! world.isAllowMerging())) {
                 showMessageDialog(this, strings.getString("this.world.was.imported.before.the.great.coordinate.shift"), strings.getString("merge.not.allowed"), ERROR_MESSAGE);
                 return;
             }
@@ -2679,7 +2679,7 @@ public final class App extends JFrame implements RadiusControl,
                 return;
             }
             Configuration config = Configuration.getInstance();
-            if (((config == null) || (!config.isMessageDisplayed(MERGE_WARNING_KEY))) && (showConfirmDialog(this, strings.getString("this.is.experimental.and.unfinished.functionality"), strings.getString("experimental.functionality"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
+            if (((config == null) || (! config.isMessageDisplayed(MERGE_WARNING_KEY))) && (showConfirmDialog(this, strings.getString("this.is.experimental.and.unfinished.functionality"), strings.getString("experimental.functionality"), YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION)) {
                 return;
             }
             saveCustomBiomes();
@@ -5885,14 +5885,13 @@ public final class App extends JFrame implements RadiusControl,
 
     private void configureForPlatform() {
         final Platform platform = world.getPlatform();
-        final boolean imported = (world != null) && (world.getImportedFrom() != null);
-        final boolean nether = (world != null) && (world.isDimensionPresent(NETHER_DETAIL));
-        final boolean end = (world != null) && (world.isDimensionPresent(END_DETAIL));
+        final boolean nether = world.isDimensionPresent(NETHER_DETAIL);
+        final boolean end = world.isDimensionPresent(END_DETAIL);
         final Anchor anchor = dimension.getAnchor();
         biomeHelper = new BiomeHelper(selectedColourScheme, customBiomeManager, platform);
-        setEnabled(addNetherMenuItem, platform.supportedDimensions.contains(DIM_NETHER) && (! imported) && (! nether));
+        setEnabled(addNetherMenuItem, platform.supportedDimensions.contains(DIM_NETHER) && (! nether));
         setEnabled(removeNetherMenuItem, nether);
-        setEnabled(addEndMenuItem, platform.supportedDimensions.contains(DIM_END) && (! imported) && (! end));
+        setEnabled(addEndMenuItem, platform.supportedDimensions.contains(DIM_END) && (! end));
         setEnabled(removeEndMenuItem, end);
         setEnabled(viewNetherMenuItem, nether);
         setEnabled(viewEndMenuItem, end);
