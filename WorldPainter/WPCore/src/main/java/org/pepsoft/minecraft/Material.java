@@ -317,6 +317,9 @@ public final class Material implements Serializable {
                     // The spec must specify a discriminator (otherwise there could not be multiple for the same name),
                     // make sure the properties in it match the identity
                     Set<String> discriminator = (Set<String>) spec.get("discriminator");
+                    if (discriminator == null) {
+                        throw new RuntimeException("Multiple specs found for " + identity.name + "; missing discriminator for at least one (possible cause: overlapping custom material definition files)");
+                    }
                     for (String property: discriminator) {
                         int p = property.indexOf('=');
                         if (p != -1) {
