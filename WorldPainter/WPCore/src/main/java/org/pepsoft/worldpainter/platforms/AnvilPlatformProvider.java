@@ -32,7 +32,9 @@ abstract class AnvilPlatformProvider extends AbstractJavaPlatformProviderImpl {
                 }
                 return new MC12AnvilChunk((CompoundTag) tags.get(REGION), maxHeight, readOnly);
             } else if (dataVersion <= DATA_VERSION_MC_1_17_1) {
-                if (minHeight != 0) {
+                if ((minHeight != 0) && (! readOnly)) {
+                    // We allow it when readOnly because MC115AnvilChunk supports reading outside its vertical bounds
+                    // and this helps support Minecraft maps that have been partly converted to a newer version
                     throw new IllegalArgumentException("minHeight " + minHeight);
                 }
                 return new MC115AnvilChunk((CompoundTag) tags.get(REGION), maxHeight, readOnly);

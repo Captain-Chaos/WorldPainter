@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.toList;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.minecraft.Material.LEVEL;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 
 /**
  * An "Anvil" chunk for Minecraft 1.15 - 1.17.1.
@@ -344,8 +345,8 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
 
     @Override
     public int getSkyLightLevel(int x, int y, int z) {
-        int level = y >> 4;
-        if ((sections[level] == null) || (sections[level].skyLight == null)) {
+        final int level = y >> 4;
+        if ((z < 0) || (z >= maxHeight) || (sections[level] == null) || (sections[level].skyLight == null)) {
             return (level > highestSectionWithSkylight) ? 15 : 0;
         } else {
             return getDataByte(sections[level].skyLight, x, y, z);
@@ -382,8 +383,8 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
 
     @Override
     public int getBlockLightLevel(int x, int y, int z) {
-        int level = y >> 4;
-        if ((sections[level] == null) || (sections[level].blockLight == null)) {
+        final int level = y >> 4;
+        if ((z < 0) || (z >= maxHeight) || (sections[level] == null) || (sections[level].blockLight == null)) {
             return 0;
         } else {
             return getDataByte(sections[level].blockLight, x, y, z);
@@ -438,7 +439,8 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
 
     @Override
     public int get3DBiome(int x, int y, int z) {
-        return biomes3d[x + z * 4 + y * 16];
+        final int index = x + z * 4 + y * 16;
+        return ((index >= 0) && (index < biomes3d.length)) ? biomes3d[index] : BIOME_PLAINS;
     }
 
     @Override
@@ -491,6 +493,9 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
 
     @Override
     public Material getMaterial(int x, int y, int z) {
+        if ((z < 0) || (z >= maxHeight)) {
+            return AIR;
+        }
         final Section section = sections[y >> 4];
         if (section == null) {
             return AIR;

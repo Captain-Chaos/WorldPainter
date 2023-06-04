@@ -100,6 +100,7 @@ public class JavaMapImporter extends MapImporter {
             dimension.setGridSize(config.getDefaultGridSize());
             dimension.setContoursEnabled(config.isDefaultContoursEnabled());
             dimension.setContourSeparation(config.getDefaultContourSeparation());
+            boolean dimensionHeaderAdded = false;
             try {
                 dimension.setGenerator(level.getGenerator(DIM_NORMAL));
             } catch (IllegalArgumentException e) {
@@ -107,17 +108,18 @@ public class JavaMapImporter extends MapImporter {
                 final String warning = "Could not parse Superflat preset (details: \"" + e.getMessage() + "\"); Superflat preset reset to defaults" + EOL;
                 logger.error(warning, e);
                 if (warnings == null) {
-                    warnings = warning;
+                    warnings = dimension.getName() + ':' + EOL + warning;
                 } else {
-                    warnings = warnings + warning;
+                    warnings = warnings + EOL + dimension.getName() + ':' + EOL + warning;
                 }
+                dimensionHeaderAdded = true;
             }
             final String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 1.0f / dimCount) : null);
             if (dimWarnings != null) {
                 if (warnings == null) {
-                    warnings = dimWarnings;
+                    warnings = dimension.getName() + ':' + EOL + dimWarnings;
                 } else {
-                    warnings = warnings + dimWarnings;
+                    warnings = warnings + ((! dimensionHeaderAdded) ? (EOL + dimension.getName() + ':' + EOL) : "") + dimWarnings;
                 }
             }
         } finally {
@@ -144,9 +146,9 @@ public class JavaMapImporter extends MapImporter {
                 final String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo++ / dimCount, 1.0f / dimCount) : null);
                 if (dimWarnings != null) {
                     if (warnings == null) {
-                        warnings = dimWarnings;
+                        warnings = dimension.getName() + ':' + EOL + dimWarnings;
                     } else {
-                        warnings = warnings + dimWarnings;
+                        warnings = warnings + EOL + dimension.getName() + ':' + EOL + dimWarnings;
                     }
                 }
             } finally {
@@ -171,9 +173,9 @@ public class JavaMapImporter extends MapImporter {
                 final String dimWarnings = importDimension(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, (float) dimNo / dimCount, 1.0f / dimCount) : null);
                 if (dimWarnings != null) {
                     if (warnings == null) {
-                        warnings = dimWarnings;
+                        warnings = dimension.getName() + ':' + EOL + dimWarnings;
                     } else {
-                        warnings = warnings + dimWarnings;
+                        warnings = warnings + EOL + dimension.getName() + ':' + EOL + dimWarnings;
                     }
                 }
             } finally {
@@ -503,7 +505,7 @@ public class JavaMapImporter extends MapImporter {
                             .collect(joining(", ")) + EOL
                         + "It may therefore not be possible to Merge your changes back to this map." + EOL
                         + "It is highly recommended to use the Optimize function of" + EOL
-                        + platform + " to bring the map fully up to date.");
+                        + platform + " to bring the map fully up to date." + EOL);
             } else if (deviatingBuildHeights.get()) {
                 if (reportBuilder.length() > 0) {
                     reportBuilder.insert(0, EOL + EOL);
@@ -512,7 +514,7 @@ public class JavaMapImporter extends MapImporter {
                         + "They are most likely unoptimized chunks from a previous version of Minecraft." + EOL
                         + "It may therefore not be possible to Merge your changes back to this map." + EOL
                         + "It is highly recommended to use the Optimize function of" + EOL
-                        + platform + " to bring the map fully up to date.");
+                        + platform + " to bring the map fully up to date." + EOL);
             }
 
             if (! customNumberedBiomes.isEmpty()) {
