@@ -13,6 +13,7 @@
  * Bug fix: selecting a paint from the map does not crash inside the selection (or when other system layers are present)
  * Bug fix: Merging a world that was not Imported will no longer cause it to be considered an Imported world afterwards
  * Bug fix: fix a crash on the Export screen related to the sorting of Combined Layers
+ * Bug fix: fix a crash when Importing a map with an End dimension
 
 -- Version 2.17.2, released 21-5-2023
 
