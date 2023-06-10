@@ -59,6 +59,11 @@ public class HeightMapExporter {
                     params.setCompressionMode(MODE_EXPLICIT);
                     params.setCompressionType("LZW");
                     params.setCompressionQuality(0f);
+                    formatDescription = "in 32-bit unsigned integer grayscale compressed " + type + " format.\n" +
+                            "\n" +
+                            "\nPLEASE NOTE: because the exported values are very small compared to the\n" +
+                            "theoretical range of the image format, this height map will appear very dark\n" +
+                            "when displayed as an image.";
                 } else {
                     return false;
                 }
@@ -68,6 +73,7 @@ public class HeightMapExporter {
                 if (writers.hasNext()) {
                     writer = writers.next();
                     params = writer.getDefaultWriteParam();
+                    formatDescription = ((bitsRequired <= 8) ? "in 8-bit" : "in 16-bit") + " unsigned integer grayscale " + type + " format.";
                 } else {
                     return false;
                 }
@@ -100,7 +106,12 @@ public class HeightMapExporter {
         }
     }
 
+    public String getFormatDescription() {
+        return formatDescription;
+    }
+
     private final Dimension dimension;
     private final boolean highRes;
     private final int minHeight, highestPoint, bitsRequired;
+    private String formatDescription;
 }

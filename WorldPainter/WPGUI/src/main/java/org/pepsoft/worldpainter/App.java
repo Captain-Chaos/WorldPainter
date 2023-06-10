@@ -4508,7 +4508,7 @@ public final class App extends JFrame implements RadiusControl,
             menuItem.setMnemonic('h');
             exportMenu.add(menuItem);
 
-            menuItem = new JMenuItem("Export as 1:256 (high resolution) height map...");
+            menuItem = new JMenuItem("Export as 1:256 (high resolution) integer height map...");
             menuItem.addActionListener(event -> exportHeightMap(true));
             exportMenu.add(menuItem);
 
@@ -6334,7 +6334,7 @@ public final class App extends JFrame implements RadiusControl,
             config.setHeightMapsDirectory(selectedFile.getParentFile());
             final File file = selectedFile;
             //noinspection ConstantConditions // Can't happen for non-cancelable task
-            if (! ProgressDialog.executeTask(App.this, new ProgressTask<Boolean>() {
+            if (ProgressDialog.executeTask(App.this, new ProgressTask<Boolean>() {
                         @Override
                         public String getName() {
                             return strings.getString("exporting.height.map");
@@ -6345,6 +6345,8 @@ public final class App extends JFrame implements RadiusControl,
                             return heightMapExporter.exportToFile(file);
                         }
                     }, NOT_CANCELABLE)) {
+                MessageUtils.showInfo(App.this, "Dimension exported to " + selectedFile.getName() + "\n" + heightMapExporter.getFormatDescription(), "Export Succeeded");
+            } else {
                 beepAndShowError(App.this, MessageFormat.format(strings.getString("format.0.not.supported"), type), "Unsupported Format");
             }
         }
