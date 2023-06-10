@@ -21,8 +21,9 @@ import static org.pepsoft.minecraft.Constants.TAG_FACING;
 import static org.pepsoft.minecraft.Constants.TAG_FACING_;
 
 /**
- * A three dimensional object, consisting of Minecraft blocks, which can be
- * placed in a map.
+ * A three-dimensional object, consisting of Minecraft blocks, which can be placed in a map.
+ *
+ * <p>This class uses the WorldPainter coordinate system (z is vertical).
  *
  * @author pepijn
  */
@@ -120,7 +121,7 @@ public interface WPObject extends Serializable, Cloneable {
      *
      * @param dimension The dimension for which the object is being exported.
      */
-    void prepareForExport(Dimension dimension);
+    void prepareForExport(Dimension dimension); // TODO <-- switch skull blocks to the right versions here
 
     /**
      * Get a live view of the object metadata.
@@ -151,7 +152,9 @@ public interface WPObject extends Serializable, Cloneable {
      * @return The value of the specified attribute, or the specified default
      *     value if the attribute is not set.
      */
-    <T extends Serializable> T getAttribute(AttributeKey<T> key);
+    default <T extends Serializable> T getAttribute(AttributeKey<T> key) {
+        return key.get(getAttributes());
+    }
     
     /**
      * Store external metadata about the object.

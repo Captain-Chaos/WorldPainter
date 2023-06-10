@@ -196,11 +196,6 @@ public final class Schem extends AbstractNBTItem implements WPObject {
     }
 
     @Override
-    public <T extends Serializable> T getAttribute(AttributeKey<T> key) {
-        return key.get(attributes);
-    }
-
-    @Override
     public void setAttributes(Map<String, Serializable> attributes) {
         this.attributes = attributes;
     }

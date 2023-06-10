@@ -164,11 +164,6 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
     }
 
     @Override
-    public <T extends Serializable> T getAttribute(AttributeKey<T> key) {
-        return key.get(attributes);
-    }
-
-    @Override
     public void setAttributes(Map<String, Serializable> attributes) {
         this.attributes = attributes;
     }

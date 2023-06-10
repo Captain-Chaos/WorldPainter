@@ -143,11 +143,6 @@ public abstract class Plant implements WPObject {
     }
 
     @Override
-    public <T extends Serializable> T getAttribute(AttributeKey<T> key) {
-        return key.defaultValue;
-    }
-
-    @Override
     public void setAttributes(Map<String, Serializable> attributes) {
         throw new UnsupportedOperationException("Plant is unmodifiable");
     }
