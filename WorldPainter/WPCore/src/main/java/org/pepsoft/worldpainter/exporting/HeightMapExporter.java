@@ -42,8 +42,6 @@ public class HeightMapExporter {
 
     public boolean exportToFile(File file) {
         final String type = file.getName().substring(file.getName().lastIndexOf('.') + 1).toUpperCase();
-        // Leave the progress receiver indeterminate, since by *far* the most time goes into actually writing the file,
-        // and we can't report progress for that
         try {
             final BufferedImage image;
             final ImageWriter writer;

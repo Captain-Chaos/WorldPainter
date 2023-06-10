@@ -196,7 +196,6 @@ public final class Schem extends AbstractNBTItem implements WPObject {
     }
 
     @Override
-    @SuppressWarnings("unchecked") // Responsibility of caller
     public <T extends Serializable> T getAttribute(AttributeKey<T> key) {
         return key.get(attributes);
     }

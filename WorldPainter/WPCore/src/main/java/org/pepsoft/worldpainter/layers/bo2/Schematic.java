@@ -164,7 +164,6 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
     }
 
     @Override
-    @SuppressWarnings("unchecked") // Responsibility of caller
     public <T extends Serializable> T getAttribute(AttributeKey<T> key) {
         return key.get(attributes);
     }
