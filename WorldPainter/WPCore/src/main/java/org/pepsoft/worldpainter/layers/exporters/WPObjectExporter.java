@@ -544,7 +544,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
 
     private static void placeBlock(MinecraftWorld world, int x, int y, int z, Material material, int leafDecayMode, boolean waterloggedLeaves) {
         final boolean materialHasPropertyWaterlogged;
-        if (material.name.endsWith("_leaves")) {
+        if (material.leafBlock) {
             materialHasPropertyWaterlogged = waterloggedLeaves;
             if (leafDecayMode != LEAF_DECAY_NO_CHANGE) {
                 if (leafDecayMode == LEAF_DECAY_ON) {

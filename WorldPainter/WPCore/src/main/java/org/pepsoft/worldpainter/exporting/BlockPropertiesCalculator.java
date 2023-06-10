@@ -130,7 +130,7 @@ public class BlockPropertiesCalculator {
                         for (int y = maxY; y >= dirtyArea.getY1() ; y--) {
                             boolean changedBlock = false;
                             Material material = chunk.getMaterial(xInChunk, y, zInChunk);
-                            if (leafDistance && material.name.endsWith("_leaves")) {
+                            if (leafDistance && material.leafBlock) {
                                 final int currentDistance = material.getProperty(DISTANCE, 8);
                                 final int distance = Math.min(currentDistance, calculateDistance(chunk, x, y, z));
                                 if (distance != currentDistance) {
@@ -211,7 +211,7 @@ public class BlockPropertiesCalculator {
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
                     Material material = chunk.getMaterial(x, y, z);
-                    if (leafDistance && material.name.endsWith("_leaves")) {
+                    if (leafDistance && material.leafBlock) {
                         if (material.isPropertySet(MC_DISTANCE)) {
                             material = material.withoutProperty(MC_DISTANCE);
                             chunk.setMaterial(x, y, z, material);
@@ -306,7 +306,7 @@ public class BlockPropertiesCalculator {
                         int skyLightLevelAbove = (maxY >= (world.getMaxHeight() - 1)) ? 15 : world.getSkyLightLevel(x, z, maxY + 1);
                         for (int y = maxY; y >= dirtyArea.getY1(); y--) {
                             Material material = chunk.getMaterial(xInChunk, y, zInChunk);
-                            if (leafDistance && material.name.endsWith("_leaves")) {
+                            if (leafDistance && material.leafBlock) {
                                 if (material.isPropertySet(MC_DISTANCE)) {
                                     material = material.withoutProperty(MC_DISTANCE);
                                     chunk.setMaterial(xInChunk, y, zInChunk, material);
@@ -371,7 +371,7 @@ public class BlockPropertiesCalculator {
                         for (int y = maxY; y >= originalDirtyArea.getY1() ; y--) {
                             Material material = chunk.getMaterial(xInChunk, y, zInChunk);
                             // TODO this class is a "calculator"; the actual removal of leaves should be moved up to the caller
-                            if (removeFloatingLeaves && material.name.endsWith("_leaves") && material.isPropertySet(MC_DISTANCE) && (material.getProperty(DISTANCE) > 6) && (! material.is(PERSISTENT))) {
+                            if (removeFloatingLeaves && material.leafBlock && material.isPropertySet(MC_DISTANCE) && (material.getProperty(DISTANCE) > 6) && (! material.is(PERSISTENT))) {
                                 material = AIR;
                                 chunk.setMaterial(xInChunk, y, zInChunk, material);
                                 if (skyLight) {
@@ -593,7 +593,7 @@ public class BlockPropertiesCalculator {
         }
         if (material.sustainsLeaves) {
             return 1;
-        } else if (material.name.endsWith("_leaves") && material.isPropertySet(MC_DISTANCE)) {
+        } else if (material.leafBlock && material.isPropertySet(MC_DISTANCE)) {
             return material.getProperty(DISTANCE) + 1;
         } else {
             return 7;

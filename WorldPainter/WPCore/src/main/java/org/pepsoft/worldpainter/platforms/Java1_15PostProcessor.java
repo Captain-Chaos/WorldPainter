@@ -106,7 +106,7 @@ public class Java1_15PostProcessor extends PostProcessor {
                         // Covered nylium should be netherrack
                         minecraftWorld.setMaterialAt(x, y, z - 1, NETHERRACK);
                         materialBelow = NETHERRACK;
-                    } else if (makeAllLeavesPersistent && material.name.endsWith("_leaves") && (! material.is(PERSISTENT))) {
+                    } else if (makeAllLeavesPersistent && material.leafBlock && (! material.is(PERSISTENT))) {
                         material = material.withProperty(PERSISTENT, true);
                         minecraftWorld.setMaterialAt(x, y, z, material);
                     }

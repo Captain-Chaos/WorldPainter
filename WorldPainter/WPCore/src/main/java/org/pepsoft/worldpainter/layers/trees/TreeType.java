@@ -89,15 +89,7 @@ public abstract class TreeType implements Serializable {
     }
     
     private boolean isTreeBlock(Material material) {
-        if (material != null) {
-            final String simpleName = material.simpleName;
-            return simpleName.endsWith("_log")
-                    || simpleName.endsWith("_bark")
-                    || simpleName.endsWith("_leaves")
-                    || simpleName.endsWith("_wood");
-        } else {
-            return false;
-        }
+        return material.leafBlock || material.sustainsLeaves;
     }
     
     private boolean addVine(MinecraftWorld world, int x, int y, int z, Direction direction) {

@@ -241,7 +241,7 @@ public class CavesExporter extends AbstractCavesExporter<Caves> implements Secon
                 }
                 // TODO: this isn't removing nearly all one-block thick dirt. Why?
             }
-        } else if (material.isNotNamedOneOf(MC_AIR, MC_WATER, MC_LAVA) && (! material.name.endsWith("_leaves"))) {
+        } else if (material.isNotNamedOneOf(MC_AIR, MC_WATER, MC_LAVA) && (! material.leafBlock)) {
             if ((! world.getMaterialAt(x - 1, y, z).solid)
                     && (! world.getMaterialAt(x, y - 1, z).solid)
                     && (! world.getMaterialAt(x + 1, y, z).solid)

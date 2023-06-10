@@ -473,7 +473,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                             for (int z = 0; z < dim.z; z++) {
                                 if (object.getMask(x, y, z)) {
                                     final Material material = object.getMaterial(x, y, z);
-                                    if (material.name.endsWith("_leaves")) {
+                                    if (material.leafBlock) {
                                         if (material.is(PERSISTENT)) {
                                             // Non decaying leaf block
                                             nonDecayingLeavesFound = true;
