@@ -16,9 +16,12 @@ import javax.vecmath.Point3i;
 import java.io.File;
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.pepsoft.minecraft.Constants.TAG_FACING;
 import static org.pepsoft.minecraft.Constants.TAG_FACING_;
+import static org.pepsoft.minecraft.Material.*;
+import static org.pepsoft.worldpainter.util.WPObjectUtils.wouldConnect;
 
 /**
  * A three-dimensional object, consisting of Minecraft blocks, which can be placed in a map.
@@ -249,6 +252,41 @@ public interface WPObject extends Serializable, Cloneable {
     }
 
     /**
+     * Will guess whether the {@link #ATTRIBUTE_CONNECT_BLOCKS} attribute should be set and if so set it. Should only be
+     * called for custom object formats which have legacy, numerical block IDs, for which you might want to set that
+     * property.
+     */
+    default void guessConnectBlocks() {
+        final AtomicBoolean setConnectBlocks = new AtomicBoolean();
+        visitBlocks((object, x, y, z, material) -> {
+            if (material.connectingBlock) {
+                // First check if one of the connecting properties is set; if so then this object must contain modern
+                // materials and may be assumed to have the right properties set already
+                if (material.is(WEST) || material.is(NORTH) || material.is(EAST) || material.is(SOUTH)) {
+                    setConnectBlocks.set(false);
+                    return false;
+                } else {
+                    // The material has none of its connecting properties set. Check if there is a block around it in
+                    // the object to which it should have been connected
+                    final Point3i dim = getDimensions();
+                    if (((x > 0) && getMask(x - 1, y, z) && wouldConnect(material, getMaterial(x - 1, y, z)))
+                            || ((y > 0) && getMask(x, y - 1, z) && wouldConnect(material, getMaterial(x, y - 1, z)))
+                            || ((x < (dim.x - 1)) && getMask(x + 1, y, z) && wouldConnect(material, getMaterial(x + 1, y, z)))
+                            || ((y < (dim.y - 1)) && getMask(x, y + 1, z) && wouldConnect(material, getMaterial(x, y + 1, z)))) {
+                        // There is a block around to which this block should have been connected, so conclude for now
+                        // that the attribute should be set, but keep looking for proof to the contrary
+                        setConnectBlocks.set(true);
+                    }
+                }
+            }
+            return true;
+        });
+        if (setConnectBlocks.get()) {
+            setAttribute(ATTRIBUTE_CONNECT_BLOCKS, true);
+        }
+    }
+
+    /**
      * Dumps the object to the console.
      */
     default void dump() {
@@ -432,6 +470,12 @@ public interface WPObject extends Serializable, Cloneable {
     AttributeKey<Integer> ATTRIBUTE_HEIGHT_MODE           = new AttributeKey<>("WPObject.heightMode", HEIGHT_MODE_TERRAIN);
     AttributeKey<Integer> ATTRIBUTE_VERTICAL_OFFSET       = new AttributeKey<>("WPObject.verticalOffset", 0);
     AttributeKey<Integer> ATTRIBUTE_Y_VARIATION           = new AttributeKey<>("WPObject.yVariation", 0);
+    /**
+     * Whether certain connecting blocks such as fences, glass panes and iron bars should have their west, north, east
+     * and south properties automatically set if there is a connecting block in that direction. Does not currently
+     * include stone walls. Default value: {@code false}.
+     */
+    AttributeKey<Boolean> ATTRIBUTE_CONNECT_BLOCKS        = new AttributeKey<>("WPObject.connectBlocks", false);
 
     @FunctionalInterface
     interface BlockVisitor {

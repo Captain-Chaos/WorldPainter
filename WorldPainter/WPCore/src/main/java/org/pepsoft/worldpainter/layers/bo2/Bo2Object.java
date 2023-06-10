@@ -52,6 +52,7 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
             attributes.put(ATTRIBUTE_SPAWN_IN_WATER.key, true);
         }
         this.attributes = attributes;
+        guessConnectBlocks();
     }
     
     @Override
@@ -172,7 +173,7 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
         in.defaultReadObject();
         
         // Legacy
-        if (version == 0) {
+        if (version < 1) {
             if ((origin.x != 0) || (origin.y != 0) || (origin.z != 0)) {
                 if (attributes == null) attributes = new HashMap<>();
                 attributes.put(ATTRIBUTE_OFFSET.key, new Point3i(-origin.x, -origin.y, -origin.z));
@@ -193,14 +194,16 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
                 if (attributes == null) attributes = new HashMap<>();
                 attributes.put(ATTRIBUTE_SPAWN_IN_WATER.key, true);
             }
-            version = 1;
         }
-        if (version == 1) {
+        if (version < 2) {
             if (! attributes.containsKey(ATTRIBUTE_LEAF_DECAY_MODE.key)) {
                 attributes.put(ATTRIBUTE_LEAF_DECAY_MODE.key, LEAF_DECAY_ON);
             }
-            version = 2;
         }
+        if (version < 3) {
+            guessConnectBlocks();
+        }
+        version = 3;
     }
 
     /**
@@ -318,7 +321,7 @@ public final class Bo2Object extends AbstractObject implements Bo2ObjectProvider
     private final Map<Point3i, Bo2BlockSpec> blocks;
     private Point3i origin, dimensions;
     private Map<String, Serializable> attributes;
-    private int version = 2;
+    private int version = 3;
     
     public static final String KEY_SPAWN_WATER       = "spawnWater";
     public static final String KEY_SPAWN_LAVA        = "spawnLava";

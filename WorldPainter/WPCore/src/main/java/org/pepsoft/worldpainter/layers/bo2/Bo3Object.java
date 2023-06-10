@@ -44,6 +44,7 @@ public final class Bo3Object extends AbstractObject implements Bo2ObjectProvider
             attributes.put(ATTRIBUTE_RANDOM_ROTATION.key, false);
         }
         this.attributes = attributes;
+        guessConnectBlocks();
     }
     
     @Override
@@ -157,6 +158,14 @@ public final class Bo3Object extends AbstractObject implements Bo2ObjectProvider
             clone.attributes = new HashMap<>(attributes);
         }
         return clone;
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if (version < 2) {
+            guessConnectBlocks();
+        }
+        version = 2;
     }
     
     /**
@@ -317,7 +326,7 @@ public final class Bo3Object extends AbstractObject implements Bo2ObjectProvider
     private final Map<Point3i, Bo3BlockSpec> blocks;
     private Point3i origin, dimensions;
     private Map<String, Serializable> attributes;
-    private int version = 1;
+    private int version = 2;
     private transient List<TileEntity> tileEntities;
     
     public static final String KEY_RANDOM_ROTATION = "RotateRandomly";

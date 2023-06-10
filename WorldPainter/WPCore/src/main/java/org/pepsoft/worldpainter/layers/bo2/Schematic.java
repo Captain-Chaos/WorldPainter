@@ -91,6 +91,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
             weOriginX = weOriginY = weOriginZ = 0;
         }
         this.attributes = attributes;
+        guessConnectBlocks();
     }
 
     // WPObject
@@ -304,6 +305,9 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
                     entity.setRelPos(entity.getPos());
                 }
             }
+        }
+        if (version < 3) {
+            guessConnectBlocks();
         }
         version = 2;
     }

@@ -108,6 +108,7 @@ public final class Material implements Serializable {
         sustainsLeaves = simpleName.endsWith("_log") || simpleName.endsWith("_wood")
                 || simpleName == MC_CRIMSON_HYPHAE || simpleName == MC_CRIMSON_STEM
                 || simpleName == MC_WARPED_HYPHAE || simpleName == MC_WARPED_STEM;
+        connectingBlock = simpleName.endsWith("_fence") || simpleName.endsWith("glass_pane") || simpleName == MC_IRON_BARS;
 
         Map<String, Object> spec = findSpec(identity);
         if (spec != null) {
@@ -245,6 +246,7 @@ public final class Material implements Serializable {
         sustainsLeaves = simpleName.endsWith("_log") || simpleName.endsWith("_wood")
                 || simpleName == MC_CRIMSON_HYPHAE || simpleName == MC_CRIMSON_STEM
                 || simpleName == MC_WARPED_HYPHAE || simpleName == MC_WARPED_STEM;
+        connectingBlock = simpleName.endsWith("_fence") || simpleName.endsWith("glass_pane") || simpleName == MC_IRON_BARS;
 
         Map<String, Object> spec = findSpec(identity);
         if (spec != null) {
@@ -456,6 +458,26 @@ public final class Material implements Serializable {
      */
     public boolean hasProperty(String name) {
         return (propertyDescriptors != null) && propertyDescriptors.containsKey(name);
+    }
+
+    /**
+     * Indicates whether one or more specific properties are all present on this type of material, regardless of whether
+     * they are set on the current instance.
+     *
+     * @param names The names of the property to check for presence.
+     * @return {@code true} if the specified properties are all present on this type of material.
+     */
+    public boolean hasProperties(String... names) {
+        if (propertyDescriptors != null) {
+            for (String name: names) {
+                if (! propertyDescriptors.containsKey(name)) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -1546,6 +1568,12 @@ public final class Material implements Serializable {
      * Whether the material should keep connected leaf blocks from decaying for the purposes of leaf decay calculations.
      */
     public final transient boolean sustainsLeaves;
+
+    /**
+     * A connecting block has boolean west, north, east and south properties which should be set if the block in that
+     * direction is the same type, or a solid and opaque block.
+     */
+    public final transient boolean connectingBlock;
 
     // Optimised versions of hasProperty(...):
 

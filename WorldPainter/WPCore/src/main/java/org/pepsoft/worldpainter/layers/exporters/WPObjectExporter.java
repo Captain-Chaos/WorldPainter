@@ -17,6 +17,7 @@ import org.pepsoft.worldpainter.layers.Frost;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.objects.WPObject;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
+import org.pepsoft.worldpainter.util.WPObjectUtils;
 
 import javax.vecmath.Point3i;
 import java.awt.*;
@@ -25,6 +26,7 @@ import java.util.UUID;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.Platform.Capability.WATERLOGGED_LEAVES;
 import static org.pepsoft.worldpainter.objects.WPObject.*;
 
@@ -97,7 +99,8 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             final boolean replaceBlocks = replaceMaterial != null;
             final boolean extendFoundation = object.getAttribute(ATTRIBUTE_EXTEND_FOUNDATION);
             final boolean waterLoggedLeaves = platform.capabilities.contains(WATERLOGGED_LEAVES);
-            //        System.out.println("Object dimensions: " + dim + ", origin: " + orig);
+            final boolean connectBlocks = object.getAttribute(ATTRIBUTE_CONNECT_BLOCKS) && platform.capabilities.contains(NAME_BASED);
+//            System.out.println("Object dimensions: " + dim + ", origin: " + orig);
             for (int dx = 0; dx < dim.x; dx++) {
                 for (int dy = 0; dy < dim.y; dy++) {
                     final int worldX = x + dx + offset.x;
@@ -111,39 +114,39 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                             if (worldZ < minHeight + (bottomless || obliterate ? 0 : 1)) {
                                 continue;
                             } else if (obliterate) {
-                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves);
+                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks);
                             } else {
                                 final Material existingMaterial = world.getMaterialAt(worldX, worldY, worldZ);
                                 if (worldZ <= terrainHeight) {
                                     switch (undergroundMode) {
                                         case COLLISION_MODE_ALL:
                                             // Replace every block
-                                            placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves);
+                                            placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks);
                                             break;
                                         case COLLISION_MODE_SOLID:
                                             // Only replace if object block is solid
                                             if (! finalMaterial.veryInsubstantial) {
-                                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves);
+                                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks);
                                             }
                                             break;
                                         case COLLISION_MODE_NONE:
                                             // Only replace less solid blocks
                                             if (existingMaterial.veryInsubstantial) {
-                                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves);
+                                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks);
                                             }
                                             break;
                                     }
                                 } else {
                                     // Above ground only replace less solid blocks
                                     if (existingMaterial.veryInsubstantial) {
-                                        placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves);
+                                        placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks);
                                     }
                                 }
                             }
                             if (extendFoundation && (dz == 0) && (terrainHeight != Integer.MIN_VALUE) && (worldZ > terrainHeight) && (! finalMaterial.veryInsubstantial)) {
                                 int legZ = worldZ - 1;
                                 while ((legZ >= minHeight) && world.getMaterialAt(worldX, worldY, legZ).veryInsubstantial) {
-                                    placeBlock(world, worldX, worldY, legZ, finalMaterial, leafDecayMode, waterLoggedLeaves);
+                                    placeBlock(world, worldX, worldY, legZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks);
                                     legZ--;
                                 }
                             }
@@ -232,6 +235,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             }
             final boolean replaceBlocks = replaceMaterial != null;
             final boolean waterLoggedLeaves = platform.capabilities.contains(WATERLOGGED_LEAVES);
+            final boolean connectBlocks = object.getAttribute(ATTRIBUTE_CONNECT_BLOCKS) && platform.capabilities.contains(NAME_BASED);
             for (int dx = 0; dx < dim.x; dx++) {
                 for (int dy = 0; dy < dim.y; dy++) {
                     final int worldX = x + dx + offset.x;
@@ -244,7 +248,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                             final Material existingMaterial = world.getMaterialAt(worldX, worldY, worldZ);
                             // Only replace less solid blocks
                             if (existingMaterial.veryInsubstantial) {
-                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves);
+                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks);
                             }
                         }
                     }
@@ -467,22 +471,22 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
      * another fence block, but not another fence of a different type).
      */
     private static boolean wouldConnect(MinecraftWorld world, int worldX, int worldY, int worldZ, Material objectBlock) {
-        if (wouldConnect(objectBlock, world.getMaterialAt(worldX - 1, worldY, worldZ))) {
+        if (WPObjectUtils.wouldConnect(objectBlock, world.getMaterialAt(worldX - 1, worldY, worldZ))) {
             if (logger.isTraceEnabled()) {
                 logger.trace(objectBlock + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + world.getMaterialAt(worldX - 1, worldY, worldZ) + " @ dx = -1");
             }
             return true;
-        } else if (wouldConnect(objectBlock, world.getMaterialAt(worldX, worldY - 1, worldZ))) {
+        } else if (WPObjectUtils.wouldConnect(objectBlock, world.getMaterialAt(worldX, worldY - 1, worldZ))) {
             if (logger.isTraceEnabled()) {
                 logger.trace(objectBlock + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + world.getMaterialAt(worldX, worldY - 1, worldZ) + " @ dy = -1");
             }
             return true;
-        } else if (wouldConnect(objectBlock, world.getMaterialAt(worldX + 1, worldY, worldZ))) {
+        } else if (WPObjectUtils.wouldConnect(objectBlock, world.getMaterialAt(worldX + 1, worldY, worldZ))) {
             if (logger.isTraceEnabled()) {
                 logger.trace(objectBlock + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + world.getMaterialAt(worldX + 1, worldY, worldZ) + " @ dx = 1");
             }
             return true;
-        } else if (wouldConnect(objectBlock, world.getMaterialAt(worldX, worldY + 1, worldZ))) {
+        } else if (WPObjectUtils.wouldConnect(objectBlock, world.getMaterialAt(worldX, worldY + 1, worldZ))) {
             if (logger.isTraceEnabled()) {
                 logger.trace(objectBlock + " @ " + worldX + "," + worldY + "," + worldZ + " would connect to " + world.getMaterialAt(worldX, worldY + 1, worldZ) + " @ dy = 1");
             }
@@ -492,48 +496,6 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         }
     }
     
-    /**
-     * Determine whether two blocks would connect to each other in some way
-     * (forming a fence, for instance).
-     */
-    private static boolean wouldConnect(Material blockTypeOne, Material blockTypeTwo) {
-        if ((blockTypeOne == AIR) || (blockTypeTwo == AIR)) {
-            return false;
-        } else if (blockTypeOne.solid) {
-            if (blockTypeTwo.solid) {
-                return false;
-            } else {
-                return wouldConnect(blockTypeTwo, blockTypeOne);
-            }
-        } else {
-            // TODO encode this into a "connects" property on the material and just check the name
-            switch (blockTypeOne.name) {
-                case MC_OAK_FENCE:
-                    return blockTypeTwo.isNamed(MC_OAK_FENCE) || blockTypeTwo.solid;
-                case MC_NETHER_BRICK_FENCE:
-                    return blockTypeTwo.isNamed(MC_NETHER_BRICK_FENCE) || blockTypeTwo.solid;
-                case MC_SPRUCE_FENCE:
-                    return blockTypeTwo.isNamed(MC_SPRUCE_FENCE) || blockTypeTwo.solid;
-                case MC_JUNGLE_FENCE:
-                    return blockTypeTwo.isNamed(MC_JUNGLE_FENCE) || blockTypeTwo.solid;
-                case MC_DARK_OAK_FENCE:
-                    return blockTypeTwo.isNamed(MC_DARK_OAK_FENCE) || blockTypeTwo.solid;
-                case MC_ACACIA_FENCE:
-                    return blockTypeTwo.isNamed(MC_ACACIA_FENCE) || blockTypeTwo.solid;
-                case MC_BIRCH_FENCE:
-                    return blockTypeTwo.isNamed(MC_BIRCH_FENCE) || blockTypeTwo.solid;
-                case MC_COBBLESTONE_WALL:
-                    return blockTypeTwo.isNamed(MC_COBBLESTONE_WALL) || blockTypeTwo.solid;
-                case MC_IRON_BARS:
-                    return blockTypeTwo.isNamed(MC_IRON_BARS) || blockTypeTwo.solid;
-                case MC_GLASS_PANE:
-                    return blockTypeTwo.isNamed(MC_GLASS_PANE) || blockTypeTwo.solid;
-                default:
-                    return false;
-            }
-        }
-    }
-
     private static Box getBounds(WPObject object, int x, int y, int z) {
         final Point3i dimensions = object.getDimensions();
         final Point3i offset = object.getOffset();
@@ -542,7 +504,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 z + offset.z, z + offset.z + dimensions.z);
     }
 
-    private static void placeBlock(MinecraftWorld world, int x, int y, int z, Material material, int leafDecayMode, boolean waterloggedLeaves) {
+    private static void placeBlock(MinecraftWorld world, int x, int y, int height, Material material, int leafDecayMode, boolean waterloggedLeaves, boolean connectBlocks) {
         final boolean materialHasPropertyWaterlogged;
         if (material.leafBlock) {
             materialHasPropertyWaterlogged = waterloggedLeaves;
@@ -556,7 +518,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
         } else {
             materialHasPropertyWaterlogged = material.hasProperty(WATERLOGGED);
         }
-        final Material existingMaterial = world.getMaterialAt(x, y, z);
+        final Material existingMaterial = world.getMaterialAt(x, y, height);
         final boolean existingMaterialContainsWater = existingMaterial.containsWater();
         // Manage the waterlogged property, but only if we're confident what it should be based on the block that is
         // already there
@@ -567,10 +529,25 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 material = material.withProperty(WATERLOGGED, false);
             }
         }
+        // Manage the cardinal direction properties for connecting blocks, if requested
+        if (connectBlocks && material.connectingBlock) {
+            if (WPObjectUtils.wouldConnect(material, world.getMaterialAt(x - 1, y, height))) {
+                material = material.withProperty(WEST, true);
+            }
+            if (WPObjectUtils.wouldConnect(material, world.getMaterialAt(x, y - 1, height))) {
+                material = material.withProperty(NORTH, true);
+            }
+            if (WPObjectUtils.wouldConnect(material, world.getMaterialAt(x + 1, y, height))) {
+                material = material.withProperty(EAST, true);
+            }
+            if (WPObjectUtils.wouldConnect(material, world.getMaterialAt(x, y + 1, height))) {
+                material = material.withProperty(SOUTH, true);
+            }
+        }
         // Don't replace water with insubstantial blocks that don't have a waterlogged property (assume such a block
         // would be washed away), except air. We are slightly guessing at what the user would want to happen here...
         if ((! material.veryInsubstantial) || (! existingMaterialContainsWater) || material.containsWater() || (material == AIR)) {
-            world.setMaterialAt(x, y, z, material);
+            world.setMaterialAt(x, y, height, material);
         }
     }
 
