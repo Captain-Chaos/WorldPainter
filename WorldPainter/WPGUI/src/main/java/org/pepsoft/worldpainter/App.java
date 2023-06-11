@@ -143,6 +143,8 @@ import static org.pepsoft.worldpainter.TileRenderer.TERRAIN_AS_LAYER;
 import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_FIFTY_PERCENT;
 import static org.pepsoft.worldpainter.WPTileProvider.Effect.FADE_TO_TWENTYFIVE_PERCENT;
 import static org.pepsoft.worldpainter.World2.*;
+import static org.pepsoft.worldpainter.exporting.HeightMapExporter.Format.INTEGER_HIGH_RESOLUTION;
+import static org.pepsoft.worldpainter.exporting.HeightMapExporter.Format.INTEGER_LOW_RESOLUTION;
 import static org.pepsoft.worldpainter.painting.PaintFactory.*;
 import static org.pepsoft.worldpainter.ramps.ColourGradient.Transition.LINEAR;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
@@ -4504,12 +4506,12 @@ public final class App extends JFrame implements RadiusControl,
             exportMenu.add(menuItem);
 
             menuItem = new JMenuItem(strings.getString("export.as.height.map") + "...");
-            menuItem.addActionListener(event -> exportHeightMap(false));
+            menuItem.addActionListener(event -> exportHeightMap(INTEGER_LOW_RESOLUTION));
             menuItem.setMnemonic('h');
             exportMenu.add(menuItem);
 
             menuItem = new JMenuItem("Export as 1:256 (high resolution) integer height map...");
-            menuItem.addActionListener(event -> exportHeightMap(true));
+            menuItem.addActionListener(event -> exportHeightMap(INTEGER_HIGH_RESOLUTION));
             exportMenu.add(menuItem);
 
             menu.add(exportMenu);
@@ -6254,7 +6256,7 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
     
-    private void exportHeightMap(boolean highRes) {
+    private void exportHeightMap(HeightMapExporter.Format format) {
         if (dimension == null) {
             DesktopUtils.beep();
             return;
@@ -6263,7 +6265,7 @@ public final class App extends JFrame implements RadiusControl,
             beepAndShowError(this, "The dimension is too large to export to a height map.\nThe area (width x height) may not be more than " + INT_NUMBER_FORMAT.format(Integer.MAX_VALUE), "Dimension Too Large");
             return;
         }
-        final HeightMapExporter heightMapExporter = new HeightMapExporter(dimension, highRes);
+        final HeightMapExporter heightMapExporter = new HeightMapExporter(dimension, format);
         final List<String> extensions = heightMapExporter.getSupportedFileExtensions();
         StringBuilder sb = new StringBuilder(strings.getString("supported.image.formats"));
         sb.append(" (");
@@ -6279,15 +6281,13 @@ public final class App extends JFrame implements RadiusControl,
         }
         sb.append(')');
         final String description = sb.toString();
-        final String defaultExtension = extensions.get(0);
-        String defaultname = world.getName().replaceAll("\\s", "").toLowerCase() + ((dimension.getAnchor().dim == DIM_NORMAL) ? "" : ("_" + dimension.getName().toLowerCase())) + (highRes ? "_high-res-heightmap." + defaultExtension : "_heightmap." + defaultExtension); // NOI18N
         Configuration config = Configuration.getInstance();
         File dir = config.getHeightMapsDirectory();
         if ((dir == null) || (! dir.isDirectory())) {
             dir = DesktopUtils.getPicturesFolder();
         }
-        File defaultFile = new File(dir, defaultname);
-        File selectedFile = FileUtils.selectFileForSave(App.this, highRes ? "Export as high resolution height map image file" : "Export as height map image file", defaultFile, new FileFilter() {
+        File defaultFile = new File(dir, heightMapExporter.getDefaultFilename());
+        File selectedFile = FileUtils.selectFileForSave(App.this, (format == INTEGER_HIGH_RESOLUTION) ? "Export as high resolution height map image file" : "Export as height map image file", defaultFile, new FileFilter() {
             @Override
             public boolean accept(File f) {
                 if (f.isDirectory()) {
