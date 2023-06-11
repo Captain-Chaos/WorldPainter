@@ -50,16 +50,6 @@ public class RODelegatingTile extends ReadOnlyTile {
     }
 
     @Override
-    public int getLowestIntHeight() {
-        return tile.getLowestIntHeight();
-    }
-
-    @Override
-    public int getHighestIntHeight() {
-        return tile.getHighestIntHeight();
-    }
-
-    @Override
     public float getHeight(int x, int y) {
         return tile.getHeight(x, y); //To change body of generated methods, choose Tools | Templates.
     }
@@ -67,6 +57,21 @@ public class RODelegatingTile extends ReadOnlyTile {
     @Override
     public int getRawHeight(int x, int y) {
         return tile.getRawHeight(x, y); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int getLowestRawHeight() {
+        return tile.getLowestRawHeight();
+    }
+
+    @Override
+    public int getHighestRawHeight() {
+        return tile.getHighestRawHeight();
+    }
+
+    @Override
+    public int[] getRawHeightRange() {
+        return tile.getRawHeightRange();
     }
 
     @Override

@@ -216,16 +216,6 @@ public class FlatteningDimension extends RODelegatingDimension<FlatteningDimensi
     }
 
     @Override
-    public int getLowestIntHeight() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public int getHightestIntHeight() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Map<Layer, Integer> getLayersAt(int x, int y) {
         final Tile tile = getTile(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         return (tile != null) ? tile.getLayersAt(x & TILE_SIZE_MASK, y & TILE_SIZE_MASK) : null;
@@ -325,6 +315,59 @@ public class FlatteningDimension extends RODelegatingDimension<FlatteningDimensi
         @Override
         public int getRawHeight(int x, int y) {
             return tiles[layerToUse[x >> 4][y >> 4]].getRawHeight(x, y);
+        }
+
+        @Override
+        public int getLowestRawHeight() {
+            int lowestHeight = Integer.MAX_VALUE;
+            for (int x = 0; x < TILE_SIZE; x++) {
+                for (int y = 0; y < TILE_SIZE; y++) {
+                    final int height = tiles[layerToUse[x >> 4][y >> 4]].getRawHeight(x, y);
+                    if (height < lowestHeight) {
+                        lowestHeight = height;
+                    }
+                    if (lowestHeight <= 0) {
+                        return 0;
+                    }
+                }
+            }
+            return lowestHeight;
+        }
+
+        @Override
+        public int getHighestRawHeight() {
+            int highestHeight = Integer.MIN_VALUE;
+            for (int x = 0; x < TILE_SIZE; x++) {
+                for (int y = 0; y < TILE_SIZE; y++) {
+                    final int height = tiles[layerToUse[x >> 4][y >> 4]].getRawHeight(x, y);
+                    if (height > highestHeight) {
+                        highestHeight = height;
+                    }
+                }
+            }
+            return highestHeight;
+        }
+
+        @Override
+        public synchronized int[] getRawHeightRange() {
+            int lowestRawHeight = Integer.MAX_VALUE;
+            int highestRawHeight = Integer.MIN_VALUE;
+            final int maxRawHeight = (maxHeight - 1 - minHeight) * 256;
+            for (int x = 0; x < TILE_SIZE; x++) {
+                for (int y = 0; y < TILE_SIZE; y++) {
+                    final int height = tiles[layerToUse[x >> 4][y >> 4]].getRawHeight(x, y);
+                    if (height < lowestRawHeight) {
+                        lowestRawHeight = height;
+                    }
+                    if (height > highestRawHeight) {
+                        highestRawHeight = height;
+                    }
+                    if ((lowestRawHeight <= 0) && (highestRawHeight >= maxRawHeight)) {
+                        return new int[] { 0, maxRawHeight };
+                    }
+                }
+            }
+            return new int[] { lowestRawHeight, highestRawHeight };
         }
 
         @Override

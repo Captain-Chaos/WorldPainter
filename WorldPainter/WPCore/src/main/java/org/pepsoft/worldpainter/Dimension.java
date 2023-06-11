@@ -376,6 +376,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return tiles.size();
     }
 
+    /**
+     * Get a collection of all extant tiles in the dimension. May not contain {@code null}s.
+     */
     public Collection<? extends Tile> getTiles() {
         readLock.lock();
         try {
@@ -556,31 +559,16 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     public int getLowestIntHeight() {
-        int lowestHeight = Integer.MAX_VALUE;
-        for (Tile tile: tiles.values()) {
-            int tileLowestHeight = tile.getLowestIntHeight();
-            if (tileLowestHeight < lowestHeight) {
-                lowestHeight = tileLowestHeight;
-            }
-            if (lowestHeight <= minHeight) {
-                return minHeight;
-            }
-        }
-        return lowestHeight;
+        return Math.round(getLowestRawHeight() / 256f + minHeight);
     }
 
-    public int getHightestIntHeight() {
-        int highestHeight = Integer.MIN_VALUE;
-        for (Tile tile: tiles.values()) {
-            int tileHighestHeight = tile.getHighestIntHeight();
-            if (tileHighestHeight > highestHeight) {
-                highestHeight = tileHighestHeight;
-            }
-            if (highestHeight >= (maxHeight - 1)) {
-                return maxHeight - 1;
-            }
-        }
-        return highestHeight;
+    public int getHighestIntHeight() {
+        return Math.round(getHighestRawHeight() / 256f + minHeight);
+    }
+
+    public int[] getIntHeightRange() {
+        final int[] rawHeightRange = getRawHeightRange();
+        return new int[] { Math.round(rawHeightRange[0] / 256f + minHeight), Math.round(rawHeightRange[1] / 256f + minHeight) };
     }
 
     /**
@@ -611,6 +599,19 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return getHeightAt(coords.x, coords.y);
     }
 
+    public float getLowestHeight() {
+        return getLowestRawHeight() / 256f + minHeight;
+    }
+
+    public float getHighestHeight() {
+        return getHighestRawHeight() / 256f + minHeight;
+    }
+
+    public float[] getHeightRange() {
+        final int[] rawHeightRange = getRawHeightRange();
+        return new float[] { rawHeightRange[0] / 256f + minHeight, rawHeightRange[1] / 256f + minHeight };
+    }
+
     public void setHeightAt(int x, int y, float height) {
         Tile tile = getTileForEditing(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS);
         if (tile != null) {
@@ -633,6 +634,53 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         } else {
             return Integer.MIN_VALUE;
         }
+    }
+
+    public int getLowestRawHeight() {
+        int lowestRawHeight = Integer.MAX_VALUE;
+        for (Tile tile: getTiles()) {
+            final int tileLowestRawHeight = tile.getLowestRawHeight();
+            if (tileLowestRawHeight < lowestRawHeight) {
+                lowestRawHeight = tileLowestRawHeight;
+            }
+            if (lowestRawHeight <= 0) {
+                return 0;
+            }
+        }
+        return lowestRawHeight;
+    }
+
+    public int getHighestRawHeight() {
+        int highestRawHeight = Integer.MIN_VALUE;
+        final int maxRawHeight = (maxHeight - 1 - minHeight) * 256;
+        for (Tile tile: getTiles()) {
+            final int tileHighestRawHeight = tile.getHighestRawHeight();
+            if (tileHighestRawHeight > highestRawHeight) {
+                highestRawHeight = tileHighestRawHeight;
+            }
+            if (highestRawHeight >= maxRawHeight) {
+                return maxRawHeight;
+            }
+        }
+        return highestRawHeight;
+    }
+
+    public int[] getRawHeightRange() {
+        int lowestRawHeight = Integer.MAX_VALUE, highestRawHeight = Integer.MIN_VALUE;
+        final int maxRawHeight = (maxHeight - 1 - minHeight) * 256;
+        for (Tile tile: getTiles()) {
+            final int[] tileRawHeightRange = tile.getRawHeightRange();
+            if (tileRawHeightRange[0] < lowestRawHeight) {
+                lowestRawHeight = tileRawHeightRange[0];
+            }
+            if (tileRawHeightRange[1] > highestRawHeight) {
+                highestRawHeight = tileRawHeightRange[1];
+            }
+            if ((lowestRawHeight <= 0) && (highestRawHeight >= maxRawHeight)) {
+                return new int[] { 0, maxRawHeight };
+            }
+        }
+        return new int[] { lowestRawHeight, highestRawHeight };
     }
 
     /**

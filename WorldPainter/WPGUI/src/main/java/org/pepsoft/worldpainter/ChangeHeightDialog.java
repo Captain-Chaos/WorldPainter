@@ -50,7 +50,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                 .filter(dimension -> (dimension.getAnchor().role == DETAIL || dimension.getAnchor().role == MASTER) && (! dimension.getAnchor().invert))
                 .collect(toSet());
         lowestHeight = dimensions.stream().mapToInt(Dimension::getLowestIntHeight).min().getAsInt();
-        highestHeight = dimensions.stream().mapToInt(Dimension::getHightestIntHeight).max().getAsInt();
+        highestHeight = dimensions.stream().mapToInt(Dimension::getHighestIntHeight).max().getAsInt();
 
         initComponents();
         labelOldExtents.setText(lowestHeight + " - " + highestHeight);

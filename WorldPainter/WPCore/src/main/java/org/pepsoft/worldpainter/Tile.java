@@ -181,54 +181,12 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         return Math.round(getHeight(x, y));
     }
 
-    public synchronized int getLowestIntHeight() {
-        if (tall) {
-            ensureReadable(TALL_HEIGHTMAP);
-            int lowestHeight = Integer.MAX_VALUE;
-            for (int height: tallHeightMap) {
-                if (height < lowestHeight) {
-                    lowestHeight = height;
-                }
-                if (lowestHeight == 0) {
-                    return minHeight;
-                }
-            }
-            return Math.round(lowestHeight / 256f + minHeight);
-        } else {
-            ensureReadable(HEIGHTMAP);
-            int lowestHeight = Integer.MAX_VALUE;
-            for (short height: heightMap) {
-                if ((height & 0xFFFF) < lowestHeight) {
-                    lowestHeight = (height & 0xFFFF);
-                }
-                if (lowestHeight == 0) {
-                    return minHeight;
-                }
-            }
-            return Math.round(lowestHeight / 256f + minHeight);
-        }
+    public int getLowestIntHeight() {
+        return Math.round(getLowestRawHeight() / 256f + minHeight);
     }
 
-    public synchronized int getHighestIntHeight() {
-        if (tall) {
-            ensureReadable(TALL_HEIGHTMAP);
-            int highestHeight = Integer.MIN_VALUE;
-            for (int height: tallHeightMap) {
-                if (height > highestHeight) {
-                    highestHeight = height;
-                }
-            }
-            return Math.round(highestHeight / 256f + minHeight);
-        } else {
-            ensureReadable(HEIGHTMAP);
-            int highestHeight = Integer.MIN_VALUE;
-            for (short height: heightMap) {
-                if ((height & 0xFFFF) > highestHeight) {
-                    highestHeight = (height & 0xFFFF);
-                }
-            }
-            return Math.round(highestHeight / 256f + minHeight);
-        }
+    public int getHighestIntHeight() {
+        return Math.round(getHighestRawHeight() / 256f + minHeight);
     }
 
     public synchronized float getHeight(int x, int y) {
@@ -239,6 +197,14 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
             ensureReadable(HEIGHTMAP);
             return (heightMap[x | (y << TILE_SIZE_BITS)] & 0xFFFF) / 256f + minHeight;
         }
+    }
+
+    public float getLowestHeight() {
+        return getLowestRawHeight() / 256f + minHeight;
+    }
+
+    public float getHighestHeight() {
+        return getHighestRawHeight() / 256f + minHeight;
     }
 
     public void setHeight(int x, int y, float height) {
@@ -266,6 +232,93 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
             ensureReadable(HEIGHTMAP);
             return (heightMap[x | (y << TILE_SIZE_BITS)] & 0xFFFF);
         }
+    }
+
+    public synchronized int getLowestRawHeight() {
+        int lowestRawHeight = Integer.MAX_VALUE;
+        if (tall) {
+            ensureReadable(TALL_HEIGHTMAP);
+            for (int height: tallHeightMap) {
+                if (height < lowestRawHeight) {
+                    lowestRawHeight = height;
+                }
+                if (lowestRawHeight <= 0) {
+                    return 0;
+                }
+            }
+        } else {
+            ensureReadable(HEIGHTMAP);
+            for (short height: heightMap) {
+                if ((height & 0xFFFF) < lowestRawHeight) {
+                    lowestRawHeight = (height & 0xFFFF);
+                }
+                if (lowestRawHeight <= 0) {
+                    return 0;
+                }
+            }
+        }
+        return lowestRawHeight;
+    }
+
+    public synchronized int getHighestRawHeight() {
+        int highestRawHeight = Integer.MIN_VALUE;
+        final int maxRawHeight = (maxHeight - 1 - minHeight) * 256;
+        if (tall) {
+            ensureReadable(TALL_HEIGHTMAP);
+            for (int height: tallHeightMap) {
+                if (height > highestRawHeight) {
+                    highestRawHeight = height;
+                    if (highestRawHeight >= maxRawHeight) {
+                        return maxRawHeight;
+                    }
+                }
+            }
+        } else {
+            ensureReadable(HEIGHTMAP);
+            for (short height: heightMap) {
+                if ((height & 0xFFFF) > highestRawHeight) {
+                    highestRawHeight = (height & 0xFFFF);
+                    if (highestRawHeight >= maxRawHeight) {
+                        return maxRawHeight;
+                    }
+                }
+            }
+        }
+        return highestRawHeight;
+    }
+
+    public synchronized int[] getRawHeightRange() {
+        int lowestRawHeight = Integer.MAX_VALUE;
+        int highestRawHeight = Integer.MIN_VALUE;
+        final int maxRawHeight = (maxHeight - 1 - minHeight) * 256;
+        if (tall) {
+            ensureReadable(TALL_HEIGHTMAP);
+            for (int height: tallHeightMap) {
+                if (height < lowestRawHeight) {
+                    lowestRawHeight = height;
+                }
+                if (height > highestRawHeight) {
+                    highestRawHeight = height;
+                }
+                if ((lowestRawHeight <= 0) && (highestRawHeight >= maxRawHeight)) {
+                    return new int[] { 0, maxRawHeight };
+                }
+            }
+        } else {
+            ensureReadable(HEIGHTMAP);
+            for (short height: heightMap) {
+                if ((height & 0xFFFF) < lowestRawHeight) {
+                    lowestRawHeight = (height & 0xFFFF);
+                }
+                if ((height & 0xFFFF) > highestRawHeight) {
+                    highestRawHeight = (height & 0xFFFF);
+                }
+                if ((lowestRawHeight <= 0) && (highestRawHeight >= maxRawHeight)) {
+                    return new int[] { 0, maxRawHeight };
+                }
+            }
+        }
+        return new int[] { lowestRawHeight, highestRawHeight };
     }
 
     /**
