@@ -1,5 +1,6 @@
 -- Version 2.18.1, released ...
 
+ * You can now drag and drop .world files onto the WorldPainter window to open them
  * Bug fix: fixed a NullPointerException that occurred when loading some older worlds
 
 -- Version 2.18.0, released 11-6-2023

@@ -28,6 +28,7 @@ import org.pepsoft.worldpainter.brushes.BitmapBrush;
 import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.brushes.RotatedBrush;
 import org.pepsoft.worldpainter.brushes.SymmetricBrush;
+import org.pepsoft.worldpainter.dnd.WPTransferHandler;
 import org.pepsoft.worldpainter.dynmap.DynmapColourScheme;
 import org.pepsoft.worldpainter.exporting.HeightMapExporter;
 import org.pepsoft.worldpainter.gardenofeden.GardenOfEdenOperation;
@@ -296,6 +297,8 @@ public final class App extends JFrame implements RadiusControl,
         mapSelectionController = new MapSelectionController(this, view);
 
         PlantLayerEditor.loadIconsInBackground();
+
+        setTransferHandler(new WPTransferHandler(this));
     }
 
     public World2 getWorld() {
