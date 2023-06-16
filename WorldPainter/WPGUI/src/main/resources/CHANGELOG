@@ -1,4 +1,4 @@
--- Version 2.18.0, released xx-xx-2023
+-- Version 2.18.0, released 11-6-2023
 
  * Height map and mask import changes:
    + Floating point images are now supported for height maps and masks
