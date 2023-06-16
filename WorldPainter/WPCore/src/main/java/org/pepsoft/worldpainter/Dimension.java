@@ -45,6 +45,7 @@ import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -1422,7 +1423,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         if (applyCombinedLayers) {
             applyLayerContainers(copyOfCustomLayers);
             // This may have added non-custom layers, so remove those again
-            copyOfCustomLayers.removeIf(layer -> ! (layer instanceof CustomLayer));
+            copyOfCustomLayers.removeIf((Predicate<Layer>) layer -> ! (layer instanceof CustomLayer));
         }
         return copyOfCustomLayers;
     }
