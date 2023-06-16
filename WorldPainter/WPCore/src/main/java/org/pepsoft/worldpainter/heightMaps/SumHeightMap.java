@@ -46,11 +46,11 @@ public final class SumHeightMap extends CombiningHeightMap {
         return ICON_SUM_HEIGHTMAP;
     }
 
-    private Object readResolve() throws ObjectStreamException {
+    protected Object readResolve() throws ObjectStreamException {
         if (heightMap1 != null) {
             return new SumHeightMap(heightMap1, heightMap2);
         } else {
-            return this;
+            return super.readResolve();
         }
     }
 

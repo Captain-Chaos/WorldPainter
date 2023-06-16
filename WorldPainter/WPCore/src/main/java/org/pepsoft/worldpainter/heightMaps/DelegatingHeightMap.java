@@ -3,8 +3,7 @@ package org.pepsoft.worldpainter.heightMaps;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.worldpainter.HeightMap;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.ObjectStreamException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -189,9 +188,9 @@ public abstract class DelegatingHeightMap extends AbstractHeightMap {
         return doGetHeight((float) x, (float) y);
     }
 
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
+    protected Object readResolve() throws ObjectStreamException {
         determineConstant();
+        return this;
     }
 
     protected final HeightMap[] children;

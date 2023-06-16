@@ -1,3 +1,7 @@
+-- Version 2.18.1, released ...
+
+ * Bug fix: fixed a NullPointerException that occurred when loading some older worlds
+
 -- Version 2.18.0, released 11-6-2023
 
  * Height map and mask import changes:
