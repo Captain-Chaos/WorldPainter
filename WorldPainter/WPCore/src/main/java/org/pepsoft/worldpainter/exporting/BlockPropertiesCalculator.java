@@ -40,7 +40,7 @@ import static org.pepsoft.worldpainter.exporting.WorldExportSettings.Step.LIGHTI
  * should be repeated until no changes result from it, meaning the area has been fully processed.
  *
  * <p>In the third pass the process is finalised, e.g. any floating leaf blocks are removed. The third pass should be
- * executed by after the second pass has returned {@code false}.
+ * executed after the second pass has returned {@code false}.
  *
  * <p>This class uses the Minecraft coordinate system.
  *
