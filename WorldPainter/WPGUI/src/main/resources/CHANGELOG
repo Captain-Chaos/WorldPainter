@@ -1,5 +1,6 @@
 -- Version 2.18.1, released ...
 
+ * When importing a height map into the current dimension you can now choose to leave the terrain type alone
  * You can now drag and drop .world files onto the WorldPainter window to open them
  * Bug fix: fixed a NullPointerException that occurred when loading some older worlds
  * Bug fix: fixed an error when trying to Export a world that has Combined Layers which contain non-custom layers (e.g. Frost)

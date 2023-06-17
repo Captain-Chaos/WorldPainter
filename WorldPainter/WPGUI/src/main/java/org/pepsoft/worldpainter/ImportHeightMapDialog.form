@@ -204,11 +204,15 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" attributes="0">
+                              <Component id="jLabel23" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
                               <Component id="radioButtonApplyTheme" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="radioButtonSingleTerrain" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="comboBoxSingleTerrain" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="radioButtonLeaveTerrain" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
@@ -322,6 +326,8 @@
                           <Component id="radioButtonApplyTheme" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="radioButtonSingleTerrain" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="comboBoxSingleTerrain" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel23" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="radioButtonLeaveTerrain" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="32767" attributes="0"/>
                   </Group>
@@ -762,7 +768,7 @@
                 <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
                   <ComponentRef name="themeButtonGroup"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="single terrain:"/>
+                <Property name="text" type="java.lang.String" value="single:"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="radioButtonSingleTerrainActionPerformed"/>
@@ -827,6 +833,22 @@
               <Properties>
                 <Property name="text" type="java.lang.String" value=", upper:"/>
               </Properties>
+            </Component>
+            <Component class="javax.swing.JLabel" name="jLabel23">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Terrain:"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JRadioButton" name="radioButtonLeaveTerrain">
+              <Properties>
+                <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+                  <ComponentRef name="themeButtonGroup"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="leave"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="radioButtonLeaveTerrainActionPerformed"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>

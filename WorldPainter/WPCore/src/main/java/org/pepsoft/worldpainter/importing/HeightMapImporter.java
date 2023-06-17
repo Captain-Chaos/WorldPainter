@@ -235,7 +235,7 @@ public class HeightMapImporter {
             final HeightMapTileFactory heightMapTileFactory = (HeightMapTileFactory) this.tileFactory;
             final Theme theme = ((this.theme != null) ? this.theme : heightMapTileFactory.getTheme()).clone();
             theme.setWaterHeight(worldWaterLevel);
-            final HeightMapTileFactory tileFactory = new PreviewTileFactory(1L, previewHeightMap, targetDimension, minHeight, maxHeight, heightMapTileFactory.isFloodWithLava(), theme, heightMap, useVoidBelow, voidBelowLevel);
+            final HeightMapTileFactory tileFactory = new PreviewTileFactory(1L, previewHeightMap, targetDimension, minHeight, maxHeight, heightMapTileFactory.isFloodWithLava(), theme, heightMap, useVoidBelow, voidBelowLevel, this.theme == null);
             return new WPTileProvider(tileFactory, colourScheme, null, null, contourLines, contourSeparation, lightOrigin, null);
         } else {
             return null;
@@ -434,12 +434,13 @@ public class HeightMapImporter {
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(HeightMapImporter.class);
 
     private static class PreviewTileFactory extends HeightMapTileFactory {
-        private PreviewTileFactory(long seed, HeightMap heightMap, Dimension targetDimension, int minHeight, int maxHeight, boolean floodWithLava, Theme theme, HeightMap imageHeightMap, boolean voidBelow, double voidBelowLevel) {
+        private PreviewTileFactory(long seed, HeightMap heightMap, Dimension targetDimension, int minHeight, int maxHeight, boolean floodWithLava, Theme theme, HeightMap imageHeightMap, boolean voidBelow, double voidBelowLevel, boolean leaveTerrain) {
             super(seed, heightMap, minHeight, maxHeight, floodWithLava, theme);
             this.targetDimension = targetDimension;
             this.imageHeightMap = imageHeightMap;
             useVoidBelow = voidBelow;
             this.voidBelowLevel = voidBelowLevel;
+            this.leaveTerrain = leaveTerrain;
         }
 
         @Override
@@ -455,6 +456,8 @@ public class HeightMapImporter {
                                 tile.setHeight(x, y, targetHeight);
                                 tile.setWaterLevel(x, y, targetTile.getWaterLevel(x, y));
                                 tile.setBitLayerValue(FloodWithLava.INSTANCE, x, y, targetTile.getBitLayerValue(FloodWithLava.INSTANCE, x, y));
+                                tile.setTerrain(x, y, targetTile.getTerrain(x, y));
+                            } else if (leaveTerrain) {
                                 tile.setTerrain(x, y, targetTile.getTerrain(x, y));
                             }
                         }
@@ -481,7 +484,7 @@ public class HeightMapImporter {
         }
 
         private final HeightMap imageHeightMap;
-        private final boolean useVoidBelow;
+        private final boolean useVoidBelow, leaveTerrain;
         /**
          * The input level <strong>at or</strong> below which Void should be generated.
          */

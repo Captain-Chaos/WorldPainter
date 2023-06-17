@@ -142,6 +142,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
             checkBoxCreateTiles.setEnabled(false);
             checkBoxOnlyRaise.setEnabled(false);
             comboBoxSingleTerrain.setModel(new DefaultComboBoxModel<>(PICK_LIST));
+            radioButtonLeaveTerrain.setEnabled(false);
             loadDefaults();
         }
         final boolean masterDimensionSelected = checkBoxMasterDimension.isSelected();
@@ -270,6 +271,8 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                 final SimpleTheme theme = SimpleTheme.createSingleTerrain((Terrain) comboBoxSingleTerrain.getSelectedItem(), minHeight, maxHeight, waterLevel);
                 theme.setSeed(seed);
                 importer.setTheme(theme);
+            } else if (radioButtonLeaveTerrain.isSelected()) {
+                importer.setTheme(null);
             }
         } else {
             themeEditor.save();
@@ -557,7 +560,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         }
     }
 
-    private void exportToDimension() {
+    private void importToDimension() {
         if (currentDimension == null) {
             throw new IllegalStateException();
         }
@@ -586,7 +589,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     @Override
     protected void ok() {
         if (currentDimension != null) {
-            exportToDimension();
+            importToDimension();
         }
         super.ok();
     }
@@ -807,6 +810,8 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         labelExportedOffset = new javax.swing.JLabel();
         comboBoxMinHeight = new javax.swing.JComboBox<>();
         jLabel21 = new javax.swing.JLabel();
+        jLabel23 = new javax.swing.JLabel();
+        radioButtonLeaveTerrain = new javax.swing.JRadioButton();
         jPanel3 = new javax.swing.JPanel();
         themeEditor = new org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor();
         buttonLoadDefaults = new javax.swing.JButton();
@@ -1166,7 +1171,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         });
 
         themeButtonGroup.add(radioButtonSingleTerrain);
-        radioButtonSingleTerrain.setText("single terrain:");
+        radioButtonSingleTerrain.setText("single:");
         radioButtonSingleTerrain.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonSingleTerrainActionPerformed(evt);
@@ -1204,6 +1209,16 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
         jLabel21.setText(", upper:");
 
+        jLabel23.setText("Terrain:");
+
+        themeButtonGroup.add(radioButtonLeaveTerrain);
+        radioButtonLeaveTerrain.setText("leave");
+        radioButtonLeaveTerrain.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonLeaveTerrainActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -1212,11 +1227,15 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jLabel23)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(radioButtonApplyTheme)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(radioButtonSingleTerrain)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(comboBoxSingleTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(comboBoxSingleTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(radioButtonLeaveTerrain))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1313,7 +1332,9 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(radioButtonApplyTheme)
                     .addComponent(radioButtonSingleTerrain)
-                    .addComponent(comboBoxSingleTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(comboBoxSingleTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel23)
+                    .addComponent(radioButtonLeaveTerrain))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -1678,6 +1699,12 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         minHeightChanged();
     }//GEN-LAST:event_comboBoxMinHeightActionPerformed
 
+    private void radioButtonLeaveTerrainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonLeaveTerrainActionPerformed
+        comboBoxSingleTerrain.setEnabled(false);
+        jTabbedPane1.setEnabledAt(1, false);
+        updatePreview(false);
+    }//GEN-LAST:event_radioButtonLeaveTerrainActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
@@ -1713,6 +1740,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;
+    private javax.swing.JLabel jLabel23;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -1741,6 +1769,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
     private javax.swing.JLabel labelWorldHighestLevel;
     private javax.swing.JLabel labelWorldLowestLevel;
     private javax.swing.JRadioButton radioButtonApplyTheme;
+    private javax.swing.JRadioButton radioButtonLeaveTerrain;
     private javax.swing.JRadioButton radioButtonSingleTerrain;
     private javax.swing.JSpinner spinnerImageHigh;
     private javax.swing.JSpinner spinnerImageLow;
