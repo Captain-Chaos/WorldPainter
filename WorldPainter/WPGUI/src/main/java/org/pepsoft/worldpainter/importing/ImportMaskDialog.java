@@ -48,7 +48,7 @@ import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
  */
 @SuppressWarnings({"unused", "FieldCanBeLocal"}) // Managed by NetBeans
 public class ImportMaskDialog extends WorldPainterDialog implements DocumentListener {
-    public ImportMaskDialog(Window parent, Dimension dimension, ColourScheme colourScheme, List<Layer> allLayers, CustomBiomeManager customBiomeManager) {
+    public ImportMaskDialog(Window parent, Dimension dimension, ColourScheme colourScheme, List<Layer> allLayers, CustomBiomeManager customBiomeManager, File preselectedFile) {
         super(parent);
         this.dimension = dimension;
         this.colourScheme = colourScheme;
@@ -92,7 +92,11 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentShown(ComponentEvent e) {
-                selectFile();
+                if ((preselectedFile != null) && preselectedFile.isFile()) {
+                    fieldFilename.setText(preselectedFile.getAbsolutePath());
+                } else {
+                    selectFile();
+                }
             }
         });
     }

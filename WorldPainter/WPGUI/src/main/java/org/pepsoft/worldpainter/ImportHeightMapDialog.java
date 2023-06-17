@@ -73,11 +73,11 @@ import static org.pepsoft.worldpainter.util.MinecraftUtil.blocksToWalkingTime;
 @SuppressWarnings({"ConstantConditions", // Guaranteed by code
         "FieldCanBeLocal", "unused", "Convert2Lambda", "Anonymous2MethodRef"}) // Managed by NetBeans
 public class ImportHeightMapDialog extends WorldPainterDialog implements DocumentListener, SimpleThemeEditor.ChangeListener {
-    public ImportHeightMapDialog(Window parent, ColourScheme colourScheme, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
-        this(parent, null, colourScheme, null, contourLines, contourSeparation, lightOrigin);
+    public ImportHeightMapDialog(Window parent, ColourScheme colourScheme, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, File preselectedFile) {
+        this(parent, null, colourScheme, null, contourLines, contourSeparation, lightOrigin, preselectedFile);
     }
 
-    public ImportHeightMapDialog(Window parent, Dimension currentDimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin) {
+    public ImportHeightMapDialog(Window parent, Dimension currentDimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, boolean contourLines, int contourSeparation, TileRenderer.LightOrigin lightOrigin, File preselectedFile) {
         super(parent);
         this.currentDimension = currentDimension;
         this.colourScheme = colourScheme;
@@ -164,7 +164,11 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentShown(ComponentEvent e) {
-                selectFile();
+                if ((preselectedFile != null) && preselectedFile.isFile()) {
+                    fieldFilename.setText(preselectedFile.getAbsolutePath());
+                } else {
+                    selectFile();
+                }
             }
         });
     }

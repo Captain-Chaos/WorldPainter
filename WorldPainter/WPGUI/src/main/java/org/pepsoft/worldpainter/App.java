@@ -1568,12 +1568,10 @@ public final class App extends JFrame implements RadiusControl,
     /**
      * Offer to save the current world, but only if is dirty.
      * 
-     * @return {@code true} if there are no unsaved changes, the user saved
-     *     the changes, or the user indicated that unsaved changes may be
-     *     discarded (in other words, a destructive operation may proceed),
-     *     {@code false} if there were unsaved changes and the user did not
-     *     save them or indicate that they may be discarded (in other words, a
-     *     destructive operation should be cancelled).
+     * @return {@code true} if there are no unsaved changes, the user saved the changes, or the user indicated that
+     * unsaved changes may be discarded (in other words, a destructive operation may proceed), {@code false} if there
+     * were unsaved changes and the user did not save them or indicate that they may be discarded (in other words, a
+     * destructive operation should be cancelled).
      */
     public boolean saveIfNecessary() {
         if (logger.isDebugEnabled()) {
@@ -1584,7 +1582,7 @@ public final class App extends JFrame implements RadiusControl,
             if ((world != null) && (world.getChangeNo() != lastSavedState)) {
                 int action = showConfirmDialog(this, (lastSelectedFile != null) ? (MessageFormat.format(strings.getString("there.are.unsaved.changes.do.you.want.to.save.the.world.to.0"), lastSelectedFile.getName())) : strings.getString("there.are.unsaved.changes"));
                 if (action == YES_OPTION) {
-                    if (!save()) {
+                    if (! save()) {
                         // The file was not saved for some reason
                         return false;
                     }
@@ -1593,10 +1591,9 @@ public final class App extends JFrame implements RadiusControl,
                     return false;
                 }
             }
-            // If we get here then either the world didn't need saving; it *was*
-            // saved; or the user indicated it didn't need saving. In all cases
-            // any autosave file should no longer exist, so make sure to rotate it
-            // away if necessary
+            // If we get here then either the world didn't need saving; it *was* saved; or the user indicated it didn't
+            // need saving. In all cases any autosave file should no longer exist, so make sure to rotate it away if
+            // necessary
             try {
                 rotateAutosaveFile();
             } catch (RuntimeException | Error e) {
@@ -2632,11 +2629,11 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
     
-    private void importHeightMap() {
+    public void importHeightMap(File preselectedFile) {
         if (! saveIfNecessary()) {
             return;
         }
-        ImportHeightMapDialog dialog = new ImportHeightMapDialog(this, selectedColourScheme, view.isDrawContours(), view.getContourSeparation(), view.getLightOrigin());
+        ImportHeightMapDialog dialog = new ImportHeightMapDialog(this, selectedColourScheme, view.isDrawContours(), view.getContourSeparation(), view.getLightOrigin(), preselectedFile);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             clearWorld();
@@ -2648,19 +2645,19 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    private void importHeightMapIntoCurrentDimension() {
+    public void importHeightMapIntoCurrentDimension(File preselectedFile) {
         if (dimension == null) {
             DesktopUtils.beep();
             return;
         }
-        ImportHeightMapDialog dialog = new ImportHeightMapDialog(this, dimension, selectedColourScheme, customBiomeManager, view.isDrawContours(), view.getContourSeparation(), view.getLightOrigin());
+        ImportHeightMapDialog dialog = new ImportHeightMapDialog(this, dimension, selectedColourScheme, customBiomeManager, view.isDrawContours(), view.getContourSeparation(), view.getLightOrigin(), preselectedFile);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             view.refreshTiles();
         }
     }
 
-    private void importMask() {
+    public void importMask(File preselectedFile) {
         if (dimension == null) {
             DesktopUtils.beep();
             return;
@@ -2669,7 +2666,7 @@ public final class App extends JFrame implements RadiusControl,
         allLayers.add(Biome.INSTANCE);
         allLayers.add(Annotations.INSTANCE);
         allLayers.addAll(getAllLayers());
-        final ImportMaskDialog dialog = new ImportMaskDialog(this, dimension, selectedColourScheme, allLayers, customBiomeManager);
+        final ImportMaskDialog dialog = new ImportMaskDialog(this, dimension, selectedColourScheme, allLayers, customBiomeManager, preselectedFile);
         dialog.setVisible(true);
     }
     
@@ -4473,7 +4470,7 @@ public final class App extends JFrame implements RadiusControl,
             subMenu.add(menuItem);
 
             menuItem = new JMenuItem(strings.getString("height.map") + "...");
-            menuItem.addActionListener(event -> importHeightMap());
+            menuItem.addActionListener(event -> importHeightMap(null));
             menuItem.setMnemonic('h');
             subMenu.add(menuItem);
 
@@ -4620,11 +4617,11 @@ public final class App extends JFrame implements RadiusControl,
         importMenu.add(menuItem);
 
         menuItem = new JMenuItem("Height map into current dimension...");
-        menuItem.addActionListener(e -> importHeightMapIntoCurrentDimension());
+        menuItem.addActionListener(e -> importHeightMapIntoCurrentDimension(null));
         importMenu.add(menuItem);
 
         menuItem = new JMenuItem("Mask as terrain or layer...");
-        menuItem.addActionListener(e -> importMask());
+        menuItem.addActionListener(e -> importMask(null));
         importMenu.add(menuItem);
 
 //        menuItem = new JMenuItem("Existing Minecraft map into current world...");

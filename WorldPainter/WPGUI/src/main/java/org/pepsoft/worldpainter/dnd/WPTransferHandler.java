@@ -1,17 +1,22 @@
 package org.pepsoft.worldpainter.dnd;
 
+import com.google.common.collect.ImmutableSet;
 import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.ExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
+import static javax.swing.JOptionPane.DEFAULT_OPTION;
+import static javax.swing.JOptionPane.QUESTION_MESSAGE;
 import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
 
 @SuppressWarnings("unchecked") // Guaranteed by java.awt.datatransfer package
@@ -46,12 +51,37 @@ public class WPTransferHandler extends TransferHandler {
                 return false;
             }
             final File file = list.get(0);
-            if (! file.getName().toLowerCase().endsWith(".world")) {
+            final String name = file.getName();
+            final int p = name.lastIndexOf('.');
+            final String extension = (p != -1) ? name.substring(p + 1).toLowerCase() : null;
+            if ((! "world".equals(extension)) && (! IMAGE_FILE_EXTENSIONS.contains(extension))) {
                 beepAndShowError(app, "The file is not a WorldPainter .world file.", "No WorldPainter File");
                 return false;
             }
             try {
-                app.open(file, true);
+                if (IMAGE_FILE_EXTENSIONS.contains(extension)) {
+                    final int action = JOptionPane.showOptionDialog(app,
+                            "An image file was dropped on WorldPainter.\nSelect how you would like to import it:",
+                            "Select Image Import Action",
+                            DEFAULT_OPTION,
+                            QUESTION_MESSAGE,
+                            null,
+                            new String[] { "New World", "Height Map", "Mask", "Cancel" },
+                            "Cancel");
+                    switch (action) {
+                        case 0:
+                            app.importHeightMap(file);
+                            break;
+                        case 1:
+                            app.importHeightMapIntoCurrentDimension(file);
+                            break;
+                        case 2:
+                            app.importMask(file);
+                            break;
+                    }
+                } else {
+                    app.open(file, true);
+                }
             } catch (RuntimeException e) {
                 ExceptionHandler.handleException(e, app);
                 return false;
@@ -66,4 +96,6 @@ public class WPTransferHandler extends TransferHandler {
     private final App app;
 
     private static final Logger logger = LoggerFactory.getLogger(WPTransferHandler.class);
+
+    private static final Set<String> IMAGE_FILE_EXTENSIONS = ImmutableSet.copyOf(ImageIO.getReaderFileSuffixes());
 }

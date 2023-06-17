@@ -1,9 +1,12 @@
--- Version 2.18.1, released ...
+-- Version 2.18.1, released 17-6-2023
 
  * When importing a height map into the current dimension you can now choose to leave the terrain type alone
- * You can now drag and drop .world files onto the WorldPainter window to open them
+ * You can now drag and drop files onto the WorldPainter window to open them
+   + .world files will be loaded as a WorldPainter world
+   + Image files will allow you to choose to import them as a new world, a height map into the current dimension, or an image mask
  * Bug fix: fixed a NullPointerException that occurred when loading some older worlds
  * Bug fix: fixed an error when trying to Export a world that has Combined Layers which contain non-custom layers (e.g. Frost)
+ * Bug fix: fix preview of leaf blocks that have a waterlogged property
 
 -- Version 2.18.0, released 11-6-2023
 
