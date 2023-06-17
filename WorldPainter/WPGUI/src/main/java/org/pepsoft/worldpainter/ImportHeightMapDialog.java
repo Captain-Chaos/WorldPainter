@@ -413,7 +413,11 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
         } catch (IllegalArgumentException e) {
             logger.error("IllegalArgumentException loading image " + selectedFile, e);
             labelImageDimensions.setForeground(Color.RED);
-            labelImageDimensions.setText("Error in image data: " + e.getMessage());
+            if (e.getMessage().equals("Invalid scanline stride")) {
+                labelImageDimensions.setText("Image data too large to load; try reducing dimensions or bit depth");
+            } else {
+                labelImageDimensions.setText("Error in image data: " + e.getMessage());
+            }
             selectedFile = null;
         }
     }

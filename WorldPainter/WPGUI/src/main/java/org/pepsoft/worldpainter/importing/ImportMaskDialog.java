@@ -300,6 +300,15 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
             labelImageDimensions.setForeground(Color.RED);
             labelImageDimensions.setText(String.format("I/O error loading image (message: %s)!", e.getMessage()));
             selectedFile = null;
+        } catch (IllegalArgumentException e) {
+            logger.error("IllegalArgumentException loading image " + selectedFile, e);
+            labelImageDimensions.setForeground(Color.RED);
+            if (e.getMessage().equals("Invalid scanline stride")) {
+                labelImageDimensions.setText("Image data too large to load; try reducing dimensions or bit depth");
+            } else {
+                labelImageDimensions.setText("Error in image data: " + e.getMessage());
+            }
+            selectedFile = null;
         }
     }
 
