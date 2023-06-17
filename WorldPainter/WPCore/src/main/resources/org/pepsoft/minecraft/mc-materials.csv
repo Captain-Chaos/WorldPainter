@@ -4,7 +4,7 @@ minecraft:acacia_button,,"facing:e[north;south;west;east],powered:b,face:e[floor
 minecraft:acacia_door,,"open:b,hinge:e[left;right],facing:e[north;south;west;east],half:e[upper;lower],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffa15d3a,old default
 minecraft:acacia_fence,,"west:b,east:b,south:b,north:b,waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffa95b33,old default
 minecraft:acacia_fence_gate,,"in_wall:b,open:b,facing:e[north;south;west;east],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffa95b33,old default
-minecraft:acacia_leaves,,"distance:i[1-7],persistent:b",1,false,false,false,true,false,false,,true,false,0,true,false,ff2f5c19,old default
+minecraft:acacia_leaves,,"distance:i[1-7],persistent:b,waterlogged:b",1,false,false,false,true,false,false,,true,false,0,true,false,ff2f5c19,old default
 minecraft:acacia_log,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,true,false,ff9a5b40,old default
 minecraft:acacia_planks,,,15,false,false,false,false,false,false,,false,false,0,false,false,ffa95b33,old default
 minecraft:acacia_pressure_plate,,powered:b,0,false,false,false,false,false,false,,false,false,0,false,false,ffa85a32,acacia_planks.png
@@ -29,7 +29,7 @@ minecraft:anvil,,facing:e[north;south;west;east],0,false,false,false,false,false
 minecraft:attached_melon_stem,,facing:e[north;south;west;east],0,false,false,true,true,false,false,,false,true,0,false,false,ff487336,old default
 minecraft:attached_pumpkin_stem,,facing:e[north;south;west;east],0,false,false,true,true,false,false,,false,true,0,false,false,ff487336,old default
 minecraft:azalea,,,0,false,false,true,true,false,false,,false,true,0,true,false,ff657c2f,azalea_top.png
-minecraft:azalea_leaves,,"distance:i[1-7],persistent:b",0,false,false,true,true,false,false,,true,true,0,true,false,ff5a722c,azalea_leaves.png
+minecraft:azalea_leaves,,"distance:i[1-7],persistent:b,waterlogged:b",0,false,false,true,true,false,false,,true,true,0,true,false,ff5a722c,azalea_leaves.png
 minecraft:azure_bluet,,,0,false,false,true,true,false,false,,false,true,0,true,false,ffa2bf8a,old default
 minecraft:bamboo,,"leaves:e[none;small;large],age:i[0-1],stage:i[0-1]",0,false,false,true,false,false,false,,false,true,0,true,false,,
 minecraft:bamboo_sapling,,,0,false,false,false,false,false,false,,true,false,0,false,false,,
@@ -48,7 +48,7 @@ minecraft:birch_button,,"facing:e[north;south;west;east],powered:b,face:e[floor;
 minecraft:birch_door,,"open:b,hinge:e[left;right],facing:e[north;south;west;east],half:e[upper;lower],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffd9d2b3,old default
 minecraft:birch_fence,,"west:b,east:b,south:b,north:b,waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffc3b37b,old default
 minecraft:birch_fence_gate,,"in_wall:b,open:b,facing:e[north;south;west;east],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffc3b37b,old default
-minecraft:birch_leaves,,"distance:i[1-7],persistent:b",1,false,false,false,true,false,false,,true,false,0,true,false,ff43582d,old default
+minecraft:birch_leaves,,"distance:i[1-7],persistent:b,waterlogged:b",1,false,false,false,true,false,false,,true,false,0,true,false,ff43582d,old default
 minecraft:birch_log,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,true,false,ffb8a679,old default
 minecraft:birch_planks,,,15,false,false,false,false,false,false,,false,false,0,false,false,ffc3b37b,old default
 minecraft:birch_pressure_plate,,powered:b,0,false,false,false,false,false,false,,false,false,0,false,false,ffc0af79,birch_planks.png
@@ -228,7 +228,7 @@ minecraft:dark_oak_button,,"facing:e[north;south;west;east],powered:b,face:e[flo
 minecraft:dark_oak_door,,"open:b,hinge:e[left;right],facing:e[north;south;west;east],half:e[upper;lower],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff452f19,old default
 minecraft:dark_oak_fence,,"west:b,east:b,south:b,north:b,waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff3d2712,old default
 minecraft:dark_oak_fence_gate,,"in_wall:b,open:b,facing:e[north;south;west;east],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff3d2712,old default
-minecraft:dark_oak_leaves,,"distance:i[1-7],persistent:b",1,false,false,false,true,false,false,,true,false,0,true,false,ff2f5c19,old default
+minecraft:dark_oak_leaves,,"distance:i[1-7],persistent:b,waterlogged:b",1,false,false,false,true,false,false,,true,false,0,true,false,ff2f5c19,old default
 minecraft:dark_oak_log,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,true,false,ff685130,old default
 minecraft:dark_oak_planks,,,15,false,false,false,false,false,false,,false,false,0,false,false,ff3d2712,old default
 minecraft:dark_oak_pressure_plate,,powered:b,0,false,false,false,false,false,false,,false,false,0,false,false,ff422b14,dark_oak_planks.png
@@ -324,7 +324,7 @@ minecraft:fire_coral_wall_fan,,"facing:e[north;south;west;east],waterlogged:b",0
 minecraft:fletching_table,,,0,false,false,false,false,false,false,,false,false,0,false,false,ffc5b485,fletching_table_top.png
 minecraft:flower_pot,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff764133,old default
 minecraft:flowering_azalea,,,0,false,false,true,true,false,false,,false,true,0,true,false,ff707940,flowering_azalea_top.png
-minecraft:flowering_azalea_leaves,,"distance:i[1-7],persistent:b",0,false,false,true,true,false,false,,true,true,0,true,false,ff636f3c,flowering_azalea_leaves.png
+minecraft:flowering_azalea_leaves,,"distance:i[1-7],persistent:b,waterlogged:b",0,false,false,true,true,false,false,,true,true,0,true,false,ff636f3c,flowering_azalea_leaves.png
 minecraft:frosted_ice,,age:i[0-3],3,false,false,false,false,false,false,,false,false,0,false,false,ff8cb5fc,frosted_ice_0.png
 minecraft:furnace,,"facing:e[north;south;west;east],lit:b",15,false,false,false,false,false,true,minecraft:furnace,false,false,0,false,false,ff606060,old default
 minecraft:gilded_blackstone,,,15,false,false,false,false,false,false,,false,false,0,false,false,ff372a26,gilded_blackstone.png
@@ -401,7 +401,7 @@ minecraft:jungle_button,,"facing:e[north;south;west;east],powered:b,face:e[floor
 minecraft:jungle_door,,"open:b,hinge:e[left;right],facing:e[north;south;west;east],half:e[upper;lower],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff977155,old default
 minecraft:jungle_fence,,"west:b,east:b,south:b,north:b,waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff9a6e4d,old default
 minecraft:jungle_fence_gate,,"in_wall:b,open:b,facing:e[north;south;west;east],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff9a6e4d,old default
-minecraft:jungle_leaves,,"distance:i[1-7],persistent:b",1,false,false,false,true,false,false,,true,false,0,true,false,ff326019,old default
+minecraft:jungle_leaves,,"distance:i[1-7],persistent:b,waterlogged:b",1,false,false,false,true,false,false,,true,false,0,true,false,ff326019,old default
 minecraft:jungle_log,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,true,false,ff997649,old default
 minecraft:jungle_planks,,,15,false,false,false,false,false,false,,false,false,0,false,false,ff9a6e4d,old default
 minecraft:jungle_pressure_plate,,powered:b,0,false,false,false,false,false,false,,false,false,0,false,false,ffa07350,jungle_planks.png
@@ -538,7 +538,7 @@ minecraft:oak_button,,"facing:e[north;south;west;east],powered:b,face:e[floor;wa
 minecraft:oak_door,,"open:b,hinge:e[left;right],facing:e[north;south;west;east],half:e[upper;lower],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff866733,old default
 minecraft:oak_fence,,"west:b,east:b,south:b,north:b,waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff9c7f4e,old default
 minecraft:oak_fence_gate,,"in_wall:b,open:b,facing:e[north;south;west;east],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff9c7f4e,old default
-minecraft:oak_leaves,,"distance:i[1-7],persistent:b",1,false,false,false,true,false,false,,true,false,0,true,false,ff2f5c19,old default
+minecraft:oak_leaves,,"distance:i[1-7],persistent:b,waterlogged:b",1,false,false,false,true,false,false,,true,false,0,true,false,ff2f5c19,old default
 minecraft:oak_log,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,true,false,ff9a7d4d,old default
 minecraft:oak_planks,,,15,false,false,false,false,false,false,,false,false,0,false,false,ff9c7f4e,old default
 minecraft:oak_pressure_plate,,powered:b,0,false,false,false,false,false,false,,false,false,0,false,false,ff9c7f4e,old default
@@ -780,7 +780,7 @@ minecraft:spruce_button,,"facing:e[north;south;west;east],powered:b,face:e[floor
 minecraft:spruce_door,,"open:b,hinge:e[left;right],facing:e[north;south;west;east],half:e[upper;lower],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff604a31,old default
 minecraft:spruce_fence,,"west:b,east:b,south:b,north:b,waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff674d2e,old default
 minecraft:spruce_fence_gate,,"in_wall:b,open:b,facing:e[north;south;west;east],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff674d2e,old default
-minecraft:spruce_leaves,,"distance:i[1-7],persistent:b",1,false,false,false,true,false,false,,true,false,0,true,false,ff2c452c,old default
+minecraft:spruce_leaves,,"distance:i[1-7],persistent:b,waterlogged:b",1,false,false,false,true,false,false,,true,false,0,true,false,ff2c452c,old default
 minecraft:spruce_log,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,true,false,ff685130,old default
 minecraft:spruce_planks,,,15,false,false,false,false,false,false,,false,false,0,false,false,ff674d2e,old default
 minecraft:spruce_pressure_plate,,powered:b,0,false,false,false,false,false,false,,false,false,0,false,false,ff725430,spruce_planks.png
