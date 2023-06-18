@@ -31,4 +31,6 @@ public class MandelbrotHeightMap extends AbstractHeightMap {
 
     private static final int MAX_ITERATIONS = 255;
     private static final double[] RANGE = {0.0, MAX_ITERATIONS};
+
+    private static final long serialVersionUID = 1L;
 }

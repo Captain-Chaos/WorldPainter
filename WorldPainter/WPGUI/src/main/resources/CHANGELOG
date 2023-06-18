@@ -1,3 +1,7 @@
+-- Version 2.18.2, released 19-6-2023
+
+ * Bug fix: fix a deserialisation error that occurred when loading some existing worlds
+
 -- Version 2.18.1, released 17-6-2023
 
  * When importing a height map into the current dimension you can now choose to leave the terrain type alone

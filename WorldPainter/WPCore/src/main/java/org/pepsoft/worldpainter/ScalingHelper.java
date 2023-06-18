@@ -7,6 +7,9 @@ import org.pepsoft.worldpainter.layers.NotPresent;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
+import java.io.NotSerializableException;
+import java.io.ObjectOutputStream;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -57,6 +60,10 @@ public class ScalingHelper {
                 return new double[] { minHeight, maxHeight };
             }
 
+            private void writeObject(ObjectOutputStream out) throws IOException {
+                throw new NotSerializableException();
+            }
+
             private final Map<Point, Tile> additionalTiles = new ConcurrentHashMap<>();
         }.smoothed().scaled(scale).clamped(minHeight, maxHeight);
         final Set<Layer> allLayers = new HashSet<>();
@@ -103,6 +110,10 @@ public class ScalingHelper {
                             default:
                                 throw new IllegalStateException("Unsupported data size " + dataSize + " for layer " + layer);
                         }
+                    }
+
+                    private void writeObject(ObjectOutputStream out) throws IOException {
+                        throw new NotSerializableException();
                     }
 
                     private final Layer.DataSize dataSize = layer.dataSize;

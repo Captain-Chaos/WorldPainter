@@ -1065,6 +1065,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 }
                 return distanceCache[tileX][tileY][x & TILE_SIZE_MASK][y & TILE_SIZE_MASK];
             }
+
+            private void writeObject(ObjectOutputStream out) throws IOException {
+                throw new NotSerializableException();
+            }
         };
     }
 
