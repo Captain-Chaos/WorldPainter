@@ -14,8 +14,8 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -26,7 +26,7 @@ public class CustomLayersTableModel implements TableModel {
      * This assumes that no exporter is both first pass <em>and</em> second pass, which is currently the case for
      * {@link CombinedLayer}s, so those should be excluded
      */
-    public CustomLayersTableModel(Collection<CustomLayer> allCustomLayers) {
+    public CustomLayersTableModel(Set<CustomLayer> allCustomLayers) {
         customLayers = new ArrayList<>(allCustomLayers);
 
         // Sort the list, with first pass layers first

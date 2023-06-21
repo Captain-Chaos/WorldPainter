@@ -67,6 +67,9 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
     }
 
     protected void setName(String name) {
+        if (name == null) {
+            throw new NullPointerException();
+        }
         this.name = name;
     }
 
@@ -183,24 +186,56 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
 
     @Override
     public final int compareTo(Layer layer) {
-        if ((this instanceof CustomLayer) && (((CustomLayer) this).getIndex() != null)
-                && (layer instanceof CustomLayer) && (((CustomLayer) layer).getIndex() != null)) {
-            // TODO: is this stable?
-            if (((CustomLayer) this).getIndex() < ((CustomLayer) layer).getIndex()) {
+        // First sort by index, where layers without an index are sorted last
+        if ((this instanceof CustomLayer) && (((CustomLayer) this).getIndex() != null)) {
+            if ((layer instanceof CustomLayer) && (((CustomLayer) layer).getIndex() != null)) {
+                // Both layers have an index; sort by index. We assume the indexes are always unique, so we don't bother
+                // sorting by another criterion if they are the same
+                return Integer.compare(((CustomLayer) this).getIndex(), ((CustomLayer) layer).getIndex());
+            } else {
+                // Only we have an index; sort us first
                 return -1;
-            } else if (((CustomLayer) this).getIndex() > ((CustomLayer) layer).getIndex()) {
-                return 1;
             }
-        }
-        if ((this instanceof GroundCoverLayer) && (layer instanceof GroundCoverLayer)
-                && (Math.abs(((GroundCoverLayer) layer).getThickness()) != Math.abs(((GroundCoverLayer) this).getThickness()))) {
-            return Math.abs(((GroundCoverLayer) layer).getThickness()) - Math.abs(((GroundCoverLayer) this).getThickness());
-        } else if (priority < layer.priority) {
-            return -1;
-        } else if (priority > layer.priority) {
-            return 1;
         } else {
-            return id.compareTo(layer.id);
+            if ((layer instanceof CustomLayer) && (((CustomLayer) layer).getIndex() != null)) {
+                // Only the other layer has an index; sort us last
+                return 1;
+            } else {
+                // Neither layer has an index; sort using secondary criteria
+                if (priority != layer.priority) {
+                    return Integer.compare(priority, layer.priority);
+                }
+                if ((this instanceof GroundCoverLayer) && (layer instanceof GroundCoverLayer)
+                        && (Math.abs(((GroundCoverLayer) layer).getThickness()) != Math.abs(((GroundCoverLayer) this).getThickness()))) {
+                    // TODO: is this stable?
+                    return Math.abs(((GroundCoverLayer) layer).getThickness()) - Math.abs(((GroundCoverLayer) this).getThickness());
+                }
+                final String palette1 = (this instanceof CustomLayer) ? ((CustomLayer) this).getPalette() : null;
+                final String palette2 = (layer instanceof CustomLayer) ? ((CustomLayer) layer).getPalette() : null;
+                if (palette1 != null) {
+                    if (palette2 != null) {
+                        // Both layers have a palette
+                        if (! palette1.equals(palette2)) {
+                            // And they are different, so sort by name
+                            return palette1.compareTo(palette2);
+                        } else {
+                            // And they are the same, so sort by palette
+                            return name.compareTo(layer.name);
+                        }
+                    } else {
+                        // Only we have a palette; sort us first
+                        return -1;
+                    }
+                } else {
+                    if (palette2 != null) {
+                        // Only the other layer has a palette; sort us last
+                        return 1;
+                    } else {
+                        // Neither layer has a palette; sort by name
+                        return name.compareTo(layer.name);
+                    }
+                }
+            }
         }
     }
 

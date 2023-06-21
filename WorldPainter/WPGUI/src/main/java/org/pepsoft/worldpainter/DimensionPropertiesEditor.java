@@ -39,13 +39,13 @@ import javax.swing.*;
 import javax.swing.JSpinner.NumberEditor;
 import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
+import java.util.*;
 
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
+import static javax.swing.JOptionPane.YES_NO_OPTION;
+import static javax.swing.JOptionPane.YES_OPTION;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
@@ -1035,10 +1035,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         
         // custom layers
         if (mode == Mode.EXPORT) {
-            final List<CustomLayer> customLayers = dimension.getCustomLayers(true);
+            final Set<CustomLayer> customLayers = dimension.getCustomLayers(true);
             if (! customLayers.isEmpty()) {
                 customLayersTableModel = new CustomLayersTableModel(customLayers);
                 tableCustomLayers.setModel(customLayersTableModel);
+                orderPristine = customLayers.stream().noneMatch(layer -> layer.getIndex() != null);
             }
         }
 
@@ -1107,6 +1108,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setEnabled(buttonCustomLayerBottom, buttonCustomLayerDown.isEnabled());
         setEnabled(buttonDisableLayers, enabled && enabledLayersFound);
         setEnabled(buttonEnableLayers, enabled && disabledLayersFound);
+        setEnabled(buttonReset, enabled && (! orderPristine));
         if (! enabled) {
             setEnabled(comboBoxUndergroundLayerAnchor, false);
         } else {
@@ -1261,6 +1263,18 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         } else {
             DesktopUtils.beep();
         }
+    }
+
+    private void resetOrder() {
+        if (JOptionPane.showConfirmDialog(this, "Do you want to reset the order of all custom layers to the default?\nThis cannot be undone!", "Confirm Order Reset", YES_NO_OPTION) != YES_OPTION) {
+            return;
+        }
+        final Set<CustomLayer> customLayers = dimension.getCustomLayers(true);
+        customLayers.forEach(layer -> layer.setIndex(null));
+        customLayersTableModel = new CustomLayersTableModel(customLayers);
+        tableCustomLayers.setModel(customLayersTableModel);
+        orderPristine = true;
+        setControlStates();
     }
 
     /**
@@ -1523,6 +1537,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         buttonDisableLayers = new javax.swing.JButton();
         buttonEnableLayers = new javax.swing.JButton();
         buttonSelectPaint = new javax.swing.JButton();
+        buttonReset = new javax.swing.JButton();
 
         jLabel6.setText("Underground material:");
 
@@ -3676,7 +3691,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
 
         jTabbedPane1.addTab("Other Layers", jPanel2);
 
-        jLabel82.setText("<html>On this page you can configure the export order of your custom layers, as well as prevent certain layers from being exported.<br>Higher layers in the list are exported <em>before</em> lower layers. Layers cannot be moved between first or second pass.</html>");
+        jLabel82.setText("<html>On this page you can configure the export order of your custom layers, as well as prevent certain layers from being exported.<br>\nHigher layers in the list are exported <em>before</em> lower layers. Layers cannot be moved between first or second pass.<br>\n<strong>Note:</strong> once you customise the order on this screen, new layers will be added to the end of the list.</html>");
 
         tableCustomLayers.setSelectionMode(javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         jScrollPane1.setViewportView(tableCustomLayers);
@@ -3746,6 +3761,14 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             }
         });
 
+        buttonReset.setText("Reset Order");
+        buttonReset.setToolTipText("Enable the selected layer(s)");
+        buttonReset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonResetActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
         jPanel7Layout.setHorizontalGroup(
@@ -3766,7 +3789,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                             .addComponent(buttonDisableLayers, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(buttonEnableLayers, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(buttonCustomLayerTop, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(buttonSelectPaint, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addComponent(buttonSelectPaint, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(buttonReset, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         jPanel7Layout.setVerticalGroup(
@@ -3776,7 +3800,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 387, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE)
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addComponent(buttonSelectPaint)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -3791,6 +3815,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addComponent(buttonDisableLayers)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonEnableLayers)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonReset)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -3928,6 +3954,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             programmaticChange = false;
         }
         tableCustomLayers.scrollRectToVisible(tableCustomLayers.getCellRect(tableCustomLayers.getSelectedRows()[0], 0, true));
+        orderPristine = false;
         setControlStates();
     }
 
@@ -3950,6 +3977,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             programmaticChange = false;
         }
         tableCustomLayers.scrollRectToVisible(tableCustomLayers.getCellRect(tableCustomLayers.getSelectedRows()[tableCustomLayers.getSelectedRowCount() - 1], 0, true));
+        orderPristine = false;
         setControlStates();
     }
 
@@ -4115,6 +4143,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         selectPaintOnMap();
     }//GEN-LAST:event_buttonSelectPaintActionPerformed
 
+    private void buttonResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonResetActionPerformed
+        resetOrder();
+    }//GEN-LAST:event_buttonResetActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCustomLayerBottom;
     private javax.swing.JButton buttonCustomLayerDown;
@@ -4127,6 +4159,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.ButtonGroup buttonGroup3;
     private javax.swing.ButtonGroup buttonGroup5;
+    private javax.swing.JButton buttonReset;
     private javax.swing.JButton buttonSelectPaint;
     private javax.swing.JCheckBox checkBoxBottomless;
     private javax.swing.JCheckBox checkBoxCavernsBreakSurface;
@@ -4376,7 +4409,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private Dimension.LayerAnchor subsurfaceLayerAnchor;
     private String generatorName;
     private SuperflatPreset superflatPreset;
-    private boolean endlessBorder, programmaticChange;
+    private boolean endlessBorder, programmaticChange, orderPristine = true;
     private Tag customGeneratorSettings;
     private Generator savedGeneratorType;
     private Eyedropper.SelectionListener selectionListener;

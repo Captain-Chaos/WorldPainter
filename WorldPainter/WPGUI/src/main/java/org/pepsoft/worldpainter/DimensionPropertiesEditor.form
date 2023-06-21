@@ -3107,6 +3107,7 @@
                                   <Component id="buttonEnableLayers" alignment="0" max="32767" attributes="0"/>
                                   <Component id="buttonCustomLayerTop" alignment="0" max="32767" attributes="0"/>
                                   <Component id="buttonSelectPaint" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="buttonReset" alignment="0" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                       </Group>
@@ -3121,7 +3122,7 @@
                       <Component id="jLabel82" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="jScrollPane1" pref="387" max="32767" attributes="0"/>
+                          <Component id="jScrollPane1" pref="371" max="32767" attributes="0"/>
                           <Group type="102" attributes="0">
                               <Component id="buttonSelectPaint" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
@@ -3136,6 +3137,8 @@
                               <Component id="buttonDisableLayers" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="buttonEnableLayers" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="buttonReset" min="-2" max="-2" attributes="0"/>
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                           </Group>
                       </Group>
@@ -3147,7 +3150,7 @@
           <SubComponents>
             <Component class="javax.swing.JLabel" name="jLabel82">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&lt;html&gt;On this page you can configure the export order of your custom layers, as well as prevent certain layers from being exported.&lt;br&gt;Higher layers in the list are exported &lt;em&gt;before&lt;/em&gt; lower layers. Layers cannot be moved between first or second pass.&lt;/html&gt;"/>
+                <Property name="text" type="java.lang.String" value="&lt;html&gt;On this page you can configure the export order of your custom layers, as well as prevent certain layers from being exported.&lt;br&gt;&#xa;Higher layers in the list are exported &lt;em&gt;before&lt;/em&gt; lower layers. Layers cannot be moved between first or second pass.&lt;br&gt;&#xa;&lt;strong&gt;Note:&lt;/strong&gt; once you customise the order on this screen, new layers will be added to the end of the list.&lt;/html&gt;"/>
               </Properties>
             </Component>
             <Container class="javax.swing.JScrollPane" name="jScrollPane1">
@@ -3246,6 +3249,15 @@
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonSelectPaintActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JButton" name="buttonReset">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Reset Order"/>
+                <Property name="toolTipText" type="java.lang.String" value="Enable the selected layer(s)"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonResetActionPerformed"/>
               </Events>
             </Component>
           </SubComponents>

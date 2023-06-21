@@ -1417,13 +1417,13 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return garden;
     }
 
-    public List<CustomLayer> getCustomLayers() {
+    public Set<CustomLayer> getCustomLayers() {
         return getCustomLayers(false);
     }
 
     @SuppressWarnings("DataFlowIssue") // The applyLayerContainer may have added non-CustomLayers
-    public List<CustomLayer> getCustomLayers(boolean applyCombinedLayers) {
-        final List<CustomLayer> copyOfCustomLayers = copyOf(customLayers);
+    public Set<CustomLayer> getCustomLayers(boolean applyCombinedLayers) {
+        final Set<CustomLayer> copyOfCustomLayers = new HashSet<>(customLayers);
         if (applyCombinedLayers) {
             applyLayerContainers(copyOfCustomLayers);
             // This may have added non-custom layers, so remove those again
@@ -1456,7 +1456,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"}) // Necessary due to dumb Java type system that does not consider Collection<CustomLayer> compatible with Collection<Layer>
-    private void applyLayerContainers(Collection layers) {
+    private void applyLayerContainers(Set layers) {
         final Set<LayerContainer> containersProcessed = new HashSet<>();
         final Set<Layer> additionalLayers = new HashSet<>();
         do {
