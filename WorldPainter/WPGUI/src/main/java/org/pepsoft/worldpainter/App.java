@@ -93,13 +93,11 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.io.*;
 import java.lang.Void;
-import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.*;
 import java.util.function.Function;
@@ -922,109 +920,18 @@ public final class App extends JFrame implements RadiusControl,
     public void open(final File file) {
         logger.info("Loading world " + file.getAbsolutePath());
         clearWorld(); // Free up memory of the world and the undo buffer
-        boolean loadedFromAutosave = isAutosaveFile(file);
-        final World2 newWorld = ProgressDialog.executeTask(this, new ProgressTask<World2>() {
-            @Override
-            public String getName() {
-                return strings.getString("loading.world");
-            }
-
-            @Override
-            public World2 execute(ProgressReceiver progressReceiver) {
-                try {
-                    WorldIO worldIO = new WorldIO();
-                    worldIO.load(new FileInputStream(file));
-                    World2 world = worldIO.getWorld();
-                    if (loadedFromAutosave) {
-                        world.addHistoryEntry(HistoryEntry.WORLD_RECOVERED_FROM_AUTOSAVE);
-                    } else {
-                        world.addHistoryEntry(HistoryEntry.WORLD_LOADED, file);
-                    }
-                    if (logger.isDebugEnabled() && (world.getMetadata() != null)) {
-                        logMetadataAsDebug(world.getMetadata());
-                    }
-                    return world;
-                } catch (UnloadableWorldException e) {
-                    logger.error("Could not load world from file " + file, e);
-                    if (e.getMetadata() != null) {
-                        logMetadataAsError(e.getMetadata());
-                    }
-                    reportUnloadableWorldException(e);
-                    return null;
-                } catch (IOException e) {
-                    throw new RuntimeException("I/O error while loading world", e);
-                }
-            }
-
-            private void appendMetadata(StringBuilder sb, Map<String, Object> metadata) {
-                for (Map.Entry<String, Object> entry: metadata.entrySet()) {
-                    switch (entry.getKey()) {
-                        case METADATA_KEY_WP_VERSION:
-                            sb.append("Saved with WorldPainter ").append(entry.getValue());
-                            String build = (String) metadata.get(METADATA_KEY_WP_BUILD);
-                            if (build != null) {
-                                sb.append(" (").append(build).append(')');
-                            }
-                            sb.append('\n');
-                            break;
-                        case METADATA_KEY_TIMESTAMP:
-                            sb.append("Saved on ").append(SimpleDateFormat.getDateTimeInstance().format((Date) entry.getValue())).append('\n');
-                            break;
-                        case METADATA_KEY_PLUGINS:
-                            String[][] plugins = (String[][]) entry.getValue();
-                            for (String[] plugin: plugins) {
-                                sb.append("Plugin: ").append(plugin[0]).append(" (").append(plugin[1]).append(")\n");
-                            }
-                            break;
-                    }
-                }
-            }
-
-            private void logMetadataAsDebug(Map<String, Object> metadata) {
-                StringBuilder sb = new StringBuilder("Metadata from world file:\n");
-                appendMetadata(sb, metadata);
-                logger.debug(sb.toString());
-            }
-
-            private void logMetadataAsError(Map<String, Object> metadata) {
-                StringBuilder sb = new StringBuilder("Metadata from world file:\n");
-                appendMetadata(sb, metadata);
-                logger.error(sb.toString());
-            }
-
-            private void reportUnloadableWorldException(UnloadableWorldException e) {
-                try {
-                    String text;
-                    if (e.getMetadata() != null) {
-                        StringBuilder sb = new StringBuilder("WorldPainter could not load the file. The cause may be one of:\n" +
-                                "\n" +
-                                "* The file is damaged or corrupted\n" +
-                                "* The file was created with a newer version of WorldPainter\n" +
-                                "* The file was created using WorldPainter plugins which you do not have\n" +
-                                "\n");
-                        appendMetadata(sb, e.getMetadata());
-                        text = sb.toString();
-                    } else {
-                        text = "WorldPainter could not load the file. The cause may be one of:\n" +
-                                "\n" +
-                                "* The file is not a WorldPainter world\n" +
-                                "* The file is damaged or corrupted\n" +
-                                "* The file was created with a newer version of WorldPainter\n" +
-                                "* The file was created using WorldPainter plugins which you do not have";
-                    }
-                    SwingUtilities.invokeAndWait(() -> showMessageDialog(App.this, text, strings.getString("file.damaged"), ERROR_MESSAGE));
-                } catch (InterruptedException e2) {
-                    throw new RuntimeException("Thread interrupted while reporting unloadable file " + file, e2);
-                } catch (InvocationTargetException e2) {
-                    throw new RuntimeException("Invocation target exception while reporting unloadable file " + file, e2);
-                }
-            }
-        }, NOT_CANCELABLE);
+        final boolean loadedFromAutosave = isAutosaveFile(file);
+        final World2 newWorld = ProgressDialog.executeTask(this, new LoadWorldTask(this, file), NOT_CANCELABLE);
         if (newWorld == null) {
             // The file was damaged
             return;
         }
-        boolean loadedFromBackup = (! loadedFromAutosave) && isBackupFile(file);
+        if (loadedFromAutosave) {
+            newWorld.addHistoryEntry(HistoryEntry.WORLD_RECOVERED_FROM_AUTOSAVE);
+        } else {
+            newWorld.addHistoryEntry(HistoryEntry.WORLD_LOADED, file);
+        }
+        final boolean loadedFromBackup = (! loadedFromAutosave) && isBackupFile(file);
         if ((! loadedFromBackup) && (! loadedFromAutosave)) {
             lastSelectedFile = file;
         } else {
@@ -1032,8 +939,8 @@ public final class App extends JFrame implements RadiusControl,
         }
 
         // Log an event
-        Configuration config = Configuration.getInstance();
-        EventVO event = new EventVO(EVENT_KEY_ACTION_OPEN_WORLD).addTimestamp();
+        final Configuration config = Configuration.getInstance();
+        final EventVO event = new EventVO(EVENT_KEY_ACTION_OPEN_WORLD).addTimestamp();
         event.setAttribute(ATTRIBUTE_KEY_MAX_HEIGHT, newWorld.getMaxHeight());
         Dimension loadedDimension = newWorld.getDimension(NORMAL_DETAIL);
         event.setAttribute(ATTRIBUTE_KEY_TILES, loadedDimension.getTileCount());
@@ -6362,12 +6269,12 @@ public final class App extends JFrame implements RadiusControl,
             DesktopUtils.beep();
             return;
         }
-        Configuration config = Configuration.getInstance();
+        final Configuration config = Configuration.getInstance();
         File layerDirectory = config.getLayerDirectory();
         if ((layerDirectory == null) || (! layerDirectory.isDirectory())) {
             layerDirectory = DesktopUtils.getDocumentsFolder();
         }
-        File[] selectedFiles = FileUtils.selectFilesForOpen(this, "Select WorldPainter layer file(s)", layerDirectory, new FileFilter() {
+        final File[] selectedFiles = FileUtils.selectFilesForOpen(this, "Select WorldPainter layer file(s)", layerDirectory, new FileFilter() {
             @Override
             public boolean accept(File f) {
                 return f.isDirectory() || f.getName().toLowerCase().endsWith(".layer");
@@ -6388,7 +6295,7 @@ public final class App extends JFrame implements RadiusControl,
             for (File selectedFile: selectedFiles) {
                 try {
                     try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(selectedFile))))) {
-                        CustomLayer layer = (CustomLayer) in.readObject();
+                        final CustomLayer layer = (CustomLayer) in.readObject();
                         for (Layer existingLayer: getCustomLayers()) {
                             if (layer.equals(existingLayer)) {
                                 beepAndShowError(this, "That layer is already present in the dimension.\nThe layer has not been added.", "Layer Already Present");
@@ -6406,24 +6313,8 @@ public final class App extends JFrame implements RadiusControl,
                         if (paletteName != null) {
                             layer.setPalette(paletteName);
                         }
-                        registerCustomLayer(layer, true);
-                        if (layer instanceof CombinedLayer) {
-                            CombinedLayer combinedLayer = (CombinedLayer) layer;
-                            addLayersFromCombinedLayer(combinedLayer);
-                            if (! combinedLayer.restoreCustomTerrain()) {
-                                showWarning(this, "The layer contained a Custom Terrain which could not be restored. The terrain has been reset.", "Custom Terrain Not Restored");
-                            } else {
-                                // Check for a custom terrain type and if necessary make
-                                // sure it has a button
-                                Terrain terrain = combinedLayer.getTerrain();
-                                if ((terrain != null) && terrain.isCustom()) {
-                                    updateCustomTerrainButtons = true;
-                                    if (customMaterialButtons[terrain.getCustomTerrainIndex()] == null) {
-                                        addButtonForNewCustomTerrain(terrain.getCustomTerrainIndex(), Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()), false);
-                                    }
-                                }
-                            }
-                        }
+                        updateCustomTerrainButtons = importCustomLayer(layer) || updateCustomTerrainButtons;
+                        config.setLayerDirectory(selectedFile.getParentFile());
                     }
                 } catch (FileNotFoundException e) {
                     logger.error("File not found while loading file " + selectedFile, e);
@@ -6446,9 +6337,38 @@ public final class App extends JFrame implements RadiusControl,
             if (updateCustomTerrainButtons) {
                 updateCustomTerrainButtons();
             }
-        }        
+        }
     }
-    
+
+    /**
+     * Import the custom layer, and if it is a combined layer, also the contained layers, terrain, etc.
+     *
+     * @param layer The layer to import.
+     * @return {@code true} if new custom terrains were imported.
+     */
+    private boolean importCustomLayer(CustomLayer layer) {
+        boolean customTerrainButtonsAdded = false;
+        layer.setIndex(null);
+        registerCustomLayer(layer, true);
+        if (layer instanceof CombinedLayer) {
+            final CombinedLayer combinedLayer = (CombinedLayer) layer;
+            importLayersFromCombinedLayer(combinedLayer);
+            if (! combinedLayer.restoreCustomTerrain()) {
+                showWarning(this, "The layer contained a Custom Terrain which could not be restored. The terrain has been reset.", "Custom Terrain Not Restored");
+            } else {
+                // Check for a custom terrain type and if necessary make sure it has a button
+                final Terrain terrain = combinedLayer.getTerrain();
+                if ((terrain != null) && terrain.isCustom()) {
+                    if (customMaterialButtons[terrain.getCustomTerrainIndex()] == null) {
+                        customTerrainButtonsAdded = true;
+                        addButtonForNewCustomTerrain(terrain.getCustomTerrainIndex(), Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()), false);
+                    }
+                }
+            }
+        }
+        return customTerrainButtonsAdded;
+    }
+
     private void updateCustomTerrainButtons() {
         for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
             if (customMaterialButtons[i] != null) {
@@ -6459,16 +6379,17 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
     
-    private void addLayersFromCombinedLayer(CombinedLayer combinedLayer) {
+    private void importLayersFromCombinedLayer(CombinedLayer combinedLayer) {
         combinedLayer.getLayers().stream().filter(layer -> (layer instanceof CustomLayer) && (! paletteManager.contains(layer)) && (! layersWithNoButton.contains(layer))).forEach(layer -> {
-            CustomLayer customLayer = (CustomLayer) layer;
+            final CustomLayer customLayer = (CustomLayer) layer;
+            customLayer.setIndex(null);
             if (customLayer.isHide()) {
                 layersWithNoButton.add(customLayer);
             } else {
                 registerCustomLayer(customLayer, false);
             }
             if (layer instanceof CombinedLayer) {
-                addLayersFromCombinedLayer((CombinedLayer) customLayer);
+                importLayersFromCombinedLayer((CombinedLayer) customLayer);
             }
         });
     }
@@ -6528,8 +6449,8 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void importCustomItemsFromWorld(CustomItemsTreeModel.ItemType itemType, Function<Layer, Boolean> filter) {
-        File dir;
-        Configuration config = Configuration.getInstance();
+        final File dir;
+        final Configuration config = Configuration.getInstance();
         if (lastSelectedFile != null) {
             dir = lastSelectedFile.getParentFile();
         } else if ((config != null) && (config.getWorldDirectory() != null)) {
@@ -6537,7 +6458,7 @@ public final class App extends JFrame implements RadiusControl,
         } else {
             dir = DesktopUtils.getDocumentsFolder();
         }
-        File selectedFile = FileUtils.selectFileForOpen(this, "Select a WorldPainter world", dir,
+        final File selectedFile = FileUtils.selectFileForOpen(this, "Select a WorldPainter world", dir,
                 new FileFilter() {
                     @Override
                     public boolean accept(File f) {
@@ -6572,99 +6493,18 @@ public final class App extends JFrame implements RadiusControl,
                 showMessageDialog(this, "WorldPainter is not authorised to read the selected file", "Access Denied", ERROR_MESSAGE);
                 return;
             }
-            final World2 selectedWorld = ProgressDialog.executeTask(this, new ProgressTask<World2>() {
-                @Override
-                public String getName() {
-                    return strings.getString("loading.world");
-                }
-
-                @Override
-                public World2 execute(ProgressReceiver progressReceiver) {
-                    try {
-                        WorldIO worldIO = new WorldIO();
-                        worldIO.load(new FileInputStream(selectedFile));
-                        return worldIO.getWorld();
-                    } catch (UnloadableWorldException e) {
-                        logger.error("Could not load world from file " + selectedFile, e);
-                        if (e.getMetadata() != null) {
-                            logMetadataAsError(e.getMetadata());
-                        }
-                        reportUnloadableWorldException(e);
-                        return null;
-                    } catch (IOException e) {
-                        throw new RuntimeException("I/O error while loading world", e);
-                    }
-                }
-
-                private void appendMetadata(StringBuilder sb, Map<String, Object> metadata) {
-                    for (Map.Entry<String, Object> entry: metadata.entrySet()) {
-                        switch (entry.getKey()) {
-                            case METADATA_KEY_WP_VERSION:
-                                sb.append("Saved with WorldPainter ").append(entry.getValue());
-                                String build = (String) metadata.get(METADATA_KEY_WP_BUILD);
-                                if (build != null) {
-                                    sb.append(" (").append(build).append(')');
-                                }
-                                sb.append('\n');
-                                break;
-                            case METADATA_KEY_TIMESTAMP:
-                                sb.append("Saved on ").append(SimpleDateFormat.getDateTimeInstance().format((Date) entry.getValue())).append('\n');
-                                break;
-                            case METADATA_KEY_PLUGINS:
-                                String[][] plugins = (String[][]) entry.getValue();
-                                for (String[] plugin: plugins) {
-                                    sb.append("Plugin: ").append(plugin[0]).append(" (").append(plugin[1]).append(")\n");
-                                }
-                                break;
-                        }
-                    }
-                }
-
-                private void logMetadataAsError(Map<String, Object> metadata) {
-                    StringBuilder sb = new StringBuilder("Metadata from world file:\n");
-                    appendMetadata(sb, metadata);
-                    logger.error(sb.toString());
-                }
-
-                private void reportUnloadableWorldException(UnloadableWorldException e) {
-                    try {
-                        String text;
-                        if (e.getMetadata() != null) {
-                            StringBuilder sb = new StringBuilder("WorldPainter could not load the file. The cause may be one of:\n" +
-                                    "\n" +
-                                    "* The file is damaged or corrupted\n" +
-                                    "* The file was created with a newer version of WorldPainter\n" +
-                                    "* The file was created using WorldPainter plugins which you do not have\n" +
-                                    "\n");
-                            appendMetadata(sb, e.getMetadata());
-                            text = sb.toString();
-                        } else {
-                            text = "WorldPainter could not load the file. The cause may be one of:\n" +
-                                    "\n" +
-                                    "* The file is not a WorldPainter world\n" +
-                                    "* The file is damaged or corrupted\n" +
-                                    "* The file was created with a newer version of WorldPainter\n" +
-                                    "* The file was created using WorldPainter plugins which you do not have";
-                        }
-                        SwingUtilities.invokeAndWait(() -> showMessageDialog(App.this, text, strings.getString("file.damaged"), ERROR_MESSAGE));
-                    } catch (InterruptedException e2) {
-                        throw new RuntimeException("Thread interrupted while reporting unloadable file " + selectedFile, e2);
-                    } catch (InvocationTargetException e2) {
-                        throw new RuntimeException("Invocation target exception while reporting unloadable file " + selectedFile, e2);
-                    }
-                }
-            }, NOT_CANCELABLE);
+            final World2 selectedWorld = ProgressDialog.executeTask(this, new LoadWorldTask(this, selectedFile), NOT_CANCELABLE);
             if (selectedWorld == null) {
                 // The file was damaged
                 return;
             }
             if (CustomItemsTreeModel.hasCustomItems(selectedWorld, itemType)) {
-                ImportCustomItemsDialog dialog = new ImportCustomItemsDialog(this, selectedWorld, selectedColourScheme, itemType);
+                final ImportCustomItemsDialog dialog = new ImportCustomItemsDialog(this, selectedWorld, selectedColourScheme, itemType);
                 dialog.setVisible(true);
                 if (! dialog.isCancelled()) {
-                    StringBuilder errors = new StringBuilder();
+                    final StringBuilder errors = new StringBuilder();
                     List<CustomLayer> existingCustomLayers = null;
-                    boolean refreshView = false, showError = false;
+                    boolean refreshView = false, showError = false, updateCustomTerrainButtons = false;
                     for (Object selectedItem: dialog.getSelectedItems()) {
                         if (selectedItem instanceof CustomLayer) {
                             if (existingCustomLayers == null) {
@@ -6676,11 +6516,11 @@ public final class App extends JFrame implements RadiusControl,
                                 errors.append("Layer \"" + ((CustomLayer) selectedItem).getName() + "\" or layer type not supported for current dimension\n");
                                 showError = true;
                             } else {
-                                registerCustomLayer((CustomLayer) selectedItem, false);
+                                updateCustomTerrainButtons = importCustomLayer((CustomLayer) selectedItem) || updateCustomTerrainButtons;
                             }
                         } else if (selectedItem instanceof MixedMaterial) {
                             MixedMaterial customMaterial = (MixedMaterial) selectedItem;
-                            int index = findNextCustomTerrainIndex();
+                            final int index = findNextCustomTerrainIndex();
                             if (index == -1) {
                                 errors.append("No free slots for Custom Terrain \"" + customMaterial.getName() + "\"\n");
                                 showError = true;
@@ -6689,7 +6529,7 @@ public final class App extends JFrame implements RadiusControl,
                             customMaterial = MixedMaterialManager.getInstance().register(customMaterial);
                             addButtonForNewCustomTerrain(index, customMaterial, false);
                         } else if (selectedItem instanceof CustomBiome) {
-                            CustomBiome customBiome = (CustomBiome) selectedItem;
+                            final CustomBiome customBiome = (CustomBiome) selectedItem;
                             if (! customBiomeManager.addCustomBiome(null, customBiome)) {
                                 errors.append("ID already in use for Custom Biome " + customBiome.getId() + " (\"" + customBiome + "\")\n");
                                 showError = true;
@@ -6703,12 +6543,15 @@ public final class App extends JFrame implements RadiusControl,
                     if (refreshView) {
                         view.refreshTiles();
                     }
+                    if (updateCustomTerrainButtons) {
+                        updateCustomTerrainButtons();
+                    }
                     if (errors.length() > 0) {
                         JOptionPane.showMessageDialog(App.this, "Not all items have been imported:\n\n" + errors, "Not All Items Imported", showError ? JOptionPane.ERROR_MESSAGE : JOptionPane.WARNING_MESSAGE);
                     }
                 }
             } else {
-                String what;
+                final String what;
                 switch (itemType) {
                     case ALL:
                         what = "layers, terrains or biomes";
