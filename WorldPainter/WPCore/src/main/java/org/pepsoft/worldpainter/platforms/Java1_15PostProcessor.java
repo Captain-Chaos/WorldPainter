@@ -236,10 +236,11 @@ public class Java1_15PostProcessor extends PostProcessor {
                             }
                             break;
                     }
-                    if (! leavePlants) {
+                    if ((! leavePlants) && (! materialBelow.modded)) {
                         switch (material.name) {
                             case MC_DEAD_BUSH:
-                                if ((! materialBelow.modded) && materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_SAND, MC_RED_SAND, MC_DIRT, MC_TERRACOTTA, MC_PODZOL, MC_COARSE_DIRT, MC_ROOTED_DIRT, MC_MOSS_BLOCK, MC_MUD) && (! materialBelow.name.endsWith("_terracotta"))) {
+                                if (materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_SAND, MC_RED_SAND, MC_DIRT, MC_TERRACOTTA, MC_PODZOL, MC_COARSE_DIRT, MC_ROOTED_DIRT, MC_MOSS_BLOCK, MC_MUD)
+                                        && (! materialBelow.name.endsWith("_terracotta"))) {
                                     material = clearBlock(minecraftWorld, x, y, z);
                                 }
                                 break;
@@ -255,18 +256,22 @@ public class Java1_15PostProcessor extends PostProcessor {
                             case MC_WHITE_TULIP:
                             case MC_PINK_TULIP:
                             case MC_OXEYE_DAISY:
-                                if ((! materialBelow.modded) && materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_FARMLAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK, MC_MUD)) {
+                            case MC_CORNFLOWER:
+                            case MC_LILY_OF_THE_VALLEY:
+                            case MC_WITHER_ROSE:
+                            case MC_SWEET_BERRY_BUSH:
+                                if (materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_FARMLAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK, MC_MUD)) {
                                     material = clearBlock(minecraftWorld, x, y, z);
                                 }
                                 break;
                             case MC_RED_MUSHROOM:
                             case MC_BROWN_MUSHROOM:
-                                if ((! materialBelow.modded) && materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_PODZOL, MC_COARSE_DIRT, MC_MYCELIUM, MC_STONE, MC_GRANITE, MC_DIORITE, MC_ANDESITE)) {
+                                if (materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_PODZOL, MC_COARSE_DIRT, MC_MYCELIUM, MC_STONE, MC_GRANITE, MC_DIORITE, MC_ANDESITE)) {
                                     material = clearBlock(minecraftWorld, x, y, z);
                                 }
                                 break;
                             case MC_WHEAT:
-                                if ((! materialBelow.modded) && materialBelow.isNotNamed(MC_FARMLAND)) {
+                                if (materialBelow.isNotNamed(MC_FARMLAND)) {
                                     material = clearBlock(minecraftWorld, x, y, z);
                                 }
                                 break;
@@ -278,7 +283,7 @@ public class Java1_15PostProcessor extends PostProcessor {
                             case MC_PEONY:
                                 if ("lower".equals(material.getProperty(HALF))) {
                                     // Lower half of double high plant; check there's grass or dirt below
-                                    if ((! materialBelow.modded) && materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_FARMLAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK, MC_MUD)) {
+                                    if (materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_COARSE_DIRT, MC_PODZOL, MC_FARMLAND, MC_ROOTED_DIRT, MC_MOSS_BLOCK, MC_MUD)) {
                                         // Double high plants can (presumably) only exist on grass or dirt // TODO: check
                                         // The upper block will be removed below in the next iteration
                                         material = clearBlock(minecraftWorld, x, y, z);
@@ -286,27 +291,27 @@ public class Java1_15PostProcessor extends PostProcessor {
                                 }
                                 break;
                             case MC_CACTUS:
-                                if ((! materialBelow.modded) && (materialBelow != SAND) && (materialBelow != RED_SAND) && materialBelow.isNotNamed(MC_CACTUS)) {
+                                if ((materialBelow != SAND) && (materialBelow != RED_SAND) && materialBelow.isNotNamed(MC_CACTUS)) {
                                     // Cactus blocks can only be on top of sand or other cactus blocks
                                     material = clearBlock(minecraftWorld, x, y, z);
                                 }
                                 break;
                             case MC_SUGAR_CANE:
-                                if ((! materialBelow.modded) && materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_PODZOL, MC_COARSE_DIRT, MC_ROOTED_DIRT, MC_MOSS_BLOCK, MC_MUD, MC_SAND, MC_RED_SAND, MC_SUGAR_CANE)) {
+                                if (materialBelow.isNotNamedOneOf(MC_GRASS_BLOCK, MC_DIRT, MC_PODZOL, MC_COARSE_DIRT, MC_ROOTED_DIRT, MC_MOSS_BLOCK, MC_MUD, MC_SAND, MC_RED_SAND, MC_SUGAR_CANE)) {
                                     // Sugar cane blocks can only be on top of grass, dirt, sand or other sugar cane
                                     // blocks
                                     material = clearBlock(minecraftWorld, x, y, z);
                                 }
                                 break;
                             case MC_NETHER_WART:
-                                if ((! materialBelow.modded) && (materialBelow != SOUL_SAND)) {
+                                if (materialBelow != SOUL_SAND) {
                                     // Nether wart blocks can only be on top of soul sand
                                     material = clearBlock(minecraftWorld, x, y, z);
                                 }
                                 break;
                             case MC_CHORUS_FLOWER:
                             case MC_CHORUS_PLANT:
-                                if ((! materialBelow.modded) && (materialBelow != END_STONE) && (materialBelow.isNotNamed(MC_CHORUS_PLANT))) {
+                                if ((materialBelow != END_STONE) && materialBelow.isNotNamed(MC_CHORUS_PLANT)) {
                                     // Chorus flower and plant blocks can only be on top of end stone or other chorus
                                     // plant blocks
                                     material = clearBlock(minecraftWorld, x, y, z);
@@ -315,7 +320,7 @@ public class Java1_15PostProcessor extends PostProcessor {
                             case MC_KELP:
                             case MC_KELP_PLANT:
                             case MC_TALL_SEAGRASS:
-                                if ((! materialBelow.modded) && (! ((materialBelow.solid && materialBelow.opaque && materialBelow.natural) || materialBelow.isNamedOneOf(MC_KELP, MC_KELP_PLANT, MC_TALL_SEAGRASS)))) {
+                                if (! ((materialBelow.solid && materialBelow.opaque && materialBelow.natural) || materialBelow.isNamedOneOf(MC_KELP, MC_KELP_PLANT, MC_TALL_SEAGRASS))) {
                                     material = clearBlock(minecraftWorld, x, y, z);
                                 }
                                 break;
@@ -341,7 +346,12 @@ public class Java1_15PostProcessor extends PostProcessor {
                             case MC_DEAD_BUBBLE_CORAL_FAN:
                             case MC_DEAD_FIRE_CORAL_FAN:
                             case MC_DEAD_HORN_CORAL_FAN:
-                                if ((! materialBelow.modded) && (! (materialBelow.solid && materialBelow.opaque && materialBelow.natural))) {
+                                if (! (materialBelow.solid && materialBelow.opaque && materialBelow.natural)) {
+                                    material = clearBlock(minecraftWorld, x, y, z);
+                                }
+                                break;
+                            case MC_LILY_PAD:
+                                if (! materialBelow.containsWater()) {
                                     material = clearBlock(minecraftWorld, x, y, z);
                                 }
                                 break;
