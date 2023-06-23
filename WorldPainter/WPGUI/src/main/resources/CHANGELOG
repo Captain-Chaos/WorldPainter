@@ -4,6 +4,7 @@
    + If the button is disabled then the layers are already in their default order
    + Export order customisation is not a well defined functionality and should be used with caution. The default order might change in the future, and it is currently the case that if you customise the order, all the non-custom layers (such as the default cave layers) are then exported _after_ all the custom layers for each stage
  * Bug fix: fix a bug with layer sorting that prevented the Export screen from opening
+ * Bug fix: properly post-process thin Custom Objects that are placed during the fixup phase
 
 -- Version 2.18.2, released 19-6-2023
 

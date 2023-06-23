@@ -535,11 +535,11 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
     }
 
     private static Box getBounds(WPObject object, int x, int y, int z) {
-        Point3i dimensions = object.getDimensions();
-        Point3i offset = object.getOffset();
-        return new Box(x + offset.x, x + offset.x + dimensions.x - 1,
-                y + offset.y, y + offset.y + dimensions.y - 1,
-                z + offset.z, z + offset.z + dimensions.z - 1);
+        final Point3i dimensions = object.getDimensions();
+        final Point3i offset = object.getOffset();
+        return new Box(x + offset.x, x + offset.x + dimensions.x,
+                y + offset.y, y + offset.y + dimensions.y,
+                z + offset.z, z + offset.z + dimensions.z);
     }
 
     private static void placeBlock(MinecraftWorld world, int x, int y, int z, Material material, int leafDecayMode, boolean waterloggedLeaves) {
@@ -615,18 +615,29 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                 WPObjectExporter.renderObject(world, dimension, platform, object, x, y, z);
                 
                 // Reapply the Frost layer to the area, if necessary
-                final FrostExporter frostExporter = new FrostExporter(dimension, platform, dimension.getLayerSettings(Frost.INSTANCE));
-                Point3i offset = object.getOffset();
-                Point3i dim = object.getDimensions();
-                Rectangle area = new Rectangle(x + offset.x, y + offset.y, dim.x, dim.y);
-                frostExporter.addFeatures(area, null, world);
+                final boolean applyFrost;
+                final ExporterSettings frostLayerSettings;
+                if (dimension.getBitLayerValueAt(Frost.INSTANCE, x, y)) {
+                    applyFrost = true;
+                    frostLayerSettings = null;
+                } else {
+                    frostLayerSettings = dimension.getLayerSettings(Frost.INSTANCE);
+                    applyFrost = (frostLayerSettings != null) && frostLayerSettings.isApplyEverywhere();
+                }
+                if (applyFrost) {
+                    final FrostExporter frostExporter = new FrostExporter(dimension, platform, frostLayerSettings);
+                    final Point3i offset = object.getOffset();
+                    final Point3i dim = object.getDimensions();
+                    final Rectangle area = new Rectangle(x + offset.x, y + offset.y, dim.x, dim.y);
+                    frostExporter.addFeatures(area, null, world);
+                }
 
-                // Fixups are done *after* post processing, so post process again
-                Box bounds = getBounds(object, x, y, z);
-                // Include the layer below and above the object for post processing, as those blocks may also have been
+                // Fixups are done *after* post-processing, so post process again
+                final Box bounds = getBounds(object, x, y, z);
+                // Include the layer below and above the object for post-processing, as those blocks may also have been
                 // affected
                 bounds.setZ1(Math.max(bounds.getZ1() - 1, world.getMinHeight()));
-                bounds.setZ2(Math.min(bounds.getZ2() + 1, world.getMaxHeight() - 1));
+                bounds.setZ2(Math.min(bounds.getZ2() + 1, world.getMaxHeight()));
                 try {
                     PlatformManager.getInstance().getPostProcessor(platform).postProcess(world, bounds, exportSettings, null);
                 } catch (ProgressReceiver.OperationCancelled e) {
