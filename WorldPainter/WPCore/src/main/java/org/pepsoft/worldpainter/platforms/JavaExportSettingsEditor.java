@@ -233,7 +233,7 @@ public class JavaExportSettingsEditor extends ExportSettingsEditor {
 
         checkBoxMakeAllLeavesPersistent.setText("<html>make <i>all</i> leaves persistent</html>");
 
-        checkBoxRemovePlants.setText("remove from invalid blocks");
+        checkBoxRemovePlants.setText("remove from invalid blocks or if other half is missing");
 
         jLabel8.setText("Plants:");
 

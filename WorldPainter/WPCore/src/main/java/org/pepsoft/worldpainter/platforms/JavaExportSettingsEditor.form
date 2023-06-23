@@ -337,7 +337,7 @@
     </Component>
     <Component class="javax.swing.JCheckBox" name="checkBoxRemovePlants">
       <Properties>
-        <Property name="text" type="java.lang.String" value="remove from invalid blocks"/>
+        <Property name="text" type="java.lang.String" value="remove from invalid blocks or if other half is missing"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel8">

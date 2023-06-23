@@ -3,6 +3,7 @@
  * The custom layer export order can now be reset to the default with the new Reset Order button on the Custom Layers tab on the Export screen
    + If the button is disabled then the layers are already in their default order
    + Export order customisation is not a well defined functionality and should be used with caution. The default order might change in the future, and it is currently the case that if you customise the order, all the non-custom layers (such as the default cave layers) are then exported _after_ all the custom layers for each stage
+ * Halves of double high plants such as sunflowers that are missing their opposite halves will now be left in place if you uncheck the "remove from invalid blocks" setting on the Post Processing tab of the Export screen
  * Bug fix: fix a bug with layer sorting that prevented the Export screen from opening
  * Bug fix: properly post-process thin Custom Objects that are placed during the fixup phase
    + In addition, some more recently added plants, and lily pads, that were not being included in the post-processing are now included
