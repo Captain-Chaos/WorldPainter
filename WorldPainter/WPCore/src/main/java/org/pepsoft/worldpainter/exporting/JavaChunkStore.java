@@ -50,6 +50,87 @@ public class JavaChunkStore implements ChunkStore {
         dataTypes = ImmutableSet.copyOf(platformProvider.getDataTypes(platform));
     }
 
+    @FunctionalInterface
+    public interface RegionVisitor {
+        /**
+         * Visit a Minecraft region file.
+         *
+         * <p>For convenience, the visitor may throw checked exceptions. They will be wrapped in a
+         * {@link MDCCapturingRuntimeException} if this happens.
+         *
+         * @param regions The region file(s) to be visited.
+         * @return {@code true} if more chunks should be visited, or {@code false} if no more chunks need to be visited.
+         */
+        boolean visitRegion(Map<DataType, RegionFile> regions) throws Exception;
+    }
+
+    public boolean visitRegions(RegionVisitor visitor, boolean readOnly, String operation, Set<DataType> dataTypes) throws IOException {
+        flush();
+
+        final Pattern regionFilePattern = (platform == JAVA_MCREGION)
+                ? Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mcr")
+                : Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mca");
+        final File[] files = requireNonNull(regionDir.listFiles((dir, name) -> {
+            if (! regionFilePattern.matcher(name).matches()) {
+                return false;
+            } else if (new File(dir, name).length() == 0) {
+                // TODO should we be skipping empty files when readOnly is false?
+                if (! readOnly) {
+                    logger.warn("Skipping empty region file {}", name);
+                }
+                return false;
+            }
+            return true;
+        }));
+
+        long start = System.currentTimeMillis();
+        try {
+            if (readOnly && (files.length > 1) && (! "1".equals(System.getProperty("org.pepsoft.worldpainter.threads")))) {
+                return visitRegionsInParallel(files, regionFilePattern, visitor, operation);
+            }
+
+            for (File file: requireNonNull(files)) {
+                final Matcher matcher = regionFilePattern.matcher(file.getName());
+                if (matcher.matches()) {
+                    final Map<DataType, RegionFile> regionFilesToVisit = new HashMap<>();
+                    final Point coords = new Point(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
+                    for (DataType type: dataTypes) {
+                        final RegionKey key = new RegionKey(type, coords);
+                        final RegionFile regionFile;
+                        if (regionFiles.containsKey(key)) {
+                            regionFilesToVisit.put(type, regionFiles.get(key));
+                        } else {
+                            regionFile = (type == REGION) ? new RegionFile(file, readOnly) : platformProvider.getRegionFile(platform, regionDir, type, coords, readOnly);
+                            if (regionFile != null) {
+                                regionFiles.put(key, regionFile);
+                                regionFilesToVisit.put(type, regionFile);
+                            }
+                        }
+                    }
+                    try {
+                        if (! visitor.visitRegion(regionFilesToVisit)) {
+                            return false;
+                        }
+                    } catch (RuntimeException e) {
+                        throw e;
+                    } catch (Exception e) {
+                        throw new MDCCapturingRuntimeException("Checked exception visiting region file " + file, e);
+                    } finally {
+                        for (Map.Entry<DataType, RegionFile> entry: regionFilesToVisit.entrySet()) {
+                            entry.getValue().close();
+                            regionFiles.remove(new RegionKey(entry.getKey(), coords));
+                        }
+                    }
+                }
+            }
+            return true;
+        } finally {
+            logger.debug("Visiting {} regions for {} took {} ms", files.length, operation, System.currentTimeMillis() - start);
+        }
+    }
+
+    // ChunkStore
+
     @Override
     public int getChunkCount() {
         final AtomicInteger chunkCount = new AtomicInteger();
@@ -231,84 +312,6 @@ public class JavaChunkStore implements ChunkStore {
                 regionFiles.put(key, regionFile);
             }
             return regionFile;
-        }
-    }
-
-    @FunctionalInterface interface RegionVisitor {
-        /**
-         * Visit a Minecraft region file.
-         *
-         * <p>For convenience, the visitor may throw checked exceptions. They will be wrapped in a
-         * {@link MDCCapturingRuntimeException} if this happens.
-         *
-         * @param regions The region file(s) to be visited.
-         * @return {@code true} if more chunks should be visited, or {@code false} if no more chunks need to be visited.
-         */
-        boolean visitRegion(Map<DataType, RegionFile> regions) throws Exception;
-    }
-
-    private boolean visitRegions(RegionVisitor visitor, boolean readOnly, String operation, Set<DataType> dataTypes) throws IOException {
-        flush();
-
-        final Pattern regionFilePattern = (platform == JAVA_MCREGION)
-                ? Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mcr")
-                : Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mca");
-        final File[] files = requireNonNull(regionDir.listFiles((dir, name) -> {
-            if (! regionFilePattern.matcher(name).matches()) {
-                return false;
-            } else if (new File(dir, name).length() == 0) {
-                // TODO should we be skipping empty files when readOnly is false?
-                if (! readOnly) {
-                    logger.warn("Skipping empty region file {}", name);
-                }
-                return false;
-            }
-            return true;
-        }));
-
-        long start = System.currentTimeMillis();
-        try {
-            if (readOnly && (files.length > 1) && (! "1".equals(System.getProperty("org.pepsoft.worldpainter.threads")))) {
-                return visitRegionsInParallel(files, regionFilePattern, visitor, operation);
-            }
-
-            for (File file: requireNonNull(files)) {
-                final Matcher matcher = regionFilePattern.matcher(file.getName());
-                if (matcher.matches()) {
-                    final Map<DataType, RegionFile> regionFilesToVisit = new HashMap<>();
-                    final Point coords = new Point(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
-                    for (DataType type: dataTypes) {
-                        final RegionKey key = new RegionKey(type, coords);
-                        final RegionFile regionFile;
-                        if (regionFiles.containsKey(key)) {
-                            regionFilesToVisit.put(type, regionFiles.get(key));
-                        } else {
-                            regionFile = (type == REGION) ? new RegionFile(file, readOnly) : platformProvider.getRegionFile(platform, regionDir, type, coords, readOnly);
-                            if (regionFile != null) {
-                                regionFiles.put(key, regionFile);
-                                regionFilesToVisit.put(type, regionFile);
-                            }
-                        }
-                    }
-                    try {
-                        if (! visitor.visitRegion(regionFilesToVisit)) {
-                            return false;
-                        }
-                    } catch (RuntimeException e) {
-                        throw e;
-                    } catch (Exception e) {
-                        throw new MDCCapturingRuntimeException("Checked exception visiting region file " + file, e);
-                    } finally {
-                        for (Map.Entry<DataType, RegionFile> entry: regionFilesToVisit.entrySet()) {
-                            entry.getValue().close();
-                            regionFiles.remove(new RegionKey(entry.getKey(), coords));
-                        }
-                    }
-                }
-            }
-            return true;
-        } finally {
-            logger.debug("Visiting {} regions for {} took {} ms", files.length, operation, System.currentTimeMillis() - start);
         }
     }
 
