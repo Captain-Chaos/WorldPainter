@@ -255,7 +255,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
                     // Button pressed
                     first = true;
                     undo = eraser || (buttonType == RIGHT) || altDown;
-                    if (!oneShot) {
+                    if (! oneShot) {
                         interrupt(); // Make sure any operation in progress (due to timing issues perhaps) is interrupted
                         timer = new Timer(delay, e -> {
                             Point worldCoords = view.viewToWorld((int) x, (int) y);
