@@ -1,3 +1,7 @@
+-- Version 2.18.4, released 27-6-2023
+
+ * Bug fix: restore order of custom layers on palettes
+
 -- Version 2.18.3, released 23-6-2023
 
  * The custom layer export order can now be reset to the default with the new Reset Order button on the Custom Layers tab on the Export screen

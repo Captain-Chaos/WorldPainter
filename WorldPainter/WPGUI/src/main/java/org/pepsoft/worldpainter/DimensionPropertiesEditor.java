@@ -39,8 +39,10 @@ import javax.swing.*;
 import javax.swing.JSpinner.NumberEditor;
 import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
-import java.util.*;
 
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
@@ -1035,7 +1037,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         
         // custom layers
         if (mode == Mode.EXPORT) {
-            final Set<CustomLayer> customLayers = dimension.getCustomLayers(true);
+            final List<CustomLayer> customLayers = dimension.getCustomLayers(true);
             if (! customLayers.isEmpty()) {
                 customLayersTableModel = new CustomLayersTableModel(customLayers);
                 tableCustomLayers.setModel(customLayersTableModel);
@@ -1269,7 +1271,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         if (JOptionPane.showConfirmDialog(this, "Do you want to reset the order of all custom layers to the default?\nThis cannot be undone!", "Confirm Order Reset", YES_NO_OPTION) != YES_OPTION) {
             return;
         }
-        final Set<CustomLayer> customLayers = dimension.getCustomLayers(true);
+        final List<CustomLayer> customLayers = dimension.getCustomLayers(true);
         customLayers.forEach(layer -> layer.setIndex(null));
         customLayersTableModel = new CustomLayersTableModel(customLayers);
         tableCustomLayers.setModel(customLayersTableModel);
