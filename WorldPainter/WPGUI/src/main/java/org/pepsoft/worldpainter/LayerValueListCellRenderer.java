@@ -11,8 +11,6 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.pepsoft.minecraft.Constants.COLOUR_NAMES;
-import static org.pepsoft.minecraft.Material.WOOLS;
 import static org.pepsoft.util.IconUtils.createScaledColourIcon;
 import static org.pepsoft.util.IconUtils.scaleIcon;
 import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
@@ -27,8 +25,8 @@ public class LayerValueListCellRenderer extends DefaultListCellRenderer {
         this.nullLabel = nullLabel;
         if (layer instanceof Annotations) {
             for (int value = 1; value < 16; value++) {
-                icons.put(value, createScaledColourIcon(colourScheme.getColour(WOOLS[value - 1])));
-                texts.put(value, COLOUR_NAMES[value - 1]);
+                icons.put(value, createScaledColourIcon(Annotations.getColour(value, colourScheme)));
+                texts.put(value, Annotations.getColourName(value));
             }
             showIcons = true;
         } else if (layer instanceof Biome) {

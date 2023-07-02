@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.*;
 import java.util.function.Consumer;
 
-import static org.pepsoft.minecraft.Constants.COLOUR_NAMES;
-import static org.pepsoft.minecraft.Material.WOOLS;
 import static org.pepsoft.util.IconUtils.createScaledColourIcon;
 import static org.pepsoft.util.IconUtils.loadScaledIcon;
 import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
@@ -129,22 +127,22 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
             if (filter.onlyOnObjectType != null) {
                 switch (filter.onlyOnObjectType) {
                     case BIOME:
-                        int biome = filter.onlyOnValue;
-                        BiomeHelper biomeHelper = new BiomeHelper(app.getColourScheme(), app.getCustomBiomeManager(), platform);
+                        final int biome = filter.onlyOnValue;
+                        final BiomeHelper biomeHelper = new BiomeHelper(app.getColourScheme(), app.getCustomBiomeManager(), platform);
                         onlyOn = biome;
                         buttonReplace.setText(biomeHelper.getBiomeName(biome));
                         buttonReplace.setIcon(biomeHelper.getBiomeIcon(biome));
                         break;
                     case BIT_LAYER:
                     case INT_LAYER_ANY:
-                        Layer layer = filter.onlyOnLayer;
+                        final Layer layer = filter.onlyOnLayer;
                         onlyOn = layer;
                         buttonReplace.setText(layer.getName());
                         buttonReplace.setIcon(new ImageIcon(layer.getIcon()));
                         break;
                     case TERRAIN:
-                        Terrain terrain = filter.onlyOnTerrain;
-                        ColourScheme colourScheme = app.getColourScheme();
+                        final Terrain terrain = filter.onlyOnTerrain;
+                        final ColourScheme colourScheme = app.getColourScheme();
                         onlyOn = terrain;
                         buttonReplace.setText(terrain.getName());
                         buttonReplace.setIcon(new ImageIcon(terrain.getScaledIcon(16, colourScheme)));
@@ -160,10 +158,10 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
                         buttonReplace.setIcon(null);
                         break;
                     case ANNOTATION:
-                        int selectedColour = filter.onlyOnValue, dataValue = selectedColour - ((selectedColour < 8) ? 1 : 0);
-                        onlyOn = new LayerValue(Annotations.INSTANCE, selectedColour);
-                        buttonReplace.setText(COLOUR_NAMES[dataValue] + " Annotations");
-                        buttonReplace.setIcon(createScaledColourIcon(app.getColourScheme().getColour(WOOLS[dataValue])));
+                        final int layerValue = filter.onlyOnValue;
+                        onlyOn = new LayerValue(Annotations.INSTANCE, layerValue);
+                        buttonReplace.setText(Annotations.getColourName(layerValue) + " Annotations");
+                        buttonReplace.setIcon(createScaledColourIcon(Annotations.getColour(layerValue, app.getColourScheme())));
                         break;
                     case ANNOTATION_ANY:
                         onlyOn = new LayerValue(Annotations.INSTANCE);
@@ -175,22 +173,22 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
             if (filter.exceptOnObjectType != null) {
                 switch (filter.exceptOnObjectType) {
                     case BIOME:
-                        int biome = filter.exceptOnValue;
-                        BiomeHelper biomeHelper = new BiomeHelper(app.getColourScheme(), app.getCustomBiomeManager(), platform);
+                        final int biome = filter.exceptOnValue;
+                        final BiomeHelper biomeHelper = new BiomeHelper(app.getColourScheme(), app.getCustomBiomeManager(), platform);
                         exceptOn = biome;
                         buttonExceptOn.setText(biomeHelper.getBiomeName(biome));
                         buttonExceptOn.setIcon(biomeHelper.getBiomeIcon(biome));
                         break;
                     case BIT_LAYER:
                     case INT_LAYER_ANY:
-                        Layer layer = filter.exceptOnLayer;
+                        final Layer layer = filter.exceptOnLayer;
                         exceptOn = layer;
                         buttonExceptOn.setText(layer.getName());
                         buttonExceptOn.setIcon(new ImageIcon(layer.getIcon()));
                         break;
                     case TERRAIN:
-                        Terrain terrain = filter.exceptOnTerrain;
-                        ColourScheme colourScheme = app.getColourScheme();
+                        final Terrain terrain = filter.exceptOnTerrain;
+                        final ColourScheme colourScheme = app.getColourScheme();
                         exceptOn = terrain;
                         buttonExceptOn.setText(terrain.getName());
                         buttonExceptOn.setIcon(new ImageIcon(terrain.getScaledIcon(16, colourScheme)));
@@ -206,10 +204,10 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
                         buttonExceptOn.setIcon(null);
                         break;
                     case ANNOTATION:
-                        int selectedColour = filter.exceptOnValue, dataValue = selectedColour - ((selectedColour < 8) ? 1 : 0);
+                        final int selectedColour = filter.exceptOnValue;
                         exceptOn = new LayerValue(Annotations.INSTANCE, selectedColour);
-                        buttonExceptOn.setText(COLOUR_NAMES[dataValue] + " Annotations");
-                        buttonExceptOn.setIcon(createScaledColourIcon(app.getColourScheme().getColour(WOOLS[dataValue])));
+                        buttonExceptOn.setText(Annotations.getColourName(selectedColour) + " Annotations");
+                        buttonExceptOn.setIcon(createScaledColourIcon(Annotations.getColour(selectedColour, app.getColourScheme())));
                         break;
                     case ANNOTATION_ANY:
                         exceptOn = new LayerValue(Annotations.INSTANCE);
@@ -314,10 +312,9 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
             button.setText(biomeHelper.getBiomeName(value));
             button.setIcon(biomeHelper.getBiomeIcon(value));
         } else if (layer instanceof Annotations) {
-            final int colourIndex = value - ((value < 8) ? 1 : 0);
             objectConsumer.accept(new LayerValue(Annotations.INSTANCE, value));
-            button.setText(COLOUR_NAMES[colourIndex] + " Annotations");
-            button.setIcon(createScaledColourIcon(colourScheme.getColour(WOOLS[colourIndex])));
+            button.setText(Annotations.getColourName(value) + " Annotations");
+            button.setIcon(createScaledColourIcon(Annotations.getColour(value, colourScheme)));
         } else if (layer.discrete) {
             throw new UnsupportedOperationException("Discrete layers not supported");
         } else {
@@ -524,10 +521,11 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
         menuItem.addActionListener(e -> listener.objectSelected(new LayerValue(Annotations.INSTANCE), "All Annotations", null));
         annotationsMenu.add(menuItem);
         for (int i = 1; i < 16; i++) {
-            final int selectedColour = i, dataValue = selectedColour - ((selectedColour < 8) ? 1 : 0);
-            final Icon icon  = createScaledColourIcon(colourScheme.getColour(WOOLS[dataValue]));
-            menuItem = new JMenuItem(COLOUR_NAMES[dataValue], icon);
-            menuItem.addActionListener(e -> listener.objectSelected(new LayerValue(Annotations.INSTANCE, selectedColour), COLOUR_NAMES[dataValue] + " Annotations", icon));
+            final int layerValue = i;
+            final Icon icon  = createScaledColourIcon(Annotations.getColour(layerValue, colourScheme));
+            final String colourName = Annotations.getColourName(layerValue);
+            menuItem = new JMenuItem(colourName, icon);
+            menuItem.addActionListener(e -> listener.objectSelected(new LayerValue(Annotations.INSTANCE, layerValue), colourName + " Annotations", icon));
             annotationsMenu.add(menuItem);
         }
         popupMenu.add(annotationsMenu);

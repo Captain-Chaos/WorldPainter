@@ -645,7 +645,7 @@ public class InfoPanel extends javax.swing.JPanel implements MouseMotionListener
             if (layer instanceof Biome) {
                 return biomeHelper.getBiomeName(intensity);
             } else if (layer instanceof Annotations) {
-                return org.pepsoft.minecraft.Constants.COLOUR_NAMES[intensity - ((intensity < 8) ? 1 : 0)];
+                return Annotations.getColourName(intensity);
             } else if (layer instanceof GardenCategory) {
                 return GardenCategory.getLabel(strings, intensity);
             } else {

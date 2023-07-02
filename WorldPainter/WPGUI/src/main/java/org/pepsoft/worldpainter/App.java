@@ -120,7 +120,6 @@ import static java.util.stream.Collectors.toSet;
 import static javax.swing.JOptionPane.*;
 import static javax.swing.KeyStroke.getKeyStroke;
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.minecraft.Material.WOOLS;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.util.GUIUtils.getUIScale;
@@ -3385,24 +3384,24 @@ public final class App extends JFrame implements RadiusControl,
 
         JPanel colourGrid = new JPanel(new GridLayout(0, 4));
         for (int i = 1; i < 16; i++) {
-            final int selectedColour = i, dataValue = i - ((i < 8) ? 1 : 0);
-            JToggleButton button = new JToggleButton(createScaledColourIcon(selectedColourScheme.getColour(WOOLS[dataValue])));
-            button.setToolTipText(COLOUR_NAMES[dataValue]);
+            final int layerValue = i;
+            JToggleButton button = new JToggleButton(createScaledColourIcon(Annotations.getColour(layerValue, selectedColourScheme)));
+            button.setToolTipText(Annotations.getColourName(layerValue));
             button.setMargin(App.BUTTON_INSETS);
-            if (i == 1) {
+            if (layerValue == 1) {
                 button.setSelected(true);
             }
             paintButtonGroup.add(button);
             button.addItemListener(e -> {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     paintUpdater = () -> {
-                        paint = createDiscreteLayerPaint(Annotations.INSTANCE, selectedColour);
+                        paint = createDiscreteLayerPaint(Annotations.INSTANCE, layerValue);
                         paintChanged();
                     };
                     paintUpdater.updatePaint();
                 }
             });
-            button.putClientProperty(KEY_PAINT_ID, createDiscreteLayerPaintId(Annotations.INSTANCE, selectedColour));
+            button.putClientProperty(KEY_PAINT_ID, createDiscreteLayerPaintId(Annotations.INSTANCE, layerValue));
             colourGrid.add(button);
         }
         layerPanel.add(colourGrid, constraints);

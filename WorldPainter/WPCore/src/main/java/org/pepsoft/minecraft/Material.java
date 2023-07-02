@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableSet;
 import org.pepsoft.util.CSVDataSource;
 import org.pepsoft.util.Pair;
 import org.pepsoft.worldpainter.Platform;
+import org.pepsoft.worldpainter.layers.Annotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1830,6 +1831,9 @@ public final class Material implements Serializable {
     /**
      * All the colour wools, indexed by the {@code DATA_*} colour data constants (which correspond to the legacy data
      * values for the wool block).
+     *
+     * <p><strong>PLEASE NOTE:</strong> {@link Annotations} layer values do <em>not</em> correspond to indices into this
+     * array!
      */
     public static final Material[] WOOLS = {WOOL_WHITE, WOOL_ORANGE, WOOL_MAGENTA, WOOL_LIGHT_BLUE, WOOL_YELLOW,
             WOOL_LIME, WOOL_PINK, WOOL_GREY, WOOL_LIGHT_GREY, WOOL_CYAN, WOOL_PURPLE, WOOL_BLUE, WOOL_BROWN, WOOL_GREEN,

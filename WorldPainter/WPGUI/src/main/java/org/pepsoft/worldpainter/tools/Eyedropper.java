@@ -16,8 +16,6 @@ import java.awt.event.ActionEvent;
 import java.util.Map;
 import java.util.Set;
 
-import static org.pepsoft.minecraft.Constants.COLOUR_NAMES;
-import static org.pepsoft.minecraft.Material.WOOLS;
 import static org.pepsoft.util.IconUtils.createScaledColourIcon;
 import static org.pepsoft.util.IconUtils.scaleIcon;
 import static org.pepsoft.worldpainter.Constants.SYSTEM_LAYERS;
@@ -95,9 +93,8 @@ public final class Eyedropper extends MouseOrTabletOperation {
                         if ((paintTypes != null) && (! paintTypes.contains(ANNOTATION))) {
                             return;
                         }
-                        final int colourIndex = value - ((value < 8) ? 1 : 0);
-                        name = COLOUR_NAMES[colourIndex] + " Annotations";
-                        icon = createScaledColourIcon(colourScheme.getColour(WOOLS[colourIndex]));
+                        name = Annotations.getColourName(value) + " Annotations";
+                        icon = createScaledColourIcon(Annotations.getColour(value, colourScheme));
                     } else if (SYSTEM_LAYERS.contains(layer)) {
                         return;
                     } else if ((! layer.discrete) || (layer instanceof ReadOnly)) {

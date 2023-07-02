@@ -4,7 +4,6 @@
  */
 package org.pepsoft.worldpainter.panels;
 
-import org.pepsoft.minecraft.Constants;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.layers.Annotations;
@@ -576,7 +575,7 @@ public final class DefaultFilter implements Filter {
                 sb.append("annotations");
                 break;
             case ANNOTATION:
-                sb.append(Constants.COLOUR_NAMES[value].toLowerCase()).append(" annotations");
+                sb.append(Annotations.getColourName(value).toLowerCase()).append(" annotations");
                 break;
         }
     }
