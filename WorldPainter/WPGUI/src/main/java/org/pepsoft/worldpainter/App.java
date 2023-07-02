@@ -1161,7 +1161,7 @@ public final class App extends JFrame implements RadiusControl,
         if (! dialog.isCancelled()) {
             view.refreshTiles();
             if (threeDeeFrame != null) {
-                threeDeeFrame.refresh();
+                threeDeeFrame.refresh(false);
             }
             brushOptions.setMinHeight(dimension.getMinHeight());
             brushOptions.setMaxHeight(dimension.getMaxHeight());
@@ -1185,7 +1185,7 @@ public final class App extends JFrame implements RadiusControl,
             if (! dialog.isCancelled()) {
                 currentUndoManager.armSavePoint();
                 if (threeDeeFrame != null) {
-                    threeDeeFrame.refresh();
+                    threeDeeFrame.refresh(true);
                 }
             }
         } finally {
@@ -1207,7 +1207,7 @@ public final class App extends JFrame implements RadiusControl,
             if (! dialog.isCancelled()) {
                 currentUndoManager.armSavePoint();
                 if (threeDeeFrame != null) {
-                    threeDeeFrame.refresh();
+                    threeDeeFrame.refresh(true);
                 }
             }
         } finally {
@@ -1229,7 +1229,7 @@ public final class App extends JFrame implements RadiusControl,
             if (! dialog.isCancelled()) {
                 currentUndoManager.armSavePoint();
                 if (threeDeeFrame != null) {
-                    threeDeeFrame.refresh();
+                    threeDeeFrame.refresh(true);
                 }
             }
         } finally {
@@ -1283,6 +1283,12 @@ public final class App extends JFrame implements RadiusControl,
 
     public static void setMode(Mode mode) {
         App.mode = mode;
+    }
+
+    void reset3DViewAlwaysOnTop() {
+        if (threeDeeFrame != null) {
+            threeDeeFrame.resetAlwaysOnTop();
+        }
     }
 
     // PropertyChangeListener
@@ -1529,7 +1535,7 @@ public final class App extends JFrame implements RadiusControl,
             customMaterialButtons[customMaterialIndex].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), material));
             view.refreshTiles();
             if (threeDeeFrame != null) {
-                threeDeeFrame.refresh();
+                threeDeeFrame.refresh(false);
             }
             return true;
         }
@@ -4772,13 +4778,13 @@ public final class App extends JFrame implements RadiusControl,
             } else {
                 logger.info("Opening 3D view");
                 threeDeeFrame = new ThreeDeeFrame(dimension, view.getColourScheme(), customBiomeManager, focusPoint);
+                threeDeeFrame.setHiddenLayers(hiddenLayers);
                 threeDeeFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
                 threeDeeFrame.addWindowListener(new WindowAdapter() {
                     @Override
                     public void windowClosing(WindowEvent e) {
-                        // TODO not sure how this can be null, but at least
-                        // one error has been reported by a user where it
-                        // was
+                        // TODO not sure how this can be null, but at least one error has been reported by a user where
+                        //  it was
                         if (threeDeeFrame != null) {
                             threeDeeFrame.dispose();
                             threeDeeFrame = null;
@@ -5711,6 +5717,9 @@ public final class App extends JFrame implements RadiusControl,
 
         // Hide the selected layers
         view.setHiddenLayers(targetHiddenLayers);
+        if (threeDeeFrame != null) {
+            threeDeeFrame.setHiddenLayers(targetHiddenLayers);
+        }
 
         // Configure the glass pane to show the right icons
         glassPane.setHiddenLayers(hiddenLayers);
@@ -6857,7 +6866,7 @@ public final class App extends JFrame implements RadiusControl,
                 dialog.setVisible(() -> {
                     view.refreshTiles();
                     if (threeDeeFrame != null) {
-                        threeDeeFrame.refresh();
+                        threeDeeFrame.refresh(false);
                     }
                 });
             } finally {
@@ -7215,7 +7224,7 @@ public final class App extends JFrame implements RadiusControl,
                             || (dimension.getTopLayerVariation() != previousTopLayerVariation)
                             || (dimension.getTopLayerAnchor() != previousTopLayerAnchor)
                             || (newAnnotationsExport != previousAnnotationsExport)) {
-                        threeDeeFrame.refresh();
+                        threeDeeFrame.refresh(false);
                     }
                 }
                 if ((dimension.getBorder() != previousBorder)

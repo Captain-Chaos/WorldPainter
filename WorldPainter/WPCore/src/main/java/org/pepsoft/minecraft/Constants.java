@@ -5,6 +5,8 @@
 
 package org.pepsoft.minecraft;
 
+import org.pepsoft.worldpainter.layers.Annotations;
+
 /**
  *
  * @author pepijn
@@ -1083,6 +1085,13 @@ public final class Constants {
     public static final int DATA_RED        = 14;
     public static final int DATA_BLACK      = 15;
 
+    /**
+     * The names corresponding to the {@code DATA_*} constants above (which correspond to the legacy data values for the
+     * wool block).
+     *
+     * <p><strong>PLEASE NOTE:</strong> {@link Annotations} layer values do <em>not</em> correspond to indices into this
+     * array!
+     */
     public static final String[] COLOUR_NAMES = {"White", "Orange", "Magenta", "Light Blue", "Yellow", "Lime", "Pink",
         "Grey", "Light Grey", "Cyan", "Purple", "Blue", "Brown", "Green", "Red", "Black"};
 

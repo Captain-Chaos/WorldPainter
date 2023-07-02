@@ -1,3 +1,9 @@
+-- Version 2.18.5, released ...
+
+ * The 3D view can now be configured to show: all above-ground layers (the default, and what it previously showed), no layers, or to be synchronised with the visible layers in the editor, using the new radio buttons on the toolbar
+ * If the 3D view is set to be "always on top" when a new window is opened, the "always on top" option is turned off, to prevent the 3D view from blocking or obscuring the new window
+ * Bug fix: fix the Annotations colours and colour names on the Import Mask screen
+
 -- Version 2.18.4, released 27-6-2023
 
  * Bug fix: restore order of custom layers on palettes

@@ -9,19 +9,23 @@ import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.threedeeview.Tile3DRenderer.LayerVisibilityMode;
 
 import java.awt.image.BufferedImage;
+import java.util.Set;
 
 /**
  *
  * @author pepijn
  */
 public class Background3DTileRenderer extends Thread {
-    public Background3DTileRenderer(Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int rotation, UniqueJobQueue<Tile3DRenderJob> jobQueue, ThreeDeeRenderManager threeDeeRenderManager) {
+    public Background3DTileRenderer(Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int rotation, UniqueJobQueue<Tile3DRenderJob> jobQueue, ThreeDeeRenderManager threeDeeRenderManager,
+                                    LayerVisibilityMode layerVisibility, Set<Layer> hiddenLayers) {
         super("Background 3D renderer");
         this.jobQueue = jobQueue;
         this.threeDeeRenderManager = threeDeeRenderManager;
-        renderer = new Tile3DRenderer(dimension, colourScheme, customBiomeManager, rotation);
+        renderer = new Tile3DRenderer(dimension, colourScheme, customBiomeManager, rotation, layerVisibility, hiddenLayers);
         setDaemon(true);
     }
 

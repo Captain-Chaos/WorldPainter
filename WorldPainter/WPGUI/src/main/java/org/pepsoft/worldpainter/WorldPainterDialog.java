@@ -38,6 +38,7 @@ public class WorldPainterDialog extends JDialog {
         super(parent, ModalityType.APPLICATION_MODAL);
 
         if (parent instanceof App) {
+            ((App) parent).reset3DViewAlwaysOnTop();
             ((App) parent).pauseAutosave();
             addWindowListener(new WindowAdapter() {
                 @Override

@@ -23,7 +23,8 @@ import java.util.Set;
 
 import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Material.*;
-import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
+import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.TileRenderer.ALL_TUNNELS_AS_LAYER;
 import static org.pepsoft.worldpainter.TileRenderer.FLUIDS_AS_LAYER;
 import static org.pepsoft.worldpainter.threedeeview.ThreeDeeView.TILE_NOT_RENDERABLE;
 
@@ -33,18 +34,48 @@ import static org.pepsoft.worldpainter.threedeeview.ThreeDeeView.TILE_NOT_RENDER
  */
 // TODO: adapt for new dynamic maximum level height
 public class Tile3DRenderer {
-    public Tile3DRenderer(Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int rotation) {
+    public Tile3DRenderer(Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int rotation, LayerVisibilityMode layerVisibility, Set<Layer> hiddenLayers) {
         this.dimension = dimension;
         minHeight = dimension.getMinHeight();
         this.colourScheme = colourScheme;
         this.rotation = rotation;
         tileRenderer = new TileRenderer(dimension, colourScheme, customBiomeManager, 0, true, null);
-        tileRenderer.addHiddenLayers(DEFAULT_HIDDEN_LAYERS);
-        if ((dimension.getLayerSettings(Annotations.INSTANCE) == null) || (! ((AnnotationsExporter.AnnotationsSettings) dimension.getLayerSettings(Annotations.INSTANCE)).isExport())) {
+        switch (layerVisibility) {
+            case NONE:
+                tileRenderer.setHideAllLayers(true);
+                tileRenderer.addHiddenLayers(ALWAYS_HIDDEN_LAYERS);
+                hideFrost = true;
+                hideFluids = false;
+                break;
+            case SYNC:
+                tileRenderer.addHiddenLayers(hiddenLayers);
+                tileRenderer.addHiddenLayers(ALWAYS_HIDDEN_LAYERS);
+                hideFrost = hiddenLayers.contains(Frost.INSTANCE);
+                hideFluids = hiddenLayers.contains(FLUIDS_AS_LAYER);
+                break;
+            case SURFACE:
+                tileRenderer.addHiddenLayers(DEFAULT_HIDDEN_LAYERS);
+                hideFrost = false;
+                hideFluids = false;
+                break;
+            default:
+                throw new InternalError();
+        }
+        if ((layerVisibility != LayerVisibilityMode.NONE) && ((dimension.getLayerSettings(Annotations.INSTANCE) == null) || (! ((AnnotationsExporter.AnnotationsSettings) dimension.getLayerSettings(Annotations.INSTANCE)).isExport()))) {
             tileRenderer.addHiddenLayers(singleton(Annotations.INSTANCE));
         }
         tileRenderer.setContourLines(false);
-        stoneColour = colourScheme.getColour(STONE);
+        switch (dimension.getAnchor().dim) {
+            case DIM_NETHER:
+                stoneColour = colourScheme.getColour(NETHERRACK);
+                break;
+            case DIM_END:
+                stoneColour = colourScheme.getColour(END_STONE);
+                break;
+            default:
+                stoneColour = colourScheme.getColour(STONE);
+                break;
+        }
         waterColour = colourScheme.getColour(WATER);
         lavaColour = colourScheme.getColour(LAVA);
         iceColour = colourScheme.getColour(ICE);
@@ -205,12 +236,12 @@ public class Tile3DRenderer {
                     g2.draw(new Line2D.Float(imgX, imgY - terrainHeight + minHeight, imgX + 1, imgY - terrainHeight + minHeight));
 
                     // Draw the water or lava, if any
-                    if (fluidLevel > terrainHeight) {
+                    if ((! hideFluids) && (fluidLevel > terrainHeight)) {
                         colour = floodWithLava ? lavaColour : waterColour;
     //                                    currentColour = 0x80000000 | ColourUtils.multiply(colour, brightenAmount);
                         currentColour = (colour & 0x00ffffff) | 0x60000000;
                         g2.setColor(new Color(currentColour, true));
-                        boolean ice = (! floodWithLava) && tile.getBitLayerValue(Frost.INSTANCE, xInTile, yInTile);
+                        boolean ice = (! floodWithLava) && (! hideFrost) && tile.getBitLayerValue(Frost.INSTANCE, xInTile, yInTile);
                         for (int z = terrainHeight + 1; z <= fluidLevel; z++) {
                             if ((z == fluidLevel) && ice) {
                                 colour = iceColour;
@@ -236,10 +267,18 @@ public class Tile3DRenderer {
     private final TileRenderer tileRenderer;
     private final int minHeight, rotation, stoneColour, waterColour, lavaColour, iceColour;
     private final Platform platform;
+    private final boolean hideFrost, hideFluids;
 
     private final BufferedImage tileImgBuffer = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_RGB);
 
-    static final Set<Layer> DEFAULT_HIDDEN_LAYERS = new HashSet<>(Arrays.asList(FLUIDS_AS_LAYER, Biome.INSTANCE, Caverns.INSTANCE, Caves.INSTANCE, Chasms.INSTANCE, ReadOnly.INSTANCE, Resources.INSTANCE));
+    static final Set<Layer> ALWAYS_HIDDEN_LAYERS = singleton(FLUIDS_AS_LAYER);
+    static final Set<Layer> DEFAULT_HIDDEN_LAYERS = new HashSet<>(Arrays.asList(Biome.INSTANCE, Caverns.INSTANCE, Caves.INSTANCE, Chasms.INSTANCE, ReadOnly.INSTANCE, Resources.INSTANCE, ALL_TUNNELS_AS_LAYER));
+
+    static {
+        DEFAULT_HIDDEN_LAYERS.addAll(ALWAYS_HIDDEN_LAYERS);
+    }
 
     private static final Logger logger = LoggerFactory.getLogger(Tile3DRenderer.class);
+
+    public enum LayerVisibilityMode { NONE, SYNC, SURFACE }
 }

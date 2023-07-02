@@ -94,16 +94,10 @@ public final class TileRenderer {
     }
 
     public void addHiddenLayers(Collection<Layer> hiddenLayers) {
-        if (hideAllLayers) {
-            throw new IllegalStateException("Cannot add to hiddenLayers when hideAllLayers is set");
-        }
         this.hiddenLayers.addAll(hiddenLayers);
     }
     
     public void setHiddenLayers(Set<Layer> hiddenLayers) {
-        if (hideAllLayers) {
-            throw new IllegalStateException("Cannot set hiddenLayers when hideAllLayers is set");
-        }
         this.hiddenLayers.clear();
         // The FloodWithLava layer should *always* remain hidden
         hiddenLayers.add(FloodWithLava.INSTANCE);
@@ -215,6 +209,9 @@ public final class TileRenderer {
         layerList.removeAll(hiddenLayers);
         final boolean hideTerrain = hiddenLayers.contains(TERRAIN_AS_LAYER);
         final boolean hideFluids = hiddenLayers.contains(FLUIDS_AS_LAYER);
+        if (hiddenLayers.contains(ALL_TUNNELS_AS_LAYER)) {
+            layerList.removeIf(layer -> layer instanceof TunnelLayer);
+        }
         final boolean _void = layerList.contains(org.pepsoft.worldpainter.layers.Void.INSTANCE), notAllBlocksPresent = layerList.contains(NotPresent.INSTANCE) || layerList.contains(NotPresentBlock.INSTANCE);
         if (hideAllLayers) {
             layerList.clear();
@@ -548,6 +545,14 @@ public final class TileRenderer {
         }
 
         private final BufferedImage ICON = IconUtils.loadScaledImage("org/pepsoft/worldpainter/resources/fluids.png");
+    };
+    public static final Layer ALL_TUNNELS_AS_LAYER = new Layer("org.pepsoft.synthetic.Tunnels", "Cave/Tunnel Layers", "All Custom Cave/Tunnel Layers", Layer.DataSize.NONE, false, 0) {
+        @Override
+        public BufferedImage getIcon() {
+            return ICON;
+        }
+
+        private final BufferedImage ICON = IconUtils.loadScaledImage("org/pepsoft/worldpainter/resources/tunnels.png");
     };
 
     private static final int BLACK = 0x000000, LIGHT_GREY = 0xD0D0D0;

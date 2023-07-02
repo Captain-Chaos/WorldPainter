@@ -9,6 +9,8 @@ import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.threedeeview.Tile3DRenderer.LayerVisibilityMode;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -76,13 +78,21 @@ public class ThreeDeeRenderManager {
     synchronized void tileFinished(RenderResult renderResult) {
         results.add(renderResult);
     }
-    
+
+    public void setLayerVisibility(LayerVisibilityMode layerVisibility) {
+        this.layerVisibility = layerVisibility;
+    }
+
+    public void setHiddenLayers(Set<Layer> hiddenLayers) {
+        this.hiddenLayers = hiddenLayers;
+    }
+
     private void startThreads() {
         jobQueue = new UniqueJobQueue<>();
         int noOfThreads = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
         renderThreads = new Background3DTileRenderer[noOfThreads];
         for (int i = 0; i < noOfThreads; i++) {
-            renderThreads[i] = new Background3DTileRenderer(dimension, colourScheme, customBiomeManager, rotation, jobQueue, this);
+            renderThreads[i] = new Background3DTileRenderer(dimension, colourScheme, customBiomeManager, rotation, jobQueue, this, layerVisibility, hiddenLayers);
             renderThreads[i].start();
         }
     }
@@ -94,4 +104,6 @@ public class ThreeDeeRenderManager {
     private HashSet<RenderResult> results = new HashSet<>();
     private Background3DTileRenderer[] renderThreads;
     private UniqueJobQueue<Tile3DRenderJob> jobQueue;
+    private LayerVisibilityMode layerVisibility;
+    private Set<Layer> hiddenLayers;
 }

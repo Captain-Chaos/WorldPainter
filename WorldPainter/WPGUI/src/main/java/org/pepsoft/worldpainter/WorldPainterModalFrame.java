@@ -38,6 +38,7 @@ public class WorldPainterModalFrame extends JFrame {
         setIconImage(App.ICON);
 
         if (owner instanceof App) {
+            ((App) owner).reset3DViewAlwaysOnTop();
             ((App) owner).pauseAutosave();
             addWindowListener(new WindowAdapter() {
                 @Override
