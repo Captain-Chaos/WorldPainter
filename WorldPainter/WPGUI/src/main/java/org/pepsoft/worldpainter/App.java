@@ -5,11 +5,9 @@
 
 package org.pepsoft.worldpainter;
 
-import com.google.common.collect.Lists;
 import com.jidesoft.docking.*;
 import com.jidesoft.swing.JideLabel;
 import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Material;
@@ -40,14 +38,9 @@ import org.pepsoft.worldpainter.importing.ImportMaskDialog;
 import org.pepsoft.worldpainter.importing.MapImportDialog;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.AnnotationsExporter;
-import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
-import org.pepsoft.worldpainter.layers.plants.PlantLayer;
 import org.pepsoft.worldpainter.layers.plants.PlantLayerEditor;
-import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsDialog;
-import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsLayer;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
-import org.pepsoft.worldpainter.layers.tunnel.TunnelLayerDialog;
 import org.pepsoft.worldpainter.operations.*;
 import org.pepsoft.worldpainter.painting.LayerPaint;
 import org.pepsoft.worldpainter.painting.Paint;
@@ -56,9 +49,7 @@ import org.pepsoft.worldpainter.painting.TerrainPaint;
 import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.panels.InfoPanel;
-import org.pepsoft.worldpainter.plugins.CustomLayerProvider;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
-import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.ramps.ColourGradient;
 import org.pepsoft.worldpainter.ramps.DefaultColourRamp;
 import org.pepsoft.worldpainter.selection.*;
@@ -102,7 +93,6 @@ import java.util.List;
 import java.util.*;
 import java.util.function.Function;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 import static com.jidesoft.docking.DockContext.DOCK_SIDE_EAST;
 import static com.jidesoft.docking.DockContext.DOCK_SIDE_WEST;
@@ -115,7 +105,6 @@ import static java.lang.Math.round;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
-import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toSet;
 import static javax.swing.JOptionPane.*;
 import static javax.swing.KeyStroke.getKeyStroke;
@@ -154,7 +143,7 @@ import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
  */
 public final class App extends JFrame implements RadiusControl,
         BiomesViewerFrame.SeedListener, BrushOptions.Listener, CustomBiomeListener,
-        PaletteManager.ButtonProvider, DockableHolder, PropertyChangeListener, Dimension.Listener, Tile.Listener {
+        DockableHolder, PropertyChangeListener, Dimension.Listener, Tile.Listener {
     private App() {
         super((mode == Mode.WORLDPAINTER) ? "WorldPainter" : "MinecraftMapEditor"); // NOI18N
 
@@ -481,11 +470,11 @@ public final class App extends JFrame implements RadiusControl,
             // Remove the existing custom object layers and save the list of custom layers to the dimension to preserve
             // layers which aren't currently in use
             saveCustomLayers();
-            if (! paletteManager.isEmpty()) {
+            if (! customLayerController.paletteManager.isEmpty()) {
                 boolean visibleLayersChanged = false;
                 final Set<String> hiddenPalettes = new HashSet<>();
                 String soloedPalette = null;
-                for (Palette palette: paletteManager.clear()) {
+                for (Palette palette: customLayerController.paletteManager.clear()) {
                     final String paletteName = palette.getName();
                     if (! palette.isShow()) {
                         hiddenPalettes.add(paletteName);
@@ -595,7 +584,7 @@ public final class App extends JFrame implements RadiusControl,
                 if (customLayer.isHide()) {
                     layersWithNoButton.add(customLayer);
                 } else {
-                    registerCustomLayer(customLayer, false);
+                    customLayerController.registerCustomLayer(customLayer, false);
                 }
                 if (customLayer instanceof CombinedLayer) {
                     if (! ((CombinedLayer) customLayer).restoreCustomTerrain()) {
@@ -619,11 +608,11 @@ public final class App extends JFrame implements RadiusControl,
 
             // Restore palette states
             if (dimension.getSoloedPalette() != null) {
-                paletteManager.getPalette(dimension.getSoloedPalette()).setSolo(true);
+                customLayerController.paletteManager.getPalette(dimension.getSoloedPalette()).setSolo(true);
             }
             if (dimension.getHiddenPalettes() != null) {
                 dimension.getHiddenPalettes().forEach(name -> {
-                    final Palette palette = paletteManager.getPalette(name);
+                    final Palette palette = customLayerController.paletteManager.getPalette(name);
                     // It's not clear how this can be null, but that has been observed in the wild. TODO find out why
                     //  and fix the underlying cause!
                     if (palette != null) {
@@ -1305,15 +1294,6 @@ public final class App extends JFrame implements RadiusControl,
                 if (evt.getPropertyName().equals("platform")) {
                     doOnEventThread(this::configureForPlatform);
                 }
-            } else if ((evt.getSource() instanceof Palette) && (evt.getPropertyName().equals("show") || evt.getPropertyName().equals("solo"))) {
-                if (evt.getPropertyName().equals("solo") && evt.getNewValue() == Boolean.TRUE) {
-                    for (Palette palette: paletteManager.getPalettes()) {
-                        if ((palette != evt.getSource()) && palette.isSolo()) {
-                            palette.setSolo(false);
-                        }
-                    }
-                }
-                updateLayerVisibility();
             }
         } finally {
             programmaticChange = false;
@@ -1571,30 +1551,20 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     /**
-     * Gets all currently loaded custom layers, including hidden ones (from the
-     * panel or the view), regardless of whether they are used on the map.
+     * Gets all currently loaded custom layers, including hidden ones (from the panel or the view), regardless of
+     * whether they are used on the map.
      */
     public List<CustomLayer> getCustomLayers() {
-        final List<CustomLayer> customLayers = new ArrayList<>(256);
-        customLayers.addAll(paletteManager.getLayers());
-        customLayers.addAll(layersWithNoButton);
-        customLayers.sort(comparing(CustomLayer::getName));
-        return customLayers;
+        return customLayerController.getCustomLayers();
     }
 
     /**
-     * Gets all currently loaded custom layers, including hidden ones (from the
-     * panel or the view), regardless of whether they are used on the map, by
-     * palette (which will be {@code null} for hidden layers). For the
-     * visible layers the collections will be in the order they are displayed on
-     * the palette.
+     * Gets all currently loaded custom layers, including hidden ones (from the panel or the view), regardless of
+     * whether they are used on the map, by palette (which will be {@code null} for hidden layers). For the visible
+     * layers the collections will be in the order they are displayed on the palette.
      */
     public Map<String, Collection<CustomLayer>> getCustomLayersByPalette() {
-        Map<String, Collection<CustomLayer>> customLayers = paletteManager.getLayersByPalette();
-        if (! layersWithNoButton.isEmpty()) {
-            customLayers.put(null, layersWithNoButton);
-        }
-        return customLayers;
+        return customLayerController.getCustomLayersByPalette();
     }
 
     public ColourScheme getColourScheme() {
@@ -1896,7 +1866,7 @@ public final class App extends JFrame implements RadiusControl,
         return -1;
     }
 
-    private void addButtonForNewCustomTerrain(int index, MixedMaterial customMaterial, boolean select) {
+    void addButtonForNewCustomTerrain(int index, MixedMaterial customMaterial, boolean select) {
         Terrain.setCustomMaterial(index, customMaterial);
 
         if (customTerrainPanel == null) {
@@ -3202,7 +3172,7 @@ public final class App extends JFrame implements RadiusControl,
             // This is sometimes invoked while layerPanel is not showing, which results in an error. TODO: find out why
             //  and fix underlying cause
             if (layerPanel.isShowing()) {
-                final JPopupMenu customLayerMenu = createCustomLayerMenu(null);
+                final JPopupMenu customLayerMenu = customLayerController.createCustomLayerMenu(null);
                 customLayerMenu.show(layerPanel, addLayerButton.getX() + addLayerButton.getWidth(), addLayerButton.getY());
             }
         });
@@ -3418,211 +3388,14 @@ public final class App extends JFrame implements RadiusControl,
 
         return layerPanel;
     }
-    
-    private JPopupMenu createCustomLayerMenu(final String paletteName) {
-        JPopupMenu customLayerMenu = new BetterJPopupMenu();
-        JMenuItem menuItem = new JMenuItem(strings.getString("add.a.custom.object.layer") + "...");
-        menuItem.addActionListener(e -> {
-            EditLayerDialog<Bo2Layer> dialog = new EditLayerDialog<>(App.this, world.getPlatform(), Bo2Layer.class);
-            dialog.setVisible(() -> {
-                Bo2Layer layer = dialog.getLayer();
-                if (paletteName != null) {
-                    layer.setPalette(paletteName);
-                }
-                registerCustomLayer(layer, true);
-            });
-        });
-        customLayerMenu.add(menuItem);
-        
-        menuItem = new JMenuItem(strings.getString("add.a.custom.ground.cover.layer") + "...");
-        menuItem.addActionListener(e -> {
-            EditLayerDialog<GroundCoverLayer> dialog = new EditLayerDialog<>(App.this, world.getPlatform(), GroundCoverLayer.class);
-            dialog.setVisible(() -> {
-                GroundCoverLayer layer = dialog.getLayer();
-                if (paletteName != null) {
-                    layer.setPalette(paletteName);
-                }
-                registerCustomLayer(layer, true);
-            });
-        });
-        customLayerMenu.add(menuItem);
-
-        final Anchor anchor = dimension.getAnchor();
-        menuItem = new JMenuItem(strings.getString("add.a.custom.underground.pockets.layer") + "...");
-        menuItem.addActionListener(e -> {
-            UndergroundPocketsDialog dialog = new UndergroundPocketsDialog(App.this, world.getPlatform(), MixedMaterial.create(world.getPlatform(), Material.IRON_BLOCK), selectedColourScheme, dimension.getMinHeight(), dimension.getMaxHeight(), world.isExtendedBlockIds());
-            dialog.setVisible(() -> {
-                UndergroundPocketsLayer layer = dialog.getLayer();
-                if (paletteName != null) {
-                    layer.setPalette(paletteName);
-                }
-                registerCustomLayer(layer, true);
-            });
-        });
-        if (anchor.role == CAVE_FLOOR) {
-            menuItem.setEnabled(false);
-        }
-        customLayerMenu.add(menuItem);
-        
-        menuItem = new JMenuItem("Add a custom cave/tunnel layer...");
-        menuItem.addActionListener(e -> {
-            final TunnelLayer layer = new TunnelLayer("Tunnels", 0x000000);
-            final int baseHeight, waterLevel;
-            final TileFactory tileFactory = dimension.getTileFactory();
-            if (tileFactory instanceof HeightMapTileFactory) {
-                baseHeight = (int) ((HeightMapTileFactory) tileFactory).getBaseHeight();
-                waterLevel = ((HeightMapTileFactory) tileFactory).getWaterHeight();
-                layer.setFloodWithLava(((HeightMapTileFactory) tileFactory).isFloodWithLava());
-            } else {
-                baseHeight = 58;
-                waterLevel = DEFAULT_WATER_LEVEL;
-            }
-            // TODO passing in dimension here is a crude mechanism. It is supposed to be the dimension on which this
-            //  layer will be used, but that is impossible to enforce. In practice this will usually be right though
-            final TunnelLayerDialog dialog = new TunnelLayerDialog(App.this, world.getPlatform(), layer, dimension, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
-            dialog.setVisible(() -> {
-                if (paletteName != null) {
-                    layer.setPalette(paletteName);
-                }
-                registerCustomLayer(layer, true);
-            });
-        });
-        if (anchor.role == CAVE_FLOOR) {
-            menuItem.setEnabled(false);
-        }
-        customLayerMenu.add(menuItem);
-        
-        menuItem = new JMenuItem("Add a custom plants layer...");
-        menuItem.addActionListener(e -> {
-            EditLayerDialog<PlantLayer> dialog = new EditLayerDialog<>(App.this, world.getPlatform(), PlantLayer.class);
-            dialog.setVisible(() -> {
-                PlantLayer layer = dialog.getLayer();
-                if (paletteName != null) {
-                    layer.setPalette(paletteName);
-                }
-                registerCustomLayer(layer, true);
-            });
-        });
-        customLayerMenu.add(menuItem);
-        
-        menuItem = new JMenuItem("Add a combined layer...");
-        menuItem.addActionListener(e -> {
-            EditLayerDialog<CombinedLayer> dialog = new EditLayerDialog<>(App.this, world.getPlatform(), CombinedLayer.class);
-            dialog.setVisible(() -> {
-                // TODO: get saved layer
-                CombinedLayer layer = dialog.getLayer();
-                if (paletteName != null) {
-                    layer.setPalette(paletteName);
-                }
-                registerCustomLayer(layer, true);
-            });
-        });
-        customLayerMenu.add(menuItem);
-
-        List<Class<? extends CustomLayer>> allPluginLayers = new ArrayList<>();
-        for (CustomLayerProvider layerProvider: WPPluginManager.getInstance().getPlugins(CustomLayerProvider.class)) {
-            allPluginLayers.addAll(layerProvider.getCustomLayers());
-        }
-        if (! allPluginLayers.isEmpty()) {
-            customLayerMenu.addSeparator();
-
-            for (Class<? extends CustomLayer> customLayerClass: allPluginLayers) {
-                menuItem = new JMenuItem("Add a " + customLayerClass.getSimpleName() + " layer..."); // TODO: introduce a proper display name for custom layers
-                menuItem.addActionListener(e -> {
-                    EditLayerDialog<CustomLayer> dialog = new EditLayerDialog<>(App.this, world.getPlatform(), (Class<CustomLayer>) customLayerClass);
-                    dialog.setVisible(() -> {
-                        // TODO: get saved layer
-                        CustomLayer layer = dialog.getLayer();
-                        if (paletteName != null) {
-                            layer.setPalette(paletteName);
-                        }
-                        registerCustomLayer(layer, true);
-                    });
-                });
-                customLayerMenu.add(menuItem);
-            }
-
-            customLayerMenu.addSeparator();
-        }
-
-        menuItem = new JMenu("Copy layer from another dimension");
-        menuItem.setToolTipText("This will make a duplicate of the layer, with its own identity and separate settings");
-        final Function<Layer, Boolean> filter = getLayerFilterForCurrentDimension();
-        List<JMenuItem> copyMenuItems = getCopyLayerMenuItems((paletteName != null) ? paletteName : "Custom Layers", filter);
-        if (! copyMenuItems.isEmpty()) {
-            for (JMenuItem copyMenuItem: copyMenuItems) {
-                ((JMenu) menuItem).add(copyMenuItem);
-            }
-        } else {
-            menuItem.setEnabled(false);
-        }
-        customLayerMenu.add(menuItem);
-
-        menuItem = new JMenuItem("Import custom layer(s) from file...");
-        menuItem.addActionListener(e -> importLayers(paletteName, filter));
-        customLayerMenu.add(menuItem);
-
-        menuItem = new JMenuItem("Import custom layer(s) from another world...");
-        menuItem.addActionListener(e -> importCustomItemsFromWorld(CustomItemsTreeModel.ItemType.LAYER, filter));
-        customLayerMenu.add(menuItem);
-
-        return customLayerMenu;
-    }
 
     @Nullable
-    private Function<Layer, Boolean> getLayerFilterForCurrentDimension() {
+    Function<Layer, Boolean> getLayerFilterForCurrentDimension() {
         if ((dimension != null) && (dimension.getAnchor().role == CAVE_FLOOR)) {
             return TunnelLayer::isLayerSupportedForFloorDimension;
         } else {
             return null;
         }
-    }
-
-    private List<JMenuItem> getCopyLayerMenuItems(String targetPaletteName, Function<Layer, Boolean> filter) {
-        if (targetPaletteName == null) {
-            throw new NullPointerException("targetPaletteName");
-        }
-        final List<JMenuItem> menuItems = new ArrayList<>();
-        for (Dimension dimension: world.getDimensions()) {
-            if (dimension == this.dimension) {
-                continue;
-            }
-            final Map<String, JMenu> menusForDimension = new HashMap<>();
-            for (CustomLayer layer: dimension.getCustomLayers()) {
-                if ((! layer.isExportable()) || ((filter != null) && (! filter.apply(layer)))) {
-                    continue;
-                }
-                final String palette = layer.getPalette();
-                final JMenuItem menuForPalette = menusForDimension.computeIfAbsent(palette, k -> new JMenu(palette));
-                final JMenuItem menuItem = new JMenuItem(layer.getName(), new ImageIcon(layer.getIcon()));
-                menuItem.addActionListener(event -> copyLayerToPalette(layer, targetPaletteName, true));
-                menuForPalette.add(menuItem);
-            }
-            final JMenu menuForDimension;
-            if (menusForDimension.size() == 1) {
-                menuForDimension = menusForDimension.values().iterator().next();
-                menuForDimension.setText(dimension.getName());
-            } else {
-                menuForDimension = new JMenu(dimension.getName());
-                for (JMenu menu: menusForDimension.values()) {
-                    menuForDimension.add(menu);
-                }
-            }
-            if (menuForDimension.getItemCount() > 0) {
-                menuItems.add(menuForDimension);
-            }
-        }
-        if (menuItems.size() == 1) {
-            return Lists.transform(asList(((JMenu) menuItems.get(0)).getMenuComponents()), e -> (JMenuItem) e);
-        } else {
-            return menuItems;
-        }
-    }
-
-    private void copyLayerToPalette(CustomLayer layer, String paletteName, boolean activate) {
-        final CustomLayer copy = layer.clone();
-        copy.setPalette(paletteName);
-        registerCustomLayer(copy, activate);
     }
 
     private JPanel createTerrainPanel() {
@@ -3947,396 +3720,12 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    private void registerCustomLayer(final CustomLayer layer, boolean activate) {
-        // Add to palette, creating it if necessary
-        Palette palette = paletteManager.register(layer);
-
-        // Show the palette if it is not showing yet
-        if (palette != null) {
-            dockingManager.addFrame(palette.getDockableFrame());
-            dockingManager.dockFrame(palette.getDockableFrame().getKey(), DockContext.DOCK_SIDE_WEST, 3);
-            if (activate) {
-                dockingManager.activateFrame(palette.getDockableFrame().getKey());
-            }
-            palette.addPropertyChangeListener(this);
-        } else {
-            validate();
-        }
-
-        if (activate) {
-            paletteManager.activate(layer);
-        }
-    }
-
-    private void unregisterCustomLayer(final CustomLayer layer) {
-        // Remove from palette
-        Palette palette = paletteManager.unregister(layer);
-
-        // Remove tracked GUI components
-        layerSoloCheckBoxes.remove(layer);
-
-        // If the palette is now empty, remove it too
-        if (palette.isEmpty()) {
-            palette.removePropertyChangeListener(this);
-            paletteManager.delete(palette);
-            dockingManager.removeFrame(palette.getDockableFrame().getKey());
-        }
-    }
-
-    // PaletteManager.ButtonProvider
-    
-    @Override
-    public List<Component> createCustomLayerButton(final CustomLayer layer) {
-        final List<Component> buttonComponents = createLayerButton(layer, '\0');
-        final JToggleButton button = (JToggleButton) buttonComponents.get(2);
-        button.setToolTipText(button.getToolTipText() + "; right-click for options");
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (e.isPopupTrigger()) {
-                    showPopup(e);
-                }
-            }
-
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.isPopupTrigger()) {
-                    showPopup(e);
-                }
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                if (e.isPopupTrigger()) {
-                    showPopup(e);
-                }
-            }
-
-            private void showPopup(MouseEvent e) {
-                JPopupMenu popup = new BetterJPopupMenu();
-                JMenuItem menuItem = new JMenuItem(strings.getString("edit") + "...");
-                menuItem.addActionListener(e1 -> editCustomLayer(layer));
-                popup.add(menuItem);
-                if ((layer instanceof TunnelLayer)) {
-                    final TunnelLayer tunnelLayer = (TunnelLayer) layer;
-                    final Integer floorDimensionId = tunnelLayer.getFloorDimensionId();
-                    if (floorDimensionId != null) {
-                        menuItem = new JMenuItem("Edit floor dimension [ALPHA]");
-                        if (dimension.containsOneOf(layer)) {
-                            menuItem.addActionListener(e1 -> {
-                                final Point viewPosition = view.getViewCentreInWorldCoords();
-                                final Dimension floorDimension = tunnelLayer.updateFloorDimension(dimension, null);
-                                setDimension(floorDimension);
-
-                                // Initially we move to the same location as we were on the surface. Then we check
-                                // whether the floor dimension is actually visible then. If not, we try to find the
-                                // middle and move there
-                                // TODO: this might not be helpful if the layer is painted in multiple discontiguous areas
-                                view.moveTo(viewPosition);
-                                int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
-                                final Rectangle visibleArea = view.getVisibleArea();
-                                boolean floorTileVisible = false;
-                                for (Tile tile: floorDimension.getTiles()) {
-                                    // Check if the tile is entirely visible. If so, we're done and will
-                                    if (visibleArea.contains(tile.getX() << TILE_SIZE_BITS, tile.getY() << TILE_SIZE_BITS)
-                                            && visibleArea.contains((tile.getX() << TILE_SIZE_BITS) + TILE_SIZE - 1, (tile.getY() << TILE_SIZE_BITS) + TILE_SIZE - 1)) {
-                                        floorTileVisible = true;
-                                        break;
-                                    }
-
-                                    // Record the extents of the tiles of the floor dimension
-                                    if (tile.getX() < minX) {
-                                        minX = tile.getX();
-                                    }
-                                    if (tile.getX() > maxX) {
-                                        maxX = tile.getX();
-                                    }
-                                    if (tile.getY() < minY) {
-                                        minY = tile.getY();
-                                    }
-                                    if (tile.getY() > maxY) {
-                                        maxY = tile.getY();
-                                    }
-                                };
-                                if ((! floorTileVisible) && (minX != Integer.MAX_VALUE)) {
-                                    view.moveTo((((maxX + minX) / 2) << TILE_SIZE_BITS) + (TILE_SIZE / 2),
-                                            (((maxY + minY) / 2) << TILE_SIZE_BITS) + (TILE_SIZE / 2));
-                                }
-
-                                final Configuration config = Configuration.getInstance();
-                                if (! config.isMessageDisplayedCountAtLeast(EDITING_FLOOR_DIMENSION_KEY, 3)) {
-                                    doLaterOnEventThread(() -> JOptionPane.showMessageDialog(App.this,
-                                            "Press Esc to finish editing the Custom Cave/Tunnel layer floor dimension,\n" +
-                                                    "or select the Surface dimension from the View menu or by pressing " + COMMAND_KEY_NAME + "+U", "Editing Cave/Tunnel Floor", JOptionPane.INFORMATION_MESSAGE));
-                                    config.setMessageDisplayed(EDITING_FLOOR_DIMENSION_KEY);
-                                }
-                            });
-                        } else {
-                            menuItem.setEnabled(false);
-                        }
-                        popup.add(menuItem);
-                    }
-                }
-                menuItem = new JMenuItem("Duplicate...");
-                if (layer.isExportable()) {
-                    menuItem.addActionListener(e1 -> duplicate());
-                } else {
-                    menuItem.setEnabled(false);
-                    menuItem.setToolTipText("This layer cannot be duplicated.");
-                }
-                popup.add(menuItem);
-                menuItem = new JMenuItem(strings.getString("remove") + "...");
-                menuItem.addActionListener(e1 -> remove());
-                popup.add(menuItem);
-                menuItem = new JMenuItem("Export to file...");
-                if (layer.isExportable()) {
-                    menuItem.addActionListener(e1 -> exportLayer(layer));
-                } else {
-                    menuItem.setEnabled(false);
-                    menuItem.setToolTipText("This layer cannot be exported to a file.");
-                }
-                popup.add(menuItem);
-
-                JMenu paletteMenu = new JMenu("Move to palette");
-
-                for (final Palette palette : paletteManager.getPalettes()) {
-                    menuItem = new JMenuItem(palette.getName());
-                    menuItem.addActionListener(e1 -> moveLayerToPalette(layer, palette));
-                    if (palette.contains(layer)) {
-                        menuItem.setEnabled(false);
-                    }
-                    paletteMenu.add(menuItem);
-                }
-
-                menuItem = new JMenuItem("New palette...");
-                menuItem.addActionListener(e1 -> createNewLayerPalette(layer));
-                paletteMenu.add(menuItem);
-
-                popup.add(paletteMenu);
-
-                List<Action> actions = layer.getActions();
-                if (actions != null) {
-                    for (Action action : actions) {
-                        action.putValue(CustomLayer.KEY_DIMENSION, dimension);
-                        popup.add(new JMenuItem(action));
-                    }
-                }
-
-                popup.show(button, e.getX(), e.getY());
-            }
-
-            private void duplicate() {
-                CustomLayer duplicate = layer.clone();
-                duplicate.setName("Copy of " + layer.getName());
-                Color colour = new Color(layer.getColour());
-                float[] hsb = Color.RGBtoHSB(colour.getRed(), colour.getGreen(), colour.getBlue(), null);
-                hsb[0] += 1f / 12;
-                if (hsb[0] > 1f) {
-                    hsb[0] -= 1f;
-                }
-                colour = Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
-                duplicate.setColour(colour.getRGB());
-                AbstractEditLayerDialog<CustomLayer> dialog;
-                dialog = createEditLayerDialog(duplicate);
-                dialog.setVisible(() -> registerCustomLayer(dialog.getLayer(), true));
-            }
-            
-            private void remove() {
-                if (showConfirmDialog(App.this, MessageFormat.format(strings.getString("are.you.sure.you.want.to.remove.the.0.layer"), layer.getName()), MessageFormat.format(strings.getString("confirm.0.removal"), layer.getName()), YES_NO_OPTION) == YES_OPTION) {
-                    deleteCustomLayer(layer);
-                    App.this.validate(); // Doesn't happen automatically for some reason; Swing bug?
-                }
-            }
-        });
-        return buttonComponents;
-    }
-
-    public void editCustomLayer(CustomLayer layer) {
-        editCustomLayer(layer, null);
-    }
-
     public void editCustomLayer(CustomLayer layer, Runnable callback) {
-        int previousColour = layer.getColour();
-        AbstractEditLayerDialog<CustomLayer> dialog = createEditLayerDialog(layer);
-        dialog.setVisible(() -> {
-            final LayerControls layerControls = this.layerControls.get(layer);
-            final JComponent control = (layerControls != null) ? layerControls.control : null;
-            if (control != null) {
-                if (control instanceof AbstractButton) {
-                    ((AbstractButton) control).setText(layer.getName());
-                }
-                control.setToolTipText(layer.getName() + ": " + layer.getDescription() + "; right-click for options");
-            }
-            int newColour = layer.getColour();
-            boolean viewRefreshed = false;
-            if (newColour != previousColour) {
-                if (control instanceof AbstractButton) {
-                    ((AbstractButton) control).setIcon(new ImageIcon(layer.getIcon()));
-                }
-                view.refreshTilesForLayer(layer, false);
-                viewRefreshed = true;
-            }
-            dimension.changed();
-            if (layer instanceof CombinedLayer) {
-                updateHiddenLayers();
-            }
-            if ((layer instanceof TunnelLayer) && (! viewRefreshed)) {
-                view.refreshTilesForLayer(layer, false);
-            }
-            if (callback != null) {
-                callback.run();
-            }
-        });
+        customLayerController.editCustomLayer(layer, callback);
     }
 
     public void deleteCustomLayer(CustomLayer layer) {
-        if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint) && (((LayerPaint) paint).getLayer() == layer)) {
-            deselectPaint();
-        }
-        dimension.setEventsInhibited(true);
-        try {
-            dimension.clearLayerData(layer);
-            if ((layer instanceof TunnelLayer) && (((TunnelLayer) layer).getFloorDimensionId() != null)) {
-                final Anchor anchor = dimension.getAnchor();
-                world.removeDimension(new Anchor(anchor.dim, CAVE_FLOOR, anchor.invert, ((TunnelLayer) layer).getFloorDimensionId()));
-            }
-            dimension.clearUndo();
-        } finally {
-            dimension.setEventsInhibited(false);
-        }
-        unregisterCustomLayer(layer);
-
-        boolean visibleLayersChanged = false;
-        if (hiddenLayers.contains(layer)) {
-            hiddenLayers.remove(layer);
-            visibleLayersChanged = true;
-        }
-        if (layer.equals(soloLayer)) {
-            soloLayer = null;
-            visibleLayersChanged = true;
-        }
-        if (layer instanceof LayerContainer) {
-            boolean layersUnhidden = false;
-            for (Layer subLayer : ((LayerContainer) layer).getLayers()) {
-                if ((subLayer instanceof CustomLayer) && ((CustomLayer) subLayer).isHide()) {
-                    ((CustomLayer) subLayer).setHide(false);
-                    layersUnhidden = true;
-                }
-            }
-            if (layersUnhidden) {
-                updateHiddenLayers();
-                visibleLayersChanged = false;
-            }
-        }
-        if (visibleLayersChanged) {
-            updateLayerVisibility();
-        }
-    }
-    
-    @Override
-    public List<Component> createPopupMenuButton(String paletteName) {
-        final JButton addLayerButton = new JButton(loadScaledIcon("plus"));
-        final List<Component> addLayerButtonPanel = new ArrayList<>(3);
-        addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
-        addLayerButton.setMargin(new Insets(2, 2, 2, 2));
-        addLayerButton.addActionListener(e -> {
-            if (dimension == null) {
-                DesktopUtils.beep();
-                return;
-            }
-            final JPopupMenu customLayerMenu = createCustomLayerMenu(paletteName);
-            customLayerMenu.show(addLayerButton, addLayerButton.getWidth(), 0);
-        });
-        JPanel spacer = new JPanel();
-        addLayerButtonPanel.add(spacer);
-        spacer = new JPanel();
-        addLayerButtonPanel.add(spacer);
-        addLayerButtonPanel.add(addLayerButton);
-
-        return addLayerButtonPanel;
-    }
-
-    @SuppressWarnings("unchecked") // Guaranteed by code
-    @NotNull
-    private <L extends CustomLayer> AbstractEditLayerDialog<L> createEditLayerDialog(L layer) {
-        AbstractEditLayerDialog<L> dialog;
-        if ((layer instanceof Bo2Layer) || (layer instanceof GroundCoverLayer) || (layer instanceof CombinedLayer) || (layer instanceof PlantLayer)) {
-            dialog = new EditLayerDialog<>(App.this, world.getPlatform(), layer);
-        } else if (layer instanceof UndergroundPocketsLayer) {
-            dialog = (AbstractEditLayerDialog<L>) new UndergroundPocketsDialog(App.this, world.getPlatform(), (UndergroundPocketsLayer) layer, selectedColourScheme, dimension.getMinHeight(), dimension.getMaxHeight(), world.isExtendedBlockIds());
-        } else if (layer instanceof TunnelLayer) {
-            final int baseHeight, waterLevel;
-            final TileFactory tileFactory = dimension.getTileFactory();
-            if (tileFactory instanceof HeightMapTileFactory) {
-                baseHeight = (int) ((HeightMapTileFactory) tileFactory).getBaseHeight();
-                waterLevel = ((HeightMapTileFactory) tileFactory).getWaterHeight();
-            } else {
-                baseHeight = 58;
-                waterLevel = DEFAULT_WATER_LEVEL;
-            }
-            // TODO passing in dimension here is a crude mechanism. It is supposed to be the dimension on which this
-            //  layer is being used, but that is a lot of work to determine. In practice this will usually be right
-            //  though
-            dialog = (AbstractEditLayerDialog<L>) new TunnelLayerDialog(App.this, world.getPlatform(), (TunnelLayer) layer, dimension, world.isExtendedBlockIds(), selectedColourScheme, customBiomeManager, dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
-        } else {
-            throw new IllegalArgumentException("Don't know how to create dialog for layer " + layer.getName());
-        }
-        return dialog;
-    }
-
-    private void updateHiddenLayers() {
-        // Hide newly hidden layers
-        paletteManager.getLayers().stream().filter(CustomLayer::isHide).forEach(layer -> {
-            if ((activeOperation instanceof PaintOperation) && (paint instanceof LayerPaint) && (((LayerPaint) paint).getLayer().equals(layer))) {
-                deselectPaint();
-            }
-            unregisterCustomLayer(layer);
-            hiddenLayers.remove(layer);
-            if (layer.equals(soloLayer)) {
-                soloLayer = null;
-            }
-            layersWithNoButton.add(layer);
-        });
-        // Show newly unhidden layers
-        for (Iterator<CustomLayer> i = layersWithNoButton.iterator(); i.hasNext(); ) {
-            CustomLayer layer = i.next();
-            if (! layer.isHide()) {
-                i.remove();
-                registerCustomLayer(layer, false);
-            }
-        }
-        updateLayerVisibility();
-    }
-    
-    private void createNewLayerPalette(CustomLayer layer) {
-        String name;
-        if ((name = showInputDialog(this, "Enter a unique name for the new palette:", "New Palette", QUESTION_MESSAGE)) != null) {
-            name = name.trim();
-            if (name.isEmpty()) {
-                beepAndShowError(this, "Palette name cannot be empty", "Invalid Name");
-                return;
-            }
-            if (paletteManager.getPalette(name) != null) {
-                showMessageDialog(this, "There is already a palette with that name!", "Duplicate Name", ERROR_MESSAGE);
-                return;
-            }
-            Palette destPalette = paletteManager.create(name);
-            dockingManager.addFrame(destPalette.getDockableFrame());
-            dockingManager.dockFrame(destPalette.getDockableFrame().getKey(), DockContext.DOCK_SIDE_WEST, 3);
-            moveLayerToPalette(layer, destPalette);
-            dockingManager.activateFrame(destPalette.getDockableFrame().getKey());
-            destPalette.addPropertyChangeListener(this);
-        }
-    }
-
-    private void moveLayerToPalette(CustomLayer layer, Palette destPalette) {
-        Palette srcPalette = paletteManager.move(layer, destPalette);
-        if (srcPalette.isEmpty()) {
-            dockingManager.removeFrame(srcPalette.getDockableFrame().getKey());
-            srcPalette.removePropertyChangeListener(this);
-            paletteManager.delete(srcPalette);
-        }
-        validate();
+        customLayerController.deleteCustomLayer(layer);
     }
 
     private JMenuBar createMenuBar() {
@@ -4577,7 +3966,7 @@ public final class App extends JFrame implements RadiusControl,
         menu.add(menuItem);
 
         menuItem = new JMenuItem("Delete unused layers...");
-        menuItem.addActionListener(e -> deleteUnusedLayers());
+        menuItem.addActionListener(e -> customLayerController.deleteUnusedLayers());
         menu.add(menuItem);
 
 //        final JMenuItem easyModeItem = new JCheckBoxMenuItem("Advanced mode");
@@ -5537,7 +4926,7 @@ public final class App extends JFrame implements RadiusControl,
         return button;
     }
 
-    private List<Component> createLayerButton(final Layer layer, final char mnemonic) {
+    List<Component> createLayerButton(final Layer layer, final char mnemonic) {
         return createLayerButton(layer, mnemonic, true, true);
     }
 
@@ -5658,7 +5047,7 @@ public final class App extends JFrame implements RadiusControl,
     /**
      * Configure the view to show the correct layers
      */
-    private void updateLayerVisibility() {
+    void updateLayerVisibility() {
         // Determine which layers should be hidden
         Set<Layer> targetHiddenLayers = new HashSet<>();
         // The FloodWithLava layer should *always* be hidden
@@ -5677,7 +5066,7 @@ public final class App extends JFrame implements RadiusControl,
             }
         } else {
             Palette soloPalette = null;
-            for (Palette palette: paletteManager.getPalettes()) {
+            for (Palette palette: customLayerController.paletteManager.getPalettes()) {
                 if (palette.isSolo()) {
                     soloPalette = palette;
                     break;
@@ -5694,7 +5083,7 @@ public final class App extends JFrame implements RadiusControl,
             } else {
                 // The layers marked as hidden should be invisible, except the currently active one, if any
                 targetHiddenLayers.addAll(hiddenLayers);
-                for (Palette palette: paletteManager.getPalettes()) {
+                for (Palette palette: customLayerController.paletteManager.getPalettes()) {
                     if (! palette.isShow()) {
                         targetHiddenLayers.addAll(palette.getLayers());
                     }
@@ -5954,7 +5343,7 @@ public final class App extends JFrame implements RadiusControl,
         }
 
         // Check whether the terrain is used in a layer
-        final Set<CustomLayer> allLayers = new HashSet<>(getCustomLayers());
+        final Set<CustomLayer> allLayers = new HashSet<>(customLayerController.getCustomLayers());
         for (Dimension dimension: world.getDimensions()) {
             if (dimension != this.dimension) {
                 allLayers.addAll(dimension.getCustomLayers());
@@ -6029,14 +5418,14 @@ public final class App extends JFrame implements RadiusControl,
 
     private void saveCustomLayers() {
         if (dimension != null) {
-            if (! paletteManager.isEmpty()) {
+            if (! customLayerController.paletteManager.isEmpty()) {
                 final List<CustomLayer> customLayers = new ArrayList<>();
-                for (Palette palette: paletteManager.getPalettes()) {
+                for (Palette palette: customLayerController.paletteManager.getPalettes()) {
                     customLayers.addAll(palette.getLayers());
                 }
-                this.dimension.setCustomLayers(customLayers);
+                dimension.setCustomLayers(customLayers);
             } else {
-                this.dimension.setCustomLayers(emptyList());
+                dimension.setCustomLayers(emptyList());
             }
         }
     }
@@ -6272,7 +5661,7 @@ public final class App extends JFrame implements RadiusControl,
         return (areaInTiles >= 0L) && (areaInTiles <= 131071L);
     }
 
-    private void importLayers(String paletteName, Function<Layer, Boolean> filter) {
+    void importLayers(String paletteName, Function<Layer, Boolean> filter) {
         if (dimension == null) {
             DesktopUtils.beep();
             return;
@@ -6304,7 +5693,7 @@ public final class App extends JFrame implements RadiusControl,
                 try {
                     try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(selectedFile))))) {
                         final CustomLayer layer = (CustomLayer) in.readObject();
-                        for (Layer existingLayer: getCustomLayers()) {
+                        for (Layer existingLayer: customLayerController.getCustomLayers()) {
                             if (layer.equals(existingLayer)) {
                                 beepAndShowError(this, "That layer is already present in the dimension.\nThe layer has not been added.", "Layer Already Present");
                                 return;
@@ -6321,7 +5710,7 @@ public final class App extends JFrame implements RadiusControl,
                         if (paletteName != null) {
                             layer.setPalette(paletteName);
                         }
-                        updateCustomTerrainButtons = importCustomLayer(layer) || updateCustomTerrainButtons;
+                        updateCustomTerrainButtons = customLayerController.importCustomLayer(layer) || updateCustomTerrainButtons;
                         config.setLayerDirectory(selectedFile.getParentFile());
                     }
                 } catch (FileNotFoundException e) {
@@ -6348,35 +5737,6 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    /**
-     * Import the custom layer, and if it is a combined layer, also the contained layers, terrain, etc.
-     *
-     * @param layer The layer to import.
-     * @return {@code true} if new custom terrains were imported.
-     */
-    private boolean importCustomLayer(CustomLayer layer) {
-        boolean customTerrainButtonsAdded = false;
-        layer.setIndex(null);
-        registerCustomLayer(layer, true);
-        if (layer instanceof CombinedLayer) {
-            final CombinedLayer combinedLayer = (CombinedLayer) layer;
-            importLayersFromCombinedLayer(combinedLayer);
-            if (! combinedLayer.restoreCustomTerrain()) {
-                showWarning(this, "The layer contained a Custom Terrain which could not be restored. The terrain has been reset.", "Custom Terrain Not Restored");
-            } else {
-                // Check for a custom terrain type and if necessary make sure it has a button
-                final Terrain terrain = combinedLayer.getTerrain();
-                if ((terrain != null) && terrain.isCustom()) {
-                    if (customMaterialButtons[terrain.getCustomTerrainIndex()] == null) {
-                        customTerrainButtonsAdded = true;
-                        addButtonForNewCustomTerrain(terrain.getCustomTerrainIndex(), Terrain.getCustomMaterial(terrain.getCustomTerrainIndex()), false);
-                    }
-                }
-            }
-        }
-        return customTerrainButtonsAdded;
-    }
-
     private void updateCustomTerrainButtons() {
         for (int i = 0; i < CUSTOM_TERRAIN_COUNT; i++) {
             if (customMaterialButtons[i] != null) {
@@ -6384,62 +5744,6 @@ public final class App extends JFrame implements RadiusControl,
                 customMaterialButtons[i].setIcon(new ImageIcon(material.getIcon(selectedColourScheme)));
                 customMaterialButtons[i].setToolTipText(MessageFormat.format(strings.getString("customMaterial.0.right.click.to.change"), material));
             }
-        }
-    }
-    
-    private void importLayersFromCombinedLayer(CombinedLayer combinedLayer) {
-        combinedLayer.getLayers().stream().filter(layer -> (layer instanceof CustomLayer) && (! paletteManager.contains(layer)) && (! layersWithNoButton.contains(layer))).forEach(layer -> {
-            final CustomLayer customLayer = (CustomLayer) layer;
-            customLayer.setIndex(null);
-            if (customLayer.isHide()) {
-                layersWithNoButton.add(customLayer);
-            } else {
-                registerCustomLayer(customLayer, false);
-            }
-            if (layer instanceof CombinedLayer) {
-                importLayersFromCombinedLayer((CombinedLayer) customLayer);
-            }
-        });
-    }
-    
-    private void exportLayer(CustomLayer layer) {
-        Configuration config = Configuration.getInstance();
-        File layerDirectory = config.getLayerDirectory();
-        if ((layerDirectory == null) || (! layerDirectory.isDirectory())) {
-            layerDirectory = DesktopUtils.getDocumentsFolder();
-        }
-        File selectedFile = FileUtils.selectFileForSave(this, "Export WorldPainter layer file", new File(layerDirectory, org.pepsoft.util.FileUtils.sanitiseName(layer.getName()) + ".layer"), new FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory() || f.getName().toLowerCase().endsWith(".layer");
-            }
-
-            @Override
-            public String getDescription() {
-                return "WorldPainter Custom Layers (*.layer)";
-            }
-
-            @Override
-            public String getExtensions() {
-                return "*.layer";
-            }
-        });
-        if (selectedFile != null) {
-            if (!selectedFile.getName().toLowerCase().endsWith(".layer")) {
-                selectedFile = new File(selectedFile.getPath() + ".layer");
-            }
-            if (selectedFile.isFile() && (showConfirmDialog(this, "The file " + selectedFile.getName() + " already exists.\nDo you want to overwrite it?", "Overwrite File", YES_NO_OPTION) == NO_OPTION)) {
-                return;
-            }
-            try {
-                try (ObjectOutputStream out = new ObjectOutputStream(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(selectedFile))))) {
-                    out.writeObject(layer);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("I/O error while trying to write " + selectedFile, e);
-            }
-            config.setLayerDirectory(selectedFile.getParentFile());
-            showInfo(this, "Layer " + layer.getName() + " exported successfully", "Success");
         }
     }
 
@@ -6456,7 +5760,7 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    private void importCustomItemsFromWorld(CustomItemsTreeModel.ItemType itemType, Function<Layer, Boolean> filter) {
+    void importCustomItemsFromWorld(CustomItemsTreeModel.ItemType itemType, Function<Layer, Boolean> filter) {
         final File dir;
         final Configuration config = Configuration.getInstance();
         if (lastSelectedFile != null) {
@@ -6516,7 +5820,7 @@ public final class App extends JFrame implements RadiusControl,
                     for (Object selectedItem: dialog.getSelectedItems()) {
                         if (selectedItem instanceof CustomLayer) {
                             if (existingCustomLayers == null) {
-                                existingCustomLayers = getCustomLayers();
+                                existingCustomLayers = customLayerController.getCustomLayers();
                             }
                             if (existingCustomLayers.contains(selectedItem)) {
                                 errors.append("Layer \"" + ((CustomLayer) selectedItem).getName() + "\" already exists\n");
@@ -6524,7 +5828,7 @@ public final class App extends JFrame implements RadiusControl,
                                 errors.append("Layer \"" + ((CustomLayer) selectedItem).getName() + "\" or layer type not supported for current dimension\n");
                                 showError = true;
                             } else {
-                                updateCustomTerrainButtons = importCustomLayer((CustomLayer) selectedItem) || updateCustomTerrainButtons;
+                                updateCustomTerrainButtons = customLayerController.importCustomLayer((CustomLayer) selectedItem) || updateCustomTerrainButtons;
                             }
                         } else if (selectedItem instanceof MixedMaterial) {
                             MixedMaterial customMaterial = (MixedMaterial) selectedItem;
@@ -6694,25 +5998,6 @@ public final class App extends JFrame implements RadiusControl,
         Icon icon;
         int side, index, margin = 2;
         Component component;
-    }
-
-    private void deleteUnusedLayers() {
-        if (dimension == null) {
-            DesktopUtils.beep();
-            return;
-        }
-        final List<CustomLayer> unusedLayers = getCustomLayers();
-        final Set<Layer> layersInUse = dimension.getAllLayers(true);
-        unusedLayers.removeAll(layersInUse);
-        if (unusedLayers.isEmpty()) {
-            showInfo(this, "There are no unused layers in this dimension.", "No Unused Layers");
-        } else {
-            final DeleteLayersDialog dialog = new DeleteLayersDialog(this, unusedLayers);
-            dialog.setVisible(true);
-            if (! dialog.isCancelled()) {
-                showInfo(this, "The selected layers have been deleted.", "Layers Deleted");
-            }
-        }
     }
 
     private void showHelpPicker() {
@@ -7580,24 +6865,31 @@ public final class App extends JFrame implements RadiusControl,
         }
     };
 
+    final Map<Layer, LayerControls> layerControls = new HashMap<>();
+    final Map<Layer, JCheckBox> layerSoloCheckBoxes = new HashMap<>();
+    final Set<CustomLayer> layersWithNoButton = new HashSet<>();
+    final JToggleButton[] customMaterialButtons = new JToggleButton[CUSTOM_TERRAIN_COUNT];
+
+    WorldPainter view;
+    DockingManager dockingManager;
+    Paint paint = PaintFactory.NULL_PAINT;
+    Set<Layer> hiddenLayers = new HashSet<>();
+    Layer soloLayer;
+
     private final ButtonGroup toolButtonGroup = new ButtonGroup(), brushButtonGroup = new ButtonGroup(), paintButtonGroup = new ButtonGroup();
     private final Map<Brush, JToggleButton> brushButtons = new HashMap<>();
     private final Map<Anchor, UndoManager> undoManagers = new HashMap<>();
-    private final JToggleButton[] customMaterialButtons = new JToggleButton[CUSTOM_TERRAIN_COUNT];
     private final ColourScheme[] colourSchemes;
     private final ColourScheme defaultColourScheme;
     private final List<Layer> layers = LayerManager.getInstance().getLayers();
     private final List<Operation> operations;
     private final BrushOptions brushOptions;
     private final CustomBiomeManager customBiomeManager = new CustomBiomeManager();
-    private final Set<CustomLayer> layersWithNoButton = new HashSet<>();
-    private final Map<Layer, JCheckBox> layerSoloCheckBoxes = new HashMap<>();
-    private final PaletteManager paletteManager = new PaletteManager(this);
     private final Map<String, BufferedImage> callouts = new HashMap<>();
     private final ObservableBoolean selectionState = new ObservableBoolean(true);
-    private final Map<Layer, LayerControls> layerControls = new HashMap<>();
     private final boolean darkMode;
     private final MapSelectionController mapSelectionController;
+    private final CustomLayerController customLayerController = new CustomLayerController(this);
 
     private World2 world;
     private long lastSavedState = -1, lastAutosavedState = -1, lastSaveTimestamp = -1;
@@ -7605,7 +6897,6 @@ public final class App extends JFrame implements RadiusControl,
     private Dimension dimension, backgroundDimension;
     private boolean showBackgroundStatus;
     private int backgroundZoom;
-    private WorldPainter view;
     private Operation activeOperation;
     private File lastSelectedFile;
     private JLabel heightLabel, slopeLabel, locationLabel, waterLabel, materialLabel, radiusLabel, zoomLabel, biomeLabel, levelLabel, brushRotationLabel;
@@ -7615,7 +6906,6 @@ public final class App extends JFrame implements RadiusControl,
     private UndoManager currentUndoManager;
     private JSlider levelSlider, brushRotationSlider;
     private float level = 0.51f, toolLevel = 0.51f;
-    private Set<Layer> hiddenLayers = new HashSet<>();
     private int maxRadius = DEFAULT_MAX_RADIUS, brushRotation = 0, toolBrushRotation = 0, previousBrushRotation = 0;
     private GlassPane glassPane;
     private JComboBox<TerrainMode> terrainModeComboBox;
@@ -7632,10 +6922,7 @@ public final class App extends JFrame implements RadiusControl,
     private BiomesPanel biomesPanel;
     private DockableFrame biomesPanelFrame;
     private Filter filter, toolFilter;
-    private Layer soloLayer;
-    private DockingManager dockingManager;
     private boolean hideAbout, hidePreferences, hideExit;
-    private Paint paint = PaintFactory.NULL_PAINT;
     private PaintUpdater paintUpdater = () -> {
         // Do nothing
     };
@@ -7666,6 +6953,9 @@ public final class App extends JFrame implements RadiusControl,
 
     public static final NumberFormat INT_NUMBER_FORMAT = NumberFormat.getIntegerInstance();
     public static final NumberFormat FLOAT_NUMBER_FORMAT = NumberFormat.getNumberInstance();
+
+    private static final int PLATFORM_COMMAND_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+    static final String COMMAND_KEY_NAME = (PLATFORM_COMMAND_MASK == META_DOWN_MASK) ? "⌘" : "Ctrl";
 
     private static Mode mode = Mode.WORLDPAINTER;
 
@@ -7713,9 +7003,6 @@ public final class App extends JFrame implements RadiusControl,
     private static final Icon ICON_LAYERS               = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/layers.png");
     private static final Icon ICON_NO_TERRAIN           = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/edit_selection.png");
 
-    private static final int PLATFORM_COMMAND_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-    private static final String COMMAND_KEY_NAME = (PLATFORM_COMMAND_MASK == META_DOWN_MASK) ? "⌘" : "Ctrl";
-
     private static final String CUSTOM_BRUSHES_DEFAULT_TITLE = "Custom Brushes";
 
     private static final int MAX_RECENT_FILES = 10;
@@ -7725,7 +7012,6 @@ public final class App extends JFrame implements RadiusControl,
     private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
 
     private static final String IMPORT_WARNING_KEY          = "org.pepsoft.worldpainter.importWarning";
-    private static final String EDITING_FLOOR_DIMENSION_KEY = "org.pepsoft.worldpainter.TunnelLayer.editingFloorDimension";
 
     static final String MERGE_WARNING_KEY = "org.pepsoft.worldpainter.mergeWarning";
 
