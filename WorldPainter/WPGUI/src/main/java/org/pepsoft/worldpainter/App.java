@@ -514,6 +514,7 @@ public final class App extends JFrame implements RadiusControl,
 
             mapSelectionController.cancelPaintSelection(true, false);
             eyedropperToggleButton.setSelected(false);
+            removeGlassPaneComponents();
 
             view.setDimension(null);
         }
@@ -1837,12 +1838,16 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    void setGlassPaneComponent(Component component) {
-        glassPane.setPanelComponent(component);
+    void pushGlassPaneComponent(Component component) {
+        glassPane.pushPanelComponent(component);
     }
 
-    void removeGlassPaneComponent() {
-        glassPane.removePanelComponent();
+    Component popGlassPaneComponent() {
+        return glassPane.popPanelComponent();
+    }
+
+    void removeGlassPaneComponents() {
+        glassPane.removePanelComponents();
     }
 
     private String encodeForURL(String str) {

@@ -20,9 +20,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
+import java.util.*;
 
 import static java.awt.BorderLayout.CENTER;
 import static org.pepsoft.util.GUIUtils.getUIScale;
@@ -66,13 +65,29 @@ public class GlassPane extends javax.swing.JPanel {
         updateIcons();
     }
 
-    public void setPanelComponent(Component component) {
+    public void pushPanelComponent(Component component) {
+        panelComponentStack.add(component);
         jPanel2.removeAll();
         jPanel2.add(component, CENTER);
         jPanel2.revalidate();
     }
 
-    public void removePanelComponent() {
+    public Component popPanelComponent() {
+        if (panelComponentStack.isEmpty()) {
+            return null;
+        } else {
+            jPanel2.removeAll();
+            final Component component = panelComponentStack.remove(panelComponentStack.size() - 1);
+            if (! panelComponentStack.isEmpty()) {
+                jPanel2.add(panelComponentStack.get(panelComponentStack.size() - 1), CENTER);
+            }
+            jPanel2.revalidate();
+            return component;
+        }
+    }
+
+    public void removePanelComponents() {
+        panelComponentStack.clear();
         jPanel2.removeAll();
         jPanel2.revalidate();
     }
@@ -186,6 +201,7 @@ public class GlassPane extends javax.swing.JPanel {
 //    private final MiniMap miniMap = new MiniMap();
     private final Map<Layer, JLabel> hiddenLayers = new HashMap<>();
     private JLabel soloLayerLabel;
+    private List<Component> panelComponentStack = new ArrayList<>();
     
     private static final NumberFormat SCALE_FORMAT = new DecimalFormat("#,##0.# blocks");
     private static final BufferedImage PROHIBITED_SIGN_BACKGROUND = IconUtils.loadScaledImage("org/pepsoft/worldpainter/icons/prohibited_sign_background.png");

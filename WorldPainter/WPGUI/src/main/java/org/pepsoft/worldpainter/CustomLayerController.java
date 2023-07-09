@@ -23,6 +23,9 @@ import org.pepsoft.worldpainter.util.FileFilter;
 import org.pepsoft.worldpainter.util.FileUtils;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
@@ -34,6 +37,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.zip.GZIPOutputStream;
 
+import static java.awt.Color.BLACK;
 import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
 import static javax.swing.JOptionPane.*;
@@ -151,6 +155,10 @@ class CustomLayerController implements PropertyChangeListener {
                                                     "or select the Surface dimension from the app.view menu or by pressing " + COMMAND_KEY_NAME + "+U", "Editing Cave/Tunnel Floor", JOptionPane.INFORMATION_MESSAGE));
                                     config.setMessageDisplayed(EDITING_FLOOR_DIMENSION_KEY);
                                 }
+
+                                final JLabel label = new JLabel("<html><font size='+1'>Press Esc to leave the Custom Cave/Tunnel Floor Dimension.</font></html>");
+                                label.setBorder(new CompoundBorder(new LineBorder(BLACK), new EmptyBorder(5, 5, 5, 5)));
+                                app.pushGlassPaneComponent(label);
                             });
                         } else {
                             menuItem.setEnabled(false);

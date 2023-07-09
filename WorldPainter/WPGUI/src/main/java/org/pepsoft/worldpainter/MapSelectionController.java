@@ -78,7 +78,7 @@ class MapSelectionController {
         }
         final JLabel label = new JLabel("<html><font size='+1'>Click on the map to select a " + paintTypeDescription + ".<br>Press Esc to cancel.</font></html>");
         label.setBorder(new CompoundBorder(new LineBorder(BLACK), new EmptyBorder(5, 5, 5, 5)));
-        app.setGlassPaneComponent(label);
+        app.pushGlassPaneComponent(label);
         final Operation activeOperation = app.getActiveOperation();
         if (activeOperation != null) {
             try {
@@ -118,7 +118,7 @@ class MapSelectionController {
         if (paintSelectionListener != null) {
             SelectionListener paintSelectionListener = this.paintSelectionListener;
             this.paintSelectionListener = null;
-            app.removeGlassPaneComponent();
+            app.popGlassPaneComponent();
             eyedropper.setCallback(null);
             eyedropper.setPaintTypes(null);
             try {
