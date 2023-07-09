@@ -45,14 +45,29 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
 
-class CustomLayerController implements PaletteManager.ButtonProvider, PropertyChangeListener {
+class CustomLayerController implements PropertyChangeListener {
     CustomLayerController(App app) {
         this.app = app;
     }
-    
+
+    // PropertyChangeListener
+
     @Override
-    public java.util.List<Component> createCustomLayerButton(final CustomLayer layer) {
-        final java.util.List<Component> buttonComponents = app.createLayerButton(layer, '\0');
+    public void propertyChange(PropertyChangeEvent evt) {
+        if ((evt.getSource() instanceof Palette) && (evt.getPropertyName().equals("show") || evt.getPropertyName().equals("solo"))) {
+            if (evt.getPropertyName().equals("solo") && evt.getNewValue() == Boolean.TRUE) {
+                for (Palette palette: paletteManager.getPalettes()) {
+                    if ((palette != evt.getSource()) && palette.isSolo()) {
+                        palette.setSolo(false);
+                    }
+                }
+            }
+            app.updateLayerVisibility();
+        }
+    }
+
+    List<Component> createCustomLayerButton(final CustomLayer layer) {
+        final List<Component> buttonComponents = app.createLayerButton(layer, '\0');
         final JToggleButton button = (JToggleButton) buttonComponents.get(2);
         button.setToolTipText(button.getToolTipText() + "; right-click for options");
         button.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -217,8 +232,7 @@ class CustomLayerController implements PaletteManager.ButtonProvider, PropertyCh
         return buttonComponents;
     }
 
-    @Override
-    public List<Component> createPopupMenuButton(String paletteName) {
+    List<Component> createPopupMenuButton(String paletteName) {
         final JButton addLayerButton = new JButton(ADD_CUSTOM_LAYER_BUTTON_ICON);
         final List<Component> addLayerButtonPanel = new ArrayList<>(3);
         addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
@@ -238,22 +252,6 @@ class CustomLayerController implements PaletteManager.ButtonProvider, PropertyCh
         addLayerButtonPanel.add(addLayerButton);
 
         return addLayerButtonPanel;
-    }
-
-    // PropertyChangeListener
-
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        if ((evt.getSource() instanceof Palette) && (evt.getPropertyName().equals("show") || evt.getPropertyName().equals("solo"))) {
-            if (evt.getPropertyName().equals("solo") && evt.getNewValue() == Boolean.TRUE) {
-                for (Palette palette: paletteManager.getPalettes()) {
-                    if ((palette != evt.getSource()) && palette.isSolo()) {
-                        palette.setSolo(false);
-                    }
-                }
-            }
-            app.updateLayerVisibility();
-        }
     }
 
     void registerCustomLayer(final CustomLayer layer, boolean activate) {
@@ -763,7 +761,7 @@ class CustomLayerController implements PaletteManager.ButtonProvider, PropertyCh
                 final String palette = layer.getPalette();
                 final JMenuItem menuForPalette = menusForDimension.computeIfAbsent(palette, k -> new JMenu(palette));
                 final JMenuItem menuItem = new JMenuItem(layer.getName(), new ImageIcon(layer.getIcon()));
-                menuItem.addActionListener(event -> copyLayerToPalette(layer, targetPaletteName, true));
+                menuItem.addActionListener(event -> copyLayerToPalette(layer, targetPaletteName));
                 menuForPalette.add(menuItem);
             }
             final JMenu menuForDimension;
@@ -787,10 +785,10 @@ class CustomLayerController implements PaletteManager.ButtonProvider, PropertyCh
         }
     }
 
-    private void copyLayerToPalette(CustomLayer layer, String paletteName, boolean activate) {
+    private void copyLayerToPalette(CustomLayer layer, String paletteName) {
         final CustomLayer copy = layer.clone();
         copy.setPalette(paletteName);
-        registerCustomLayer(copy, activate);
+        registerCustomLayer(copy, true);
     }
 
     private final App app;

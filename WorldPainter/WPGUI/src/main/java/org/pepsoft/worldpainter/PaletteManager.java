@@ -9,8 +9,8 @@ import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * Manages a set of layers, including managing palettes, layer buttons, etc.
@@ -18,8 +18,8 @@ import java.util.List;
  * @author SchmitzP
  */
 public class PaletteManager {
-    public PaletteManager(ButtonProvider buttonProvider) {
-        this.buttonProvider = buttonProvider;
+    public PaletteManager(CustomLayerController customLayerController) {
+        this.customLayerController = customLayerController;
     }
 
     public List<Palette> getPalettes() {
@@ -63,7 +63,7 @@ public class PaletteManager {
         if (palettesByName.containsKey(name)) {
             throw new IllegalStateException("There is already a palette named \"" + name + "\"");
         }
-        Palette palette = new Palette(name, buttonProvider.createPopupMenuButton(name));
+        Palette palette = new Palette(name, customLayerController.createPopupMenuButton(name));
         paletteList.add(palette);
         palettesByName.put(name, palette);
         return palette;
@@ -80,12 +80,12 @@ public class PaletteManager {
         Palette palette = getPaletteContaining(layer);
         boolean paletteCreated = false;
         if (palette == null) {
-            palette = new Palette(layer.getPalette(), buttonProvider.createPopupMenuButton(layer.getPalette()));
+            palette = new Palette(layer.getPalette(), customLayerController.createPopupMenuButton(layer.getPalette()));
             paletteCreated = true;
             paletteList.add(palette);
             palettesByName.put(layer.getPalette(), palette);
         }
-        palette.add(layer, buttonProvider.createCustomLayerButton(layer));
+        palette.add(layer, customLayerController.createCustomLayerButton(layer));
         return paletteCreated ? palette : null;
     }
     
@@ -141,10 +141,5 @@ public class PaletteManager {
     
     private final List<Palette> paletteList = new ArrayList<>();
     private final Map<String, Palette> palettesByName = new HashMap<>();
-    private final ButtonProvider buttonProvider;
-
-    public interface ButtonProvider {
-        List<Component> createCustomLayerButton(CustomLayer layer);
-        List<Component> createPopupMenuButton(String paletteName);
-    }
+    private final CustomLayerController customLayerController;
 }
