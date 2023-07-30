@@ -3,33 +3,38 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.pepsoft.worldpainter;
+package org.pepsoft.worldpainter.palettes;
 
 import com.jidesoft.docking.DockContext;
 import com.jidesoft.docking.DockableFrame;
 import com.jidesoft.swing.JideLabel;
+import org.jetbrains.annotations.NotNull;
 import org.pepsoft.util.IconUtils;
+import org.pepsoft.worldpainter.App;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.util.LayoutUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.List;
 import java.util.*;
 
 import static java.util.Arrays.asList;
+import static javax.swing.SwingUtilities.getWindowAncestor;
 
 /**
  *
  * @author SchmitzP
  */
 public class Palette {
-    Palette(String name, List<Component> buttonComponents) {
+    Palette(String name, List<Component> buttonComponents, PaletteManager paletteManager) {
         super();
         this.name = name;
+        this.paletteManager = paletteManager;
         panel = new JPanel();
         panel.setLayout(new GridBagLayout());
 
@@ -49,7 +54,12 @@ public class Palette {
         panel.add(label, constraints);
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         constraints.weightx = 1.0;
-        panel.add(new JLabel(), constraints);
+        constraints.anchor = GridBagConstraints.NORTHEAST;
+        final JButton editButton = new JButton(ICON_EDIT);
+        editButton.setMargin(new Insets(2, 2, 2, 2));
+        editButton.setToolTipText("Edit palette name and layer order");
+        editButton.addActionListener(this::editPalette);
+        panel.add(editButton, constraints);
 
         // Row: palette show/solo checkboxes
         constraints.anchor = GridBagConstraints.FIRST_LINE_START;
@@ -70,30 +80,40 @@ public class Palette {
         dockableFrame.setKey("customLayerPalette." + name);
     }
 
-    String getName() {
+    public String getName() {
         return name;
     }
 
-    List<CustomLayer> getLayers() {
+    void setName(String name) {
+        this.name = name;
+        for (CustomLayer layer: layers) {
+            layer.setPalette(name);
+        }
+        dockableFrame.setTitle(name);
+        dockableFrame.setTabTitle(name);
+        dockableFrame.setKey("customLayerPalette." + name);
+    }
+
+    public List<CustomLayer> getLayers() {
         return Collections.unmodifiableList(layers);
     }
 
-    boolean isShow() {
+    public boolean isShow() {
         return show;
     }
 
-    void setShow(boolean show) {
+    public void setShow(boolean show) {
         this.show = show;
         showCheckBox.setSelected(show);
         propertyChangeSupport.firePropertyChange("show", ! showCheckBox.isSelected(), showCheckBox.isSelected());
         dockableFrame.setFrameIcon(solo ? ICON_SOLO : (show ? ICON_LAYERS : ICON_NOT_SHOWN));
     }
 
-    boolean isSolo() {
+    public boolean isSolo() {
         return solo;
     }
 
-    void setSolo(boolean solo) {
+    public void setSolo(boolean solo) {
         this.solo = solo;
         soloCheckBox.setSelected(solo);
         propertyChangeSupport.firePropertyChange("solo", ! soloCheckBox.isSelected(), soloCheckBox.isSelected());
@@ -101,21 +121,36 @@ public class Palette {
     }
 
     @SuppressWarnings("element-type-mismatch")
-    boolean contains(Layer layer) {
+    public boolean contains(Layer layer) {
         return layers.contains(layer);
     }
-    
-    void add(CustomLayer layer, List<Component> buttonComponents) {
-        layers.add(layer);
-        layerButtonComponents.put(layer, buttonComponents);
-        GridBagConstraints constraints = new GridBagConstraints();
-        constraints.gridwidth = GridBagConstraints.REMAINDER;
-        constraints.anchor = GridBagConstraints.FIRST_LINE_START;
-        constraints.weightx = 0.0;
-        constraints.insets = new Insets(1, 1, 1, 1);
-        LayoutUtils.insertRowOfComponents(panel, constraints, panel.getComponentCount() - 3, buttonComponents);
+
+    public DockableFrame getDockableFrame() {
+        return dockableFrame;
     }
-    
+
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        propertyChangeSupport.addPropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        propertyChangeSupport.removePropertyChangeListener(listener);
+    }
+
+    void add(CustomLayer layer, List<Component> buttonComponents) {
+        final int index;
+        if (layer.getPaletteIndex() == null) {
+            layers.add(layer);
+            index = layers.size() - 1;
+            layer.setPaletteIndex(index);
+        } else {
+            index = Math.min(layer.getPaletteIndex(), layers.size());
+            layers.add(index, layer);
+        }
+        layerButtonComponents.put(layer, buttonComponents);
+        LayoutUtils.insertRowOfComponents(panel, createConstraints(), componentIndex(index), buttonComponents);
+    }
+
     List<Component> remove(CustomLayer layer) {
         if (layerButtonComponents.containsKey(layer)) {
             layers.remove(layer);
@@ -135,32 +170,41 @@ public class Palette {
         ((JToggleButton) layerButtonComponents.get(layer).get(2)).setSelected(false);
     }
     
-    boolean isEmpty() {
+    public boolean isEmpty() {
         return layers.isEmpty();
     }
     
-    DockableFrame getDockableFrame() {
-        return dockableFrame;
+    private void editPalette(ActionEvent event) {
+        final EditPaletteDialog dialog = new EditPaletteDialog(getWindowAncestor(dockableFrame), paletteManager, this);
+        dialog.setVisible(true);
     }
 
-    void addPropertyChangeListener(PropertyChangeListener listener) {
-        propertyChangeSupport.addPropertyChangeListener(listener);
+    @NotNull
+    private static GridBagConstraints createConstraints() {
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+        constraints.anchor = GridBagConstraints.FIRST_LINE_START;
+        constraints.weightx = 0.0;
+        constraints.insets = new Insets(1, 1, 1, 1);
+        return constraints;
     }
 
-    void removePropertyChangeListener(PropertyChangeListener listener) {
-        propertyChangeSupport.removePropertyChangeListener(listener);
+    private static int componentIndex(int index) {
+        return 6 + (index * 3);
     }
 
-    private final String name;
     private final JPanel panel;
     private final List<CustomLayer> layers = new ArrayList<>();
     private final Map<CustomLayer, List<Component>> layerButtonComponents = new HashMap<>();
     private final DockableFrame dockableFrame;
     private final JCheckBox showCheckBox, soloCheckBox;
+    private final PaletteManager paletteManager;
     private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+    private String name;
     private boolean show = true, solo;
 
     private static final Icon ICON_LAYERS    = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/layers.png");
     private static final Icon ICON_NOT_SHOWN = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/cross.png");
     private static final Icon ICON_SOLO      = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/tick.png");
+    private static final Icon ICON_EDIT      = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/cog.png");
 }

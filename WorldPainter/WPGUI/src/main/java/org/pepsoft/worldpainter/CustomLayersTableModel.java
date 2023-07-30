@@ -108,7 +108,7 @@ public class CustomLayersTableModel implements TableModel {
             int index = 0;
             for (CustomLayer layer : customLayers) {
                 if (! isHeader(layer)) {
-                    layer.setIndex(index++);
+                    layer.setExportIndex(index++);
                 }
             }
         }

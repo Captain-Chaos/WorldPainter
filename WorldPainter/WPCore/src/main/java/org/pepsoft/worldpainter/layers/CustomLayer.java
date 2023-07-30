@@ -87,12 +87,32 @@ public abstract class CustomLayer extends Layer implements Cloneable {
         this.export = export;
     }
 
-    public Integer getIndex() {
+    /**
+     * Get the index indicating the export order of the layer.
+     */
+    public Integer getExportIndex() {
         return index;
     }
 
-    public void setIndex(Integer index) {
-        this.index = index;
+    /**
+     * Set the index indicating the export order of the layer.
+     */
+    public void setExportIndex(Integer exportIndex) {
+        this.index = exportIndex;
+    }
+
+    /**
+     * Get the index indicating the position of the layer on its palette.
+     */
+    public Integer getPaletteIndex() {
+        return paletteIndex;
+    }
+
+    /**
+     * Set the index indicating the position of the layer on its palette.
+     */
+    public void setPaletteIndex(Integer paletteIndex) {
+        this.paletteIndex = paletteIndex;
     }
 
     /**
@@ -197,7 +217,14 @@ public abstract class CustomLayer extends Layer implements Cloneable {
     private int colour, biome = -1, version = CURRENT_VERSION;
     private boolean hide, export = true;
     private String palette = "Custom Layers";
+    /**
+     * The index indicating the export order of the layer.
+     */
     private Integer index = null;
+    /**
+     * The index indicating the position of the layer on its palette.
+     */
+    private Integer paletteIndex = null;
     private transient BufferedImage icon;
     private transient LayerRenderer renderer;
 

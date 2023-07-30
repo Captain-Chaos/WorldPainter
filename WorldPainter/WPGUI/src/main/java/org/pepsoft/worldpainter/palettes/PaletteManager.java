@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.pepsoft.worldpainter;
+package org.pepsoft.worldpainter.palettes;
 
+import org.pepsoft.worldpainter.CustomLayerController;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
 
@@ -63,7 +64,7 @@ public class PaletteManager {
         if (palettesByName.containsKey(name)) {
             throw new IllegalStateException("There is already a palette named \"" + name + "\"");
         }
-        Palette palette = new Palette(name, customLayerController.createPopupMenuButton(name));
+        Palette palette = new Palette(name, customLayerController.createPopupMenuButton(name), this);
         paletteList.add(palette);
         palettesByName.put(name, palette);
         return palette;
@@ -80,7 +81,7 @@ public class PaletteManager {
         Palette palette = getPaletteContaining(layer);
         boolean paletteCreated = false;
         if (palette == null) {
-            palette = new Palette(layer.getPalette(), customLayerController.createPopupMenuButton(layer.getPalette()));
+            palette = new Palette(layer.getPalette(), customLayerController.createPopupMenuButton(layer.getPalette()), this);
             paletteCreated = true;
             paletteList.add(palette);
             palettesByName.put(layer.getPalette(), palette);
@@ -119,6 +120,7 @@ public class PaletteManager {
     public Palette unregister(CustomLayer layer) {
         Palette palette = getPaletteContaining(layer);
         palette.remove(layer);
+        customLayerController.layerRemoved(layer);
         return palette;
     }
 
@@ -137,6 +139,15 @@ public class PaletteManager {
         paletteList.clear();
         palettesByName.clear();
         return oldPaletteList;
+    }
+
+    public void rename(Palette palette, String newName) {
+        if (palettesByName.containsKey(newName)) {
+            throw new IllegalArgumentException("New name \"" + newName + "\" already in use");
+        }
+        palettesByName.remove(palette.getName());
+        palette.setName(newName);
+        palettesByName.put(newName, palette);
     }
     
     private final List<Palette> paletteList = new ArrayList<>();

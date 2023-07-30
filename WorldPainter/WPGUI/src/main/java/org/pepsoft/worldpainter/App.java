@@ -46,6 +46,7 @@ import org.pepsoft.worldpainter.painting.LayerPaint;
 import org.pepsoft.worldpainter.painting.Paint;
 import org.pepsoft.worldpainter.painting.PaintFactory;
 import org.pepsoft.worldpainter.painting.TerrainPaint;
+import org.pepsoft.worldpainter.palettes.Palette;
 import org.pepsoft.worldpainter.panels.BrushOptions;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.panels.InfoPanel;
@@ -4935,6 +4936,24 @@ public final class App extends JFrame implements RadiusControl,
         return createLayerButton(layer, mnemonic, true, true);
     }
 
+    /**
+     * Notifies the App that a layer has been removed. The caller is responsible for actually removing the button from
+     * the UI.
+     */
+    void layerRemoved(final Layer layer) {
+        final String paintId = createLayerPaintId(layer);
+        for (Enumeration<AbstractButton> e = paintButtonGroup.getElements(); e.hasMoreElements(); ) {
+            final AbstractButton button = e.nextElement();
+            if (paintId.equals(button.getClientProperty(KEY_PAINT_ID))) {
+                if (button.isSelected()) {
+                    deselectPaint();
+                }
+                paintButtonGroup.remove(button);
+                return;
+            }
+        }
+    }
+
     private List<Component> createLayerButton(final Layer layer, final char mnemonic, final boolean createSoloCheckbox, final boolean createButton) {
         if (createButton) {
             final JToggleButton button = new JToggleButton();
@@ -5890,8 +5909,8 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    static class DockableFrameBuilder {
-        DockableFrameBuilder(Component component, String title, int side, int index) {
+    public static class DockableFrameBuilder {
+        public DockableFrameBuilder(Component component, String title, int side, int index) {
             this.component = component;
             this.title = title;
             this.side = side;
@@ -5909,7 +5928,7 @@ public final class App extends JFrame implements RadiusControl,
             return this;
         }
 
-        DockableFrameBuilder withIcon(Icon icon) {
+        public DockableFrameBuilder withIcon(Icon icon) {
             this.icon = icon;
             return this;
         }
@@ -5919,7 +5938,7 @@ public final class App extends JFrame implements RadiusControl,
             return this;
         }
 
-        DockableFrame build() {
+        public DockableFrame build() {
             DockableFrame dockableFrame = new DockableFrame(id);
 
             JPanel panel = new JPanel(new GridBagLayout());

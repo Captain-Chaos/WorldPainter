@@ -187,17 +187,17 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
     @Override
     public final int compareTo(Layer layer) {
         // First sort by index, where layers without an index are sorted last
-        if ((this instanceof CustomLayer) && (((CustomLayer) this).getIndex() != null)) {
-            if ((layer instanceof CustomLayer) && (((CustomLayer) layer).getIndex() != null)) {
+        if ((this instanceof CustomLayer) && (((CustomLayer) this).getExportIndex() != null)) {
+            if ((layer instanceof CustomLayer) && (((CustomLayer) layer).getExportIndex() != null)) {
                 // Both layers have an index; sort by index. We assume the indexes are always unique, so we don't bother
                 // sorting by another criterion if they are the same
-                return Integer.compare(((CustomLayer) this).getIndex(), ((CustomLayer) layer).getIndex());
+                return Integer.compare(((CustomLayer) this).getExportIndex(), ((CustomLayer) layer).getExportIndex());
             } else {
                 // Only we have an index; sort us first
                 return -1;
             }
         } else {
-            if ((layer instanceof CustomLayer) && (((CustomLayer) layer).getIndex() != null)) {
+            if ((layer instanceof CustomLayer) && (((CustomLayer) layer).getExportIndex() != null)) {
                 // Only the other layer has an index; sort us last
                 return 1;
             } else {

@@ -1041,7 +1041,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             if (! customLayers.isEmpty()) {
                 customLayersTableModel = new CustomLayersTableModel(customLayers);
                 tableCustomLayers.setModel(customLayersTableModel);
-                orderPristine = customLayers.stream().noneMatch(layer -> layer.getIndex() != null);
+                orderPristine = customLayers.stream().noneMatch(layer -> layer.getExportIndex() != null);
             }
         }
 
@@ -1272,7 +1272,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             return;
         }
         final List<CustomLayer> customLayers = dimension.getCustomLayers(true);
-        customLayers.forEach(layer -> layer.setIndex(null));
+        customLayers.forEach(layer -> layer.setExportIndex(null));
         customLayersTableModel = new CustomLayersTableModel(customLayers);
         tableCustomLayers.setModel(customLayersTableModel);
         orderPristine = true;

@@ -17,6 +17,8 @@ import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayerDialog;
 import org.pepsoft.worldpainter.operations.PaintOperation;
 import org.pepsoft.worldpainter.painting.LayerPaint;
+import org.pepsoft.worldpainter.palettes.Palette;
+import org.pepsoft.worldpainter.palettes.PaletteManager;
 import org.pepsoft.worldpainter.plugins.CustomLayerProvider;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.util.FileFilter;
@@ -49,7 +51,7 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
 
-class CustomLayerController implements PropertyChangeListener {
+public class CustomLayerController implements PropertyChangeListener {
     CustomLayerController(App app) {
         this.app = app;
     }
@@ -70,7 +72,7 @@ class CustomLayerController implements PropertyChangeListener {
         }
     }
 
-    List<Component> createCustomLayerButton(final CustomLayer layer) {
+    public List<Component> createCustomLayerButton(final CustomLayer layer) {
         final List<Component> buttonComponents = app.createLayerButton(layer, '\0');
         final JToggleButton button = (JToggleButton) buttonComponents.get(2);
         button.setToolTipText(button.getToolTipText() + "; right-click for options");
@@ -240,9 +242,12 @@ class CustomLayerController implements PropertyChangeListener {
         return buttonComponents;
     }
 
-    List<Component> createPopupMenuButton(String paletteName) {
+    public void layerRemoved(CustomLayer layer) {
+        app.layerRemoved(layer);
+    }
+
+    public List<Component> createPopupMenuButton(String paletteName) {
         final JButton addLayerButton = new JButton(ADD_CUSTOM_LAYER_BUTTON_ICON);
-        final List<Component> addLayerButtonPanel = new ArrayList<>(3);
         addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
         addLayerButton.setMargin(new Insets(2, 2, 2, 2));
         addLayerButton.addActionListener(e -> {
@@ -253,10 +258,9 @@ class CustomLayerController implements PropertyChangeListener {
             final JPopupMenu customLayerMenu = createCustomLayerMenu(paletteName);
             customLayerMenu.show(addLayerButton, addLayerButton.getWidth(), 0);
         });
-        JPanel spacer = new JPanel();
-        addLayerButtonPanel.add(spacer);
-        spacer = new JPanel();
-        addLayerButtonPanel.add(spacer);
+        final List<Component> addLayerButtonPanel = new ArrayList<>(3);
+        addLayerButtonPanel.add(new JPanel());
+        addLayerButtonPanel.add(new JPanel());
         addLayerButtonPanel.add(addLayerButton);
 
         return addLayerButtonPanel;
@@ -585,7 +589,7 @@ class CustomLayerController implements PropertyChangeListener {
      */
     boolean importCustomLayer(CustomLayer layer) {
         boolean customTerrainButtonsAdded = false;
-        layer.setIndex(null);
+        layer.setExportIndex(null);
         registerCustomLayer(layer, true);
         if (layer instanceof CombinedLayer) {
             final CombinedLayer combinedLayer = (CombinedLayer) layer;
@@ -633,7 +637,7 @@ class CustomLayerController implements PropertyChangeListener {
     private void importLayersFromCombinedLayer(CombinedLayer combinedLayer) {
         combinedLayer.getLayers().stream().filter(layer -> (layer instanceof CustomLayer) && (! paletteManager.contains(layer)) && (! app.layersWithNoButton.contains(layer))).forEach(layer -> {
             final CustomLayer customLayer = (CustomLayer) layer;
-            customLayer.setIndex(null);
+            customLayer.setExportIndex(null);
             if (customLayer.isHide()) {
                 app.layersWithNoButton.add(customLayer);
             } else {
