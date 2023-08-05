@@ -1424,7 +1424,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
 
         tiledImageViewerContainer1.setMinimumSize(new java.awt.Dimension(384, 22));
 
-        checkBoxMasterDimension.setText("create as master dimension (1:16 scale) [ALPHA]");
+        checkBoxMasterDimension.setText("create as master dimension (1:16 scale)");
         checkBoxMasterDimension.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 checkBoxMasterDimensionActionPerformed(evt);

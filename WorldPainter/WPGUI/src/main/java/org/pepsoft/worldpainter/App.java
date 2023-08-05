@@ -382,7 +382,7 @@ public final class App extends JFrame implements RadiusControl,
                                 "\n" +
                                 "To add details at 1:1 scale, switch to the Surface Dimension by\n" +
                                 "pressing " + COMMAND_KEY_NAME + "+M or using the View menu and then add tiles by\n" +
-                                "pressing " + COMMAND_KEY_NAME + "+T or using the Edit menu.", "Editing Master Dimension [ALPHA]", INFORMATION_MESSAGE));
+                                "pressing " + COMMAND_KEY_NAME + "+T or using the Edit menu.", "Editing Master Dimension", INFORMATION_MESSAGE));
             } else {
                 setDimension(surfaceDimension);
             }
@@ -3872,7 +3872,7 @@ public final class App extends JFrame implements RadiusControl,
 
         JMenu dimensionsMenu = new JMenu("Dimensions");
 
-        addMasterMenuItem = new JMenuItem("Add master dimension... [ALPHA]");
+        addMasterMenuItem = new JMenuItem("Add master dimension...");
         addMasterMenuItem.addActionListener(e -> addMaster());
         dimensionsMenu.add(addMasterMenuItem);
 

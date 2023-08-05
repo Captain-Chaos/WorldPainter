@@ -108,7 +108,7 @@ public class CustomLayerController implements PropertyChangeListener {
                     final TunnelLayer tunnelLayer = (TunnelLayer) layer;
                     final Integer floorDimensionId = tunnelLayer.getFloorDimensionId();
                     if (floorDimensionId != null) {
-                        menuItem = new JMenuItem("Edit floor dimension [ALPHA]");
+                        menuItem = new JMenuItem("Edit floor dimension");
                         if (dimension.containsOneOf(layer)) {
                             menuItem.addActionListener(e1 -> {
                                 final Point viewPosition = app.view.getViewCentreInWorldCoords();

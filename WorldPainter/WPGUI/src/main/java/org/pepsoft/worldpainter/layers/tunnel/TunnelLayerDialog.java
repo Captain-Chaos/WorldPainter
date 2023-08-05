@@ -915,7 +915,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         jLabel23.setText("Biome:");
 
         buttonGroup1.add(radioButtonFloorCustomDimension);
-        radioButtonFloorCustomDimension.setText("custom dimension [ALPHA]");
+        radioButtonFloorCustomDimension.setText("custom dimension");
         radioButtonFloorCustomDimension.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonFloorCustomDimensionActionPerformed(evt);
