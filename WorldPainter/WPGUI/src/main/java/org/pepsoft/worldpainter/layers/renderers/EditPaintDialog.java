@@ -4,8 +4,8 @@
  */
 package org.pepsoft.worldpainter.layers.renderers;
 
+import org.pepsoft.util.ImageUtils;
 import org.pepsoft.worldpainter.WorldPainterDialog;
-import org.pepsoft.worldpainter.util.BufferedImageUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,7 +17,7 @@ import java.util.Map;
 
 import static java.util.Comparator.comparingInt;
 import static org.pepsoft.util.IconUtils.createScaledColourIcon;
-import static org.pepsoft.worldpainter.util.BufferedImageUtils.createColourSquare;
+import static org.pepsoft.util.ImageUtils.createColourSquare;
 
 /**
  *
@@ -33,7 +33,7 @@ public class EditPaintDialog extends WorldPainterDialog {
         if (paint instanceof Color) {
             this.colour = (Color) paint;
         } else if (paint instanceof BufferedImage) {
-            this.pattern = BufferedImageUtils.clone((BufferedImage) paint);
+            this.pattern = ImageUtils.clone((BufferedImage) paint);
         } else {
             throw new IllegalArgumentException("Paint type " + paint.getClass() + " not supported");
         }

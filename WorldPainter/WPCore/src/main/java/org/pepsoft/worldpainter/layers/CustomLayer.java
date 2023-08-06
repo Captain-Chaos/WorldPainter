@@ -4,10 +4,10 @@
  */
 package org.pepsoft.worldpainter.layers;
 
+import org.pepsoft.util.ImageUtils;
 import org.pepsoft.worldpainter.HeightTransform;
 import org.pepsoft.worldpainter.layers.renderers.LayerRenderer;
 import org.pepsoft.worldpainter.layers.renderers.PaintRenderer;
-import org.pepsoft.worldpainter.util.BufferedImageUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -190,7 +190,7 @@ public abstract class CustomLayer extends Layer implements Cloneable {
             clone.id = createId(getName());
             clone.hide = false;
             if (clone.pattern != null) {
-                clone.pattern = BufferedImageUtils.clone(clone.pattern);
+                clone.pattern = ImageUtils.clone(clone.pattern);
             }
             return clone;
         } catch (CloneNotSupportedException e) {
