@@ -30,6 +30,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
@@ -217,16 +218,19 @@ public class CustomLayerController implements PropertyChangeListener {
             }
 
             private void duplicate() {
-                CustomLayer duplicate = layer.clone();
+                final CustomLayer duplicate = layer.clone();
                 duplicate.setName("Copy of " + layer.getName());
-                Color colour = new Color(layer.getColour());
-                float[] hsb = Color.RGBtoHSB(colour.getRed(), colour.getGreen(), colour.getBlue(), null);
-                hsb[0] += 1f / 12;
-                if (hsb[0] > 1f) {
-                    hsb[0] -= 1f;
+                final Object paint = layer.getPaint();
+                if (paint instanceof Color) {
+                    Color colour = (Color) paint;
+                    final float[] hsb = Color.RGBtoHSB(colour.getRed(), colour.getGreen(), colour.getBlue(), null);
+                    hsb[0] += 1f / 12;
+                    if (hsb[0] > 1f) {
+                        hsb[0] -= 1f;
+                    }
+                    colour = Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
+                    duplicate.setPaint(colour);
                 }
-                colour = Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
-                duplicate.setColour(colour.getRGB());
                 AbstractEditLayerDialog<CustomLayer> dialog;
                 dialog = createEditLayerDialog(duplicate);
                 dialog.setVisible(() -> registerCustomLayer(dialog.getLayer(), true));
@@ -352,7 +356,7 @@ public class CustomLayerController implements PropertyChangeListener {
 
         menuItem = new JMenuItem("Add a custom cave/tunnel layer...");
         menuItem.addActionListener(e -> {
-            final TunnelLayer layer = new TunnelLayer("Tunnels", 0x000000);
+            final TunnelLayer layer = new TunnelLayer("Tunnels", BLACK);
             final int baseHeight, waterLevel;
             final TileFactory tileFactory = dimension.getTileFactory();
             if (tileFactory instanceof HeightMapTileFactory) {
@@ -456,8 +460,9 @@ public class CustomLayerController implements PropertyChangeListener {
     }
 
     void editCustomLayer(CustomLayer layer, Runnable callback) {
-        int previousColour = layer.getColour();
-        AbstractEditLayerDialog<CustomLayer> dialog = createEditLayerDialog(layer);
+        final Object previousPaint = layer.getPaint();
+        final BufferedImage previousIcon = layer.getIcon();
+        final AbstractEditLayerDialog<CustomLayer> dialog = createEditLayerDialog(layer);
         dialog.setVisible(() -> {
             final App.LayerControls layerControls = app.layerControls.get(layer);
             final JComponent control = (layerControls != null) ? layerControls.control : null;
@@ -467,12 +472,13 @@ public class CustomLayerController implements PropertyChangeListener {
                 }
                 control.setToolTipText(layer.getName() + ": " + layer.getDescription() + "; right-click for options");
             }
-            int newColour = layer.getColour();
+            final Object newPaint = layer.getPaint();
+            final BufferedImage newIcon = layer.getIcon();
             boolean viewRefreshed = false;
-            if (newColour != previousColour) {
-                if (control instanceof AbstractButton) {
-                    ((AbstractButton) control).setIcon(new ImageIcon(layer.getIcon()));
-                }
+            if ((! Objects.equals(newIcon, previousIcon)) && (control instanceof AbstractButton)) {
+                ((AbstractButton) control).setIcon(new ImageIcon(layer.getIcon()));
+            }
+            if (! Objects.equals(newPaint, previousPaint)) {
                 app.view.refreshTilesForLayer(layer, false);
                 viewRefreshed = true;
             }

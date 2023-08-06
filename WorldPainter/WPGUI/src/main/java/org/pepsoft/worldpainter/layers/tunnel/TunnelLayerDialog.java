@@ -201,7 +201,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     }
 
     private void generatePreview() {
-        final TunnelLayer layer = new TunnelLayer("tmp", 0);
+        final TunnelLayer layer = new TunnelLayer("tmp", null);
         saveSettingsTo(layer, false);
         final Insets insets = labelPreview.getInsets();
         final int width = labelPreview.getWidth() - insets.left - insets.right;
@@ -267,7 +267,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             spinnerWallRoofDepth.setValue(layer.getRoofWallDepth());
             mixedMaterialChooserWall.setMaterial(layer.getWallMaterial());
             textFieldName.setText(layer.getName());
-            colourEditor1.setColour(layer.getColour());
+            paintPicker1.setPaint(layer.getPaint());
             checkBoxRemoveWater.setSelected(layer.isRemoveWater());
             checkBoxFlood.setSelected(layer.getFloodLevel() != Integer.MIN_VALUE);
             spinnerFloodLevel.setValue((layer.getFloodLevel() != Integer.MIN_VALUE) ? layer.getFloodLevel() : waterLevel);
@@ -365,7 +365,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         }
         layer.setWallMaterial(wallMaterial);
         layer.setName(textFieldName.getText().trim());
-        layer.setColour(colourEditor1.getColour());
+        layer.setPaint(paintPicker1.getPaint());
         layer.setRemoveWater(checkBoxRemoveWater.isSelected());
         layer.setFloodLevel(checkBoxFlood.isSelected() ? (Integer) spinnerFloodLevel.getValue() : Integer.MIN_VALUE);
         layer.setFloodWithLava(checkBoxFloodWithLava.isSelected());
@@ -632,7 +632,6 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         jLabel4 = new javax.swing.JLabel();
         textFieldName = new javax.swing.JTextField();
         jLabel11 = new javax.swing.JLabel();
-        colourEditor1 = new org.pepsoft.worldpainter.ColourEditor();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
         radioButtonFloorFixedLevel = new javax.swing.JRadioButton();
@@ -697,6 +696,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         buttonAddRoofLayer = new javax.swing.JButton();
         buttonEditRoofLayer = new javax.swing.JButton();
         buttonRemoveRoofLayer = new javax.swing.JButton();
+        paintPicker1 = new org.pepsoft.worldpainter.layers.renderers.PaintPicker();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Configure Cave/Tunnel Layer");
@@ -729,7 +729,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         textFieldName.setColumns(20);
         textFieldName.setText("jTextField1");
 
-        jLabel11.setText("Colour:");
+        jLabel11.setText("Paint");
 
         buttonGroup1.add(radioButtonFloorFixedLevel);
         radioButtonFloorFixedLevel.setSelected(true);
@@ -1309,16 +1309,19 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                         .addGap(11, 11, 11))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
+                            .addComponent(jTabbedPane1)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel4)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(textFieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jLabel11)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jTabbedPane1))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel1)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel4)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(textFieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(jLabel11)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(paintPicker1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGap(0, 0, Short.MAX_VALUE)))
                         .addContainerGap())))
         );
         layout.setVerticalGroup(
@@ -1333,7 +1336,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                     .addComponent(jLabel4)
                     .addComponent(textFieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel11)
-                    .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(paintPicker1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
@@ -1578,7 +1581,6 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     private javax.swing.JCheckBox checkBoxFlood;
     private javax.swing.JCheckBox checkBoxFloodWithLava;
     private javax.swing.JCheckBox checkBoxRemoveWater;
-    private org.pepsoft.worldpainter.ColourEditor colourEditor1;
     private javax.swing.JComboBox<Integer> comboBoxBiome;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
@@ -1616,6 +1618,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     private org.pepsoft.worldpainter.MixedMaterialChooser mixedMaterialChooserWall;
     private org.pepsoft.worldpainter.NoiseSettingsEditor noiseSettingsEditorFloor;
     private org.pepsoft.worldpainter.NoiseSettingsEditor noiseSettingsEditorRoof;
+    private org.pepsoft.worldpainter.layers.renderers.PaintPicker paintPicker1;
     private javax.swing.JRadioButton radioButtonFloorCustomDimension;
     private javax.swing.JRadioButton radioButtonFloorFixedDepth;
     private javax.swing.JRadioButton radioButtonFloorFixedLevel;

@@ -29,8 +29,8 @@ import static org.pepsoft.worldpainter.layers.Layer.DataSize.*;
  * @author pepijn
  */
 public class CombinedLayer extends CustomLayer implements LayerContainer {
-    public CombinedLayer(String name, String description, int colour) {
-        super(name, description, NIBBLE, 55, colour);
+    public CombinedLayer(String name, String description, Object paint) {
+        super(name, description, NIBBLE, 55, paint);
     }
 
     public Set<Layer> apply(Dimension dimension) {

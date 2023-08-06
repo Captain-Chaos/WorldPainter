@@ -11,6 +11,7 @@ import org.pepsoft.worldpainter.layers.bo2.Bo2LayerExporter;
 import org.pepsoft.worldpainter.layers.bo2.Bo2ObjectProvider;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -22,8 +23,8 @@ import java.util.List;
  * @author pepijn
  */
 public class Bo2Layer extends CustomLayer {
-    public Bo2Layer(Bo2ObjectProvider objectProvider, String description, int colour) {
-        super(objectProvider.getName(), description, DataSize.NIBBLE, 50, colour);
+    public Bo2Layer(Bo2ObjectProvider objectProvider, String description, Object paint) {
+        super(objectProvider.getName(), description, DataSize.NIBBLE, 50, paint);
         this.objectProvider = objectProvider;
     }
 
@@ -81,7 +82,7 @@ public class Bo2Layer extends CustomLayer {
 
         // Legacy support
         if (colour != 0) {
-            setColour(colour);
+            setPaint(new Color(colour));
             colour = 0;
         }
         if (density == 0) {

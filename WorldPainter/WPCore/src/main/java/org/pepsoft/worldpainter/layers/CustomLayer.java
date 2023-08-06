@@ -6,30 +6,34 @@ package org.pepsoft.worldpainter.layers;
 
 import org.pepsoft.worldpainter.HeightTransform;
 import org.pepsoft.worldpainter.layers.renderers.LayerRenderer;
-import org.pepsoft.worldpainter.layers.renderers.TransparentColourRenderer;
+import org.pepsoft.worldpainter.layers.renderers.PaintRenderer;
+import org.pepsoft.worldpainter.util.BufferedImageUtils;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.List;
 import java.util.Random;
+
+import static org.pepsoft.util.ImageUtils.fromBytes;
+import static org.pepsoft.util.ImageUtils.toBytes;
 
 /**
  *
  * @author pepijn
  */
 public abstract class CustomLayer extends Layer implements Cloneable {
-    public CustomLayer(String name, String description, DataSize dataSize, int priority, int colour) {
+    public CustomLayer(String name, String description, DataSize dataSize, int priority, Object paint) {
         super(createId(name), name, description, dataSize, false, priority);
-        this.colour = colour;
-        renderer = new TransparentColourRenderer(colour);
+        setPaint(paint);
     }
 
-    public CustomLayer(String name, String description, DataSize dataSize, int priority, char mnemonic, int colour) {
+    public CustomLayer(String name, String description, DataSize dataSize, int priority, char mnemonic, Object paint) {
         super(createId(name), name, description, dataSize, false, priority, mnemonic);
-        this.colour = colour;
-        renderer = new TransparentColourRenderer(colour);
+        setPaint(paint);
     }
 
     /**
@@ -43,15 +47,25 @@ public abstract class CustomLayer extends Layer implements Cloneable {
         super.setName(name);
     }
     
-    public int getColour() {
-        return colour;
+    public final Object getPaint() {
+        return (pattern != null) ? pattern : new Color(colour);
     }
     
-    public void setColour(int colour) {
-        if (colour != this.colour) {
-            this.colour = colour;
+    public final void setPaint(Object paint) {
+        if (paint instanceof Color) {
+            colour = ((Color) paint).getRGB();
+            pattern = null;
             icon = null;
-            renderer = new TransparentColourRenderer(colour);
+            updateRenderer();
+        } else if (paint instanceof BufferedImage) {
+            pattern = (BufferedImage) paint;
+            icon = null;
+            updateRenderer();
+        } else if (paint == null) {
+            colour = -1;
+            pattern = null;
+        } else {
+            throw new IllegalArgumentException("Paint type " + paint.getClass() + " not supported");
         }
     }
 
@@ -175,6 +189,9 @@ public abstract class CustomLayer extends Layer implements Cloneable {
             CustomLayer clone = (CustomLayer) super.clone();
             clone.id = createId(getName());
             clone.hide = false;
+            if (clone.pattern != null) {
+                clone.pattern = BufferedImageUtils.clone(clone.pattern);
+            }
             return clone;
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
@@ -182,22 +199,42 @@ public abstract class CustomLayer extends Layer implements Cloneable {
     }
 
     private BufferedImage createIcon() {
-        BufferedImage iconImage = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
-        for (int x = 1; x < 15; x++) {
-            for (int y = 1; y < 15; y++) {
-                if ((x == 1) || (x == 14) || (y == 1) || (y == 14)) {
-                    iconImage.setRGB(x, y, 0xFF000000);
-                } else {
-                    iconImage.setRGB(x, y, 0xFF000000 | colour);
+        if (pattern != null) {
+            return pattern;
+        } else {
+            BufferedImage iconImage = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+            for (int x = 1; x < 15; x++) {
+                for (int y = 1; y < 15; y++) {
+                    if ((x == 1) || (x == 14) || (y == 1) || (y == 14)) {
+                        iconImage.setRGB(x, y, 0xFF000000);
+                    } else {
+                        iconImage.setRGB(x, y, 0xFF000000 | colour);
+                    }
                 }
             }
+            return iconImage;
         }
-        return iconImage;
     }
-    
+
+    private void updateRenderer() {
+        renderer = new PaintRenderer((pattern != null) ? pattern : new Color(colour));
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        storedIcon = (icon != null) ? toBytes(icon) : null;
+        storedPattern = (pattern != null) ? toBytes(pattern) : null;
+        out.defaultWriteObject();
+    }
+
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        renderer = new TransparentColourRenderer(colour);
+        if (storedIcon != null) {
+            icon = fromBytes(storedIcon);
+        }
+        if (storedPattern != null) {
+            pattern = fromBytes(storedPattern);
+        }
+        updateRenderer();
         if (version < 1) {
             biome = -1;
         }
@@ -225,7 +262,8 @@ public abstract class CustomLayer extends Layer implements Cloneable {
      * The index indicating the position of the layer on its palette.
      */
     private Integer paletteIndex = null;
-    private transient BufferedImage icon;
+    private byte[] storedIcon, storedPattern;
+    private transient BufferedImage icon, pattern;
     private transient LayerRenderer renderer;
 
     public static final String KEY_DIMENSION = "org.pepsoft.worldpainter.dimension";

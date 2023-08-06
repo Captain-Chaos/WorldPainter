@@ -45,7 +45,6 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
         ((SpinnerNumberModel) spinnerThickness.getModel()).setMaximum(maxThickness);
         ((SpinnerNumberModel) spinnerThickness.getModel()).setMinimum(-maxThickness);
 
-        setLabelColour();
         setControlStates();
         
         fieldName.getDocument().addDocumentListener(new DocumentListener() {
@@ -81,7 +80,7 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
     
     @Override
     public GroundCoverLayer createLayer() {
-        return new GroundCoverLayer("My Ground Cover", MixedMaterial.create(platform, ROSE), Color.RED.getRGB());
+        return new GroundCoverLayer("My Ground Cover", MixedMaterial.create(platform, ROSE), Color.RED);
     }
 
     @Override
@@ -109,7 +108,7 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
             comboBoxLayerAnchor.setSelectedItem(null);
         }
         spinnerThickness.setValue(layer.getThickness());
-        selectedColour = layer.getColour();
+        paintPicker1.setPaint(layer.getPaint());
         switch (layer.getEdgeShape()) {
             case SHEER:
                 radioButtonSheerEdge.setSelected(true);
@@ -130,7 +129,6 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
         }
         checkBoxSmooth.setSelected(layer.isSmooth());
         mixedMaterialSelector1.setMaterial(layer.getMaterial());
-        setLabelColour();
         settingsChanged();
     }
 
@@ -178,18 +176,6 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
         context.settingsChanged();
     }
     
-    private void pickColour() {
-        Color pick = JColorChooser.showDialog(this, "Select Colour", new Color(selectedColour));
-        if (pick != null) {
-            selectedColour = pick.getRGB();
-            setLabelColour();
-        }
-    }
-    
-    private void setLabelColour() {
-        jLabel5.setBackground(new Color(selectedColour));
-    }
-    
     private void setControlStates() {
         int thickness = (Integer) spinnerThickness.getValue();
         spinnerEdgeWidth.setEnabled((thickness < -1 || thickness > 1) && (! radioButtonSheerEdge.isSelected()));
@@ -202,10 +188,10 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
     
     private GroundCoverLayer saveSettings(GroundCoverLayer layer) {
         if (layer == null) {
-            layer = new GroundCoverLayer(fieldName.getText(), mixedMaterialSelector1.getMaterial(), selectedColour);
+            layer = new GroundCoverLayer(fieldName.getText(), mixedMaterialSelector1.getMaterial(), paintPicker1.getPaint());
         } else {
             layer.setName(fieldName.getText());
-            layer.setColour(selectedColour);
+            layer.setPaint(paintPicker1.getPaint());
         }
         if (mixedMaterialSelector1.getMaterial().getMode() == MixedMaterial.Mode.LAYERED) {
             layer.setLayerAnchor(GroundCoverLayer.LayerAnchor.values()[comboBoxLayerAnchor.getSelectedIndex()]);
@@ -264,12 +250,11 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
         radioButtonSmoothEdge = new javax.swing.JRadioButton();
         jLabel2 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
         jLabel12 = new javax.swing.JLabel();
         spinnerEdgeWidth = new javax.swing.JSpinner();
         comboBoxLayerAnchor = new javax.swing.JComboBox<>();
         jLabel16 = new javax.swing.JLabel();
+        paintPicker1 = new org.pepsoft.worldpainter.layers.renderers.PaintPicker();
 
         buttonGroup1.add(radioButtonRoundedEdge);
         radioButtonRoundedEdge.setText("rounded");
@@ -299,7 +284,7 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
 
         jLabel6.setText("Name:");
 
-        fieldName.setColumns(10);
+        fieldName.setColumns(15);
 
         jLabel7.setText("Thickness:");
 
@@ -343,19 +328,7 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
 
         jLabel2.setText("Material:");
 
-        jLabel4.setText("Colour:");
-
-        jLabel5.setBackground(java.awt.Color.orange);
-        jLabel5.setText("                 ");
-        jLabel5.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        jLabel5.setOpaque(true);
-
-        jButton1.setText("...");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
+        jLabel4.setText("Paint:");
 
         jLabel12.setText("width:");
 
@@ -418,16 +391,12 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
                         .addComponent(jLabel14))))
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel5)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel6)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(jLabel6)
+                    .addComponent(jLabel4))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(paintPicker1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel15)
@@ -487,12 +456,11 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
                     .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(checkBoxSmooth)
                     .addComponent(labelWesterosCraftFeature))
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
-                    .addComponent(jLabel5)
-                    .addComponent(jButton1)
-                    .addComponent(jLabel15)))
+                    .addComponent(jLabel15)
+                    .addComponent(paintPicker1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -516,10 +484,6 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
         settingsChanged();
     }//GEN-LAST:event_radioButtonSmoothEdgeActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        pickColour();
-    }//GEN-LAST:event_jButton1ActionPerformed
-
     private void spinnerEdgeWidthStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spinnerEdgeWidthStateChanged
         settingsChanged();
     }//GEN-LAST:event_spinnerEdgeWidthStateChanged
@@ -534,7 +498,6 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
     private javax.swing.JCheckBox checkBoxSmooth;
     private javax.swing.JComboBox<String> comboBoxLayerAnchor;
     private javax.swing.JTextField fieldName;
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -546,7 +509,6 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
@@ -554,6 +516,7 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
     private javax.swing.JLabel labelWesterosCraftFeature;
     private org.pepsoft.worldpainter.MixedMaterialChooser mixedMaterialSelector1;
     private org.pepsoft.worldpainter.NoiseSettingsEditor noiseSettingsEditor1;
+    private org.pepsoft.worldpainter.layers.renderers.PaintPicker paintPicker1;
     private javax.swing.JRadioButton radioButtonLinearEdge;
     private javax.swing.JRadioButton radioButtonRoundedEdge;
     private javax.swing.JRadioButton radioButtonSheerEdge;
@@ -563,6 +526,5 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
     // End of variables declaration//GEN-END:variables
 
     private final Platform platform;
-    private int selectedColour = Color.RED.getRGB();
     private boolean programmaticChange = true;
 }

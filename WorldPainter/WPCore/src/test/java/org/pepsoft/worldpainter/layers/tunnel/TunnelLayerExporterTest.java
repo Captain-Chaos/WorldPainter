@@ -101,7 +101,7 @@ public class TunnelLayerExporterTest {
     }
 
     private TunnelLayer createTestLayer() {
-        final TunnelLayer layer = new TunnelLayer("Test", 0xff0000);
+        final TunnelLayer layer = new TunnelLayer("Test", null);
         layer.setFloorMode(FIXED_HEIGHT);
         layer.setFloorLevel(25);
         layer.setFloorWallDepth(0);

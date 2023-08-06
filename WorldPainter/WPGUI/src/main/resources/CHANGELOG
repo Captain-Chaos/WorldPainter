@@ -1,3 +1,10 @@
+-- Version 2.20.0, released ...
+
+ * All custom layer types can now be rendered with custom patterns in addition to solid colours
+   + To create or edit a pattern, click on the [...] button next to the Paint label on the layer's settings screen
+   + This will open a very simple editor which allows you to choose a solid colour, or a transparent canvas, and then apply a pattern to it using a simple pencil tool and limited colour palette
+   + The pattern will also be shown as the layer's icon on the palette
+
 -- Version 2.19.0, released 5-8-2023
 
  * The name and layer order of palettes can now be edited by clicking on the cog icon in their top-right corner

@@ -5,11 +5,13 @@
 package org.pepsoft.worldpainter.layers.groundcover;
 
 import org.pepsoft.minecraft.Material;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
@@ -18,8 +20,8 @@ import java.io.ObjectInputStream;
  * @author pepijn
  */
 public class GroundCoverLayer extends CustomLayer {
-    public GroundCoverLayer(String name, MixedMaterial material, int colour) {
-        super(name, "a layer of " + material.getName() + " on top of the terrain", DataSize.BIT, 30, colour);
+    public GroundCoverLayer(String name, MixedMaterial material, Object paint) {
+        super(name, "a layer of " + material.getName() + " on top of the terrain", DataSize.BIT, 30, paint);
         mixedMaterial = material;
     }
 
@@ -122,7 +124,7 @@ public class GroundCoverLayer extends CustomLayer {
 
         // Legacy support
         if (colour != 0) {
-            setColour(colour);
+            setPaint(new Color(colour));
             colour = 0;
         }
         if (thickness == 0) {

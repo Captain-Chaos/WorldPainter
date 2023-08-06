@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.pepsoft.worldpainter.AbstractRegressionIT;
 import org.pepsoft.worldpainter.objects.WPObject;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.List;
@@ -21,7 +22,7 @@ public class RegressionIT extends AbstractRegressionIT {
         try (ObjectInputStream in = new ObjectInputStream(new GZIPInputStream(org.pepsoft.worldpainter.tools.scripts.RegressionIT.class.getResourceAsStream("/testset/Forest.layer")))) {
             Bo2Layer layer = (Bo2Layer) in.readObject();
             assertEquals("Forest", layer.getName());
-            assertEquals(0x009900, layer.getColour() & 0xffffff);
+            assertEquals(new Color(0x009900), layer.getPaint());
             assertEquals(20, layer.getDensity());
             List<WPObject> allObjects = layer.getObjectProvider().getAllObjects();
             assertEquals(67, allObjects.size());

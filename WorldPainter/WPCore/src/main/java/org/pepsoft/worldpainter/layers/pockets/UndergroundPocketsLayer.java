@@ -18,8 +18,8 @@ import java.io.ObjectInputStream;
  * @author pepijn
  */
 public class UndergroundPocketsLayer extends CustomLayer {
-    public UndergroundPocketsLayer(String name, MixedMaterial material, Terrain terrain, int frequency, int minLevel, int maxLevel, int scale, int colour) {
-        super(name, "underground pockets of " + name, DataSize.NIBBLE, 15, colour);
+    public UndergroundPocketsLayer(String name, MixedMaterial material, Terrain terrain, int frequency, int minLevel, int maxLevel, int scale, Object paint) {
+        super(name, "underground pockets of " + name, DataSize.NIBBLE, 15, paint);
         if ((frequency < 1) || (frequency > 1000)) {
             throw new IllegalArgumentException("frequency < 1 or > 1000");
         }

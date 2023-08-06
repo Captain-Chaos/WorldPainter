@@ -73,7 +73,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
     
     @Override
     public CombinedLayer createLayer() {
-        return new CombinedLayer("My Combined Layer", "A combined layer", Color.ORANGE.getRGB());
+        return new CombinedLayer("My Combined Layer", "A combined layer", Color.ORANGE);
     }
 
     @Override
@@ -100,8 +100,8 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
 
         fieldName.setText(layer.getName());
 
-        colourEditor1.setColour(layer.getColour());
-        
+        paintPicker1.setPaint(layer.getPaint());
+
         comboBoxBiome.setSelectedItem(layer.getBiome());
 
         checkBoxApplyTerrainAndBiomeOnExport.setSelected(layer.isApplyTerrainAndBiomeOnExport());
@@ -236,7 +236,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
         layer.setTerrain((Terrain) comboBoxTerrain.getSelectedItem());
         layer.setApplyTerrainAndBiomeOnExport(checkBoxApplyTerrainAndBiomeOnExport.isSelected());
         tableModel.saveSettings(layer);
-        layer.setColour(colourEditor1.getColour());
+        layer.setPaint(paintPicker1.getPaint());
         return layer;
     }
 
@@ -271,10 +271,10 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
         jLabel5 = new javax.swing.JLabel();
         fieldName = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
-        colourEditor1 = new org.pepsoft.worldpainter.ColourEditor();
         buttonRemoveLayer = new javax.swing.JButton();
         checkBoxApplyTerrainAndBiomeOnExport = new javax.swing.JCheckBox();
         buttonEditLayerSettings = new javax.swing.JButton();
+        paintPicker1 = new org.pepsoft.worldpainter.layers.renderers.PaintPicker();
 
         jLabel1.setText("Configure your combined layer on this screen.");
 
@@ -310,7 +310,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
 
         fieldName.setColumns(20);
 
-        jLabel6.setText("Colour:");
+        jLabel6.setText("Paint:");
 
         buttonRemoveLayer.setText("Remove");
         buttonRemoveLayer.setEnabled(false);
@@ -342,28 +342,25 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
                 .addComponent(buttonRemoveLayer)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(buttonAddLayer))
+            .addComponent(jLabel1)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(comboBoxBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(jLabel4)
+            .addComponent(checkBoxApplyTerrainAndBiomeOnExport)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(comboBoxBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jLabel4)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel5)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel6)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(checkBoxApplyTerrainAndBiomeOnExport))
-                .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jLabel5)
+                    .addComponent(jLabel6))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(paintPicker1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -382,7 +379,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
                 .addGap(18, 18, 18)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 26, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 27, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonAddLayer)
@@ -392,10 +389,10 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
                     .addComponent(fieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6)
-                    .addComponent(colourEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(paintPicker1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -427,7 +424,6 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
     private javax.swing.JButton buttonEditLayerSettings;
     private javax.swing.JButton buttonRemoveLayer;
     private javax.swing.JCheckBox checkBoxApplyTerrainAndBiomeOnExport;
-    private org.pepsoft.worldpainter.ColourEditor colourEditor1;
     private javax.swing.JComboBox<Integer> comboBoxBiome;
     private javax.swing.JComboBox<Terrain> comboBoxTerrain;
     private javax.swing.JTextField fieldName;
@@ -438,6 +434,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JScrollPane jScrollPane1;
+    private org.pepsoft.worldpainter.layers.renderers.PaintPicker paintPicker1;
     private javax.swing.JTable tableLayers;
     // End of variables declaration//GEN-END:variables
 

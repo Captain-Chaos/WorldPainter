@@ -9,8 +9,8 @@ import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import static org.pepsoft.worldpainter.layers.Layer.DataSize.BIT;
 
 public class CliffCarver extends CustomLayer {
-    public CliffCarver(String name, String description, int colour) {
-        super(name, description, BIT, 24, colour);
+    public CliffCarver(String name, String description, Object paint) {
+        super(name, description, BIT, 24, paint);
     }
 
     @Override

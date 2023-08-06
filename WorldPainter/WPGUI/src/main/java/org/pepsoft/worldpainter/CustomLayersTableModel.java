@@ -194,6 +194,6 @@ public class CustomLayersTableModel implements TableModel {
     private static final String[]   COLUMN_NAMES = {"Layer",           "Palette",    "Type",       "Export"};
     private static final Class<?>[] COLUMN_TYPES = {CustomLayer.class, String.class, String.class, Boolean.class};
 
-    public static final CustomLayer FIRST_PASS_HEADER = new CustomLayer("First export pass", null, null, -1, -1) {};
-    public static final CustomLayer SECOND_PASS_HEADER = new CustomLayer("Second export pass", null, null, -1, -1) {};
+    public static final CustomLayer FIRST_PASS_HEADER = new CustomLayer("First export pass", null, null, -1, null) {};
+    public static final CustomLayer SECOND_PASS_HEADER = new CustomLayer("Second export pass", null, null, -1, null) {};
 }

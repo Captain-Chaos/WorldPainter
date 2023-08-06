@@ -9,6 +9,7 @@ import org.pepsoft.worldpainter.biomeschemes.Minecraft1_2BiomeScheme;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 
+import static java.awt.Color.WHITE;
 import static org.pepsoft.minecraft.Material.SNOW_BLOCK;
 
 public class FancyPostGenerationTheme extends FancyTheme {
@@ -31,7 +32,7 @@ public class FancyPostGenerationTheme extends FancyTheme {
             }
         }
         if (snowLayer == null) {
-            snowLayer = new GroundCoverLayer("Mountain Snow", MixedMaterial.create("Deep Snow", SNOW_BLOCK), 0xffffff);
+            snowLayer = new GroundCoverLayer("Mountain Snow", MixedMaterial.create("Deep Snow", SNOW_BLOCK), WHITE);
             snowLayer.setThickness(5);
             snowLayer.setEdgeWidth(15);
             snowLayer.setEdgeShape(GroundCoverLayer.EdgeShape.SMOOTH);

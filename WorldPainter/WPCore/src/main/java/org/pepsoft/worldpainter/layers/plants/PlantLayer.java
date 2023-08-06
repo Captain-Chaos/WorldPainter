@@ -31,8 +31,8 @@ import static org.pepsoft.worldpainter.layers.plants.Plants.ALL_PLANTS;
  * @author pepijn
  */
 public class PlantLayer extends CustomLayer {
-    public PlantLayer(String name, String description, int colour) {
-        super(name, description, DataSize.BIT, 35, colour);
+    public PlantLayer(String name, String description, Object paint) {
+        super(name, description, DataSize.BIT, 35, paint);
     }
     
     public PlantSettings getSettings(int plantIndex) {

@@ -31,8 +31,8 @@ import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.CUSTOM_DIM
  * @author SchmitzP
  */
 public class TunnelLayer extends CustomLayer {
-    public TunnelLayer(String name, int colour) {
-        super(name, name, DataSize.BIT, 22, colour);
+    public TunnelLayer(String name, Object paint) {
+        super(name, name, DataSize.BIT, 22, paint);
     }
 
     public Mode getRoofMode() {

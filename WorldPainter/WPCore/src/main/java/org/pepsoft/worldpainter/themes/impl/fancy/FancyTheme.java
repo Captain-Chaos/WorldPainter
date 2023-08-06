@@ -15,6 +15,7 @@ import org.pepsoft.worldpainter.themes.Theme;
 
 import java.util.Random;
 
+import static java.awt.Color.WHITE;
 import static org.pepsoft.minecraft.Material.SNOW_BLOCK;
 
 /**
@@ -230,7 +231,7 @@ public class FancyTheme implements Theme, Cloneable {
         return false;
     }
 
-    protected GroundCoverLayer snowLayer = new GroundCoverLayer("Mountain Snow", MixedMaterial.create("Deep Snow", SNOW_BLOCK), 0xffffff);
+    protected GroundCoverLayer snowLayer = new GroundCoverLayer("Mountain Snow", MixedMaterial.create("Deep Snow", SNOW_BLOCK), WHITE);
     protected Terrain terrainDirtAndGravel = Terrain.CUSTOM_1;
     protected Terrain terrainStoneAndGravel = Terrain.CUSTOM_2;
 

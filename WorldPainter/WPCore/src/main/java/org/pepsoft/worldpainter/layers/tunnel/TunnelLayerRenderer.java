@@ -9,17 +9,16 @@ import org.pepsoft.util.ColourUtils;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.layers.renderers.DimensionAwareRenderer;
-import org.pepsoft.worldpainter.layers.renderers.TransparentColourRenderer;
+import org.pepsoft.worldpainter.layers.renderers.PaintRenderer;
 
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
 
 /**
- *
  * @author pepijn
  */
-public class TunnelLayerRenderer extends TransparentColourRenderer implements DimensionAwareRenderer {
+public class TunnelLayerRenderer extends PaintRenderer implements DimensionAwareRenderer {
     public TunnelLayerRenderer(TunnelLayer layer) {
-        super(layer.getColour());
+        super(layer.getPaint());
         this.layer = layer;
         floorMode = layer.floorMode;
         floorLevel = layer.floorLevel;
@@ -34,11 +33,11 @@ public class TunnelLayerRenderer extends TransparentColourRenderer implements Di
         } else if (dimension != null) {
             switch (getEffect(x, y)) {
                 case BREAKS_SURFACE:
-                    return layer.getColour();
+                    return super.getPixelColour(x, y, underlyingColour, value);
                 case NONE:
-                    return ColourUtils.mix(layer.getColour(), underlyingColour, 64);
+                    return ColourUtils.mix(super.getPixelColour(x, y, underlyingColour, value), underlyingColour, 64);
                 case UNDERGROUND:
-                    return ColourUtils.mix(layer.getColour(), underlyingColour, 160);
+                    return ColourUtils.mix(super.getPixelColour(x, y, underlyingColour, value), underlyingColour, 160);
                 default:
                     throw new InternalError();
             }
