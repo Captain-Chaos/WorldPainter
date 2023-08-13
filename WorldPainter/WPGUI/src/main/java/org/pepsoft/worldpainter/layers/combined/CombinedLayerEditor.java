@@ -101,6 +101,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
         fieldName.setText(layer.getName());
 
         paintPicker1.setPaint(layer.getPaint());
+        paintPicker1.setOpacity(layer.getOpacity());
 
         comboBoxBiome.setSelectedItem(layer.getBiome());
 
@@ -237,6 +238,7 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
         layer.setApplyTerrainAndBiomeOnExport(checkBoxApplyTerrainAndBiomeOnExport.isSelected());
         tableModel.saveSettings(layer);
         layer.setPaint(paintPicker1.getPaint());
+        layer.setOpacity(paintPicker1.getOpacity());
         return layer;
     }
 

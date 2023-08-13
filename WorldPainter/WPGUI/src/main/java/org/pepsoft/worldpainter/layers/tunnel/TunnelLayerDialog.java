@@ -268,6 +268,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             mixedMaterialChooserWall.setMaterial(layer.getWallMaterial());
             textFieldName.setText(layer.getName());
             paintPicker1.setPaint(layer.getPaint());
+            paintPicker1.setOpacity(layer.getOpacity());
             checkBoxRemoveWater.setSelected(layer.isRemoveWater());
             checkBoxFlood.setSelected(layer.getFloodLevel() != Integer.MIN_VALUE);
             spinnerFloodLevel.setValue((layer.getFloodLevel() != Integer.MIN_VALUE) ? layer.getFloodLevel() : waterLevel);
@@ -366,6 +367,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         layer.setWallMaterial(wallMaterial);
         layer.setName(textFieldName.getText().trim());
         layer.setPaint(paintPicker1.getPaint());
+        layer.setOpacity(paintPicker1.getOpacity());
         layer.setRemoveWater(checkBoxRemoveWater.isSelected());
         layer.setFloodLevel(checkBoxFlood.isSelected() ? (Integer) spinnerFloodLevel.getValue() : Integer.MIN_VALUE);
         layer.setFloodWithLava(checkBoxFloodWithLava.isSelected());

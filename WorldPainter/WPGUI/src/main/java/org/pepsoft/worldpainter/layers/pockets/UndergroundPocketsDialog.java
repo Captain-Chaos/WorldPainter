@@ -50,6 +50,7 @@ public class UndergroundPocketsDialog extends AbstractEditLayerDialog<Undergroun
             layer = existingLayer;
             fieldName.setText(existingLayer.getName());
             paintPicker1.setPaint(existingLayer.getPaint());
+            paintPicker1.setOpacity(existingLayer.getOpacity());
             if (existingLayer.getMaterial() != null) {
                 mixedMaterialChooser.setMaterial(existingLayer.getMaterial());
             } else {
@@ -127,6 +128,7 @@ public class UndergroundPocketsDialog extends AbstractEditLayerDialog<Undergroun
             layer.setMaxLevel(maxLevel);
             layer.setScale(scale);
         }
+        layer.setOpacity(paintPicker1.getOpacity());
         super.ok();
     }
     

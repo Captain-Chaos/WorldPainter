@@ -106,6 +106,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
     public void reset() {
         fieldName.setText(layer.getName());
         paintPicker1.setPaint(layer.getPaint());
+        paintPicker1.setOpacity(layer.getOpacity());
         checkBoxGenerateTilledDirt.setSelected(layer.isGenerateFarmland());
         checkBoxOnlyValidBlocks.setSelected(layer.isOnlyOnValidBlocks());
         final Platform platform = context.getDimension().getWorld().getPlatform();
@@ -424,6 +425,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         }
         layer.setName(fieldName.getText().trim());
         layer.setPaint(paintPicker1.getPaint());
+        layer.setOpacity(paintPicker1.getOpacity());
         layer.setGenerateFarmland(checkBoxGenerateTilledDirt.isSelected());
         layer.setOnlyOnValidBlocks(checkBoxOnlyValidBlocks.isSelected());
         for (int i = 0; i < ALL_PLANTS.length; i++) {

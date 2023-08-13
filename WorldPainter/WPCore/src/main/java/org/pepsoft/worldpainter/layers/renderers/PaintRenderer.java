@@ -16,8 +16,11 @@ import static org.pepsoft.util.MathUtils.mod;
  */
 @Getter
 public class PaintRenderer implements NibbleLayerRenderer, BitLayerRenderer{
-    public PaintRenderer(Object paint) {
-        requireNonNull(paint);
+    public PaintRenderer(Object paint, float opacity) {
+        requireNonNull(paint, "paint");
+        if ((opacity < 0.0f) || (opacity > 1.0f)) {
+            throw new IllegalArgumentException("opacity " + opacity);
+        }
         if (paint instanceof BufferedImage) {
             final BufferedImage image = (BufferedImage) paint;
             w = image.getWidth();
@@ -46,6 +49,7 @@ public class PaintRenderer implements NibbleLayerRenderer, BitLayerRenderer{
         } else {
             throw new IllegalArgumentException("Paint type " + paint.getClass() + " not supported");
         }
+        this.opacity = opacity;
     }
 
     @Override
@@ -58,13 +62,14 @@ public class PaintRenderer implements NibbleLayerRenderer, BitLayerRenderer{
         if (value > 0) {
             if (red != null) {
                 final int index = mod(globalX, w) * w + mod(globalY, h);
-                final float alpha = this.alpha[index] * value / 15;
+                final float alpha = this.alpha[index] * opacity * value / 15;
                 return (Math.round(alpha * this.red[index] + (1 - alpha) * ((underlyingColour & 0x00ff0000) >> 16)) << 16)
                         | (Math.round(alpha * this.green[index] + (1 - alpha) * ((underlyingColour & 0x0000ff00) >> 8)) << 8)
                         | Math.round(alpha * this.blue[index] + (1 - alpha) * (underlyingColour & 0x000000ff));
+            } else if (opacity < 1.0f) {
+                return ColourUtils.mix(colour, underlyingColour, Math.round(value * opacity * 255 / 15));
             } else {
-                final int intensity = value * 255 / 15;
-                return ColourUtils.mix(colour, underlyingColour, intensity);
+                return ColourUtils.mix(colour, underlyingColour, value * 255 / 15);
             }
         } else {
             return underlyingColour;
@@ -74,4 +79,5 @@ public class PaintRenderer implements NibbleLayerRenderer, BitLayerRenderer{
     private final int w, h, colour;
     private final int[] red, green, blue;
     private final float[] alpha;
+    private final float opacity;
 }

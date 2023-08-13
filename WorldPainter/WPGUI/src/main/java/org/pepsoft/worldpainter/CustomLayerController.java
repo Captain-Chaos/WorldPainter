@@ -9,6 +9,7 @@ import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.swing.BetterJPopupMenu;
 import org.pepsoft.worldpainter.importing.CustomItemsTreeModel;
 import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.layers.annotation.CustomAnnotationLayerDialog;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 import org.pepsoft.worldpainter.layers.plants.PlantLayer;
 import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsDialog;
@@ -41,6 +42,7 @@ import java.util.function.Function;
 import java.util.zip.GZIPOutputStream;
 
 import static java.awt.Color.BLACK;
+import static java.awt.Color.YELLOW;
 import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
 import static javax.swing.JOptionPane.*;
@@ -384,9 +386,9 @@ public class CustomLayerController implements PropertyChangeListener {
 
         menuItem = new JMenuItem("Add a custom plants layer...");
         menuItem.addActionListener(e -> {
-            EditLayerDialog<PlantLayer> dialog = new EditLayerDialog<>(app, world.getPlatform(), PlantLayer.class);
+            final EditLayerDialog<PlantLayer> dialog = new EditLayerDialog<>(app, world.getPlatform(), PlantLayer.class);
             dialog.setVisible(() -> {
-                PlantLayer layer = dialog.getLayer();
+                final PlantLayer layer = dialog.getLayer();
                 if (paletteName != null) {
                     layer.setPalette(paletteName);
                 }
@@ -397,10 +399,23 @@ public class CustomLayerController implements PropertyChangeListener {
 
         menuItem = new JMenuItem("Add a combined layer...");
         menuItem.addActionListener(e -> {
-            EditLayerDialog<CombinedLayer> dialog = new EditLayerDialog<>(app, world.getPlatform(), CombinedLayer.class);
+            final EditLayerDialog<CombinedLayer> dialog = new EditLayerDialog<>(app, world.getPlatform(), CombinedLayer.class);
             dialog.setVisible(() -> {
                 // TODO: get saved layer
-                CombinedLayer layer = dialog.getLayer();
+                final CombinedLayer layer = dialog.getLayer();
+                if (paletteName != null) {
+                    layer.setPalette(paletteName);
+                }
+                registerCustomLayer(layer, true);
+            });
+        });
+        customLayerMenu.add(menuItem);
+
+        menuItem = new JMenuItem("Add a custom annotations layer...");
+        menuItem.addActionListener(e -> {
+            final CustomAnnotationLayerDialog dialog = new CustomAnnotationLayerDialog(app, new CustomAnnotationLayer("My Custom Annotation", "A custom annotations layer", YELLOW));
+            dialog.setVisible(() -> {
+                final CustomAnnotationLayer layer = dialog.getLayer();
                 if (paletteName != null) {
                     layer.setPalette(paletteName);
                 }
@@ -419,7 +434,7 @@ public class CustomLayerController implements PropertyChangeListener {
             for (Class<? extends CustomLayer> customLayerClass: allPluginLayers) {
                 menuItem = new JMenuItem("Add a " + customLayerClass.getSimpleName() + " layer..."); // TODO: introduce a proper display name for custom layers
                 menuItem.addActionListener(e -> {
-                    EditLayerDialog<CustomLayer> dialog = new EditLayerDialog<>(app, world.getPlatform(), (Class<CustomLayer>) customLayerClass);
+                    final EditLayerDialog<CustomLayer> dialog = new EditLayerDialog<>(app, world.getPlatform(), (Class<CustomLayer>) customLayerClass);
                     dialog.setVisible(() -> {
                         // TODO: get saved layer
                         CustomLayer layer = dialog.getLayer();
@@ -461,6 +476,7 @@ public class CustomLayerController implements PropertyChangeListener {
 
     void editCustomLayer(CustomLayer layer, Runnable callback) {
         final Object previousPaint = layer.getPaint();
+        final float previousOpacity = layer.getOpacity();
         final BufferedImage previousIcon = layer.getIcon();
         final AbstractEditLayerDialog<CustomLayer> dialog = createEditLayerDialog(layer);
         dialog.setVisible(() -> {
@@ -473,12 +489,13 @@ public class CustomLayerController implements PropertyChangeListener {
                 control.setToolTipText(layer.getName() + ": " + layer.getDescription() + "; right-click for options");
             }
             final Object newPaint = layer.getPaint();
+            final float newOpacity = layer.getOpacity();
             final BufferedImage newIcon = layer.getIcon();
             boolean viewRefreshed = false;
             if ((! Objects.equals(newIcon, previousIcon)) && (control instanceof AbstractButton)) {
                 ((AbstractButton) control).setIcon(new ImageIcon(layer.getIcon()));
             }
-            if (! Objects.equals(newPaint, previousPaint)) {
+            if ((! Objects.equals(newPaint, previousPaint)) || (newOpacity != previousOpacity)) {
                 app.view.refreshTilesForLayer(layer, false);
                 viewRefreshed = true;
             }
@@ -755,6 +772,8 @@ public class CustomLayerController implements PropertyChangeListener {
             //  layer is being used, but that is a lot of work to determine. In practice this will usually be right
             //  though
             dialog = (AbstractEditLayerDialog<L>) new TunnelLayerDialog(app, world.getPlatform(), (TunnelLayer) layer, dimension, world.isExtendedBlockIds(), app.getColourScheme(), app.getCustomBiomeManager(), dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
+        } else if (layer instanceof CustomAnnotationLayer) {
+            dialog = (AbstractEditLayerDialog<L>) new CustomAnnotationLayerDialog(app, (CustomAnnotationLayer) layer);
         } else {
             throw new IllegalArgumentException("Don't know how to create dialog for layer " + layer.getName());
         }

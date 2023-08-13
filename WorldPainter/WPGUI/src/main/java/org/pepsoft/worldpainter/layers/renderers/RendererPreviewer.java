@@ -8,7 +8,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+import static java.awt.AlphaComposite.SRC_OVER;
 import static java.awt.Color.LIGHT_GRAY;
+import static java.awt.Color.ORANGE;
 import static java.awt.Transparency.OPAQUE;
 
 /**
@@ -44,29 +46,44 @@ public class RendererPreviewer extends JComponent {
         repaint();
     }
 
+    public float getOpacity() {
+        return opacity;
+    }
+
+    public void setOpacity(float opacity) {
+        if (opacity != this.opacity) {
+            this.opacity = opacity;
+            repaint();
+        }
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
-        Rectangle clip = g.getClipBounds();
+        final Graphics2D g2 = (Graphics2D) g;
+        Rectangle clip = g2.getClipBounds();
         if (clip == null) {
             clip = new Rectangle(0, 0, getWidth(), getHeight());
         }
+        if ((colour != null) ? (opacity < 1.0f) : (pattern.getTransparency() != OPAQUE)) {
+            paintBackground(g, clip);
+        }
+        if (opacity < 1.0f) {
+            g2.setComposite(AlphaComposite.getInstance(SRC_OVER, opacity));
+        }
         if (colour != null) {
-            g.setColor(colour);
-            g.fillRect(clip.x, clip.y, clip.width, clip.height);
+            g2.setColor(colour);
+            g2.fillRect(clip.x, clip.y, clip.width, clip.height);
         } else if (pattern != null) {
-            if (pattern.getTransparency() != OPAQUE) {
-                paintBackground(g, clip);
-            }
             final int w = pattern.getWidth(), h = pattern.getHeight();
             final int x1 = clip.x / w, x2 = (clip.x + clip.width) / w;
             final int y1 = clip.y / h, y2 = (clip.y + clip.height) / h;
             for (int x = x1; x <= x2; x++) {
                 for (int y = y1; y <= y2; y++) {
-                    g.drawImage(pattern, x * w, y * h, null);
+                    g2.drawImage(pattern, x * w, y * h, null);
                 }
             }
         } else {
-            g.clearRect(clip.x, clip.y, clip.width, clip.height);
+            g2.clearRect(clip.x, clip.y, clip.width, clip.height);
         }
     }
 
@@ -83,8 +100,9 @@ public class RendererPreviewer extends JComponent {
         }
     }
 
-    private Color colour;
+    private Color colour = ORANGE;
     private BufferedImage pattern;
+    private float opacity = 1.0f;
 
     private static final int GRID_SIZE = 10;
 }

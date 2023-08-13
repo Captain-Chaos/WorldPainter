@@ -28,7 +28,7 @@ public class EditPaintDialog extends WorldPainterDialog {
     /**
      * Creates new form EditPaintDialog
      */
-    public EditPaintDialog(Window parent, Object paint) {
+    public EditPaintDialog(Window parent, Object paint, float opacity) {
         super(parent);
         if (paint instanceof Color) {
             this.colour = (Color) paint;
@@ -37,6 +37,7 @@ public class EditPaintDialog extends WorldPainterDialog {
         } else {
             throw new IllegalArgumentException("Paint type " + paint.getClass() + " not supported");
         }
+        this.opacity = opacity;
 
         initComponents();
 
@@ -49,6 +50,8 @@ public class EditPaintDialog extends WorldPainterDialog {
             eraseColour = findBackgroundColour(pattern);
         }
         iconEditor1.setEraseColour(eraseColour);
+        sliderOpacity.setValue(Math.round(opacity * 100));
+        rendererPreviewer1.setOpacity(opacity);
         updatePreview();
         iconEditor1.addPropertyChangeListener("icon", evt -> {
             EditPaintDialog.this.colour = null;
@@ -67,8 +70,15 @@ public class EditPaintDialog extends WorldPainterDialog {
      *
      * <p><strong>Note:</strong> only valid after {@link #ok()} has been invoked!
      */
-    public Object getPaint() {
+    public Object getSelectedPaint() {
         return (colour != null) ? colour : pattern;
+    }
+
+    /**
+     * Returns the selected opacity.
+     */
+    public float getSelectedOpacity() {
+        return opacity;
     }
 
     @Override
@@ -90,6 +100,11 @@ public class EditPaintDialog extends WorldPainterDialog {
     }
 
     private void createColourButtons() {
+        // Remove the button that is on there just to be able to edit the form at development time
+        panelColours.removeAll();
+        // Rotate the opacity label (can't do that at development time or it would mess up the layout)
+        labelOpacity.setOrientation(SwingConstants.VERTICAL);
+        labelOpacity.setClockwise(false);
         for (int ega = 0; ega < 16; ega++) {
             final JToggleButton button = new JToggleButton(createScaledColourIcon(EGA_COLOURS[ega]));
             button.setToolTipText(EGA_NAMES[ega]);
@@ -156,9 +171,12 @@ public class EditPaintDialog extends WorldPainterDialog {
         buttonCancel = new javax.swing.JButton();
         buttonOk = new javax.swing.JButton();
         panelColours = new javax.swing.JPanel();
+        jButton1 = new javax.swing.JButton();
         rendererPreviewer1 = new org.pepsoft.worldpainter.layers.renderers.RendererPreviewer();
         buttonClear = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
+        sliderOpacity = new javax.swing.JSlider();
+        labelOpacity = new com.jidesoft.swing.JideLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Edit Paint");
@@ -212,6 +230,10 @@ public class EditPaintDialog extends WorldPainterDialog {
 
         panelColours.setLayout(new java.awt.GridLayout(0, 4));
 
+        jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/shovel-icon_16.png"))); // NOI18N
+        jButton1.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        panelColours.add(jButton1);
+
         rendererPreviewer1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         rendererPreviewer1.setToolTipText("Preview of pattern");
 
@@ -228,6 +250,15 @@ public class EditPaintDialog extends WorldPainterDialog {
         jLabel1.setFont(jLabel1.getFont().deriveFont((jLabel1.getFont().getStyle() | java.awt.Font.ITALIC)));
         jLabel1.setText("Left-click to paint with selected colour; right-click for background colour");
 
+        sliderOpacity.setOrientation(javax.swing.JSlider.VERTICAL);
+        sliderOpacity.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                sliderOpacityStateChanged(evt);
+            }
+        });
+
+        labelOpacity.setText("Opacity");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -239,15 +270,20 @@ public class EditPaintDialog extends WorldPainterDialog {
                         .addComponent(iconEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(rendererPreviewer1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                    .addComponent(panelColours, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(buttonClear, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(toggleButtonEraser, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(toggleButtonPencil, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(buttonSolidColour, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addGap(0, 0, Short.MAX_VALUE))))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                        .addComponent(buttonSolidColour, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(toggleButtonPencil, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(toggleButtonEraser, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(buttonClear, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(panelColours, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 19, Short.MAX_VALUE)
+                                        .addComponent(labelOpacity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(sliderOpacity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(rendererPreviewer1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -262,18 +298,28 @@ public class EditPaintDialog extends WorldPainterDialog {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(buttonSolidColour)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(toggleButtonPencil)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(toggleButtonEraser)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(buttonClear)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(panelColours, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(buttonSolidColour)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(toggleButtonPencil)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(toggleButtonEraser)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(buttonClear)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(panelColours, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(labelOpacity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(sliderOpacity, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(rendererPreviewer1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addComponent(iconEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(iconEditor1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
@@ -324,6 +370,11 @@ public class EditPaintDialog extends WorldPainterDialog {
         updatePreview();
     }//GEN-LAST:event_buttonClearActionPerformed
 
+    private void sliderOpacityStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderOpacityStateChanged
+        opacity = sliderOpacity.getValue() / 100.0f;
+        rendererPreviewer1.setOpacity(opacity);
+    }//GEN-LAST:event_sliderOpacityStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
     private javax.swing.JButton buttonClear;
@@ -332,9 +383,12 @@ public class EditPaintDialog extends WorldPainterDialog {
     private javax.swing.JButton buttonOk;
     private javax.swing.JButton buttonSolidColour;
     private org.pepsoft.worldpainter.util.IconEditor iconEditor1;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
+    private com.jidesoft.swing.JideLabel labelOpacity;
     private javax.swing.JPanel panelColours;
     private org.pepsoft.worldpainter.layers.renderers.RendererPreviewer rendererPreviewer1;
+    private javax.swing.JSlider sliderOpacity;
     private javax.swing.JToggleButton toggleButtonEraser;
     private javax.swing.JToggleButton toggleButtonPencil;
     // End of variables declaration//GEN-END:variables
@@ -342,6 +396,7 @@ public class EditPaintDialog extends WorldPainterDialog {
     private Color colour, paintColour = Color.BLACK;
     private int eraseColour;
     private BufferedImage pattern;
+    private float opacity;
 
     private static final int[] EGA_COLOURS = {
             0x000000,

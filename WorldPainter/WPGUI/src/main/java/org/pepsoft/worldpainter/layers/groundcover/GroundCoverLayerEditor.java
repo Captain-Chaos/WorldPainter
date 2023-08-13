@@ -109,6 +109,7 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
         }
         spinnerThickness.setValue(layer.getThickness());
         paintPicker1.setPaint(layer.getPaint());
+        paintPicker1.setOpacity(layer.getOpacity());
         switch (layer.getEdgeShape()) {
             case SHEER:
                 radioButtonSheerEdge.setSelected(true);
@@ -193,6 +194,7 @@ public class GroundCoverLayerEditor extends AbstractLayerEditor<GroundCoverLayer
             layer.setName(fieldName.getText());
             layer.setPaint(paintPicker1.getPaint());
         }
+        layer.setOpacity(paintPicker1.getOpacity());
         if (mixedMaterialSelector1.getMaterial().getMode() == MixedMaterial.Mode.LAYERED) {
             layer.setLayerAnchor(GroundCoverLayer.LayerAnchor.values()[comboBoxLayerAnchor.getSelectedIndex()]);
         }

@@ -4,6 +4,11 @@
    + To create or edit a pattern, click on the [...] button next to the Paint label on the layer's settings screen
    + This will open a very simple editor which allows you to choose a solid colour, or a transparent canvas, and then apply a pattern to it using a simple pencil tool and limited colour palette
    + The pattern will also be shown as the layer's icon on the palette
+   + There is a separate slider to set the opacity of the layer (when it is at 100% intensity)
+ * A new Custom Annotation layer type has been added
+   + It is a very simple layer type that is not Exported and only serves to make custom annotations for display in the editor view, or as markers for scripts or complex operations
+   + The new patterned layer rendering support described above also applies to these new Custom Annotation Layers
+   + Since they are not Exported they are not visible on the Custom Layers tabs of the Export screen
 
 -- Version 2.19.0, released 5-8-2023
 

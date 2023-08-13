@@ -22,6 +22,8 @@ import org.pepsoft.worldpainter.layers.Populate;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.util.EnumListCellRenderer;
 import org.pepsoft.worldpainter.util.FileFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -29,6 +31,8 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -274,7 +278,7 @@ public class ExportWorldDialog extends WPDialogWithPaintSelection {
         int disabledLayerCount = 0;
         for (Dimension dimension: world.getDimensions()) {
             for (CustomLayer customLayer: dimension.getCustomLayers()) {
-                if (! customLayer.isExport()) {
+                if ((customLayer.getExporterType() != null) && (! customLayer.isExport())) {
                     disabledLayerCount++;
                 }
             }
@@ -1030,5 +1034,9 @@ public class ExportWorldDialog extends WPDialogWithPaintSelection {
     private final DefaultListModel<File> dataPacksListModel = new DefaultListModel<>();
     private boolean disableDisabledLayersWarning;
 
+    private static String previouslyAcknowledgedWarnings;
+    private static Reference<World2> warningsForWorld;
+
+    private static final Logger logger = LoggerFactory.getLogger(ExportWorldDialog.class);
     private static final long serialVersionUID = 1L;
 }

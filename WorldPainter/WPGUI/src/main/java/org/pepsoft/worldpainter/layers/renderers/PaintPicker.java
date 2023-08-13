@@ -20,7 +20,6 @@ public class PaintPicker extends javax.swing.JPanel {
      */
     public PaintPicker() {
         initComponents();
-        colour = ORANGE;
         updatePreview();
     }
 
@@ -45,6 +44,17 @@ public class PaintPicker extends javax.swing.JPanel {
         updatePreview();
     }
 
+    public float getOpacity() {
+        return opacity;
+    }
+
+    public void setOpacity(float opacity) {
+        if (opacity != this.opacity) {
+            this.opacity = opacity;
+            updatePreview();
+        }
+    }
+
     @Override
     public int getBaseline(int width, int height) {
         return buttonPickPaint.getBaseline(width, height);
@@ -56,13 +66,14 @@ public class PaintPicker extends javax.swing.JPanel {
         } else if (pattern != null) {
             rendererPreviewer1.setPattern(pattern);
         }
+        rendererPreviewer1.setOpacity(opacity);
     }
     
     private void pickPaint() {
-        final EditPaintDialog dialog = new EditPaintDialog(getWindowAncestor(this), (colour != null) ? colour : pattern);
+        final EditPaintDialog dialog = new EditPaintDialog(getWindowAncestor(this), (colour != null) ? colour : pattern, opacity);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
-            final Object paint = dialog.getPaint();
+            final Object paint = dialog.getSelectedPaint();
             if (paint instanceof Color) {
                 colour = (Color) paint;
                 pattern = null;
@@ -70,6 +81,7 @@ public class PaintPicker extends javax.swing.JPanel {
                 pattern = (BufferedImage) paint;
                 colour = null;
             }
+            opacity = dialog.getSelectedOpacity();
             updatePreview();
         }
     }
@@ -120,6 +132,7 @@ public class PaintPicker extends javax.swing.JPanel {
     private org.pepsoft.worldpainter.layers.renderers.RendererPreviewer rendererPreviewer1;
     // End of variables declaration//GEN-END:variables
 
-    private Color colour;
+    private Color colour = ORANGE;
     private BufferedImage pattern;
+    private float opacity = 1.0f;
 }

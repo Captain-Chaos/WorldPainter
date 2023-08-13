@@ -69,6 +69,20 @@ public abstract class CustomLayer extends Layer implements Cloneable {
         }
     }
 
+    public float getOpacity() {
+        return opacity;
+    }
+
+    public void setOpacity(float opacity) {
+        if ((opacity < 0.0f) || (opacity > 1.0f)) {
+            throw new IllegalArgumentException();
+        }
+        if (opacity != this.opacity) {
+            this.opacity = opacity;
+            updateRenderer();
+        }
+    }
+
     public int getBiome() {
         return biome;
     }
@@ -217,7 +231,7 @@ public abstract class CustomLayer extends Layer implements Cloneable {
     }
 
     private void updateRenderer() {
-        renderer = new PaintRenderer((pattern != null) ? pattern : new Color(colour));
+        renderer = new PaintRenderer((pattern != null) ? pattern : new Color(colour), opacity);
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
@@ -228,13 +242,6 @@ public abstract class CustomLayer extends Layer implements Cloneable {
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        if (storedIcon != null) {
-            icon = fromBytes(storedIcon);
-        }
-        if (storedPattern != null) {
-            pattern = fromBytes(storedPattern);
-        }
-        updateRenderer();
         if (version < 1) {
             biome = -1;
         }
@@ -244,7 +251,17 @@ public abstract class CustomLayer extends Layer implements Cloneable {
         if (version < 3) {
             export = true;
         }
+        if (version < 4) {
+            opacity = 1.0f;
+        }
         version = CURRENT_VERSION;
+        if (storedIcon != null) {
+            icon = fromBytes(storedIcon);
+        }
+        if (storedPattern != null) {
+            pattern = fromBytes(storedPattern);
+        }
+        updateRenderer();
     }
     
     private static String createId(String name) {
@@ -263,12 +280,13 @@ public abstract class CustomLayer extends Layer implements Cloneable {
      */
     private Integer paletteIndex = null;
     private byte[] storedIcon, storedPattern;
+    private float opacity = 1.0f;
     private transient BufferedImage icon, pattern;
     private transient LayerRenderer renderer;
 
     public static final String KEY_DIMENSION = "org.pepsoft.worldpainter.dimension";
     
-    private static final int CURRENT_VERSION = 3;
+    private static final int CURRENT_VERSION = 4;
     private static final Random ID_GENERATOR = new Random();
     private static final long serialVersionUID = 1L;
 }

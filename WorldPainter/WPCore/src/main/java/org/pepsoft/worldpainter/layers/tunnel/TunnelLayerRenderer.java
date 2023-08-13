@@ -18,7 +18,7 @@ import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
  */
 public class TunnelLayerRenderer extends PaintRenderer implements DimensionAwareRenderer {
     public TunnelLayerRenderer(TunnelLayer layer) {
-        super(layer.getPaint());
+        super(layer.getPaint(), layer.getOpacity());
         this.layer = layer;
         floorMode = layer.floorMode;
         floorLevel = layer.floorLevel;

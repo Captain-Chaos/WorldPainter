@@ -89,6 +89,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         List<WPObject> objects = new ArrayList<>();
         fieldName.setText(layer.getName());
         paintPicker1.setPaint(layer.getPaint());
+        paintPicker1.setOpacity(layer.getOpacity());
         List<File> files = layer.getFiles();
         if (files != null) {
             if (files.isEmpty()) {
@@ -222,6 +223,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
             layer.setObjectProvider(objectProvider);
             layer.setPaint(paintPicker1.getPaint());
         }
+        layer.setOpacity(paintPicker1.getOpacity());
         layer.setDensity((Integer) spinnerBlocksPerAttempt.getValue());
         return layer;
     }
