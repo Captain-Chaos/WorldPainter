@@ -172,7 +172,7 @@ public class CustomLayerController implements PropertyChangeListener {
                     }
                 }
                 menuItem = new JMenuItem("Duplicate...");
-                if (layer.isExportable()) {
+                if (layer.isExportableToFile()) {
                     menuItem.addActionListener(e1 -> duplicate());
                 } else {
                     menuItem.setEnabled(false);
@@ -183,7 +183,7 @@ public class CustomLayerController implements PropertyChangeListener {
                 menuItem.addActionListener(e1 -> remove());
                 popup.add(menuItem);
                 menuItem = new JMenuItem("Export to file...");
-                if (layer.isExportable()) {
+                if (layer.isExportableToFile()) {
                     menuItem.addActionListener(e1 -> exportLayer(layer));
                 } else {
                     menuItem.setEnabled(false);
@@ -792,7 +792,7 @@ public class CustomLayerController implements PropertyChangeListener {
             }
             final Map<String, JMenu> menusForDimension = new HashMap<>();
             for (CustomLayer layer: dimension.getCustomLayers()) {
-                if ((! layer.isExportable()) || ((filter != null) && (! filter.apply(layer)))) {
+                if ((! layer.isExportableToFile()) || ((filter != null) && (! filter.apply(layer)))) {
                     continue;
                 }
                 final String palette = layer.getPalette();

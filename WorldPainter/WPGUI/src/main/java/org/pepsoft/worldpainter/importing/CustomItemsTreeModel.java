@@ -81,7 +81,7 @@ public class CustomItemsTreeModel implements TreeModel {
             }
         }
         for (Dimension dim: world.getDimensions()) {
-            if (((itemType == ItemType.ALL) || (itemType == ItemType.LAYER)) && (! dim.getCustomLayers().isEmpty()) && dim.getCustomLayers().stream().anyMatch(Layer::isExportable)) {
+            if (((itemType == ItemType.ALL) || (itemType == ItemType.LAYER)) && (! dim.getCustomLayers().isEmpty()) && dim.getCustomLayers().stream().anyMatch(Layer::isExportableToFile)) {
                 return true;
             }
             if (((itemType == ItemType.ALL) || (itemType == ItemType.BIOME)) && ((dim.getCustomBiomes() != null) && (! dim.getCustomBiomes().isEmpty()))) {
@@ -167,7 +167,7 @@ public class CustomItemsTreeModel implements TreeModel {
     
     private void processDimension(Dimension dim, ItemType itemType) {
         if ((itemType == ItemType.ALL) || (itemType == ItemType.LAYER)) {
-            dim.getCustomLayers().stream().filter(Layer::isExportable).forEach(customLayers::add);
+            dim.getCustomLayers().stream().filter(Layer::isExportableToFile).forEach(customLayers::add);
         }
         if ((itemType == ItemType.ALL) || (itemType == ItemType.BIOME)) {
             if (dim.getCustomBiomes() != null) {

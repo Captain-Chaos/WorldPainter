@@ -5727,7 +5727,7 @@ public final class App extends JFrame implements RadiusControl,
                             beepAndShowError(this, "That layer or layer type is not supported for the current dimension.\nThe layer has not been added.", "Inapplicable Layer Type");
                             return;
                         }
-                        if (! layer.isExportable()) {
+                        if (! layer.isExportableToFile()) {
                             beepAndShowError(this, "That layer is not importable.\nThe layer has not been added.", "Unimportable Layer");
                             return;
                         }

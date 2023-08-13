@@ -375,7 +375,7 @@ public class TunnelLayer extends CustomLayer {
     }
 
     @Override
-    public boolean isExportable() {
+    public boolean isExportableToFile() {
         return floorMode != CUSTOM_DIMENSION;
     }
 
