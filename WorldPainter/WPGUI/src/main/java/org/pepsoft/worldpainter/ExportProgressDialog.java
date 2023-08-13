@@ -41,12 +41,13 @@ import static org.pepsoft.worldpainter.DefaultPlugin.*;
  */
 public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, ChunkFactory.Stats>> implements WindowListener {
     /** Creates new form ExportWorldDialog */
-    public ExportProgressDialog(Window parent, World2 world, WorldExportSettings exportSettings, File baseDir, String name) {
+    public ExportProgressDialog(Window parent, World2 world, WorldExportSettings exportSettings, File baseDir, String name, String acknowledgedWarnings) {
         super(parent, "Exporting");
         this.world = world;
         this.baseDir = baseDir;
         this.name = name;
         this.exportSettings = exportSettings;
+        this.acknowledgedWarnings = acknowledgedWarnings;
         addWindowListener(this);
 
         JButton minimiseButton = new JButton("Minimize");
@@ -134,6 +135,10 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
         if (backupDir.isDirectory()) {
             sb.append("<br>Backup of existing map created in:<br>").append(backupDir);
         }
+        if ((acknowledgedWarnings != null) && (! acknowledgedWarnings.trim().isEmpty())) {
+            sb.append("<br><br><em>Previously acknowledged warnings:</em>");
+            sb.append(acknowledgedWarnings);
+        }
         sb.append("</html>");
         return sb.toString();
     }
@@ -199,7 +204,7 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
     }
     
     private final World2 world;
-    private final String name;
+    private final String name, acknowledgedWarnings;
     private final File baseDir;
     private final WorldExportSettings exportSettings;
     private volatile File backupDir;

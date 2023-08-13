@@ -9,6 +9,9 @@
    + It is a very simple layer type that is not Exported and only serves to make custom annotations for display in the editor view, or as markers for scripts or complex operations
    + The new patterned layer rendering support described above also applies to these new Custom Annotation Layers
    + Since they are not Exported they are not visible on the Custom Layers tabs of the Export screen
+ * Warnings for Test Exports are now only displayed once as long as they don't change
+   + For regular Exports they are still always displayed
+   + In addition the warnings are now always repeated on the Export Success screen
 
 -- Version 2.19.0, released 5-8-2023
 

@@ -222,7 +222,7 @@ public class ExportWorldDialog extends WPDialogWithPaintSelection {
         exportSettings = (exportSettings != null)
                 ? exportSettings
                 : ((world.getExportSettings() != null) ? world.getExportSettings() : EXPORT_EVERYTHING);
-        final boolean exportAllDimensions = exportSettings.getDimensionsToExport() == null;
+        final boolean exportAllDimensions = exportSettings.getDimensionsToExport() == null, inhibitWarnings = (exportSettings != EXPORT_EVERYTHING);
         final Set<Point> selectedTiles = exportAllDimensions ? null : exportSettings.getTilesToExport();
         final int selectedDimension = exportAllDimensions ? DIM_NORMAL : exportSettings.getDimensionsToExport().iterator().next();
 
@@ -240,7 +240,7 @@ public class ExportWorldDialog extends WPDialogWithPaintSelection {
 
         // Check for warnings
         final Platform platform = world.getPlatform();
-        final StringBuilder sb = new StringBuilder("<html>Please confirm that you want to export the world<br>notwithstanding the following warnings:<br><ul>");
+        final StringBuilder sb = new StringBuilder("<ul>");
         boolean showWarning = false;
         for (DimensionPropertiesEditor editor: dimensionPropertiesEditors.values()) {
             final Generator generatorType = editor.getSelectedGeneratorType();
@@ -304,12 +304,34 @@ public class ExportWorldDialog extends WPDialogWithPaintSelection {
                 showWarning = true;
             }
         }
-        sb.append("</ul>Do you want to continue with the export?</html>");
+        sb.append("</ul>");
         if (showWarning) {
-            DesktopUtils.beep();
-            if (JOptionPane.showConfirmDialog(this, sb.toString(), "Review Warnings", YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
-                return;
+            final String warnings = sb.toString();
+            if (inhibitWarnings && (warningsForWorld != null) && (warningsForWorld.get() == world) && warnings.equals(previouslyAcknowledgedWarnings)) {
+                logger.warn("Skipping previously acknowledged warnings for this world: {}", previouslyAcknowledgedWarnings);
+            } else {
+                DesktopUtils.beep();
+                String text = "<html>Please confirm that you want to export the world<br>" +
+                        "notwithstanding the following warnings:<br>"
+                        + warnings
+                        + "Do you want to continue with the export?";
+                if (inhibitWarnings) {
+                    text += "<br>" +
+                            "<br>" +
+                            "<strong>Note:</strong> on the next Test Export this screen will be skipped<br>" +
+                            "if the warnings are identical.</html>";
+                }
+                if (JOptionPane.showConfirmDialog(this, text, "Review Warnings", YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+                    previouslyAcknowledgedWarnings = null;
+                    warningsForWorld = null;
+                    return;
+                }
+                previouslyAcknowledgedWarnings = warnings;
+                warningsForWorld = new WeakReference<>(world);
             }
+        } else {
+            previouslyAcknowledgedWarnings = null;
+            warningsForWorld = null;
         }
 
         final File baseDir = new File(fieldDirectory.getText().trim());
@@ -369,7 +391,7 @@ public class ExportWorldDialog extends WPDialogWithPaintSelection {
         final Configuration config = Configuration.getInstance();
         config.setExportDirectory(world.getPlatform(), baseDir);
 
-        final ExportProgressDialog dialog = new ExportProgressDialog(this, world, exportSettings, baseDir, name);
+        final ExportProgressDialog dialog = new ExportProgressDialog(this, world, exportSettings, baseDir, name, previouslyAcknowledgedWarnings);
         view.setInhibitUpdates(true);
         try {
             dialog.setVisible(true);

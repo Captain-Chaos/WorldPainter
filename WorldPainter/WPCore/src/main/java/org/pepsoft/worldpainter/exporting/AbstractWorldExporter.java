@@ -725,7 +725,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                                          boolean tileSelection,
                                          Map<Layer, LayerExporter> exporters, Map<Layer, LayerExporter> ceilingExporters,
                                          ChunkFactory chunkFactory, ChunkFactory ceilingChunkFactory,
-                                         ProgressReceiver progressReceiver) throws OperationCancelled, IOException {
+                                         ProgressReceiver progressReceiver) {
         return doWithMdcContext(() -> {
             if (progressReceiver != null) {
                 progressReceiver.setMessage("Exporting region " + regionCoords.x + "," + regionCoords.y + " of " + dimension.getName());
