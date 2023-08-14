@@ -6,7 +6,7 @@ package org.pepsoft.worldpainter.biomeschemes;
 
 import java.io.Serializable;
 
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.FIRST_UNALLOCATED_ID;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.FIRST_UNALLOCATED_ID;
 
 /**
  *

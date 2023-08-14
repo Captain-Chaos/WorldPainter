@@ -12,6 +12,7 @@
  * Warnings for Test Exports are now only displayed once as long as they don't change
    + For regular Exports they are still always displayed
    + In addition the warnings are now always repeated on the Export Success screen
+ * Bug fix: fix an error that occurred when Importing Minecraft 1.12 maps with custom biomes
 
 -- Version 2.19.0, released 5-8-2023
 
