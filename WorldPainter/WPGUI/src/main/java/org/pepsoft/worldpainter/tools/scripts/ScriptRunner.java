@@ -65,19 +65,21 @@ public class ScriptRunner extends WorldPainterDialog {
             setupScript((File) jComboBox1.getSelectedItem());
         }
         setControlStates();
-        
+
         getRootPane().setDefaultButton(jButton2);
         scaleToUI();
         pack();
         setLocationRelativeTo(parent);
     }
 
+    private static HashMap<String, ScriptDescriptor> scriptPropertyMap = new HashMap<String, ScriptDescriptor>();
+
     private void setControlStates() {
         jButton2.setEnabled((jComboBox1.getSelectedItem() != null)
                 && ((File) jComboBox1.getSelectedItem()).isFile()
                 && ((scriptDescriptor == null) || scriptDescriptor.isValid()));
     }
-    
+
     private void selectFile() {
         Set<String> extensions = new HashSet<>();
         SCRIPT_ENGINE_MANAGER.getEngineFactories().forEach(factory -> extensions.addAll(factory.getExtensions()));
@@ -145,9 +147,9 @@ public class ScriptRunner extends WorldPainterDialog {
             }
             boolean allFieldsOptional = true;
             for (ParameterDescriptor paramDescriptor: scriptDescriptor.parameterDescriptors) {
-                boolean showAsMandatory = (! paramDescriptor.optional) && ((paramDescriptor instanceof FileParameterDescriptor) || (paramDescriptor instanceof FloatParameterDescriptor) || (paramDescriptor instanceof StringParameterDescriptor));
+                boolean showAsMandatory = (!paramDescriptor.optional) && ((paramDescriptor instanceof FileParameterDescriptor) || (paramDescriptor instanceof FloatParameterDescriptor) || (paramDescriptor instanceof StringParameterDescriptor));
                 JLabel label = new JLabel(((paramDescriptor.displayName != null) ? paramDescriptor.displayName : paramDescriptor.name) + (showAsMandatory ? "*:" : ":"));
-                allFieldsOptional &= ! showAsMandatory;
+                allFieldsOptional &= !showAsMandatory;
                 JComponent editor = paramDescriptor.getEditor();
                 label.setLabelFor(editor);
                 if (paramDescriptor.description != null) {
@@ -160,6 +162,7 @@ public class ScriptRunner extends WorldPainterDialog {
                 addlastOnLine(panelDescriptor, editor);
                 paramDescriptor.setChangeListener(e -> setControlStates());
             }
+            scriptDescriptor.loadValuesIntoEditors();
             if (! allFieldsOptional) {
                 addlastOnLine(panelDescriptor, new JLabel("* mandatory parameter"));
             }
@@ -294,8 +297,35 @@ public class ScriptRunner extends WorldPainterDialog {
                     throw new IllegalArgumentException("Invalid key \"" + key + "\" in script descriptor");
                 }
             });
-            return descriptor;
+
+            ScriptDescriptor usedDescriptor = selectDescriptor(scriptPropertyMap, descriptor);
+            return usedDescriptor;
         }
+    }
+
+    /**
+     * selects the descriptor to use for the script.
+     * <p>
+     * If the oldDescriptor map has a descriptor with the same name and same parameter names, the old one is used.
+     * if not, the new one is used. Nullsafe
+     *
+     * @param oldDescriptors
+     * @param newDescriptor
+     * @return
+     */
+    @NotNull
+    private static ScriptDescriptor selectDescriptor(final HashMap<String, ScriptDescriptor> oldDescriptors, ScriptDescriptor newDescriptor) {
+        if (newDescriptor.name == null || !scriptPropertyMap.containsKey(newDescriptor.name))
+            return newDescriptor;
+
+        ScriptDescriptor mappedDescriptor = oldDescriptors.get(newDescriptor.name);
+
+        boolean paramsMissing = newDescriptor.parameterDescriptors.stream().anyMatch(param -> !mappedDescriptor.getValues().containsKey(param.name));
+        if (paramsMissing)
+            return newDescriptor;
+
+        return mappedDescriptor;
+
     }
 
     private void run() {
@@ -311,6 +341,9 @@ public class ScriptRunner extends WorldPainterDialog {
         final Map<String, Object> params;
         if (scriptDescriptor != null) {
             params = scriptDescriptor.getValues();
+            scriptDescriptor.saveValuesFromEditors();
+            if (scriptDescriptor.name != null)
+                scriptPropertyMap.put(scriptDescriptor.name, scriptDescriptor);
             if (scriptDescriptor.name != null) {
                 scriptName = scriptDescriptor.name;
             } else {
@@ -689,6 +722,17 @@ public class ScriptRunner extends WorldPainterDialog {
             return parameterDescriptors.stream().allMatch(p -> p.isEditorValid());
         }
 
+        void saveValuesFromEditors() {
+            parameterDescriptors.forEach(p -> p.setInternalValue(p.getValue()));
+        }
+
+        void loadValuesIntoEditors() {
+            parameterDescriptors.forEach(p -> {
+                        if (p.getInternalValue() != null)
+                            p.setValue(p.getInternalValue());
+                    });
+        }
+
         Map<String, Object> getValues() {
             Map<String, Object> values = new HashMap<>();
             parameterDescriptors.forEach(p -> {
@@ -714,6 +758,16 @@ public class ScriptRunner extends WorldPainterDialog {
                 setValue(defaultValue);
             }
             return editor;
+        }
+
+        private T internalValue;
+
+        T getInternalValue() {
+            return internalValue;
+        }
+
+        public void setInternalValue(T internalValue) {
+            this.internalValue = internalValue;
         }
 
         boolean isEditorValid() {
