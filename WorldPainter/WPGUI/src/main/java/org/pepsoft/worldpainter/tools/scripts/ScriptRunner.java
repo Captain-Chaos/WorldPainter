@@ -196,7 +196,7 @@ public class ScriptRunner extends WorldPainterDialog {
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         panel.add(component, constraints);
     }
-    
+
     private ScriptDescriptor analyseScript(File script) {
         if (! script.isFile()) {
             return null;
@@ -307,25 +307,34 @@ public class ScriptRunner extends WorldPainterDialog {
      * selects the descriptor to use for the script.
      * <p>
      * If the oldDescriptor map has a descriptor with the same name and same parameter names, the old one is used.
-     * if not, the new one is used. Nullsafe
+     * if not, the new one is used.
      *
      * @param oldDescriptors
      * @param newDescriptor
      * @return
      */
-    @NotNull
-    private static ScriptDescriptor selectDescriptor(final HashMap<String, ScriptDescriptor> oldDescriptors, ScriptDescriptor newDescriptor) {
-        if (newDescriptor.name == null || !scriptPropertyMap.containsKey(newDescriptor.name))
+    public static ScriptDescriptor selectDescriptor(final HashMap<String, ScriptDescriptor> oldDescriptors, ScriptDescriptor newDescriptor) {
+        if (newDescriptor.name == null || !oldDescriptors.containsKey(newDescriptor.name))
             return newDescriptor;
 
         ScriptDescriptor mappedDescriptor = oldDescriptors.get(newDescriptor.name);
 
-        boolean paramsMissing = newDescriptor.parameterDescriptors.stream().anyMatch(param -> !mappedDescriptor.getValues().containsKey(param.name));
+        boolean paramsMissing = !newDescriptor.parameterDescriptors.stream().allMatch(
+                p -> hasDescriptorWithNameAndType(mappedDescriptor.parameterDescriptors, p));
         if (paramsMissing)
             return newDescriptor;
 
         return mappedDescriptor;
 
+    }
+
+    public static boolean hasDescriptorWithNameAndType(List<ParameterDescriptor> list, ParameterDescriptor descriptorA) {
+        for (ParameterDescriptor descriptorB : list) {
+            if (descriptorB.name.equals(descriptorA.name) && descriptorB.getClass().equals(descriptorA.getClass()))
+                return true;
+
+        }
+        return false;
     }
 
     private void run() {
@@ -805,6 +814,13 @@ public class ScriptRunner extends WorldPainterDialog {
     }
 
     static class StringParameterDescriptor extends ParameterDescriptor<String, JTextField> {
+        public StringParameterDescriptor(String name) {
+            this.name = name;
+        }
+
+        public StringParameterDescriptor() {
+        }
+
         @Override
         protected JTextField createEditor() {
             JTextField field = new JTextField(defaultValue);
@@ -850,6 +866,15 @@ public class ScriptRunner extends WorldPainterDialog {
     }
 
     static class IntegerParameterDescriptor extends ParameterDescriptor<Integer, JSpinner> {
+        public IntegerParameterDescriptor(String name) {
+            super();
+            this.name = name;
+        }
+
+        public IntegerParameterDescriptor() {
+            super();
+        }
+
         @Override
         protected JSpinner createEditor() {
             JSpinner spinner = new JSpinner();
