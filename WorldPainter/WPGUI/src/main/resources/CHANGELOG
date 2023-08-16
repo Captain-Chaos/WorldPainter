@@ -2,7 +2,7 @@
 
  * Bug fix: fix an error that occurred when Importing Minecraft 1.12 maps with custom biomes
 
--- Version 2.20.0, released ...
+-- Version 2.20.0, released 13-8-2023
 
  * All custom layer types can now be rendered with custom patterns in addition to solid colours
    + To create or edit a pattern, click on the [...] button next to the Paint label on the layer's settings screen
