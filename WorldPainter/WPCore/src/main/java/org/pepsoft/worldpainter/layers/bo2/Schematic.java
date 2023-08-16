@@ -41,7 +41,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
         addBlocks = getByteArray("AddBlocks");
         data = getByteArray("Data");
         List<CompoundTag> entityTags = getList("Entities");
-        // entitites has been observed to be missing sporadically in the wild, so check for that, and guess that it also
+        // entities has been observed to be missing sporadically in the wild, so check for that, and guess that it also
         // applies to tileEntities
         if ((entityTags == null) || entityTags.isEmpty()) {
             entities = null;
@@ -309,7 +309,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
         if (version < 3) {
             guessConnectBlocks();
         }
-        version = 2;
+        version = 3;
     }
     
     private String name;
@@ -324,7 +324,7 @@ public final class Schematic extends AbstractNBTItem implements WPObject, Bo2Obj
     @Deprecated
     private Point3i origin;
     private Map<String, Serializable> attributes;
-    private int version = 2;
+    private int version = 3;
     
     private static final long serialVersionUID = 1L;
 }
