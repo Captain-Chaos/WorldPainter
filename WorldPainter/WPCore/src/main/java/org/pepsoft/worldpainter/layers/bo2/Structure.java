@@ -28,6 +28,11 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
         this.blocks = blocks;
         this.entities = entities;
         this.tileEntities = tileEntities;
+        // .nbt files don't have offsets, so always guestimate it:
+        final Point3i offset = guestimateOffset();
+        if ((offset != null) && ((offset.x != 0) || (offset.y != 0) || (offset.z != 0))) {
+            setAttribute(ATTRIBUTE_OFFSET, offset);
+        }
     }
 
     @Override
@@ -90,17 +95,17 @@ public class Structure extends AbstractObject implements Bo2ObjectProvider {
     }
 
     @Override
-    public Map<String, Serializable> getAttributes() {
+    public final Map<String, Serializable> getAttributes() {
         return attributes;
     }
 
     @Override
-    public void setAttributes(Map<String, Serializable> attributes) {
+    public final void setAttributes(Map<String, Serializable> attributes) {
         this.attributes = attributes;
     }
 
     @Override
-    public <T extends Serializable> void setAttribute(AttributeKey<T> key, T value) {
+    public final <T extends Serializable> void setAttribute(AttributeKey<T> key, T value) {
         if (value != null) {
             if (attributes == null) {
                 attributes = new HashMap<>();
