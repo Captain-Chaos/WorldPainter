@@ -1,7 +1,9 @@
 -- Version 2.20.1, released ...
 
- * Fence blocks and other connecting blocks from old Custom Objects, from old Minecraft versions that used to automatically manage those connections, will now be automatically connected on Export to their neighbours by WorldPainter
+ * Minecraft 1.20 support has been added
+ * Fence blocks and other connecting blocks from old Custom Objects, from old Minecraft versions that used to automatically manage those connections, will now be automatically connected to their neighbours on Export
    + It only does this for .bo2, .bo3 and .schematic objects
+ * Structures (.nbt files) now always have their offset guesstimated when loading them as Custom Objects, since they do not store an offset. This will increase the chance that they will be placed correctly by default
  * Bug fix: fix an error that occurred when Importing Minecraft 1.12 maps with custom biomes
 
 -- Version 2.20.0, released 13-8-2023
