@@ -52,8 +52,8 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
      *                  be higher than the volume; that just means the blocks between the top of the volume and
      *                  maxHeight won't be stored.
      */
-    public MinecraftWorldObject(String name, Box volume, int maxHeight) {
-        this(name, volume, maxHeight, null, new Point3i(0, 0, 0));
+    public MinecraftWorldObject(String name, Box volume, int maxHeight, int waterLevel) {
+        this(name, volume, maxHeight, waterLevel, null, new Point3i(0, 0, 0));
     }
 
     /**
@@ -70,10 +70,11 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
      *                     will be initialised as air.
      * @param offset The offset to return from {@link WPObject#getOffset()}.
      */
-    public MinecraftWorldObject(String name, Box volume, int maxHeight, Material[] lowestBlocks, Point3i offset) {
+    public MinecraftWorldObject(String name, Box volume, int maxHeight, int waterLevel, Material[] lowestBlocks, Point3i offset) {
         this.name = name;
         this.volume = volume;
         this.maxHeight = maxHeight;
+        this.waterLevel = waterLevel;
         this.lowestBlocks = lowestBlocks;
         this.offset = offset;
         dx = volume.getX1();
@@ -92,10 +93,11 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     }
 
     // Copy constructor for clone()
-    private MinecraftWorldObject(String name, Box volume, int maxHeight, Material[][][] blocks, Material[] lowestBlocks, Point3i offset) {
+    private MinecraftWorldObject(String name, Box volume, int maxHeight, int waterLevel, Material[][][] blocks, Material[] lowestBlocks, Point3i offset) {
         this.name = name;
         this.volume = volume;
         this.maxHeight = maxHeight;
+        this.waterLevel = waterLevel;
         this.blocks = blocks;
         this.lowestBlocks = lowestBlocks;
         dx = volume.getX1();
@@ -118,6 +120,10 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
 
     public Box getVolume() {
         return volume.clone();
+    }
+
+    public int getWaterLevel() {
+        return waterLevel;
     }
 
     // MinecraftWorld
@@ -339,12 +345,12 @@ public final class MinecraftWorldObject implements MinecraftWorld, WPObject {
     @Override
     @SuppressWarnings("CloneDoesntCallSuperClone")
     public MinecraftWorldObject clone() {
-        return new MinecraftWorldObject(name, volume.clone(), maxHeight, blocks.clone(), lowestBlocks.clone(), (Point3i) offset.clone());
+        return new MinecraftWorldObject(name, volume.clone(), maxHeight, waterLevel, blocks.clone(), lowestBlocks.clone(), (Point3i) offset.clone());
     }
-    
+
     private final String name;
     private final Box volume;
-    private final int dx, dy, dz, maxHeight;
+    private final int dx, dy, dz, maxHeight, waterLevel;
     private final Point3i dimensions, offset;
     private final Material[][][] blocks;
     private final Material[] lowestBlocks;

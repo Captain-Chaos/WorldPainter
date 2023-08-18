@@ -57,7 +57,7 @@ public final class TestData {
                 lowestBlocks[z] = DEEPSLATE_Y;
             }
         }
-        return new MinecraftWorldObject("Test", volume, MAX_HEIGHT, lowestBlocks, null);
+        return new MinecraftWorldObject("Test", volume, MAX_HEIGHT, 0, lowestBlocks, null);
     }
 
     public static final Platform PLATFORM = DefaultPlugin.JAVA_ANVIL_1_19;

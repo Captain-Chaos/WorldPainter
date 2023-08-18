@@ -49,12 +49,12 @@ public class LayerPreviewCreator {
         // Phase one: setup
         long timestamp = System.currentTimeMillis();
         final long seed = 0L;
-        final TileFactory tileFactory = subterranean
+        final HeightMapTileFactory tileFactory = subterranean
                 ? TileFactoryFactory.createNoiseTileFactory(seed, Terrain.BARE_GRASS, JAVA_ANVIL_1_17.minZ, previewHeight, 56, DEFAULT_WATER_LEVEL, false, true, 20f, 0.5)
                 : TileFactoryFactory.createNoiseTileFactory(seed, Terrain.BARE_GRASS, JAVA_ANVIL_1_17.minZ, previewHeight, 8, 14, false, true, 20f, 0.5);
         final Dimension dimension = new World2(DefaultPlugin.JAVA_MCREGION, seed, tileFactory).getDimension(NORMAL_DETAIL);
         dimension.setSubsurfaceMaterial(Terrain.STONE);
-        final MinecraftWorldObject minecraftWorldObject = new MinecraftWorldObject(layer.getName() + " Preview", new Box(-8, 136, -8, 136, 0, previewHeight), previewHeight, null, new Point3i(-64, -64, 0));
+        final MinecraftWorldObject minecraftWorldObject = new MinecraftWorldObject(layer.getName() + " Preview", new Box(-8, 136, -8, 136, 0, previewHeight), previewHeight, tileFactory.getWaterHeight(), null, new Point3i(-64, -64, 0));
         long now = System.currentTimeMillis();
         if (logger.isDebugEnabled()) {
             logger.debug("Creating data structures took " + (now - timestamp) + " ms");

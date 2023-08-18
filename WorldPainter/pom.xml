@@ -130,7 +130,7 @@
         <imageio-tiff.version>3.8.2</imageio-tiff.version>
         <slf4j.version>1.7.36</slf4j.version>
         <nashorn-core.version>15.4</nashorn-core.version>
-        <dynmap-core.version>3.4</dynmap-core.version>
+        <dynmap-core.version>3.6</dynmap-core.version>
         <snakeyaml.version>2.0</snakeyaml.version>
         <json-simple.version>1.1.1</json-simple.version>
 

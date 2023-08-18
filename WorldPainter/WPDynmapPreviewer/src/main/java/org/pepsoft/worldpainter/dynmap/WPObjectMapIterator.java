@@ -6,6 +6,7 @@ import org.dynmap.renderer.DynmapBlockState;
 import org.dynmap.renderer.RenderPatchFactory;
 import org.dynmap.utils.BlockStep;
 import org.dynmap.utils.MapIterator;
+import org.pepsoft.worldpainter.objects.MinecraftWorldObject;
 
 import static org.dynmap.renderer.DynmapBlockState.AIR;
 import static org.pepsoft.minecraft.Material.WATER;
@@ -123,6 +124,20 @@ class WPObjectMapIterator implements MapIterator {
     @Override
     public int getWorldHeight() {
         return object.bounds.getHeight();
+    }
+
+    @Override
+    public int getWorldYMin() {
+        return 0;
+    }
+
+    @Override
+    public int getWorldSeaLevel() {
+        if (object.object instanceof MinecraftWorldObject) {
+            return ((MinecraftWorldObject) object.object).getWaterLevel();
+        } else {
+            return 0;
+        }
     }
 
     @Override

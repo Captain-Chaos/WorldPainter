@@ -35,7 +35,7 @@ public class DynmapCore {
     }
 
     public String getDynmapPluginPlatformVersion() {
-        return "1.19.2"; // TODO what should this be, exactly? It seems to control which blocks Dynmap support, so ideally it should keep track with the latest version supported by WorldPainter?
+        return "1.20.1"; // TODO what should this be, exactly? It seems to control which blocks Dynmap support, so ideally it should keep track with the latest version supported by WorldPainter?
     }
 
     public boolean getLeafTransparency() {
