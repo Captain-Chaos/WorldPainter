@@ -1,6 +1,6 @@
--- Version 2.20.1, released ...
+-- Version 2.21.0, released ...
 
- * Minecraft 1.20 support has been added
+ * Support for Minecraft 1.20's new blocks has been added
  * Fence blocks and other connecting blocks from old Custom Objects, from old Minecraft versions that used to automatically manage those connections, will now be automatically connected to their neighbours on Export
    + It only does this for .bo2, .bo3 and .schematic objects
  * Structures (.nbt files) now always have their offset guesstimated when loading them as Custom Objects, since they do not store an offset. This will increase the chance that they will be placed correctly by default
