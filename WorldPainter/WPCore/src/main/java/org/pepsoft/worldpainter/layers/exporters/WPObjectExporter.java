@@ -4,6 +4,7 @@
  */
 package org.pepsoft.worldpainter.layers.exporters;
 
+import org.pepsoft.minecraft.Direction;
 import org.pepsoft.minecraft.Entity;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.TileEntity;
@@ -21,7 +22,9 @@ import org.pepsoft.worldpainter.util.WPObjectUtils;
 
 import javax.vecmath.Point3i;
 import java.awt.*;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.pepsoft.minecraft.Constants.*;
@@ -530,24 +533,101 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             }
         }
         // Manage the cardinal direction properties for connecting blocks, if requested
-        if (connectBlocks && material.connectingBlock) {
-            if (WPObjectUtils.wouldConnect(material, world.getMaterialAt(x - 1, y, height))) {
-                material = material.withProperty(WEST, true);
-            }
-            if (WPObjectUtils.wouldConnect(material, world.getMaterialAt(x, y - 1, height))) {
-                material = material.withProperty(NORTH, true);
-            }
-            if (WPObjectUtils.wouldConnect(material, world.getMaterialAt(x + 1, y, height))) {
-                material = material.withProperty(EAST, true);
-            }
-            if (WPObjectUtils.wouldConnect(material, world.getMaterialAt(x, y + 1, height))) {
-                material = material.withProperty(SOUTH, true);
+        Set<Direction> checkReverseConnections = null;
+        if (connectBlocks) {
+            if (material.connectingBlock) {
+                // The object block is a connecting block; check around it for other connecting blocks or solid blocks
+                if (WPObjectUtils.wouldConnect(material, world.getMaterialAt(x - 1, y, height))) {
+                    material = material.withProperty(WEST, true);
+                    checkReverseConnections = EnumSet.of(Direction.WEST);
+                }
+                if (WPObjectUtils.wouldConnect(material, world.getMaterialAt(x, y - 1, height))) {
+                    material = material.withProperty(NORTH, true);
+                    if (checkReverseConnections == null) {
+                        checkReverseConnections = EnumSet.of(Direction.NORTH);
+                    } else {
+                        checkReverseConnections.add(Direction.NORTH);
+                    }
+                }
+                if (WPObjectUtils.wouldConnect(material, world.getMaterialAt(x + 1, y, height))) {
+                    material = material.withProperty(EAST, true);
+                    if (checkReverseConnections == null) {
+                        checkReverseConnections = EnumSet.of(Direction.EAST);
+                    } else {
+                        checkReverseConnections.add(Direction.EAST);
+                    }
+                }
+                if (WPObjectUtils.wouldConnect(material, world.getMaterialAt(x, y + 1, height))) {
+                    material = material.withProperty(SOUTH, true);
+                    if (checkReverseConnections == null) {
+                        checkReverseConnections = EnumSet.of(Direction.SOUTH);
+                    } else {
+                        checkReverseConnections.add(Direction.SOUTH);
+                    }
+                }
+            } else if (material.solid && material.opaque) {
+                // The object block is not a connecting block, but it *is* solid and opaque, so check for surrounding
+                // connecting blocks which might need to be connected to it
+                if (WPObjectUtils.wouldConnect(material, world.getMaterialAt(x - 1, y, height))) {
+                    checkReverseConnections = EnumSet.of(Direction.WEST);
+                }
+                if (WPObjectUtils.wouldConnect(material, world.getMaterialAt(x, y - 1, height))) {
+                    if (checkReverseConnections == null) {
+                        checkReverseConnections = EnumSet.of(Direction.NORTH);
+                    } else {
+                        checkReverseConnections.add(Direction.NORTH);
+                    }
+                }
+                if (WPObjectUtils.wouldConnect(material, world.getMaterialAt(x + 1, y, height))) {
+                    if (checkReverseConnections == null) {
+                        checkReverseConnections = EnumSet.of(Direction.EAST);
+                    } else {
+                        checkReverseConnections.add(Direction.EAST);
+                    }
+                }
+                if (WPObjectUtils.wouldConnect(material, world.getMaterialAt(x, y + 1, height))) {
+                    if (checkReverseConnections == null) {
+                        checkReverseConnections = EnumSet.of(Direction.SOUTH);
+                    } else {
+                        checkReverseConnections.add(Direction.SOUTH);
+                    }
+                }
             }
         }
         // Don't replace water with insubstantial blocks that don't have a waterlogged property (assume such a block
         // would be washed away), except air. We are slightly guessing at what the user would want to happen here...
         if ((! material.veryInsubstantial) || (! existingMaterialContainsWater) || material.containsWater() || (material == AIR)) {
             world.setMaterialAt(x, y, height, material);
+            if (connectBlocks && (checkReverseConnections != null)) {
+                makeReverseConnections(world, x, y, height, checkReverseConnections);
+            }
+        }
+    }
+
+    /**
+     * Check neighbouring blocks to see if they need to be connected back to the object block.
+     */
+    private static void makeReverseConnections(MinecraftWorld world, int x, int y, int height, Set<Direction> directions) {
+        for (Direction direction: directions) {
+            final int neighbourX = x + direction.getDx(), neighbourY = y + direction.getDy();
+            Material neighbouringMaterial = world.getMaterialAt(neighbourX, neighbourY, height);
+            if (neighbouringMaterial.connectingBlock) {
+                switch (direction) {
+                    case WEST:
+                        neighbouringMaterial = neighbouringMaterial.withProperty(EAST, true);
+                        break;
+                    case NORTH:
+                        neighbouringMaterial = neighbouringMaterial.withProperty(SOUTH, true);
+                        break;
+                    case EAST:
+                        neighbouringMaterial = neighbouringMaterial.withProperty(WEST, true);
+                        break;
+                    case SOUTH:
+                        neighbouringMaterial = neighbouringMaterial.withProperty(NORTH, true);
+                        break;
+                }
+                world.setMaterialAt(neighbourX, neighbourY, height, neighbouringMaterial);
+            }
         }
     }
 

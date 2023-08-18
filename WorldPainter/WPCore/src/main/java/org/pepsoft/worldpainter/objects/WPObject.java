@@ -261,7 +261,7 @@ public interface WPObject extends Serializable, Cloneable {
         visitBlocks((object, x, y, z, material) -> {
             if (material.connectingBlock) {
                 // First check if one of the connecting properties is set; if so then this object must contain modern
-                // materials and may be assumed to have the right properties set already
+                // materials and may be assumed to have the right properties set already. This is probably redundant.
                 if (material.is(WEST) || material.is(NORTH) || material.is(EAST) || material.is(SOUTH)) {
                     setConnectBlocks.set(false);
                     return false;
