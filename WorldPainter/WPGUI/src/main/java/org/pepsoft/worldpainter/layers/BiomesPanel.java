@@ -15,6 +15,7 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.*;
 
@@ -343,7 +344,8 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
 
     private void addButton(CustomBiome customBiome) {
         final int biome = customBiome.getId();
-        final JToggleButton button = new JToggleButton(IconUtils.createScaledColourIcon(customBiome.getColour()));
+        final BufferedImage pattern = customBiome.getPattern();
+        final JToggleButton button = new JToggleButton((pattern != null) ? new ImageIcon(pattern) : IconUtils.createScaledColourIcon(customBiome.getColour()));
         button.putClientProperty(KEY_BIOME, biome);
         button.putClientProperty(KEY_PAINT_ID, createDiscreteLayerPaintId(Biome.INSTANCE, biome));
         button.putClientProperty(KEY_CUSTOM_BIOME, TRUE);
@@ -732,9 +734,8 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     static {
         // Sanity checks
         final Set<String> modernIdsEncountered = new HashSet<>();
-        for (int i = 0; i <= HIGHEST_BIOME_ID; i++) {
-            final int biomeId = i;
-            if ((i < Minecraft1_17Biomes.BIOME_NAMES.length) && (Minecraft1_17Biomes.BIOME_NAMES[i] != null)) {
+        for (int biomeId = 0; biomeId <= HIGHEST_BIOME_ID; biomeId++) {
+            if ((biomeId < Minecraft1_17Biomes.BIOME_NAMES.length) && (Minecraft1_17Biomes.BIOME_NAMES[biomeId] != null)) {
                 boolean found = false;
                 for (BiomeDescriptor descriptor: MC_117_DESCRIPTORS) {
                     if (descriptor.id == biomeId) {
@@ -750,11 +751,11 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
                     throw new IllegalArgumentException("MC_117_DESCRIPTORS is missing biome " + biomeId + " (" + Minecraft1_17Biomes.BIOME_NAMES[biomeId] + ")");
                 }
             }
-            if (Minecraft1_19Biomes.BIOME_NAMES[i] != null) {
-                if (modernIdsEncountered.contains(MODERN_IDS[i])) {
+            if (Minecraft1_19Biomes.BIOME_NAMES[biomeId] != null) {
+                if (modernIdsEncountered.contains(MODERN_IDS[biomeId])) {
                     continue;
                 } else {
-                    modernIdsEncountered.add(MODERN_IDS[i]);
+                    modernIdsEncountered.add(MODERN_IDS[biomeId]);
                 }
                 boolean found = false;
                 for (BiomeDescriptor descriptor: MC_119_DESCRIPTORS) {

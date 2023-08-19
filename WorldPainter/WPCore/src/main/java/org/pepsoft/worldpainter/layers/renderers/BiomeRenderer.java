@@ -5,60 +5,53 @@
 package org.pepsoft.worldpainter.layers.renderers;
 
 import org.pepsoft.util.ColourUtils;
+import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager.CustomBiomeListener;
 import org.pepsoft.worldpainter.biomeschemes.StaticBiomeInfo;
 
-import java.util.HashMap;
+import java.awt.image.BufferedImage;
 import java.util.List;
-import java.util.Map;
 
-import static org.pepsoft.worldpainter.biomeschemes.CustomBiome.pickColour;
+import static java.awt.image.BufferedImage.TYPE_INT_RGB;
 
 /**
  *
  * @author pepijn
  */
-public class BiomeRenderer implements ByteLayerRenderer, ColourSchemeRenderer, CustomBiomeListener {
-    public BiomeRenderer(CustomBiomeManager customBiomeManager) {
-        final int count = StaticBiomeInfo.INSTANCE.getBiomeCount();
-        patterns = new boolean[count][][];
-        for (int i = 0; i < count; i++) {
-            patterns[i] = StaticBiomeInfo.INSTANCE.getPattern(i);
+public class BiomeRenderer implements ByteLayerRenderer, CustomBiomeListener {
+    public BiomeRenderer(CustomBiomeManager customBiomeManager, ColourScheme colourScheme) {
+        patterns = new BufferedImage[255];
+        for (int i = 0; i < 255; i++) {
+            if (BIOME_INFO.isBiomePresent(i)) {
+                patterns[i] = createPattern(i, colourScheme);
+            }
         }
         if (customBiomeManager != null) {
             final List<CustomBiome> customBiomes = customBiomeManager.getCustomBiomes();
             for (CustomBiome customBiome: customBiomes) {
-                customColours.put(customBiome.getId(), customBiome.getColour());
-                custom[customBiome.getId()] = true;
+                final int id = customBiome.getId();
+                if (patterns[id] == null) {
+                    final BufferedImage pattern = customBiome.getPattern();
+                    if (pattern != null) {
+                        patterns[id] = pattern;
+                    }
+                } else {
+                    patterns[id] = createPattern(customBiome.getColour());
+                }
             }
-            resetColours();
             customBiomeManager.addListener(this);
-        } else {
-            resetColours();
         }
-    }
-    
-    public ColourScheme getColourScheme() {
-        return colourScheme;
-    }
-    
-    @Override
-    public void setColourScheme(ColourScheme colourScheme) {
-        this.colourScheme = colourScheme;
-        resetColours();
     }
     
     @Override
     public int getPixelColour(int x, int y, int underlyingColour, int value) {
-        if (value == 255) {
+        if ((value == 255) || (patterns[value] == null)) {
             return underlyingColour;
-        } else if ((! custom[value]) && (patterns != null) && (value < patterns.length) && (patterns[value] != null) && patterns[value][x & 0xF][y & 0xF]) {
-            return ColourUtils.mix(underlyingColour, BLACK);
         } else {
-            return ColourUtils.mix(underlyingColour, colours[value]);
+            return ColourUtils.mix(underlyingColour, patterns[value].getRGB(x & 0xf, y & 0xf));
         }
     }
 
@@ -66,42 +59,58 @@ public class BiomeRenderer implements ByteLayerRenderer, ColourSchemeRenderer, C
     
     @Override
     public void customBiomeAdded(CustomBiome customBiome) {
-        customColours.put(customBiome.getId(), customBiome.getColour());
-        custom[customBiome.getId()] = true;
-        resetColours();
+        customBiomeChanged(customBiome);
     }
 
     @Override
     public void customBiomeChanged(CustomBiome customBiome) {
-        customColours.put(customBiome.getId(), customBiome.getColour());
-        resetColours();
+        final int id = customBiome.getId();
+        if (! BIOME_INFO.isBiomePresent(id)) {
+            final BufferedImage pattern = customBiome.getPattern();
+            if (pattern != null) {
+                patterns[id] = pattern;
+            } else {
+                patterns[id] = createPattern(customBiome.getColour());
+            }
+        }
     }
 
     @Override
     public void customBiomeRemoved(CustomBiome customBiome) {
-        customColours.remove(customBiome.getId());
-        custom[customBiome.getId()] = false;
-        resetColours();
-    }
-    
-    private void resetColours() {
-        for (int i = 0; i < 256; i++) {
-            if (custom[i]) {
-                colours[i] = customColours.get(i);
-            } else if (StaticBiomeInfo.INSTANCE.isBiomePresent(i) && (colourScheme != null)) {
-                colours[i] = StaticBiomeInfo.INSTANCE.getColour(i, colourScheme);
-            } else {
-                colours[i] = pickColour(i);
-            }
+        final int id = customBiome.getId();
+        if (! BIOME_INFO.isBiomePresent(id)) {
+            patterns[id] = null;
         }
-        
     }
 
-    private final int[] colours = new int[256];
-    private final boolean[] custom = new boolean[256];
-    private final Map<Integer, Integer> customColours = new HashMap<>();
-    private final boolean[][][] patterns;
-    private ColourScheme colourScheme;
-    
+    private BufferedImage createPattern(int biomeId, ColourScheme colourScheme) {
+        final boolean[][] pattern = BIOME_INFO.getPattern(biomeId);
+        final int colour = BIOME_INFO.getColour(biomeId, colourScheme);
+        final BufferedImage image = new BufferedImage(16, 16, TYPE_INT_RGB);
+        for (int x = 0; x < 16; x++) {
+            for (int y = 0; y < 16; y++) {
+                if ((pattern != null) && pattern[x][y]) {
+                    image.setRGB(x, y, BLACK);
+                } else {
+                    image.setRGB(x, y, colour);
+                }
+            }
+        }
+        return image;
+    }
+
+    private BufferedImage createPattern(int colour) {
+        final BufferedImage image = new BufferedImage(16, 16, TYPE_INT_RGB);
+        for (int x = 0; x < 16; x++) {
+            for (int y = 0; y < 16; y++) {
+                image.setRGB(x, y, colour);
+            }
+        }
+        return image;
+    }
+
+    private final BufferedImage[] patterns;
+
     private static final int BLACK = 0;
+    private static final BiomeScheme BIOME_INFO = StaticBiomeInfo.INSTANCE;
 }

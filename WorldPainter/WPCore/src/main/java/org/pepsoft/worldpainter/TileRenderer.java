@@ -38,7 +38,7 @@ import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.FIXED_HEIG
  */
 public final class TileRenderer {
     public TileRenderer(TileProvider tileProvider, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int zoom, boolean transparentVoid, ColourRamp colourRamp) {
-        biomeRenderer = new BiomeRenderer(customBiomeManager);
+        biomeRenderer = new BiomeRenderer(customBiomeManager, colourScheme);
         this.tileProvider = tileProvider;
         final Dimension dimension = (tileProvider instanceof Dimension) ? (Dimension) tileProvider : null;
         TileProvider relatedTileProvider = null;

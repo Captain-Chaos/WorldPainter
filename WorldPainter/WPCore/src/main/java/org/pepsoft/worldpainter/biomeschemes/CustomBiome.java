@@ -4,8 +4,14 @@
  */
 package org.pepsoft.worldpainter.biomeschemes;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
+import static org.pepsoft.util.ImageUtils.fromBytes;
+import static org.pepsoft.util.ImageUtils.toBytes;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.FIRST_UNALLOCATED_ID;
 
 /**
@@ -53,6 +59,14 @@ public class CustomBiome implements Serializable {
         this.colour = colour;
     }
 
+    public BufferedImage getPattern() {
+        return pattern;
+    }
+
+    public void setPattern(BufferedImage pattern) {
+        this.pattern = pattern;
+    }
+
     public static int pickColour(int biomeId) {
         return ((((biomeId & 0x02) == 0x02)
                 ? (((biomeId & 0x01) == 0x01) ? 255 : 192)
@@ -65,8 +79,22 @@ public class CustomBiome implements Serializable {
                 : (((biomeId & 0x10) == 0x10) ? 128 :   0));
     }
 
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        storedPattern = (pattern != null) ? toBytes(pattern) : null;
+        out.defaultWriteObject();
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if (storedPattern != null) {
+            pattern = fromBytes(storedPattern);
+        }
+    }
+
     private String name;
     private int id, colour;
+    private byte[] storedPattern;
+    private transient BufferedImage pattern;
 
     private static final long serialVersionUID = 1L;
 }

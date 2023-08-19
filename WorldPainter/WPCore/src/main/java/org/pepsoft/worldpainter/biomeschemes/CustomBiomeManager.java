@@ -6,9 +6,12 @@ package org.pepsoft.worldpainter.biomeschemes;
 
 import javax.swing.*;
 import java.awt.*;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import static java.util.Collections.emptyList;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.FIRST_UNALLOCATED_ID;
@@ -28,14 +31,16 @@ public class CustomBiomeManager {
         this.customBiomes.clear();
         this.customBiomes.addAll(customBiomes);
         for (CustomBiome customBiome: oldCustomBiomes) {
-            for (CustomBiomeListener listener: listeners) {
-                listener.customBiomeRemoved(customBiome);
-            }
+            listeners.stream()
+                    .map(Reference::get)
+                    .filter(Objects::nonNull)
+                    .forEach(listener -> listener.customBiomeRemoved(customBiome));
         }
         for (CustomBiome customBiome: customBiomes) {
-            for (CustomBiomeListener listener: listeners) {
-                listener.customBiomeAdded(customBiome);
-            }
+            listeners.stream()
+                    .map(Reference::get)
+                    .filter(Objects::nonNull)
+                    .forEach(listener -> listener.customBiomeAdded(customBiome));
         }
     }
 
@@ -75,9 +80,10 @@ public class CustomBiomeManager {
             }
         }
         customBiomes.add(customBiome);
-        for (CustomBiomeListener listener: listeners) {
-            listener.customBiomeAdded(customBiome);
-        }
+        listeners.stream()
+                .map(Reference::get)
+                .filter(Objects::nonNull)
+                .forEach(listener -> listener.customBiomeAdded(customBiome));
         return true;
     }
     
@@ -90,9 +96,10 @@ public class CustomBiomeManager {
     public synchronized void editCustomBiome(CustomBiome customBiome) {
         for (CustomBiome existingCustomBiome: customBiomes) {
             if (existingCustomBiome.getId() == customBiome.getId()) {
-                for (CustomBiomeListener listener: listeners) {
-                    listener.customBiomeChanged(customBiome);
-                }
+                listeners.stream()
+                        .map(Reference::get)
+                        .filter(Objects::nonNull)
+                        .forEach(listener -> listener.customBiomeChanged(customBiome));
                 return;
             }
         }
@@ -109,9 +116,10 @@ public class CustomBiomeManager {
             CustomBiome existingCustomBiome = i.next();
             if (existingCustomBiome.getId() == customBiome.getId()) {
                 i.remove();
-                for (CustomBiomeListener listener: listeners) {
-                    listener.customBiomeRemoved(customBiome);
-                }
+                listeners.stream()
+                        .map(Reference::get)
+                        .filter(Objects::nonNull)
+                        .forEach(listener -> listener.customBiomeRemoved(customBiome));
                 return;
             }
         }
@@ -124,7 +132,7 @@ public class CustomBiomeManager {
         if (listener == null) {
             throw new NullPointerException("listener");
         }
-        listeners.add(listener);
+        listeners.add(new WeakReference<>(listener));
     }
     
     public synchronized void removeListener(CustomBiomeListener listener) {
@@ -138,7 +146,7 @@ public class CustomBiomeManager {
         return (biome <= Minecraft1_17Biomes.HIGHEST_BIOME_ID) && (Minecraft1_17Biomes.BIOME_NAMES[biome] != null);
     }
 
-    private final List<CustomBiomeListener> listeners = new ArrayList<>();
+    private final List<Reference<CustomBiomeListener>> listeners = new ArrayList<>();
     private final List<CustomBiome> customBiomes = new ArrayList<>(256);
     
     public interface CustomBiomeListener {

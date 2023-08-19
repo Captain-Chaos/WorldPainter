@@ -55,6 +55,17 @@ public class PaintPicker extends javax.swing.JPanel {
         }
     }
 
+    public boolean isOpacityEnabled() {
+        return opacityEnabled;
+    }
+
+    public void setOpacityEnabled(boolean opacityEnabled) {
+        if (opacityEnabled != this.opacityEnabled) {
+            this.opacityEnabled = opacityEnabled;
+            updatePreview();
+        }
+    }
+
     @Override
     public int getBaseline(int width, int height) {
         return buttonPickPaint.getBaseline(width, height);
@@ -66,11 +77,11 @@ public class PaintPicker extends javax.swing.JPanel {
         } else if (pattern != null) {
             rendererPreviewer1.setPattern(pattern);
         }
-        rendererPreviewer1.setOpacity(opacity);
+        rendererPreviewer1.setOpacity(opacityEnabled ? opacity : 1.0f);
     }
     
     private void pickPaint() {
-        final EditPaintDialog dialog = new EditPaintDialog(getWindowAncestor(this), (colour != null) ? colour : pattern, opacity);
+        final EditPaintDialog dialog = new EditPaintDialog(getWindowAncestor(this), (colour != null) ? colour : pattern, opacity, opacityEnabled);
         dialog.setVisible(true);
         if (! dialog.isCancelled()) {
             final Object paint = dialog.getSelectedPaint();
@@ -81,7 +92,9 @@ public class PaintPicker extends javax.swing.JPanel {
                 pattern = (BufferedImage) paint;
                 colour = null;
             }
-            opacity = dialog.getSelectedOpacity();
+            if (opacityEnabled) {
+                opacity = dialog.getSelectedOpacity();
+            }
             updatePreview();
         }
     }
@@ -135,4 +148,5 @@ public class PaintPicker extends javax.swing.JPanel {
     private Color colour = ORANGE;
     private BufferedImage pattern;
     private float opacity = 1.0f;
+    private boolean opacityEnabled = true;
 }

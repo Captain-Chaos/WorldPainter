@@ -28,7 +28,7 @@ public class EditPaintDialog extends WorldPainterDialog {
     /**
      * Creates new form EditPaintDialog
      */
-    public EditPaintDialog(Window parent, Object paint, float opacity) {
+    public EditPaintDialog(Window parent, Object paint, float opacity, boolean opacityEnabled) {
         super(parent);
         if (paint instanceof Color) {
             this.colour = (Color) paint;
@@ -37,9 +37,18 @@ public class EditPaintDialog extends WorldPainterDialog {
         } else {
             throw new IllegalArgumentException("Paint type " + paint.getClass() + " not supported");
         }
-        this.opacity = opacity;
 
         initComponents();
+        if (opacityEnabled) {
+            this.opacity = opacity;
+            sliderOpacity.setValue(Math.round(opacity * 100));
+            rendererPreviewer1.setOpacity(this.opacity);
+        } else {
+            this.opacity = 1.0f;
+            sliderOpacity.setValue(100);
+            sliderOpacity.setEnabled(false);
+            rendererPreviewer1.setOpacity(1.0f);
+        }
 
         getRootPane().setDefaultButton(buttonOk);
         if (colour != null) {
@@ -50,8 +59,6 @@ public class EditPaintDialog extends WorldPainterDialog {
             eraseColour = findBackgroundColour(pattern);
         }
         iconEditor1.setEraseColour(eraseColour);
-        sliderOpacity.setValue(Math.round(opacity * 100));
-        rendererPreviewer1.setOpacity(opacity);
         updatePreview();
         iconEditor1.addPropertyChangeListener("icon", evt -> {
             EditPaintDialog.this.colour = null;

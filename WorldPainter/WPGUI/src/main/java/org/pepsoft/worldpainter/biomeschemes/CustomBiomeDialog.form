@@ -36,9 +36,14 @@
                       </Group>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="spinnerID" min="-2" max="-2" attributes="0"/>
-                          <Component id="colourEditor2" min="-2" max="-2" attributes="0"/>
-                          <Component id="fieldName" max="32767" attributes="0"/>
+                          <Component id="fieldName" pref="230" max="32767" attributes="0"/>
+                          <Group type="102" attributes="0">
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Component id="spinnerID" min="-2" max="-2" attributes="0"/>
+                                  <Component id="paintPicker1" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                          </Group>
                       </Group>
                   </Group>
                   <Group type="102" alignment="1" attributes="0">
@@ -70,7 +75,7 @@
               <EmptySpace min="-2" pref="12" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="jLabel4" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="colourEditor2" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="paintPicker1" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="32767" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
@@ -112,10 +117,8 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel4">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Colour:"/>
+        <Property name="text" type="java.lang.String" value="Paint"/>
       </Properties>
-    </Component>
-    <Component class="org.pepsoft.worldpainter.ColourEditor" name="colourEditor2">
     </Component>
     <Component class="javax.swing.JButton" name="buttonCancel">
       <Properties>
@@ -132,6 +135,8 @@
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonOKActionPerformed"/>
       </Events>
+    </Component>
+    <Component class="org.pepsoft.worldpainter.layers.renderers.PaintPicker" name="paintPicker1">
     </Component>
   </SubComponents>
 </Form>

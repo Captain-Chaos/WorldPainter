@@ -18,8 +18,8 @@ public interface BiomeScheme {
     void setSeed(long seed);
     
     /**
-     * Get the number of biomes. The biomes must be consecutively numbered from
-     * zero to one lower than this number.
+     * Get the number of biomes. The biomes must be consecutively numbered from zero to one lower than this number, but
+     * it is permissible for there to be holes in the list.
      * 
      * @return The number of biomes.
      */
