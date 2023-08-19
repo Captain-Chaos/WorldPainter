@@ -335,7 +335,9 @@ public interface Minecraft1_19Biomes extends Minecraft1_17Biomes {
     };
 
     /**
-     * Minecraft 1.18+ technical names of the biomes as stored on disk.
+     * Minecraft 1.18+ technical names of the biomes as stored on disk, indexed by the legacy numerical ID with which
+     * they correspond, if any. <strong>Note</strong> that because biomes have been consolidated, some modern IDs can
+     * map to multiple indices!
      */
     String[] MODERN_IDS = {
             "minecraft:ocean",
@@ -618,6 +620,8 @@ public interface Minecraft1_19Biomes extends Minecraft1_17Biomes {
             "minecraft:meadow",
             "minecraft:snowy_slopes",
             "minecraft:stony_peaks",
+            // Add 1.18+ biomes that have no numerical ID from the end, replacing nulls above here. This is to minimise
+            // the chance of collisions with IDs used as custom biomes for Minecraft 1.17- maps.
             null
     };
 
@@ -633,7 +637,6 @@ public interface Minecraft1_19Biomes extends Minecraft1_17Biomes {
                 BufferedImage image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/swamp_pattern.png"));
                 patterns[BIOME_SWAMPLAND] = createPattern(image);
                 patterns[BIOME_SWAMPLAND_M] = createPattern(image);
-                patterns[BIOME_MANGROVE_SWAMP] = createPattern(image);
 
                 image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/mountains_pattern.png"));
                 patterns[BIOME_EXTREME_HILLS] = createPattern(image);
@@ -696,12 +699,16 @@ public interface Minecraft1_19Biomes extends Minecraft1_17Biomes {
 
                 image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/jungle_trees_pattern.png"));
                 patterns[BIOME_JUNGLE] = createPattern(image);
-                patterns[BIOME_BAMBOO_JUNGLE] = createPattern(image); // TODOMC118 create specific bamboo icon
+
+                image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/bamboo_pattern.png"));
+                patterns[BIOME_BAMBOO_JUNGLE] = createPattern(image);
 
                 image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/jungle_hills_pattern.png"));
                 patterns[BIOME_JUNGLE_HILLS] = createPattern(image);
                 patterns[BIOME_JUNGLE_M] = createPattern(image);
-                patterns[BIOME_BAMBOO_JUNGLE_HILLS] = createPattern(image); // TODOMC118 create specific bamboo icon
+
+                image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/bamboo_hills_pattern.png"));
+                patterns[BIOME_BAMBOO_JUNGLE_HILLS] = createPattern(image);
 
                 image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/savanna_pattern.png"));
                 patterns[BIOME_SAVANNA] = createPattern(image);
@@ -726,6 +733,12 @@ public interface Minecraft1_19Biomes extends Minecraft1_17Biomes {
 
                 image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/jungle_edge_hills_pattern.png"));
                 patterns[BIOME_JUNGLE_EDGE_M] = createPattern(image);
+
+                image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/ice_spikes.png"));
+                patterns[BIOME_ICE_SPIKES] = createPattern(image);
+
+                image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/mangrove_trees_pattern.png"));
+                patterns[BIOME_MANGROVE_SWAMP] = createPattern(image);
             } catch (IOException e) {
                 throw new RuntimeException("I/O error loading image", e);
             }

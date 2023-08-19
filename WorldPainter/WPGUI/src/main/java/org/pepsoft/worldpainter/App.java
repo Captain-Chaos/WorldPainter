@@ -170,7 +170,7 @@ public final class App extends JFrame implements RadiusControl,
         darkMode = (! "true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.safeMode"))) && (config.getLookAndFeel() == DARK_METAL);
         final String customColourSchemeLocation = System.getProperty("org.pepsoft.worldpainter.colourSchemeFile");
         if (customColourSchemeLocation != null) {
-            throw new UnsupportedOperationException("The org.pepsoft.worldpainter.colourSchemeFileNo advanced setting is no longer supported (colour schemes are once again available from the View menu)");
+            throw new UnsupportedOperationException("The org.pepsoft.worldpainter.colourSchemeFile advanced setting is no longer supported (colour schemes are once again available from the View menu)");
         } else {
             selectedColourScheme = (colourSchemes[config.getColourschemeIndex()] != null) ? colourSchemes[config.getColourschemeIndex()] : defaultColourScheme;
         }

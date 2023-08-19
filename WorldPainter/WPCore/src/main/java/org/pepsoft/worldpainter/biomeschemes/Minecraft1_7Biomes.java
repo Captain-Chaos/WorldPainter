@@ -62,7 +62,6 @@ public interface Minecraft1_7Biomes {
     int BIOME_SWAMPLAND_M = 134;
 
     int BIOME_ICE_PLAINS_SPIKES = 140;
-    int BIOME_ICE_MOUNTAINS_SPIKES = 141;
     int BIOME_JUNGLE_M = 149;
 
     int BIOME_JUNGLE_EDGE_M = 151;
@@ -361,6 +360,9 @@ public interface Minecraft1_7Biomes {
 
                 image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/jungle_edge_hills_pattern.png"));
                 patterns[BIOME_JUNGLE_EDGE_M] = createPattern(image);
+
+                image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/ice_spikes.png"));
+                patterns[BIOME_ICE_PLAINS_SPIKES] = createPattern(image);
             } catch (IOException e) {
                 throw new RuntimeException("I/O error loading image", e);
             }

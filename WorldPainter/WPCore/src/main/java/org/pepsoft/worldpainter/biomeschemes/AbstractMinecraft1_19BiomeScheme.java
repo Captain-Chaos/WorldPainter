@@ -28,17 +28,19 @@ public abstract class AbstractMinecraft1_19BiomeScheme extends AbstractBiomeSche
             case BIOME_OCEAN:
             case BIOME_RIVER:
             case BIOME_DEEP_OCEAN:
-            case BIOME_WARM_OCEAN:
-            case BIOME_LUKEWARM_OCEAN:
-            case BIOME_COLD_OCEAN:
             case BIOME_DEEP_WARM_OCEAN:
-            case BIOME_DEEP_LUKEWARM_OCEAN:
-            case BIOME_DEEP_COLD_OCEAN:
                 return colourScheme.getColour(WATER);
+            case BIOME_LUKEWARM_OCEAN:
+            case BIOME_DEEP_LUKEWARM_OCEAN:
+                return 0xff45adf2;
+            case BIOME_WARM_OCEAN:
+                return 0xff43d5ee;
+            case BIOME_COLD_OCEAN:
+            case BIOME_DEEP_COLD_OCEAN:
+                return 0xff3d57d6;
             case BIOME_PLAINS:
             case BIOME_EXTREME_HILLS:
             case BIOME_EXTREME_HILLS_EDGE:
-            case BIOME_EXTREME_HILLS_M:
             case BIOME_EXTREME_HILLS_PLUS:
             case BIOME_EXTREME_HILLS_PLUS_M:
             case BIOME_SUNFLOWER_PLAINS:
@@ -47,6 +49,8 @@ public abstract class AbstractMinecraft1_19BiomeScheme extends AbstractBiomeSche
             case BIOME_MEADOW:
             case BIOME_DEEP_DARK:
                 return colourScheme.getColour(GRASS_BLOCK);
+            case BIOME_EXTREME_HILLS_M:
+                return colourScheme.getColour(GRAVEL);
             case BIOME_DESERT:
             case BIOME_BEACH:
             case BIOME_DESERT_HILLS:
@@ -66,9 +70,10 @@ public abstract class AbstractMinecraft1_19BiomeScheme extends AbstractBiomeSche
             case BIOME_JUNGLE_EDGE:
             case BIOME_JUNGLE_M:
             case BIOME_JUNGLE_EDGE_M:
+                return colourScheme.getColour(LEAVES_JUNGLE);
             case BIOME_BAMBOO_JUNGLE:
             case BIOME_BAMBOO_JUNGLE_HILLS:
-                return colourScheme.getColour(LEAVES_JUNGLE);
+                return colourScheme.getColour(BAMBOO_NO_LEAVES);
             case BIOME_ICE_PLAINS:
             case BIOME_ICE_MOUNTAINS:
             case BIOME_COLD_TAIGA:

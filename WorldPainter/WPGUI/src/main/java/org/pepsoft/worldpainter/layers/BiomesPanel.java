@@ -19,10 +19,12 @@ import java.util.List;
 import java.util.*;
 
 import static java.lang.Boolean.TRUE;
+import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptySet;
 import static java.util.EnumSet.noneOf;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toSet;
 import static javax.swing.BoxLayout.PAGE_AXIS;
 import static org.pepsoft.worldpainter.App.KEY_PAINT_ID;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
@@ -491,6 +493,10 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
 
     // TODO move this stuff to BiomeScheme/PlatformProvider
 
+    /**
+     * Display order of the biomes on the biomes panel. This only contains the base biomes that get their own button;
+     * all other biomes are presumed to be variants of the base biomes.
+     */
     private static final int[] MC_117_BIOME_ORDER = {
             BIOME_PLAINS, BIOME_FOREST, BIOME_SWAMP, BIOME_JUNGLE, BIOME_BAMBOO_JUNGLE,
             BIOME_BIRCH_FOREST, BIOME_DARK_FOREST, BIOME_TAIGA, BIOME_GIANT_TREE_TAIGA, BIOME_GIANT_SPRUCE_TAIGA,
@@ -500,6 +506,10 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
             BIOME_NETHER_WASTES, BIOME_SOUL_SAND_VALLEY, BIOME_CRIMSON_FOREST, BIOME_WARPED_FOREST, BIOME_BASALT_DELTAS,
     };
 
+    /**
+     * Display order of the biomes on the biomes panel. This only contains the base biomes that get their own button;
+     * all other biomes are presumed to be variants of the base biomes.
+     */
     private static final int[] MC_119_BIOME_ORDER = {
             BIOME_PLAINS, BIOME_FOREST, BIOME_SWAMP, BIOME_JUNGLE, BIOME_BAMBOO_JUNGLE,
             BIOME_BIRCH_FOREST, BIOME_DARK_FOREST, BIOME_MANGROVE_SWAMP, BIOME_OLD_GROWTH_PINE_TAIGA, BIOME_OLD_GROWTH_SPRUCE_TAIGA,
@@ -528,16 +538,18 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         new BiomeDescriptor(BIOME_RIVER),
         new BiomeDescriptor(BIOME_NETHER_WASTES),
         new BiomeDescriptor(BIOME_THE_END),
+
         new BiomeDescriptor(BIOME_FROZEN_OCEAN, 0, FROZEN),
         new BiomeDescriptor(BIOME_FROZEN_RIVER, 7, FROZEN),
         new BiomeDescriptor(BIOME_SNOWY_TUNDRA),
-        new BiomeDescriptor(BIOME_SNOWY_MOUNTAINS, 3, SNOWY),
+        new BiomeDescriptor(BIOME_SNOWY_MOUNTAINS, 3, SNOWY), // Double
         new BiomeDescriptor(BIOME_MUSHROOM_FIELDS),
-        new BiomeDescriptor(BIOME_MUSHROOM_FIELD_SHORE, 14, SHORE),
+        new BiomeDescriptor(BIOME_MUSHROOM_FIELD_SHORE, 14, SHORE), // Double
         new BiomeDescriptor(BIOME_BEACH),
         new BiomeDescriptor(BIOME_DESERT_HILLS, 2, HILLS),
         new BiomeDescriptor(BIOME_WOODED_HILLS, 4, HILLS),
         new BiomeDescriptor(BIOME_TAIGA_HILLS, 5, HILLS),
+
         new BiomeDescriptor(BIOME_MOUNTAIN_EDGE, 3, EDGE),
         new BiomeDescriptor(BIOME_JUNGLE),
         new BiomeDescriptor(BIOME_JUNGLE_HILLS, 21, HILLS),
@@ -548,6 +560,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         new BiomeDescriptor(BIOME_BIRCH_FOREST),
         new BiomeDescriptor(BIOME_BIRCH_FOREST_HILLS, 27, HILLS),
         new BiomeDescriptor(BIOME_DARK_FOREST),
+
         new BiomeDescriptor(BIOME_SNOWY_TAIGA, 5, SNOWY),
         new BiomeDescriptor(BIOME_SNOWY_TAIGA_HILLS, 5, SNOWY, HILLS),
         new BiomeDescriptor(BIOME_GIANT_TREE_TAIGA),
@@ -558,6 +571,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         new BiomeDescriptor(BIOME_BADLANDS),
         new BiomeDescriptor(BIOME_WOODED_BADLANDS_PLATEAU, 37, WOODED, PLATEAU),
         new BiomeDescriptor(BIOME_BADLANDS_PLATEAU, 37, PLATEAU),
+
         new BiomeDescriptor(BIOME_SMALL_END_ISLANDS, 9, SMALL_ISLANDS),
         new BiomeDescriptor(BIOME_END_MIDLANDS, 9, MIDLANDS),
         new BiomeDescriptor(BIOME_END_HIGHLANDS, 9, HIGHLANDS),
@@ -568,21 +582,27 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         new BiomeDescriptor(BIOME_DEEP_WARM_OCEAN, 0, DEEP, WARM),
         new BiomeDescriptor(BIOME_DEEP_LUKEWARM_OCEAN, 0, DEEP, LUKEWARM),
         new BiomeDescriptor(BIOME_DEEP_COLD_OCEAN, 0, DEEP, COLD),
+
         new BiomeDescriptor(BIOME_DEEP_FROZEN_OCEAN, 0, DEEP, FROZEN),
+
         new BiomeDescriptor(BIOME_THE_VOID),
         new BiomeDescriptor(BIOME_SUNFLOWER_PLAINS, 1, FLOWERS),
+
         new BiomeDescriptor(BIOME_DESERT_LAKES, 2, LAKES),
         new BiomeDescriptor(BIOME_GRAVELLY_MOUNTAINS, 3, GRAVELLY),
         new BiomeDescriptor(BIOME_FLOWER_FOREST, 4, FLOWERS),
         new BiomeDescriptor(BIOME_TAIGA_MOUNTAINS, 5, MOUNTAINOUS),
         new BiomeDescriptor(BIOME_SWAMP_HILLS, 6, HILLS),
+
         new BiomeDescriptor(BIOME_ICE_SPIKES),
         new BiomeDescriptor(BIOME_MODIFIED_JUNGLE, 21, MODIFIED),
+
         new BiomeDescriptor(BIOME_MODIFIED_JUNGLE_EDGE, 21, MODIFIED, EDGE),
         new BiomeDescriptor(BIOME_TALL_BIRCH_FOREST, 27, TALL),
         new BiomeDescriptor(BIOME_TALL_BIRCH_HILLS, 27, HILLS, TALL),
         new BiomeDescriptor(BIOME_DARK_FOREST_HILLS, 29, HILLS),
         new BiomeDescriptor(BIOME_SNOWY_TAIGA_MOUNTAINS, 5, SNOWY, MOUNTAINOUS),
+
         new BiomeDescriptor(BIOME_GIANT_SPRUCE_TAIGA),
         new BiomeDescriptor(BIOME_GIANT_SPRUCE_TAIGA_HILLS, 160, HILLS),
         new BiomeDescriptor(BIOME_MODIFIED_GRAVELLY_MOUNTAINS, 3, GRAVELLY, VARIANT),
@@ -593,6 +613,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         new BiomeDescriptor(BIOME_MODIFIED_BADLANDS_PLATEAU, 37, MODIFIED, PLATEAU),
         new BiomeDescriptor(BIOME_BAMBOO_JUNGLE),
         new BiomeDescriptor(BIOME_BAMBOO_JUNGLE_HILLS, 168, HILLS),
+
         new BiomeDescriptor(BIOME_SOUL_SAND_VALLEY),
         new BiomeDescriptor(BIOME_CRIMSON_FOREST),
         new BiomeDescriptor(BIOME_WARPED_FOREST),
@@ -601,74 +622,192 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         new BiomeDescriptor(BIOME_LUSH_CAVES)
     );
 
-    private static final Set<BiomeDescriptor> MC_119_DESCRIPTORS = ImmutableSet.of(
+    private static final List<BiomeDescriptor> MC_119_DESCRIPTORS = asList(
+        new BiomeDescriptor(BIOME_OCEAN),
         new BiomeDescriptor(BIOME_PLAINS),
-        new BiomeDescriptor(BIOME_SUNFLOWER_PLAINS, BIOME_PLAINS, FLOWERS),
-        new BiomeDescriptor(BIOME_FOREST),
-        new BiomeDescriptor(BIOME_FLOWER_FOREST, BIOME_FOREST, FLOWERS),
-        new BiomeDescriptor(BIOME_WINDSWEPT_FOREST, BIOME_FOREST, WINDSWEPT),
-        new BiomeDescriptor(BIOME_SWAMP),
-        new BiomeDescriptor(BIOME_JUNGLE),
-        new BiomeDescriptor(BIOME_SPARSE_JUNGLE, BIOME_JUNGLE, SPARSE),
-        new BiomeDescriptor(BIOME_BAMBOO_JUNGLE),
-        new BiomeDescriptor(BIOME_BIRCH_FOREST),
-        new BiomeDescriptor(BIOME_OLD_GROWTH_BIRCH_FOREST, BIOME_BIRCH_FOREST, OLD_GROWTH),
-        new BiomeDescriptor(BIOME_DARK_FOREST),
-        new BiomeDescriptor(BIOME_TAIGA),
-        new BiomeDescriptor(BIOME_SNOWY_TAIGA, BIOME_TAIGA, SNOWY),
-        new BiomeDescriptor(BIOME_OLD_GROWTH_PINE_TAIGA),
-        new BiomeDescriptor(BIOME_OLD_GROWTH_SPRUCE_TAIGA),
-        new BiomeDescriptor(BIOME_WINDSWEPT_HILLS),
-        new BiomeDescriptor(BIOME_WINDSWEPT_GRAVELLY_HILLS, BIOME_WINDSWEPT_HILLS, GRAVELLY),
-        new BiomeDescriptor(BIOME_MUSHROOM_FIELDS),
         new BiomeDescriptor(BIOME_DESERT),
+        new BiomeDescriptor(BIOME_WINDSWEPT_HILLS),
+        new BiomeDescriptor(BIOME_FOREST),
+        new BiomeDescriptor(BIOME_TAIGA),
+        new BiomeDescriptor(BIOME_SWAMP),
+        new BiomeDescriptor(BIOME_RIVER),
+        new BiomeDescriptor(BIOME_NETHER_WASTES),
+        new BiomeDescriptor(BIOME_THE_END),
+
+        new BiomeDescriptor(BIOME_FROZEN_OCEAN, BIOME_OCEAN, FROZEN),
+        new BiomeDescriptor(BIOME_FROZEN_RIVER, BIOME_RIVER, FROZEN),
+        new BiomeDescriptor(BIOME_SNOWY_PLAINS),
+        // BIOME_SNOWY_MOUNTAINS no longer exists separately in Minecraft 1.18+
+        new BiomeDescriptor(BIOME_MUSHROOM_FIELDS),
+        // BIOME_MUSHROOM_FIELD_SHORE no longer exists separately in Minecraft 1.18+
+        new BiomeDescriptor(BIOME_BEACH),
+        // BIOME_DESERT_HILLS no longer exists separately in Minecraft 1.18+
+        // BIOME_WOODED_HILLS no longer exists separately in Minecraft 1.18+
+        // BIOME_TAIGA_HILLS no longer exists separately in Minecraft 1.18+
+
+        // BIOME_MOUNTAIN_EDGE no longer exists separately in Minecraft 1.18+
+        new BiomeDescriptor(BIOME_JUNGLE),
+        // BIOME_JUNGLE_HILLS no longer exists separately in Minecraft 1.18+
+        new BiomeDescriptor(BIOME_SPARSE_JUNGLE, BIOME_JUNGLE, SPARSE),
+        new BiomeDescriptor(BIOME_DEEP_OCEAN, BIOME_OCEAN, DEEP),
+        new BiomeDescriptor(BIOME_STONY_SHORE),
+        new BiomeDescriptor(BIOME_SNOWY_BEACH, BIOME_BEACH, SNOWY),
+        new BiomeDescriptor(BIOME_BIRCH_FOREST),
+        // BIOME_BIRCH_FOREST_HILLS no longer exists separately in Minecraft 1.18+
+        new BiomeDescriptor(BIOME_DARK_FOREST),
+
+        new BiomeDescriptor(BIOME_SNOWY_TAIGA, BIOME_TAIGA, SNOWY),
+        // BIOME_SNOWY_TAIGA_HILLS no longer exists separately in Minecraft 1.18+
+        new BiomeDescriptor(BIOME_OLD_GROWTH_PINE_TAIGA),
+        // BIOME_GIANT_TREE_TAIGA_HILLS no longer exists separately in Minecraft 1.18+
+        new BiomeDescriptor(BIOME_WINDSWEPT_FOREST, BIOME_FOREST, WINDSWEPT),
         new BiomeDescriptor(BIOME_SAVANNA),
         new BiomeDescriptor(BIOME_SAVANNA_PLATEAU, BIOME_SAVANNA, PLATEAU),
-        new BiomeDescriptor(BIOME_WINDSWEPT_SAVANNA, BIOME_SAVANNA, WINDSWEPT),
         new BiomeDescriptor(BIOME_BADLANDS),
-        new BiomeDescriptor(BIOME_ERODED_BADLANDS, BIOME_BADLANDS, ERODED),
         new BiomeDescriptor(BIOME_WOODED_BADLANDS, BIOME_BADLANDS, WOODED),
-        new BiomeDescriptor(BIOME_SNOWY_PLAINS),
-        new BiomeDescriptor(BIOME_ICE_SPIKES),
-        new BiomeDescriptor(BIOME_OCEAN),
-        new BiomeDescriptor(BIOME_COLD_OCEAN, BIOME_OCEAN, COLD),
-        new BiomeDescriptor(BIOME_DEEP_COLD_OCEAN, BIOME_OCEAN, DEEP, COLD),
-        new BiomeDescriptor(BIOME_DEEP_FROZEN_OCEAN, BIOME_OCEAN, DEEP, FROZEN),
-        new BiomeDescriptor(BIOME_DEEP_LUKEWARM_OCEAN, BIOME_OCEAN, DEEP, LUKEWARM),
-        new BiomeDescriptor(BIOME_DEEP_OCEAN, BIOME_OCEAN, DEEP),
-        new BiomeDescriptor(BIOME_FROZEN_OCEAN, BIOME_OCEAN, FROZEN),
-        new BiomeDescriptor(BIOME_LUKEWARM_OCEAN, BIOME_OCEAN, LUKEWARM),
-        new BiomeDescriptor(BIOME_WARM_OCEAN, BIOME_OCEAN, WARM),
-        new BiomeDescriptor(BIOME_RIVER),
-        new BiomeDescriptor(BIOME_FROZEN_RIVER, BIOME_RIVER, FROZEN),
-        new BiomeDescriptor(BIOME_BEACH),
-        new BiomeDescriptor(BIOME_SNOWY_BEACH, BIOME_BEACH, SNOWY),
-        new BiomeDescriptor(BIOME_DRIPSTONE_CAVES),
-        new BiomeDescriptor(BIOME_MEADOW),
-        new BiomeDescriptor(BIOME_STONY_PEAKS),
-        new BiomeDescriptor(BIOME_JAGGED_PEAKS),
-        new BiomeDescriptor(BIOME_STONY_SHORE),
-        new BiomeDescriptor(BIOME_LUSH_CAVES),
-        new BiomeDescriptor(BIOME_SNOWY_SLOPES),
-        new BiomeDescriptor(BIOME_GROVE),
-        new BiomeDescriptor(BIOME_FROZEN_PEAKS),
-        new BiomeDescriptor(BIOME_THE_END),
-        new BiomeDescriptor(BIOME_END_BARRENS),
-        new BiomeDescriptor(BIOME_END_HIGHLANDS),
-        new BiomeDescriptor(BIOME_END_MIDLANDS),
+        // BIOME_BADLANDS_PLATEAU no longer exists separately in Minecraft 1.18+
+
         new BiomeDescriptor(BIOME_SMALL_END_ISLANDS),
+        new BiomeDescriptor(BIOME_END_MIDLANDS),
+        new BiomeDescriptor(BIOME_END_HIGHLANDS),
+        new BiomeDescriptor(BIOME_END_BARRENS),
+        new BiomeDescriptor(BIOME_WARM_OCEAN, BIOME_OCEAN, WARM),
+        new BiomeDescriptor(BIOME_LUKEWARM_OCEAN, BIOME_OCEAN, LUKEWARM),
+        new BiomeDescriptor(BIOME_COLD_OCEAN, BIOME_OCEAN, COLD),
+        // BIOME_DEEP_WARM_OCEAN no longer exists separately in Minecraft 1.18+
+        new BiomeDescriptor(BIOME_DEEP_LUKEWARM_OCEAN, BIOME_OCEAN, DEEP, LUKEWARM),
+        new BiomeDescriptor(BIOME_DEEP_COLD_OCEAN, BIOME_OCEAN, DEEP, COLD),
+
+        new BiomeDescriptor(BIOME_DEEP_FROZEN_OCEAN, BIOME_OCEAN, DEEP, FROZEN),
+
         new BiomeDescriptor(BIOME_THE_VOID),
-        new BiomeDescriptor(BIOME_NETHER_WASTES),
+        new BiomeDescriptor(BIOME_SUNFLOWER_PLAINS, BIOME_PLAINS, FLOWERS),
+
+        // BIOME_DESERT_LAKES no longer exists separately in Minecraft 1.18+
+        new BiomeDescriptor(BIOME_WINDSWEPT_GRAVELLY_HILLS, BIOME_WINDSWEPT_HILLS, GRAVELLY),
+        new BiomeDescriptor(BIOME_FLOWER_FOREST, BIOME_FOREST, FLOWERS),
+        // BIOME_TAIGA_MOUNTAINS no longer exists separately in Minecraft 1.18+
+        // BIOME_SWAMP_HILLS no longer exists separately in Minecraft 1.18+
+
+        new BiomeDescriptor(BIOME_ICE_SPIKES),
+        // BIOME_MODIFIED_JUNGLE no longer exists separately in Minecraft 1.18+
+
+        // BIOME_MODIFIED_JUNGLE_EDGE no longer exists separately in Minecraft 1.18+
+        new BiomeDescriptor(BIOME_OLD_GROWTH_BIRCH_FOREST, BIOME_BIRCH_FOREST, OLD_GROWTH),
+        // BIOME_TALL_BIRCH_HILLS no longer exists separately in Minecraft 1.18+
+        // BIOME_DARK_FOREST_HILLS no longer exists separately in Minecraft 1.18+
+        // BIOME_SNOWY_TAIGA_MOUNTAINS no longer exists separately in Minecraft 1.18+
+
+        new BiomeDescriptor(BIOME_OLD_GROWTH_SPRUCE_TAIGA),
+        // BIOME_GIANT_SPRUCE_TAIGA_HILLS no longer exists separately in Minecraft 1.18+
+        // BIOME_MODIFIED_GRAVELLY_MOUNTAINS no longer exists separately in Minecraft 1.18+
+        new BiomeDescriptor(BIOME_WINDSWEPT_SAVANNA, BIOME_SAVANNA, WINDSWEPT),
+        // BIOME_SHATTERED_SAVANNA_PLATEAU no longer exists separately in Minecraft 1.18+
+        new BiomeDescriptor(BIOME_ERODED_BADLANDS, BIOME_BADLANDS, ERODED),
+        // BIOME_MODIFIED_WOODED_BADLANDS_PLATEAU no longer exists separately in Minecraft 1.18+
+        // BIOME_MODIFIED_BADLANDS_PLATEAU no longer exists separately in Minecraft 1.18+
+        new BiomeDescriptor(BIOME_BAMBOO_JUNGLE),
+        // BIOME_BAMBOO_JUNGLE_HILLS no longer exists separately in Minecraft 1.18+
+
         new BiomeDescriptor(BIOME_SOUL_SAND_VALLEY),
         new BiomeDescriptor(BIOME_CRIMSON_FOREST),
         new BiomeDescriptor(BIOME_WARPED_FOREST),
         new BiomeDescriptor(BIOME_BASALT_DELTAS),
+        new BiomeDescriptor(BIOME_DRIPSTONE_CAVES),
+        new BiomeDescriptor(BIOME_LUSH_CAVES),
+
+        // Minecraft 1.18+ biomes, with synthetic numerical ID's that do not correspond to pre-1.18 biome ID's:
+
         new BiomeDescriptor(BIOME_MANGROVE_SWAMP),
-        new BiomeDescriptor(BIOME_DEEP_DARK)
+        new BiomeDescriptor(BIOME_DEEP_DARK),
+        new BiomeDescriptor(BIOME_FROZEN_PEAKS),
+
+        new BiomeDescriptor(BIOME_GROVE),
+        new BiomeDescriptor(BIOME_JAGGED_PEAKS),
+        new BiomeDescriptor(BIOME_MEADOW),
+        new BiomeDescriptor(BIOME_SNOWY_SLOPES),
+        new BiomeDescriptor(BIOME_STONY_PEAKS)
     );
 
+    static {
+        // Sanity checks
+        final Set<String> modernIdsEncountered = new HashSet<>();
+        for (int i = 0; i <= HIGHEST_BIOME_ID; i++) {
+            final int biomeId = i;
+            if ((i < Minecraft1_17Biomes.BIOME_NAMES.length) && (Minecraft1_17Biomes.BIOME_NAMES[i] != null)) {
+                boolean found = false;
+                for (BiomeDescriptor descriptor: MC_117_DESCRIPTORS) {
+                    if (descriptor.id == biomeId) {
+                        found = true;
+                        // Check that it is reachable
+                        if ((descriptor.baseId != biomeId) && MC_117_DESCRIPTORS.stream().noneMatch(d -> d.baseId == d.id && d.id == descriptor.baseId)) {
+                            throw new IllegalArgumentException("Biome " + biomeId + " (" + Minecraft1_17Biomes.BIOME_NAMES[biomeId] + ") is not reachable in MC_117_DESCRIPTORS");
+                        }
+                        break;
+                    }
+                }
+                if (! found) {
+                    throw new IllegalArgumentException("MC_117_DESCRIPTORS is missing biome " + biomeId + " (" + Minecraft1_17Biomes.BIOME_NAMES[biomeId] + ")");
+                }
+            }
+            if (Minecraft1_19Biomes.BIOME_NAMES[i] != null) {
+                if (modernIdsEncountered.contains(MODERN_IDS[i])) {
+                    continue;
+                } else {
+                    modernIdsEncountered.add(MODERN_IDS[i]);
+                }
+                boolean found = false;
+                for (BiomeDescriptor descriptor: MC_119_DESCRIPTORS) {
+                    if (descriptor.id == biomeId) {
+                        found = true;
+                        // Check that it is reachable
+                        if ((descriptor.baseId != biomeId) && MC_119_DESCRIPTORS.stream().noneMatch(d -> d.baseId == d.id && d.id == descriptor.baseId)) {
+                            throw new IllegalArgumentException("Biome " + biomeId + " (" + Minecraft1_19Biomes.BIOME_NAMES[biomeId] + ") is not reachable in MC_119_DESCRIPTORS");
+                        }
+                        break;
+                    }
+                }
+                if (! found) {
+                    throw new IllegalArgumentException("MC_119_DESCRIPTORS is missing biome " + biomeId + " (" + Minecraft1_17Biomes.BIOME_NAMES[biomeId] + ")");
+                }
+            }
+        }
+        MC_117_DESCRIPTORS.forEach(desc -> {
+            if (Minecraft1_17Biomes.BIOME_NAMES[desc.id] == null) {
+                throw new IllegalArgumentException("MC_117_DESCRIPTORS contains non-existent biome ID " + desc.id);
+            }
+        });
+        modernIdsEncountered.clear();
+        MC_119_DESCRIPTORS.forEach(desc -> {
+            if (Minecraft1_19Biomes.BIOME_NAMES[desc.id] == null) {
+                throw new IllegalArgumentException("MC_119_DESCRIPTORS contains non-existent biome ID " + desc.id);
+            }
+            if (modernIdsEncountered.contains(MODERN_IDS[desc.id])) {
+                System.err.println("MC_119_DESCRIPTORS contains duplicate descriptor for biome ID " + desc.id + " (" + Minecraft1_19Biomes.BIOME_NAMES[desc.id] + ") for modern ID " + MODERN_IDS[desc.id]);
+            } else {
+                modernIdsEncountered.add(MODERN_IDS[desc.id]);
+            }
+        });
+        Set<Integer> uniqueIds = stream(MC_117_BIOME_ORDER).filter(i -> i != -1).boxed().collect(toSet());
+        if (uniqueIds.size() != stream(MC_117_BIOME_ORDER).filter(i -> i != -1).count()) {
+            throw new IllegalArgumentException("MC_117_BIOME_ORDER has duplicate IDs");
+        }
+        uniqueIds = MC_117_DESCRIPTORS.stream().map(d -> d.id).collect(toSet());
+        if (uniqueIds.size() != MC_117_DESCRIPTORS.size()) {
+            throw new IllegalArgumentException("MC_117_DESCRIPTORS has duplicate IDs");
+        }
+        uniqueIds = stream(MC_119_BIOME_ORDER).filter(i -> i != -1).boxed().collect(toSet());
+        if (uniqueIds.size() != stream(MC_119_BIOME_ORDER).filter(i -> i != -1).count()) {
+            throw new IllegalArgumentException("MC_119_BIOME_ORDER has duplicate IDs");
+        }
+        uniqueIds = MC_119_DESCRIPTORS.stream().map(d -> d.id).collect(toSet());
+        if (uniqueIds.size() != MC_119_DESCRIPTORS.size()) {
+            throw new IllegalArgumentException("MC_119_DESCRIPTORS has duplicate IDs");
+        }
+    }
+
     private static final BiomesSet MINECRAFT_1_17_BIOMES = new BiomesSet(MC_117_BIOME_ORDER, MC_117_DESCRIPTORS, Minecraft1_17Biomes.BIOME_NAMES);
-    private static final BiomesSet MINECRAFT_1_19_BIOMES = new BiomesSet(MC_119_BIOME_ORDER, MC_119_DESCRIPTORS, Minecraft1_19Biomes.BIOME_NAMES);
+    private static final BiomesSet MINECRAFT_1_19_BIOMES = new BiomesSet(MC_119_BIOME_ORDER, new HashSet<>(MC_119_DESCRIPTORS), Minecraft1_19Biomes.BIOME_NAMES);
 
     public enum BiomeOption {HILLS, SHORE, EDGE, PLATEAU, MOUNTAINOUS, VARIANT, FROZEN, SNOWY, DEEP, WOODED, WARM,
         LUKEWARM, COLD, TALL, FLOWERS, LAKES, GRAVELLY, SHATTERED, SMALL_ISLANDS, MIDLANDS, HIGHLANDS, BARRENS,
@@ -682,7 +821,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         public BiomeDescriptor(int id, int baseId, BiomeOption... options) {
             this.id = id;
             this.baseId = baseId;
-            this.options = ((options != null) && (options.length > 0)) ? EnumSet.copyOf(Arrays.asList(options)) : emptySet();
+            this.options = ((options != null) && (options.length > 0)) ? EnumSet.copyOf(asList(options)) : emptySet();
         }
 
         public int getId() {
