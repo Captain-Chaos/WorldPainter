@@ -26,6 +26,7 @@ public class CustomBiomeDialog extends WorldPainterDialog {
         super(parent);
         this.customBiome = customBiome;
         initComponents();
+        paintPicker1.setOpacity(0.5f);
         paintPicker1.setOpacityEnabled(false);
         spinnerID.setValue(customBiome.getId());
         fieldName.setText(customBiome.getName());
@@ -63,6 +64,7 @@ public class CustomBiomeDialog extends WorldPainterDialog {
         final Object paint = paintPicker1.getPaint();
         if (paint instanceof Color) {
             customBiome.setColour(((Color) paint).getRGB());
+            customBiome.setPattern(null);
         } else {
             customBiome.setPattern((BufferedImage) paint);
         }

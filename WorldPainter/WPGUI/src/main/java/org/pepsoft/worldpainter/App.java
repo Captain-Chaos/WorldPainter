@@ -1747,14 +1747,14 @@ public final class App extends JFrame implements RadiusControl,
         if ((! programmaticChange) && (dimension != null)) {
             // It's possible that the biome ID already exists in the world, for instance if the user removed a biome and
             // then performed an undo, so repaint it
-            view.refreshTilesForLayer(Biome.INSTANCE, false);
+            view.refreshTiles();
         }
     }
 
     @Override
     public void customBiomeChanged(CustomBiome customBiome) {
         if ((! programmaticChange) && (dimension != null)) {
-            view.refreshTilesForLayer(Biome.INSTANCE, false);
+            view.refreshTiles();
         }
     }
 
@@ -1789,12 +1789,9 @@ public final class App extends JFrame implements RadiusControl,
                                     }
                                 }
                                 if (allCustomOrAuto) {
-                                    // This tile was completely filled with the
-                                    // custom biome and/or automatic biome.
-                                    // Since we're replacing it with automatic
-                                    // biome, which is the default layer value,
-                                    // we can delete the layer data to conserve
-                                    // space
+                                    // This tile was completely filled with the custom biome and/or automatic biome.
+                                    // Since we're replacing it with automatic biome, which is the default layer value,
+                                    // we can delete the layer data to conserve space
                                     tile.clearLayerData(Biome.INSTANCE);
                                 }
                             } finally {

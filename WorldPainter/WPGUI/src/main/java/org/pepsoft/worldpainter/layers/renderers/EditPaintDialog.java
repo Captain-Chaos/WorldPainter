@@ -39,15 +39,11 @@ public class EditPaintDialog extends WorldPainterDialog {
         }
 
         initComponents();
-        if (opacityEnabled) {
-            this.opacity = opacity;
-            sliderOpacity.setValue(Math.round(opacity * 100));
-            rendererPreviewer1.setOpacity(this.opacity);
-        } else {
-            this.opacity = 1.0f;
-            sliderOpacity.setValue(100);
+        this.opacity = opacity;
+        sliderOpacity.setValue(Math.round(opacity * 100));
+        rendererPreviewer1.setOpacity(this.opacity);
+        if (! opacityEnabled) {
             sliderOpacity.setEnabled(false);
-            rendererPreviewer1.setOpacity(1.0f);
         }
 
         getRootPane().setDefaultButton(buttonOk);

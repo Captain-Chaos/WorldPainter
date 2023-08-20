@@ -5,7 +5,6 @@
 
 package org.pepsoft.worldpainter;
 
-import org.jetbrains.annotations.Contract;
 import org.pepsoft.util.ColourUtils;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.Dimension.Anchor;
@@ -69,9 +68,13 @@ public final class TileRenderer {
         this.renderTunnelRoofIntersection = renderTunnelRoofIntersection;
         this.tunnelLayerHelper = tunnelLayerHelper;
         this.zoom = zoom;
-        this.transparentVoid = transparentVoid;
         this.colourRamp = colourRamp;
-        setColourScheme(colourScheme);
+        this.colourScheme = colourScheme;
+        waterColour = colourScheme.getColour(WATER);
+        lavaColour = colourScheme.getColour(LAVA);
+        bedrockColour = colourScheme.getColour(BEDROCK);
+        notPresentColour = 0x00000000;
+        voidColour = (transparentVoid ? 0x00000000 : 0xff000000) | VoidRenderer.getColour();
         bufferedImage = new BufferedImage(TILE_SIZE, TILE_SIZE, BufferedImage.TYPE_INT_ARGB);
         renderBuffer = ((DataBufferInt) bufferedImage.getRaster().getDataBuffer()).getData();
     }
@@ -82,15 +85,6 @@ public final class TileRenderer {
 
     public ColourScheme getColourScheme() {
         return colourScheme;
-    }
-
-    public void setColourScheme(ColourScheme colourScheme) {
-        this.colourScheme = colourScheme;
-        waterColour = colourScheme.getColour(WATER);
-        lavaColour = colourScheme.getColour(LAVA);
-        bedrockColour = colourScheme.getColour(BEDROCK);
-        notPresentColour = 0x00000000;
-        voidColour = (transparentVoid ? 0x00000000 : 0xff000000) | VoidRenderer.getColour();
     }
 
     public void addHiddenLayers(Collection<Layer> hiddenLayers) {
@@ -414,7 +408,6 @@ public final class TileRenderer {
                     boolean bitLayerValue = tile.getBitLayerValue(layer, x, y);
                     if (bitLayerValue) {
                         final BitLayerRenderer renderer = (BitLayerRenderer) renderers[i];
-                        if (reportMissingRenderer(layer, renderer == null)) continue;
                         colour = renderer.getPixelColour(worldX, worldY, colour, true);
                     }
                     break;
@@ -422,13 +415,11 @@ public final class TileRenderer {
                     int layerValue = tile.getLayerValue(layer, x, y);
                     if (layerValue > 0) {
                         final NibbleLayerRenderer renderer = (NibbleLayerRenderer) renderers[i];
-                        if (reportMissingRenderer(layer, renderer == null)) continue;
                         colour = renderer.getPixelColour(worldX, worldY, colour, layerValue);
                     }
                     break;
                 case BYTE:
                     final ByteLayerRenderer byteLayerRenderer = (ByteLayerRenderer) renderers[i];
-                    if (reportMissingRenderer(layer, byteLayerRenderer == null)) continue;
                     colour = byteLayerRenderer.getPixelColour(worldX, worldY, colour, tile.getLayerValue(layer, x, y));
                     break;
                 default:
@@ -436,20 +427,6 @@ public final class TileRenderer {
             }
         }
         return colour;
-    }
-
-    @Contract("_, true -> true")
-    private boolean reportMissingRenderer(Layer layer, boolean rendererMissing) {
-        if (rendererMissing) {
-            logger.error("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
-            if (! missingRendererReportedFor.contains(layer)) {
-                missingRendererReportedFor.add(layer);
-                throw new IllegalStateException("Missing renderer for layer " + layer + " (type: " + layer.getClass().getSimpleName() + ")");
-            } else {
-                return true;
-            }
-        }
-        return false;
     }
 
     private int getNeighbourHeight(Tile tile, int x, int y, int dx, int dy) {
@@ -510,24 +487,23 @@ public final class TileRenderer {
         }
     }
 
-    private final BiomeRenderer biomeRenderer;
     private final Set<Layer> hiddenLayers = new HashSet<>(Collections.singletonList(FloodWithLava.INSTANCE));
     private final int[] intHeightCache = new int[TILE_SIZE * TILE_SIZE], intFluidHeightCache = new int[TILE_SIZE * TILE_SIZE];
     private final float[] floatHeightCache = new float[TILE_SIZE * TILE_SIZE];
     private final BufferedImage bufferedImage;
     private final int[] renderBuffer;
     private final int[][] heights = new int[3][3], deltas = new int[3][3], fluidHeights = new int[3][3], fluidDeltas = new int[3][3];
-    private final Set<Layer> missingRendererReportedFor = new HashSet<>(); // TODO remove when no longer necessary!
     private final boolean[] oppositesOverlap = new boolean[TILE_SIZE * TILE_SIZE];
-    private final int zoom;
+    private final int zoom, waterColour, lavaColour, bedrockColour, notPresentColour, voidColour;;
     private final Platform platform;
     private final TileProvider tileProvider, relatedTileProvider;
-    private final boolean renderCeilingIntersection, renderTunnelRoofIntersection, transparentVoid;
+    private final boolean renderCeilingIntersection, renderTunnelRoofIntersection;
     private final TunnelLayerHelper tunnelLayerHelper;
     private final ColourRamp colourRamp;
-    private ColourScheme colourScheme;
+    private final BiomeRenderer biomeRenderer;
+    private final ColourScheme colourScheme;
     private boolean contourLines = true, hideAllLayers;
-    private int contourSeparation = 10, waterColour, lavaColour, bedrockColour, notPresentColour, voidColour;
+    private int contourSeparation = 10;
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
 
     public static final Layer TERRAIN_AS_LAYER = new Layer("org.pepsoft.synthetic.Terrain", "Terrain", "The terrain type of the surface", Layer.DataSize.NONE, false, 0) {

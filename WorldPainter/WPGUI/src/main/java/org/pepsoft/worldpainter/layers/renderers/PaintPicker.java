@@ -62,7 +62,6 @@ public class PaintPicker extends javax.swing.JPanel {
     public void setOpacityEnabled(boolean opacityEnabled) {
         if (opacityEnabled != this.opacityEnabled) {
             this.opacityEnabled = opacityEnabled;
-            updatePreview();
         }
     }
 
@@ -77,7 +76,7 @@ public class PaintPicker extends javax.swing.JPanel {
         } else if (pattern != null) {
             rendererPreviewer1.setPattern(pattern);
         }
-        rendererPreviewer1.setOpacity(opacityEnabled ? opacity : 1.0f);
+        rendererPreviewer1.setOpacity(opacity);
     }
     
     private void pickPaint() {

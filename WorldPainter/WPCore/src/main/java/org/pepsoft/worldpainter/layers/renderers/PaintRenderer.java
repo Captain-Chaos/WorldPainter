@@ -67,9 +67,9 @@ public class PaintRenderer implements NibbleLayerRenderer, BitLayerRenderer{
                         | (Math.round(alpha * this.green[index] + (1 - alpha) * ((underlyingColour & 0x0000ff00) >> 8)) << 8)
                         | Math.round(alpha * this.blue[index] + (1 - alpha) * (underlyingColour & 0x000000ff));
             } else if (opacity < 1.0f) {
-                return ColourUtils.mix(colour, underlyingColour, Math.round(value * opacity * 255 / 15));
+                return ColourUtils.mix(colour, underlyingColour, Math.round(value * opacity * 256 / 15));
             } else {
-                return ColourUtils.mix(colour, underlyingColour, value * 255 / 15);
+                return ColourUtils.mix(colour, underlyingColour, value * 256 / 15);
             }
         } else {
             return underlyingColour;

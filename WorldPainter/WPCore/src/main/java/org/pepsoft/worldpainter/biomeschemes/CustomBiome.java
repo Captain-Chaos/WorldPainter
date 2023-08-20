@@ -59,11 +59,11 @@ public class CustomBiome implements Serializable {
         this.colour = colour;
     }
 
-    public BufferedImage getPattern() {
+    public final BufferedImage getPattern() {
         return pattern;
     }
 
-    public void setPattern(BufferedImage pattern) {
+    public final void setPattern(BufferedImage pattern) {
         this.pattern = pattern;
     }
 

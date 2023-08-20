@@ -33,7 +33,7 @@ public class ColouredPatternRenderer implements NibbleLayerRenderer {
     @Override
     public int getPixelColour(int x, int y, int underlyingColour, int value) {
         if ((value > 0) && pattern[(y + dy) & 7][(x + dx) & 7]) {
-            int intensity = value * 255 / 15;
+            int intensity = value * 256 / 15;
             return ColourUtils.mix(colour, underlyingColour, intensity);
         } else {
             return underlyingColour;

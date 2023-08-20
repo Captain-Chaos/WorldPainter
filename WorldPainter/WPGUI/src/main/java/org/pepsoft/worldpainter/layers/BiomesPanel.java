@@ -120,8 +120,9 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     public void customBiomeChanged(CustomBiome customBiome) {
         for (Component component: grid.getComponents()) {
             if ((component instanceof JToggleButton) && (((Integer) ((JToggleButton) component).getClientProperty(KEY_BIOME)) == customBiome.getId())) {
-                JToggleButton button = (JToggleButton) component;
-                button.setIcon(IconUtils.createScaledColourIcon(customBiome.getColour()));
+                final JToggleButton button = (JToggleButton) component;
+                final BufferedImage pattern = customBiome.getPattern();
+                button.setIcon((pattern != null) ? new ImageIcon(pattern) : IconUtils.createScaledColourIcon(customBiome.getColour()));
                 button.setToolTipText(customBiome.getName());
                 return;
             }
@@ -261,6 +262,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     private void resetOptions() {
         Set<BiomeOption> availableOptions = findAvailableOptions(selectedBaseBiome);
         optionsPanel.removeAll();
+        optionsPanel.add(new JLabel("Variations:"));
         for (BiomeOption option: availableOptions) {
             JCheckBox checkBox = new JCheckBox(createOptionName(option));
             checkBox.addActionListener(event -> updateOptions());
