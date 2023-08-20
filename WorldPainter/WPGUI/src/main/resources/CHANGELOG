@@ -1,6 +1,8 @@
 -- Version 2.21.0, released ...
 
- * Support for Minecraft 1.20's new blocks has been added
+ * Support for Minecraft 1.20 has been added, including:
+   + Preview support for the new blocks
+   + New plants for the Custom Plants layer: cherry saplings, pink petals, pitcher pods and plants and torchflower seeds and plants
  * Custom Biomes can now also have custom patterns configured for rendering
    + To create or edit a pattern, click on the [...] button next to the Paint label on the Configure Custom Biome screen
    + Note that for Custom Biomes the opacity cannot be changed

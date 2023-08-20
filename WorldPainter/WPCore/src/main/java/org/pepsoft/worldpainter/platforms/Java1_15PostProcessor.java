@@ -365,7 +365,8 @@ public class Java1_15PostProcessor extends PostProcessor {
                                     material = clearBlock(minecraftWorld, x, y, z);
                                 }
                             } else {
-                                if (materialAbove.isNotNamedSameAs(material) || (! materialAbove.isPropertySet(MC_HALF)) || (! "upper".equals(materialAbove.getProperty(HALF)))) {
+                                if ((materialAbove.isNotNamedSameAs(material) || (! materialAbove.isPropertySet(MC_HALF)) || (! "upper".equals(materialAbove.getProperty(HALF))))
+                                        && (! (material.isNamed(MC_PITCHER_CROP) && material.getProperty(AGE) < 3))) { // pitcher_crop aged 0-2 has no upper block above it
                                     material = clearBlock(minecraftWorld, x, y, z);
                                 }
                             }

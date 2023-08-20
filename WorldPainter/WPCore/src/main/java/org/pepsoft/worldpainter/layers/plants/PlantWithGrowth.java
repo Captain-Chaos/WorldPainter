@@ -7,6 +7,9 @@ import org.pepsoft.worldpainter.Platform;
  * A plant with growth stages.
  */
 abstract class PlantWithGrowth extends SimplePlant {
+    /**
+     * Create a new plant with growth states. The growth value is one-based.
+     */
     PlantWithGrowth(String name, Material material, String iconName, int maxGrowth, Category... category) {
         super(name, material, iconName, category);
         this.maxGrowth = maxGrowth;

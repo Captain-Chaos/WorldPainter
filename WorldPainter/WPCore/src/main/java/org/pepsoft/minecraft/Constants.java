@@ -564,6 +564,12 @@ public final class Constants {
     public static final String MC_CRIMSON_STEM = "minecraft:crimson_stem";
     public static final String MC_WARPED_HYPHAE = "minecraft:warped_hyphae";
     public static final String MC_WARPED_STEM = "minecraft:warped_stem";
+    public static final String MC_CHERRY_SAPLING = "minecraft:cherry_sapling";
+    public static final String MC_PINK_PETALS = "minecraft:pink_petals";
+    public static final String MC_PITCHER_CROP = "minecraft:pitcher_crop";
+    public static final String MC_PITCHER_PLANT = "minecraft:pitcher_plant";
+    public static final String MC_TORCHFLOWER_CROP = "minecraft:torchflower_crop";
+    public static final String MC_TORCHFLOWER = "minecraft:torchflower";
 
     // MC 1.18 biome names
 
@@ -598,6 +604,7 @@ public final class Constants {
     public static final String MC_DISTANCE           = "distance";
     public static final String MC_VERTICAL_DIRECTION = "vertical_direction";
     public static final String MC_THICKNESS          = "thickness";
+    public static final String MC_FLOWER_AMOUNT      = "flower_amount";
 
     // Minecraft NBT tag names. An underscore at the end signifies a lower case
     // initial
