@@ -64,7 +64,7 @@ public class PaletteManager {
         if (palettesByName.containsKey(name)) {
             throw new IllegalStateException("There is already a palette named \"" + name + "\"");
         }
-        Palette palette = new Palette(name, customLayerController.createPopupMenuButton(name), this);
+        Palette palette = new Palette(name, customLayerController.createPopupMenuButton(), this);
         paletteList.add(palette);
         palettesByName.put(name, palette);
         return palette;
@@ -81,7 +81,7 @@ public class PaletteManager {
         Palette palette = getPaletteContaining(layer);
         boolean paletteCreated = false;
         if (palette == null) {
-            palette = new Palette(layer.getPalette(), customLayerController.createPopupMenuButton(layer.getPalette()), this);
+            palette = new Palette(layer.getPalette(), customLayerController.createPopupMenuButton(), this);
             paletteCreated = true;
             paletteList.add(palette);
             palettesByName.put(layer.getPalette(), palette);

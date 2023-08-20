@@ -2,6 +2,7 @@ package org.pepsoft.worldpainter;
 
 import com.google.common.collect.Lists;
 import com.jidesoft.docking.DockContext;
+import com.jidesoft.docking.DockableFrame;
 import org.jetbrains.annotations.NotNull;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.DesktopUtils;
@@ -24,6 +25,8 @@ import org.pepsoft.worldpainter.plugins.CustomLayerProvider;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.util.FileFilter;
 import org.pepsoft.worldpainter.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -252,7 +255,7 @@ public class CustomLayerController implements PropertyChangeListener {
         app.layerRemoved(layer);
     }
 
-    public List<Component> createPopupMenuButton(String paletteName) {
+    public List<Component> createPopupMenuButton() {
         final JButton addLayerButton = new JButton(ADD_CUSTOM_LAYER_BUTTON_ICON);
         addLayerButton.setToolTipText(strings.getString("add.a.custom.layer"));
         addLayerButton.setMargin(new Insets(2, 2, 2, 2));
@@ -261,8 +264,20 @@ public class CustomLayerController implements PropertyChangeListener {
                 DesktopUtils.beep();
                 return;
             }
-            final JPopupMenu customLayerMenu = createCustomLayerMenu(paletteName);
-            customLayerMenu.show(addLayerButton, addLayerButton.getWidth(), 0);
+            // Find out which palette the button is on
+            Container parent = addLayerButton.getParent();
+            while ((parent != null) && (! (parent instanceof DockableFrame))) {
+                parent = parent.getParent();
+            }
+            if (parent != null) {
+                final String nameKey = ((DockableFrame) parent).getKey();
+                final String paletteName = nameKey.substring(nameKey.indexOf('.') + 1);
+                final JPopupMenu customLayerMenu = createCustomLayerMenu(paletteName);
+                customLayerMenu.show(addLayerButton, addLayerButton.getWidth(), 0);
+            } else {
+                logger.error("Could not find palette add layer button is on");
+                DesktopUtils.beep();
+            }
         });
         final List<Component> addLayerButtonPanel = new ArrayList<>(3);
         addLayerButtonPanel.add(new JPanel());
@@ -835,4 +850,5 @@ public class CustomLayerController implements PropertyChangeListener {
     private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
     private static final String EDITING_FLOOR_DIMENSION_KEY = "org.pepsoft.worldpainter.TunnelLayer.editingFloorDimension";
     private static final Icon ADD_CUSTOM_LAYER_BUTTON_ICON = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/plus.png");
+    private static final Logger logger = LoggerFactory.getLogger(CustomLayerController.class);
 }
