@@ -12,11 +12,11 @@ import static org.pepsoft.minecraft.Material.*;
 
 /**
  * An abstract base class for {@link BiomeScheme}s which provide the biomes as
- * used in Minecraft 1.13 and later.
+ * used in Minecraft 1.18 and later.
  *
  * @author pepijn
  */
-public abstract class AbstractMinecraft1_19BiomeScheme extends AbstractBiomeScheme implements Minecraft1_19Biomes {
+public abstract class AbstractMinecraft1_20BiomeScheme extends AbstractBiomeScheme implements Minecraft1_20Biomes {
     @Override
     public final int getBiomeCount() {
         return HIGHEST_BIOME_ID + 1;
@@ -88,10 +88,13 @@ public abstract class AbstractMinecraft1_19BiomeScheme extends AbstractBiomeSche
                 return colourScheme.getColour(SNOW);
             case BIOME_HELL:
             case BIOME_SOUL_SAND_VALLEY:
-            case BIOME_CRIMSON_FOREST:
-            case BIOME_WARPED_FOREST:
-            case BIOME_BASALT_DELTAS:
                 return colourScheme.getColour(NETHERRACK);
+            case BIOME_BASALT_DELTAS:
+                return colourScheme.getColour(BASALT);
+            case BIOME_CRIMSON_FOREST:
+                return colourScheme.getColour(CRIMSON_NYLIUM);
+            case BIOME_WARPED_FOREST:
+                return colourScheme.getColour(WARPED_NYLIUM);
             case BIOME_SKY:
             case BIOME_SMALL_END_ISLANDS:
             case BIOME_END_MIDLANDS:
@@ -135,6 +138,8 @@ public abstract class AbstractMinecraft1_19BiomeScheme extends AbstractBiomeSche
                 return colourScheme.getColour(HARDENED_CLAY);
             case BIOME_THE_VOID:
                 return VoidRenderer.getColour();
+            case BIOME_CHERRY_GROVE:
+                return colourScheme.getColour(LEAVES_CHERRY);
             default:
                 throw new IllegalArgumentException(Integer.toString(biome));
         }

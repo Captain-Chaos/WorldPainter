@@ -968,7 +968,7 @@ minecraft:bamboo_hanging_sign,,"rotation:i[0-15],waterlogged:b,attached:b",0,fal
 minecraft:bamboo_mosaic,,,0,false,false,false,false,false,false,,false,false,0,false,false,ffbeaa4e,bamboo_mosaic.png
 minecraft:bamboo_mosaic_slab,,"type:e[top;bottom;double],waterlogged:b",15,true,false,false,false,false,false,,false,false,0,false,false,ffbeaa4e,bamboo_mosaic.png
 minecraft:bamboo_mosaic_stairs,,"facing:e[north;south;west;east],half:e[top;bottom],waterlogged:b,shape:e[straight;inner_left;inner_right;outer_left;outer_right]",15,true,false,false,false,false,false,,false,false,0,false,false,ffbeaa4e,bamboo_mosaic.png
-minecraft:bamboo_planks,,,0,false,false,false,false,false,false,,false,false,0,false,false,ffc1ad50,bamboo_planks.png
+minecraft:bamboo_planks,,,15,false,false,false,false,false,false,,false,false,0,false,false,ffc1ad50,bamboo_planks.png
 minecraft:bamboo_pressure_plate,,powered:b,0,false,false,false,false,false,false,,false,false,0,false,false,ff7f9039,bamboo_block.png
 minecraft:bamboo_sign,,"rotation:i[0-15],waterlogged:b",0,false,false,false,false,false,true,minecraft:sign,false,false,0,false,false,ff7f9039,bamboo_block.png
 minecraft:bamboo_slab,,"type:e[top;bottom;double],waterlogged:b",15,true,false,false,false,false,false,,false,false,0,false,false,ff7f9039,bamboo_block.png
@@ -986,7 +986,7 @@ minecraft:cherry_fence_gate,,"in_wall:b,open:b,facing:e[north;south;west;east],p
 minecraft:cherry_hanging_sign,,"rotation:i[0-15],waterlogged:b,attached:b",0,false,false,false,false,false,true,minecraft:hanging_sign,false,false,0,false,false,ffe2b2ac,cherry_planks.png
 minecraft:cherry_leaves,,"distance:i[1-7],persistent:b,waterlogged:b",1,false,false,false,true,false,false,,true,false,0,true,false,ffe5acc2,cherry_leaves.png
 minecraft:cherry_log,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,true,false,ff36212c,cherry_log.png
-minecraft:cherry_planks,,,0,false,false,false,false,false,false,,false,false,0,false,false,ffe2b2ac,cherry_planks.png
+minecraft:cherry_planks,,,15,false,false,false,false,false,false,,false,false,0,false,false,ffe2b2ac,cherry_planks.png
 minecraft:cherry_pressure_plate,,powered:b,0,false,false,false,false,false,false,,false,false,0,false,false,ffe2b2ac,cherry_planks.png
 minecraft:cherry_sapling,,stage:i[0-1],0,false,false,false,false,false,false,,true,false,0,false,false,ffa4758f,cherry_sapling.png
 minecraft:cherry_sign,,"rotation:i[0-15],waterlogged:b",0,false,false,false,false,false,true,minecraft:sign,false,false,0,false,false,ffe2b2ac,cherry_planks.png
@@ -996,7 +996,7 @@ minecraft:cherry_trapdoor,,"open:b,facing:e[north;south;west;east],powered:b,hal
 minecraft:cherry_wall_hanging_sign,,"facing:e[north;south;west;east],waterlogged:b",0,false,false,false,false,false,true,minecraft:hanging_sign,false,false,0,false,false,ffe2b2ac,cherry_planks.png
 minecraft:cherry_wall_sign,,"facing:e[north;south;west;east],waterlogged:b",0,false,false,false,false,false,true,minecraft:sign,false,false,0,false,false,ffe2b2ac,cherry_planks.png
 minecraft:cherry_wood,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,true,false,ffe2b2ac,cherry_planks.png
-minecraft:chiseled_bookshelf,,"slot_5_occupied:b,slot_4_occupied:b,facing:e[north;south;west;east],slot_2_occupied:b,slot_3_occupied:b,slot_1_occupied:b,slot_0_occupied:b",0,false,false,false,false,false,true,minecraft:chiseled_bookshelf,false,false,0,false,false,ffb29058,chiseled_bookshelf_top.png
+minecraft:chiseled_bookshelf,,"slot_5_occupied:b,slot_4_occupied:b,facing:e[north;south;west;east],slot_2_occupied:b,slot_3_occupied:b,slot_1_occupied:b,slot_0_occupied:b",15,false,false,false,false,false,true,minecraft:chiseled_bookshelf,false,false,0,false,false,ffb29058,chiseled_bookshelf_top.png
 minecraft:crimson_hanging_sign,,"rotation:i[0-15],waterlogged:b,attached:b",0,false,false,false,false,false,true,minecraft:hanging_sign,false,false,0,false,false,ff653046,crimson_planks.png
 minecraft:crimson_wall_hanging_sign,,"facing:e[north;south;west;east],waterlogged:b",0,false,false,false,false,false,true,minecraft:hanging_sign,false,false,0,false,false,ff653046,crimson_planks.png
 minecraft:dark_oak_hanging_sign,,"rotation:i[0-15],waterlogged:b,attached:b",0,false,false,false,false,false,true,minecraft:hanging_sign,false,false,0,false,false,ff422b14,dark_oak_planks.png
@@ -1021,8 +1021,8 @@ minecraft:spruce_wall_hanging_sign,,"facing:e[north;south;west;east],waterlogged
 minecraft:stripped_bamboo_block,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,ffc1ad50,stripped_bamboo_block.png
 minecraft:stripped_cherry_log,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,false,false,ffd79194,stripped_cherry_log.png
 minecraft:stripped_cherry_wood,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,false,false,,
-minecraft:suspicious_gravel,,dusted:i[0-3],0,false,true,false,false,false,true,minecraft:brushable_block,false,false,0,true,false,ff817d7c,suspicious_gravel_0.png
-minecraft:suspicious_sand,,dusted:i[0-3],0,false,true,false,false,false,true,minecraft:brushable_block,false,false,0,true,false,ffd9cc9f,suspicious_sand_0.png
+minecraft:suspicious_gravel,,dusted:i[0-3],15,false,true,false,false,false,true,minecraft:brushable_block,false,false,0,true,false,ff817d7c,suspicious_gravel_0.png
+minecraft:suspicious_sand,,dusted:i[0-3],15,false,true,false,false,false,true,minecraft:brushable_block,false,false,0,true,false,ffd9cc9f,suspicious_sand_0.png
 minecraft:torchflower,,,0,false,false,true,false,false,false,,false,true,0,false,false,ff64654d,torchflower.png
 minecraft:torchflower_crop,,age:i[0-1],0,false,false,true,false,false,false,,false,true,0,false,false,ff64654d,torchflower.png
 minecraft:warped_hanging_sign,,"rotation:i[0-15],waterlogged:b,attached:b",0,false,false,false,false,false,true,minecraft:hanging_sign,false,false,0,false,false,ff2b6863,warped_planks.png

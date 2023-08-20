@@ -15,7 +15,7 @@ import static org.pepsoft.minecraft.Constants.MC_PLAINS;
  * synthesised. Display names for biomes that occur in Minecraft 1.18 are those for Minecraft 1.18, for legacy biomes
  * they are those from Minecraft 1.17.
  */
-public interface Minecraft1_19Biomes extends Minecraft1_17Biomes {
+public interface Minecraft1_20Biomes extends Minecraft1_17Biomes {
     int BIOME_WINDSWEPT_HILLS = 3;
 
     int BIOME_SNOWY_PLAINS = 12;
@@ -34,6 +34,7 @@ public interface Minecraft1_19Biomes extends Minecraft1_17Biomes {
     int BIOME_OLD_GROWTH_SPRUCE_TAIGA = 160;
     int BIOME_WINDSWEPT_SAVANNA = 163;
 
+    int BIOME_CHERRY_GROVE = 246;
     int BIOME_MANGROVE_SWAMP = 247;
     int BIOME_DEEP_DARK = 248;
     int BIOME_FROZEN_PEAKS = 249;
@@ -319,8 +320,8 @@ public interface Minecraft1_19Biomes extends Minecraft1_17Biomes {
             null,
             null,
             null,
-            null,
-            "Mangrove Swamp", // TODOMC118 add colour and icon support
+            "Cherry Grove",
+            "Mangrove Swamp",
             "Deep Dark",
             "Frozen Peaks",
 
@@ -610,7 +611,7 @@ public interface Minecraft1_19Biomes extends Minecraft1_17Biomes {
             null,
             null,
             null,
-            null,
+            "minecraft:cherry_grove",
             "minecraft:mangrove_swamp",
             "minecraft:deep_dark",
             "minecraft:frozen_peaks",
@@ -739,6 +740,12 @@ public interface Minecraft1_19Biomes extends Minecraft1_17Biomes {
 
                 image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/mangrove_trees_pattern.png"));
                 patterns[BIOME_MANGROVE_SWAMP] = createPattern(image);
+
+                image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/cherry_grove_pattern.png"));
+                patterns[BIOME_CHERRY_GROVE] = createPattern(image);
+
+                image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/basalt_deltas_pattern.png"));
+                patterns[BIOME_BASALT_DELTAS] = createPattern(image);
             } catch (IOException e) {
                 throw new RuntimeException("I/O error loading image", e);
             }

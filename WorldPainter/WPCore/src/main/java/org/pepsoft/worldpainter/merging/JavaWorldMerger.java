@@ -1479,7 +1479,10 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     || ((newMaterial == STONE) && ((existingMaterial == INFESTED_STONE) || STONE_ORES.contains(existingMaterial))) // Infested stone and ores are imported as stone, so make sure to leave them intact.
                     || (newMaterial.isNamed(MC_DEEPSLATE) && (existingMaterial.isNamed(MC_INFESTED_DEEPSLATE) || DEEPSLATE_ORES.contains(existingMaterial))) // Infested deepslate and deepslate ores are imported as deepslate, so make sure to leave them intact.
                     || ((newMaterial == ICE) && existingMaterial.isNamed(MC_FROSTED_ICE)) // Frosted ice is imported as water + Frost, so make sure to leave it intact TODO do this for other forms of ice?
-                    || ((newMaterial == MUD) && existingMaterial.isNamed(MC_MUDDY_MANGROVE_ROOTS)))) { // Muddy mangrove roots are imported as mud, so make sure to leave it intact.
+                    || ((newMaterial == MUD) && existingMaterial.isNamed(MC_MUDDY_MANGROVE_ROOTS)) // Muddy mangrove roots are imported as mud, so make sure to leave it intact.
+                    || ((newMaterial == SAND) && existingMaterial.isNamed(MC_SUSPICIOUS_SAND)) // Suspicious sand is imported as sand, so make sure to leave it intact.
+                    || ((newMaterial == GRAVEL) && existingMaterial.isNamed(MC_SUSPICIOUS_GRAVEL)) // Suspicious gravel is imported as gravel, so make sure to leave it intact.
+            )) {
                 newMaterial = existingMaterial;
             }
 

@@ -383,6 +383,9 @@ public interface Minecraft1_17Biomes extends Minecraft1_7Biomes {
 
                 image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/ice_spikes.png"));
                 patterns[BIOME_ICE_SPIKES] = createPattern(image);
+
+                image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/basalt_deltas_pattern.png"));
+                patterns[BIOME_BASALT_DELTAS] = createPattern(image);
             } catch (IOException e) {
                 throw new RuntimeException("I/O error loading image", e);
             }

@@ -2123,6 +2123,7 @@ public final class Material implements Serializable {
     public static final Material PITCHER_PLANT_LOWER = get(MC_PITCHER_PLANT, MC_HALF, "lower");
     public static final Material TORCHFLOWER_CROP = get(MC_TORCHFLOWER_CROP);
     public static final Material TORCHFLOWER = get(MC_TORCHFLOWER);
+    public static final Material LEAVES_CHERRY = get(MC_CHERRY_LEAVES);
 
     // Material type categories
 

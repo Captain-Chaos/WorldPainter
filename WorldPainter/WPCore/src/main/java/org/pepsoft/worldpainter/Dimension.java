@@ -64,7 +64,7 @@ import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.Dimension.Role.MASTER;
 import static org.pepsoft.worldpainter.Dimension.WallType.BEDROCK;
 import static org.pepsoft.worldpainter.Generator.*;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_19Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_20Biomes.*;
 import static org.pepsoft.worldpainter.panels.DefaultFilter.buildForDimension;
 import static org.pepsoft.worldpainter.util.GeometryUtil.getDistancesToCentre;
 

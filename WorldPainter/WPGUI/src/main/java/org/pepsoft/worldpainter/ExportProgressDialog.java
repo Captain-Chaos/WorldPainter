@@ -100,7 +100,7 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
         if ((platform == JAVA_ANVIL_1_17) && ((world.getMinHeight() != DEFAULT_MIN_HEIGHT) || (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_ANVIL))) {
             sb.append("<br><br>Please note: <b>this map uses a data pack</b> for a deviating build height.<br>This data pack is only compatible with Minecraft 1.17.<br>It is not forward compatible with newer versions of Minecraft.");
         } else if (((platform == JAVA_ANVIL_1_18) || (platform == JAVA_ANVIL_1_19)) && ((world.getMinHeight() != DEFAULT_MIN_HEIGHT_1_18) || (world.getMaxHeight() != DEFAULT_MAX_HEIGHT_1_18))) {
-            sb.append("<br><br>Please note: <b>this map uses a data pack</b> for a deviating build height.<br>This data pack is only compatible with Minecraft 1.18.2 - 1.19.4.<br>It may not be forward compatible with newer versions of Minecraft.");
+            sb.append("<br><br>Please note: <b>this map uses a data pack</b> for a deviating build height.<br>This data pack is only compatible with Minecraft 1.18.2 - 1.20.1.<br>It may not be forward compatible with newer versions of Minecraft.");
         }
         if (result.size() == 1) {
             ChunkFactory.Stats stats = result.get(result.keySet().iterator().next());

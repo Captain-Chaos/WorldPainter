@@ -570,6 +570,9 @@ public final class Constants {
     public static final String MC_PITCHER_PLANT = "minecraft:pitcher_plant";
     public static final String MC_TORCHFLOWER_CROP = "minecraft:torchflower_crop";
     public static final String MC_TORCHFLOWER = "minecraft:torchflower";
+    public static final String MC_SUSPICIOUS_SAND = "minecraft:suspicious_sand";
+    public static final String MC_SUSPICIOUS_GRAVEL = "minecraft:suspicious_gravel";
+    public static final String MC_CHERRY_LEAVES = "minecraft:cherry_leaves";
 
     // MC 1.18 biome names
 

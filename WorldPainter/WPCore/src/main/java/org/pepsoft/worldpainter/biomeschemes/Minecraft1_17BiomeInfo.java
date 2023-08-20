@@ -76,10 +76,13 @@ public final class Minecraft1_17BiomeInfo extends AbstractBiomeInfo implements M
                 return colourScheme.getColour(SNOW);
             case BIOME_HELL:
             case BIOME_SOUL_SAND_VALLEY:
-            case BIOME_CRIMSON_FOREST:
-            case BIOME_WARPED_FOREST:
-            case BIOME_BASALT_DELTAS:
                 return colourScheme.getColour(NETHERRACK);
+            case BIOME_BASALT_DELTAS:
+                return colourScheme.getColour(BASALT);
+            case BIOME_CRIMSON_FOREST:
+                return colourScheme.getColour(CRIMSON_NYLIUM);
+            case BIOME_WARPED_FOREST:
+                return colourScheme.getColour(WARPED_NYLIUM);
             case BIOME_SKY:
             case BIOME_SMALL_END_ISLANDS:
             case BIOME_END_MIDLANDS:
