@@ -108,5 +108,5 @@ public class MinecraftWorldUtils {
         }
     }
 
-    private static final Set<String> IGNORED_PROPERTIES = ImmutableSet.of(MC_WATERLOGGED, MC_FACING, MC_SNOWY, MC_DISTANCE, MC_DOWN);
+    private static final Set<String> IGNORED_PROPERTIES = ImmutableSet.of(MC_WATERLOGGED, MC_FACING, MC_SNOWY, MC_DISTANCE, MC_DOWN, MC_WEST, MC_NORTH, MC_EAST, MC_SOUTH);
 }

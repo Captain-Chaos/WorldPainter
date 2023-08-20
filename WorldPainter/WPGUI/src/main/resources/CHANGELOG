@@ -1,4 +1,4 @@
--- Version 2.21.0, released ...
+-- Version 2.21.0, released 20-8-2023
 
  * Support for Minecraft 1.20 has been added, including:
    + Preview support for the new blocks by upgrading the embedded Dynmap to version 3.6
