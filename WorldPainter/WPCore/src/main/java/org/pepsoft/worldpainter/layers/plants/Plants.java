@@ -243,7 +243,7 @@ public class Plants {
     };
     public static final Plant MANGROVE_PROPAGULE = new SimplePlant("Mangrove Propagule", Material.MANGROVE_PROPAGULE, SAPLINGS, WATER_PLANTS);
     public static final Plant SAPLING_CHERRY = new SimplePlant("Cherry Sapling", Material.CHERRY_SAPLING, SAPLINGS);
-    public static final Plant PINK_PETALS = new PlantWithGrowth("Pink Petals", Material.PINK_PETALS_1, null, 4, PLANTS_AND_FLOWERS) {
+    public static final Plant PINK_PETALS = new PlantWithGrowth("Pink Petals", Material.PINK_PETALS_1, "block/pink_petals.png", 4, PLANTS_AND_FLOWERS) {
         @Override
         public Plant realise(int growth, Platform platform) {
             return new SimplePlant("Pink Petals", PINK_PETALS_1
@@ -251,7 +251,7 @@ public class Plants {
                     .withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), PLANTS_AND_FLOWERS);
         }
     };
-    public static final Plant PITCHER_POD = new AgingPlant("Pitcher Pod", Material.PITCHER_CROP_0_LOWER, null, 5, CROPS) {
+    public static final Plant PITCHER_POD = new AgingPlant("Pitcher Pod", Material.PITCHER_CROP_0_LOWER, "item/pitcher_pod.png", 5, CROPS) {
         @Override
         public Plant realise(int growth, Platform platform) {
             if (growth < 4) {
@@ -261,8 +261,8 @@ public class Plants {
             }
         }
     };
-    public static final Plant PITCHER_PLANT = new DoubleHighPlant("Pitcher Plant", Material.PITCHER_PLANT_LOWER, PLANTS_AND_FLOWERS);
-    public static final Plant TORCHFLOWER_SEED = new AgingPlant("Torchflower Seed", Material.TORCHFLOWER_CROP, null, 2, CROPS);
+    public static final Plant PITCHER_PLANT = new DoubleHighPlant("Pitcher Plant", Material.PITCHER_PLANT_LOWER, "block/pitcher_crop_top_stage_4.png", PLANTS_AND_FLOWERS);
+    public static final Plant TORCHFLOWER_SEED = new AgingPlant("Torchflower Seed", Material.TORCHFLOWER_CROP, "item/torchflower_seeds.png", 2, CROPS);
     public static final Plant TORCHFLOWER = new SimplePlant("Torchflower", Material.TORCHFLOWER, PLANTS_AND_FLOWERS);
 
     // The code which uses this assumes there will never be more than 128 plants. If that ever happens it needs to be
