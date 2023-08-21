@@ -18,6 +18,7 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
@@ -75,8 +76,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
             if (descriptor.baseId == selectedBaseBiome) {
                 // The corresponding base biome is already selected; just update the options if necessary
                 selectCurrentBaseBiomeButton();
-                for (Component component: optionsPanel.getComponents()) {
-                    final JCheckBox checkBox = (JCheckBox) component;
+                forEveryOption(checkBox -> {
                     if (descriptor.options.contains(checkBox.getClientProperty(KEY_BIOME_OPTION))) {
                         // Checkbox should be checked
                         if (! checkBox.isSelected()) {
@@ -88,7 +88,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
                             checkBox.setSelected(false);
                         }
                     }
-                }
+                });
                 updateOptions();
                 updateLabels();
             } else {
@@ -96,12 +96,11 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
                 selectedBaseBiome = descriptor.baseId;
                 selectCurrentBaseBiomeButton();
                 resetOptions();
-                for (Component component: optionsPanel.getComponents()) {
-                    final JCheckBox checkBox = (JCheckBox) component;
+                forEveryOption(checkBox -> {
                     if (descriptor.options.contains(checkBox.getClientProperty(KEY_BIOME_OPTION))) {
                         checkBox.setSelected(true);
                     }
-                }
+                });
                 updateOptions();
                 updateLabels();
             }
@@ -279,23 +278,22 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
     }
 
     private void updateOptions() {
-        Set<BiomeOption> selectedOptions = getSelectedOptions();
+        final Set<BiomeOption> selectedOptions = getSelectedOptions();
         selectedBiome = findBiome(selectedBaseBiome, selectedOptions);
         if (selectedBiome == -1) {
             // This means the new combination of selected options is no longer valid. This can happen when an option
             // becomes available only after selecting another option and then the other option is deselected. Just
             // deselect everything when this happens
-            for (Component component: optionsPanel.getComponents()) {
-                if (((JCheckBox) component).isSelected()) {
-                    ((JCheckBox) component).setSelected(false);
+            forEveryOption(checkBox -> {
+                if (checkBox.isSelected()) {
+                    checkBox.setSelected(false);
                 }
-            }
-            selectedOptions = noneOf(BiomeOption.class);
+            });
+            selectedOptions.clear();
             selectedBiome = selectedBaseBiome;
         }
         notifyListener();
-        for (Component component: optionsPanel.getComponents()) {
-            JCheckBox checkBox = (JCheckBox) component;
+        forEveryOption(checkBox -> {
             BiomeOption biomeOption = (BiomeOption) checkBox.getClientProperty(KEY_BIOME_OPTION);
             if (selectedOptions.contains(biomeOption)) {
                 checkBox.setEnabled(true);
@@ -304,18 +302,17 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
                 optionsCopy.add(biomeOption);
                 checkBox.setEnabled(findBiome(selectedBaseBiome, optionsCopy) != -1);
             }
-        }
+        });
         updateLabels();
     }
 
     private Set<BiomeOption> getSelectedOptions() {
-        Set<BiomeOption> selectedOptions = noneOf(BiomeOption.class);
-        for (Component component: optionsPanel.getComponents()) {
-            JCheckBox checkBox = (JCheckBox) component;
+        final Set<BiomeOption> selectedOptions = noneOf(BiomeOption.class);
+        forEveryOption(checkBox -> {
             if (checkBox.isSelected()) {
                 selectedOptions.add((BiomeOption) checkBox.getClientProperty(KEY_BIOME_OPTION));
             }
-        }
+        });
         return selectedOptions;
     }
 
@@ -482,6 +479,12 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
 
     private void notifyListener() {
         listener.biomeSelected(selectedBiome);
+    }
+
+    private void forEveryOption(Consumer<JCheckBox> consumer) {
+        stream(optionsPanel.getComponents())
+                .filter(c -> c instanceof JCheckBox)
+                .forEach(c -> consumer.accept((JCheckBox) c));
     }
 
     private final JPanel grid = new JPanel(new GridLayout(0, 5)), optionsPanel = new JPanel();

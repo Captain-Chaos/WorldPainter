@@ -1,6 +1,7 @@
 -- Version 2.21.1, released 21-8-2023
 
  * Bug fix: make heightmap preview and tile selection work again
+ * Bug fix: make selecting variations of biomes work again
 
 -- Version 2.21.0, released 20-8-2023
 
