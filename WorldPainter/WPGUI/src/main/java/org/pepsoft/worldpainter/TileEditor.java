@@ -54,8 +54,8 @@ public class TileEditor extends WorldPainterModalFrame implements TileSelector.L
         tileSelector1.setContourLines(contourLines);
         tileSelector1.setContourSeparation(contourSeparation);
         tileSelector1.setLightOrigin(lightOrigin);
-        tileSelector1.setDimension(dimension);
         tileSelector1.setCustomBiomeManager(customBiomeManager);
+        tileSelector1.setDimension(dimension);
         tileSelector1.addListener(this);
 
         getRootPane().setDefaultButton(buttonClose);

@@ -28,16 +28,19 @@ public class BiomeRenderer implements ByteLayerRenderer {
                 patterns[i] = createPattern(i, colourScheme);
             }
         }
-        final List<CustomBiome> customBiomes = customBiomeManager.getCustomBiomes();
-        for (CustomBiome customBiome: customBiomes) {
-            final int id = customBiome.getId();
-            if (patterns[id] == null) {
-                final BufferedImage pattern = customBiome.getPattern();
-                if (pattern != null) {
-                    patterns[id] = pattern;
-                } else {
-                    patterns[id] = createPattern(customBiome.getColour());
+        if (customBiomeManager != null) {
+            final List<CustomBiome> customBiomes = customBiomeManager.getCustomBiomes();
+            for (CustomBiome customBiome: customBiomes) {
+                final int id = customBiome.getId();
+                if (patterns[id] == null) {
+                    final BufferedImage pattern = customBiome.getPattern();
+                    if (pattern != null) {
+                        patterns[id] = pattern;
+                    } else {
+                        patterns[id] = createPattern(customBiome.getColour());
+                    }
                 }
+
             }
         }
     }

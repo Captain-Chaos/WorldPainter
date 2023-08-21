@@ -87,8 +87,8 @@ public class ExportTileSelectionDialog extends WorldPainterDialog implements Win
         tileSelector1.setContourLines(contourLines);
         tileSelector1.setContourSeparation(contourSeparation);
         tileSelector1.setLightOrigin(lightOrigin);
-        tileSelector1.setDimension(world.getDimension(new Anchor(selectedDimension, DETAIL, false, 0)));
         tileSelector1.setCustomBiomeManager(customBiomeManager);
+        tileSelector1.setDimension(world.getDimension(new Anchor(selectedDimension, DETAIL, false, 0)));
         if (selectedTiles != null) {
             tileSelector1.setSelectedTiles(selectedTiles);
         }
