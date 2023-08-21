@@ -24,7 +24,7 @@ public final class Minecraft1_17BiomeInfo extends AbstractBiomeInfo implements M
             case BIOME_RIVER:
             case BIOME_DEEP_OCEAN:
             case BIOME_DEEP_WARM_OCEAN:
-                return colourScheme.getColour(WATER);
+                return 0xff3f76e4;
             case BIOME_LUKEWARM_OCEAN:
             case BIOME_DEEP_LUKEWARM_OCEAN:
                 return 0xff45adf2;
