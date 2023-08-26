@@ -4,13 +4,11 @@
  */
 package org.pepsoft.worldpainter.layers;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.pepsoft.worldpainter.DefaultPlugin;
 import org.pepsoft.worldpainter.plugins.LayerProvider;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
+
+import java.util.*;
 
 /**
  *
@@ -20,8 +18,16 @@ public final class LayerManager {
     private LayerManager() {
         layers = new ArrayList<>();
         List<LayerProvider> layerProviders = WPPluginManager.getInstance().getPlugins(LayerProvider.class);
+        // Put our own layers first
         for (LayerProvider layerProvider: layerProviders) {
-            layers.addAll(layerProvider.getLayers());
+            if (layerProvider instanceof DefaultPlugin) {
+                layers.addAll(layerProvider.getLayers());
+            }
+        }
+        for (LayerProvider layerProvider: layerProviders) {
+            if (! (layerProvider instanceof DefaultPlugin)) {
+                layers.addAll(layerProvider.getLayers());
+            }
         }
         for (Layer layer: layers) {
             layersByName.put(layer.getName(), layer);

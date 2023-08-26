@@ -12,8 +12,7 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyVetoException;
 
 /**
- * A WorldPainter operation or tool which affects the world in some way,
- * directed by the user.
+ * A WorldPainter operation or tool which affects the world in some way, directed by the user.
  *
  * @author pepijn
  */

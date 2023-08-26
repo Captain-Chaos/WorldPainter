@@ -114,7 +114,7 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("Access denied while instantiating exporter for layer " + name, e);
             } catch (NoSuchMethodException e) {
-                throw new MDCCapturingRuntimeException("Exporter class for layer " + name + " is missing a (Dimension, Platform) constructor", e);
+                throw new MDCCapturingRuntimeException("Exporter class for layer " + name + " is missing a (Dimension, Platform, ExporterSettings) constructor", e);
             } catch (InvocationTargetException e) {
                 if (e.getTargetException() instanceof Error) {
                     throw (Error) e.getTargetException();

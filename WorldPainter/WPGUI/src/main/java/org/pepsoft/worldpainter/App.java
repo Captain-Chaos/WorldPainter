@@ -3077,7 +3077,7 @@ public final class App extends JFrame implements RadiusControl,
         toolPanel.add(createButtonForOperation(new RaiseRotatedPyramid(view)));
         toolPanel.add(createButtonForOperation(new RaisePyramid(view)));
 
-        final JToggleButton copySelectionButton = createButtonForOperation(new CopySelectionOperation(view));
+        final AbstractButton copySelectionButton = createButtonForOperation(new CopySelectionOperation(view));
         copySelectionButton.setEnabled(selectionState.getValue());
         toolPanel.add(createButtonForOperation(new EditSelectionOperation(view, this, mapDragControl, selectionState)));
         toolPanel.add(copySelectionButton);
@@ -3114,6 +3114,9 @@ public final class App extends JFrame implements RadiusControl,
         clearSelectionButton.putClientProperty(KEY_HELP_KEY, "Operation/ClearSelection");
         toolPanel.add(clearSelectionButton);
 
+        while ((toolPanel.getComponentCount() % 4) != 0) {
+            toolPanel.add(Box.createGlue());
+        }
         for (Operation operation: operations) {
             operation.setView(view);
             toolPanel.add(createButtonForOperation(operation));
@@ -4791,15 +4794,15 @@ public final class App extends JFrame implements RadiusControl,
         updateZoomLabel();
     }
 
-    private JToggleButton createButtonForOperation(final Operation operation) {
+    private AbstractButton createButtonForOperation(final Operation operation) {
         return createButtonForOperation(operation, (char) 0);
     }
 
-    private JToggleButton createButtonForOperation(final Operation operation, char mnemonic) {
+    private AbstractButton createButtonForOperation(final Operation operation, char mnemonic) {
         BufferedImage icon = operation.getIcon();
-        JToggleButton button = new JToggleButton();
+        AbstractButton button = (operation instanceof GlobalOperation) ? new JButton() : new JToggleButton();
         if (operation instanceof SetSpawnPoint) {
-            setSpawnPointToggleButton = button;
+            setSpawnPointToggleButton = (JToggleButton) button;
         }
         button.setMargin(App.BUTTON_INSETS);
         if (icon != null) {
@@ -4816,116 +4819,139 @@ public final class App extends JFrame implements RadiusControl,
             tooltip.append(" (Alt+").append(mnemonic).append(')');
         }
         button.setToolTipText(tooltip.toString());
-        button.addItemListener(event -> {
-            boolean refreshOptionsPanel = false;
-            if (event.getStateChange() == ItemEvent.DESELECTED) {
-                if (operation instanceof RadiusOperation) {
-                    view.setDrawBrush(false);
-                }
-                try {
-                    operation.setActive(false);
-                } catch (PropertyVetoException e) {
-                    logger.error("Property veto exception while deactivating operation " + operation, e);
-                }
-                activeOperation = null;
-                if (toolSettingsPanel.getComponentCount() > 0) {
-                    toolSettingsPanel.removeAll();
-                    refreshOptionsPanel = true;
-                }
-            } else {
+        if (operation instanceof GlobalOperation) {
+            button.addActionListener(event ->  {
                 mapSelectionController.cancelPaintSelection(true, false);
+                if (operation instanceof BrushOperation) {
+                    ((BrushOperation) operation).setBrush(brushRotation == 0 ? brush : RotatedBrush.rotate(brush, brushRotation));
+                }
                 if (operation instanceof PaintOperation) {
-                    programmaticChange = true;
-                    try {
-                        if (operation instanceof MouseOrTabletOperation) {
-                            ((MouseOrTabletOperation) operation).setLevel(level);
-                            if (operation instanceof RadiusOperation) {
-                                ((RadiusOperation) operation).setFilter(filter);
-                            }
-                            if (operation instanceof BrushOperation) {
-                                ((BrushOperation) operation).setBrush(brushRotation == 0 ? brush : RotatedBrush.rotate(brush, brushRotation));
-                                selectBrushButton(brush);
-                                view.setBrushShape(brush.getBrushShape());
-                                view.setBrushRotation(brushRotation);
-                            }
-                        }
-                        levelSlider.setValue((int) (level * 100));
-                        brushRotationSlider.setValue(brushRotation);
-                    } finally {
-                        programmaticChange = false;
-                    }
-                    if (filter instanceof DefaultFilter) {
-                        brushOptions.setFilter((DefaultFilter) filter);
-                    } else {
-                        brushOptions.setFilter(null);
-                    }
                     ((PaintOperation) operation).setPaint(paint);
-                } else {
-                    programmaticChange = true;
-                    try {
-                        if (operation instanceof MouseOrTabletOperation) {
-                            ((MouseOrTabletOperation) operation).setLevel(toolLevel);
-                            if (operation instanceof RadiusOperation) {
-                                ((RadiusOperation) operation).setFilter(toolFilter);
-                            }
-                            if (operation instanceof BrushOperation) {
-                                ((BrushOperation) operation).setBrush(toolBrushRotation == 0 ? toolBrush : RotatedBrush.rotate(toolBrush, toolBrushRotation));
-                                selectBrushButton(toolBrush);
-                                view.setBrushShape(toolBrush.getBrushShape());
-                                view.setBrushRotation(toolBrushRotation);
-                            }
-                        }
-                        levelSlider.setValue((int) (toolLevel * 100));
-                        brushRotationSlider.setValue(toolBrushRotation);
-                    } finally {
-                        programmaticChange = false;
-                    }
-                    if (toolFilter instanceof DefaultFilter) {
-                        brushOptions.setFilter((DefaultFilter) toolFilter);
-                    } else {
-                        brushOptions.setFilter(null);
-                    }
-                }
-                if (operation instanceof RadiusOperation) {
-                    view.setDrawBrush(true);
-                    view.setRadius(radius);
-                    ((RadiusOperation) operation).setRadius(radius);
-                }
-                activeOperation = operation;
-                updateLayerVisibility();
-                updateBrushRotation();
-                try {
-                    operation.setActive(true);
-                } catch (PropertyVetoException e) {
-                    deselectTool();
-                    DesktopUtils.beep();
-                    return;
                 }
                 if (closeCallout("callout_1")) {
-                    // If the user picked an operation which doesn't need a
-                    // brush, close the "select brush" callout too
-                    if (! (operation instanceof RadiusOperation)) {
+                    // If the user picked an operation which doesn't need a brush, close the "select brush" callout too
+                    if (! (operation instanceof BrushOperation)) {
                         closeCallout("callout_2");
                     }
-                    // If the user picked an operation which doesn't use paint,
-                    // close the "select paint" callout too
+                    // If the user picked an operation which doesn't use paint, close the "select paint" callout too
                     if (! (operation instanceof PaintOperation)) {
                         closeCallout("callout_3");
                     }
                 }
-                JPanel optionsPanel = operation.getOptionsPanel();
-                if (optionsPanel != null) {
-                    toolSettingsPanel.add(optionsPanel, BorderLayout.CENTER);
-                    refreshOptionsPanel = true;
+                ((GlobalOperation) operation).invoke();
+            });
+        } else {
+            button.addItemListener(event -> {
+                boolean refreshOptionsPanel = false;
+                if (event.getStateChange() == ItemEvent.DESELECTED) {
+                    if (operation instanceof RadiusOperation) {
+                        view.setDrawBrush(false);
+                    }
+                    try {
+                        operation.setActive(false);
+                    } catch (PropertyVetoException e) {
+                        logger.error("Property veto exception while deactivating operation " + operation, e);
+                    }
+                    activeOperation = null;
+                    if (toolSettingsPanel.getComponentCount() > 0) {
+                        toolSettingsPanel.removeAll();
+                        refreshOptionsPanel = true;
+                    }
+                } else {
+                    mapSelectionController.cancelPaintSelection(true, false);
+                    if (operation instanceof PaintOperation) {
+                        programmaticChange = true;
+                        try {
+                            if (operation instanceof MouseOrTabletOperation) {
+                                ((MouseOrTabletOperation) operation).setLevel(level);
+                                if (operation instanceof RadiusOperation) {
+                                    ((RadiusOperation) operation).setFilter(filter);
+                                }
+                                if (operation instanceof BrushOperation) {
+                                    ((BrushOperation) operation).setBrush(brushRotation == 0 ? brush : RotatedBrush.rotate(brush, brushRotation));
+                                    selectBrushButton(brush);
+                                    view.setBrushShape(brush.getBrushShape());
+                                    view.setBrushRotation(brushRotation);
+                                }
+                            }
+                            levelSlider.setValue((int) (level * 100));
+                            brushRotationSlider.setValue(brushRotation);
+                        } finally {
+                            programmaticChange = false;
+                        }
+                        if (filter instanceof DefaultFilter) {
+                            brushOptions.setFilter((DefaultFilter) filter);
+                        } else {
+                            brushOptions.setFilter(null);
+                        }
+                        ((PaintOperation) operation).setPaint(paint);
+                    } else {
+                        programmaticChange = true;
+                        try {
+                            if (operation instanceof MouseOrTabletOperation) {
+                                ((MouseOrTabletOperation) operation).setLevel(toolLevel);
+                                if (operation instanceof RadiusOperation) {
+                                    ((RadiusOperation) operation).setFilter(toolFilter);
+                                }
+                                if (operation instanceof BrushOperation) {
+                                    ((BrushOperation) operation).setBrush(toolBrushRotation == 0 ? toolBrush : RotatedBrush.rotate(toolBrush, toolBrushRotation));
+                                    selectBrushButton(toolBrush);
+                                    view.setBrushShape(toolBrush.getBrushShape());
+                                    view.setBrushRotation(toolBrushRotation);
+                                }
+                            }
+                            levelSlider.setValue((int) (toolLevel * 100));
+                            brushRotationSlider.setValue(toolBrushRotation);
+                        } finally {
+                            programmaticChange = false;
+                        }
+                        if (toolFilter instanceof DefaultFilter) {
+                            brushOptions.setFilter((DefaultFilter) toolFilter);
+                        } else {
+                            brushOptions.setFilter(null);
+                        }
+                    }
+                    if (operation instanceof RadiusOperation) {
+                        view.setDrawBrush(true);
+                        view.setRadius(radius);
+                        ((RadiusOperation) operation).setRadius(radius);
+                    }
+                    activeOperation = operation;
+                    updateLayerVisibility();
+                    updateBrushRotation();
+                    try {
+                        operation.setActive(true);
+                    } catch (PropertyVetoException e) {
+                        deselectTool();
+                        DesktopUtils.beep();
+                        return;
+                    }
+                    if (closeCallout("callout_1")) {
+                        // If the user picked an operation which doesn't need a
+                        // brush, close the "select brush" callout too
+                        if (!(operation instanceof RadiusOperation)) {
+                            closeCallout("callout_2");
+                        }
+                        // If the user picked an operation which doesn't use paint,
+                        // close the "select paint" callout too
+                        if (!(operation instanceof PaintOperation)) {
+                            closeCallout("callout_3");
+                        }
+                    }
+                    JPanel optionsPanel = operation.getOptionsPanel();
+                    if (optionsPanel != null) {
+                        toolSettingsPanel.add(optionsPanel, BorderLayout.CENTER);
+                        refreshOptionsPanel = true;
+                    }
                 }
-            }
-            if (refreshOptionsPanel) {
-                toolSettingsPanel.revalidate();
-                toolSettingsPanel.repaint();
-            }
-        });
+                if (refreshOptionsPanel) {
+                    toolSettingsPanel.revalidate();
+                    toolSettingsPanel.repaint();
+                }
+            });
+            toolButtonGroup.add(button);
+        }
         button.putClientProperty(KEY_HELP_KEY, "Operation/" + operation.getClass().getSimpleName());
-        toolButtonGroup.add(button);
         return button;
     }
 
