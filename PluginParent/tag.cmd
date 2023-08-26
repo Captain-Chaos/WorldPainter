@@ -1,0 +1,1 @@
+git tag -a v%1 -f -m "Release %1" --sign
