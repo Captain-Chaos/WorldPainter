@@ -6,7 +6,7 @@
 
     <groupId>org.pepsoft.worldpainter</groupId>
     <artifactId>PluginParent</artifactId>
-    <version>1.8.0</version>
+    <version>1.9.0</version>
     <packaging>pom</packaging>
 
     <name>PluginParent</name>
@@ -51,16 +51,12 @@
         <dependency>
             <groupId>org.pepsoft.worldpainter</groupId>
             <artifactId>WPGUI</artifactId>
-            <version>2.15.17</version>
+            <version>2.20.0</version>
             <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>org.pepsoft.worldpainter</groupId>
                     <artifactId>WPDynmapPreviewer</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.sourceforge</groupId>
-                    <artifactId>jpen</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>com.jidesoft</groupId>
