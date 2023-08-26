@@ -1,1 +1,1 @@
-git tag -a v%1 -f -m "Release %1" --sign
+git tag -a pluginparent-v%1 -f -m "Release %1 of PluginParent" --sign
