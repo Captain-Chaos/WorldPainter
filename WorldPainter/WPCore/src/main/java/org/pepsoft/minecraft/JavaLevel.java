@@ -452,7 +452,7 @@ public abstract class JavaLevel extends AbstractNBTItem {
                 CompoundTag dataPacksTag = (CompoundTag) data.getTag("DataPacks");
                 ListTag<StringTag> enabledTag = (ListTag<StringTag>) dataPacksTag.getTag("Enabled");
                 if (enabledTag != null) {
-                    boolean buildLimitsEncounterd = false;
+                    boolean buildLimitsEncountered = false;
                     for (StringTag datapackTag: enabledTag.getValue()) {
                         String name = datapackTag.getValue();
                         if (name.startsWith("file/")) {
@@ -463,15 +463,15 @@ public abstract class JavaLevel extends AbstractNBTItem {
                                         int minY = ((org.pepsoft.minecraft.datapack.Dimension) entry.getValue()).getMinY();
                                         int height = ((org.pepsoft.minecraft.datapack.Dimension) entry.getValue()).getHeight();
                                         if (height != 0) {
-                                            if (buildLimitsEncounterd && (minY != minHeight)) {
+                                            if (buildLimitsEncountered && (minY != minHeight)) {
                                                 throw new IllegalArgumentException(String.format("Multiple different minHeights (%d and %d) encountered in data packs", minHeight, minY));
-                                            } else if (buildLimitsEncounterd && ((minY + height) != maxHeight)) {
+                                            } else if (buildLimitsEncountered && ((minY + height) != maxHeight)) {
                                                 throw new IllegalArgumentException(String.format("Multiple different maxHeights (%d and %d) encountered in data packs", maxHeight, minY + height));
                                             } else {
                                                 logger.debug("Map build limits {} to {} detected from data pack {} while loading {}", minY, minY + height, entry.getKey(), levelDatFile);
                                                 minHeight = minY;
                                                 maxHeight = minY + height;
-                                                buildLimitsEncounterd = true;
+                                                buildLimitsEncountered = true;
                                             }
                                         }
                                     }
