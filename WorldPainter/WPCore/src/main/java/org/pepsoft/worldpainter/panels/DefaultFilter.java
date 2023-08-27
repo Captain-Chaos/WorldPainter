@@ -15,7 +15,7 @@ import org.pepsoft.worldpainter.selection.SelectionChunk;
  * @author pepijn
  */
 public final class DefaultFilter implements Filter {
-    public DefaultFilter(Dimension dimension, boolean inSelection, boolean outsideSelection, int aboveLevel, int belowLevel, boolean feather, Object onlyOn, Object exceptOn, int aboveDegrees, boolean slopeIsAbove) {
+    public DefaultFilter(Dimension dimension, boolean inSelection, boolean outsideSelection, int aboveLevel, int belowLevel, boolean feather, boolean onlyOn, Object onlyOnItem, boolean exceptOn, Object exceptOnItem, int aboveDegrees, boolean slopeIsAbove) {
         this.dimension = dimension;
         this.inSelection = inSelection;
         this.outsideSelection = outsideSelection;
@@ -47,20 +47,10 @@ public final class DefaultFilter implements Filter {
             levelType = null;
         }
         this.feather = feather;
-        if (onlyOn != null) {
-            this.onlyOn = true;
-            onlyOnFilter = new OnlyOnTerrainOrLayerFilter(dimension, onlyOn);
-        } else {
-            this.onlyOn = false;
-            onlyOnFilter = null;
-        }
-        if (exceptOn != null) {
-            this.exceptOn = true;
-            exceptOnFilter = new ExceptOnTerrainOrLayerFilter(dimension, exceptOn);
-        } else {
-            this.exceptOn = false;
-            exceptOnFilter = null;
-        }
+        this.onlyOn = onlyOn;
+        onlyOnFilter = (onlyOnItem != null) ? OnlyOnTerrainOrLayerFilter.create(dimension, onlyOnItem) : null;
+        this.exceptOn = exceptOn;
+        exceptOnFilter = (exceptOnItem != null) ? ExceptOnTerrainOrLayerFilter.create(dimension, exceptOnItem) : null;
         this.degrees = aboveDegrees;
         checkSlope = aboveDegrees >= 0;
         if (checkSlope) {
@@ -92,12 +82,18 @@ public final class DefaultFilter implements Filter {
         return inSelection;
     }
 
+    /**
+     * This gets the "only on" layer, but only if there is one layer selected.
+     */
     public Layer getOnlyOnLayer() {
-        return (onlyOnFilter != null) ? onlyOnFilter.getLayer() : null;
+        return (onlyOnFilter instanceof OnlyOnTerrainOrLayerFilter) ? ((OnlyOnTerrainOrLayerFilter) onlyOnFilter).getLayer() : null;
     }
 
+    /**
+     * This gets the "except on" layer, but only if there is one layer selected.
+     */
     public Layer getExceptOnLayer() {
-        return (exceptOnFilter != null) ? exceptOnFilter.getLayer() : null;
+        return (exceptOnFilter instanceof ExceptOnTerrainOrLayerFilter) ? ((ExceptOnTerrainOrLayerFilter) exceptOnFilter).getLayer() : null;
     }
 
     public static Builder buildForDimension(Dimension dimension) {
@@ -218,8 +214,8 @@ public final class DefaultFilter implements Filter {
     final LevelType levelType;
     final int aboveLevel, belowLevel, degrees;
     final float slope;
-    final OnlyOnTerrainOrLayerFilter onlyOnFilter;
-    final ExceptOnTerrainOrLayerFilter exceptOnFilter;
+    final Filter onlyOnFilter;
+    final Filter exceptOnFilter;
     Dimension dimension;
 
     public enum LevelType {
@@ -331,7 +327,7 @@ public final class DefaultFilter implements Filter {
         }
 
         public DefaultFilter build() {
-            return new DefaultFilter(dimension, inSelection, outsideSelection, aboveLevel, belowLevel, feather, onlyOn, exceptOn, aboveDegrees, slopeIsAbove);
+            return new DefaultFilter(dimension, inSelection, outsideSelection, aboveLevel, belowLevel, feather, onlyOn != null, onlyOn, exceptOn != null, exceptOn, aboveDegrees, slopeIsAbove);
         }
 
         private final Dimension dimension;

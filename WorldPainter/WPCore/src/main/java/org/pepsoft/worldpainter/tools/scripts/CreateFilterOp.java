@@ -289,7 +289,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
     public Filter go() throws ScriptException {
         goCalled();
 
-        return new DefaultFilter(null, inSelection, outsideSelection, aboveLevel, belowLevel, feather, onlyOn, exceptOn, degrees, slopeIsAbove);
+        return new DefaultFilter(null, inSelection, outsideSelection, aboveLevel, belowLevel, feather, onlyOn != null, onlyOn, exceptOn != null, exceptOn, degrees, slopeIsAbove);
     }
     
     private int aboveLevel = Integer.MIN_VALUE, belowLevel = Integer.MIN_VALUE, degrees = -1;

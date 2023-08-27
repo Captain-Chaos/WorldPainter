@@ -7,8 +7,6 @@ import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.operations.Filter;
 
-import java.util.Collection;
-
 import static java.util.Objects.requireNonNull;
 import static org.pepsoft.worldpainter.layers.Layer.DataSize.*;
 import static org.pepsoft.worldpainter.panels.DefaultFilter.LayerValue;
@@ -105,8 +103,6 @@ public abstract class TerrainOrLayerFilter implements Filter {
             terrain = null;
             layer = null;
             value = 255;
-        } else if (item instanceof Collection) {
-
         } else {
             throw new IllegalArgumentException("Don't know how to filter on " + item + " (type: " + item.getClass() + ")");
         }

@@ -107,16 +107,24 @@ public class FillDialog extends WPDialogWithPaintSelection implements Listener, 
     // BrushOptions.MapSelectionListener
 
     @Override
-    public void mapSelectionRequested(String descriptor) {
+    public void mapSelectionRequested(String descriptor, boolean addAnother) {
         selectFromMap(null, new SelectionListener() {
             @Override
             public void terrainSelected(Terrain terrain) {
                 switch (descriptor) {
                     case MENU_ONLY_ON:
-                        brushOptions1.setOnlyOn(terrain);
+                        if (addAnother) {
+                            brushOptions1.addOnlyOn(terrain);
+                        } else {
+                            brushOptions1.setOnlyOn(terrain);
+                        }
                         break;
                     case MENU_EXCEPT_ON:
-                        brushOptions1.setExceptOn(terrain);
+                        if (addAnother) {
+                            brushOptions1.addExceptOn(terrain);
+                        } else {
+                            brushOptions1.setExceptOn(terrain);
+                        }
                         break;
                 }
             }
@@ -125,10 +133,18 @@ public class FillDialog extends WPDialogWithPaintSelection implements Listener, 
             public void layerSelected(Layer layer, int value) {
                 switch (descriptor) {
                     case MENU_ONLY_ON:
-                        brushOptions1.setOnlyOn(layer, value);
+                        if (addAnother) {
+                            brushOptions1.addOnlyOn(layer, value);
+                        } else {
+                            brushOptions1.setOnlyOn(layer, value);
+                        }
                         break;
                     case MENU_EXCEPT_ON:
-                        brushOptions1.setExceptOn(layer, value);
+                        if (addAnother) {
+                            brushOptions1.addExceptOn(layer, value);
+                        } else {
+                            brushOptions1.setExceptOn(layer, value);
+                        }
                         break;
                 }
             }

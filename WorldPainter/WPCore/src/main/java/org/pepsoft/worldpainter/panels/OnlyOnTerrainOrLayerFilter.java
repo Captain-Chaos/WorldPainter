@@ -4,9 +4,14 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
+import org.pepsoft.worldpainter.operations.Filter;
+
+import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 public class OnlyOnTerrainOrLayerFilter extends TerrainOrLayerFilter {
-    public OnlyOnTerrainOrLayerFilter(Dimension dimension, Object item) {
+    private OnlyOnTerrainOrLayerFilter(Dimension dimension, Object item) {
         super(dimension, item);
     }
 
@@ -80,5 +85,16 @@ public class OnlyOnTerrainOrLayerFilter extends TerrainOrLayerFilter {
                 break;
         }
         return strength;
+    }
+
+    @SuppressWarnings("unchecked") // Guaranteed by code
+    public static Filter create(Dimension dimension, Object item) {
+        if (item instanceof List) {
+            return new CombinedFilter(((List<Object>) item).stream()
+                    .map(object -> OnlyOnTerrainOrLayerFilter.create(dimension, object))
+                    .collect(toList()));
+        } else {
+            return new OnlyOnTerrainOrLayerFilter(dimension, item);
+        }
     }
 }
