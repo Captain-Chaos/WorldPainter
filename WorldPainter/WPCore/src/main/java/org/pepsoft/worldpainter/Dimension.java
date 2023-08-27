@@ -2660,7 +2660,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 if ((tileX >= tileX1) && (tileX <= tileX2) && (tileY >= tileY1) && (tileY <= tileY2)
                         && ((! checkSelection) || tile.containsOneOf(SelectionBlock.INSTANCE, SelectionChunk.INSTANCE))
                         && ((! checkLayerPresent) || tile.containsOneOf(layerPresent))
-                        && ((! checkLayerNotPresent) || (! tile.containsOneOf(layerNotPresent)))) {
+                        && ((! checkLayerNotPresent) || (! tile.containsOneOf(layerNotPresent)))) { // TODO wait, this is wrong, no?
                     if (readOnly) {
                         visitor.visit(tile);
                     } else {
