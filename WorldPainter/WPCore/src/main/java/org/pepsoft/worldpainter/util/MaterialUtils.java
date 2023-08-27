@@ -6,8 +6,11 @@ import org.pepsoft.worldpainter.layers.Bo2Layer;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.Resources;
 import org.pepsoft.worldpainter.layers.exporters.ResourcesExporter.ResourcesExporterSettings;
+import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 import org.pepsoft.worldpainter.layers.plants.Plant;
 import org.pepsoft.worldpainter.layers.plants.PlantLayer;
+import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsLayer;
+import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.objects.WPObject;
 
 import java.util.*;
@@ -103,10 +106,26 @@ public class MaterialUtils {
                         }
                     }
                     nameOnlyMaterialsForLayer.forEach(name -> nameOnlyMaterials.computeIfAbsent(name, m -> new HashSet<>()).add("Resources layer"));
+                } else if (layer instanceof UndergroundPocketsLayer) {
+                    checkMixedMaterial(((UndergroundPocketsLayer) layer).getMaterial(), nameOnlyMaterials, "Custom Underground Pockets layer " + layer.getName());
+                } else if (layer instanceof GroundCoverLayer) {
+                    checkMixedMaterial(((GroundCoverLayer) layer).getMaterial(), nameOnlyMaterials, "Custom Ground Cover layer " + layer.getName());
+                } else if (layer instanceof TunnelLayer) {
+                    checkMixedMaterial(((TunnelLayer) layer).getFloorMaterial(), nameOnlyMaterials, "Custom Cave/Tunnel layer " + layer.getName());
+                    checkMixedMaterial(((TunnelLayer) layer).getRoofMaterial(), nameOnlyMaterials, "Custom Cave/Tunnel layer " + layer.getName());
+                    checkMixedMaterial(((TunnelLayer) layer).getWallMaterial(), nameOnlyMaterials, "Custom Cave/Tunnel layer " + layer.getName());
                 }
             }
         }
         return nameOnlyMaterials;
+    }
+
+    private static void checkMixedMaterial(MixedMaterial mixedMaterial, Map<String, Set<String>> nameOnlyMaterials, String name) {
+        for (MixedMaterial.Row row: mixedMaterial.getRows()) {
+            if (row.material.blockType == -1) {
+                nameOnlyMaterials.computeIfAbsent(row.material.name, m -> new HashSet<>()).add(name);
+            }
+        }
     }
 
     public static Set<Material> gatherAllMaterials(World2 world, Platform platform) {
@@ -129,6 +148,7 @@ public class MaterialUtils {
                         allMaterials.addAll(plant.realise(plant.getMaxGrowth(), platform).getAllMaterials());
                     }
                 }
+                // TODO other layer types
             }
             // Check all terrain types
             dimension.visitTiles().andDo(tile -> tile.getAllTerrains().forEach(terrain -> allMaterials.addAll(terrain.getAllMaterials())));

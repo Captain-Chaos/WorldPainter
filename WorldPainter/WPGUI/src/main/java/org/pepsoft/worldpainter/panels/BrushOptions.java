@@ -121,13 +121,13 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
             if (filter.degrees >= 0) {
                 spinnerSlope.setValue(filter.degrees);
             }
-            checkBoxReplace.setSelected(filter.onlyOnObjectType != null);
-            checkBoxExceptOn.setSelected(filter.exceptOnObjectType != null);
+            checkBoxReplace.setSelected(filter.onlyOn);
+            checkBoxExceptOn.setSelected(filter.exceptOn);
             final App app = App.getInstance();
-            if (filter.onlyOnObjectType != null) {
-                switch (filter.onlyOnObjectType) {
+            if (filter.onlyOn) {
+                switch (filter.onlyOnFilter.objectType) {
                     case BIOME:
-                        final int biome = filter.onlyOnValue;
+                        final int biome = filter.onlyOnFilter.value;
                         final BiomeHelper biomeHelper = new BiomeHelper(app.getColourScheme(), app.getCustomBiomeManager(), platform);
                         onlyOn = biome;
                         buttonReplace.setText(biomeHelper.getBiomeName(biome));
@@ -135,30 +135,30 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
                         break;
                     case BIT_LAYER:
                     case INT_LAYER_ANY:
-                        final Layer layer = filter.onlyOnLayer;
+                        final Layer layer = filter.onlyOnFilter.layer;
                         onlyOn = layer;
                         buttonReplace.setText(layer.getName());
                         buttonReplace.setIcon(new ImageIcon(layer.getIcon()));
                         break;
                     case TERRAIN:
-                        final Terrain terrain = filter.onlyOnTerrain;
+                        final Terrain terrain = filter.onlyOnFilter.terrain;
                         final ColourScheme colourScheme = app.getColourScheme();
                         onlyOn = terrain;
                         buttonReplace.setText(terrain.getName());
                         buttonReplace.setIcon(new ImageIcon(terrain.getScaledIcon(16, colourScheme)));
                         break;
                     case WATER:
-                        onlyOn = DefaultFilter.WATER;
+                        onlyOn = TerrainOrLayerFilter.WATER;
                         buttonReplace.setText("Water");
                         buttonReplace.setIcon(null);
                         break;
                     case LAND:
-                        onlyOn = DefaultFilter.LAND;
+                        onlyOn = TerrainOrLayerFilter.LAND;
                         buttonReplace.setText("Land");
                         buttonReplace.setIcon(null);
                         break;
                     case ANNOTATION:
-                        final int layerValue = filter.onlyOnValue;
+                        final int layerValue = filter.onlyOnFilter.value;
                         onlyOn = new LayerValue(Annotations.INSTANCE, layerValue);
                         buttonReplace.setText(Annotations.getColourName(layerValue) + " Annotations");
                         buttonReplace.setIcon(createScaledColourIcon(Annotations.getColour(layerValue, app.getColourScheme())));
@@ -170,10 +170,10 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
                         break;
                 }
             }
-            if (filter.exceptOnObjectType != null) {
-                switch (filter.exceptOnObjectType) {
+            if (filter.exceptOn) {
+                switch (filter.exceptOnFilter.objectType) {
                     case BIOME:
-                        final int biome = filter.exceptOnValue;
+                        final int biome = filter.exceptOnFilter.value;
                         final BiomeHelper biomeHelper = new BiomeHelper(app.getColourScheme(), app.getCustomBiomeManager(), platform);
                         exceptOn = biome;
                         buttonExceptOn.setText(biomeHelper.getBiomeName(biome));
@@ -181,30 +181,30 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
                         break;
                     case BIT_LAYER:
                     case INT_LAYER_ANY:
-                        final Layer layer = filter.exceptOnLayer;
+                        final Layer layer = filter.exceptOnFilter.layer;
                         exceptOn = layer;
                         buttonExceptOn.setText(layer.getName());
                         buttonExceptOn.setIcon(new ImageIcon(layer.getIcon()));
                         break;
                     case TERRAIN:
-                        final Terrain terrain = filter.exceptOnTerrain;
+                        final Terrain terrain = filter.exceptOnFilter.terrain;
                         final ColourScheme colourScheme = app.getColourScheme();
                         exceptOn = terrain;
                         buttonExceptOn.setText(terrain.getName());
                         buttonExceptOn.setIcon(new ImageIcon(terrain.getScaledIcon(16, colourScheme)));
                         break;
                     case WATER:
-                        exceptOn = DefaultFilter.WATER;
+                        exceptOn = TerrainOrLayerFilter.WATER;
                         buttonExceptOn.setText("Water");
                         buttonExceptOn.setIcon(null);
                         break;
                     case LAND:
-                        exceptOn = DefaultFilter.LAND;
+                        exceptOn = TerrainOrLayerFilter.LAND;
                         buttonExceptOn.setText("Land");
                         buttonExceptOn.setIcon(null);
                         break;
                     case ANNOTATION:
-                        final int selectedColour = filter.exceptOnValue;
+                        final int selectedColour = filter.exceptOnFilter.value;
                         exceptOn = new LayerValue(Annotations.INSTANCE, selectedColour);
                         buttonExceptOn.setText(Annotations.getColourName(selectedColour) + " Annotations");
                         buttonExceptOn.setIcon(createScaledColourIcon(Annotations.getColour(selectedColour, app.getColourScheme())));
@@ -354,16 +354,16 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
     
     private JPopupMenu createObjectSelectionMenu(final String descriptor, final ObjectSelectionListener listener) {
         final JMenuItem waterItem = new JMenuItem("Water", ICON_WATER);
-        waterItem.addActionListener(e -> listener.objectSelected(DefaultFilter.WATER, "Water", null));
+        waterItem.addActionListener(e -> listener.objectSelected(TerrainOrLayerFilter.WATER, "Water", null));
         JMenu popupMenu = new JMenu();
         popupMenu.add(waterItem);
 
         final JMenuItem lavaItem = new JMenuItem("Lava", ICON_LAVA);
-        lavaItem.addActionListener(e -> listener.objectSelected(DefaultFilter.LAVA, "Lava", null));
+        lavaItem.addActionListener(e -> listener.objectSelected(TerrainOrLayerFilter.LAVA, "Lava", null));
         popupMenu.add(lavaItem);
 
         final JMenuItem landItem = new JMenuItem("Land");
-        landItem.addActionListener(e -> listener.objectSelected(DefaultFilter.LAND, "Land", null));
+        landItem.addActionListener(e -> listener.objectSelected(TerrainOrLayerFilter.LAND, "Land", null));
         popupMenu.add(landItem);
 
         final JMenuItem eyedropperItem = new JMenuItem("Select on Map", ICON_EYEDROPPER);
@@ -503,7 +503,7 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
         }
         final JMenu autoBiomeSubMenu = new JMenu("Auto Biomes");
         final JMenuItem autoBiomesMenuItem = new JMenuItem("All Auto Biomes");
-        autoBiomesMenuItem.addActionListener(e -> listener.objectSelected(DefaultFilter.AUTO_BIOMES, "All Auto Biomes", null));
+        autoBiomesMenuItem.addActionListener(e -> listener.objectSelected(TerrainOrLayerFilter.AUTO_BIOMES, "All Auto Biomes", null));
         autoBiomeSubMenu.add(autoBiomesMenuItem);
         for (int autoBiome: Dimension.POSSIBLE_AUTO_BIOMES) {
             final int selectedBiome = -autoBiome;
