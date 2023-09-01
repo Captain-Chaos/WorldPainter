@@ -769,9 +769,7 @@ public class CustomLayerController implements PropertyChangeListener {
         final World2 world = app.getWorld();
         final Dimension dimension = app.getDimension();
         final AbstractEditLayerDialog<L> dialog;
-        if ((layer instanceof Bo2Layer) || (layer instanceof GroundCoverLayer) || (layer instanceof CombinedLayer) || (layer instanceof PlantLayer)) {
-            dialog = new EditLayerDialog<>(app, world.getPlatform(), layer);
-        } else if (layer instanceof UndergroundPocketsLayer) {
+        if (layer instanceof UndergroundPocketsLayer) {
             dialog = (AbstractEditLayerDialog<L>) new UndergroundPocketsDialog(app, world.getPlatform(), (UndergroundPocketsLayer) layer, app.getColourScheme(), dimension.getMinHeight(), dimension.getMaxHeight(), world.isExtendedBlockIds());
         } else if (layer instanceof TunnelLayer) {
             final int baseHeight, waterLevel;
@@ -790,7 +788,7 @@ public class CustomLayerController implements PropertyChangeListener {
         } else if (layer instanceof CustomAnnotationLayer) {
             dialog = (AbstractEditLayerDialog<L>) new CustomAnnotationLayerDialog(app, (CustomAnnotationLayer) layer);
         } else {
-            throw new IllegalArgumentException("Don't know how to create dialog for layer " + layer.getName());
+            dialog = new EditLayerDialog<>(app, world.getPlatform(), layer);
         }
         return dialog;
     }
