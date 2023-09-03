@@ -2461,19 +2461,30 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
         wpVersion = CURRENT_WP_VERSION;
 
-        // Make sure that any custom layers which somehow ended up in the world
-        // are on the custom layer list so they will be added to a palette in
-        // the GUI. TODO: fix this properly
         // Make sure customLayers isn't some weird read-only list
+        if (! (customLayers instanceof ArrayList)) {
+            customLayers = new ArrayList<>(customLayers);
+        }
+
+        // Make sure that any custom layers which somehow ended up in the world are on the custom layer list so they
+        // will be added to a palette in the GUI. TODO: fix this properly
         getAllLayers(false).stream()
                 .filter(layer -> (layer instanceof CustomLayer) && (! customLayers.contains(layer)))
-                .forEach(layer -> {
-                    if ((! (customLayers instanceof ArrayList)) && (! (customLayers instanceof LinkedList))) {
-                        // Make sure customLayers isn't some weird read-only list
-                        customLayers = new ArrayList<>(customLayers);
-                    }
-                    customLayers.add((CustomLayer) layer);
-                });
+                .forEach(layer -> customLayers.add((CustomLayer) layer));
+
+        // Due to an unknown problem there are sometimes duplicate layers in the customLayers list. It has something to
+        // do with those layers being in a combined layer and/or not being in use on the map. Until we identify the root
+        // cause, fix it here
+        final Set<CustomLayer> layersEncountered = new HashSet<>();
+        for (Iterator<CustomLayer> i = customLayers.iterator(); i.hasNext(); ) {
+            final CustomLayer customLayer = i.next();
+            if (layersEncountered.contains(customLayer)) {
+                logger.warn("Removing duplicate custom layer {} from dimension", customLayer);
+                i.remove();
+            } else {
+                layersEncountered.add(customLayer);
+            }
+        }
 
         // Because we did this fix wrong in the past, the maxHeight of the dimension may not correspond to that of its
         // tiles.
