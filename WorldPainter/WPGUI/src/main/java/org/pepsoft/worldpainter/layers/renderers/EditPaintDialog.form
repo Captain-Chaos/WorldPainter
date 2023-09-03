@@ -6,6 +6,8 @@
     </Component>
     <Component class="javax.swing.ButtonGroup" name="buttonGroupColours">
     </Component>
+    <Component class="javax.swing.ButtonGroup" name="buttonGroupType">
+    </Component>
   </NonVisualComponents>
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="2"/>
@@ -30,8 +32,8 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" attributes="0">
-              <EmptySpace min="-2" max="-2" attributes="0"/>
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
                       <Component id="iconEditor1" min="-2" max="-2" attributes="0"/>
@@ -64,6 +66,17 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="buttonCancel" min="-2" max="-2" attributes="0"/>
                   </Group>
+                  <Group type="102" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="radioButtonPattern" min="-2" max="-2" attributes="0"/>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Component id="radioButtonSolidColour" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="buttonSelectSolidColour" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                      </Group>
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                  </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -72,6 +85,13 @@
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="radioButtonSolidColour" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="buttonSelectSolidColour" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="radioButtonPattern" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
@@ -118,6 +138,9 @@
   </Layout>
   <SubComponents>
     <Container class="org.pepsoft.worldpainter.util.IconEditor" name="iconEditor1">
+      <Properties>
+        <Property name="editable" type="boolean" value="false"/>
+      </Properties>
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
         <Property name="useNullLayout" type="boolean" value="true"/>
@@ -130,6 +153,7 @@
         </Property>
         <Property name="text" type="java.lang.String" value="Make Solid Colour"/>
         <Property name="toolTipText" type="java.lang.String" value="&lt;html&gt;Select a colour and fill canvas completely&lt;br&gt;&#xa;Selected colour will become background colour&lt;/html&gt;"/>
+        <Property name="enabled" type="boolean" value="false"/>
         <Property name="horizontalAlignment" type="int" value="10"/>
       </Properties>
       <Events>
@@ -147,6 +171,7 @@
         <Property name="selected" type="boolean" value="true"/>
         <Property name="text" type="java.lang.String" value="Pencil"/>
         <Property name="toolTipText" type="java.lang.String" value="&lt;html&gt;Left-click to paint with selected colour&lt;br&gt;&#xa;Right-click to paint with background colour&lt;/html&gt;"/>
+        <Property name="enabled" type="boolean" value="false"/>
         <Property name="horizontalAlignment" type="int" value="10"/>
       </Properties>
       <Events>
@@ -163,6 +188,7 @@
         </Property>
         <Property name="text" type="java.lang.String" value="Eraser"/>
         <Property name="toolTipText" type="java.lang.String" value="Click to erase to transparency"/>
+        <Property name="enabled" type="boolean" value="false"/>
         <Property name="horizontalAlignment" type="int" value="10"/>
       </Properties>
       <Events>
@@ -225,6 +251,7 @@
         </Property>
         <Property name="text" type="java.lang.String" value="Clear"/>
         <Property name="toolTipText" type="java.lang.String" value="&lt;html&gt;Clear entire canvas to transparency&lt;br&gt;&#xa;Set background colour to transparency&lt;/html&gt;"/>
+        <Property name="enabled" type="boolean" value="false"/>
         <Property name="horizontalAlignment" type="int" value="10"/>
       </Properties>
       <Events>
@@ -253,6 +280,37 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Opacity"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JRadioButton" name="radioButtonSolidColour">
+      <Properties>
+        <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+          <ComponentRef name="buttonGroupType"/>
+        </Property>
+        <Property name="selected" type="boolean" value="true"/>
+        <Property name="text" type="java.lang.String" value="Solid colour"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="radioButtonSolidColourActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JRadioButton" name="radioButtonPattern">
+      <Properties>
+        <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+          <ComponentRef name="buttonGroupType"/>
+        </Property>
+        <Property name="text" type="java.lang.String" value="Pattern:"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="radioButtonPatternActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="buttonSelectSolidColour">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="..."/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonSelectSolidColourActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>

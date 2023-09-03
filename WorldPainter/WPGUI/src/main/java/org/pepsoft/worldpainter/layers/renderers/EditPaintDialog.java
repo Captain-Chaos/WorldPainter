@@ -50,9 +50,11 @@ public class EditPaintDialog extends WorldPainterDialog {
         if (colour != null) {
             iconEditor1.setIcon(createColourSquare(16, colour.getRGB()));
             eraseColour = colour.getRGB();
+            radioButtonSolidColour.setSelected(true);
         } else {
             iconEditor1.setIcon(pattern);
             eraseColour = findBackgroundColour(pattern);
+            radioButtonPattern.setSelected(true);
         }
         iconEditor1.setEraseColour(eraseColour);
         updatePreview();
@@ -66,6 +68,7 @@ public class EditPaintDialog extends WorldPainterDialog {
         createColourButtons();
         pack();
         setLocationRelativeTo(parent);
+        setControlStates();
     }
 
     /**
@@ -86,20 +89,22 @@ public class EditPaintDialog extends WorldPainterDialog {
 
     @Override
     protected void ok() {
-        pattern = iconEditor1.getIcon();
-        int solidColour = pattern.getRGB(0, 0);
-        for (int x = 0; x < pattern.getWidth(); x++) {
-            for (int y = 0; y < pattern.getHeight(); y++) {
-                if (pattern.getRGB(x, y) != solidColour) {
-                    colour = null;
-                    super.ok();
-                    return;
-                }
-            }
-        }
-        pattern = null;
-        colour = new Color(solidColour);
+        colour = getSolidColour();
+        pattern = (colour == null) ? iconEditor1.getIcon() : null;
         super.ok();
+    }
+
+    private void setControlStates() {
+        boolean patternMode = radioButtonPattern.isSelected();
+        buttonSelectSolidColour.setEnabled(! patternMode);
+        iconEditor1.setEditable(patternMode);
+        buttonSolidColour.setEnabled(patternMode);
+        toggleButtonPencil.setEnabled(patternMode);
+        toggleButtonEraser.setEnabled(patternMode);
+        buttonClear.setEnabled(patternMode);
+        for (Component component: panelColours.getComponents()) {
+            component.setEnabled(patternMode);
+        }
     }
 
     private void createColourButtons() {
@@ -137,6 +142,22 @@ public class EditPaintDialog extends WorldPainterDialog {
     }
 
     /**
+     * If the icon editor is currently completely a solid colour, return it. Otherwise return {@code null}.
+     */
+    private Color getSolidColour() {
+        final BufferedImage pattern = iconEditor1.getIcon();
+        int solidColour = pattern.getRGB(0, 0);
+        for (int x = 0; x < pattern.getWidth(); x++) {
+            for (int y = 0; y < pattern.getHeight(); y++) {
+                if (pattern.getRGB(x, y) != solidColour) {
+                    return null;
+                }
+            }
+        }
+        return new Color(solidColour);
+    }
+
+    /**
      * Guesstimate the background colour by finding the most prevalent colour, where the outer rings of the image are
      * weighted heavier.
      */
@@ -167,6 +188,7 @@ public class EditPaintDialog extends WorldPainterDialog {
 
         buttonGroupTools = new javax.swing.ButtonGroup();
         buttonGroupColours = new javax.swing.ButtonGroup();
+        buttonGroupType = new javax.swing.ButtonGroup();
         iconEditor1 = new org.pepsoft.worldpainter.util.IconEditor();
         buttonSolidColour = new javax.swing.JButton();
         toggleButtonPencil = new javax.swing.JToggleButton();
@@ -180,13 +202,19 @@ public class EditPaintDialog extends WorldPainterDialog {
         jLabel1 = new javax.swing.JLabel();
         sliderOpacity = new javax.swing.JSlider();
         labelOpacity = new com.jidesoft.swing.JideLabel();
+        radioButtonSolidColour = new javax.swing.JRadioButton();
+        radioButtonPattern = new javax.swing.JRadioButton();
+        buttonSelectSolidColour = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Edit Paint");
 
+        iconEditor1.setEditable(false);
+
         buttonSolidColour.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/fill.png"))); // NOI18N
         buttonSolidColour.setText("Make Solid Colour");
         buttonSolidColour.setToolTipText("<html>Select a colour and fill canvas completely<br>\nSelected colour will become background colour</html>");
+        buttonSolidColour.setEnabled(false);
         buttonSolidColour.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
         buttonSolidColour.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -199,6 +227,7 @@ public class EditPaintDialog extends WorldPainterDialog {
         toggleButtonPencil.setSelected(true);
         toggleButtonPencil.setText("Pencil");
         toggleButtonPencil.setToolTipText("<html>Left-click to paint with selected colour<br>\nRight-click to paint with background colour</html>");
+        toggleButtonPencil.setEnabled(false);
         toggleButtonPencil.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
         toggleButtonPencil.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -210,6 +239,7 @@ public class EditPaintDialog extends WorldPainterDialog {
         toggleButtonEraser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/sponge.png"))); // NOI18N
         toggleButtonEraser.setText("Eraser");
         toggleButtonEraser.setToolTipText("Click to erase to transparency");
+        toggleButtonEraser.setEnabled(false);
         toggleButtonEraser.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
         toggleButtonEraser.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -243,6 +273,7 @@ public class EditPaintDialog extends WorldPainterDialog {
         buttonClear.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/clear_selection.png"))); // NOI18N
         buttonClear.setText("Clear");
         buttonClear.setToolTipText("<html>Clear entire canvas to transparency<br>\nSet background colour to transparency</html>");
+        buttonClear.setEnabled(false);
         buttonClear.setHorizontalAlignment(javax.swing.SwingConstants.LEADING);
         buttonClear.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -261,6 +292,30 @@ public class EditPaintDialog extends WorldPainterDialog {
         });
 
         labelOpacity.setText("Opacity");
+
+        buttonGroupType.add(radioButtonSolidColour);
+        radioButtonSolidColour.setSelected(true);
+        radioButtonSolidColour.setText("Solid colour");
+        radioButtonSolidColour.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonSolidColourActionPerformed(evt);
+            }
+        });
+
+        buttonGroupType.add(radioButtonPattern);
+        radioButtonPattern.setText("Pattern:");
+        radioButtonPattern.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonPatternActionPerformed(evt);
+            }
+        });
+
+        buttonSelectSolidColour.setText("...");
+        buttonSelectSolidColour.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonSelectSolidColourActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -292,13 +347,27 @@ public class EditPaintDialog extends WorldPainterDialog {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(buttonOk)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(buttonCancel)))
+                        .addComponent(buttonCancel))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(radioButtonPattern)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(radioButtonSolidColour)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(buttonSelectSolidColour)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(radioButtonSolidColour)
+                    .addComponent(buttonSelectSolidColour))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(radioButtonPattern)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -335,7 +404,7 @@ public class EditPaintDialog extends WorldPainterDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void buttonSolidColourActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSolidColourActionPerformed
-        final Color selectedColour = JColorChooser.showDialog(this, "Choose A Colour", Color.ORANGE);
+        final Color selectedColour = JColorChooser.showDialog(this, "Choose A Colour", paintColour);
         if (selectedColour != null) {
             iconEditor1.fill(selectedColour.getRGB());
             colour = selectedColour;
@@ -378,18 +447,50 @@ public class EditPaintDialog extends WorldPainterDialog {
         rendererPreviewer1.setOpacity(opacity);
     }//GEN-LAST:event_sliderOpacityStateChanged
 
+    private void radioButtonSolidColourActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonSolidColourActionPerformed
+        final Color solidColour = getSolidColour();
+        if (solidColour != null) {
+            setControlStates();
+        } else {
+            final Color selectedColour = JColorChooser.showDialog(this, "Choose A Colour", paintColour);
+            if (selectedColour != null) {
+                iconEditor1.fill(selectedColour.getRGB());
+                colour = selectedColour;
+                eraseColour = selectedColour.getRGB();
+                iconEditor1.setEraseColour(eraseColour);
+                pattern = null;
+                updatePreview();
+                setControlStates();
+            } else {
+                radioButtonPattern.setSelected(true);
+            }
+        }
+    }//GEN-LAST:event_radioButtonSolidColourActionPerformed
+
+    private void buttonSelectSolidColourActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSelectSolidColourActionPerformed
+        buttonSolidColourActionPerformed(evt);
+    }//GEN-LAST:event_buttonSelectSolidColourActionPerformed
+
+    private void radioButtonPatternActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonPatternActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_radioButtonPatternActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancel;
     private javax.swing.JButton buttonClear;
     private javax.swing.ButtonGroup buttonGroupColours;
     private javax.swing.ButtonGroup buttonGroupTools;
+    private javax.swing.ButtonGroup buttonGroupType;
     private javax.swing.JButton buttonOk;
+    private javax.swing.JButton buttonSelectSolidColour;
     private javax.swing.JButton buttonSolidColour;
     private org.pepsoft.worldpainter.util.IconEditor iconEditor1;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private com.jidesoft.swing.JideLabel labelOpacity;
     private javax.swing.JPanel panelColours;
+    private javax.swing.JRadioButton radioButtonPattern;
+    private javax.swing.JRadioButton radioButtonSolidColour;
     private org.pepsoft.worldpainter.layers.renderers.RendererPreviewer rendererPreviewer1;
     private javax.swing.JSlider sliderOpacity;
     private javax.swing.JToggleButton toggleButtonEraser;

@@ -33,7 +33,9 @@ public class IconEditor extends JComponent {
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                firePropertyChange("icon", null, icon);
+                if (editable) {
+                    firePropertyChange("icon", null, icon);
+                }
             }
         };
         addMouseListener(mouseAdapter);
@@ -70,6 +72,14 @@ public class IconEditor extends JComponent {
         this.eraseColour = eraseColour;
     }
 
+    public boolean isEditable() {
+        return editable;
+    }
+
+    public void setEditable(boolean editable) {
+        this.editable = editable;
+    }
+
     public void fill(int argb) {
         for (int x = 0; x < iconWidth; x++) {
             for (int y = 0; y < iconHeight; y++) {
@@ -102,11 +112,15 @@ public class IconEditor extends JComponent {
     }
 
     private void mouseClicked(MouseEvent e) {
-        setPixel(e.getX(), e.getY(), e.getButton() == BUTTON1);
+        if (editable) {
+            setPixel(e.getX(), e.getY(), e.getButton() == BUTTON1);
+        }
     }
 
     private void mouseDragged(MouseEvent e) {
-        setPixel(e.getX(), e.getY(), (e.getModifiersEx() & BUTTON1_DOWN_MASK) != 0);
+        if (editable) {
+            setPixel(e.getX(), e.getY(), (e.getModifiersEx() & BUTTON1_DOWN_MASK) != 0);
+        }
     }
 
     private void setPixel(int xOnComponent, int yOnComponent, boolean set) {
@@ -121,6 +135,7 @@ public class IconEditor extends JComponent {
 
     private BufferedImage icon;
     private int iconWidth, iconHeight, paintColour = 0xff000000, eraseColour = 0x00ffffff;
+    private boolean editable = true;
 
     private static final int PREFERRED_CELL_SIZE = Math.round(16 * getUIScale()) + 1;
 }
