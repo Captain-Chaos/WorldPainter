@@ -591,11 +591,13 @@ public class BrushOptions extends javax.swing.JPanel implements Observer {
     }
 
     private void showReplaceMenu() {
+        App.getInstance().cancelPaintSelection();
         JPopupMenu menu = createReplaceMenu();
         menu.show(this, buttonReplace.getX() + buttonReplace.getWidth(), buttonReplace.getY());
     }
     
     private void showExceptOnMenu() {
+        App.getInstance().cancelPaintSelection();
         JPopupMenu menu = createExceptOnMenu();
         menu.show(this, buttonExceptOn.getX() + buttonExceptOn.getWidth(), buttonExceptOn.getY());
     }

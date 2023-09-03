@@ -513,8 +513,7 @@ public final class App extends JFrame implements RadiusControl,
 
             saveCustomBiomes();
 
-            mapSelectionController.cancelPaintSelection(true, false);
-            eyedropperToggleButton.setSelected(false);
+            cancelPaintSelection();
             removeGlassPaneComponents();
 
             view.setDimension(null);
@@ -1731,6 +1730,11 @@ public final class App extends JFrame implements RadiusControl,
 
     public void selectPaintOnMap(Set<PaintType> paintTypes, SelectionListener selectionListener) {
         mapSelectionController.selectPaintOnMap(paintTypes, selectionListener);
+    }
+
+    public void cancelPaintSelection() {
+        mapSelectionController.cancelPaintSelection(true, false);
+        eyedropperToggleButton.setSelected(false);
     }
 
     // BrushOptions.Listener
@@ -3030,7 +3034,9 @@ public final class App extends JFrame implements RadiusControl,
         eyedropperToggleButton.setMnemonic('y');
         eyedropperToggleButton.setMargin(App.BUTTON_INSETS);
         eyedropperToggleButton.addActionListener(e -> {
-            if (! eyedropperToggleButton.isSelected()) {
+            if (mapSelectionController.isSelectionActive()) {
+                // The user clicked on the eyedropper while it was already selected
+                cancelPaintSelection();
                 return;
             } else if (dimension == null) {
                 eyedropperToggleButton.setSelected(false);
@@ -3054,7 +3060,9 @@ public final class App extends JFrame implements RadiusControl,
                     }
                 }
 
-                @Override public void selectionCancelled(boolean byUser) {}
+                @Override public void selectionCancelled(boolean byUser) {
+                    eyedropperToggleButton.setSelected(false);
+                }
             });
         });
         eyedropperToggleButton.setToolTipText("Eyedropper: Select a paint from the map (Alt+y)");
@@ -4821,7 +4829,7 @@ public final class App extends JFrame implements RadiusControl,
         button.setToolTipText(tooltip.toString());
         if (operation instanceof GlobalOperation) {
             button.addActionListener(event ->  {
-                mapSelectionController.cancelPaintSelection(true, false);
+                cancelPaintSelection();
                 if (operation instanceof BrushOperation) {
                     ((BrushOperation) operation).setBrush(brushRotation == 0 ? brush : RotatedBrush.rotate(brush, brushRotation));
                 }
@@ -5087,8 +5095,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         updateLayerVisibility();
         closeCallout("callout_3");
-        mapSelectionController.cancelPaintSelection(true, false);
-        eyedropperToggleButton.setSelected(false);
+        cancelPaintSelection();
     }
 
     /**
@@ -5512,6 +5519,7 @@ public final class App extends JFrame implements RadiusControl,
             DesktopUtils.beep();
             return;
         }
+        cancelPaintSelection();
         final List<Layer> allLayers = getAllLayers();
         final List<Integer> allBiomes = getAllBiomes(world.getPlatform(), customBiomeManager);
         final FillDialog dialog = new FillDialog(App.this, dimension, allLayers.toArray(new Layer[allLayers.size()]), selectedColourScheme, allBiomes.toArray(new Integer[allBiomes.size()]), customBiomeManager, view, selectionState);
@@ -6065,8 +6073,7 @@ public final class App extends JFrame implements RadiusControl,
 
     private void escapePressed() {
         if (mapSelectionController.isSelectionActive()) {
-            mapSelectionController.cancelPaintSelection(true, true);
-            eyedropperToggleButton.setSelected(false);
+            cancelPaintSelection();
         } else {
             exitDimension();
         }
