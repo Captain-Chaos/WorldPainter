@@ -100,7 +100,7 @@ public final class DefaultFilter implements Filter {
                 if (layerValue.condition == null) {
                     onlyOnObjectType = ObjectType.INT_LAYER_ANY;
                     onlyOnTerrain = null;
-                    onlyOnLayer = null;
+                    onlyOnLayer = layerValue.layer;
                     onlyOnValue = -1;
                 } else {
                     switch (layerValue.condition) {
@@ -117,7 +117,7 @@ public final class DefaultFilter implements Filter {
                             throw new InternalError();
                     }
                     onlyOnTerrain = null;
-                    onlyOnLayer = null;
+                    onlyOnLayer = layerValue.layer;
                     onlyOnValue = layerValue.value;
                 }
             } else {
@@ -201,7 +201,7 @@ public final class DefaultFilter implements Filter {
                 if (layerValue.condition == null) {
                     exceptOnObjectType = ObjectType.INT_LAYER_ANY;
                     exceptOnTerrain = null;
-                    exceptOnLayer = null;
+                    exceptOnLayer = layerValue.layer;
                     exceptOnValue = -1;
                 } else {
                     switch (layerValue.condition) {
@@ -218,7 +218,7 @@ public final class DefaultFilter implements Filter {
                             throw new InternalError();
                     }
                     exceptOnTerrain = null;
-                    exceptOnLayer = null;
+                    exceptOnLayer = layerValue.layer;
                     exceptOnValue = layerValue.value;
                 }
             } else {
