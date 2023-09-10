@@ -60,7 +60,7 @@ public abstract class TerrainOrLayerFilter implements Filter {
                 if (layerValue.condition == null) {
                     objectType = ObjectType.INT_LAYER_ANY;
                     terrain = null;
-                    layer = null;
+                    layer = layerValue.layer;
                     value = -1;
                 } else {
                     switch (layerValue.condition) {
@@ -77,7 +77,7 @@ public abstract class TerrainOrLayerFilter implements Filter {
                             throw new InternalError();
                     }
                     terrain = null;
-                    layer = null;
+                    layer = layerValue.layer;
                     value = layerValue.value;
                 }
             } else {
