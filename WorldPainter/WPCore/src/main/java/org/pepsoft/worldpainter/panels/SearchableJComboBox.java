@@ -53,6 +53,8 @@ public class SearchableJComboBox extends JComboBox<String> {
                         if (!firstMatch.isPresent()) return;
                         String finalText = firstMatch.get();
 
+                        searchableJComboBox.showPopup();
+
                         if (finalText.equals("")) finalText = searchText;
 
                         if (!finalText.equals(searchText)) {
