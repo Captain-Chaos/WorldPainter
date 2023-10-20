@@ -24,6 +24,7 @@ import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.operations.Filter;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.panels.DefaultFilter.LayerValue;
+import org.pepsoft.worldpainter.panels.TerrainOrLayerFilter;
 
 import static org.pepsoft.worldpainter.panels.DefaultFilter.Condition.HIGHER_THAN_OR_EQUAL;
 import static org.pepsoft.worldpainter.panels.DefaultFilter.Condition.LOWER_THAN_OR_EQUAL;
@@ -159,7 +160,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (onlyOn != null) {
             throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        onlyOn = DefaultFilter.AUTO_BIOMES;
+        onlyOn = TerrainOrLayerFilter.AUTO_BIOMES;
         exceptOnLastSet = false;
         return this;
     }
@@ -168,7 +169,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (onlyOn != null) {
             throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        onlyOn = DefaultFilter.WATER;
+        onlyOn = TerrainOrLayerFilter.WATER;
         exceptOnLastSet = false;
         return this;
     }
@@ -177,7 +178,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (onlyOn != null) {
             throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        onlyOn = DefaultFilter.LAND;
+        onlyOn = TerrainOrLayerFilter.LAND;
         exceptOnLastSet = false;
         return this;
     }
@@ -222,7 +223,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (exceptOn != null) {
             throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        exceptOn = DefaultFilter.AUTO_BIOMES;
+        exceptOn = TerrainOrLayerFilter.AUTO_BIOMES;
         exceptOnLastSet = true;
         return this;
     }
@@ -231,7 +232,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (exceptOn != null) {
             throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        exceptOn = DefaultFilter.WATER;
+        exceptOn = TerrainOrLayerFilter.WATER;
         exceptOnLastSet = true;
         return this;
     }
@@ -240,7 +241,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (exceptOn != null) {
             throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        exceptOn = DefaultFilter.LAND;
+        exceptOn = TerrainOrLayerFilter.LAND;
         exceptOnLastSet = true;
         return this;
     }
@@ -288,7 +289,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
     public Filter go() throws ScriptException {
         goCalled();
 
-        return new DefaultFilter(null, inSelection, outsideSelection, aboveLevel, belowLevel, feather, onlyOn, exceptOn, degrees, slopeIsAbove);
+        return new DefaultFilter(null, inSelection, outsideSelection, aboveLevel, belowLevel, feather, onlyOn != null, onlyOn, exceptOn != null, exceptOn, degrees, slopeIsAbove);
     }
     
     private int aboveLevel = Integer.MIN_VALUE, belowLevel = Integer.MIN_VALUE, degrees = -1;

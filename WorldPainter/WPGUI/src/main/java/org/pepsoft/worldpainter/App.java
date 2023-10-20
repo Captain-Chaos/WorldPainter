@@ -1573,6 +1573,9 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     public void setFilter(Filter filter) {
+        if (programmaticChange) {
+            return;
+        }
         if (activeOperation instanceof PaintOperation) {
             this.filter = filter;
         } else {
@@ -4884,13 +4887,13 @@ public final class App extends JFrame implements RadiusControl,
                             }
                             levelSlider.setValue((int) (level * 100));
                             brushRotationSlider.setValue(brushRotation);
+                            if (filter instanceof DefaultFilter) {
+                                brushOptions.setFilter((DefaultFilter) filter);
+                            } else {
+                                brushOptions.setFilter(null);
+                            }
                         } finally {
                             programmaticChange = false;
-                        }
-                        if (filter instanceof DefaultFilter) {
-                            brushOptions.setFilter((DefaultFilter) filter);
-                        } else {
-                            brushOptions.setFilter(null);
                         }
                         ((PaintOperation) operation).setPaint(paint);
                     } else {
@@ -4910,13 +4913,13 @@ public final class App extends JFrame implements RadiusControl,
                             }
                             levelSlider.setValue((int) (toolLevel * 100));
                             brushRotationSlider.setValue(toolBrushRotation);
+                            if (toolFilter instanceof DefaultFilter) {
+                                brushOptions.setFilter((DefaultFilter) toolFilter);
+                            } else {
+                                brushOptions.setFilter(null);
+                            }
                         } finally {
                             programmaticChange = false;
-                        }
-                        if (toolFilter instanceof DefaultFilter) {
-                            brushOptions.setFilter((DefaultFilter) toolFilter);
-                        } else {
-                            brushOptions.setFilter(null);
                         }
                     }
                     if (operation instanceof RadiusOperation) {
