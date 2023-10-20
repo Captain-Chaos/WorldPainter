@@ -158,7 +158,11 @@ public class Java1_2PostProcessor extends PostProcessor {
                                         data = 0;
                                         break;
                                     case SUPPORT:
-                                        throw new UnsupportedOperationException("Don't know how to support cement yet");
+                                        // All unsupported cement should be supported by stone
+                                        minecraftWorld.setMaterialAt(x, y, z, Material.STONE);
+                                        blockType = BLK_STONE;
+                                        data = 0;
+                                        break;
                                     default:
                                         // Do nothing
                                         break;
