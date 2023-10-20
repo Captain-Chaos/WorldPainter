@@ -1,4 +1,4 @@
--- Version 2.21.2, released ...
+-- Version 2.21.2, released 20-10-2023
 
  * Make it slightly easier again to pick a solid colour for custom layers
  * Add support for schem files that were generating an error because they have a null value in their palette
