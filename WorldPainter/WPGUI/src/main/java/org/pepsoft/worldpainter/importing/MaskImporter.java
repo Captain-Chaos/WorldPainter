@@ -200,7 +200,9 @@ outer:          for (int x = 0; x < width; x++) {
             if ((! bitmask) && (! discrete)) {
                 builder.withSmoothScaling(true);
             }
-            scaledHeightMap = TransformingHeightMap.build().withHeightMap(builder.now()).withScale(scale).now();
+            scaledHeightMap = TransformingHeightMap.build().withHeightMap(builder.now()).withScale(scale).now()
+                    // Clamp the result, because ringing might otherwise cause values outside the original range:
+                    .clamped(imageLowValue, imageHighValue);
             scaledImage = null;
         }
         image = null; // The original image is no longer necessary, so allow it to be garbage collected to make more space available for the import

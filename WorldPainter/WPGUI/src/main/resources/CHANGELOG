@@ -3,6 +3,7 @@
  * Make it slightly easier again to pick a solid colour for custom layers
  * Add support for schem files that were generating an error because they have a null value in their palette
  * Upgrade the installer to prevent an issue with dark mode on Macs
+ * Bug fix: fix an error when importing masks at other than 100% scale
  * Bug fix: remove duplicate layers when loading .world files
  * Bug fix: eliminate several classes of errors that occurred when activating the eyedropper when it was already active - the selection is now cancelled instead
  * Bug fix: implement support for supporting floating cement blocks during post processing of Minecraft 1.12 maps
