@@ -329,21 +329,26 @@ public class ImportMaskDialog extends WorldPainterDialog implements DocumentList
         maskImporter.setScale((float) spinnerScale.getValue() / 100);
         maskImporter.setxOffset((Integer) spinnerOffsetX.getValue());
         maskImporter.setyOffset((Integer) spinnerOffsetY.getValue());
-        ProgressDialog.executeTask(this, new ProgressTask<Void>() {
-            @Override
-            public String getName() {
-                return "Importing mask";
-            }
+        try {
+            ProgressDialog.executeTask(this, new ProgressTask<Void>() {
+                @Override
+                public String getName() {
+                    return "Importing mask";
+                }
 
-            @Override
-            public Void execute(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-                maskImporter.doImport(progressReceiver);
-                return null;
-            }
-        });
-        Configuration.getInstance().setMasksDirectory(selectedFile.getParentFile());
-        dimension.armSavePoint();
-        super.ok();
+                @Override
+                public Void execute(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+                    maskImporter.doImport(progressReceiver);
+                    return null;
+                }
+            });
+            Configuration.getInstance().setMasksDirectory(selectedFile.getParentFile());
+            dimension.armSavePoint();
+            super.ok();
+        } catch (RuntimeException e) {
+            ExceptionHandler.handleException(e, this);
+            cancel();
+        }
     }
 
     private void selectFile() {

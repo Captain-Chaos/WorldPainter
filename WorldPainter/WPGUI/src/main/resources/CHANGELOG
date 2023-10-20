@@ -6,6 +6,7 @@
  * Bug fix: remove duplicate layers when loading .world files
  * Bug fix: eliminate several classes of errors that occurred when activating the eyedropper when it was already active - the selection is now cancelled instead
  * Bug fix: implement support for supporting floating cement blocks during post processing of Minecraft 1.12 maps
+ * Various small bug fixes
 
 -- Version 2.21.1, released 21-8-2023
 
