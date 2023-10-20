@@ -1,6 +1,7 @@
 -- Version 2.21.2, released ...
 
  * Make it slightly easier again to pick a solid colour for custom layers
+ * Add support for schem files that were generating an error because they have a null value in their palette
  * Upgrade the installer to prevent an issue with dark mode on Macs
  * Bug fix: remove duplicate layers when loading .world files
  * Bug fix: eliminate several classes of errors that occurred when activating the eyedropper when it was already active - the selection is now cancelled instead

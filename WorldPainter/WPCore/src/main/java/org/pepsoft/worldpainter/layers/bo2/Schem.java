@@ -166,8 +166,10 @@ public final class Schem extends AbstractNBTItem implements WPObject {
 
     @Override
     public boolean getMask(int x, int y, int z) {
-        Material material = palette[blocks[x + y * width + z * width * length]];
-        return material != AIR;
+        final Material material = palette[blocks[x + y * width + z * width * length]];
+        // Schems have been observed in the wild with a null value in the palette, so support that (whether or not that
+        // is actually correct):
+        return (material != null) && (material != AIR);
     }
 
     @Override
