@@ -13,6 +13,7 @@ import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.objects.WPObject;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -111,16 +112,20 @@ public class MaterialUtils {
                 } else if (layer instanceof GroundCoverLayer) {
                     checkMixedMaterial(((GroundCoverLayer) layer).getMaterial(), nameOnlyMaterials, "Custom Ground Cover layer " + layer.getName());
                 } else if (layer instanceof TunnelLayer) {
-                    checkMixedMaterial(((TunnelLayer) layer).getFloorMaterial(), nameOnlyMaterials, "Custom Cave/Tunnel layer " + layer.getName());
-                    checkMixedMaterial(((TunnelLayer) layer).getRoofMaterial(), nameOnlyMaterials, "Custom Cave/Tunnel layer " + layer.getName());
-                    checkMixedMaterial(((TunnelLayer) layer).getWallMaterial(), nameOnlyMaterials, "Custom Cave/Tunnel layer " + layer.getName());
+                    final String name = "Custom Cave/Tunnel layer " + layer.getName();
+                    checkMixedMaterial(((TunnelLayer) layer).getFloorMaterial(), nameOnlyMaterials, name);
+                    checkMixedMaterial(((TunnelLayer) layer).getRoofMaterial(), nameOnlyMaterials, name);
+                    checkMixedMaterial(((TunnelLayer) layer).getWallMaterial(), nameOnlyMaterials, name);
                 }
             }
         }
         return nameOnlyMaterials;
     }
 
-    private static void checkMixedMaterial(MixedMaterial mixedMaterial, Map<String, Set<String>> nameOnlyMaterials, String name) {
+    private static void checkMixedMaterial(@Nullable MixedMaterial mixedMaterial, Map<String, Set<String>> nameOnlyMaterials, String name) {
+        if (mixedMaterial == null) {
+            return;
+        }
         for (MixedMaterial.Row row: mixedMaterial.getRows()) {
             if (row.material.blockType == -1) {
                 nameOnlyMaterials.computeIfAbsent(row.material.name, m -> new HashSet<>()).add(name);

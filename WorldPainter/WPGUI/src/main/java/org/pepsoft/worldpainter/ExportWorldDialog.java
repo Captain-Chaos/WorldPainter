@@ -195,17 +195,19 @@ public class ExportWorldDialog extends WPDialogWithPaintSelection {
      */
     @SuppressWarnings("HtmlRequiredLangAttribute") // Not real HTML
     private boolean checkCompatibility(Platform platform) {
-        final Map<String, Set<String>> nameOnlyMaterials = gatherBlocksWithoutIds(world, platform);
-        if ((! nameOnlyMaterials.isEmpty()) && (! platform.capabilities.contains(NAME_BASED))) {
-            final StringBuilder sb = new StringBuilder();
-            sb.append("<html>");
-            sb.append("<p>The world cannot be exported in format ").append(platform.displayName).append(" because it contains the following incompatible block types:");
-            sb.append("<table><tr><th align='left'>Block Type</th><th align='left'>Source</th></tr>");
-            nameOnlyMaterials.forEach((name, sources) ->
-                    sb.append("<tr><td>").append(name).append("</td><td>").append(String.join(",", sources)).append("</td></tr>"));
-            sb.append("</table>");
-            beepAndShowError(this, sb.toString(), "Map Format Not Compatible");
-            return false;
+        if (! platform.capabilities.contains(NAME_BASED)) {
+            final Map<String, Set<String>> nameOnlyMaterials = gatherBlocksWithoutIds(world, platform);
+            if (! nameOnlyMaterials.isEmpty()) {
+                final StringBuilder sb = new StringBuilder();
+                sb.append("<html>");
+                sb.append("<p>The world cannot be exported in format ").append(platform.displayName).append(" because it contains the following incompatible block types:");
+                sb.append("<table><tr><th align='left'>Block Type</th><th align='left'>Source</th></tr>");
+                nameOnlyMaterials.forEach((name, sources) ->
+                        sb.append("<tr><td>").append(name).append("</td><td>").append(String.join(", ", sources)).append("</td></tr>"));
+                sb.append("</table>");
+                beepAndShowError(this, sb.toString(), "Map Format Not Compatible");
+                return false;
+            }
         }
         final String incompatibilityReason = PlatformManager.getInstance().getPlatformProvider(platform).isCompatible(platform, world);
         if (incompatibilityReason != null) {
