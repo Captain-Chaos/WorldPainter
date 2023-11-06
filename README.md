@@ -12,10 +12,27 @@ WorldPainter is open source software, licensed under the GPL version 3. This mea
 ## Building
 
 WorldPainter is a Maven project and easy to build from the command line with Maven, or using your favourite IDE. However there are some missing dependencies which are not in Maven Central which you will have to install locally first. See the [BUILDING](BUILDING.md) file for details.
-![Frame 21801](https://github.com/M-U-C-K-A/WorldPainter/assets/96072629/a952b93b-27f0-4178-a075-2e38d12b823f)
+
+## Download
+
+To download WorldPainter, please visit the [official website](https://www.worldpainter.net/). Below are the available versions:
+
+|        OS             |     Architecture           | WorldPainter                                           | Java                                                   |
+|---------------------|----------------|--------------------------------------------------------|--------------------------------------------------------|
+| Windows             | 64-bit         | [Download installer (.exe)](/files/worldpainter_2.21.3.exe)    | [64-bit Java 17 LTS](/links/jre-win-64)                    |
+|                     | 32-bit         | [Download installer (.exe)](/files/worldpainter_32_2.21.3.exe) | [32-bit Java 8](/links/jre-win-32)                      |
+| Mac OS X            | Intel          | [Download installer (.dmg)](/files/worldpainter_2.21.3.dmg)    | [Intel Java 17 LTS](/links/jre-mac-intel)                  |
+|                     | Arm (M1/M2)    |                                                        | [Arm Java 17 LTS](/links/jre-mac-arm)                    |
+| Linux/UNIX          | Debian         | [Download DEB package](/files/worldpainter_2.21.3.deb)        |                                                        |
+|                     | Red Hat        | [Download RPM package](/files/worldpainter_2.21.3.rpm)        |                                                        |
+|                     | Other          | [Download installer (.sh)](/files/worldpainter_2.21.3.sh)     |                                                        |
+
+> [!WARNING]  
+> Download the proper version of Java [here](https://www.java.com/), if required. You may already have it, so try it without first.
+
+
 
 ## Contributors
 
-<a href="https://github.com/Captain-Chaos/WorldPainter/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Captain-Chaos/WorldPainter" />
-</a>
+
+[![Contributors](https://contrib.rocks/image?repo=Captain-Chaos/WorldPainter)](https://github.com/Captain-Chaos/WorldPainter/graphs/contributors)
