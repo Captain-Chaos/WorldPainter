@@ -19,13 +19,14 @@ To download WorldPainter, please visit the [official website](https://www.worldp
 
 |        OS             |     Architecture           | WorldPainter                                           | Java                                                   |
 |---------------------|----------------|--------------------------------------------------------|--------------------------------------------------------|
-| Windows             | 64-bit         | [Download installer (.exe)](/files/worldpainter_2.21.3.exe)    | [64-bit Java 17 LTS](/links/jre-win-64)                    |
-|                     | 32-bit         | [Download installer (.exe)](/files/worldpainter_32_2.21.3.exe) | [32-bit Java 8](/links/jre-win-32)                      |
-| Mac OS X            | Intel          | [Download installer (.dmg)](/files/worldpainter_2.21.3.dmg)    | [Intel Java 17 LTS](/links/jre-mac-intel)                  |
-|                     | Arm (M1/M2)    |                                                        | [Arm Java 17 LTS](/links/jre-mac-arm)                    |
-| Linux/UNIX          | Debian         | [Download DEB package](/files/worldpainter_2.21.3.deb)        |                                                        |
-|                     | Red Hat        | [Download RPM package](/files/worldpainter_2.21.3.rpm)        |                                                        |
-|                     | Other          | [Download installer (.sh)](/files/worldpainter_2.21.3.sh)     |                                                        |
+| Windows             | 64-bit         | [Download installer (.exe)](https://www.worldpainter.org/files/worldpainter_2.21.3.exe)    | [64-bit Java 17 LTS](https://www.java.com)                    |
+|                     | 32-bit         | [Download installer (.exe)](https://www.worldpainter.org/files/worldpainter_32_2.21.3.exe) | [32-bit Java 8](https://www.java.com)                      |
+| Mac OS X            | Intel          | [Download installer (.dmg)](https://www.worldpainter.org/files/worldpainter_2.21.3.dmg)    | [Intel Java 17 LTS](https://www.java.com)                  |
+|                     | Arm (M1/M2)    |                                                        | [Arm Java 17 LTS](https://www.java.com)                    |
+| Linux/UNIX          | Debian         | [Download DEB package](https://www.worldpainter.org/files/worldpainter_2.21.3.deb)        |                                                        |
+|                     | Red Hat        | [Download RPM package](https://www.worldpainter.org/files/worldpainter_2.21.3.rpm)        |                                                        |
+|                     | Other          | [Download installer (.sh)](https://www.worldpainter.org/files/worldpainter_2.21.3.sh)     |                                                        |
+
 
 > [!WARNING]  
 > Download the proper version of Java [here](https://www.java.com/), if required. You may already have it, so try it without first.
