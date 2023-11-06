@@ -1,5 +1,7 @@
 ![Frame 21799](https://github.com/M-U-C-K-A/WorldPainter/assets/96072629/41ebb073-3513-466a-8a15-3ab3770ef1f5)
 # WorldPainter
+[![Made by](https://img.shields.io/badge/Made%20by-Captain--Chaos-blueviolet)](https://github.com/Captain-Chaos)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 WorldPainter is an interactive map generator for Minecraft. It allows you to "paint" landscapes using similar tools as a regular paint program. Sculpt and mould the terrain, paint materials, trees, snow and ice, etc. onto it, and much more.
 
