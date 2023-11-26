@@ -13,7 +13,6 @@ import static org.pepsoft.worldpainter.panels.DefaultFilter.LayerValue;
 
 public abstract class TerrainOrLayerFilter implements Filter {
     protected TerrainOrLayerFilter(final Dimension dimension, final Object item) {
-        requireNonNull(dimension, "dimension");
         requireNonNull(item, "onlyOn");
         this.dimension = dimension;
         if (item instanceof Terrain) {
@@ -173,7 +172,7 @@ public abstract class TerrainOrLayerFilter implements Filter {
         return sb.toString();
     }
 
-    final Dimension dimension;
+    Dimension dimension;
     final ObjectType objectType;
     final Terrain terrain;
     final Layer layer;

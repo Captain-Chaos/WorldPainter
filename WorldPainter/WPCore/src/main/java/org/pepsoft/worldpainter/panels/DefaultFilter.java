@@ -76,6 +76,12 @@ public final class DefaultFilter implements Filter {
 
     public void setDimension(Dimension dimension) {
         this.dimension = dimension;
+        if (onlyOnFilter instanceof TerrainOrLayerFilter) {
+            ((TerrainOrLayerFilter) onlyOnFilter).dimension = dimension;
+        }
+        if (exceptOnFilter instanceof TerrainOrLayerFilter) {
+            ((TerrainOrLayerFilter) exceptOnFilter).dimension = dimension;
+        }
     }
 
     public boolean isInSelection() {

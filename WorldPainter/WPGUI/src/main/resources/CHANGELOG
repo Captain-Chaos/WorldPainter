@@ -1,3 +1,7 @@
+-- Version 2.21.4, released 26-11-2023
+
+ * Bug fix: fix a scripting error that occurred when creating filters
+
 -- Version 2.21.3, released 20-10-2023
 
  * Check more thoroughly for incompatible blocks before Exporting in Minecraft 1.2 - 1.12 format, to try and prevent errors later in the Export
