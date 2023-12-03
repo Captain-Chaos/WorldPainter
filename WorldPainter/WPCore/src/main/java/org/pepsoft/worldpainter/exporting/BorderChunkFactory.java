@@ -19,7 +19,9 @@ import org.pepsoft.worldpainter.util.BiomeUtils;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
+import static org.pepsoft.minecraft.ChunkFactory.Stats.BORDER_CHUNKS;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Dimension.Border.BARRIER;
@@ -56,6 +58,7 @@ public class BorderChunkFactory {
         final BiomeUtils biomeUtils = new BiomeUtils();
 
         final ChunkFactory.ChunkCreationResult result = new ChunkFactory.ChunkCreationResult();
+        final long terrainGenerationStart = System.nanoTime();
         result.chunk = PlatformManager.getInstance().createChunk(platform, chunkX, chunkZ, minHeight, maxHeight);
         final int maxY = maxHeight - 1;
         final int biome;
@@ -171,6 +174,7 @@ public class BorderChunkFactory {
         if ((border == Border.WATER) || (border == Border.LAVA)) {
             result.stats.waterArea = 256;
         }
+        result.stats.timings.put(BORDER_CHUNKS, new AtomicLong(System.nanoTime() - terrainGenerationStart));
         return result;
     }
 

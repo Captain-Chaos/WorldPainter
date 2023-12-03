@@ -21,7 +21,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
+import static org.pepsoft.minecraft.ChunkFactory.Stats.TERRAIN_GENERATION;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -121,6 +123,7 @@ public class WorldPainterChunkFactory implements ChunkFactory {
                 && (dimension.isPopulate() || tile.getBitLayerValue(Populate.INSTANCE, xOffsetInTile, yOffsetInTile));
         final BiomeUtils biomeUtils = new BiomeUtils(dimension);
         final ChunkCreationResult result = new ChunkCreationResult();
+        long start = System.nanoTime();
         final Chunk chunk = platformProvider.createChunk(platform, chunkX, chunkZ, minHeight, maxHeight);
         result.chunk = chunk;
 
@@ -214,13 +217,17 @@ public class WorldPainterChunkFactory implements ChunkFactory {
             }
         }
         chunk.setTerrainPopulated(! populate);
+        result.stats.timings.put(TERRAIN_GENERATION, new AtomicLong(System.nanoTime() - start));
+
         for (Layer layer: tile.getLayers(minimumLayers)) {
             LayerExporter layerExporter = exporters.get(layer);
             if (layerExporter instanceof FirstPassLayerExporter) {
                 if (logger.isTraceEnabled()) {
                     logger.trace("Exporting layer {} for chunk {},{}", layer, chunkX, chunkZ);
                 }
+                start = System.nanoTime();
                 ((FirstPassLayerExporter) layerExporter).render(tile, chunk);
+                result.stats.timings.put(layer, new AtomicLong(System.nanoTime() - start));
             }
         }
         result.stats.surfaceArea = 256;

@@ -433,6 +433,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     }
                 }
             }
+            final ChunkFactory.Stats stats = new ChunkFactory.Stats(); // TODO actually return these stats
 
             final Dimension master = dimension.getWorld().getDimension(new Dimension.Anchor(dim, MASTER, false, 0));
             final Dimension combined = (master != null) ? new FlatteningDimension(dimension, new ScaledDimension(master, 16.0f)) : dimension;
@@ -586,7 +587,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                             exportedRegions.add(regionCoords);
                                         }
                                         try {
-                                            performFixupsIfNecessary(worldDir, combined, allRegionCoords, fixups, exportedRegions, progressReceiver1);
+                                            performFixupsIfNecessary(worldDir, combined, allRegionCoords, fixups, exportedRegions, stats, progressReceiver1);
                                         } catch (InvalidMapException e) {
                                             throw createInvalidMapException(e.getMessage(), backupWorldDir);
                                         }
@@ -669,7 +670,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                         exportedRegions.add(regionCoords);
                                     }
                                     try {
-                                        performFixupsIfNecessary(worldDir, combined, allRegionCoords, fixups, exportedRegions, progressReceiver1);
+                                        performFixupsIfNecessary(worldDir, combined, allRegionCoords, fixups, exportedRegions, stats, progressReceiver1);
                                     } catch (InvalidMapException e) {
                                         throw createInvalidMapException(e.getMessage(), backupWorldDir);
                                     }
@@ -731,7 +732,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                                 progressReceiver.reset();
                             }
                             try {
-                                performFixups(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, fixups);
+                                performFixups(worldDir, dimension, stats, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, fixups);
                             } catch (InvalidMapException e) {
                                 throw createInvalidMapException(e.getMessage(), backupWorldDir);
                             }
@@ -875,15 +876,15 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             }
             Collections.sort(secondaryPassLayers);
 
-            // First pass. Create terrain and apply layers which don't need access
-            // to neighbouring chunks
-            long t1 = System.currentTimeMillis();
-            String warnings;
-            if (firstPass(minecraftWorld, dimension, regionCoords, tiles, tileSelection, exporters, chunkFactory, false, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 0.3f) : null).chunksGenerated) {
-                // Second pass. Apply layers which need information from or apply
-                // changes to neighbouring chunks
-                long t2 = System.currentTimeMillis();
-                List<Fixup> myFixups = secondPass(secondaryPassLayers, dimension, minecraftWorld, exporters, tiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.3f, 0.1f) : null);
+            // TODO add ceiling support
+            // TODO add timing support
+            // First pass. Create terrain and apply layers which don't need access to neighbouring chunks
+            final String warnings;
+            final ExportResults exportResults;
+            if ((exportResults = firstPass(minecraftWorld, dimension, regionCoords, tiles, tileSelection, exporters, chunkFactory, false, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, 0.3f) : null)).chunksGenerated) {
+                // Second pass. Apply layers which need information from or apply changes to neighbouring chunks
+                List<Fixup> myFixups = secondPass(secondaryPassLayers, dimension, minecraftWorld, exporters, tiles.values(), regionCoords,
+                        exportResults, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.3f, 0.1f) : null);
                 if ((myFixups != null) && (! myFixups.isEmpty())) {
                     synchronized (fixups) {
                         fixups.addAll(myFixups);
@@ -891,11 +892,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 }
 
                 // Merge chunks
-                long t3 = System.currentTimeMillis();
                 warnings = thirdPass(minecraftWorld, oldRegionDir, dimension, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.25f) : null);
 
-                long t4 = System.currentTimeMillis();
-                long t5 = t4;
                 // If all we did was replace biomes then post-processing and lighting are not needed
                 if (mergeBlocksAboveGround || mergeBlocksUnderground || clearTrees || clearVegetation || clearManMadeAboveGround || clearResources || fillCaves || clearManMadeBelowGround) {
                     // Post processing. Fix covered grass blocks, things like that
@@ -905,24 +903,12 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.1f) : null);
 
                     // Third pass. Calculate lighting
-                    t5 = System.currentTimeMillis();
                     if (BlockPropertiesCalculator.isBlockPropertiesPassNeeded(platform, worldExportSettings, exportSettings)) {
                         blockPropertiesPass(minecraftWorld, regionCoords, exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.75f, 0.25f) : null);
                     }
                 }
-                long t6 = System.currentTimeMillis();
-                if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode"))) {
-                    String timingMessage = (t2 - t1) + ", " + (t3 - t2) + ", " + (t4 - t3) + ", " + (t5 - t4) + ", " + (t6 - t5) + ", " + (t6 - t1);
-    //                System.out.println("Merge timing: " + timingMessage);
-                    synchronized (TIMING_FILE_LOCK) {
-                        try (PrintWriter out = new PrintWriter(new FileOutputStream("mergetimings.csv", true))) {
-                            out.println(timingMessage);
-                        }
-                    }
-                }
             } else {
-                // First pass produced no chunks; copy all chunks from the existing
-                // region
+                // First pass produced no chunks; copy all chunks from the existing region
                 warnings = copyAllChunksInRegion(minecraftWorld, oldRegionDir, dimension, regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.3f, 0.7f) : null);
             }
             if (progressReceiver != null) {
@@ -1104,7 +1090,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         // in
                         if (clearManMadeBelowGround && (! existingBlock.natural)) {
                             final Material newMaterial = findMostPrevalentSolidSurroundingMaterial(existingChunk, x, z, y);
-                            if (newMaterial == AIR) {
+                            if (newMaterial.air) { // TODO how to handle minecraft:light blocks?
                                 clearBlock(existingChunk, x, z, y, existingBlock);
                             } else {
                                 existingChunk.setMaterial(x, y, z, newMaterial);
@@ -1115,7 +1101,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                         }
                         if (fillCaves && existingBlock.veryInsubstantial) {
                             final Material newMaterial = findMostPrevalentSolidSurroundingMaterial(existingChunk, x, z, y);
-                            if (newMaterial == AIR) {
+                            if (newMaterial.air) { // TODO how to handle minecraft:light blocks?
                                 existingChunk.setMaterial(x, y, z, STONE);
                             } else {
                                 existingChunk.setMaterial(x, y, z, newMaterial);
@@ -1598,7 +1584,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
         if  (existingMaterial.isNamedOneOf(MC_WATER, MC_ICE, MC_LAVA) // replace *all* fluids (and ice) from the existing map with fluids (or lack thereof) from the new map
 
                 // replace air with non-air from the new map
-                || (existingMaterial == AIR)
+                // TODO how to handle minecraft:light blocks?
+                || (existingMaterial.air)
 
                 // replace *all* blocks with substantial blocks from the new map
                 || (! newMaterial.veryInsubstantial)
@@ -1655,7 +1642,6 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
     private volatile boolean aborted = true;
     
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(JavaWorldMerger.class);
-    private static final Object TIMING_FILE_LOCK = new Object();
     private static final String EOL = System.getProperty("line.separator");
 
     // true means keep existing block               Existing map: Air:   Fluid: Insub: Manmd: Resrc: Solid:

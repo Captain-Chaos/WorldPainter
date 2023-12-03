@@ -12,6 +12,9 @@ import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.util.BiomeUtils;
 
+import java.util.concurrent.atomic.AtomicLong;
+
+import static org.pepsoft.minecraft.ChunkFactory.Stats.BORDER_CHUNKS;
 import static org.pepsoft.minecraft.Material.BARRIER;
 import static org.pepsoft.minecraft.Material.BEDROCK;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.BIOME_PLAINS;
@@ -25,6 +28,7 @@ public class WallChunk {
         final int minHeight = dimension.getMinHeight(), maxHeight = dimension.getMaxHeight();
         final BiomeUtils biomeUtils = new BiomeUtils();
         final ChunkFactory.ChunkCreationResult result = new ChunkFactory.ChunkCreationResult();
+        final long terrainGenerationStart = System.nanoTime();
         result.chunk = PlatformManager.getInstance().createChunk(platform, chunkX, chunkZ, minHeight, maxHeight);
         final int maxY = maxHeight - 1;
         final Material wallMaterial = (dimension.getWallType() == Dimension.WallType.BEDROCK) ? BEDROCK : BARRIER;
@@ -43,6 +47,7 @@ public class WallChunk {
         result.stats.landArea = 0;
         result.stats.surfaceArea = 256;
         result.stats.waterArea = 0;
+        result.stats.timings.put(BORDER_CHUNKS, new AtomicLong(System.nanoTime() - terrainGenerationStart));
         return result;
     }
 }

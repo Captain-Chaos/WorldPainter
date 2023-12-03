@@ -27,9 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -40,11 +38,12 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
+import static org.pepsoft.minecraft.ChunkFactory.Stats.*;
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.util.ExceptionUtils.chainContains;
 import static org.pepsoft.util.mdc.MDCUtils.doWithMdcContext;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -267,14 +266,18 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                                         collectedStats.landArea += exportResults.stats.landArea;
                                         collectedStats.surfaceArea += exportResults.stats.surfaceArea;
                                         collectedStats.waterArea += exportResults.stats.waterArea;
+                                        exportResults.stats.timings.forEach(
+                                                (layer, duration) -> collectedStats.timings.computeIfAbsent(layer, k -> new AtomicLong()).addAndGet(duration.get()));
                                     }
                                 }
                             } finally {
                                 if ((exportResults != null) && exportResults.chunksGenerated) {
-                                    long saveStart = System.currentTimeMillis();
+                                    long saveStart = System.nanoTime();
                                     worldRegion.save(worldDir, dim);
+                                    long saveDuration = System.nanoTime() - saveStart;
+                                    collectedStats.timings.computeIfAbsent(DISK_WRITING, k -> new AtomicLong()).addAndGet(saveDuration);
                                     if (logger.isDebugEnabled()) {
-                                        logger.debug("Saving region took {} ms", System.currentTimeMillis() - saveStart);
+                                        logger.debug("Saving region took {} ms", saveDuration / 1_000_000);
                                     }
                                 }
                             }
@@ -284,7 +287,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                                 }
                                 exportedRegions.add(regionCoords);
                             }
-                            performFixupsIfNecessary(worldDir, combined, regions, fixups, exportedRegions, progressReceiver1);
+                            performFixupsIfNecessary(worldDir, combined, regions, fixups, exportedRegions, collectedStats, progressReceiver1);
                         } catch (Throwable t) {
                             if (chainContains(t, OperationCancelled.class)) {
                                 logger.debug("Operation cancelled on thread {} (message: \"{}\")", Thread.currentThread().getName(), t.getMessage());
@@ -326,7 +329,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                             progressReceiver.setMessage("Doing remaining fixups for " + dimension.getName());
                             progressReceiver.reset();
                         }
-                        performFixups(worldDir, combined, progressReceiver, fixups);
+                        performFixups(worldDir, combined, collectedStats, progressReceiver, fixups);
                     }
                 }
             }
@@ -535,6 +538,8 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                         exportResults.stats.landArea += chunkCreationResult.stats.landArea;
                         exportResults.stats.surfaceArea += chunkCreationResult.stats.surfaceArea;
                         exportResults.stats.waterArea += chunkCreationResult.stats.waterArea;
+                        chunkCreationResult.stats.timings.forEach(
+                                (stage, duration) -> exportResults.stats.timings.computeIfAbsent(stage, k -> new AtomicLong()).addAndGet(duration.get()));
                     }
                     if (ceiling) {
                         final Chunk invertedChunk = new InvertedChunk(chunkCreationResult.chunk, ceilingDelta, platform);
@@ -560,7 +565,9 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         return exportResults;
     }
 
-    protected List<Fixup> secondPass(List<Layer> secondaryPassLayers, Dimension dimension, MinecraftWorld minecraftWorld, Map<Layer, LayerExporter> exporters, Collection<Tile> tiles, Point regionCoords, ProgressReceiver progressReceiver) throws OperationCancelled {
+    protected List<Fixup> secondPass(List<Layer> secondaryPassLayers, Dimension dimension, MinecraftWorld minecraftWorld,
+                                     Map<Layer, LayerExporter> exporters, Collection<Tile> tiles, Point regionCoords,
+                                     ExportResults exportResults, ProgressReceiver progressReceiver) throws OperationCancelled {
         if (logger.isDebugEnabled()) {
             logger.debug("Start of second pass for region {},{}", regionCoords.x, regionCoords.y);
         }
@@ -575,9 +582,12 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         // Garden / seeds first pass
         final GardenExporter gardenExporter = new GardenExporter();
         final Set<Seed> firstPassProcessedSeeds = new HashSet<>();
-        tiles.stream().filter(tile -> tile.getLayers().contains(GardenCategory.INSTANCE)).forEach(tile -> {
-            gardenExporter.firstPass(dimension, tile, platform, minecraftWorld, firstPassProcessedSeeds);
-        });
+        long start = System.nanoTime();
+        tiles.stream().filter(tile -> tile.getLayers().contains(GardenCategory.INSTANCE))
+                .forEach(tile -> gardenExporter.firstPass(dimension, tile, platform, minecraftWorld, firstPassProcessedSeeds));
+        if (! firstPassProcessedSeeds.isEmpty()) {
+            exportResults.stats.timings.computeIfAbsent(SEEDS, k -> new AtomicLong()).addAndGet(System.nanoTime() - start);
+        }
 
         int counter = 0;
         final Rectangle area = new Rectangle((regionCoords.x << 9) - 16, (regionCoords.y << 9) - 16, 544, 544);
@@ -603,6 +613,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                     }
                 }
                 final List<Fixup> layerFixups;
+                start = System.nanoTime();
                 switch (stage) {
                     case CARVE:
                         layerFixups = exporter.carve(area, exportedArea, minecraftWorld);
@@ -613,6 +624,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                     default:
                         throw new InternalError();
                 }
+                exportResults.stats.timings.computeIfAbsent(layer, k -> new AtomicLong()).addAndGet(System.nanoTime() - start);
                 if (layerFixups != null) {
                     fixups.addAll(layerFixups);
                 }
@@ -623,11 +635,15 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             }
         }
 
-        // Garden / seeds first and second pass
+        // Garden / seeds second pass
         final Set<Seed> secondPassProcessedSeeds = new HashSet<>();
+        start = System.nanoTime();
         tiles.stream().filter(tile -> tile.getLayers().contains(GardenCategory.INSTANCE)).forEach(tile -> {
             gardenExporter.secondPass(dimension, tile, platform, minecraftWorld, secondPassProcessedSeeds);
         });
+        if (! secondPassProcessedSeeds.isEmpty()) {
+            exportResults.stats.timings.computeIfAbsent(SEEDS, k -> new AtomicLong()).addAndGet(System.nanoTime() - start);
+        }
 
         // TODO: trying to do this for every region should work but is not very elegant
         if ((dimension.getAnchor().dim == DIM_NORMAL) && world.isCreateGoodiesChest()) {
@@ -771,21 +787,22 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 Collections.sort(ceilingSecondaryPassLayers);
             }
 
-            long t1 = System.currentTimeMillis();
             // First pass. Create terrain and apply layers which don't need access to neighbouring chunks
-            ExportResults exportResults = firstPass(minecraftWorld, dimension, regionCoords, tiles, tileSelection, exporters, chunkFactory, false, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, ((ceiling != null) ? 0.225f : 0.45f) /* TODO why doesn't this work? */) : null);
+            ExportResults exportResults = firstPass(minecraftWorld, dimension, regionCoords, tiles, tileSelection, exporters,chunkFactory, false,
+                    (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, ((ceiling != null) ? 0.225f : 0.45f) /* TODO why doesn't this work? */) : null);
 
             ExportResults ceilingExportResults = null;
             if (ceiling != null) {
                 // First pass for the ceiling. Create terrain and apply layers which don't need access to neighbouring
                 // chunks
-                ceilingExportResults = firstPass(minecraftWorld, ceiling, regionCoords, ceilingTiles, tileSelection, ceilingExporters, ceilingChunkFactory, true, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.225f, 0.225f) : null);
+                ceilingExportResults = firstPass(minecraftWorld, ceiling, regionCoords, ceilingTiles, tileSelection, ceilingExporters, ceilingChunkFactory, true,
+                        (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.225f, 0.225f) : null);
             }
 
             if (exportResults.chunksGenerated || ((ceiling != null) && ceilingExportResults.chunksGenerated)) {
                 // Second pass. Apply layers which need information from or apply changes to neighbouring chunks
-                long t2 = System.currentTimeMillis();
-                List<Fixup> myFixups = secondPass(secondaryPassLayers, dimension, minecraftWorld, exporters, tiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.45f, (ceiling != null) ? 0.05f : 0.1f) : null);
+                List<Fixup> myFixups = secondPass(secondaryPassLayers, dimension, minecraftWorld, exporters, tiles.values(), regionCoords,
+                        exportResults, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.45f, (ceiling != null) ? 0.05f : 0.1f) : null);
                 if ((myFixups != null) && (! myFixups.isEmpty())) {
                     exportResults.fixups = myFixups;
                 }
@@ -793,28 +810,26 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 if (ceiling != null) {
                     // Second pass for ceiling. Apply layers which need information from or apply changes to
                     // neighbouring chunks. Fixups are not supported for the ceiling for now. TODO: implement
-                    secondPass(ceilingSecondaryPassLayers, ceiling, new InvertedWorld(minecraftWorld, ceiling.getMaxHeight() - ceiling.getCeilingHeight(), platform), ceilingExporters, ceilingTiles.values(), regionCoords, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.05f) : null);
+                    secondPass(ceilingSecondaryPassLayers, ceiling, new InvertedWorld(minecraftWorld, ceiling.getMaxHeight() - ceiling.getCeilingHeight(), platform), ceilingExporters, ceilingTiles.values(), regionCoords,
+                            ceilingExportResults, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.4f, 0.05f) : null);
+
+                    // Add ceiling timings to surface timings
+                    ceilingExportResults.stats.timings.forEach(
+                            (stage, duration) -> exportResults.stats.timings.computeIfAbsent(stage, k -> new AtomicLong()).addAndGet(duration.get()));
                 }
 
                 // Post-processing. Fix covered grass blocks, things like that
-                long t3 = System.currentTimeMillis();
                 final BlockBasedExportSettings exportSettings = getExportSettings(dimension, platform);
-                PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.55f, 0.1f) : null);
+                long start = System.nanoTime();
+                PlatformManager.getInstance().getPostProcessor(platform).postProcess(minecraftWorld, new Rectangle(regionCoords.x << 9, regionCoords.y << 9, 512, 512), exportSettings,
+                        (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.55f, 0.1f) : null);
+                exportResults.stats.timings.put(POST_PROCESSING, new AtomicLong(System.nanoTime() - start));
 
                 // Third pass. Calculate lighting and/or leaf distances (if requested, and supported by the platform)
-                long t4 = System.currentTimeMillis();
                 if (BlockPropertiesCalculator.isBlockPropertiesPassNeeded(platform, worldExportSettings, exportSettings)) {
+                    start = System.nanoTime();
                     blockPropertiesPass(minecraftWorld, regionCoords, exportSettings, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.65f, 0.35f) : null);
-                }
-                long t5 = System.currentTimeMillis();
-                if ("true".equalsIgnoreCase(System.getProperty("org.pepsoft.worldpainter.devMode"))) {
-                    String timingMessage = (t2 - t1) + ", " + (t3 - t2) + ", " + (t4 - t3) + ", " + (t5 - t4) + ", " + (t5 - t1);
-                    //                System.out.println("Export timing: " + timingMessage);
-                    synchronized (TIMING_FILE_LOCK) {
-                        try (PrintWriter out = new PrintWriter(new FileOutputStream("exporttimings.csv", true))) {
-                            out.println(timingMessage);
-                        }
-                    }
+                    exportResults.stats.timings.put(BLOCK_PROPERTIES, new AtomicLong(System.nanoTime() - start));
                 }
             }
 
@@ -896,7 +911,9 @@ public abstract class AbstractWorldExporter implements WorldExporter {
      * have been exported (or are not going to be), but only if another thread
      * is not already doing it
      */
-    protected void performFixupsIfNecessary(final File worldDir, final Dimension dimension, final Set<Point> regionsToExport, final Map<Point, List<Fixup>> fixups, final Set<Point> exportedRegions, final ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+    protected void performFixupsIfNecessary(final File worldDir, final Dimension dimension, final Set<Point> regionsToExport,
+                                            final Map<Point, List<Fixup>> fixups, final Set<Point> exportedRegions,
+                                            final ChunkFactory.Stats stats, final ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
         if (performingFixups.tryAcquire()) {
             try {
                 Map<Point, List<Fixup>> myFixups = new HashMap<>();
@@ -911,7 +928,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                     }
                 }
                 if (! myFixups.isEmpty()) {
-                    performFixups(worldDir, dimension, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, myFixups);
+                    performFixups(worldDir, dimension, stats, (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.9f, 0.1f) : null, myFixups);
                 }
             } finally {
                 performingFixups.release();
@@ -919,14 +936,17 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
     }
 
-    protected void performFixups(final File worldDir, final Dimension dimension, final ProgressReceiver progressReceiver, final Map<Point, List<Fixup>> fixups) throws OperationCancelled {
-        final long start = System.currentTimeMillis();
+    protected void performFixups(final File worldDir, final Dimension dimension, final ChunkFactory.Stats stats,
+                                 final ProgressReceiver progressReceiver, final Map<Point, List<Fixup>> fixups) throws OperationCancelled {
+        long start = System.nanoTime();
         int count = 0, total = 0;
         for (Entry<Point, List<Fixup>> entry: fixups.entrySet()) {
             total += entry.getValue().size();
         }
         // Make sure to honour the read-only layer: TODO: this means nothing at the moment. Is it still relevant?
-        try (CachingMinecraftWorld minecraftWorld = new CachingMinecraftWorld(worldDir, dimension.getAnchor().dim, dimension.getMinHeight(), dimension.getMaxHeight(), platform, false, 512)) {
+        final CachingMinecraftWorld minecraftWorld = new CachingMinecraftWorld(worldDir, dimension.getAnchor().dim, dimension.getMinHeight(), dimension.getMaxHeight(), platform, false, 512);
+        final long duration;
+        try {
             final ExportSettings exportSettings = getExportSettings(dimension, platform);
             for (Entry<Point, List<Fixup>> entry: fixups.entrySet()) {
                 if (progressReceiver != null) {
@@ -943,9 +963,15 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                     }
                 }
             }
+            duration = System.nanoTime() - start;
+            stats.timings.computeIfAbsent(FIXUPS, k -> new AtomicLong()).addAndGet(duration);
+        } finally {
+            start = System.nanoTime();
+            minecraftWorld.close();
+            stats.timings.computeIfAbsent(DISK_WRITING, k -> new AtomicLong()).addAndGet(System.nanoTime() - start);
         }
         if (logger.isTraceEnabled()) {
-            logger.trace("Fixups for " + fixups.size() + " regions took " + (System.currentTimeMillis() - start) + " ms");
+            logger.trace("Fixups for " + fixups.size() + " regions took " + (duration / 1_000_000) + " ms");
         }
     }
 
@@ -1080,11 +1106,10 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 for (int z = 0; z < 16; z++) {
                     Material destinationMaterial = destination.getMaterial(x, y, z);
                     if (! destinationMaterial.solid) {
-                        // Insubstantial blocks in the destination are only
-                        // replaced by solid ones; air is replaced by anything
-                        // that's not air
+                        // Insubstantial blocks in the destination are only replaced by solid ones; air is replaced by
+                        // anything that's not air. TODO: how to handle minecraft:light blocks?
                         Material sourceMaterial = source.getMaterial(x, y, z);
-                        if ((destinationMaterial == AIR) ? (sourceMaterial != AIR) : sourceMaterial.solid) {
+                        if ((destinationMaterial.air) ? ((! sourceMaterial.air)) : sourceMaterial.solid) {
                             destination.setMaterial(x, y, z, sourceMaterial);
                             destination.setBlockLightLevel(x, y, z, source.getBlockLightLevel(x, y, z));
                             destination.setSkyLightLevel(x, y, z, source.getSkyLightLevel(x, y, z));
@@ -1256,7 +1281,6 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
     };
 
-    private static final Object TIMING_FILE_LOCK = new Object();
     private static final Logger logger = LoggerFactory.getLogger(AbstractWorldExporter.class);
 
     public static class ExportResults {

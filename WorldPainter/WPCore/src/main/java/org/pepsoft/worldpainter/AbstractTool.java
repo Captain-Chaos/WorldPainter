@@ -17,9 +17,9 @@ import java.util.Locale;
 import static org.pepsoft.worldpainter.plugins.WPPluginManager.DESCRIPTOR_PATH;
 
 /**
- * A base class for WorldPainter command line tools.
+ * An abstract base class for WorldPainter command line tools.
  */
-public class AbstractTool {
+public abstract class AbstractTool {
     protected static void initialisePlatform() {
         // Force language to English for now. TODO: remove this once the first translations are implemented
         Locale.setDefault(Locale.US);
@@ -28,9 +28,9 @@ public class AbstractTool {
         File configDir = Configuration.getConfigDir();
 
         // Configure logging
-        logger.info("Starting WorldPainter " + Version.VERSION + " (" + Version.BUILD + ")");
+        logger.info("Starting WorldPainter {} ({})", Version.VERSION, Version.BUILD);
         logger.info("Running on {} version {}; architecture: {}", System.getProperty("os.name"), System.getProperty("os.version"), System.getProperty("os.arch"));
-        logger.info("Running on {} Java version {}; maximum heap size: {} MB", System.getProperty("java.vendor"), System.getProperty("java.specification.version"), Runtime.getRuntime().maxMemory() / 1000000);
+        logger.info("Running on {} Java version {}; maximum heap size: {} MB", System.getProperty("java.vendor"), System.getProperty("java.specification.version"), Runtime.getRuntime().maxMemory() / 1048576);
 
         // Load the default platform descriptors so that they don't get blocked
         // by older versions of them which might be contained in the
