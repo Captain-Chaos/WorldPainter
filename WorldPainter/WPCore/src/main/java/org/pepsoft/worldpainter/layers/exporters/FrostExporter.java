@@ -71,7 +71,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                             break;
                         } else if (material.canSupportSnow) {
                             if ((material.leafBlock) || (material.sustainsLeaves)) {
-                                if (previousMaterial == AIR) {
+                                if (previousMaterial.empty) {
                                     minecraftWorld.setMaterialAt(x, y, height + 1, SNOW);
                                 }
                                 leafBlocksEncountered++;
@@ -81,7 +81,7 @@ public class FrostExporter extends AbstractLayerExporter<Frost> implements Secon
                             } else {
                                 // Obliterate tall grass, 'cause there is too much of it, and leaving it in would look
                                 // strange. Also replace existing snow, as we might want to place thicker snow
-                                if ((previousMaterial == AIR) || (previousMaterial == GRASS) || (previousMaterial == FERN) || (previousMaterial == SNOW)) {
+                                if (previousMaterial.empty || (previousMaterial == GRASS) || (previousMaterial == FERN) || (previousMaterial == SNOW)) {
                                     if ((mode == FrostSettings.MODE_SMOOTH_AT_ALL_ELEVATIONS)
                                             || (height == dimension.getIntHeightAt(x, y))) {
                                         // Only vary the snow thickness if we're at surface height, otherwise it looks

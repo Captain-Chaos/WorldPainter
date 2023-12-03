@@ -162,14 +162,14 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
                 biomeUtils.set3DBiome(world.getChunkForEditing(x >> 4, y >> 4), (x & 0xf) >> 2, height >> 2, (y & 0xf) >> 2, inLushCave ? BIOME_LUSH_CAVES : BIOME_DRIPSTONE_CAVES);
             }
         }
-        if ((material == AIR) || material.isNamed(MC_WATER)) {
+        if (material.empty || material.isNamed(MC_WATER)) {
             final Material materialBelow = (height > minHeight) ? world.getMaterialAt(x, y, height - 1) : null;
             if ((materialBelow != null) && (! materialBelow.veryInsubstantial) && (! materialBelow.isNamed(MC_POINTED_DRIPSTONE))) {
-                int waterDepth = (material == AIR) ? 1 : 0, spaceAvailable = 1;
+                int waterDepth = material.empty ? 1 : 0, spaceAvailable = 1;
                 for (int dz = 1; (dz < 7) && (height + dz < maxHeight); dz++) {
                     if (world.getMaterialAt(x, y, height + dz).isNamed(MC_WATER)) {
                         waterDepth++;
-                    } else if (world.getMaterialAt(x, y, height + dz) != AIR) {
+                    } else if ((! world.getMaterialAt(x, y, height + dz).empty)) {
                         break;
                     }
                     spaceAvailable++;
@@ -180,12 +180,12 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
             }
             final Material materialAbove = (height < (maxHeight - 1)) ? world.getMaterialAt(x, y, height + 1) : null;
             if ((materialAbove != null) && (! materialAbove.veryInsubstantial) && (! materialAbove.isNamed(MC_POINTED_DRIPSTONE))) {
-                int spaceAvailable = 1, drySpaceAvailable = (material == AIR) ? 1 : 0;
+                int spaceAvailable = 1, drySpaceAvailable = material.empty ? 1 : 0;
                 for (int dz = 1; (dz < 7) && (height - dz >= minHeight); dz++) {
                     final Material material1 = world.getMaterialAt(x, y, height - dz);
-                    if ((material1 != AIR) && material1.isNotNamed(MC_WATER)) {
+                    if (((! material1.empty)) && material1.isNotNamed(MC_WATER)) {
                         break;
-                    } else if ((material1 == AIR) && (drySpaceAvailable != 0)){
+                    } else if (material1.empty && (drySpaceAvailable != 0)){
                         drySpaceAvailable++;
                     }
                     spaceAvailable++;
@@ -376,7 +376,7 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
         }
         for (int dz = 0; dz < Math.max(length, 3); dz++) {
             final Material material = world.getMaterialAt(x, y, height + dz);
-            if ((! material.insubstantial) && (material != AIR) && material.isNotNamed(MC_WATER)) {
+            if ((! material.insubstantial) && ((! material.empty)) && material.isNotNamed(MC_WATER)) {
                 length = dz;
                 break;
             }
@@ -415,7 +415,7 @@ public abstract class AbstractCavesExporter<L extends Layer> extends AbstractLay
         }
         for (int dz = 0; dz < length; dz++) {
             final Material material = world.getMaterialAt(x, y, height - dz);
-            if ((! material.insubstantial) && (material != AIR)) {
+            if ((! material.insubstantial) && ((! material.empty))) {
                 length = dz;
                 break;
             }

@@ -25,8 +25,8 @@ import static org.pepsoft.worldpainter.exporting.WorldExportSettings.Step.LIGHTI
 
 /**
  * A block properties calculator for MinecraftWorlds. This can calculate properties of blocks that are influenced by
- * neighbouring blocks and may there need multiple passes. It can currently calculate three properties: daylight, block
- * light and leaf distance. It can also remove leaf blocks for which the distance is too great.
+ * neighbouring blocks and may therefore need multiple passes. It can currently calculate three properties: daylight,
+ * block light and leaf distance. It can also remove leaf blocks for which the distance is too great.
  * 
  * <p>The process consists of three passes. In the first pass, the blocks are set to their initial values:
  *
@@ -456,7 +456,7 @@ public class BlockPropertiesCalculator {
         if ((skyLightLevel == 15)
                 && (waterOpacity == 1)
                 && (material.isNamed(MC_WATER))
-                && ((y >= maxHeight - 1) || (world.getMaterialAt(x, z, y + 1) == AIR))) {
+                && ((y >= maxHeight - 1) || world.getMaterialAt(x, z, y + 1).empty)) {
             // This seems to be a special case in MC 1.15. TODO: keep an eye on whether this was a bug or intended behaviour!
             return 15;
         }

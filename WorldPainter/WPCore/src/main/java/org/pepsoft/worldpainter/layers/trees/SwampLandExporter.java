@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Random;
 
 import static org.pepsoft.minecraft.Constants.MC_WATER;
-import static org.pepsoft.minecraft.Material.AIR;
 
 /**
  *
@@ -57,7 +56,7 @@ public class SwampLandExporter extends TreesExporter<TreeLayer> {
                             if ((strength > 0) && (random.nextInt(3840) <= (strength * strength))) {
                                 final Material material = world.getMaterialAt(x, y, waterLevel);
                                 final Material materialAbove = world.getMaterialAt(x, y, waterLevel + 1);
-                                if (material.isNamed(MC_WATER) && (materialAbove == AIR)) {
+                                if (material.isNamed(MC_WATER) && materialAbove.empty) {
                                     world.setMaterialAt(x, y, waterLevel + 1, Material.LILY_PAD);
                                 }
                             }

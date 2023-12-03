@@ -40,7 +40,7 @@ class WPObjectDynmapWorld extends DynmapWorld {
                 for (int z = 0; z < dimensions.z; z++) {
                     if (object.getMask(x, y, z)) {
                         final Material material = object.getMaterial(x, y, z);
-                        if (material == Material.AIR) {
+                        if (material.empty) {
                             blockStates[x][y][z] = AIR;
                         } else {
                             final DynmapBlockState blockState = getDynmapBlockState(material);

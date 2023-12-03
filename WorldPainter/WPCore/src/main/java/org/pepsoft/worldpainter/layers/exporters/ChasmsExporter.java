@@ -24,7 +24,6 @@ import java.util.Random;
 import java.util.Set;
 
 import static java.util.Collections.singleton;
-import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
@@ -88,7 +87,7 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Sec
 //                            System.out.println("terrainHeight: " + terrainheight);
 //                        }
                         for (int y = terrainheight; fallThrough ? (y >= minHeight) : (y >= minYAdjusted); y--) {
-                            if (chunk.getMaterial(x, y, z) == AIR) {
+                            if (chunk.getMaterial(x, y, z).empty) {
                                 // There is already a void here; assume that things like removing water, etc. have
                                 // already been done by whatever made the void
                                 emptyBlockEncountered();

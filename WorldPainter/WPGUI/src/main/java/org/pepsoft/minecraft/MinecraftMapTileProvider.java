@@ -19,7 +19,6 @@ import static java.awt.RenderingHints.KEY_TEXT_ANTIALIASING;
 import static java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
-import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.util.swing.TiledImageViewer.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 import static org.pepsoft.worldpainter.Constants.UNKNOWN_MATERIAL_COLOUR;
@@ -192,7 +191,7 @@ public class MinecraftMapTileProvider implements TileProvider {
         final int minHeight = chunk.getMinHeight();
         for (int z = maxHeight - 1; z >= minHeight; z--) {
             final Material material = chunk.getMaterial(x, z, y);
-            if (material != AIR) {
+            if ((! material.empty)) {
                 final int colour = colourScheme.getColour(material);
                 if ((colour == UNKNOWN_MATERIAL_COLOUR) && (! reportedMaterials.contains(material))){
                     logger.warn("Don't know colour of material {}", material);

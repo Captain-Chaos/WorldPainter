@@ -46,7 +46,7 @@ public abstract class TreeType implements Serializable {
     }
     
     protected void maybePlaceLeaves(int x, int y, int h, int r, float distance, MinecraftWorld minecraftWorld, Random random) {
-        if (minecraftWorld.getMaterialAt(x, y, h) == AIR) {
+        if (minecraftWorld.getMaterialAt(x, y, h).empty) {
             if (((r > 0) ? random.nextInt(r) : 0) + 1.5f >= distance) {
                 minecraftWorld.setMaterialAt(x, y, h, leafMaterial);
             }
@@ -94,7 +94,7 @@ public abstract class TreeType implements Serializable {
     
     private boolean addVine(MinecraftWorld world, int x, int y, int z, Direction direction) {
         Material existingBlock = world.getMaterialAt(x, y, z);
-        if ((existingBlock == null) || ((existingBlock != AIR) && (existingBlock.isNotNamed(MC_VINE)))) {
+        if ((existingBlock == null) || (((! existingBlock.empty)) && (existingBlock.isNotNamed(MC_VINE)))) {
             return false;
         }
         Material vine = existingBlock.isNamed(MC_VINE) ? existingBlock : VINE;

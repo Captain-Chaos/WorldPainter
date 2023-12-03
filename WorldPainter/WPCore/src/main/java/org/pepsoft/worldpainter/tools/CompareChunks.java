@@ -10,7 +10,6 @@ import java.io.InputStream;
 
 import static org.pepsoft.minecraft.Constants.DATA_VERSION_MC_1_12_2;
 import static org.pepsoft.minecraft.Constants.VERSION_MCREGION;
-import static org.pepsoft.minecraft.Material.AIR;
 
 public class CompareChunks {
     public static void main(String[] args) throws IOException {
@@ -32,13 +31,13 @@ public class CompareChunks {
             x:
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
-                    if (chunk1.getMaterial(x, y, z) != AIR) {
+                    if ((! chunk1.getMaterial(x, y, z).air)) {
                         block1Found = true;
                         if (block2Found) {
                             break x;
                         }
                     }
-                    if (chunk2.getMaterial(x, y, z) != AIR) {
+                    if ((! chunk2.getMaterial(x, y, z).air)) {
                         block2Found = true;
                         if (block1Found) {
                             break x;

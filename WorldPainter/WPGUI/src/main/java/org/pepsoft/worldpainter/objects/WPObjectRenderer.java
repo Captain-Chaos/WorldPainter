@@ -39,7 +39,7 @@ public class WPObjectRenderer {
                     for (int x = dim.x - 1; x >= 0; x--) {
                         if (object.getMask(x, dim.y - y - 1, z)) {
                             final Material material = object.getMaterial(x, dim.y - y - 1, z);
-                            if (material != Material.AIR) {
+                            if ((! material.empty)) {
                                 final Point coords = getImageCoordinates(x, y, z);
                                 final int blockType = material.blockType;
                                 final int alpha = ((blockType == Constants.BLK_LEAVES) || (blockType == Constants.BLK_LEAVES2)) ? 192 : 255;

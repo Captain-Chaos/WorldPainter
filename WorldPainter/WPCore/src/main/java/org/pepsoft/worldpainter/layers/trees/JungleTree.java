@@ -204,7 +204,7 @@ public class JungleTree extends TreeType {
     
     @Override
     protected void maybePlaceLeaves(int x, int y, int h, int r, float distance, MinecraftWorld minecraftWorld, Random random) {
-        if (minecraftWorld.getMaterialAt(x, y, h) == AIR) {
+        if (minecraftWorld.getMaterialAt(x, y, h).empty) {
             if (distance <= r) {
                 minecraftWorld.setMaterialAt(x, y, h, leafMaterial);
             }

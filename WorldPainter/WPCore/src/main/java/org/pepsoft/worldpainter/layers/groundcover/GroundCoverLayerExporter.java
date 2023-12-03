@@ -81,7 +81,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                 }
                 final int terrainheight = tile.getIntHeight(localX, localY);
                 final Material blockBelow = ((terrainheight >= minHeight) && (terrainheight < maxHeight)) ? chunk.getMaterial(x, terrainheight, z) : AIR;
-                if ((blockBelow == AIR) || blockBelow.insubstantial) {
+                if (blockBelow.empty || blockBelow.insubstantial) {
                     continue;
                 }
                 int effectiveThickness = Math.abs(thickness);
@@ -161,9 +161,9 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                             }
                             final Material existingMaterial = chunk.getMaterial(x, y, z);
                             final Material material = mixedMaterial.getMaterial(seed, worldX, worldY, y + yOffset);
-                            if ((material != AIR)
+                            if (((! material.empty))
                                     && ((! material.veryInsubstantial)
-                                    || (existingMaterial == AIR)
+                                    || existingMaterial.empty
                                     || existingMaterial.insubstantial)) {
                                 // TODOMC13 don't forget to make this work for 1.12 worlds also still:
                                 if (layerHeight < 8) {
@@ -188,9 +188,9 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                             }
                             final Material existingMaterial = chunk.getMaterial(x, y, z);
                             final Material material = mixedMaterial.getMaterial(seed, worldX, worldY, y + yOffset);
-                            if ((material != AIR)
+                            if (((! material.empty))
                                     && ((! material.veryInsubstantial)
-                                    || (existingMaterial == AIR)
+                                    || existingMaterial.empty
                                     || existingMaterial.insubstantial)) {
                                 chunk.setMaterial(x, y, z, material);
                             }
@@ -217,7 +217,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                             break;
                         }
                         Material existingMaterial = chunk.getMaterial(x, y, z);
-                        if (existingMaterial != AIR) {
+                        if ((! existingMaterial.empty)) {
                             chunk.setMaterial(x, y, z, mixedMaterial.getMaterial(seed, worldX, worldY, y + yOffset));
                         }
                     }
@@ -231,7 +231,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
     public Fixup apply(Point3i location, int intensity, Rectangle exportedArea, MinecraftWorld minecraftWorld) {
         if (intensity > 0) {
             final Material blockBelow = minecraftWorld.getMaterialAt(location.x, location.y, location.z - 1);
-            if ((blockBelow != AIR)
+            if (((! blockBelow.empty))
                     && (! blockBelow.insubstantial)) {
                 final int thickness = layer.getThickness();
                 final MixedMaterial mixedMaterial = layer.getMaterial();
@@ -249,9 +249,9 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                         }
                         final Material existingMaterial = minecraftWorld.getMaterialAt(location.x, location.y, z);
                         final Material material = mixedMaterial.getMaterial(seed, location.x, location.y, z);
-                        if ((material != AIR)
+                        if (((! material.empty))
                                 && ((! material.veryInsubstantial)
-                                    || (existingMaterial == AIR)
+                                    || existingMaterial.empty
                                     || existingMaterial.insubstantial)) {
                             minecraftWorld.setMaterialAt(location.x, location.y, z, material);
                         }
@@ -263,7 +263,7 @@ public class GroundCoverLayerExporter extends AbstractLayerExporter<GroundCoverL
                             break;
                         }
                         Material existingMaterial = minecraftWorld.getMaterialAt(location.x, location.y, z);
-                        if (existingMaterial != AIR) {
+                        if ((! existingMaterial.empty)) {
                             minecraftWorld.setMaterialAt(location.x, location.y, z, mixedMaterial.getMaterial(seed, location.x, location.y, z));
                         }
                     }

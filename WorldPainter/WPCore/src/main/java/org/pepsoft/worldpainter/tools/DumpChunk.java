@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static java.util.stream.Collectors.joining;
-import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.minecraft.Material.LEVEL;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
@@ -104,7 +103,7 @@ public class DumpChunk extends AbstractTool {
             boolean blockFound = false;
 x:          for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
-                    if (chunk.getMaterial(x, y, z) != AIR) {
+                    if ((! chunk.getMaterial(x, y, z).air)) {
                         blockFound = true;
                         break x;
                     }
@@ -119,7 +118,7 @@ x:          for (int x = 0; x < 16; x++) {
                 for (int x = 0; x < 16; x++) {
                     Material material = chunk.getMaterial(x, y, z);
                     Integer waterLevel = material.getProperty(LEVEL);
-                    if (material != AIR) {
+                    if ((! material.air)) {
                         String name = material.name;
                         name = name.substring(name.indexOf(':') + 1);
                         String property = "";

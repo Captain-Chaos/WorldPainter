@@ -81,7 +81,7 @@ public abstract class PostProcessor {
         int solidFloor = z - 1;
         for (; solidFloor > minZ; solidFloor--) {
             Material material = world.getMaterialAt(x, y, solidFloor);
-            if (material == AIR || (material.insubstantial && material.isNotNamed(lava ? MC_LAVA : MC_WATER))) {
+            if (material.empty || (material.insubstantial && material.isNotNamed(lava ? MC_LAVA : MC_WATER))) {
                 world.setMaterialAt(x, y, solidFloor, lava ? FALLING_LAVA : FALLING_WATER);
             } else {
                 break;

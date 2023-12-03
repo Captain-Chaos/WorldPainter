@@ -9,8 +9,6 @@ import org.pepsoft.minecraft.Material;
 
 import java.awt.*;
 
-import static org.pepsoft.minecraft.Material.AIR;
-
 /**
  *
  * @author pepijn
@@ -73,18 +71,18 @@ public final class Cursor implements Cloneable {
     }
     
     public boolean isFree() {
-        return minecraftWorld.getMaterialAt(x, y, height) == AIR;
+        return minecraftWorld.getMaterialAt(x, y, height).air;
     }
     
     public boolean isFreeOrInsubstantial() {
         Material block = minecraftWorld.getMaterialAt(x, y, height);
         // TODO: migrate this information to Material:
-        return (block == AIR) || block.insubstantial;
+        return (block.air) || block.insubstantial;
     }
     
     public boolean setBlockIfFree(Material material) {
         Material existingBlock = minecraftWorld.getMaterialAt(x, y, height);
-        if ((existingBlock == AIR) || existingBlock.insubstantial) {
+        if ((existingBlock.air) || existingBlock.insubstantial) {
             minecraftWorld.setMaterialAt(x, y, height, material);
             return true;
         } else {
@@ -98,7 +96,7 @@ public final class Cursor implements Cloneable {
     
     public boolean setBlockWithDirectionIfFree(Material material) {
         Material existingBlock = minecraftWorld.getMaterialAt(x, y, height);
-        if ((existingBlock == AIR) || existingBlock.insubstantial) {
+        if ((existingBlock.air) || existingBlock.insubstantial) {
             minecraftWorld.setMaterialAt(x, y, height, material.setDirection(direction));
             return true;
         } else {

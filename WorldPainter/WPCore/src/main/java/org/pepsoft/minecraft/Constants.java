@@ -573,6 +573,8 @@ public final class Constants {
     public static final String MC_SUSPICIOUS_SAND = "minecraft:suspicious_sand";
     public static final String MC_SUSPICIOUS_GRAVEL = "minecraft:suspicious_gravel";
     public static final String MC_CHERRY_LEAVES = "minecraft:cherry_leaves";
+    public static final String MC_LIGHT = "minecraft:light";
+    public static final String MC_VOID_AIR = "minecraft:void_air";
 
     // MC 1.18 biome names
 

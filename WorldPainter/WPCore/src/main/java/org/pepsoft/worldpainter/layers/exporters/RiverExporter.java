@@ -222,7 +222,7 @@ public class RiverExporter extends AbstractLayerExporter<River> implements Secon
         int waterLevel = -1;
         for (int z = dimension.getIntHeightAt(x, y); z > minHeight; z--) {
             Material existingMaterial = world.getMaterialAt(x, y, z);
-            if (existingMaterial == AIR) {
+            if (existingMaterial.empty) {
                 continue;
             } else if (existingMaterial.isNamed(MC_WATER)) {
                 waterLevel = z;

@@ -216,7 +216,7 @@ public class Java1_15PostProcessor extends PostProcessor {
                             }
                             break;
                         case MC_SNOW:
-                            if ((materialBelow == ICE) || materialBelow.isNamed(MC_SNOW) || (materialBelow == AIR) || (materialBelow == PACKED_ICE)) {
+                            if ((materialBelow == ICE) || materialBelow.isNamed(MC_SNOW) || materialBelow.empty || (materialBelow == PACKED_ICE)) {
                                 // Snow can't be on ice, or another snow block, or air (well it could be, but it makes
                                 // no sense, would disappear when touched, and it makes this algorithm remove stacks of
                                 // snow blocks correctly)
@@ -226,12 +226,12 @@ public class Java1_15PostProcessor extends PostProcessor {
                         case MC_FIRE:
                             // We don't know which blocks are flammable, but at least check whether the fire is not
                             // floating in the air
-                            if ((materialBelow == AIR)
-                                    && (materialAbove == AIR)
-                                    && (minecraftWorld.getMaterialAt(x - 1, y, z) == AIR)
-                                    && (minecraftWorld.getMaterialAt(x + 1, y, z) == AIR)
-                                    && (minecraftWorld.getMaterialAt(x, y - 1, z) == AIR)
-                                    && (minecraftWorld.getMaterialAt(x, y + 1, z) == AIR)) {
+                            if (materialBelow.empty
+                                    && materialAbove.empty
+                                    && minecraftWorld.getMaterialAt(x - 1, y, z).empty
+                                    && minecraftWorld.getMaterialAt(x + 1, y, z).empty
+                                    && minecraftWorld.getMaterialAt(x, y - 1, z).empty
+                                    && minecraftWorld.getMaterialAt(x, y + 1, z).empty) {
                                 material = clearBlock(minecraftWorld, x, y, z);
                             }
                             break;

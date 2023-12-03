@@ -158,6 +158,8 @@ public final class Material implements Serializable {
         solid = ! veryInsubstantial;
         hasPropertySnowy = hasProperty(MC_SNOWY);
         canSupportSnow = determineCanSupportSnow();
+        air = (category == CATEGORY_AIR);
+        empty = air || (name == MC_LIGHT);
 
         if (namespace != null) {
             SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, s -> new HashSet<>()).add(simpleName);
@@ -300,6 +302,8 @@ public final class Material implements Serializable {
         solid = ! veryInsubstantial;
         hasPropertySnowy = hasProperty(MC_SNOWY);
         canSupportSnow = determineCanSupportSnow();
+        air = (category == CATEGORY_AIR);
+        empty = air || (name == MC_LIGHT);
 
         SIMPLE_NAMES_BY_NAMESPACE.computeIfAbsent(namespace, s -> new HashSet<>()).add(simpleName);
         if (! DEFAULT_MATERIALS_BY_NAME.containsKey(name)) {
@@ -1043,7 +1047,7 @@ public final class Material implements Serializable {
     @SuppressWarnings("StringEquality") // interned
     private int determineCategory() {
         // Determine the category
-        if ((name == MC_AIR) || (name == MC_CAVE_AIR)) {
+        if ((name == MC_AIR) || (name == MC_CAVE_AIR) || (name == MC_VOID_AIR)) {
             return CATEGORY_AIR;
         } else if ((name == MC_WATER) || (name == MC_LAVA)) {
             return CATEGORY_FLUID;
@@ -1383,6 +1387,11 @@ public final class Material implements Serializable {
     }
 
     /**
+     * Whether the block is an air block.
+     */
+    public final transient boolean air;
+
+    /**
      * How much light the block blocks from 0 (fully transparent) to 15 (fully
      * opaque).
      */
@@ -1491,6 +1500,11 @@ public final class Material implements Serializable {
      * "under water") rather than having a waterlogged property.
      */
     public final transient boolean watery;
+
+    /**
+     * Whether the block contains nothing physical and is fully transparent.
+     */
+    public final transient boolean empty;
 
     /**
      * The horizontal orientation scheme(s) detected for this material, or
@@ -2124,6 +2138,11 @@ public final class Material implements Serializable {
     public static final Material TORCHFLOWER_CROP = get(MC_TORCHFLOWER_CROP);
     public static final Material TORCHFLOWER = get(MC_TORCHFLOWER);
     public static final Material LEAVES_CHERRY = get(MC_CHERRY_LEAVES);
+    /**
+     * A dry light block with level 8.
+     */
+    public static final Material LIGHT = get(MC_LIGHT, MC_LEVEL, 8, MC_WATERLOGGED, false);
+    public static final Material CAVE_AIR = get(MC_CAVE_AIR);
 
     // Material type categories
 

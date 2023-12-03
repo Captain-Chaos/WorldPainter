@@ -42,11 +42,11 @@ public class TunnelLayerExporterTest {
                         } else if (z <= 20) {
                             assertEquals(x + "," + y + "," + z, STONE, material);
                         } else if (z <= 30) {
-                            assertTrue(x + "," + y + "," + z + ": " + material, material == STONE || material == AIR);
+                            assertTrue(x + "," + y + "," + z + ": " + material, material == STONE || material.air);
                         } else if (z <= 70) {
                             assertEquals(x + "," + y + "," + z, AIR, material);
                         } else if (z < 80) {
-                            assertTrue(x + "," + y + "," + z + ": " + material, material == STONE || material == AIR);
+                            assertTrue(x + "," + y + "," + z + ": " + material, material == STONE || material.air);
                         } else if (z < 97) {
                             assertEquals(x + "," + y + "," + z, STONE, material);
                         } else if (z < 100) {
@@ -85,9 +85,9 @@ public class TunnelLayerExporterTest {
                     int detectedFloorLevel = Integer.MIN_VALUE, detectedRoofLevel = Integer.MIN_VALUE;
                     for (int z = MIN_HEIGHT; z <= 100; z++) {
                         final Material material = minecraftWorld.getMaterialAt(x, y, z);
-                        if ((detectedFloorLevel == Integer.MIN_VALUE) && (material == AIR)) {
+                        if ((detectedFloorLevel == Integer.MIN_VALUE) && (material.air)) {
                             detectedFloorLevel = z - 1;
-                        } else if ((detectedFloorLevel != Integer.MIN_VALUE) && (material != AIR)) {
+                        } else if ((detectedFloorLevel != Integer.MIN_VALUE) && ((! material.air))) {
                             detectedRoofLevel = z;
                             break;
                         }
