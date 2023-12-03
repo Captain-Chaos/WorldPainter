@@ -215,17 +215,7 @@ public final class TileRenderer {
         final Layer[] layers = layerList.toArray(new Layer[layerList.size()]);
         final LayerRenderer[] renderers = new LayerRenderer[layers.length];
         for (int i = 0; i < layers.length; i++) {
-            if (layers[i] instanceof Biome) {
-                renderers[i] = biomeRenderer;
-            } else {
-                renderers[i] = layers[i].getRenderer();
-            }
-            if (renderers[i] instanceof ColourSchemeRenderer) {
-                ((ColourSchemeRenderer) renderers[i]).setColourScheme(colourScheme);
-            }
-            if ((renderers[i] instanceof DimensionAwareRenderer) && (tileProvider instanceof Dimension)) {
-                ((DimensionAwareRenderer) renderers[i]).setDimension((Dimension) tileProvider);
-            }
+            renderers[i] = getRenderer(layers[i]);
         }
 
         final int scale = 1 << -zoom;
@@ -487,6 +477,24 @@ public final class TileRenderer {
         }
     }
 
+    private LayerRenderer getRenderer(Layer layer) {
+        return rendererCache.computeIfAbsent(layer, k -> {
+            final LayerRenderer renderer;
+            if (layer instanceof Biome) {
+                renderer = biomeRenderer;
+            } else {
+                renderer = layer.getRenderer();
+            }
+            if (renderer instanceof ColourSchemeRenderer) {
+                ((ColourSchemeRenderer) renderer).setColourScheme(colourScheme);
+            }
+            if ((renderer instanceof DimensionAwareRenderer) && (tileProvider instanceof Dimension)) {
+                ((DimensionAwareRenderer) renderer).setDimension((Dimension) tileProvider);
+            }
+            return renderer;
+        });
+    }
+
     private final Set<Layer> hiddenLayers = new HashSet<>(Collections.singletonList(FloodWithLava.INSTANCE));
     private final int[] intHeightCache = new int[TILE_SIZE * TILE_SIZE], intFluidHeightCache = new int[TILE_SIZE * TILE_SIZE];
     private final float[] floatHeightCache = new float[TILE_SIZE * TILE_SIZE];
@@ -502,6 +510,7 @@ public final class TileRenderer {
     private final ColourRamp colourRamp;
     private final BiomeRenderer biomeRenderer;
     private final ColourScheme colourScheme;
+    private final Map<Layer, LayerRenderer> rendererCache = new HashMap<>();
     private boolean contourLines = true, hideAllLayers;
     private int contourSeparation = 10;
     private LightOrigin lightOrigin = LightOrigin.NORTHWEST;
