@@ -1,12 +1,14 @@
 package org.pepsoft.worldpainter;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.AtomicDouble;
 import com.jidesoft.docking.DockContext;
 import com.jidesoft.docking.DockableFrame;
 import org.jetbrains.annotations.NotNull;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.IconUtils;
+import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.swing.BetterJPopupMenu;
 import org.pepsoft.worldpainter.importing.CustomItemsTreeModel;
 import org.pepsoft.worldpainter.layers.*;
@@ -41,6 +43,7 @@ import java.io.*;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.zip.GZIPOutputStream;
 
@@ -51,11 +54,13 @@ import static java.util.Comparator.comparing;
 import static javax.swing.JOptionPane.*;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
+import static org.pepsoft.util.DesktopUtils.beep;
 import static org.pepsoft.util.swing.MessageUtils.*;
 import static org.pepsoft.worldpainter.App.COMMAND_KEY_NAME;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
+import static org.pepsoft.worldpainter.panels.DefaultFilter.buildForDimension;
 
 public class CustomLayerController implements PropertyChangeListener {
     CustomLayerController(App app) {
@@ -106,9 +111,15 @@ public class CustomLayerController implements PropertyChangeListener {
 
             private void showPopup(MouseEvent e) {
                 final JPopupMenu popup = new BetterJPopupMenu();
-                JMenuItem menuItem = new JMenuItem(strings.getString("edit") + "...");
+
+                JMenuItem menuItem = new JMenuItem("Find");
+                menuItem.addActionListener(e1 -> findLayer(layer));
+                popup.add(menuItem);
+
+                menuItem = new JMenuItem(strings.getString("edit") + "...");
                 menuItem.addActionListener(e1 -> editCustomLayer(layer));
                 popup.add(menuItem);
+
                 final Dimension dimension = app.getDimension();
                 if ((layer instanceof TunnelLayer)) {
                     final TunnelLayer tunnelLayer = (TunnelLayer) layer;
@@ -174,6 +185,7 @@ public class CustomLayerController implements PropertyChangeListener {
                         popup.add(menuItem);
                     }
                 }
+
                 menuItem = new JMenuItem("Duplicate...");
                 if (layer.isExportableToFile()) {
                     menuItem.addActionListener(e1 -> duplicate());
@@ -182,9 +194,11 @@ public class CustomLayerController implements PropertyChangeListener {
                     menuItem.setToolTipText("This layer cannot be duplicated.");
                 }
                 popup.add(menuItem);
+
                 menuItem = new JMenuItem(strings.getString("remove") + "...");
                 menuItem.addActionListener(e1 -> remove());
                 popup.add(menuItem);
+
                 menuItem = new JMenuItem("Export to file...");
                 if (layer.isExportableToFile()) {
                     menuItem.addActionListener(e1 -> exportLayer(layer));
@@ -261,7 +275,7 @@ public class CustomLayerController implements PropertyChangeListener {
         addLayerButton.setMargin(new Insets(2, 2, 2, 2));
         addLayerButton.addActionListener(e -> {
             if (app.getDimension() == null) {
-                DesktopUtils.beep();
+                beep();
                 return;
             }
             // Find out which palette the button is on
@@ -276,7 +290,7 @@ public class CustomLayerController implements PropertyChangeListener {
                 customLayerMenu.show(addLayerButton, addLayerButton.getWidth(), 0);
             } else {
                 logger.error("Could not find palette add layer button is on");
-                DesktopUtils.beep();
+                beep();
             }
         });
         final List<Component> addLayerButtonPanel = new ArrayList<>(3);
@@ -575,7 +589,7 @@ public class CustomLayerController implements PropertyChangeListener {
     void deleteUnusedLayers() {
         final Dimension dimension = app.getDimension();
         if (dimension == null) {
-            DesktopUtils.beep();
+            beep();
             return;
         }
         final List<CustomLayer> unusedLayers = getCustomLayers();
@@ -685,6 +699,66 @@ public class CustomLayerController implements PropertyChangeListener {
                 importLayersFromCombinedLayer((CombinedLayer) customLayer);
             }
         });
+    }
+
+    private void findLayer(Layer layer) {
+        final WorldPainter view = app.view;
+        final Dimension dimension = app.getDimension();
+        final int tileX = view.getViewX() >> TILE_SIZE_BITS, tileY = view.getViewY() >> TILE_SIZE_BITS;
+        final AtomicInteger closestTileX = new AtomicInteger(), closestTileY = new AtomicInteger();
+        final AtomicDouble closestDistance = new AtomicDouble(Double.MAX_VALUE);
+        dimension.visitTiles()
+                .forFilter(buildForDimension(dimension).onlyOn(layer).build())
+                .andDo(tile -> {
+                    if (! isLayerSet(tile, layer)) {
+                        return;
+                    }
+                    final float distance = MathUtils.getDistance(tile.getX() - tileX, tile.getY() - tileY);
+                    if (distance < closestDistance.floatValue()) {
+                        closestDistance.set(distance);
+                        closestTileX.set(tile.getX());
+                        closestTileY.set(tile.getY());
+                    }
+                    // TODO stop iterating if the current location already contains the layer
+                });
+        if (closestDistance.get() == Double.MAX_VALUE) {
+            beep();
+            showInfo(view, "Layer " + layer + " is not in use in the current dimension", "Layer Not Present");
+        } else {
+            view.moveTo((closestTileX.get() << TILE_SIZE_BITS) + (TILE_SIZE / 2), (closestTileY.get() << TILE_SIZE_BITS) + (TILE_SIZE / 2));
+        }
+    }
+
+    /**
+     * Check whether the layer is set anywhere in the tile.
+     */
+    private boolean isLayerSet(Tile tile, Layer layer) {
+        switch (layer.dataSize) {
+            case BIT:
+            case BIT_PER_CHUNK:
+                final boolean defaultBitValue = layer.getDefaultValue() != 0;
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    for (int y = 0; y < TILE_SIZE; y++) {
+                        if (tile.getBitLayerValue(layer, x, y) != defaultBitValue) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            case NIBBLE:
+            case BYTE:
+                final int defaultValue = layer.getDefaultValue();
+                for (int x = 0; x < TILE_SIZE; x++) {
+                    for (int y = 0; y < TILE_SIZE; y++) {
+                        if (tile.getLayerValue(layer, x, y) != defaultValue) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            default:
+                throw new IllegalArgumentException("Invalid data size " + layer.dataSize);
+        }
     }
 
     private void editCustomLayer(CustomLayer layer) {

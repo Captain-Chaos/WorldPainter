@@ -1,5 +1,6 @@
 -- Version 2.21.4, released 26-11-2023
 
+ * A "Find" choice has been added to the context menu of Custom Layer buttons, that will move the view to the nearest location where that layer has been painted. This makes it easier to quickly find where a layer is in use
  * Bug fix: fix a scripting error that occurred when creating filters
 
 -- Version 2.21.3, released 20-10-2023
