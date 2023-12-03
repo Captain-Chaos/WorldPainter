@@ -18,6 +18,8 @@ import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 import org.pepsoft.worldpainter.layers.Void;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.AbstractCavesExporter;
+import org.pepsoft.worldpainter.selection.SelectionBlock;
+import org.pepsoft.worldpainter.selection.SelectionChunk;
 import org.pepsoft.worldpainter.util.BiomeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,10 +33,10 @@ import java.util.function.Supplier;
 
 import static java.awt.Font.PLAIN;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
+import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
-import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
+import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.CARVE;
@@ -140,6 +142,36 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
         }
 
         // First/second pass: excavate interior
+        final long seed = dimension.getSeed();
+        final Material singleFillMaterial;
+        final MixedMaterial complexFillMaterial;
+        switch (layer.getFillMode()) {
+            case CAVE_AIR:
+                if (platform.capabilities.contains(NAME_BASED)) {
+                    singleFillMaterial = CAVE_AIR;
+                } else {
+                    // This is to cover the case where someone has created the layer on a platform that does support
+                    // cave_air and then changed the platform to one which doesn't
+                    logger.warn("Platform does not support cave_air; using air instead");
+                    singleFillMaterial = AIR;
+                }
+                complexFillMaterial = null;
+                break;
+            case AIR:
+                singleFillMaterial = AIR;
+                complexFillMaterial = null;
+                break;
+            case LIGHT:
+                singleFillMaterial = LIGHT.withProperty(LEVEL, 8);
+                complexFillMaterial = null;
+                break;
+            case MIXED_MATERIAL:
+                singleFillMaterial = null;
+                complexFillMaterial = layer.getFillMaterial();
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported fill mode: " + layer.getFillMode());
+        }
         visitChunksForLayerInAreaForEditing(world, layer, area, dimension, (tile, chunkX, chunkZ, chunkSupplier) ->
             whereTunnelIsRealisedDo(tile, chunkX, chunkZ, chunkSupplier, (chunk, x, y, xInTile, yInTile, terrainHeight, actualFloorLevel, floorLedgeHeight, actualRoofLevel, roofLedgeHeight) -> {
                 if (dimension.getBitLayerValueAt(Void.INSTANCE, x, y)) {
@@ -173,24 +205,22 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
                             // TODO should this be moved to the ADD_FEATURES stage?
                             chunk.setMaterial(x & 0xf, z, y & 0xf, myFloodWithLava ? Material.LAVA : Material.WATER);
                         } else {
-                            chunk.setMaterial(x & 0xf, z, y & 0xf, Material.AIR);
+                            chunk.setMaterial(x & 0xf, z, y & 0xf, (singleFillMaterial != null) ? singleFillMaterial : complexFillMaterial.getMaterial(seed, x, y, z));
                         }
-                        // Since the biomes are stored in 4x4x4 blocks this way of doing it results in doing it
-                        // 63 too many times, but it's simplest, and ensures that any of those blocks touched is
-                        // changed:
+                        // Since the biomes are stored in 4x4x4 blocks this way of doing it results in doing it 63 too
+                        // many times, but it's simplest, and ensures that any of those blocks touched is changed:
                         if (set3DBiomes) {
                             biomeUtils.set3DBiome(chunk, (x & 0xf) >> 2, z >> 2, (y & 0xf) >> 2, myBiome);
                         }
                     }
                 }
                 if (actualFloorLevel == minHeight) {
-                    // Bottomless world, and cave extends all the way to
-                    // the bottom. Remove the floor block, as that is
+                    // Bottomless world, and cave extends all the way to the bottom. Remove the floor block, as that is
                     // probably what the user wants
                     if (myFloodLevel > minHeight) {
                         chunk.setMaterial(x & 0xf, minHeight, y & 0xf, myFloodWithLava ? Material.STATIONARY_LAVA : Material.STATIONARY_WATER);
                     } else {
-                        chunk.setMaterial(x & 0xf, minHeight, y & 0xf, Material.AIR);
+                        chunk.setMaterial(x & 0xf, minHeight, y & 0xf, (singleFillMaterial != null) ? singleFillMaterial : complexFillMaterial.getMaterial(seed, x, y, minHeight));
                     }
                 }
                 return true;
@@ -529,13 +559,13 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
             if (removeWater || (! flooded) || (z <= terrainHeight) || (z > waterLevel)) {
                 if (((x >> 4) == chunk.getxPos()) && ((y >> 4) == chunk.getzPos())) {
                     final Material existingBlock = chunk.getMaterial(x & 0xf, z, y & 0xf);
-                    if ((existingBlock != Material.AIR) && (! existingBlock.insubstantial)) {
+                    if (((! existingBlock.empty)) && (! existingBlock.insubstantial)) {
                         // The coordinates are within bounds and the existing block is solid
                         chunk.setMaterial(x & 0xf, z, y & 0xf, material);
                     }
                 } else {
                     final Material existingBlock = world.getMaterialAt(x, y, z);
-                    if ((existingBlock != Material.AIR) && (! existingBlock.insubstantial)) {
+                    if (((! existingBlock.empty)) && (! existingBlock.insubstantial)) {
                         // The coordinates are within bounds and the existing block is solid
                         world.setMaterialAt(x, y, z, material);
                     }
@@ -548,6 +578,6 @@ public class TunnelLayerExporter extends AbstractCavesExporter<TunnelLayer> impl
 
     private static final Font HEIGHT_MARKER_FONT = new Font("SansSerif", PLAIN, 10);
     private static final long MATERIAL_SEED = 0x688b2af137c77e0cL;
-    private static final Set<Layer> SKIP_LAYERS = ImmutableSet.of(NotPresentBlock.INSTANCE, FloodWithLava.INSTANCE);
+    private static final Set<Layer> SKIP_LAYERS = ImmutableSet.of(NotPresentBlock.INSTANCE, FloodWithLava.INSTANCE, SelectionBlock.INSTANCE, SelectionChunk.INSTANCE);
     private static final Logger logger = LoggerFactory.getLogger(TunnelLayerExporter.class);
 }

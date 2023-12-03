@@ -1,5 +1,12 @@
--- Version 2.21.4, released 26-11-2023
+-- Version 2.22.0, released 3-12-2023
 
+ * Custom Cave/Tunnel Layers can now be filled with artificial light, or a custom material
+   + The four choices for the fill material are:
+     - air (the default for existing layers)
+     - cave_air (the default for new layers)
+     - artificial block light with a configurable level (using the minecraft:light block)
+     - a custom material of your own configuration
+   + cave_air and artificial light are only available for map formats which support them
  * A "Find" choice has been added to the context menu of Custom Layer buttons, that will move the view to the nearest location where that layer has been painted. This makes it easier to quickly find where a layer is in use
  * Bug fix: fix a scripting error that occurred when creating filters
 

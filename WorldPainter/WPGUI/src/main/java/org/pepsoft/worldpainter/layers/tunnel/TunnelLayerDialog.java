@@ -18,6 +18,7 @@ import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 import org.pepsoft.worldpainter.layers.plants.PlantLayer;
+import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.FillMode;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode;
 import org.pepsoft.worldpainter.themes.JSpinnerTableCellEditor;
 import org.pepsoft.worldpainter.themes.SimpleTheme;
@@ -40,8 +41,8 @@ import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.CollectionUtils.listOf;
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
-import static org.pepsoft.worldpainter.Platform.Capability.BIOMES_3D;
-import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
+import static org.pepsoft.worldpainter.Platform.Capability.*;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.FillMode.*;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayersTableModel.*;
 import static org.pepsoft.worldpainter.themes.Filter.EVERYWHERE;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
@@ -78,6 +79,9 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             mixedMaterialChooserWall.setPlatform(platform);
             mixedMaterialChooserWall.setExtendedBlockIds(extendedBlockIds);
             mixedMaterialChooserWall.setColourScheme(colourScheme);
+            mixedMaterialChooserFill.setPlatform(platform);
+            mixedMaterialChooserFill.setExtendedBlockIds(extendedBlockIds);
+            mixedMaterialChooserFill.setColourScheme(colourScheme);
             labelPreview.setPreferredSize(new java.awt.Dimension(128, 0));
             ((SpinnerNumberModel) spinnerFloorLevel.getModel()).setMinimum(minHeight);
             ((SpinnerNumberModel) spinnerFloorLevel.getModel()).setMaximum(maxHeight - 1);
@@ -201,7 +205,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     }
 
     private void generatePreview() {
-        final TunnelLayer layer = new TunnelLayer("tmp", null);
+        final TunnelLayer layer = new TunnelLayer("tmp", null, platform);
         saveSettingsTo(layer, false);
         final Insets insets = labelPreview.getInsets();
         final int width = labelPreview.getWidth() - insets.left - insets.right;
@@ -301,6 +305,22 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             if (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) {
                 comboBoxBiome.setSelectedItem(layer.getTunnelBiome());
             }
+
+            switch (layer.getFillMode()) {
+                case CAVE_AIR:
+                    radioButtonFillWithCaveAir.setSelected(true);
+                    break;
+                case AIR:
+                    radioButtonFillWithAir.setSelected(true);
+                    break;
+                case LIGHT:
+                    radioButtonFillWithLight.setSelected(true);
+                    break;
+                case MIXED_MATERIAL:
+                    radioButtonFillWithCustom.setSelected(true);
+                    mixedMaterialChooserFill.setMaterial(layer.getFillMaterial());
+                    break;
+            }
         } finally {
             programmaticChange = false;
         }
@@ -380,6 +400,21 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
 
         List<TunnelLayer.LayerSettings> roofLayers = roofLayersTableModel.getLayers();
         layer.setRoofLayers(((roofLayers != null) && (! roofLayers.isEmpty())) ? roofLayers : null);
+
+        layer.setFillLightLevel((int) spinnerFillLightLevel.getValue());
+        if (radioButtonFillWithCaveAir.isSelected()) {
+            layer.setFillMode(CAVE_AIR);
+            layer.setFillMaterial(null);
+        } else if (radioButtonFillWithAir.isSelected()) {
+            layer.setFillMode(AIR);
+            layer.setFillMaterial(null);
+        } else if (radioButtonFillWithLight.isSelected()) {
+            layer.setFillMode(FillMode.LIGHT);
+            layer.setFillMaterial(null);
+        } else {
+            layer.setFillMode(MIXED_MATERIAL);
+            layer.setFillMaterial(mixedMaterialChooserFill.getMaterial());
+        }
     }
     
     private void setControlStates() {
@@ -403,6 +438,11 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         int selectedRoofRowCount = tableRoofLayers.getSelectedRowCount();
         buttonRemoveRoofLayer.setEnabled(selectedRoofRowCount > 0);
         buttonEditRoofLayer.setEnabled((selectedRoofRowCount == 1) && (roofLayersTableModel.getLayer(tableRoofLayers.getSelectedRow()) instanceof CustomLayer));
+
+        radioButtonFillWithCaveAir.setEnabled(platform.capabilities.contains(NAME_BASED));
+        radioButtonFillWithLight.setEnabled(platform.capabilities.contains(BLOCK_MINECRAFT_LIGHT));
+        spinnerFillLightLevel.setEnabled(radioButtonFillWithLight.isSelected());
+        mixedMaterialChooserFill.setEnabled(radioButtonFillWithCustom.isSelected());
     }
 
     private void removeFloorLayers() {
@@ -627,6 +667,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
 
         buttonGroup1 = new javax.swing.ButtonGroup();
         buttonGroup3 = new javax.swing.ButtonGroup();
+        buttonGroup2 = new javax.swing.ButtonGroup();
         buttonCancel = new javax.swing.JButton();
         buttonOK = new javax.swing.JButton();
         buttonReset = new javax.swing.JButton();
@@ -682,6 +723,13 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         mixedMaterialChooserRoof = new MixedMaterialChooser(true);
         mixedMaterialChooserFloor = new MixedMaterialChooser(true);
         mixedMaterialChooserWall = new MixedMaterialChooser(true);
+        jLabel26 = new javax.swing.JLabel();
+        radioButtonFillWithAir = new javax.swing.JRadioButton();
+        radioButtonFillWithLight = new javax.swing.JRadioButton();
+        spinnerFillLightLevel = new javax.swing.JSpinner();
+        radioButtonFillWithCustom = new javax.swing.JRadioButton();
+        mixedMaterialChooserFill = new MixedMaterialChooser(true);
+        radioButtonFillWithCaveAir = new javax.swing.JRadioButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel22 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -851,6 +899,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
 
         checkBoxRemoveWater.setText("Remove water or lava:");
         checkBoxRemoveWater.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
+        checkBoxRemoveWater.setMargin(new java.awt.Insets(2, 0, 2, 2));
         checkBoxRemoveWater.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 checkBoxRemoveWaterActionPerformed(evt);
@@ -881,6 +930,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
 
         checkBoxFlood.setText("Flood the caves/tunnels:");
         checkBoxFlood.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
+        checkBoxFlood.setMargin(new java.awt.Insets(2, 0, 2, 2));
         checkBoxFlood.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 checkBoxFloodActionPerformed(evt);
@@ -948,6 +998,51 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         mixedMaterialChooserWall.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
             public void propertyChange(java.beans.PropertyChangeEvent evt) {
                 mixedMaterialChooserWallPropertyChange(evt);
+            }
+        });
+
+        jLabel26.setText("Fill with:");
+
+        buttonGroup2.add(radioButtonFillWithAir);
+        radioButtonFillWithAir.setText("air");
+        radioButtonFillWithAir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonFillWithAirActionPerformed(evt);
+            }
+        });
+
+        buttonGroup2.add(radioButtonFillWithLight);
+        radioButtonFillWithLight.setText("light:");
+        radioButtonFillWithLight.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonFillWithLightActionPerformed(evt);
+            }
+        });
+
+        spinnerFillLightLevel.setModel(new javax.swing.SpinnerNumberModel(0, 0, 15, 1));
+        spinnerFillLightLevel.setEnabled(false);
+
+        buttonGroup2.add(radioButtonFillWithCustom);
+        radioButtonFillWithCustom.setText("custom:");
+        radioButtonFillWithCustom.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonFillWithCustomActionPerformed(evt);
+            }
+        });
+
+        mixedMaterialChooserFill.setEnabled(false);
+        mixedMaterialChooserFill.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                mixedMaterialChooserFillPropertyChange(evt);
+            }
+        });
+
+        buttonGroup2.add(radioButtonFillWithCaveAir);
+        radioButtonFillWithCaveAir.setSelected(true);
+        radioButtonFillWithCaveAir.setText("cave air");
+        radioButtonFillWithCaveAir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonFillWithCaveAirActionPerformed(evt);
             }
         });
 
@@ -1045,9 +1140,23 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(mixedMaterialChooserFloor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(noiseSettingsEditorFloor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+                                    .addComponent(noiseSettingsEditorFloor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel26)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(radioButtonFillWithCaveAir)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(radioButtonFillWithAir)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(radioButtonFillWithLight)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(spinnerFillLightLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(radioButtonFillWithCustom)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(mixedMaterialChooserFill, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addGap(18, 18, 18)
-                .addComponent(labelPreview, javax.swing.GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+                .addComponent(labelPreview, javax.swing.GroupLayout.DEFAULT_SIZE, 128, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -1130,7 +1239,17 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                             .addComponent(checkBoxFlood)
                             .addComponent(jLabel21)
                             .addComponent(spinnerFloodLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(checkBoxFloodWithLava)))
+                            .addComponent(checkBoxFloodWithLava))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel26)
+                            .addComponent(radioButtonFillWithAir)
+                            .addComponent(radioButtonFillWithLight)
+                            .addComponent(spinnerFillLightLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(radioButtonFillWithCustom)
+                            .addComponent(mixedMaterialChooserFill, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(radioButtonFillWithCaveAir))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(labelPreview, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -1186,7 +1305,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                         .addComponent(jLabel22)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 524, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(buttonAddFloorLayer, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1202,7 +1321,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                 .addComponent(jLabel22)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 470, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 484, Short.MAX_VALUE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(buttonNewFloorLayer)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1265,7 +1384,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                         .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 524, Short.MAX_VALUE)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(buttonAddRoofLayer, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1281,7 +1400,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
                 .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 438, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 452, Short.MAX_VALUE)
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(buttonNewRoofLayer)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1547,6 +1666,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             // Refresh the other choosers, in case a new material has been added
             mixedMaterialChooserFloor.refresh();
             mixedMaterialChooserWall.refresh();
+            mixedMaterialChooserFill.refresh();
         }
     }//GEN-LAST:event_mixedMaterialChooserRoofPropertyChange
 
@@ -1555,6 +1675,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             // Refresh the other choosers, in case a new material has been added
             mixedMaterialChooserRoof.refresh();
             mixedMaterialChooserWall.refresh();
+            mixedMaterialChooserFill.refresh();
         }
     }//GEN-LAST:event_mixedMaterialChooserFloorPropertyChange
 
@@ -1563,8 +1684,34 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             // Refresh the other choosers, in case a new material has been added
             mixedMaterialChooserRoof.refresh();
             mixedMaterialChooserFloor.refresh();
+            mixedMaterialChooserFill.refresh();
         }
     }//GEN-LAST:event_mixedMaterialChooserWallPropertyChange
+
+    private void radioButtonFillWithAirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonFillWithAirActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_radioButtonFillWithAirActionPerformed
+
+    private void radioButtonFillWithLightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonFillWithLightActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_radioButtonFillWithLightActionPerformed
+
+    private void radioButtonFillWithCustomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonFillWithCustomActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_radioButtonFillWithCustomActionPerformed
+
+    private void mixedMaterialChooserFillPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_mixedMaterialChooserFillPropertyChange
+        if (evt.getPropertyName().equals("material")) {
+            // Refresh the other choosers, in case a new material has been added
+            mixedMaterialChooserFloor.refresh();
+            mixedMaterialChooserWall.refresh();
+            mixedMaterialChooserRoof.refresh();
+        }
+    }//GEN-LAST:event_mixedMaterialChooserFillPropertyChange
+
+    private void radioButtonFillWithCaveAirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonFillWithCaveAirActionPerformed
+        setControlStates();
+    }//GEN-LAST:event_radioButtonFillWithCaveAirActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonAddFloorLayer;
@@ -1573,6 +1720,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     private javax.swing.JButton buttonEditFloorLayer;
     private javax.swing.JButton buttonEditRoofLayer;
     private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.ButtonGroup buttonGroup3;
     private javax.swing.JButton buttonNewFloorLayer;
     private javax.swing.JButton buttonNewRoofLayer;
@@ -1601,6 +1749,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel23;
     private javax.swing.JLabel jLabel24;
+    private javax.swing.JLabel jLabel26;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -1615,12 +1764,17 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel labelPreview;
+    private org.pepsoft.worldpainter.MixedMaterialChooser mixedMaterialChooserFill;
     private org.pepsoft.worldpainter.MixedMaterialChooser mixedMaterialChooserFloor;
     private org.pepsoft.worldpainter.MixedMaterialChooser mixedMaterialChooserRoof;
     private org.pepsoft.worldpainter.MixedMaterialChooser mixedMaterialChooserWall;
     private org.pepsoft.worldpainter.NoiseSettingsEditor noiseSettingsEditorFloor;
     private org.pepsoft.worldpainter.NoiseSettingsEditor noiseSettingsEditorRoof;
     private org.pepsoft.worldpainter.layers.renderers.PaintPicker paintPicker1;
+    private javax.swing.JRadioButton radioButtonFillWithAir;
+    private javax.swing.JRadioButton radioButtonFillWithCaveAir;
+    private javax.swing.JRadioButton radioButtonFillWithCustom;
+    private javax.swing.JRadioButton radioButtonFillWithLight;
     private javax.swing.JRadioButton radioButtonFloorCustomDimension;
     private javax.swing.JRadioButton radioButtonFloorFixedDepth;
     private javax.swing.JRadioButton radioButtonFloorFixedLevel;
@@ -1629,6 +1783,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     private javax.swing.JRadioButton radioButtonRoofFixedHeight;
     private javax.swing.JRadioButton radioButtonRoofFixedLevel;
     private javax.swing.JRadioButton radioButtonRoofInverse;
+    private javax.swing.JSpinner spinnerFillLightLevel;
     private javax.swing.JSpinner spinnerFloodLevel;
     private javax.swing.JSpinner spinnerFloorLevel;
     private javax.swing.JSpinner spinnerFloorMax;

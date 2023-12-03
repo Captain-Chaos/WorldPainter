@@ -24,6 +24,9 @@ import java.util.Map;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
+import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.FillMode.AIR;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.FillMode.CAVE_AIR;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.CUSTOM_DIMENSION;
 
 /**
@@ -31,8 +34,9 @@ import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.CUSTOM_DIM
  * @author SchmitzP
  */
 public class TunnelLayer extends CustomLayer {
-    public TunnelLayer(String name, Object paint) {
+    public TunnelLayer(String name, Object paint, Platform platform) {
         super(name, name, DataSize.BIT, 22, paint);
+        fillMode = platform.capabilities.contains(NAME_BASED) ? CAVE_AIR : AIR;
     }
 
     public Mode getRoofMode() {
@@ -244,6 +248,30 @@ public class TunnelLayer extends CustomLayer {
 
     public void setFloorDimensionId(Integer floorDimensionId) {
         this.floorDimensionId = floorDimensionId;
+    }
+
+    public FillMode getFillMode() {
+        return fillMode;
+    }
+
+    public void setFillMode(FillMode fillMode) {
+        this.fillMode = fillMode;
+    }
+
+    public int getFillLightLevel() {
+        return fillLightLevel;
+    }
+
+    public void setFillLightLevel(int fillLightLevel) {
+        this.fillLightLevel = fillLightLevel;
+    }
+
+    public MixedMaterial getFillMaterial() {
+        return fillMaterial;
+    }
+
+    public void setFillMaterial(MixedMaterial fillMaterial) {
+        this.fillMaterial = fillMaterial;
     }
 
     public Dimension updateFloorDimension(Dimension dimension, String name) {
@@ -461,6 +489,10 @@ public class TunnelLayer extends CustomLayer {
                 floorLayers = null;
             }
         }
+        if (wpVersion < 3) {
+            fillMode = AIR;
+            fillLightLevel = 8;
+        }
         wpVersion = CURRENT_WP_VERSION;
     }
 
@@ -474,11 +506,15 @@ public class TunnelLayer extends CustomLayer {
     private int wpVersion = CURRENT_WP_VERSION;
     private List<LayerSettings> orderedFloorLayers, orderedRoofLayers;
     Integer floorDimensionId;
+    private FillMode fillMode;
+    private int fillLightLevel = 8;
+    private MixedMaterial fillMaterial;
 
-    private static final int CURRENT_WP_VERSION = 2;
+    private static final int CURRENT_WP_VERSION = 3;
     private static final long serialVersionUID = 1L;
     
     public enum Mode { FIXED_HEIGHT, CONSTANT_DEPTH, INVERTED_DEPTH, CUSTOM_DIMENSION, FIXED_HEIGHT_ABOVE_FLOOR }
+    public enum FillMode { CAVE_AIR, AIR, LIGHT, MIXED_MATERIAL }
 
     public static class LayerSettings implements Serializable, Cloneable {
         public LayerSettings(int minLevel, int maxLevel) {

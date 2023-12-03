@@ -387,7 +387,7 @@ public class CustomLayerController implements PropertyChangeListener {
 
         menuItem = new JMenuItem("Add a custom cave/tunnel layer...");
         menuItem.addActionListener(e -> {
-            final TunnelLayer layer = new TunnelLayer("Tunnels", BLACK);
+            final TunnelLayer layer = new TunnelLayer("Tunnels", BLACK, world.getPlatform());
             final int baseHeight, waterLevel;
             final TileFactory tileFactory = dimension.getTileFactory();
             if (tileFactory instanceof HeightMapTileFactory) {

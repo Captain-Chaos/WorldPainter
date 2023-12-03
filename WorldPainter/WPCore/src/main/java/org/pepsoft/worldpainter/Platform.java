@@ -430,6 +430,11 @@ public final class Platform implements Serializable {
         /**
          * Supports Minecraft-style data packs.
          */
-        DATA_PACKS
+        DATA_PACKS,
+
+        /**
+         * Supports the {@code minecraft:light} block.
+         */
+        BLOCK_MINECRAFT_LIGHT
     }
 }
