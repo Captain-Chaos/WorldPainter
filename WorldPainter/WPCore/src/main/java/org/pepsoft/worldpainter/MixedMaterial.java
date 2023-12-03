@@ -426,7 +426,7 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                 mode = Mode.BLOBS;
             }
         }
-        
+
         init();
     }
     
@@ -435,7 +435,15 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
     }
     
     private void init() {
-        totalCount = 0;
+        // Reset all state
+        sortedRows = null;
+        noiseGenerators = null;
+        materials = null;
+        random = null;
+        simpleMaterial = null;
+        layerNoiseheightMap = null;
+        layerNoiseOffset = patternHeight = totalCount = 0;
+
         for (Row row: rows) {
             totalCount += row.occurrence;
         }
@@ -445,7 +453,6 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                     throw new IllegalArgumentException("Only one row allowed for SIMPLE mode");
                 }
                 simpleMaterial = rows[0].material;
-                patternHeight = -1;
                 break;
             case NOISE:
                 if (rows.length < 2) {
@@ -459,7 +466,6 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                     }
                 }
                 random = new Random();
-                patternHeight = -1;
                 break;
             case BLOBS:
                 if (rows.length < 2) {
@@ -475,7 +481,6 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                     cumulativePermillage += permillage * (1000 - cumulativePermillage) / 1000;
                     sortedRows[i].chance = PerlinNoise.getLevelForPromillage(cumulativePermillage);
                 }
-                patternHeight = -1;
                 break;
             case LAYERED:
                 if (rows.length < 2) {
@@ -494,9 +499,6 @@ public final class MixedMaterial implements Serializable, Comparable<MixedMateri
                 if (variation != null) {
                     layerNoiseheightMap = new NoiseHeightMap(variation, NOISE_SEED_OFFSET);
                     layerNoiseOffset = variation.getRange();
-                } else {
-                    layerNoiseheightMap = null;
-                    layerNoiseOffset = 0;
                 }
                 patternHeight = totalCount;
                 break;

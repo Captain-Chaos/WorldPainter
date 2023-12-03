@@ -9,6 +9,7 @@
    + cave_air and artificial light are only available for map formats which support them
  * A "Find" choice has been added to the context menu of Custom Layer buttons, that will move the view to the nearest location where that layer has been painted. This makes it easier to quickly find where a layer is in use
  * Bug fix: fix a scripting error that occurred when creating filters
+ * Bug fix: fix a bug that would sometimes prevent complex Custom Materials from working correctly
 
 -- Version 2.21.3, released 20-10-2023
 
