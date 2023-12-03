@@ -44,7 +44,7 @@ public class TunnelLayerExporterTest {
                         } else if (z <= 30) {
                             assertTrue(x + "," + y + "," + z + ": " + material, material == STONE || material.air);
                         } else if (z <= 70) {
-                            assertEquals(x + "," + y + "," + z, AIR, material);
+                            assertEquals(x + "," + y + "," + z, CAVE_AIR, material);
                         } else if (z < 80) {
                             assertTrue(x + "," + y + "," + z + ": " + material, material == STONE || material.air);
                         } else if (z < 97) {
