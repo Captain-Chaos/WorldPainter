@@ -4,7 +4,10 @@
  */
 package org.pepsoft.worldpainter.layers.renderers;
 
+import org.pepsoft.worldpainter.layers.Layer;
+
 /**
+ * An editor view renderer of a {@link Layer} with data size of {@link Layer.DataSize#NIBBLE NIBBLE}.
  *
  * @author pepijn
  */
