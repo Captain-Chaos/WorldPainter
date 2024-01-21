@@ -84,7 +84,7 @@ public abstract class Layer implements Serializable, Comparable<Layer> {
     /**
      * Return the type of the exporter that {@link #getExporter(Dimension, Platform, ExporterSettings)} will return.
      * If that method is implemented, this method must also be implemented. May be used to examine which phases the
-     * exporter requires.
+     * exporter requires. May return {@code null} for layers that cannot be exported.
      */
     public Class<? extends LayerExporter> getExporterType() {
         return exporterType;

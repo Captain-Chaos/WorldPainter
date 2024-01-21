@@ -10,7 +10,6 @@ import org.pepsoft.util.swing.BetterJPopupMenu;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension.Anchor;
-import org.pepsoft.worldpainter.Dimension.Role;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.exporting.IncidentalLayerExporter;
 import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
@@ -43,6 +42,7 @@ import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.FillMode.*;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.CAVE;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayersTableModel.*;
 import static org.pepsoft.worldpainter.themes.Filter.EVERYWHERE;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
@@ -54,6 +54,10 @@ import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
 @SuppressWarnings({"unused", "FieldCanBeLocal"}) // Managed by NetBeans
 public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> implements ChangeListener, ListSelectionListener {
     public TunnelLayerDialog(Window parent, Platform platform, TunnelLayer layer, Dimension dimension, boolean extendedBlockIds, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int minHeight, int maxHeight, int baseHeight, int waterLevel) {
+        this(parent, platform, layer, dimension, extendedBlockIds, colourScheme, customBiomeManager, minHeight, maxHeight, baseHeight, waterLevel, true);
+    }
+
+    protected TunnelLayerDialog(Window parent, Platform platform, TunnelLayer layer, Dimension dimension, boolean extendedBlockIds, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, int minHeight, int maxHeight, int baseHeight, int waterLevel, boolean init) {
         super(parent);
         this.platform = platform;
         this.layer = layer;
@@ -64,6 +68,10 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         this.waterLevel = waterLevel;
         this.minHeight = minHeight;
         this.maxHeight = maxHeight;
+
+        if (! init) {
+            return;
+        }
         
         initComponents();
         programmaticChange = true;
@@ -189,10 +197,14 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             }
         }
         saveSettingsTo(layer, true);
+        dismiss();
+    }
+
+    protected final void dismiss() {
         super.ok();
     }
     
-    private void updatePreview() {
+    protected final void updatePreview() {
 //        if ((radioButtonFloorFixedLevel.isSelected() && radioButtonRoofFixedLevel.isSelected())
 //                || (radioButtonFloorInverse.isSelected() && radioButtonRoofInverse.isSelected())) {
 //            labelTunnelHeight.setText("(tunnel height: " + Math.max(((Integer) spinnerRoofLevel.getValue() - (Integer) spinnerFloorLevel.getValue()), 0) + ")");
@@ -204,8 +216,8 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         generatePreview();
     }
 
-    private void generatePreview() {
-        final TunnelLayer layer = new TunnelLayer("tmp", null, platform);
+    protected void generatePreview() {
+        final TunnelLayer layer = new TunnelLayer("tmp", CAVE, null, platform);
         saveSettingsTo(layer, false);
         final Insets insets = labelPreview.getInsets();
         final int width = labelPreview.getWidth() - insets.left - insets.right;
@@ -417,7 +429,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         }
     }
     
-    private void setControlStates() {
+    protected void setControlStates() {
         spinnerFloorLevel.setEnabled(! radioButtonFloorCustomDimension.isSelected());
         spinnerFloorMin.setEnabled((! radioButtonFloorFixedLevel.isSelected()) && (! radioButtonFloorCustomDimension.isSelected()));
         spinnerFloorMax.setEnabled((! radioButtonFloorFixedLevel.isSelected()) && (! radioButtonFloorCustomDimension.isSelected()));
@@ -473,7 +485,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         editLayer(tableRoofLayers, roofLayersTableModel);
     }
 
-    private void editLayer(JTable table, TunnelLayersTableModel tableModel) {
+    protected final void editLayer(JTable table, TunnelLayersTableModel tableModel) {
         final int selectedRow = table.getSelectedRow();
         if (selectedRow != -1) {
             final Layer layer = tableModel.getLayer(selectedRow);
@@ -492,7 +504,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         addLayer(buttonAddRoofLayer, roofLayersTableModel);
     }
 
-    private void addLayer(Component button, TunnelLayersTableModel tableModel) {
+    protected final void addLayer(Component button, TunnelLayersTableModel tableModel) {
         JPopupMenu popupMenu = new BetterJPopupMenu();
         LayerManager.getInstance().getLayers().stream()
             .filter(l -> (l.getExporterType() != null) && IncidentalLayerExporter.class.isAssignableFrom(l.getExporterType()))
@@ -541,7 +553,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         newLayer(buttonNewRoofLayer, roofLayersTableModel);
     }
 
-    private void newLayer(Component button, TunnelLayersTableModel tableModel) {
+    protected final void newLayer(Component button, TunnelLayersTableModel tableModel) {
         JPopupMenu popupMenu = new BetterJPopupMenu();
         JMenuItem item = new JMenuItem("Custom Objects Layer");
         item.addActionListener(e -> {
@@ -584,7 +596,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         editLayerVariation(tableRoofLayers, roofLayersTableModel);
     }
 
-    private void editLayerVariation(JTable table, TunnelLayersTableModel tableModel) {
+    protected final void editLayerVariation(JTable table, TunnelLayersTableModel tableModel) {
         int selectedRow = table.getSelectedRow();
         if (selectedRow != -1) {
             NoiseSettings noiseSettings = (NoiseSettings) tableModel.getValueAt(selectedRow, COLUMN_VARIATION);
@@ -614,7 +626,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             final int dim = dimension.getAnchor().dim;
             final boolean invert = dimension.getAnchor().invert;
             final World2 world = dimension.getWorld();
-            final int id = findNextId(world, dim, CAVE_FLOOR, invert);
+            final int id = findNextId(world, dim, invert);
             layer.setFloorDimensionId(id);
             final long seed = dimension.getSeed() + id;
             HeightMap heightMap;
@@ -645,11 +657,11 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         }
     }
 
-    private int findNextId(World2 world, int dim, Role role, boolean invert) {
+    protected final int findNextId(World2 world, int dim, boolean invert) {
         int layer = 0;
         for (Dimension dimension: world.getDimensions()) {
             final Anchor anchor = dimension.getAnchor();
-            if ((anchor.dim == dim) && (anchor.role == role) && (anchor.invert == invert)) {
+            if ((anchor.dim == dim) && (anchor.role == CAVE_FLOOR) && (anchor.invert == invert)) {
                 layer = Math.max(layer, anchor.id + 1);
             }
         }
@@ -1798,15 +1810,17 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     private javax.swing.JTextField textFieldName;
     // End of variables declaration//GEN-END:variables
 
-    private final Platform platform;
-    private final TunnelLayer layer;
-    private final Dimension dimension;
-    private final int waterLevel, baseHeight, minHeight, maxHeight;
-    private final ColourScheme colourScheme;
-    private final CustomBiomeManager customBiomeManager;
-    private TunnelLayersTableModel floorLayersTableModel, roofLayersTableModel;
-    private boolean programmaticChange;
+    protected final Platform platform;
+    protected final TunnelLayer layer;
+    protected final Dimension dimension;
+    protected final int waterLevel, baseHeight, minHeight, maxHeight;
+    protected final ColourScheme colourScheme;
+    protected final CustomBiomeManager customBiomeManager;
+    private TunnelLayersTableModel floorLayersTableModel;
+    protected TunnelLayersTableModel roofLayersTableModel;
+    protected boolean programmaticChange;
 
-    private static final String PAINT_TUNNEL_LAYER_KEY = "org.pepsoft.worldpainter.TunnelLayer.paintLayer";
+    protected static final String PAINT_TUNNEL_LAYER_KEY = "org.pepsoft.worldpainter.TunnelLayer.paintLayer";
+
     private static final long serialVersionUID = 1L;
 }

@@ -173,6 +173,7 @@ public final class NoiseHeightMap extends AbstractHeightMap {
     }
 
     private final PerlinNoise perlinNoise;
+    @Deprecated
     private float height;
     private double dHeight;
     private final double scale;

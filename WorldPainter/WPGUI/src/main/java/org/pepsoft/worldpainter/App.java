@@ -2447,7 +2447,7 @@ public final class App extends JFrame implements RadiusControl,
                     }
                     return null;
                 }
-            }, NOT_CANCELABLE, NO_FOCUS_STEALING);
+            }, NOT_CANCELABLE, NO_FOCUS_STEALING); // TODO make cancelable. Close the output stream? That oughta do it. But also move the previous autosave file back...
 
             lastSaveTimestamp = lastChangeTimestamp = System.currentTimeMillis();
             lastAutosavedState = world.getChangeNo();

@@ -1023,7 +1023,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         // TODO: don't do this separately for every exported region
 
         // Now find all edge pixels and adjust the distances in the cache for the pixels around each one
-        final int r = (int) Math.ceil(maxDistance), d = 2 * r + 1;
+        final int r = (int) Math.ceil(maxDistance);
         for (Point tileCoords: tileCoordsToProcess) {
             for (int x = 0; x < TILE_SIZE; x++) {
                 for (int y = 0; y < TILE_SIZE; y++) {
@@ -3023,7 +3023,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
         /**
          * A dimension associated with a {@link TunnelLayer} floor. The {@link Anchor#id} field is used to associate
-         * it with a particular layer.
+         * it with a particular layer. Also used for floating dimension floors.
          */
         CAVE_FLOOR
     }
