@@ -85,9 +85,11 @@ public class EditObjectAttributes extends WorldPainterDialog {
             ((DefaultComboBoxModel) comboBoxCollisionMode.getModel()).removeElementAt(0);
             ((DefaultComboBoxModel) comboBoxUndergroundMode.getModel()).removeElementAt(0);
             ((DefaultComboBoxModel) comboBoxLeafDecayMode.getModel()).removeElementAt(0);
+            ((DefaultComboBoxModel) comboBoxWaterlogging.getModel()).removeElementAt(0);
             comboBoxCollisionMode.setSelectedIndex(object.getAttribute(ATTRIBUTE_COLLISION_MODE) - 1);
             comboBoxUndergroundMode.setSelectedIndex(object.getAttribute(ATTRIBUTE_UNDERGROUND_MODE) - 1);
             comboBoxLeafDecayMode.setSelectedIndex(object.getAttribute(ATTRIBUTE_LEAF_DECAY_MODE) - 1);
+            comboBoxWaterlogging.setSelectedIndex(object.getAttribute(ATTRIBUTE_MANAGE_WATERLOGGED) ? 0 : 1);
             spinnerFrequency.setValue(object.getAttribute(ATTRIBUTE_FREQUENCY));
             if (object.getAttribute(ATTRIBUTE_HEIGHT_MODE) == HEIGHT_MODE_TERRAIN) {
                 radioButtonPlaceOnTerrain.setSelected(true);
@@ -292,6 +294,9 @@ public class EditObjectAttributes extends WorldPainterDialog {
             if (singleSelection || comboBoxLeafDecayMode.getSelectedIndex() > 0) {
                 attributes.put(ATTRIBUTE_LEAF_DECAY_MODE.key, comboBoxLeafDecayMode.getSelectedIndex() + (singleSelection ? 1 : 0));
             }
+            if (singleSelection || comboBoxWaterlogging.getSelectedIndex() > 0) {
+                attributes.put(ATTRIBUTE_MANAGE_WATERLOGGED.key, ((comboBoxWaterlogging.getSelectedIndex() - (singleSelection ? 0 : 1)) == 0));
+            }
             if (singleSelection) {
                 attributes.remove(ATTRIBUTE_REPLACE_WITH_AIR.key);
                 if (checkBoxReplace.isSelected()) {
@@ -432,6 +437,8 @@ public class EditObjectAttributes extends WorldPainterDialog {
         jLabel13 = new javax.swing.JLabel();
         checkBoxRandomVariationActive = new javax.swing.JCheckBox();
         labelVerticalOffset = new javax.swing.JLabel();
+        jLabel14 = new javax.swing.JLabel();
+        comboBoxWaterlogging = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Edit Object Attributes");
@@ -611,6 +618,10 @@ public class EditObjectAttributes extends WorldPainterDialog {
         labelVerticalOffset.setLabelFor(spinnerVerticalOffset);
         labelVerticalOffset.setText("Height above terrain:");
 
+        jLabel14.setText("Waterlogging should:");
+
+        comboBoxWaterlogging.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "no change", "be managed by WorldPainter", "behave as exported" }));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -689,7 +700,11 @@ public class EditObjectAttributes extends WorldPainterDialog {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(labelVerticalOffset)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerVerticalOffset, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(spinnerVerticalOffset, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel14)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(comboBoxWaterlogging, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGap(18, 18, 18)
                         .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
@@ -784,6 +799,10 @@ public class EditObjectAttributes extends WorldPainterDialog {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel9)
                             .addComponent(comboBoxLeafDecayMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel14)
+                            .addComponent(comboBoxWaterlogging, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(checkBoxReplace)
@@ -869,12 +888,14 @@ public class EditObjectAttributes extends WorldPainterDialog {
     private javax.swing.JComboBox comboBoxLeafDecayMode;
     private javax.swing.JComboBox<Material> comboBoxReplacedMaterial;
     private javax.swing.JComboBox comboBoxUndergroundMode;
+    private javax.swing.JComboBox<String> comboBoxWaterlogging;
     private javax.swing.JTextField fieldName;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
