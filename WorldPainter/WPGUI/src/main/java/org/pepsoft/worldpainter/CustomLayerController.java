@@ -112,11 +112,7 @@ public class CustomLayerController implements PropertyChangeListener {
             private void showPopup(MouseEvent e) {
                 final JPopupMenu popup = new BetterJPopupMenu();
 
-                JMenuItem menuItem = new JMenuItem("Find");
-                menuItem.addActionListener(e1 -> findLayer(layer));
-                popup.add(menuItem);
-
-                menuItem = new JMenuItem(strings.getString("edit") + "...");
+                JMenuItem menuItem = new JMenuItem(strings.getString("edit") + "...");
                 menuItem.addActionListener(e1 -> editCustomLayer(layer));
                 popup.add(menuItem);
 
@@ -185,6 +181,10 @@ public class CustomLayerController implements PropertyChangeListener {
                         popup.add(menuItem);
                     }
                 }
+
+                menuItem = new JMenuItem("Find");
+                menuItem.addActionListener(e1 -> findLayer(layer));
+                popup.add(menuItem);
 
                 menuItem = new JMenuItem("Duplicate...");
                 if (layer.isExportableToFile()) {
