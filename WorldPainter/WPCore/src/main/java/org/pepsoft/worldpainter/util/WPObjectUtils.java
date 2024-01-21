@@ -29,26 +29,23 @@ public class WPObjectUtils {
      * @param leafDecayMode     The leaf decay mode to apply, as one of the {@code LEAF_DECAY_*} constants in {@link WPObject}.
      * @param waterloggedLeaves Whether the platform to which the block will be exported supports waterlogged leaf blocks.
      * @param connectBlocks     Whether any connections of the block (such as fence posts might make) to surrounding objects should be automatically managed.
+     * @param manageWaterlogged Whether the {@code waterlogged} property of the block should be automatically adjusted according to whether the existing block contains wate.
      */
-    public static void placeBlock(MinecraftWorld world, int x, int y, int height, Material material, int leafDecayMode, boolean waterloggedLeaves, boolean connectBlocks) {
-        final boolean materialHasPropertyWaterlogged;
-        if (material.leafBlock) {
-            materialHasPropertyWaterlogged = waterloggedLeaves;
-            if (leafDecayMode != LEAF_DECAY_NO_CHANGE) {
-                if (leafDecayMode == LEAF_DECAY_ON) {
-                    material = material.withProperty(PERSISTENT, false);
-                } else {
-                    material = material.withProperty(PERSISTENT, true);
-                }
+    public static void placeBlock(MinecraftWorld world, int x, int y, int height, Material material, int leafDecayMode, boolean waterloggedLeaves, boolean connectBlocks, boolean manageWaterlogged) {
+        if (material.leafBlock && (leafDecayMode != LEAF_DECAY_NO_CHANGE)) {
+            if (leafDecayMode == LEAF_DECAY_ON) {
+                material = material.withProperty(PERSISTENT, false);
+            } else {
+                material = material.withProperty(PERSISTENT, true);
             }
-        } else {
-            materialHasPropertyWaterlogged = material.hasProperty(WATERLOGGED);
         }
         final Material existingMaterial = world.getMaterialAt(x, y, height);
         final boolean existingMaterialContainsWater = existingMaterial.containsWater();
-        // Manage the waterlogged property, but only if we're confident what it should be based on the block that is
-        // already there
-        if ((existingMaterial.translucent || existingMaterial.hasProperty(WATERLOGGED)) && materialHasPropertyWaterlogged) {
+        // Manage the waterlogged property, but only if requested, and we're confident what it should be based on the
+        // block that is already there
+        if (manageWaterlogged
+                && (existingMaterial.translucent || existingMaterial.hasProperty(WATERLOGGED))
+                && (material.leafBlock ? waterloggedLeaves : material.hasProperty(WATERLOGGED))) {
             if (existingMaterialContainsWater) {
                 material = material.withProperty(WATERLOGGED, true);
             } else {
