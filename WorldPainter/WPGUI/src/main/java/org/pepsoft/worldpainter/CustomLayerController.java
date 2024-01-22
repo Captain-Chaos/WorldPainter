@@ -401,36 +401,6 @@ public class CustomLayerController implements PropertyChangeListener {
         }
         customLayerMenu.add(menuItem);
 
-        menuItem = new JMenuItem("[PREVIEW] Add a floating dimension...");
-        menuItem.addActionListener(e -> {
-            final TunnelLayer layer = new TunnelLayer("Floating Dimension", FLOATING, CYAN, world.getPlatform());
-            layer.setFloorMode(FIXED_HEIGHT_ABOVE_FLOOR);
-            layer.setFloorLevel(16);
-            final int baseHeight, waterLevel;
-            final TileFactory tileFactory = dimension.getTileFactory();
-            if (tileFactory instanceof HeightMapTileFactory) {
-                baseHeight = (int) ((HeightMapTileFactory) tileFactory).getBaseHeight();
-                waterLevel = ((HeightMapTileFactory) tileFactory).getWaterHeight();
-                layer.setFloodWithLava(((HeightMapTileFactory) tileFactory).isFloodWithLava());
-            } else {
-                baseHeight = 58;
-                waterLevel = DEFAULT_WATER_LEVEL;
-            }
-            // TODO passing in dimension here is a crude mechanism. It is supposed to be the dimension on which this
-            //  layer will be used, but that is impossible to enforce. In practice this will usually be right though
-            final FloatingLayerDialog dialog = new FloatingLayerDialog(app, world.getPlatform(), layer, dimension, world.isExtendedBlockIds(), app.getColourScheme(), app.getCustomBiomeManager(), dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
-            dialog.setVisible(() -> {
-                if (paletteName != null) {
-                    layer.setPalette(paletteName);
-                }
-                registerCustomLayer(layer, true);
-            });
-        });
-        if (anchor.role == CAVE_FLOOR) {
-            menuItem.setEnabled(false);
-        }
-        customLayerMenu.add(menuItem);
-
         menuItem = new JMenuItem("Add a custom cave/tunnel layer...");
         menuItem.addActionListener(e -> {
             final TunnelLayer layer = new TunnelLayer("Tunnels", CAVE, BLACK, world.getPlatform());
@@ -497,6 +467,36 @@ public class CustomLayerController implements PropertyChangeListener {
                 registerCustomLayer(layer, true);
             });
         });
+        customLayerMenu.add(menuItem);
+
+        menuItem = new JMenuItem("[PREVIEW] Add a floating dimension...");
+        menuItem.addActionListener(e -> {
+            final TunnelLayer layer = new TunnelLayer("Floating Dimension", FLOATING, CYAN, world.getPlatform());
+            layer.setFloorMode(FIXED_HEIGHT_ABOVE_FLOOR);
+            layer.setFloorLevel(16);
+            final int baseHeight, waterLevel;
+            final TileFactory tileFactory = dimension.getTileFactory();
+            if (tileFactory instanceof HeightMapTileFactory) {
+                baseHeight = (int) ((HeightMapTileFactory) tileFactory).getBaseHeight();
+                waterLevel = ((HeightMapTileFactory) tileFactory).getWaterHeight();
+                layer.setFloodWithLava(((HeightMapTileFactory) tileFactory).isFloodWithLava());
+            } else {
+                baseHeight = 58;
+                waterLevel = DEFAULT_WATER_LEVEL;
+            }
+            // TODO passing in dimension here is a crude mechanism. It is supposed to be the dimension on which this
+            //  layer will be used, but that is impossible to enforce. In practice this will usually be right though
+            final FloatingLayerDialog dialog = new FloatingLayerDialog(app, world.getPlatform(), layer, dimension, world.isExtendedBlockIds(), app.getColourScheme(), app.getCustomBiomeManager(), dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
+            dialog.setVisible(() -> {
+                if (paletteName != null) {
+                    layer.setPalette(paletteName);
+                }
+                registerCustomLayer(layer, true);
+            });
+        });
+        if (anchor.role == CAVE_FLOOR) {
+            menuItem.setEnabled(false);
+        }
         customLayerMenu.add(menuItem);
 
         List<Class<? extends CustomLayer>> allPluginLayers = new ArrayList<>();
