@@ -220,26 +220,17 @@ public class TunnelLayerExporter extends AbstractTunnelLayerExporter implements 
             final List<FirstPassLayerExporter> firstPassExporters = new ArrayList<>();
             final List<SecondPassLayerExporter> secondPassExporters = new ArrayList<>();
             floorLayers.stream()
-                    .filter(layer -> ! SKIP_LAYERS.contains(layer))
+                    .filter(layer -> (layer.getExporterType() != null) && (FirstPassLayerExporter.class.isAssignableFrom(layer.getExporterType()) || SecondPassLayerExporter.class.isAssignableFrom(layer.getExporterType())))
                     .sorted()
                     .forEach(layer -> {
-                        final Class<? extends LayerExporter> exporterType = layer.getExporterType();
-                        if (exporterType != null) {
-                            if (FirstPassLayerExporter.class.isAssignableFrom(exporterType) || SecondPassLayerExporter.class.isAssignableFrom(exporterType)) {
-                                final LayerExporter exporter = layer.getExporter(floorDimension, platform, floorDimension.getLayerSettings(layer));
-                                if (exporter instanceof FirstPassLayerExporter) {
-                                    firstPassExporters.add((FirstPassLayerExporter) exporter);
-                                }
-                                if (exporter instanceof SecondPassLayerExporter) {
-                                    if (((SecondPassLayerExporter) exporter).getStages().contains(CARVE)) {
-                                        secondPassExporters.add((SecondPassLayerExporter) exporter);
-                                    }
-                                }
-                            } else {
-                                logger.debug("Skipping layer {} for stage CARVE while processing TunnelLayer floor dimension", layer.getName());
+                        final LayerExporter exporter = layer.getExporter(floorDimension, platform, floorDimension.getLayerSettings(layer));
+                        if (exporter instanceof FirstPassLayerExporter) {
+                            firstPassExporters.add((FirstPassLayerExporter) exporter);
+                        }
+                        if (exporter instanceof SecondPassLayerExporter) {
+                            if (((SecondPassLayerExporter) exporter).getStages().contains(CARVE)) {
+                                secondPassExporters.add((SecondPassLayerExporter) exporter);
                             }
-                        } else if (! (layer instanceof Biome)) {
-                            throw new UnsupportedOperationException("Layer " + layer.getName() + " of type " + layer.getClass().getSimpleName() + " not yet supported for cave floor dimensions");
                         }
                     });
             final WorldPainterChunkFactory chunkFactory = new WorldPainterChunkFactory(floorDimension, null, platform, maxHeight);

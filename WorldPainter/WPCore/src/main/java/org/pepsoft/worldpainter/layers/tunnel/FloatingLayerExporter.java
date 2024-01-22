@@ -5,7 +5,6 @@ import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
-import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
 import org.pepsoft.worldpainter.exporting.WorldPainterChunkFactory;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
@@ -208,16 +207,8 @@ public class FloatingLayerExporter extends AbstractTunnelLayerExporter implement
             final SortedSet<Layer> floorLayers = new TreeSet<>(tile.getLayers());
             floorLayers.addAll(floorDimension.getMinimumLayers());
             return floorLayers.stream()
-                    .filter(layer -> ! SKIP_LAYERS.contains(layer))
-                    .map(layer -> {
-                        final Class<? extends LayerExporter> exporterType = layer.getExporterType();
-                        if ((exporterType != null) && FirstPassLayerExporter.class.isAssignableFrom(exporterType)) {
-                            return (FirstPassLayerExporter) layer.getExporter(floorDimension, platform, floorDimension.getLayerSettings(layer));
-                        }
-                        logger.debug("Skipping layer {} for first pass while processing TunnelLayer floor dimension", layer.getName());
-                        return null;
-                    })
-                    .filter(Objects::nonNull)
+                    .filter(layer -> (layer.getExporterType() != null) && FirstPassLayerExporter.class.isAssignableFrom(layer.getExporterType()))
+                    .map(layer -> (FirstPassLayerExporter) layer.getExporter(floorDimension, platform, floorDimension.getLayerSettings(layer)))
                     .toArray(FirstPassLayerExporter[]::new);
         });
     }

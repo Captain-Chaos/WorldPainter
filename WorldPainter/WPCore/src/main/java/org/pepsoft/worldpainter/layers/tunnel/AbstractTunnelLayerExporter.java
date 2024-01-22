@@ -5,7 +5,6 @@
  */
 package org.pepsoft.worldpainter.layers.tunnel;
 
-import com.google.common.collect.ImmutableSet;
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.Dimension;
@@ -13,19 +12,15 @@ import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
-import org.pepsoft.worldpainter.layers.FloodWithLava;
 import org.pepsoft.worldpainter.layers.Layer;
-import org.pepsoft.worldpainter.layers.NotPresentBlock;
 import org.pepsoft.worldpainter.layers.exporters.AbstractCavesExporter;
-import org.pepsoft.worldpainter.selection.SelectionBlock;
-import org.pepsoft.worldpainter.selection.SelectionChunk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.vecmath.Point3i;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.*;
 import java.util.function.Supplier;
 
 import static java.awt.Font.PLAIN;
@@ -57,28 +52,17 @@ public abstract class AbstractTunnelLayerExporter extends AbstractCavesExporter<
             // TODO add support for first pass exporters
             final List<Layer> floorLayers = new ArrayList<>(floorDimension.getAllLayers(false));
             floorLayers.addAll(floorDimension.getMinimumLayers());
-            Collections.sort(floorLayers);
-            final SecondPassLayerExporter[] floorExporters = floorLayers.stream()
-                    .filter(layer -> ! SKIP_LAYERS.contains(layer))
-                    .map(layer -> {
-                        final Class<? extends LayerExporter> exporterType = layer.getExporterType();
-                        if ((exporterType != null) && SecondPassLayerExporter.class.isAssignableFrom(exporterType)) {
-                            final SecondPassLayerExporter exporter = (SecondPassLayerExporter) layer.getExporter(floorDimension, platform, floorDimension.getLayerSettings(layer));
-                            if (exporter.getStages().contains(ADD_FEATURES)) {
-                                return exporter;
-                            }
-                        }
-                        logger.debug("Skipping layer {} for stage ADD_FEATURES while processing TunnelLayer floor dimension", layer.getName());
-                        return null;
-                    })
-                    .filter(Objects::nonNull)
-                    .toArray(SecondPassLayerExporter[]::new);
-            for (SecondPassLayerExporter exporter: floorExporters) {
+            floorLayers.stream()
+                    .sorted()
+                    .filter(layer -> (layer.getExporterType() != null) && SecondPassLayerExporter.class.isAssignableFrom(layer.getExporterType()))
+                    .map(layer -> (SecondPassLayerExporter) layer.getExporter(floorDimension, platform, floorDimension.getLayerSettings(layer)))
+                    .filter(exporter -> exporter.getStages().contains(ADD_FEATURES))
+                    .forEach(exporter -> {
                 final List<Fixup> layerFixups = exporter.addFeatures(area, exportedArea, world);
                 if (layerFixups != null) {
                     fixups.addAll(layerFixups);
                 }
-            }
+            });
         } else {
 
             // Or render floor layers
@@ -244,8 +228,6 @@ public abstract class AbstractTunnelLayerExporter extends AbstractCavesExporter<
     }
 
     protected final TunnelLayerHelper helper;
-
-    protected static final Set<Layer> SKIP_LAYERS = ImmutableSet.of(NotPresentBlock.INSTANCE, FloodWithLava.INSTANCE, SelectionBlock.INSTANCE, SelectionChunk.INSTANCE);
 
     protected static final Font HEIGHT_MARKER_FONT = new Font("SansSerif", PLAIN, 10);
     private static final Logger logger = LoggerFactory.getLogger(AbstractTunnelLayerExporter.class);
