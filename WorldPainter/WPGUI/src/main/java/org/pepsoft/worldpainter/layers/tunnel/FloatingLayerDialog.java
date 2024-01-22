@@ -78,6 +78,9 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
 
         noiseSettingsEditorBottom.addChangeListener(this);
 
+        // TODO [FLOATING] remove
+        jTabbedPane1.setEnabledAt(1, false);
+        
         scaleToUI();
         pack();
         scaleWindowToUI();
