@@ -1,3 +1,20 @@
+-- Version 2.22.1, released ...
+
+ * A preview of floating dimensions has been added
+   + They work very similarly to Custom Cave/Tunnel layers:
+   + You create a new floating dimension layer and configure what you want the default height of the floor to be
+   + Then you paint the layer in the desired shape of the floating dimension. You'll most likely want to use a solid brush at 100%
+   + Then you right-click the layer button and select "edit floor dimension" to customise the floating dimension floor
+   + This is a preview! It is not finished and contains bugs. It exists mainly to solicit feedback. Please report your experiences in the WorldPainter subreddit: https://www.reddit.com/r/WorldPainter
+   + Known missing functionality:
+     - Bottom layers do not yet work. These will work the same as roof layers for Custom Cave/Tunnel layers; they will be exported inverted at the bottom of the floating dimension
+     - You cannot yet configure the material on the bottom of the floating dimension, or the shape of the edge of the floating dimension
+     - There is no way yet to raise or lower the floating dimension after creating it, other than using the regular height tools. Don't try to use the Change Height screen; it will affect the surface dimension as well
+     - A limited set of layers can be used on the floor dimension. This will be expanded later (in particular layers that affect the underground, such as underground pockets and the cave layers, will be supported)
+ * The Find entry on Custom Layer button popups has been moved below the Edit entry
+ * Bug fix: fix a crash when trying to add an existing layer to a Custom Cave/Tunnel layer roof or floor, when there are Custom Annotation layers present
+ * Bug fix: fix a crash when Exporting a Custom Cave/Tunnel layer that has Custom Annotations
+
 -- Version 2.22.0, released 3-12-2023
 
  * Custom Cave/Tunnel Layers can now be filled with artificial light, or a custom material
