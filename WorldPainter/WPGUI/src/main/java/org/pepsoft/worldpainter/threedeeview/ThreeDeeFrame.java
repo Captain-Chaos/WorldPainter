@@ -32,6 +32,7 @@ import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
 import static org.pepsoft.worldpainter.App.INT_NUMBER_FORMAT;
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
+import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 import static org.pepsoft.worldpainter.threedeeview.Tile3DRenderer.LayerVisibilityMode.*;
 import static org.pepsoft.worldpainter.util.LayoutUtils.setDefaultSizeAndLocation;
 
@@ -170,7 +171,7 @@ public class ThreeDeeFrame extends JFrame implements WindowListener {
             threeDeeView.setLayerVisibility(layerVisibility);
             threeDeeView.setHiddenLayers(hiddenLayers);
             scrollPane.setViewportView(threeDeeView);
-            MOVE_TO_SPAWN_ACTION.setEnabled(dimension.getAnchor().dim == DIM_NORMAL);
+            MOVE_TO_SPAWN_ACTION.setEnabled(dimension.getAnchor().equals((dimension.getWorld().getSpawnPointDimension() == null) ? NORMAL_DETAIL : dimension.getWorld().getSpawnPointDimension()));
             glassPane.setRotation(DIRECTIONS[rotation], dimension.getAnchor().invert);
         }
     }

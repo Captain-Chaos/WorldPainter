@@ -28,7 +28,7 @@ import java.util.List;
 import static java.util.Collections.singletonMap;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.CollectionUtils.nullAnd;
-import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
+import static org.pepsoft.worldpainter.Dimension.Role.FLOATING_FLOOR;
 import static org.pepsoft.worldpainter.Terrain.GRASS;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.FLOATING;
@@ -105,12 +105,12 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
             final Dimension floorDimension = createFloorDimension();
             layer.setFloorDimensionId(floorDimension.getAnchor().id);
             final Configuration config = Configuration.getInstance();
-            if (! config.isMessageDisplayedCountAtLeast(PAINT_TUNNEL_LAYER_KEY, 3)) {
+            if (! config.isMessageDisplayedCountAtLeast(PAINT_FLOATING_LAYER_KEY, 3)) {
                 doLaterOnEventThread(() -> JOptionPane.showMessageDialog(App.getInstance(),
                         "Use the paint tools to paint the Floating Dimension in the desired shape.\n" +
                         "Then right-click on the [" + layer.getName() + "] button on the [" + layer.getPalette() + "] panel\n" +
                         "and select \"Edit floating dimension\" to paint on, and vertically shape, the dimension floor."));
-                config.setMessageDisplayed(PAINT_TUNNEL_LAYER_KEY);
+                config.setMessageDisplayed(PAINT_FLOATING_LAYER_KEY);
             }
         }
         saveSettingsTo(layer, true);
@@ -274,7 +274,7 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
         final int dim = dimension.getAnchor().dim;
         final boolean invert = dimension.getAnchor().invert;
         final World2 world = dimension.getWorld();
-        final int id = findNextId(world, dim, invert);
+        final int id = findNextId(world, dim, FLOATING_FLOOR, invert);
         layer.setFloorDimensionId(id);
         final long seed = dimension.getSeed() + id;
 
@@ -298,7 +298,7 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
             theme.setDiscreteValues(singletonMap(Biome.INSTANCE, biome));
         }
         final TileFactory tileFactory = new HeightMapTileFactory(seed, heightMap, minHeight, maxHeight, floodWithLava, theme);
-        final Dimension floorDimension = new Dimension(world, null, seed, tileFactory, new Anchor(dim, CAVE_FLOOR, invert, id));
+        final Dimension floorDimension = new Dimension(world, null, seed, tileFactory, new Anchor(dim, FLOATING_FLOOR, invert, id));
         world.addDimension(floorDimension);
         layer.updateFloorDimension(dimension, textFieldName.getText() + " Floor");
 
@@ -1105,6 +1105,7 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
     private javax.swing.JTextField textFieldName;
     // End of variables declaration//GEN-END:variables
 
+    private static final String PAINT_FLOATING_LAYER_KEY = "org.pepsoft.worldpainter.FloatingLayer.paintLayer";
     private static final long FLOOR_DIMENSION_SEED_OFFSET = 27981L;
     private static final long serialVersionUID = 1L;
 }

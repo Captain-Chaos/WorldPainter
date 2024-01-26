@@ -265,7 +265,7 @@ public class TileSelector extends javax.swing.JPanel {
             if (anchor.role == DETAIL) {
                 backgroundDimension = dimension.getWorld().getDimension(new Dimension.Anchor(anchor.dim, MASTER, anchor.invert, 0));
                 backgroundZoom = 4;
-            } else if (anchor.role == CAVE_FLOOR) {
+            } else if ((anchor.role == CAVE_FLOOR) || (anchor.role == FLOATING_FLOOR)) {
                 backgroundDimension = dimension.getWorld().getDimension(new Dimension.Anchor(anchor.dim, DETAIL, anchor.invert, 0));
                 backgroundZoom = 0;
             } else {

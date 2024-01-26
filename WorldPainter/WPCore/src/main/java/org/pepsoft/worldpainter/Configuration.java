@@ -39,8 +39,7 @@ import static org.pepsoft.util.CollectionUtils.copyOf;
 import static org.pepsoft.util.XDG.HOME;
 import static org.pepsoft.util.XDG.XDG_DATA_HOME;
 import static org.pepsoft.worldpainter.Configuration.DonationStatus.DONATED;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
-import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_15;
+import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Dimension.Anchor.NORMAL_DETAIL;
 import static org.pepsoft.worldpainter.Generator.DEFAULT;
 import static org.pepsoft.worldpainter.Generator.LARGE_BIOMES;
@@ -1304,7 +1303,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private static final int CURRENT_VERSION = 24;
 
     public static final String ADVANCED_SETTING_PREFIX = "org.pepsoft.worldpainter";
-    public static final Platform DEFAULT_PLATFORM = JAVA_ANVIL_1_15;
+    public static final Platform DEFAULT_PLATFORM = JAVA_ANVIL_1_19;
 
     public enum DonationStatus {DONATED, NO_THANK_YOU}
     

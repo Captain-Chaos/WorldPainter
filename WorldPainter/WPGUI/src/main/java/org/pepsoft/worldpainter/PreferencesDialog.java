@@ -394,7 +394,7 @@ public class PreferencesDialog extends WorldPainterDialog {
     private void editTerrainAndLayerSettings() {
         Configuration config = Configuration.getInstance();
         defaultTerrainAndLayerSettings.getWorld().setPlatform((Platform) comboBoxPlatform.getSelectedItem());
-        DimensionPropertiesDialog dialog = new DimensionPropertiesDialog(this, defaultTerrainAndLayerSettings, colourScheme, true);
+        DimensionPropertiesDialog dialog = new DimensionPropertiesDialog(this, defaultTerrainAndLayerSettings, colourScheme, null, true);
         dialog.setVisible(true);
         TileFactory tileFactory = defaultTerrainAndLayerSettings.getTileFactory();
         if ((tileFactory instanceof HeightMapTileFactory)

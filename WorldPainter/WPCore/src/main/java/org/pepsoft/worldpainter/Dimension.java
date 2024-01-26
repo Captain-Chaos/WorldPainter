@@ -60,8 +60,7 @@ import static org.pepsoft.util.CollectionUtils.copyOf;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL;
 import static org.pepsoft.worldpainter.Dimension.Anchor.*;
-import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
-import static org.pepsoft.worldpainter.Dimension.Role.MASTER;
+import static org.pepsoft.worldpainter.Dimension.Role.*;
 import static org.pepsoft.worldpainter.Dimension.WallType.BEDROCK;
 import static org.pepsoft.worldpainter.Generator.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_20Biomes.*;
@@ -1413,6 +1412,19 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         this.fixOverlayCoords = fixOverlayCoords;
     }
 
+    public Integer getUndergroundBiome() {
+        return undergroundBiome;
+    }
+
+    public void setUndergroundBiome(Integer undergroundBiome) {
+        if (! Objects.equals(undergroundBiome, this.undergroundBiome)) {
+            final Integer oldUndergroundBiome = this.undergroundBiome;
+            this.undergroundBiome = undergroundBiome;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("undergroundBiome", oldUndergroundBiome, undergroundBiome);
+        }
+    }
+
     public Garden getGarden() {
         return garden;
     }
@@ -2185,6 +2197,13 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         changeNo++;
     }
 
+    void changeAnchorToFloatingFloor() {
+        if (anchor.role != CAVE_FLOOR) {
+            throw new IllegalStateException();
+        }
+        anchor = new Anchor(anchor.dim, FLOATING_FLOOR, anchor.invert, anchor.id);
+    }
+
     /**
      * Optimised version of {@link #getBitLayerValueAt(Layer, int, int)} which gets the information from a 2D array
      * cache of {@link Tile}s rather than looking up the tile each time.
@@ -2543,6 +2562,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private String soloedPalette;
     private UUID id = UUID.randomUUID();
     private List<Overlay> overlays = new ArrayList<>();
+    /**
+     * Index of the underground biome, or {@code null} for "same as surface".
+     */
+    private Integer undergroundBiome;
     private transient List<Listener> listeners = new ArrayList<>();
     private transient boolean eventsInhibited;
     private transient Set<Tile> dirtyTiles = new HashSet<>();
@@ -2886,6 +2909,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 case CAVE_FLOOR:
                     sb.append(" Cave Floor");
                     break;
+                case FLOATING_FLOOR:
+                    sb.append(" Floating Floor");
+                    break;
             }
             if (invert) {
                 sb.append(" Ceiling");
@@ -3022,9 +3048,15 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         MASTER,
 
         /**
-         * A dimension associated with a {@link TunnelLayer} floor. The {@link Anchor#id} field is used to associate
-         * it with a particular layer. Also used for floating dimension floors.
+         * A dimension associated with a {@link TunnelLayer} floor in cave mode. The {@link Anchor#id} field is used to
+         * associate it with a particular layer.
          */
-        CAVE_FLOOR
+        CAVE_FLOOR,
+
+        /**
+         * A dimension associated with a {@link TunnelLayer} floor in floating dimension mode. The {@link Anchor#id}
+         * field is used to associate it with a particular layer.
+         */
+        FLOATING_FLOOR
     }
 }

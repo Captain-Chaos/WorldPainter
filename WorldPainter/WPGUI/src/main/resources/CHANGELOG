@@ -1,5 +1,8 @@
 -- Version 2.22.2, released ...
 
+ * The spawn point can now be in a Custom Cave/Tunnel layer or on a floating dimension
+   + Just edit the corresponding floor dimension and then use the Spawn tool to set the spawn point there
+   + If the spawn point is moved during a test export because it is outside the selected tiles, it will always be moved to the surface
  * Added a warning when creating a Master Dimension, as people continue to do this by accident or without sufficient understanding. It will be displayed the first three times you try to create a Master Dimension
 
 -- Version 2.22.1, released 22-1-2024
@@ -15,6 +18,7 @@
      - You cannot yet configure the material on the bottom of the floating dimension, or the shape of the edge of the floating dimension
      - There is no way yet to raise or lower the floating dimension after creating it, other than using the regular height tools. Don't try to use the Change Height screen; it will affect the surface dimension as well
      - A limited set of layers can be used on the floor dimension. This will be expanded later (in particular layers that affect the underground, such as underground pockets and the cave layers, will be supported)
+     - 3D biomes are not yet applied to the map
  * The Find entry on Custom Layer button popups has been moved below the Edit entry
  * Bug fix: fix a crash when trying to add an existing layer to a Custom Cave/Tunnel layer roof or floor, when there are Custom Annotation layers present
  * Bug fix: fix a crash when Exporting a Custom Cave/Tunnel layer that has Custom Annotations

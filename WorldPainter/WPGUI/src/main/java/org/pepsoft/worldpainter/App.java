@@ -448,6 +448,7 @@ public final class App extends JFrame implements RadiusControl,
                         }
                         break;
                     case CAVE_FLOOR:
+                    case FLOATING_FLOOR:
                         // Keep the surface dimension in sync with the last edited cave floor
                         detailDimension = world.getDimension(new Anchor(anchor.dim, DETAIL, anchor.invert, 0));
                         detailDimension.setLastViewPosition(viewPosition);
@@ -525,7 +526,7 @@ public final class App extends JFrame implements RadiusControl,
             viewSurfaceMenuItem.setSelected(anchor.dim == DIM_NORMAL);
             viewNetherMenuItem.setSelected(anchor.dim == DIM_NETHER);
             viewEndMenuItem.setSelected(anchor.dim == DIM_END);
-            ACTION_EDIT_TILES.setEnabled(anchor.role != CAVE_FLOOR);
+            ACTION_EDIT_TILES.setEnabled((anchor.role != CAVE_FLOOR) && (anchor.role != FLOATING_FLOOR));
 
             // Legacy: if this is an older world with an overlay enabled, warn the user that it may be incorrectly
             // located (we used to offer to fix this, but this should be exceedingly rare).
@@ -543,11 +544,11 @@ public final class App extends JFrame implements RadiusControl,
                 showBackgroundStatus = backgroundDimension != null;
                 backgroundZoom = 4;
                 view.setBackgroundDimension(backgroundDimension, backgroundZoom, FADE_TO_FIFTY_PERCENT);
-            } else if (anchor.role == CAVE_FLOOR) {
+            } else if ((anchor.role == CAVE_FLOOR) || (anchor.role == FLOATING_FLOOR)) {
                 backgroundDimension = world.getDimension(new Anchor(anchor.dim, DETAIL, anchor.invert, 0));
                 showBackgroundStatus = false;
                 backgroundZoom = 0;
-                outsideDimensionLabel = "Outside Cave/Tunnel";
+                outsideDimensionLabel = (anchor.role == CAVE_FLOOR) ? "Outside Cave/Tunnel" : "Outside Floating Dimension";
                 view.setBackgroundDimension(backgroundDimension, backgroundZoom, FADE_TO_TWENTYFIVE_PERCENT);
             } else {
                 backgroundDimension = null;
@@ -3408,11 +3409,14 @@ public final class App extends JFrame implements RadiusControl,
 
     @Nullable
     Function<Layer, Boolean> getLayerFilterForCurrentDimension() {
-        if ((dimension != null) && (dimension.getAnchor().role == CAVE_FLOOR)) {
-            return TunnelLayer::isLayerSupportedForFloorDimension;
-        } else {
-            return null;
+        if (dimension != null) {
+            if (dimension.getAnchor().role == CAVE_FLOOR) {
+                return TunnelLayer::isLayerSupportedForCaveFloorDimension;
+            } else if (dimension.getAnchor().role == FLOATING_FLOOR) {
+                return TunnelLayer::isLayerSupportedForFloatingFloorDimension;
+            }
         }
+        return null;
     }
 
     private JPanel createTerrainPanel() {
@@ -4637,7 +4641,7 @@ public final class App extends JFrame implements RadiusControl,
             }
             world.addDimension(nether);
             setDimension(nether);
-            DimensionPropertiesDialog propertiesDialog = new DimensionPropertiesDialog(this, nether, selectedColourScheme);
+            DimensionPropertiesDialog propertiesDialog = new DimensionPropertiesDialog(this, nether, selectedColourScheme, customBiomeManager);
             propertiesDialog.setVisible(true);
         }
     }
@@ -5268,7 +5272,7 @@ public final class App extends JFrame implements RadiusControl,
         setEnabled(Biome.INSTANCE, biomesSupported, "Biomes not supported by format " + platform);
         setEnabled(biomesPanelFrame, biomesSupported);
         // TODO deselect biomes panel if it was selected
-        if (anchor.equals(NORMAL_DETAIL)) {
+        if ((anchor.dim == DIM_NORMAL) && (anchor.role != MASTER)) {
             setEnabled(setSpawnPointToggleButton, platform.capabilities.contains(SET_SPAWN_POINT));
             setEnabled(ACTION_MOVE_TO_SPAWN, platform.capabilities.contains(SET_SPAWN_POINT));
         } else {
@@ -5278,16 +5282,17 @@ public final class App extends JFrame implements RadiusControl,
             setEnabled(setSpawnPointToggleButton, false);
             setEnabled(ACTION_MOVE_TO_SPAWN, false);
         }
-        setEnabled(Populate.INSTANCE, (anchor.role != CAVE_FLOOR) && (! anchor.invert) && platform.capabilities.contains(POPULATE), "Automatic population not supported or not applicable");
+        final boolean caveFloor = anchor.role == CAVE_FLOOR, floatingFloor = anchor.role == FLOATING_FLOOR;
+        setEnabled(Populate.INSTANCE, (! caveFloor) && (! floatingFloor) && (! anchor.invert) && platform.capabilities.contains(POPULATE), "Automatic population not supported or not applicable");
         biomesPanel.loadBiomes(platform, selectedColourScheme);
         setEnabled(extendedBlockIdsMenuItem, (! platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION));
         brushOptions.setPlatform(platform);
         infoPanel.setPlatform(platform);
         // TODO actually why not support these:
-        setEnabled(Caves.INSTANCE, anchor.role != CAVE_FLOOR, "Caves not supported in Custom Cave/Tunnel floor dimensions");
-        setEnabled(Caverns.INSTANCE, anchor.role != CAVE_FLOOR, "Caverns not supported in Custom Cave/Tunnel floor dimensions");
-        setEnabled(Chasms.INSTANCE, anchor.role != CAVE_FLOOR, "Chasms not supported in Custom Cave/Tunnel floor dimensions");
-        setEnabled(Resources.INSTANCE, anchor.role != CAVE_FLOOR, "Resources not supported in Custom Cave/Tunnel floor dimensions");
+        setEnabled(Caves.INSTANCE, (! caveFloor) && (! floatingFloor), "Caves not supported in Custom Cave/Tunnel floor dimensions");
+        setEnabled(Caverns.INSTANCE, (! caveFloor) && (! floatingFloor), "Caverns not supported in Custom Cave/Tunnel floor dimensions");
+        setEnabled(Chasms.INSTANCE, (! caveFloor) && (! floatingFloor), "Chasms not supported in Custom Cave/Tunnel floor dimensions");
+        setEnabled(Resources.INSTANCE, (! caveFloor) && (! floatingFloor), "Resources not supported in Custom Cave/Tunnel floor dimensions");
         setEnabled(ReadOnly.INSTANCE, anchor.equals(NORMAL_DETAIL), "Read Only layer not applicable");
     }
 
@@ -6083,7 +6088,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void exitDimension() {
-        if ((dimension != null) && (dimension.getAnchor().role == CAVE_FLOOR)) {
+        if ((dimension != null) && ((dimension.getAnchor().role == CAVE_FLOOR) || (dimension.getAnchor().role == FLOATING_FLOOR))) {
             final Anchor anchor = dimension.getAnchor();
             setDimension(world.getDimension(new Anchor(anchor.dim, DETAIL, anchor.invert, 0)));
         } else {
@@ -6556,7 +6561,7 @@ public final class App extends JFrame implements RadiusControl,
             final BorderSettings previousBorderSettings = (dimension.getWorld() != null) ? dimension.getWorld().getBorderSettings().clone() : null;
             final Dimension.LayerAnchor previousTopLayerAnchor = dimension.getTopLayerAnchor();
             final boolean previousAnnotationsExport = (dimension.getLayerSettings(Annotations.INSTANCE) != null) && ((AnnotationsExporter.AnnotationsSettings) dimension.getLayerSettings(Annotations.INSTANCE)).isExport();
-            final DimensionPropertiesDialog dialog = new DimensionPropertiesDialog(App.this, dimension, selectedColourScheme);
+            final DimensionPropertiesDialog dialog = new DimensionPropertiesDialog(App.this, dimension, selectedColourScheme, customBiomeManager);
             dialog.setVisible(true);
             if (! dialog.isCancelled()) {
                 if (threeDeeFrame != null) {

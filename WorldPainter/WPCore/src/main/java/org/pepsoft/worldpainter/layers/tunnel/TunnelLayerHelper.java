@@ -8,6 +8,8 @@ import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 import static java.lang.Math.round;
 import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
+import static org.pepsoft.worldpainter.Dimension.Role.FLOATING_FLOOR;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.CAVE;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.CUSTOM_DIMENSION;
 
 /**
@@ -18,7 +20,7 @@ public class TunnelLayerHelper {
     public TunnelLayerHelper(TunnelLayer layer, Dimension dimension) {
         this.layer = layer;
         floorDimension = ((layer.floorMode == CUSTOM_DIMENSION) && (layer.floorDimensionId != null) && (dimension != null))
-                ? dimension.getWorld().getDimension(new Anchor(dimension.getAnchor().dim, CAVE_FLOOR, dimension.getAnchor().invert, layer.floorDimensionId))
+                ? dimension.getWorld().getDimension(new Anchor(dimension.getAnchor().dim, (layer.getLayerMode() == CAVE) ? CAVE_FLOOR : FLOATING_FLOOR, dimension.getAnchor().invert, layer.floorDimensionId))
                 : null;
         if (layer.floorNoise != null) {
             floorNoise = new NoiseHeightMap(layer.floorNoise, FLOOR_NOISE_SEED_OFFSET);

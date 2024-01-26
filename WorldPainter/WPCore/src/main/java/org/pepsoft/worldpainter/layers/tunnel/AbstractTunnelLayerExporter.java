@@ -26,7 +26,10 @@ import java.util.function.Supplier;
 import static java.awt.Font.PLAIN;
 import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
+import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
+import static org.pepsoft.worldpainter.Dimension.Role.FLOATING_FLOOR;
 import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.CAVE;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.CUSTOM_DIMENSION;
 
 /**
@@ -42,7 +45,7 @@ public abstract class AbstractTunnelLayerExporter extends AbstractCavesExporter<
 
     public List<Fixup> addFeatures(Rectangle area, Rectangle exportedArea, MinecraftWorld world) {
         final Dimension floorDimension = ((layer.getFloorMode() == CUSTOM_DIMENSION) && (layer.getFloorDimensionId() != null))
-                ? dimension.getWorld().getDimension(new Dimension.Anchor(dimension.getAnchor().dim, Dimension.Role.CAVE_FLOOR, dimension.getAnchor().invert, layer.getFloorDimensionId()))
+                ? dimension.getWorld().getDimension(new Dimension.Anchor(dimension.getAnchor().dim, (layer.getLayerMode() == CAVE) ? CAVE_FLOOR : FLOATING_FLOOR, dimension.getAnchor().invert, layer.getFloorDimensionId()))
                 : null;
         final List<Fixup> fixups = new ArrayList<>();
 

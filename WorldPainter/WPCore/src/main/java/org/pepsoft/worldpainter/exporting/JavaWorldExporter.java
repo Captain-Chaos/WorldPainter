@@ -87,8 +87,16 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
                     }
                 }
                 spawnPoint = new Point((minX + maxX) / 2, (minY + maxY) / 2);
+                // TODO if the spawn point was not on the surface, figure out if its dimension exists here as well and if so place it there
+                level.setSpawn(spawnPoint.x, Math.max(getIntHeightAt(DIM_NORMAL, spawnPoint.x, spawnPoint.y), getWaterLevelAt(DIM_NORMAL, spawnPoint.x, spawnPoint.y)) + 1, spawnPoint.y);
+            } else {
+                if (world.getSpawnPointDimension() != null) {
+                    final Dimension spawnDimension = world.getDimension(world.getSpawnPointDimension());
+                    level.setSpawn(spawnPoint.x, Math.max(spawnDimension.getIntHeightAt(spawnPoint.x, spawnPoint.y), spawnDimension.getWaterLevelAt(spawnPoint.x, spawnPoint.y)) + 1, spawnPoint.y);
+                } else {
+                    level.setSpawn(spawnPoint.x, Math.max(getIntHeightAt(DIM_NORMAL, spawnPoint.x, spawnPoint.y), getWaterLevelAt(DIM_NORMAL, spawnPoint.x, spawnPoint.y)) + 1, spawnPoint.y);
+                }
             }
-            level.setSpawn(spawnPoint.x, Math.max(getIntHeightAt(DIM_NORMAL, spawnPoint.x, spawnPoint.y), getWaterLevelAt(DIM_NORMAL, spawnPoint.x, spawnPoint.y)) + 1,spawnPoint.y);
         }
 
         if (world.getGameType() == GameType.HARDCORE) {

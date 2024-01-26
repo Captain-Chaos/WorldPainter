@@ -82,6 +82,10 @@
                               <Component id="jLabel84" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="comboBoxUndergroundLayerAnchor" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace type="separate" max="-2" attributes="0"/>
+                              <Component id="jLabel79" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="comboBoxSubsurfaceBiome" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="checkBoxBottomless" min="-2" max="-2" attributes="0"/>
@@ -117,6 +121,8 @@
                           <Component id="comboBoxSubsurfaceMaterial" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jLabel84" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="comboBoxUndergroundLayerAnchor" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel79" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="comboBoxSubsurfaceBiome" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
@@ -144,6 +150,9 @@
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="comboBoxSubsurfaceMaterialActionPerformed"/>
               </Events>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;Terrain&gt;"/>
+              </AuxValues>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel65">
               <Properties>
@@ -627,6 +636,16 @@
                 </Component>
               </SubComponents>
             </Container>
+            <Component class="javax.swing.JLabel" name="jLabel79">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Underground biome:"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JComboBox" name="comboBoxSubsurfaceBiome">
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;Integer&gt;"/>
+              </AuxValues>
+            </Component>
           </SubComponents>
         </Container>
         <Container class="javax.swing.JPanel" name="jPanel5">

@@ -60,6 +60,7 @@ import static org.pepsoft.worldpainter.App.COMMAND_KEY_NAME;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
+import static org.pepsoft.worldpainter.Dimension.Role.FLOATING_FLOOR;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.CAVE;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.FLOATING;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.FIXED_HEIGHT_ABOVE_FLOOR;
@@ -396,7 +397,7 @@ public class CustomLayerController implements PropertyChangeListener {
                 registerCustomLayer(layer, true);
             });
         });
-        if (anchor.role == CAVE_FLOOR) {
+        if ((anchor.role == CAVE_FLOOR) || (anchor.role == FLOATING_FLOOR)) { // TODO support more layers in floating dimensions
             menuItem.setEnabled(false);
         }
         customLayerMenu.add(menuItem);
@@ -424,7 +425,7 @@ public class CustomLayerController implements PropertyChangeListener {
                 registerCustomLayer(layer, true);
             });
         });
-        if (anchor.role == CAVE_FLOOR) {
+        if ((anchor.role == CAVE_FLOOR) || (anchor.role == FLOATING_FLOOR)) { // TODO support more layers in floating dimensions
             menuItem.setEnabled(false);
         }
         customLayerMenu.add(menuItem);
@@ -494,7 +495,7 @@ public class CustomLayerController implements PropertyChangeListener {
                 registerCustomLayer(layer, true);
             });
         });
-        if (anchor.role == CAVE_FLOOR) {
+        if ((anchor.role == CAVE_FLOOR) || (anchor.role == FLOATING_FLOOR)) { // TODO support more layers in floating dimensions
             menuItem.setEnabled(false);
         }
         customLayerMenu.add(menuItem);
@@ -597,7 +598,7 @@ public class CustomLayerController implements PropertyChangeListener {
             dimension.clearLayerData(layer);
             if ((layer instanceof TunnelLayer) && (((TunnelLayer) layer).getFloorDimensionId() != null)) {
                 final Dimension.Anchor anchor = dimension.getAnchor();
-                app.getWorld().removeDimension(new Dimension.Anchor(anchor.dim, CAVE_FLOOR, anchor.invert, ((TunnelLayer) layer).getFloorDimensionId()));
+                app.getWorld().removeDimension(new Dimension.Anchor(anchor.dim, (((TunnelLayer) layer).getLayerMode() == CAVE) ? CAVE_FLOOR : FLOATING_FLOOR, anchor.invert, ((TunnelLayer) layer).getFloorDimensionId()));
             }
             dimension.clearUndo();
         } finally {

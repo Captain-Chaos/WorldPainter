@@ -3,6 +3,7 @@ package org.pepsoft.worldpainter.layers.tunnel;
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
 import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
@@ -24,6 +25,7 @@ import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.SMALL_BLOBS;
 import static org.pepsoft.worldpainter.Constants.TINY_BLOBS;
+import static org.pepsoft.worldpainter.Dimension.Role.FLOATING_FLOOR;
 import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 import static org.pepsoft.worldpainter.exporting.WorldPainterChunkFactory.SUGAR_CANE_CHANCE;
 import static org.pepsoft.worldpainter.exporting.WorldPainterChunkFactory.SUGAR_CANE_SEED_OFFSET;
@@ -33,7 +35,7 @@ import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.FLOAT
 public class FloatingLayerExporter extends AbstractTunnelLayerExporter implements FirstPassLayerExporter, SecondPassLayerExporter {
     public FloatingLayerExporter(Dimension dimension, Platform platform, TunnelLayer layer, TunnelLayerHelper helper) {
         super(dimension, platform, layer, helper);
-        floorDimension = dimension.getWorld().getDimension(new Dimension.Anchor(dimension.getAnchor().dim, Dimension.Role.CAVE_FLOOR, dimension.getAnchor().invert, layer.getFloorDimensionId()));
+        floorDimension = dimension.getWorld().getDimension(new Anchor(dimension.getAnchor().dim, FLOATING_FLOOR, dimension.getAnchor().invert, layer.getFloorDimensionId()));
         seed = dimension.getSeed();
         if (sugarCaneNoise.getSeed() != (seed + SUGAR_CANE_SEED_OFFSET)) {
             sugarCaneNoise.setSeed(seed + SUGAR_CANE_SEED_OFFSET);

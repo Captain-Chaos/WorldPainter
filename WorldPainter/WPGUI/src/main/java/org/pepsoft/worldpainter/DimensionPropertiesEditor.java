@@ -15,6 +15,7 @@ import org.pepsoft.minecraft.*;
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.Dimension.LayerAnchor;
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
 import org.pepsoft.worldpainter.exporting.ExportSettings;
 import org.pepsoft.worldpainter.exporting.ExportSettingsEditor;
 import org.pepsoft.worldpainter.layers.*;
@@ -45,11 +46,13 @@ import java.util.Iterator;
 import java.util.List;
 
 import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static javax.swing.JOptionPane.YES_OPTION;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
+import static org.pepsoft.util.CollectionUtils.listOf;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
@@ -61,11 +64,11 @@ import static org.pepsoft.worldpainter.Dimension.Role.*;
 import static org.pepsoft.worldpainter.DimensionPropertiesEditor.Mode.DEFAULT_SETTINGS;
 import static org.pepsoft.worldpainter.Generator.CUSTOM;
 import static org.pepsoft.worldpainter.Generator.FLAT;
-import static org.pepsoft.worldpainter.Platform.Capability.GENERATOR_PER_DIMENSION;
-import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
+import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.layers.exporters.AbstractCavesExporter.CaveDecorationSettings.Decoration.BROWN_MUSHROOM;
 import static org.pepsoft.worldpainter.layers.exporters.AbstractCavesExporter.CaveDecorationSettings.Decoration.*;
 import static org.pepsoft.worldpainter.tools.Eyedropper.PaintType.LAYER;
+import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
 
 /**
  * @author pepijn
@@ -137,16 +140,20 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         scaleToUI(this);
     }
 
-    public void setColourScheme(ColourScheme colourScheme) {
+    public void init(ColourScheme colourScheme, CustomBiomeManager customBiomeManager, Dimension dimension, Mode mode) {
+        this.customBiomeManager = customBiomeManager;
         comboBoxSubsurfaceMaterial.setRenderer(new TerrainListCellRenderer(colourScheme));
         themeEditor.setColourScheme(colourScheme);
+        comboBoxSubsurfaceBiome.setRenderer(new BiomeListCellRenderer(colourScheme, customBiomeManager, "same as surface", dimension.getWorld().getPlatform()));
+        setDimension(dimension);
+        setMode(mode);
     }
 
     public ColourScheme getColourScheme() {
         return themeEditor.getColourScheme();
     }
 
-    public void setMode(Mode mode) {
+    private void setMode(Mode mode) {
         requireNonNull(mode);
         if (this.mode != null) {
             throw new IllegalStateException("Mode already set");
@@ -160,7 +167,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 if (anchor.role == MASTER) {
                     jTabbedPane1.remove(TAB_OTHER_LAYERS);
                 }
-                if ((anchor.role == CAVE_FLOOR) || (anchor.role == MASTER)) {
+                if ((anchor.role == CAVE_FLOOR) || (anchor.role == FLOATING_FLOOR) || (anchor.role == MASTER)) { // TODO support resources caves in floating dimensions
                     jTabbedPane1.remove(TAB_RESOURCES);
                     jTabbedPane1.remove(TAB_CAVES);
                 }
@@ -180,7 +187,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 if (anchor.role == MASTER) {
                     jTabbedPane1.remove(TAB_OTHER_LAYERS);
                 }
-                if ((anchor.role == CAVE_FLOOR) || (anchor.role == MASTER)) {
+                if ((anchor.role == CAVE_FLOOR) || (anchor.role == FLOATING_FLOOR) || (anchor.role == MASTER)) { // TODO support resources caves in floating dimensions
                     jTabbedPane1.remove(TAB_RESOURCES);
                     jTabbedPane1.remove(TAB_CAVES);
                 }
@@ -195,7 +202,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         return dimension;
     }
 
-    public void setDimension(Dimension dimension) {
+    private void setDimension(Dimension dimension) {
         requireNonNull(dimension);
         if (this.dimension != null) {
             throw new IllegalStateException("Dimension already set");
@@ -217,28 +224,27 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         return platform;
     }
 
-    public void setPlatform(Platform platform) {
-        requireNonNull(platform);
-        if (platform != this.platform) {
-            this.platform = platform;
-            platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
-            if (platform.capabilities.contains(POPULATE)) {
-                checkBoxPopulate.setSelected(dimension.isPopulate());
-                checkBoxPopulate.setToolTipText(null);
-            } else {
-                checkBoxPopulate.setSelected(false);
-                checkBoxPopulate.setToolTipText("Automatic population not support by format " + platform);
-            }
-            Generator generator = (Generator) comboBoxGenerator.getSelectedItem();
-            comboBoxGenerator.setModel(new DefaultComboBoxModel<>(platform.supportedGenerators.toArray(new Generator[platform.supportedGenerators.size()])));
-            if (platform.supportedGenerators.contains(generator)) {
-                comboBoxGenerator.setSelectedItem(generator);
-            } else {
-                comboBoxGenerator.setSelectedItem(platform.supportedGenerators.get(0));
-            }
-            comboBoxGenerator.setEnabled(platform.supportedGenerators.size() > 1);
-            setControlStates();
+    private void setPlatform(Platform platform) {
+        this.platform = platform;
+        platformProvider = PlatformManager.getInstance().getPlatformProvider(platform);
+        if (platform.capabilities.contains(POPULATE)) {
+            checkBoxPopulate.setSelected(dimension.isPopulate());
+        } else {
+            checkBoxPopulate.setSelected(false);
+            checkBoxPopulate.setToolTipText("Automatic population not support by format " + platform);
         }
+        Generator generator = (Generator) comboBoxGenerator.getSelectedItem();
+        comboBoxGenerator.setModel(new DefaultComboBoxModel<>(platform.supportedGenerators.toArray(new Generator[platform.supportedGenerators.size()])));
+        if (platform.supportedGenerators.contains(generator)) {
+            comboBoxGenerator.setSelectedItem(generator);
+        } else {
+            comboBoxGenerator.setSelectedItem(platform.supportedGenerators.get(0));
+        }
+        comboBoxGenerator.setEnabled(platform.supportedGenerators.size() > 1);
+        if (platform.capabilities.contains(BIOMES_3D)) {
+            comboBoxSubsurfaceBiome.setEnabled(true);
+        }
+        setControlStates();
     }
 
     @Override
@@ -348,6 +354,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         dimension.setBottomless(checkBoxBottomless.isSelected());
         dimension.setCoverSteepTerrain(checkBoxCoverSteepTerrain.isSelected());
         dimension.setCeilingHeight((Integer) spinnerCeilingHeight.getValue());
+        dimension.setUndergroundBiome((Integer) comboBoxSubsurfaceBiome.getSelectedItem());
 
         // caves
         CavesSettings cavesSettings = (CavesSettings) dimension.getLayerSettings(Caves.INSTANCE);
@@ -740,8 +747,12 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 i.remove();
             }
         }
-        comboBoxSubsurfaceMaterial.setModel(new DefaultComboBoxModel(materialList.toArray()));
+        comboBoxSubsurfaceMaterial.setModel(new DefaultComboBoxModel<>(materialList.toArray(new Terrain[materialList.size()])));
         comboBoxSubsurfaceMaterial.setSelectedItem(dimension.getSubsurfaceMaterial());
+
+        final List<Integer> allBiomes = listOf(singletonList(null), getAllBiomes(platform, customBiomeManager));
+        comboBoxSubsurfaceBiome.setModel(new DefaultComboBoxModel<>(allBiomes.toArray(new Integer[allBiomes.size()])));
+        comboBoxSubsurfaceBiome.setSelectedItem(dimension.getUndergroundBiome());
 
         // caves
         CavesSettings cavesSettings = (CavesSettings) dimension.getLayerSettings(Caves.INSTANCE);
@@ -1067,17 +1078,19 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         final boolean dim0 = (anchor != null) && (anchor.dim == Constants.DIM_NORMAL) && (anchor.role == DETAIL) && (! anchor.invert);
         final boolean ceiling = (anchor != null) && anchor.invert;
         final boolean caveFloor = (anchor != null) && (anchor.role == CAVE_FLOOR);
+        final boolean floatingFloor = (anchor != null) && (anchor.role == FLOATING_FLOOR);
+        final boolean floorDimension = caveFloor || floatingFloor;
         final boolean master = (anchor != null) && (anchor.role == MASTER);
         final boolean decorations = checkBoxDecorateCaverns.isSelected() || checkBoxDecorateCaves.isSelected() || checkBoxDecorateChasms.isSelected();
-        setEnabled(radioButtonLavaBorder, enabled && (! ceiling) && (! caveFloor) && (! master));
-        setEnabled(radioButtonNoBorder, enabled && (! ceiling) && (! caveFloor) && (! master));
-        setEnabled(radioButtonVoidBorder, enabled && (! ceiling) && (! caveFloor) && (! master));
-        setEnabled(radioButtonWaterBorder, enabled && (! ceiling) && (! caveFloor) && (! master));
-        setEnabled(radioButtonBarrierBorder, enabled && (! ceiling) && (! caveFloor) && (! master));
-        setEnabled(spinnerBorderLevel, enabled && (! ceiling) && (! caveFloor) && (! master) && (radioButtonLavaBorder.isSelected() || radioButtonWaterBorder.isSelected()));
-        setEnabled(radioButtonFixedBorder, enabled && (! ceiling) && (! caveFloor) && (! master) && (! radioButtonNoBorder.isSelected()));
-        setEnabled(radioButtonEndlessBorder, enabled && (platform.capabilities.contains(GENERATOR_PER_DIMENSION) || dim0) && (! ceiling) && (! caveFloor) && (! master) && (! radioButtonNoBorder.isSelected()));
-        setEnabled(spinnerBorderSize, enabled && (! ceiling) && (! caveFloor) && (! master) && (! radioButtonNoBorder.isSelected()) && radioButtonFixedBorder.isSelected());
+        setEnabled(radioButtonLavaBorder, enabled && (! ceiling) && (! floorDimension) && (! master));
+        setEnabled(radioButtonNoBorder, enabled && (! ceiling) && (! floorDimension) && (! master));
+        setEnabled(radioButtonVoidBorder, enabled && (! ceiling) && (! floorDimension) && (! master));
+        setEnabled(radioButtonWaterBorder, enabled && (! ceiling) && (! floorDimension) && (! master));
+        setEnabled(radioButtonBarrierBorder, enabled && (! ceiling) && (! floorDimension) && (! master));
+        setEnabled(spinnerBorderLevel, enabled && (! ceiling) && (! floorDimension) && (! master) && (radioButtonLavaBorder.isSelected() || radioButtonWaterBorder.isSelected()));
+        setEnabled(radioButtonFixedBorder, enabled && (! ceiling) && (! floorDimension) && (! master) && (! radioButtonNoBorder.isSelected()));
+        setEnabled(radioButtonEndlessBorder, enabled && (platform.capabilities.contains(GENERATOR_PER_DIMENSION) || dim0) && (! ceiling) && (! floorDimension) && (! master) && (! radioButtonNoBorder.isSelected()));
+        setEnabled(spinnerBorderSize, enabled && (! ceiling) && (! floorDimension) && (! master) && (! radioButtonNoBorder.isSelected()) && radioButtonFixedBorder.isSelected());
         setEnabled(sliderCavesEverywhereLevel, enabled && checkBoxCavesEverywhere.isSelected());
         setEnabled(sliderCavernsEverywhereLevel, enabled && checkBoxCavernsEverywhere.isSelected());
         setEnabled(sliderChasmsEverywhereLevel, enabled && checkBoxChasmsEverywhere.isSelected());
@@ -1124,15 +1137,14 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 setEnabled(comboBoxUndergroundLayerAnchor, false);
             }
         }
-        setEnabled(comboBoxGenerator, enabled && (! endlessBorder) && (! ceiling) && (! caveFloor) && (! master));
-        setEnabled(buttonGeneratorOptions, enabled
-                && (! endlessBorder) && (! ceiling) && (! caveFloor) && (! master)
-                && ((comboBoxGenerator.getSelectedItem() == Generator.FLAT)
-                    || ((comboBoxGenerator.getSelectedItem() == CUSTOM) && (customGeneratorSettings == null))));
-        setEnabled(checkBoxWall, enabled && (! endlessBorder) && (! ceiling) && (! caveFloor) && (! master));
+        setEnabled(comboBoxGenerator, enabled && (! endlessBorder) && (! ceiling) && (! floorDimension) && (! master));
+        setEnabled(buttonGeneratorOptions, enabled && (! endlessBorder) && (! ceiling) && (! floorDimension)
+                && (! master) && ((comboBoxGenerator.getSelectedItem() == Generator.FLAT)
+                || ((comboBoxGenerator.getSelectedItem() == CUSTOM) && (customGeneratorSettings == null))));
+        setEnabled(checkBoxWall, enabled && (! endlessBorder) && (! ceiling) && (! floorDimension) && (! master));
         setEnabled(radioButtonBedrockWall, enabled && (! endlessBorder) && checkBoxWall.isSelected());
         setEnabled(radioButtonBarrierWall, enabled && (! endlessBorder) && checkBoxWall.isSelected());
-        setEnabled(checkBoxRoof, enabled && (! ceiling) && (! caveFloor) && (! master));
+        setEnabled(checkBoxRoof, enabled && (! ceiling) && (! floorDimension) && (! master));
         setEnabled(radioButtonBedrockRoof, enabled && checkBoxRoof.isSelected());
         setEnabled(radioButtonBarrierRoof, enabled && checkBoxRoof.isSelected());
         setEnabled(checkBoxDecorateCaverns, enabled);
@@ -1147,7 +1159,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setEnabled(comboBoxSurfaceLayerAnchor, enabled);
         setEnabled(comboBoxSubsurfaceMaterial, enabled && (! caveFloor) && (! master)); // TODO make it possible for this to be different for the master dimension
         setEnabled(comboBoxUndergroundLayerAnchor, enabled && (! caveFloor) && (! master)); // TODO make it possible for this to be different for the master dimension
-        setEnabled(checkBoxBottomless, enabled && (! caveFloor) && (! master)); // TODO make it possible for this to be different for the master dimension
+        setEnabled(checkBoxBottomless, enabled && (! floorDimension) && (! master)); // TODO make it possible for this to be different for the master dimension
+        setEnabled(comboBoxSubsurfaceBiome, enabled && (! caveFloor));
     }
     
     private void setEnabled(Component component, boolean enabled) {
@@ -1300,7 +1313,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         jTabbedPane1 = new javax.swing.JTabbedPane();
         panelGeneral = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
-        comboBoxSubsurfaceMaterial = new javax.swing.JComboBox();
+        comboBoxSubsurfaceMaterial = new javax.swing.JComboBox<>();
         jLabel65 = new javax.swing.JLabel();
         spinnerMinSurfaceDepth = new javax.swing.JSpinner();
         jLabel66 = new javax.swing.JLabel();
@@ -1342,6 +1355,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         spinnerMinecraftSeed = new javax.swing.JSpinner();
         jLabel7 = new javax.swing.JLabel();
         comboBoxGenerator = new javax.swing.JComboBox<>();
+        jLabel79 = new javax.swing.JLabel();
+        comboBoxSubsurfaceBiome = new javax.swing.JComboBox<>();
         jPanel5 = new javax.swing.JPanel();
         themeEditor = new org.pepsoft.worldpainter.themes.impl.simple.SimpleThemeEditor();
         jLabel45 = new javax.swing.JLabel();
@@ -1869,6 +1884,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addGap(0, 0, 0))
         );
 
+        jLabel79.setText("Underground biome:");
+
         javax.swing.GroupLayout panelGeneralLayout = new javax.swing.GroupLayout(panelGeneral);
         panelGeneral.setLayout(panelGeneralLayout);
         panelGeneralLayout.setHorizontalGroup(
@@ -1898,7 +1915,11 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addGap(18, 18, 18)
                         .addComponent(jLabel84)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(comboBoxUndergroundLayerAnchor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(comboBoxUndergroundLayerAnchor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel79)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(comboBoxSubsurfaceBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(panelGeneralLayout.createSequentialGroup()
                         .addComponent(checkBoxBottomless)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1927,7 +1948,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                     .addComponent(jLabel6)
                     .addComponent(comboBoxSubsurfaceMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel84)
-                    .addComponent(comboBoxUndergroundLayerAnchor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(comboBoxUndergroundLayerAnchor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel79)
+                    .addComponent(comboBoxSubsurfaceBiome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(panelGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(checkBoxBottomless)
@@ -4197,7 +4220,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JCheckBox checkBoxSwamplandEverywhere;
     private javax.swing.JCheckBox checkBoxWall;
     private javax.swing.JComboBox<Generator> comboBoxGenerator;
-    private javax.swing.JComboBox comboBoxSubsurfaceMaterial;
+    private javax.swing.JComboBox<Integer> comboBoxSubsurfaceBiome;
+    private javax.swing.JComboBox<Terrain> comboBoxSubsurfaceMaterial;
     private javax.swing.JComboBox<String> comboBoxSurfaceLayerAnchor;
     private javax.swing.JComboBox<String> comboBoxUndergroundLayerAnchor;
     private javax.swing.JCheckBox jCheckBox8;
@@ -4279,6 +4303,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel76;
     private javax.swing.JLabel jLabel77;
     private javax.swing.JLabel jLabel78;
+    private javax.swing.JLabel jLabel79;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel82;
     private javax.swing.JLabel jLabel83;
@@ -4419,6 +4444,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private Tag customGeneratorSettings;
     private Generator savedGeneratorType;
     private Eyedropper.SelectionListener selectionListener;
+    private CustomBiomeManager customBiomeManager;
 
     private static final int TAB_GENERAL       = 0;
     private static final int TAB_THEME         = 1;

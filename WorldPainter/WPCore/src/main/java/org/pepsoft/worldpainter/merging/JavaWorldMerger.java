@@ -290,7 +290,12 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                 level.setSeed(surfaceDimension.getMinecraftSeed());
                 Point spawnPoint = world.getSpawnPoint();
                 level.setSpawnX(spawnPoint.x);
-                level.setSpawnY(Math.max(getIntHeightAt(DIM_NORMAL, spawnPoint.x, spawnPoint.y), getWaterLevelAt(DIM_NORMAL, spawnPoint.x, spawnPoint.y)) + 1);
+                if (world.getSpawnPointDimension() != null) {
+                    final Dimension spawnDimension = world.getDimension(world.getSpawnPointDimension());
+                    level.setSpawnY(Math.max(spawnDimension.getIntHeightAt(spawnPoint.x, spawnPoint.y), spawnDimension.getWaterLevelAt(spawnPoint.x, spawnPoint.y)) + 1);
+                } else {
+                    level.setSpawnY(Math.max(getIntHeightAt(DIM_NORMAL, spawnPoint.x, spawnPoint.y), getWaterLevelAt(DIM_NORMAL, spawnPoint.x, spawnPoint.y)) + 1);
+                }
                 level.setSpawnZ(spawnPoint.y);
             }
 

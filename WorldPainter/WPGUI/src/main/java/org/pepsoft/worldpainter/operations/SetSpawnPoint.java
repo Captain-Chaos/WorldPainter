@@ -5,6 +5,7 @@
 package org.pepsoft.worldpainter.operations;
 
 import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.World2;
 import org.pepsoft.worldpainter.WorldPainter;
 
@@ -12,6 +13,7 @@ import javax.swing.*;
 import java.awt.*;
 
 import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
+import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 
 /**
  *
@@ -35,7 +37,8 @@ public class SetSpawnPoint extends MouseOrTabletOperation {
                 // Probably some kind of race condition
                 return;
             }
-            if (dimension.getAnchor().dim != DIM_NORMAL) {
+            final Anchor anchor = dimension.getAnchor();
+            if (anchor.dim != DIM_NORMAL) {
                 throw new IllegalArgumentException("Cannot set spawn point on dimensions other than DIM_NORMAL");
             }
             World2 world = dimension.getWorld();
@@ -47,6 +50,7 @@ public class SetSpawnPoint extends MouseOrTabletOperation {
                 }
             }
             world.setSpawnPoint(new Point(centreX, centreY));
+            world.setSpawnPointDimension((anchor.role == DETAIL) ? null : anchor);
         }
     }
 

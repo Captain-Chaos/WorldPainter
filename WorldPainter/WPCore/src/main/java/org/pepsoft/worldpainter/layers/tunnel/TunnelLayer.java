@@ -23,11 +23,12 @@ import java.util.List;
 import java.util.Map;
 
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
-import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
-import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
+import static org.pepsoft.worldpainter.Dimension.Role.*;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.FillMode.AIR;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.FillMode.CAVE_AIR;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.CAVE;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.FLOATING;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.CUSTOM_DIMENSION;
 
 /**
@@ -304,7 +305,7 @@ public class TunnelLayer extends CustomLayer {
      */
     public Dimension updateFloorDimension(Dimension dimension, String name) {
         final Anchor anchor = dimension.getAnchor();
-        final Dimension floorDimension = dimension.getWorld().getDimension(new Anchor(anchor.dim, CAVE_FLOOR, anchor.invert, floorDimensionId));
+        final Dimension floorDimension = dimension.getWorld().getDimension(new Anchor(anchor.dim, (mode == CAVE) ? CAVE_FLOOR : FLOATING_FLOOR, anchor.invert, floorDimensionId));
         if (name != null) {
             floorDimension.setName(name);
         }
@@ -340,7 +341,7 @@ public class TunnelLayer extends CustomLayer {
      */
     public void updateFloorDimensionTiles(Dimension dimension) {
         final Anchor anchor = dimension.getAnchor();
-        final Dimension floorDimension = dimension.getWorld().getDimension(new Anchor(anchor.dim, CAVE_FLOOR, anchor.invert, floorDimensionId));
+        final Dimension floorDimension = dimension.getWorld().getDimension(new Anchor(anchor.dim, (mode == CAVE) ? CAVE_FLOOR : FLOATING_FLOOR, anchor.invert, floorDimensionId));
         final TileFactory tileFactory = floorDimension.getTileFactory();
         floorDimension.setEventsInhibited(true);
         try {
@@ -374,14 +375,16 @@ public class TunnelLayer extends CustomLayer {
      */
     public static TunnelLayer find(Dimension floorDimension) {
         final Anchor floorAnchor = floorDimension.getAnchor();
-        if (floorAnchor.role != CAVE_FLOOR) {
-            throw new IllegalArgumentException("Not a CAVE_FLOOR dimension");
+        if ((floorAnchor.role != CAVE_FLOOR) && (floorAnchor.role != FLOATING_FLOOR)){
+            throw new IllegalArgumentException("Not a CAVE_FLOOR or FLOATING_FLOOR dimension");
         }
         final Anchor detailAnchor = new Anchor(floorAnchor.dim, DETAIL, floorAnchor.invert, 0);
         final Dimension detailDimension = floorDimension.getWorld().getDimension(detailAnchor);
+        final LayerMode layerMode = (floorAnchor.role == CAVE_FLOOR) ? CAVE : FLOATING;
         if (detailDimension != null) {
             for (CustomLayer layer: detailDimension.getCustomLayers()) {
                 if ((layer instanceof TunnelLayer)
+                        && (((TunnelLayer) layer).getLayerMode() == layerMode)
                         && (((TunnelLayer) layer).getFloorDimensionId() != null)
                         && (((TunnelLayer) layer).getFloorDimensionId() == floorAnchor.id)) {
                     return (TunnelLayer) layer;
@@ -393,7 +396,7 @@ public class TunnelLayer extends CustomLayer {
         }
     }
 
-    public static boolean isLayerTypeSupportedForFloorDimension(Class<? extends Layer> layerType) {
+    public static boolean isLayerTypeSupportedForCaveFloorDimension(Class<? extends Layer> layerType) {
         return ! (Caves.class.isAssignableFrom(layerType)
                 || Caverns.class.isAssignableFrom(layerType)
                 || Chasms.class.isAssignableFrom(layerType)
@@ -404,13 +407,32 @@ public class TunnelLayer extends CustomLayer {
                 || UndergroundPocketsLayer.class.isAssignableFrom(layerType));
     }
 
-    public static boolean isLayerSupportedForFloorDimension(Layer layer) {
-        if (! isLayerTypeSupportedForFloorDimension(layer.getClass())) {
+    public static boolean isLayerTypeSupportedForFloatingFloorDimension(Class<? extends Layer> layerType) {
+        // TODO support more layers for floating dimensions
+        return isLayerTypeSupportedForCaveFloorDimension(layerType);
+    }
+
+    public static boolean isLayerSupportedForCaveFloorDimension(Layer layer) {
+        if (! isLayerTypeSupportedForCaveFloorDimension(layer.getClass())) {
             return false;
         }
         if (layer instanceof CombinedLayer) {
             for (Layer constituentLayer: ((CombinedLayer) layer).getLayers()) {
-                if (! isLayerSupportedForFloorDimension(constituentLayer)) {
+                if (! isLayerSupportedForCaveFloorDimension(constituentLayer)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public static boolean isLayerSupportedForFloatingFloorDimension(Layer layer) {
+        if (! isLayerTypeSupportedForFloatingFloorDimension(layer.getClass())) {
+            return false;
+        }
+        if (layer instanceof CombinedLayer) {
+            for (Layer constituentLayer: ((CombinedLayer) layer).getLayers()) {
+                if (! isLayerSupportedForFloatingFloorDimension(constituentLayer)) {
                     return false;
                 }
             }
@@ -548,7 +570,7 @@ public class TunnelLayer extends CustomLayer {
             fillLightLevel = 8;
         }
         if (wpVersion < 4) {
-            mode = LayerMode.CAVE;
+            mode = CAVE;
         }
         wpVersion = CURRENT_WP_VERSION;
     }

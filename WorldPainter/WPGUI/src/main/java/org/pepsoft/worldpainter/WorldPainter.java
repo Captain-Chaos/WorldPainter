@@ -88,6 +88,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             oldDimension.removePropertyChangeListener(this);
             if (oldDimension.getAnchor().dim == DIM_NORMAL) {
                 oldDimension.getWorld().removePropertyChangeListener("spawnPoint", this);
+                oldDimension.getWorld().removePropertyChangeListener("spawnPointDimension", this);
             }
             oldDimension.removeDimensionListener(this);
             for (Overlay overlay: oldDimension.getOverlays()) {
@@ -101,6 +102,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             dimension.addPropertyChangeListener(this);
             if (dimension.getAnchor().dim == DIM_NORMAL) {
                 dimension.getWorld().addPropertyChangeListener("spawnPoint", this);
+                dimension.getWorld().addPropertyChangeListener("spawnPointDimension", this);
             }
             dimension.addDimensionListener(this);
             for (Overlay overlay: dimension.getOverlays()) {
@@ -113,7 +115,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             
             overlayType = Configuration.getInstance().getOverlayType();
             drawOverlays = dimension.isOverlaysEnabled();
-            setMarkerCoords((dimension.getAnchor().dim == DIM_NORMAL) ? dimension.getWorld().getSpawnPoint() : null);
+            updateMarker();
         } else {
             drawOverlays = false;
             setMarkerCoords(null);
@@ -465,8 +467,8 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     }
     
     public void moveToSpawn() {
-        if ((dimension != null) && (dimension.getAnchor().dim == DIM_NORMAL)) {
-            moveToMarker();
+        if ((dimension != null) && (dimension.getWorld() != null) && (dimension.getAnchor().dim == DIM_NORMAL)) {
+            moveTo(dimension.getWorld().getSpawnPoint());
         }
     }
 
@@ -631,8 +633,8 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if ((evt.getSource() == dimension.getWorld()) && evt.getPropertyName().equals("spawnPoint")) {
-            setMarkerCoords((Point) evt.getNewValue());
+        if ((evt.getSource() == dimension.getWorld()) && (evt.getPropertyName().equals("spawnPoint") || evt.getPropertyName().equals("spawnPointDimension"))) {
+            updateMarker();
         } else if (evt.getSource() == dimension) {
             if ("overlaysEnabled".equals(evt.getPropertyName())) {
                 drawOverlays = ((Boolean) evt.getNewValue());
@@ -1036,6 +1038,18 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
             repaintTimer.setRepeats(false);
             repaintTimer.start();
         });
+    }
+
+    private void updateMarker() {
+        if (dimension.getWorld().getSpawnPointDimension() == null) {
+            setMarkerCoords(dimension.getAnchor().equals(NORMAL_DETAIL)
+                    ? dimension.getWorld().getSpawnPoint()
+                    : null);
+        } else {
+            setMarkerCoords(dimension.getAnchor().equals(dimension.getWorld().getSpawnPointDimension())
+                    ? dimension.getWorld().getSpawnPoint()
+                    : null);
+        }
     }
 
     private HashSet<Layer> hiddenLayers = new HashSet<>();

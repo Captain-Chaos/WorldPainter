@@ -33,6 +33,7 @@ import static java.util.Collections.singletonList;
 import static org.pepsoft.util.CollectionUtils.listOf;
 import static org.pepsoft.util.GUIUtils.scaleToUI;
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
+import static org.pepsoft.worldpainter.Dimension.Role.FLOATING_FLOOR;
 import static org.pepsoft.worldpainter.layers.combined.CombinedLayerTableModel.COLUMN_FACTOR;
 import static org.pepsoft.worldpainter.layers.combined.CombinedLayerTableModel.COLUMN_LAYER;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
@@ -153,7 +154,9 @@ public class CombinedLayerEditor extends AbstractLayerEditor<CombinedLayer> impl
         allLayers = context.getAllLayers();
 
         if (dimension.getAnchor().role == CAVE_FLOOR) {
-            allLayers.removeIf(l -> ! TunnelLayer.isLayerSupportedForFloorDimension(l));
+            allLayers.removeIf(l -> ! TunnelLayer.isLayerSupportedForCaveFloorDimension(l));
+        } else if (dimension.getAnchor().role == FLOATING_FLOOR) {
+            allLayers.removeIf(l -> ! TunnelLayer.isLayerSupportedForFloatingFloorDimension(l));
         }
     }
 

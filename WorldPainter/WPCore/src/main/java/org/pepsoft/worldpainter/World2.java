@@ -14,7 +14,9 @@ import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.exporting.WorldExportSettings;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Biome;
+import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.Layer;
+import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 
 import java.awt.*;
 import java.beans.PropertyChangeListener;
@@ -31,10 +33,12 @@ import static java.util.Objects.requireNonNull;
 import static org.pepsoft.minecraft.Material.WOOL_MAGENTA;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Dimension.Anchor.*;
+import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.Generator.END;
 import static org.pepsoft.worldpainter.Generator.NETHER;
 import static org.pepsoft.worldpainter.World2.Warning.MISSING_CUSTOM_TERRAINS;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.FLOATING;
 
 /**
  *
@@ -494,6 +498,19 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         }
     }
 
+    public Anchor getSpawnPointDimension() {
+        return spawnPointDimension;
+    }
+
+    public void setSpawnPointDimension(Anchor spawnPointDimension) {
+        if (! Objects.equals(spawnPointDimension, this.spawnPointDimension)) {
+            final Anchor oldSpawnPointDimension = this.spawnPointDimension;
+            this.spawnPointDimension = spawnPointDimension;
+            changeNo++;
+            propertyChangeSupport.firePropertyChange("spawnPointDimension", oldSpawnPointDimension, spawnPointDimension);
+        }
+    }
+
     public <T> Optional<T> getAttribute(AttributeKey<T> key) {
         return Optional.ofNullable(
                 (attributes != null)
@@ -849,6 +866,23 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if (wpVersion < 12) {
             minHeight = platform.minZ;
         }
+        if (wpVersion < 13) {
+            // Floating dimensions got their own anchor.role
+            final Set<Dimension> dimensionsToAdd = new HashSet<>();
+            for (Iterator<Map.Entry<Anchor, Dimension>> i = dimensionsByAnchor.entrySet().iterator(); i.hasNext(); ) {
+                final Map.Entry<Anchor, Dimension> entry = i.next();
+                if (entry.getKey().role == Dimension.Role.CAVE_FLOOR) {
+                    final Dimension dimension = entry.getValue();
+                    if (findFloatingLayer(dimension) != null) {
+                        System.out.println("Patching dimension " + dimension);
+                        i.remove();
+                        dimension.changeAnchorToFloatingFloor();
+                        dimensionsToAdd.add(dimension);
+                    }
+                }
+            }
+            dimensionsToAdd.forEach(dimension -> dimensionsByAnchor.put(dimension.getAnchor(), dimension));
+        }
         wpVersion = CURRENT_WP_VERSION;
 
         // The number of custom terrains increases now and again; correct old
@@ -856,6 +890,19 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
         if (mixedMaterials.length != Terrain.CUSTOM_TERRAIN_COUNT) {
             mixedMaterials = Arrays.copyOf(mixedMaterials, Terrain.CUSTOM_TERRAIN_COUNT);
         }
+    }
+
+    private TunnelLayer findFloatingLayer(Dimension caveFloorDimension) {
+        final Anchor floorAnchor = caveFloorDimension.getAnchor();
+        for (CustomLayer layer: dimensionsByAnchor.get(new Anchor(floorAnchor.dim, DETAIL, floorAnchor.invert, 0)).getCustomLayers()) {
+            if ((layer instanceof TunnelLayer)
+                    && (((TunnelLayer) layer).getLayerMode() == FLOATING)
+                    && (((TunnelLayer) layer).getFloorDimensionId() != null)
+                    && (((TunnelLayer) layer).getFloorDimensionId() == floorAnchor.id)) {
+                return (TunnelLayer) layer;
+            }
+        }
+        return null;
     }
 
     private String name = "Generated World";
@@ -908,6 +955,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     private WorldExportSettings exportSettings;
     private List<File> dataPacks;
     private int minHeight;
+    private Anchor spawnPointDimension;
     private transient Set<Warning> warnings;
     private transient Map<String, Object> metadata;
     private transient long changeNo;
@@ -955,7 +1003,7 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
      */
     public static final String METADATA_KEY_NAME = "name";
 
-    private static final int CURRENT_WP_VERSION = 12;
+    private static final int CURRENT_WP_VERSION = 13;
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(World2.class);
     private static final long serialVersionUID = 2011062401L;

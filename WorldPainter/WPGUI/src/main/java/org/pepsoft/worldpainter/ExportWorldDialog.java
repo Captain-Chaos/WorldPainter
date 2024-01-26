@@ -177,9 +177,7 @@ public class ExportWorldDialog extends WPDialogWithPaintSelection {
                 TreeMap::new));
         for (Dimension dimension: dimensions.values()) {
             final DimensionPropertiesEditor editor = new DimensionPropertiesEditor();
-            editor.setColourScheme(colourScheme);
-            editor.setDimension(dimension);
-            editor.setMode(DimensionPropertiesEditor.Mode.EXPORT);
+            editor.init(colourScheme, customBiomeManager, dimension, DimensionPropertiesEditor.Mode.EXPORT);
             jTabbedPane1.addTab(dimension.getName(), editor);
             dimensionPropertiesEditors.put(dimension.getAnchor(), editor);
         }

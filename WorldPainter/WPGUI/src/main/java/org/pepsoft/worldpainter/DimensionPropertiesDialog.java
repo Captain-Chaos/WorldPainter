@@ -10,6 +10,8 @@
  */
 package org.pepsoft.worldpainter;
 
+import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
+
 import java.awt.*;
 
 /**
@@ -18,22 +20,20 @@ import java.awt.*;
  */
 public class DimensionPropertiesDialog extends WorldPainterDialog {
     /** Creates new form DimensionPropertiesDialog */
-    public DimensionPropertiesDialog(Window parent, Dimension dimension, ColourScheme colourScheme) {
-        this(parent, dimension, colourScheme, false);
+    public DimensionPropertiesDialog(Window parent, Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager) {
+        this(parent, dimension, colourScheme, customBiomeManager, false);
     }
     
     /** Creates new form DimensionPropertiesDialog */
-    public DimensionPropertiesDialog(Window parent, Dimension dimension, ColourScheme colourScheme, boolean defaultSettingsMode) {
+    public DimensionPropertiesDialog(Window parent, Dimension dimension, ColourScheme colourScheme, CustomBiomeManager customBiomeManager, boolean defaultSettingsMode) {
         super(parent);
         
         initComponents();
         
-        worldPropertiesEditor1.setColourScheme(colourScheme);
-        worldPropertiesEditor1.setDimension(dimension);
         if (defaultSettingsMode) {
-            worldPropertiesEditor1.setMode(DimensionPropertiesEditor.Mode.DEFAULT_SETTINGS);
+            worldPropertiesEditor1.init(colourScheme, customBiomeManager, dimension, DimensionPropertiesEditor.Mode.DEFAULT_SETTINGS);
         } else {
-            worldPropertiesEditor1.setMode(DimensionPropertiesEditor.Mode.EDITOR);
+            worldPropertiesEditor1.init(colourScheme, customBiomeManager, dimension, DimensionPropertiesEditor.Mode.EDITOR);
         }
         
         rootPane.setDefaultButton(jButton2);

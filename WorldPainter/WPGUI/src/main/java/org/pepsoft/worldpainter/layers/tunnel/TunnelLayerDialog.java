@@ -626,7 +626,7 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
             final int dim = dimension.getAnchor().dim;
             final boolean invert = dimension.getAnchor().invert;
             final World2 world = dimension.getWorld();
-            final int id = findNextId(world, dim, invert);
+            final int id = findNextId(world, dim, CAVE_FLOOR, invert);
             layer.setFloorDimensionId(id);
             final long seed = dimension.getSeed() + id;
             HeightMap heightMap;
@@ -657,11 +657,11 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
         }
     }
 
-    protected final int findNextId(World2 world, int dim, boolean invert) {
+    protected final int findNextId(World2 world, int dim, Dimension.Role role, boolean invert) {
         int layer = 0;
         for (Dimension dimension: world.getDimensions()) {
             final Anchor anchor = dimension.getAnchor();
-            if ((anchor.dim == dim) && (anchor.role == CAVE_FLOOR) && (anchor.invert == invert)) {
+            if ((anchor.dim == dim) && (anchor.role == role) && (anchor.invert == invert)) {
                 layer = Math.max(layer, anchor.id + 1);
             }
         }
@@ -1820,7 +1820,6 @@ public class TunnelLayerDialog extends AbstractEditLayerDialog<TunnelLayer> impl
     protected TunnelLayersTableModel roofLayersTableModel;
     protected boolean programmaticChange;
 
-    protected static final String PAINT_TUNNEL_LAYER_KEY = "org.pepsoft.worldpainter.TunnelLayer.paintLayer";
-
+    private static final String PAINT_TUNNEL_LAYER_KEY = "org.pepsoft.worldpainter.TunnelLayer.paintLayer";
     private static final long serialVersionUID = 1L;
 }
