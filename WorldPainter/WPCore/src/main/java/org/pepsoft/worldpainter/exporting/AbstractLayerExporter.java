@@ -50,11 +50,11 @@ public abstract class AbstractLayerExporter<L extends Layer> implements LayerExp
          * Visit a chunk.
          *
          * @param tile          The tile on which the chunk is located.
-         * @param chunkX        The global X coordinate of the chunk.
-         * @param chunkZ        The global Z coorindate of the chunk.
+         * @param chunkX        The global X coordinate of the chunk, in chunk coordinates.
+         * @param chunkZ        The global Z coorindate of the chunk, in chunk coordinates.
          * @param chunkSupplier The lazy chunk loader. The chunk will not be actually loaded until
          * {@link Supplier#get()} is invoked on this supplier.
-         * @return {@code true} is more chunks should be visited; {@code false} if the process should be aborted.
+         * @return {@code true} if more chunks should be visited; {@code false} if the process should be aborted.
          */
         boolean visitChunk(Tile tile, int chunkX, int chunkZ, Supplier<Chunk> chunkSupplier);
     }

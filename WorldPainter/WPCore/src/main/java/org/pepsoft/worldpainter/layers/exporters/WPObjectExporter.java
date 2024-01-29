@@ -101,6 +101,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             final boolean extendFoundation = object.getAttribute(ATTRIBUTE_EXTEND_FOUNDATION);
             final boolean waterLoggedLeaves = platform.capabilities.contains(WATERLOGGED_LEAVES);
             final boolean connectBlocks = object.getAttribute(ATTRIBUTE_CONNECT_BLOCKS) && platform.capabilities.contains(NAME_BASED);
+            final boolean manageWaterlogged = object.getAttribute(ATTRIBUTE_MANAGE_WATERLOGGED) && platform.capabilities.contains(NAME_BASED);
 //            System.out.println("Object dimensions: " + dim + ", origin: " + orig);
             for (int dx = 0; dx < dim.x; dx++) {
                 for (int dy = 0; dy < dim.y; dy++) {
@@ -115,39 +116,39 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                             if (worldZ < minHeight + (bottomless || obliterate ? 0 : 1)) {
                                 continue;
                             } else if (obliterate) {
-                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks);
+                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks, manageWaterlogged);
                             } else {
                                 final Material existingMaterial = world.getMaterialAt(worldX, worldY, worldZ);
                                 if (worldZ <= terrainHeight) {
                                     switch (undergroundMode) {
                                         case COLLISION_MODE_ALL:
                                             // Replace every block
-                                            placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks);
+                                            placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks, manageWaterlogged);
                                             break;
                                         case COLLISION_MODE_SOLID:
                                             // Only replace if object block is solid
                                             if (! finalMaterial.veryInsubstantial) {
-                                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks);
+                                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks, manageWaterlogged);
                                             }
                                             break;
                                         case COLLISION_MODE_NONE:
                                             // Only replace less solid blocks
                                             if (existingMaterial.veryInsubstantial) {
-                                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks);
+                                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks, manageWaterlogged);
                                             }
                                             break;
                                     }
                                 } else {
                                     // Above ground only replace less solid blocks
                                     if (existingMaterial.veryInsubstantial) {
-                                        placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks);
+                                        placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks, manageWaterlogged);
                                     }
                                 }
                             }
                             if (extendFoundation && (dz == 0) && (terrainHeight != Integer.MIN_VALUE) && (worldZ > terrainHeight) && (! finalMaterial.veryInsubstantial)) {
                                 int legZ = worldZ - 1;
                                 while ((legZ >= minHeight) && world.getMaterialAt(worldX, worldY, legZ).veryInsubstantial) {
-                                    placeBlock(world, worldX, worldY, legZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks);
+                                    placeBlock(world, worldX, worldY, legZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks, manageWaterlogged);
                                     legZ--;
                                 }
                             }
@@ -237,6 +238,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
             final boolean replaceBlocks = replaceMaterial != null;
             final boolean waterLoggedLeaves = platform.capabilities.contains(WATERLOGGED_LEAVES);
             final boolean connectBlocks = object.getAttribute(ATTRIBUTE_CONNECT_BLOCKS) && platform.capabilities.contains(NAME_BASED);
+            final boolean manageWaterlogged = object.getAttribute(ATTRIBUTE_MANAGE_WATERLOGGED) && platform.capabilities.contains(NAME_BASED);
             for (int dx = 0; dx < dim.x; dx++) {
                 for (int dy = 0; dy < dim.y; dy++) {
                     final int worldX = x + dx + offset.x;
@@ -249,7 +251,7 @@ public abstract class WPObjectExporter<L extends Layer> extends AbstractLayerExp
                             final Material existingMaterial = world.getMaterialAt(worldX, worldY, worldZ);
                             // Only replace less solid blocks
                             if (existingMaterial.veryInsubstantial) {
-                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks);
+                                placeBlock(world, worldX, worldY, worldZ, finalMaterial, leafDecayMode, waterLoggedLeaves, connectBlocks, manageWaterlogged);
                             }
                         }
                     }

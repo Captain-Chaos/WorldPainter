@@ -135,6 +135,8 @@ public final class Schem extends AbstractNBTItem implements WPObject {
             }
             attributes.put(ATTRIBUTE_OFFSET.key, offset);
         }
+
+        guessManageWaterlogged();
     }
 
     // WPObject

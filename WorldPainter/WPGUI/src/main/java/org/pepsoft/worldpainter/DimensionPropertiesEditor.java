@@ -1274,6 +1274,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             return;
         }
         final List<CustomLayer> customLayers = dimension.getCustomLayers(true);
+        // Don't show layers which cannot be exported, such as custom annotations:
+        customLayers.removeIf(layer -> layer.getExporterType() == null);
         customLayers.forEach(layer -> layer.setExportIndex(null));
         customLayersTableModel = new CustomLayersTableModel(customLayers);
         tableCustomLayers.setModel(customLayersTableModel);

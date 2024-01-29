@@ -144,8 +144,9 @@ public class FlatteningDimension extends RODelegatingDimension<FlatteningDimensi
 
     @Override
     public boolean containsOneOf(Layer... layers) {
+        final Set<Layer> allLayers = getAllLayers(false);
         for (Layer layer: layers) {
-            if (getAllLayers(false).contains(layer)) {
+            if (allLayers.contains(layer)) {
                 return true;
             }
         }

@@ -287,6 +287,23 @@ public interface WPObject extends Serializable, Cloneable {
     }
 
     /**
+     * TODO only for formats with named blocks which could conceivable contain the waterlogged property
+     */
+    default void guessManageWaterlogged() {
+        final AtomicBoolean resetManageWaterblocks = new AtomicBoolean();
+        visitBlocks((object, x, y, z, material) -> {
+            if (material.is(WATERLOGGED)) {
+                resetManageWaterblocks.set(true);
+                return false;
+            }
+            return true;
+        });
+        if (resetManageWaterblocks.get()) {
+            setAttribute(ATTRIBUTE_MANAGE_WATERLOGGED, false);
+        }
+    }
+
+    /**
      * Dumps the object to the console.
      */
     default void dump() {
@@ -476,6 +493,12 @@ public interface WPObject extends Serializable, Cloneable {
      * include stone walls. Default value: {@code false}.
      */
     AttributeKey<Boolean> ATTRIBUTE_CONNECT_BLOCKS        = new AttributeKey<>("WPObject.connectBlocks", false);
+    /**
+     * Whether the {@link Material#WATERLOGGED} property of the blocks should be automatically managed (set if there is
+     * already water where the blocks are placed and reset if the target location is dry) or exported as set in the
+     * object.
+     */
+    AttributeKey<Boolean> ATTRIBUTE_MANAGE_WATERLOGGED    = new AttributeKey<>("WPObject.manageWaterlogged", true);
 
     @FunctionalInterface
     interface BlockVisitor {

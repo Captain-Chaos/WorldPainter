@@ -12,6 +12,7 @@ import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
 import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsLayer;
+import org.pepsoft.worldpainter.layers.renderers.PaintRenderer;
 import org.pepsoft.worldpainter.operations.Filter;
 
 import java.io.IOException;
@@ -34,8 +35,12 @@ import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.CUSTOM_DIM
  * @author SchmitzP
  */
 public class TunnelLayer extends CustomLayer {
-    public TunnelLayer(String name, Object paint, Platform platform) {
+    public TunnelLayer(String name, LayerMode mode, Object paint, Platform platform) {
         super(name, name, DataSize.BIT, 22, paint);
+        if (mode == null) {
+            throw new NullPointerException("mode");
+        }
+        this.mode = mode;
         fillMode = platform.capabilities.contains(NAME_BASED) ? CAVE_AIR : AIR;
     }
 
@@ -199,7 +204,14 @@ public class TunnelLayer extends CustomLayer {
 
     @Override
     public String getType() {
-        return "Cave/Tunnel";
+        switch (mode) {
+            case CAVE:
+                return "Cave/Tunnel";
+            case FLOATING:
+                return "Floating Dimension";
+            default:
+                throw new InternalError("Unknown mode " + mode);
+        }
     }
 
     public int getFloodLevel() {
@@ -274,6 +286,22 @@ public class TunnelLayer extends CustomLayer {
         this.fillMaterial = fillMaterial;
     }
 
+    public LayerMode getLayerMode() {
+        return mode;
+    }
+
+    public EdgeShape getBottomEdgeShape() {
+        return bottomEdgeShape;
+    }
+
+    public void setBottomEdgeShape(EdgeShape bottomEdgeShape) {
+        this.bottomEdgeShape = bottomEdgeShape;
+    }
+
+    /**
+     * Ensure that tiles exist in the floor dimension for this layer for all the places where the layer is painted, and
+     * mark out the shape of the layer on the floor dimension using the {@link NotPresentBlock} layer.
+     */
     public Dimension updateFloorDimension(Dimension dimension, String name) {
         final Anchor anchor = dimension.getAnchor();
         final Dimension floorDimension = dimension.getWorld().getDimension(new Anchor(anchor.dim, CAVE_FLOOR, anchor.invert, floorDimensionId));
@@ -305,6 +333,11 @@ public class TunnelLayer extends CustomLayer {
         return floorDimension;
     }
 
+    /**
+     * Ensure that tiles exist in the floor dimension for this layer for all the places where the layer is painted. That
+     * might not be the case if the user has painted the layer in additional places but not then edited the floor
+     * dimension to fill in those places.
+     */
     public void updateFloorDimensionTiles(Dimension dimension) {
         final Anchor anchor = dimension.getAnchor();
         final Dimension floorDimension = dimension.getWorld().getDimension(new Anchor(anchor.dim, CAVE_FLOOR, anchor.invert, floorDimensionId));
@@ -389,17 +422,38 @@ public class TunnelLayer extends CustomLayer {
 
     @Override
     public Class<? extends LayerExporter> getExporterType() {
-        return TunnelLayerExporter.class;
+        switch (mode) {
+            case CAVE:
+                return TunnelLayerExporter.class;
+            case FLOATING:
+                return FloatingLayerExporter.class;
+            default:
+                throw new InternalError("Unknown mode " + mode);
+        }
     }
 
     @Override
-    public TunnelLayerExporter getExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
-        return new TunnelLayerExporter(dimension, platform, this, getHelper(dimension)); // TODO creating the helper is not necessary to do for every exporter instance
+    public AbstractTunnelLayerExporter getExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
+        switch (mode) {
+            case CAVE:
+                return new TunnelLayerExporter(dimension, platform, this, getHelper(dimension)); // TODO creating the helper is not necessary to do for every exporter instance
+            case FLOATING:
+                return new FloatingLayerExporter(dimension, platform, this, getHelper(dimension)); // TODO creating the helper is not necessary to do for every exporter instance
+            default:
+                throw new InternalError("Unknown mode " + mode);
+        }
     }
 
     @Override
-    public TunnelLayerRenderer getRenderer() {
-        return new TunnelLayerRenderer(this);
+    public PaintRenderer getRenderer() {
+        switch (mode) {
+            case CAVE:
+                return new TunnelLayerRenderer(this);
+            case FLOATING:
+                return new PaintRenderer(getPaint(), getOpacity());
+            default:
+                throw new InternalError("Unknown mode " + mode);
+        }
     }
 
     @Override
@@ -493,9 +547,13 @@ public class TunnelLayer extends CustomLayer {
             fillMode = AIR;
             fillLightLevel = 8;
         }
+        if (wpVersion < 4) {
+            mode = LayerMode.CAVE;
+        }
         wpVersion = CURRENT_WP_VERSION;
     }
 
+    // The "roof" settings double for the bottom of floating dimensions
     Mode roofMode = Mode.FIXED_HEIGHT_ABOVE_FLOOR, floorMode = Mode.FIXED_HEIGHT;
     int roofLevel = 16, floorLevel = 32, floorWallDepth = 4, roofWallDepth = 4, roofMin = Integer.MIN_VALUE, roofMax = Integer.MAX_VALUE, floorMin = Integer.MIN_VALUE, floorMax = Integer.MAX_VALUE, floodLevel = Integer.MIN_VALUE;
     private boolean stalactites, stalagmites, floodWithLava, removeWater;
@@ -509,12 +567,34 @@ public class TunnelLayer extends CustomLayer {
     private FillMode fillMode;
     private int fillLightLevel = 8;
     private MixedMaterial fillMaterial;
+    private LayerMode mode;
+    Integer roofDimensionId;
+    private EdgeShape bottomEdgeShape;
 
-    private static final int CURRENT_WP_VERSION = 3;
+    private static final int CURRENT_WP_VERSION = 4;
     private static final long serialVersionUID = 1L;
     
     public enum Mode { FIXED_HEIGHT, CONSTANT_DEPTH, INVERTED_DEPTH, CUSTOM_DIMENSION, FIXED_HEIGHT_ABOVE_FLOOR }
     public enum FillMode { CAVE_AIR, AIR, LIGHT, MIXED_MATERIAL }
+
+    public enum LayerMode {
+        /**
+         * In cave mode this layer will carve out a void dictated by the floor and roof level settings and apply the
+         * floor features to the terrain at the bottom of the void and the roof features, if any, to the terrain above
+         * the void, if any.
+         */
+        CAVE,
+
+        /**
+         * In floating mode this layer will not carve out a void but place terrain at the level of the floor dimension,
+         * to the depth dictated by the roof level settings. It will apply the floor features to the top of the terrain
+         * and the roof features, if any, to the bottom of the terrain. In this mode the layer must always have a floor
+         * dimension, since it dictates the height of the floor. TODO: explore non-dimension floor level modes?
+         */
+        FLOATING
+    }
+
+    public enum EdgeShape {SHEER, LINEAR, SMOOTH, ROUNDED}
 
     public static class LayerSettings implements Serializable, Cloneable {
         public LayerSettings(int minLevel, int maxLevel) {

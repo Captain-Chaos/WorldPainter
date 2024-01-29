@@ -17,6 +17,7 @@ import org.pepsoft.worldpainter.layers.groundcover.GroundCoverLayer;
 import org.pepsoft.worldpainter.layers.plants.PlantLayer;
 import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsDialog;
 import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsLayer;
+import org.pepsoft.worldpainter.layers.tunnel.FloatingLayerDialog;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayerDialog;
 import org.pepsoft.worldpainter.operations.PaintOperation;
@@ -47,8 +48,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.zip.GZIPOutputStream;
 
-import static java.awt.Color.BLACK;
-import static java.awt.Color.YELLOW;
+import static java.awt.Color.*;
 import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
 import static javax.swing.JOptionPane.*;
@@ -60,6 +60,9 @@ import static org.pepsoft.worldpainter.App.COMMAND_KEY_NAME;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.CAVE;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.FLOATING;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.FIXED_HEIGHT_ABOVE_FLOOR;
 import static org.pepsoft.worldpainter.panels.DefaultFilter.buildForDimension;
 
 public class CustomLayerController implements PropertyChangeListener {
@@ -112,21 +115,30 @@ public class CustomLayerController implements PropertyChangeListener {
             private void showPopup(MouseEvent e) {
                 final JPopupMenu popup = new BetterJPopupMenu();
 
-                JMenuItem menuItem = new JMenuItem("Find");
-                menuItem.addActionListener(e1 -> findLayer(layer));
-                popup.add(menuItem);
-
-                menuItem = new JMenuItem(strings.getString("edit") + "...");
+                JMenuItem menuItem = new JMenuItem(strings.getString("edit") + "...");
                 menuItem.addActionListener(e1 -> editCustomLayer(layer));
                 popup.add(menuItem);
 
                 final Dimension dimension = app.getDimension();
-                if ((layer instanceof TunnelLayer)) {
+                if (layer instanceof TunnelLayer) {
                     final TunnelLayer tunnelLayer = (TunnelLayer) layer;
                     final Integer floorDimensionId = tunnelLayer.getFloorDimensionId();
                     if (floorDimensionId != null) {
-                        menuItem = new JMenuItem("Edit floor dimension");
-                        if (dimension.containsOneOf(layer)) {
+                        final String shortName, longName;
+                        switch (tunnelLayer.getLayerMode()) {
+                            case CAVE:
+                                shortName = "floor dimension";
+                                longName = "Custom Cave/Tunnel layer floor dimension";
+                                break;
+                            case FLOATING:
+                                shortName = "floating dimension";
+                                longName = "Floating Dimension";
+                                break;
+                            default:
+                                throw new InternalError("Unknown layer mode " + tunnelLayer.getLayerMode());
+                        }
+                        menuItem = new JMenuItem("Edit " + shortName);
+                        if (dimension.containsOneOf(tunnelLayer)) {
                             menuItem.addActionListener(e1 -> {
                                 final Point viewPosition = app.view.getViewCentreInWorldCoords();
                                 final Dimension floorDimension = tunnelLayer.updateFloorDimension(dimension, null);
@@ -170,12 +182,12 @@ public class CustomLayerController implements PropertyChangeListener {
                                 final Configuration config = Configuration.getInstance();
                                 if (! config.isMessageDisplayedCountAtLeast(EDITING_FLOOR_DIMENSION_KEY, 3)) {
                                     doLaterOnEventThread(() -> JOptionPane.showMessageDialog(app,
-                                            "Press Esc to finish editing the Custom Cave/Tunnel layer floor dimension,\n" +
-                                                    "or select the Surface dimension from the app.view menu or by pressing " + COMMAND_KEY_NAME + "+U", "Editing Cave/Tunnel Floor", JOptionPane.INFORMATION_MESSAGE));
+                                            "Press Esc to finish editing the " + longName + ",\n" +
+                                                    "or select the Surface dimension from the app.view menu or by pressing " + COMMAND_KEY_NAME + "+U", "Editing " + longName, JOptionPane.INFORMATION_MESSAGE));
                                     config.setMessageDisplayed(EDITING_FLOOR_DIMENSION_KEY);
                                 }
 
-                                final JLabel label = new JLabel("<html><font size='+1'>Press Esc to leave the Custom Cave/Tunnel Floor Dimension.</font></html>");
+                                final JLabel label = new JLabel("<html><font size='+1'>Press Esc to leave the " + longName + ".</font></html>");
                                 label.setBorder(new CompoundBorder(new LineBorder(BLACK), new EmptyBorder(5, 5, 5, 5)));
                                 app.pushGlassPaneComponent(label);
                             });
@@ -185,6 +197,10 @@ public class CustomLayerController implements PropertyChangeListener {
                         popup.add(menuItem);
                     }
                 }
+
+                menuItem = new JMenuItem("Find");
+                menuItem.addActionListener(e1 -> findLayer(layer));
+                popup.add(menuItem);
 
                 menuItem = new JMenuItem("Duplicate...");
                 if (layer.isExportableToFile()) {
@@ -387,7 +403,7 @@ public class CustomLayerController implements PropertyChangeListener {
 
         menuItem = new JMenuItem("Add a custom cave/tunnel layer...");
         menuItem.addActionListener(e -> {
-            final TunnelLayer layer = new TunnelLayer("Tunnels", BLACK, world.getPlatform());
+            final TunnelLayer layer = new TunnelLayer("Tunnels", CAVE, BLACK, world.getPlatform());
             final int baseHeight, waterLevel;
             final TileFactory tileFactory = dimension.getTileFactory();
             if (tileFactory instanceof HeightMapTileFactory) {
@@ -451,6 +467,36 @@ public class CustomLayerController implements PropertyChangeListener {
                 registerCustomLayer(layer, true);
             });
         });
+        customLayerMenu.add(menuItem);
+
+        menuItem = new JMenuItem("[PREVIEW] Add a floating dimension...");
+        menuItem.addActionListener(e -> {
+            final TunnelLayer layer = new TunnelLayer("Floating Dimension", FLOATING, CYAN, world.getPlatform());
+            layer.setFloorMode(FIXED_HEIGHT_ABOVE_FLOOR);
+            layer.setFloorLevel(16);
+            final int baseHeight, waterLevel;
+            final TileFactory tileFactory = dimension.getTileFactory();
+            if (tileFactory instanceof HeightMapTileFactory) {
+                baseHeight = (int) ((HeightMapTileFactory) tileFactory).getBaseHeight();
+                waterLevel = ((HeightMapTileFactory) tileFactory).getWaterHeight();
+                layer.setFloodWithLava(((HeightMapTileFactory) tileFactory).isFloodWithLava());
+            } else {
+                baseHeight = 58;
+                waterLevel = DEFAULT_WATER_LEVEL;
+            }
+            // TODO passing in dimension here is a crude mechanism. It is supposed to be the dimension on which this
+            //  layer will be used, but that is impossible to enforce. In practice this will usually be right though
+            final FloatingLayerDialog dialog = new FloatingLayerDialog(app, world.getPlatform(), layer, dimension, world.isExtendedBlockIds(), app.getColourScheme(), app.getCustomBiomeManager(), dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
+            dialog.setVisible(() -> {
+                if (paletteName != null) {
+                    layer.setPalette(paletteName);
+                }
+                registerCustomLayer(layer, true);
+            });
+        });
+        if (anchor.role == CAVE_FLOOR) {
+            menuItem.setEnabled(false);
+        }
         customLayerMenu.add(menuItem);
 
         List<Class<? extends CustomLayer>> allPluginLayers = new ArrayList<>();
@@ -858,7 +904,9 @@ public class CustomLayerController implements PropertyChangeListener {
             // TODO passing in dimension here is a crude mechanism. It is supposed to be the dimension on which this
             //  layer is being used, but that is a lot of work to determine. In practice this will usually be right
             //  though
-            dialog = (AbstractEditLayerDialog<L>) new TunnelLayerDialog(app, world.getPlatform(), (TunnelLayer) layer, dimension, world.isExtendedBlockIds(), app.getColourScheme(), app.getCustomBiomeManager(), dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel);
+            dialog = (AbstractEditLayerDialog<L>) ((((TunnelLayer) layer).getLayerMode() == CAVE)
+                ? new TunnelLayerDialog(app, world.getPlatform(), (TunnelLayer) layer, dimension, world.isExtendedBlockIds(), app.getColourScheme(), app.getCustomBiomeManager(), dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel)
+                : new FloatingLayerDialog(app, world.getPlatform(), (TunnelLayer) layer, dimension, world.isExtendedBlockIds(), app.getColourScheme(), app.getCustomBiomeManager(), dimension.getMinHeight(), dimension.getMaxHeight(), baseHeight, waterLevel));
         } else if (layer instanceof CustomAnnotationLayer) {
             dialog = (AbstractEditLayerDialog<L>) new CustomAnnotationLayerDialog(app, (CustomAnnotationLayer) layer);
         } else {

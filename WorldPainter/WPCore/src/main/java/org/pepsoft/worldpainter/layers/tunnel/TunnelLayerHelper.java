@@ -5,6 +5,7 @@ import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.HeightMap;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 
+import static java.lang.Math.round;
 import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.CUSTOM_DIMENSION;
@@ -63,6 +64,22 @@ public class TunnelLayerHelper {
         }
     }
 
+    public int calculateBottomLevel(int x, int y, int minZ, int maxZ, int floorLevel, float distanceToWall) {
+        final double multiplier = Math.min(distanceToWall / layer.roofWallDepth, 1.0);
+        switch (layer.roofMode) {
+//            case CONSTANT_DEPTH:
+//                return clamp(minZ, clamp(layer.roofMin, terrainHeight - layer.roofLevel, layer.roofMax) + ((roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0), maxZ);
+            case FIXED_HEIGHT:
+                return clamp(minZ, layer.roofLevel + ((roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0), maxZ);
+//            case INVERTED_DEPTH:
+//                return clamp(minZ, clamp(layer.roofMin, layer.roofLevel - (terrainHeight - layer.roofLevel), layer.roofMax) + ((roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0), maxZ);
+            case FIXED_HEIGHT_ABOVE_FLOOR:
+                return (int) round(clamp(minZ, clamp(layer.roofMin, floorLevel - (multiplier * layer.roofLevel), layer.roofMax) + ((roofNoise != null) ? ((roofNoise.getHeight(x, y) - roofNoiseOffset) * multiplier) : 0.0), maxZ));
+            default:
+                throw new UnsupportedOperationException("layer.roofMode " + layer.roofMode);
+        }
+    }
+
     public int calculateFloorLevel(int x, int y, int terrainHeight, int minZ, int maxZ) {
         switch (layer.floorMode) {
             case CONSTANT_DEPTH:
@@ -87,7 +104,7 @@ public class TunnelLayerHelper {
             return 0;
         } else {
             final float a = layer.roofWallDepth - distanceToWall;
-            return (int) Math.round(layer.roofWallDepth - Math.sqrt(layer.roofWallDepth * layer.roofWallDepth - a * a));
+            return (int) round(layer.roofWallDepth - Math.sqrt(layer.roofWallDepth * layer.roofWallDepth - a * a));
         }
     }
 
@@ -100,8 +117,12 @@ public class TunnelLayerHelper {
             return 0;
         } else {
             final float a = layer.floorWallDepth - distanceToWall;
-            return (int) Math.round(layer.floorWallDepth - Math.sqrt(layer.floorWallDepth * layer.floorWallDepth - a * a));
+            return (int) round(layer.floorWallDepth - Math.sqrt(layer.floorWallDepth * layer.floorWallDepth - a * a));
         }
+    }
+
+    public float getDistanceToWall(int x, int y) {
+        return (float) wallDistanceCache.getHeight(x, y);
     }
 
     private final TunnelLayer layer;
