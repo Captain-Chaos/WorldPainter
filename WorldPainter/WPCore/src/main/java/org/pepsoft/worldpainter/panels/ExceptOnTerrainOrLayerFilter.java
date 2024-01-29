@@ -39,17 +39,17 @@ public class ExceptOnTerrainOrLayerFilter extends TerrainOrLayerFilter {
                 }
                 break;
             case INT_LAYER_EQUAL:
-                if (dimension.getLayerValueAt(layer, x, y) != value) {
+                if (dimension.getLayerValueAt(layer, x, y) == value) {
                     return 0.0f;
                 }
                 break;
             case INT_LAYER_EQUAL_OR_HIGHER:
-                if (dimension.getLayerValueAt(layer, x, y) < value) {
+                if (dimension.getLayerValueAt(layer, x, y) >= value) {
                     return 0.0f;
                 }
                 break;
             case INT_LAYER_EQUAL_OR_LOWER:
-                if (dimension.getLayerValueAt(layer, x, y) > value) {
+                if (dimension.getLayerValueAt(layer, x, y) <= value) {
                     return 0.0f;
                 }
                 break;

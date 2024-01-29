@@ -26,8 +26,7 @@ import org.pepsoft.worldpainter.panels.DefaultFilter;
 import org.pepsoft.worldpainter.panels.DefaultFilter.LayerValue;
 import org.pepsoft.worldpainter.panels.TerrainOrLayerFilter;
 
-import static org.pepsoft.worldpainter.panels.DefaultFilter.Condition.HIGHER_THAN_OR_EQUAL;
-import static org.pepsoft.worldpainter.panels.DefaultFilter.Condition.LOWER_THAN_OR_EQUAL;
+import static org.pepsoft.worldpainter.panels.DefaultFilter.Condition.*;
 
 /**
  *
@@ -100,7 +99,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (exceptOnLastSet) {
             if (exceptOn instanceof Layer) {
                 throw new ScriptException("No \"except on\" layer value specified for \"or higher\"");
-            } else if (((LayerValue) exceptOn).condition != null) {
+            } else if (((LayerValue) exceptOn).condition != null && ((LayerValue) exceptOn).condition != EQUAL) {
                 throw new ScriptException("Only one of \"or lower\" and \"or higher\" may be specified for \"except on\" value");
             }
             exceptOn = new LayerValue(((LayerValue) exceptOn).layer, ((LayerValue) exceptOn).value, HIGHER_THAN_OR_EQUAL);
@@ -109,7 +108,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
                 throw new ScriptException("No \"only on\" layer specified for \"or higher\"");
             } else if (onlyOn instanceof Layer) {
                 throw new ScriptException("No \"only on\" layer value specified for \"or higher\"");
-            } else if (((LayerValue) onlyOn).condition != null) {
+            } else if (((LayerValue) onlyOn).condition != null && ((LayerValue) onlyOn).condition != EQUAL) {
                 throw new ScriptException("Only one of \"or lower\" and \"or higher\" may be specified for \"only on\" value");
             }
             onlyOn = new LayerValue(((LayerValue) onlyOn).layer, ((LayerValue) onlyOn).value, HIGHER_THAN_OR_EQUAL);
@@ -121,7 +120,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (exceptOnLastSet) {
             if (exceptOn instanceof Layer) {
                 throw new ScriptException("No \"except on\" layer value specified for \"or lower\"");
-            } else if (((LayerValue) exceptOn).condition != null) {
+            } else if (((LayerValue) exceptOn).condition != null && ((LayerValue) exceptOn).condition != EQUAL) {
                 throw new ScriptException("Only one of \"or lower\" and \"or higher\" may be specified for \"except on\" value");
             }
             exceptOn = new LayerValue(((LayerValue) exceptOn).layer, ((LayerValue) exceptOn).value, LOWER_THAN_OR_EQUAL);
@@ -130,7 +129,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
                 throw new ScriptException("No \"only on\" layer specified for \"or lower\"");
             } else if (onlyOn instanceof Layer) {
                 throw new ScriptException("No \"only on\" layer value specified for \"or lower\"");
-            } else if (((LayerValue) onlyOn).condition != null) {
+            } else if (((LayerValue) onlyOn).condition != null && ((LayerValue) onlyOn).condition != EQUAL) {
                 throw new ScriptException("Only one of \"or lower\" and \"or higher\" may be specified for \"only on\" value");
             }
             onlyOn = new LayerValue(((LayerValue) onlyOn).layer, ((LayerValue) onlyOn).value, LOWER_THAN_OR_EQUAL);
@@ -151,7 +150,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (onlyOn != null) {
             throw new ScriptException("Only one \"only on\" or condition may be specified");
         }
-        onlyOn = new LayerValue(Biome.INSTANCE, -biomeIndex);;
+        onlyOn = new LayerValue(Biome.INSTANCE, -biomeIndex);
         exceptOnLastSet = false;
         return this;
     }
@@ -214,7 +213,7 @@ public class CreateFilterOp extends AbstractOperation<Filter> {
         if (exceptOn != null) {
             throw new ScriptException("Only one or \"except on\" condition may be specified");
         }
-        exceptOn = new LayerValue(Biome.INSTANCE, -biomeIndex);;
+        exceptOn = new LayerValue(Biome.INSTANCE, -biomeIndex);
         exceptOnLastSet = true;
         return this;
     }
