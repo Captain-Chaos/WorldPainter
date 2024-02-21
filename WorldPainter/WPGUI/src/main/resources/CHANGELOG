@@ -1,3 +1,7 @@
+-- Version 2.22.2, released ...
+
+ * Added a warning when creating a Master Dimension, as people continue to do this by accident or without sufficient understanding. It will be displayed the first three times you try to create a Master Dimension
+
 -- Version 2.22.1, released 22-1-2024
 
  * A preview of floating dimensions has been added

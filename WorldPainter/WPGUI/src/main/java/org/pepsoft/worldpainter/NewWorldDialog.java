@@ -14,6 +14,7 @@ package org.pepsoft.worldpainter;
 import org.pepsoft.minecraft.MapGenerator;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.minecraft.SeededGenerator;
+import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.ProgressReceiver;
@@ -41,11 +42,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.primitives.Ints.asList;
+import static javax.swing.JOptionPane.*;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_END;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_NETHER;
 import static org.pepsoft.util.swing.MessageUtils.showInfo;
 import static org.pepsoft.util.swing.SpinnerUtils.setMaximum;
 import static org.pepsoft.util.swing.SpinnerUtils.setMinimum;
+import static org.pepsoft.worldpainter.App.COMMAND_KEY_NAME;
 import static org.pepsoft.worldpainter.App.INT_NUMBER_FORMAT;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.ATTRIBUTE_MC_VERSION;
@@ -1544,6 +1547,25 @@ public class NewWorldDialog extends WorldPainterDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void buttonCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCreateActionPerformed
+        if (checkBoxMasterDimension.isSelected()) {
+            final Configuration config = Configuration.getInstance();
+            if (! config.isMessageDisplayedCountAtLeast(MESSAGE_KEY_MASTER_WARNING, 3)) {
+                DesktopUtils.beep();
+                if (JOptionPane.showConfirmDialog(this, /* language=HTML */ "<html>" +
+                        "<h1>About Master Dimensions</h1>" +
+                        "<p>A master dimension will be exported at 256 times the size (by area)<br>and is meant for speeding up the creation of very large maps.</p>" +
+                        "<ul>" +
+                        "    <li>You <b>cannot change your mind</b> later; if you do not want this to be<br>a master dimension later you will have to start over." +
+                        "    <li>Loading, editing and saving are quicker, but Exporting is not!<br><b>Exporting takes 256 times longer</b> than a regular dimension<br>of the same pixel size in WorldPainter." +
+                        "    <li>You can detail areas of the Master Dimension at 1:1 scale by<br>switching to the Surface Dimension (" + COMMAND_KEY_NAME + "+M or View menu)<br>and then adding tiles (" + COMMAND_KEY_NAME + "+T or Edit menu)." +
+                        "</ul>" +
+                        "<p>Are you sure?</p>" +
+                        "</html>", "Create Master Dimension?", YES_NO_OPTION, WARNING_MESSAGE) != YES_OPTION) {
+                    return;
+                }
+                config.setMessageDisplayed(MESSAGE_KEY_MASTER_WARNING);
+            }
+        }
         ok();
     }//GEN-LAST:event_buttonCreateActionPerformed
 

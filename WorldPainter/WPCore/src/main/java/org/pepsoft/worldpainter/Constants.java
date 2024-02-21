@@ -126,4 +126,6 @@ public final class Constants {
      */
     public static final Set<Layer> SYSTEM_LAYERS = ImmutableSet.of(SelectionChunk.INSTANCE, SelectionBlock.INSTANCE,
             FloodWithLava.INSTANCE, NotPresent.INSTANCE, NotPresentBlock.INSTANCE);
+
+    public static final String MESSAGE_KEY_MASTER_WARNING = "org.pepsoft.worldpainter.ImportHeightMapDialog.masterDimension";
 }
