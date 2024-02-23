@@ -192,6 +192,14 @@ public class ScriptingContext {
         return new GetPlatformOp(this);
     }
 
+    /**
+     * Get a biome ID by name.
+     */
+    public GetBiomeIdOp getBiomeId() {
+        checkGoCalled("getBiomeId");
+        return new GetBiomeIdOp(this);
+    }
+
     public void checkGoCalled(String commandName) {
         if (! goCalled) {
             throw new IllegalStateException("You forgot to invoke go() on the " + lastCommandName + "() operation");

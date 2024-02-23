@@ -4,6 +4,9 @@
    + Just edit the corresponding floor dimension and then use the Spawn tool to set the spawn point there
    + If the spawn point is moved during a test export because it is outside the selected tiles, it will always be moved to the surface
  * Added a warning when creating a Master Dimension, as people continue to do this by accident or without sufficient understanding. It will be displayed the first three times you try to create a Master Dimension
+ * A new scripting operation has been added to obtain a numerical biome ID on map formats which use named biome IDs, since WorldPainter's scripting operations always need a numerical ID:
+   biomeId = wp.getBiome().withName('minecraft:cherry_grove').go() // For vanilla biomes
+   biomeId = wp.getBiome().fromWorld(world).withName('custom:mybiome').go() // For custom biomes from a particular world. Note that if there is more than one custom biome defined with the same name but different ID's, the result is undefined
 
 -- Version 2.22.1, released 22-1-2024
 

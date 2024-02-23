@@ -159,4 +159,12 @@ public abstract class AbstractMinecraft1_20BiomeScheme extends AbstractBiomeSche
     public String getBiomeName(int biome) {
         return BIOME_NAMES[biome];
     }
+
+    @Override
+    public String getStringId(int biome) {
+        if (MODERN_IDS[biome] == null) {
+            throw new IllegalArgumentException(Integer.toString(biome));
+        }
+        return MODERN_IDS[biome];
+    }
 }

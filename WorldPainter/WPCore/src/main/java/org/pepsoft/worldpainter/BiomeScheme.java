@@ -78,12 +78,30 @@ public interface BiomeScheme {
     boolean[][] getPattern(int biome);
     
     /**
-     * Get the name of the specified biome in this biome scheme.
+     * Get the name of the specified biome in this biome scheme. This should be the human-readable name.
      * 
      * @param biome The biome for which to retrieve the name.
      * @return The name of the specified biome.
      */
     String getBiomeName(int biome);
+
+    /**
+     * Get the technical ID of the specified biome in this biome scheme as a string. For Minecraft 1.20 and later this
+     * is a resource identifier (i.e. {@code "minecraft:plains"}); for earlier Minecraft versions this is the numerical
+     * ID as a string (i.e. {@code "1"}).
+     *
+     * <p>The default implementation returns the {@code biome} parameter as a string if the biome is present; otherwise
+     * it throws a {@code IllegalArgumentException}.
+     *
+     * @param biome The biome for which to retrieve the name.
+     * @return The technical ID of the specified biome as a string.
+     */
+    default String getStringId(int biome) {
+        if (! isBiomePresent(biome)) {
+            throw new IllegalArgumentException(Integer.toString(biome));
+        }
+        return Integer.toString(biome);
+    }
     
     /**
      * Indicates whether the specified biome ID is present in this biome scheme.
