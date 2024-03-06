@@ -9,9 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.RescaleOp;
+import java.awt.image.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,12 +44,12 @@ public final class BitmapBrush extends AbstractBrush {
 
     @Override
     public float getStrength(int dx, int dy) {
-        return getData().buffer.getElem(0, dx + radius + (dy + radius) * diameter) / 255f;
+        return getData().buffer.getElem(0, dx + radius + (dy + radius) * diameter) / 65535f;
     }
 
     @Override
     public float getFullStrength(int dx, int dy) {
-        return getData().fullStrengthBuffer.getElem(0, dx + radius + (dy + radius) * diameter) / 255f;
+        return getData().fullStrengthBuffer.getElem(0, dx + radius + (dy + radius) * diameter) / 65535f;
     }
     
     @Override
@@ -109,19 +107,19 @@ public final class BitmapBrush extends AbstractBrush {
                 imageReference = new SoftReference<>(image);
             }
         }
-        BufferedImage fullStrengthMask = new BufferedImage(diameter, diameter, BufferedImage.TYPE_BYTE_GRAY);
-        Graphics2D g2 = fullStrengthMask.createGraphics();
+        final BufferedImage fullStrengthMask = new BufferedImage(diameter, diameter, BufferedImage.TYPE_USHORT_GRAY);
+        final Graphics2D g2 = fullStrengthMask.createGraphics();
         try {
             g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
             g2.drawImage(image, 0, 0, diameter, diameter, null);
         } finally {
             g2.dispose();
         }
-        Data data = new Data();
-        data.fullStrengthBuffer = (DataBufferByte) fullStrengthMask.getRaster().getDataBuffer();
+        final Data data = new Data();
+        data.fullStrengthBuffer = (DataBufferUShort) fullStrengthMask.getRaster().getDataBuffer();
         if (level < 1.0f) {
             BufferedImage mask = rescaleOp.filter(fullStrengthMask, null);
-            data.buffer = (DataBufferByte) mask.getRaster().getDataBuffer();
+            data.buffer = (DataBufferUShort) mask.getRaster().getDataBuffer();
         } else {
             data.buffer = data.fullStrengthBuffer;
         }
@@ -155,6 +153,6 @@ public final class BitmapBrush extends AbstractBrush {
     private static final Logger logger = LoggerFactory.getLogger(BitmapBrush.class);
 
     static class Data {
-        DataBufferByte fullStrengthBuffer, buffer;
+        DataBufferUShort fullStrengthBuffer, buffer;
     }
 }
