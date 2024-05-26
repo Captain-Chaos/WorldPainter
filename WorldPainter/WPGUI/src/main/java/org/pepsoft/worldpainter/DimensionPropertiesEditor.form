@@ -135,7 +135,7 @@
                       <Component id="panelBorderWallRoof" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="panelMinecraftSettings" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="67" max="32767" attributes="0"/>
+                      <EmptySpace max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -1596,27 +1596,30 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                          <Group type="102" alignment="0" attributes="0">
-                              <EmptySpace min="12" pref="12" max="12" attributes="0"/>
-                              <Component id="jSlider4" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <Component id="jCheckBox8" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="jLabel10" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="jSeparator2" alignment="0" max="32767" attributes="1"/>
-                          <Group type="102" attributes="0">
-                              <Component id="jPanel20" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace type="separate" max="-2" attributes="0"/>
-                              <Component id="jSeparator3" min="-2" pref="2" max="-2" attributes="0"/>
-                              <EmptySpace type="separate" max="-2" attributes="0"/>
-                              <Group type="103" groupAlignment="0" attributes="0">
-                                  <Component id="jSeparator4" alignment="0" min="-2" pref="333" max="-2" attributes="0"/>
-                                  <Component id="jPanel21" min="-2" max="-2" attributes="0"/>
-                                  <Component id="jPanel22" min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                              <Group type="102" alignment="0" attributes="0">
+                                  <EmptySpace min="12" pref="12" max="12" attributes="0"/>
+                                  <Component id="jSlider4" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Component id="jCheckBox8" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="jLabel10" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="jSeparator2" alignment="0" max="32767" attributes="1"/>
+                              <Group type="102" attributes="0">
+                                  <Component id="jPanel20" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                                  <Component id="jSeparator3" min="-2" pref="2" max="-2" attributes="0"/>
+                                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                                  <Group type="103" groupAlignment="0" attributes="0">
+                                      <Component id="jSeparator4" alignment="0" min="-2" pref="333" max="-2" attributes="0"/>
+                                      <Component id="jPanel21" min="-2" max="-2" attributes="0"/>
+                                      <Component id="jPanel22" min="-2" max="-2" attributes="0"/>
+                                  </Group>
                               </Group>
                           </Group>
+                          <Component id="jButton1" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace max="32767" attributes="0"/>
+                      <EmptySpace pref="62" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -1643,7 +1646,9 @@
                           </Group>
                           <Component id="jPanel20" max="32767" attributes="0"/>
                       </Group>
-                      <EmptySpace max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="jButton1" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace pref="31" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -2803,6 +2808,15 @@
                 </Component>
               </SubComponents>
             </Container>
+            <Component class="javax.swing.JButton" name="jButton1">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Reset"/>
+                <Property name="toolTipText" type="java.lang.String" value="Reset the resource settings to Minecraft-like defaults"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton1ActionPerformed"/>
+              </Events>
+            </Component>
           </SubComponents>
         </Container>
         <Container class="javax.swing.JPanel" name="jPanel2">
@@ -3141,7 +3155,7 @@
                       <Component id="jLabel82" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="jScrollPane1" pref="371" max="32767" attributes="0"/>
+                          <Component id="jScrollPane1" pref="320" max="32767" attributes="0"/>
                           <Group type="102" attributes="0">
                               <Component id="buttonSelectPaint" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>

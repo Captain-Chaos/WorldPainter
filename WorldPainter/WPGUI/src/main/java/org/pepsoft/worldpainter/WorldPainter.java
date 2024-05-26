@@ -147,6 +147,16 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
         }
     }
 
+    @Override
+    public MapDragControl getMapDragControl() {
+        return App.getInstance();
+    }
+
+    @Override
+    public RadiusControl getRadiusControl() {
+        return App.getInstance();
+    }
+
     public boolean isDrawViewDistance() {
         return drawViewDistance;
     }

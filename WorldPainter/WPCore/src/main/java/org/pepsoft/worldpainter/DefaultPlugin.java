@@ -59,6 +59,11 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
         return Configuration.getInstance();
     }
 
+    @Override
+    public WorldPainterView getView() {
+        return WorldPainterView.getInstance();
+    }
+
     /**
      * The data version to use when exporting for the platform.
      */

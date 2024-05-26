@@ -13,7 +13,13 @@ import org.pepsoft.util.swing.TiledImageViewer;
  */
 public abstract class WorldPainterView extends TiledImageViewer {
     protected WorldPainterView() {
-        // Do nothing
+        synchronized (WorldPainterView.class) {
+            if (instance == null) {
+                instance = this;
+            } else {
+                throw new IllegalStateException("WorldPainterView instance already exists");
+            }
+        }
     }
 
     protected WorldPainterView(boolean leftClickDrags, boolean paintCentre) {
@@ -59,4 +65,17 @@ public abstract class WorldPainterView extends TiledImageViewer {
      * @param drawBrush Whether the brush radius should be displayed.
      */
     public abstract void setDrawBrush(boolean drawBrush);
+
+    public abstract MapDragControl getMapDragControl();
+
+    public abstract RadiusControl getRadiusControl();
+
+    /**
+     * Get the single instance of {@link WorldPainterView}, if any. In headless mode this will return {@code null}.
+     */
+    public static WorldPainterView getInstance() {
+        return instance;
+    }
+
+    private static WorldPainterView instance;
 }

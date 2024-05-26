@@ -63,7 +63,10 @@ public class MinecraftUtil {
         }
         return null;
     }
-    
+
+    /**
+     * Utility method for getting a Minecraft jar of the most recent supported version.
+     */
     public static File findMinecraftJar(MinecraftJarProvider minecraftJarProvider) {
         for (int i = 10; i >= 1; i--) {
             File candidate = minecraftJarProvider.getMinecraftJar(i);

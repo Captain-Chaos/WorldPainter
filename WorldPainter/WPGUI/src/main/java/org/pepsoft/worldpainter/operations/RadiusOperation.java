@@ -40,7 +40,7 @@ import java.lang.reflect.InvocationTargetException;
  *
  * @author pepijn
  */
-public abstract class RadiusOperation extends AbstractBrushOperation {
+public abstract class RadiusOperation extends AbstractBrushOperation implements FilteredOperation {
     /**
      * Create a new {@code RadiusOperation}.
      *
@@ -195,10 +195,12 @@ public abstract class RadiusOperation extends AbstractBrushOperation {
         }
     }
 
+    @Override
     public Filter getFilter() {
         return filter;
     }
 
+    @Override
     public void setFilter(Filter filter) {
         this.filter = filter;
         filterEnabled = (filter != null);

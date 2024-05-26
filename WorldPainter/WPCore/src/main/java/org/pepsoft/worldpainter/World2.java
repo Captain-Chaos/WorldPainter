@@ -874,7 +874,6 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
                 if (entry.getKey().role == Dimension.Role.CAVE_FLOOR) {
                     final Dimension dimension = entry.getValue();
                     if (findFloatingLayer(dimension) != null) {
-                        System.out.println("Patching dimension " + dimension);
                         i.remove();
                         dimension.changeAnchorToFloatingFloor();
                         dimensionsToAdd.add(dimension);

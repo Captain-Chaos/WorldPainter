@@ -144,7 +144,7 @@ import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
  */
 public final class App extends JFrame implements RadiusControl,
         BiomesViewerFrame.SeedListener, BrushOptions.Listener, CustomBiomeListener,
-        DockableHolder, PropertyChangeListener, Dimension.Listener, Tile.Listener {
+        DockableHolder, PropertyChangeListener, Dimension.Listener, Tile.Listener, MapDragControl {
     private App() {
         super((mode == Mode.WORLDPAINTER) ? "WorldPainter" : "MinecraftMapEditor"); // NOI18N
 
@@ -1447,7 +1447,28 @@ public final class App extends JFrame implements RadiusControl,
             }
         }
     }
-    
+
+    // MapDragControl
+
+    @Override
+    public boolean isMapDraggingInhibited() {
+        return mapDraggingInhibited;
+    }
+
+    @Override
+    public void setMapDraggingInhibited(boolean mapDraggingInhibited) {
+        if (mapDraggingInhibited != this.mapDraggingInhibited) {
+            this.mapDraggingInhibited = mapDraggingInhibited;
+            if (mapDraggingInhibited) {
+                scrollController.uninstall();
+            } else {
+                scrollController.install();
+            }
+        }
+    }
+
+    private boolean mapDraggingInhibited;
+
     public static App getInstance() {
         if (getInstanceIfExists() == null) {
             new App();
@@ -1582,8 +1603,8 @@ public final class App extends JFrame implements RadiusControl,
         } else {
             toolFilter = filter;
         }
-        if (activeOperation instanceof RadiusOperation) {
-            ((RadiusOperation) activeOperation).setFilter(filter);
+        if (activeOperation instanceof FilteredOperation) {
+            ((FilteredOperation) activeOperation).setFilter(filter);
         }
     }
 
@@ -2667,30 +2688,9 @@ public final class App extends JFrame implements RadiusControl,
 
         getContentPane().add(createStatusBar(), BorderLayout.SOUTH);
 
-        final ScrollController scrollController = new ScrollController();
+        final ScrollController scrollController = new ScrollController(this);
         scrollController.install();
 
-        mapDragControl = new MapDragControl() {
-            @Override
-            public boolean isMapDraggingInhibited() {
-                return mapDraggingInhibited;
-            }
-
-            @Override
-            public void setMapDraggingInhibited(boolean mapDraggingInhibited) {
-                if (mapDraggingInhibited != this.mapDraggingInhibited) {
-                    this.mapDraggingInhibited = mapDraggingInhibited;
-                    if (mapDraggingInhibited) {
-                        scrollController.uninstall();
-                    } else {
-                        scrollController.install();
-                    }
-                }
-            }
-            
-            private boolean mapDraggingInhibited;
-        };
-        
         dockingManager.addFrame(new DockableFrameBuilder(createToolPanel(), "Tools", DOCK_SIDE_WEST, 1).build());
 
         dockingManager.addFrame(new DockableFrameBuilder(createToolSettingsPanel(), "Tool Settings", DOCK_SIDE_WEST, 2).expand().build());
@@ -3026,14 +3026,14 @@ public final class App extends JFrame implements RadiusControl,
         JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new GridLayout(0, 4));
         // TODO: use function keys as accelerators?
-        toolPanel.add(createButtonForOperation(new SprayPaint(view, this, mapDragControl), 'r'));
-        toolPanel.add(createButtonForOperation(new Pencil(view, this, mapDragControl), 'p'));
+        toolPanel.add(createButtonForOperation(new SprayPaint(view, this, this), 'r'));
+        toolPanel.add(createButtonForOperation(new Pencil(view, this, this), 'p'));
         toolPanel.add(createButtonForOperation(new Fill(view), 'l'));
         toolPanel.add(createButtonForOperation(new Text(view), 'x'));
 
         toolPanel.add(createButtonForOperation(new Flood(view, false), 'f'));
         toolPanel.add(createButtonForOperation(new Flood(view, true)));
-        toolPanel.add(createButtonForOperation(new Sponge(view, this, mapDragControl)));
+        toolPanel.add(createButtonForOperation(new Sponge(view, this, this)));
         eyedropperToggleButton = new JToggleButton(loadScaledIcon("eyedropper"));
         eyedropperToggleButton.setMnemonic('y');
         eyedropperToggleButton.setMargin(App.BUTTON_INSETS);
@@ -3073,10 +3073,10 @@ public final class App extends JFrame implements RadiusControl,
         eyedropperToggleButton.putClientProperty(KEY_HELP_KEY, "Operation/Eyedropper");
         toolPanel.add(eyedropperToggleButton);
 
-        toolPanel.add(createButtonForOperation(new Height(view, this, mapDragControl), 'h'));
-        toolPanel.add(createButtonForOperation(new Flatten(view, this, mapDragControl), 'a'));
-        toolPanel.add(createButtonForOperation(new Smooth(view, this, mapDragControl), 's'));
-        toolPanel.add(createButtonForOperation(new RaiseMountain(view, this, mapDragControl), 'm'));
+        toolPanel.add(createButtonForOperation(new Height(view, this, this), 'h'));
+        toolPanel.add(createButtonForOperation(new Flatten(view, this, this), 'a'));
+        toolPanel.add(createButtonForOperation(new Smooth(view, this, this), 's'));
+        toolPanel.add(createButtonForOperation(new RaiseMountain(view, this, this), 'm'));
 
 //        toolPanel.add(createButtonForOperation(new Erode(view, this, mapDragControl), 'm'));
         toolPanel.add(createButtonForOperation(new SetSpawnPoint(view)));
@@ -3091,7 +3091,7 @@ public final class App extends JFrame implements RadiusControl,
 
         final AbstractButton copySelectionButton = createButtonForOperation(new CopySelectionOperation(view));
         copySelectionButton.setEnabled(selectionState.getValue());
-        toolPanel.add(createButtonForOperation(new EditSelectionOperation(view, this, mapDragControl, selectionState)));
+        toolPanel.add(createButtonForOperation(new EditSelectionOperation(view, this, this, selectionState)));
         toolPanel.add(copySelectionButton);
         final JButton clearSelectionButton = new JButton(loadScaledIcon("clear_selection"));
         clearSelectionButton.setEnabled(selectionState.getValue());
@@ -4859,7 +4859,7 @@ public final class App extends JFrame implements RadiusControl,
             button.addItemListener(event -> {
                 boolean refreshOptionsPanel = false;
                 if (event.getStateChange() == ItemEvent.DESELECTED) {
-                    if (operation instanceof RadiusOperation) {
+                    if (operation instanceof BrushOperation) {
                         view.setDrawBrush(false);
                     }
                     try {
@@ -4879,8 +4879,8 @@ public final class App extends JFrame implements RadiusControl,
                         try {
                             if (operation instanceof MouseOrTabletOperation) {
                                 ((MouseOrTabletOperation) operation).setLevel(level);
-                                if (operation instanceof RadiusOperation) {
-                                    ((RadiusOperation) operation).setFilter(filter);
+                                if (operation instanceof FilteredOperation) {
+                                    ((FilteredOperation) operation).setFilter(filter);
                                 }
                                 if (operation instanceof BrushOperation) {
                                     ((BrushOperation) operation).setBrush(brushRotation == 0 ? brush : RotatedBrush.rotate(brush, brushRotation));
@@ -4905,8 +4905,8 @@ public final class App extends JFrame implements RadiusControl,
                         try {
                             if (operation instanceof MouseOrTabletOperation) {
                                 ((MouseOrTabletOperation) operation).setLevel(toolLevel);
-                                if (operation instanceof RadiusOperation) {
-                                    ((RadiusOperation) operation).setFilter(toolFilter);
+                                if (operation instanceof FilteredOperation) {
+                                    ((FilteredOperation) operation).setFilter(toolFilter);
                                 }
                                 if (operation instanceof BrushOperation) {
                                     ((BrushOperation) operation).setBrush(toolBrushRotation == 0 ? toolBrush : RotatedBrush.rotate(toolBrush, toolBrushRotation));
@@ -4926,8 +4926,10 @@ public final class App extends JFrame implements RadiusControl,
                             programmaticChange = false;
                         }
                     }
-                    if (operation instanceof RadiusOperation) {
+                    if (operation instanceof BrushOperation) {
                         view.setDrawBrush(true);
+                    }
+                    if (operation instanceof RadiusOperation) {
                         view.setRadius(radius);
                         ((RadiusOperation) operation).setRadius(radius);
                     }
@@ -4944,12 +4946,12 @@ public final class App extends JFrame implements RadiusControl,
                     if (closeCallout("callout_1")) {
                         // If the user picked an operation which doesn't need a
                         // brush, close the "select brush" callout too
-                        if (!(operation instanceof RadiusOperation)) {
+                        if (! (operation instanceof BrushOperation)) {
                             closeCallout("callout_2");
                         }
                         // If the user picked an operation which doesn't use paint,
                         // close the "select paint" callout too
-                        if (!(operation instanceof PaintOperation)) {
+                        if (! (operation instanceof PaintOperation)) {
                             closeCallout("callout_3");
                         }
                     }
@@ -6937,6 +6939,7 @@ public final class App extends JFrame implements RadiusControl,
     Paint paint = PaintFactory.NULL_PAINT;
     Set<Layer> hiddenLayers = new HashSet<>();
     Layer soloLayer;
+    GlassPane glassPane;
 
     private final ButtonGroup toolButtonGroup = new ButtonGroup(), brushButtonGroup = new ButtonGroup(), paintButtonGroup = new ButtonGroup();
     private final Map<Brush, JToggleButton> brushButtons = new HashMap<>();
@@ -6952,6 +6955,7 @@ public final class App extends JFrame implements RadiusControl,
     private final boolean darkMode;
     private final MapSelectionController mapSelectionController;
     private final CustomLayerController customLayerController = new CustomLayerController(this);
+    private final ScrollController scrollController = new ScrollController(this);
 
     private World2 world;
     private long lastSavedState = -1, lastAutosavedState = -1, lastSaveTimestamp = -1;
@@ -6969,7 +6973,6 @@ public final class App extends JFrame implements RadiusControl,
     private JSlider levelSlider, brushRotationSlider;
     private float level = 0.51f, toolLevel = 0.51f;
     private int maxRadius = DEFAULT_MAX_RADIUS, brushRotation = 0, toolBrushRotation = 0, previousBrushRotation = 0;
-    private GlassPane glassPane;
     private JComboBox<TerrainMode> terrainModeComboBox;
     private JCheckBox terrainSoloCheckBox;
     private JToggleButton setSpawnPointToggleButton, eyedropperToggleButton;
@@ -6980,7 +6983,6 @@ public final class App extends JFrame implements RadiusControl,
     private SortedMap<String, BrushGroup> customBrushes;
     private ThreeDeeFrame threeDeeFrame;
     private BiomesViewerFrame biomesViewerFrame;
-    private MapDragControl mapDragControl;
     private BiomesPanel biomesPanel;
     private DockableFrame biomesPanelFrame;
     private Filter filter, toolFilter;
@@ -7094,153 +7096,6 @@ public final class App extends JFrame implements RadiusControl,
         private final int percentage;
         
         private static final long serialVersionUID = 1L;
-    }
-    
-    class ScrollController extends MouseAdapter implements KeyEventDispatcher {
-        ScrollController() {
-            timer.setRepeats(false);
-        }
-        
-        void install() {
-            view.addMouseListener(this);
-            view.addMouseMotionListener(this);
-            KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
-        }
-
-        void uninstall() {
-            if (keyDragging || mouseDragging) {
-                glassPane.setCursor(previousCursor);
-            }
-            mouseDragging = false;
-            keyDragging = false;
-            KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
-            view.removeMouseMotionListener(this);
-            view.removeMouseListener(this);
-        }
-        
-        // MouseListener / MouseMotionListener
-        
-        @Override
-        public void mousePressed(MouseEvent e) {
-            if ((e.getButton() == MouseEvent.BUTTON2) && (! mouseDragging)) {
-                if (! keyDragging) {
-                    Point viewLocOnScreen = view.getLocationOnScreen();
-                    e.translatePoint(viewLocOnScreen.x, viewLocOnScreen.y);
-                    previousLocation = e.getPoint();
-
-                    previousCursor = glassPane.getCursor();
-                    glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-                }
-                
-                mouseDragging = true;
-            }
-        }
-
-        @Override
-        public void mouseMoved(MouseEvent e) {
-            if (mouseDragging || keyDragging) {
-                Point viewLocOnScreen = view.getLocationOnScreen();
-                e.translatePoint(viewLocOnScreen.x, viewLocOnScreen.y);
-                Point location = e.getPoint();
-                if (previousLocation != null) {
-                    // No idea how previousLocation could be null (it
-                    // implies that the mouse pressed event was never
-                    // received or handled), but we have a report from the
-                    // wild that it happened, so check for it
-                    int dx = location.x - previousLocation.x;
-                    int dy = location.y - previousLocation.y;
-                    view.moveBy(-dx, -dy);
-                }
-                previousLocation = location;
-            }
-        }
-        
-        @Override
-        public void mouseDragged(MouseEvent e) {
-            if (mouseDragging || keyDragging) {
-                Point viewLocOnScreen = view.getLocationOnScreen();
-                e.translatePoint(viewLocOnScreen.x, viewLocOnScreen.y);
-                Point location = e.getPoint();
-                if (previousLocation != null) {
-                    // No idea how previousLocation could be null (it
-                    // implies that the mouse pressed event was never
-                    // received or handled), but we have a report from the
-                    // wild that it happened, so check for it
-                    int dx = location.x - previousLocation.x;
-                    int dy = location.y - previousLocation.y;
-                    view.moveBy(-dx, -dy);
-                }
-                previousLocation = location;
-            }
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e) {
-            if ((e.getButton() == MouseEvent.BUTTON2) && mouseDragging) {
-                mouseDragging = false;
-                if (! keyDragging) {
-                    glassPane.setCursor(previousCursor);
-                }
-            }
-        }
-
-        // KeyEventDispatcher
-        
-        @Override
-        public boolean dispatchKeyEvent(KeyEvent e) {
-            if ((e.getKeyCode() == KeyEvent.VK_SPACE) && App.this.isFocused()) {
-                if (e.getID() == KeyEvent.KEY_PRESSED) {
-                    if ((e.getWhen() - lastReleased) < KEY_REPEAT_GUARD_TIME) {
-                        timer.stop();
-                        return true;
-                    } else if (! keyDragging) {
-                        Point mouseLocOnScreen = MouseInfo.getPointerInfo().getLocation();
-                        Point scrollPaneLocOnScreen = view.getLocationOnScreen();
-                        Rectangle viewBoundsOnScreen = view.getBounds();
-                        viewBoundsOnScreen.translate(scrollPaneLocOnScreen.x, scrollPaneLocOnScreen.y);
-                        if (! viewBoundsOnScreen.contains(mouseLocOnScreen)) {
-                            // The mouse cursor is not over the view
-                            return false;
-                        }
-
-                        if (! mouseDragging) {
-                            previousLocation = mouseLocOnScreen;
-
-                            previousCursor = glassPane.getCursor();
-                            glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-                        }
-
-                        keyDragging = true;
-                        return true;
-                    }
-                } else if ((e.getID() == KeyEvent.KEY_RELEASED) && keyDragging) {
-                    lastReleased = e.getWhen();
-                    timer.start();
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private Point previousLocation;
-        private boolean mouseDragging, keyDragging;
-        private Cursor previousCursor;
-        private long lastReleased;
-        private final Timer timer = new Timer(KEY_REPEAT_GUARD_TIME, new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    keyDragging = false;
-                    if (! mouseDragging) {
-                        glassPane.setCursor(previousCursor);
-                    }
-                }
-            });
-        
-        /**
-         * The number of milliseconds between key press and release events below
-         * which they will be considered automatic repeats
-         */
-        private static final int KEY_REPEAT_GUARD_TIME = 10;
     }
 
     interface PaintUpdater {

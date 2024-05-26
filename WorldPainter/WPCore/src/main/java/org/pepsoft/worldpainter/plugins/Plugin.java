@@ -4,6 +4,8 @@
  */
 package org.pepsoft.worldpainter.plugins;
 
+import org.pepsoft.worldpainter.WPContext;
+
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
@@ -45,6 +47,17 @@ public interface Plugin {
      *     if the plugin can be used by anyone.
      */
     Set<UUID> getUUIDs();
+
+    /**
+     * Initialise the plugin. This is invoked once, after the application is initialised and all context is available.
+     *
+     * <p>The default implementation does nothing.
+     *
+     * @param context The WorldPainter application context.
+     */
+    default void init(WPContext context) {
+        // Do nothing
+    }
     
     /**
      * Deprecated. Use the {@code minimumHostVersion} property in the JSON descriptor instead. This will never be

@@ -505,6 +505,16 @@ public class Main {
                     }
                     myConfig.setMessageDisplayed(SNAPSHOT_MESSAGE_KEY);
                 }
+
+                final WPContext context = WPContextProvider.getWPContext();
+                for (Plugin plugin: WPPluginManager.getInstance().getAllPlugins()) {
+                    try {
+                        plugin.init(context);
+                    } catch (RuntimeException e) {
+                        logger.error("{} while initialising plugin {} (version {})", e.getClass().getSimpleName(), plugin.getName(), plugin.getVersion(), e);
+                    }
+                }
+
                 if (world != null) {
                     // On a Mac we may be doing this unnecessarily because we may be opening a .world file, but it has
                     // proven difficult to detect that. TODO
