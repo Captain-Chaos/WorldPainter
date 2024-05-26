@@ -189,6 +189,7 @@ public final class App extends JFrame implements RadiusControl,
             installMacCustomisations();
         }
 
+        MainFrame.setMainFrame(this);
         initComponents();
 
         getRootPane().putClientProperty(KEY_HELP_KEY, "Main");
@@ -280,7 +281,6 @@ public final class App extends JFrame implements RadiusControl,
             logger.info("High resolution display support enabled. Scale: {}", getUIScale());
         }
 
-        MainFrame.setMainFrame(this);
         mapSelectionController = new MapSelectionController(this, view);
 
         PlantLayerEditor.loadIconsInBackground();
@@ -2688,7 +2688,6 @@ public final class App extends JFrame implements RadiusControl,
 
         getContentPane().add(createStatusBar(), BorderLayout.SOUTH);
 
-        final ScrollController scrollController = new ScrollController(this);
         scrollController.install();
 
         dockingManager.addFrame(new DockableFrameBuilder(createToolPanel(), "Tools", DOCK_SIDE_WEST, 1).build());
@@ -3026,14 +3025,14 @@ public final class App extends JFrame implements RadiusControl,
         JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new GridLayout(0, 4));
         // TODO: use function keys as accelerators?
-        toolPanel.add(createButtonForOperation(new SprayPaint(view, this, this), 'r'));
-        toolPanel.add(createButtonForOperation(new Pencil(view, this, this), 'p'));
+        toolPanel.add(createButtonForOperation(new SprayPaint(view), 'r'));
+        toolPanel.add(createButtonForOperation(new Pencil(view), 'p'));
         toolPanel.add(createButtonForOperation(new Fill(view), 'l'));
         toolPanel.add(createButtonForOperation(new Text(view), 'x'));
 
         toolPanel.add(createButtonForOperation(new Flood(view, false), 'f'));
         toolPanel.add(createButtonForOperation(new Flood(view, true)));
-        toolPanel.add(createButtonForOperation(new Sponge(view, this, this)));
+        toolPanel.add(createButtonForOperation(new Sponge(view)));
         eyedropperToggleButton = new JToggleButton(loadScaledIcon("eyedropper"));
         eyedropperToggleButton.setMnemonic('y');
         eyedropperToggleButton.setMargin(App.BUTTON_INSETS);
@@ -3073,10 +3072,10 @@ public final class App extends JFrame implements RadiusControl,
         eyedropperToggleButton.putClientProperty(KEY_HELP_KEY, "Operation/Eyedropper");
         toolPanel.add(eyedropperToggleButton);
 
-        toolPanel.add(createButtonForOperation(new Height(view, this, this), 'h'));
-        toolPanel.add(createButtonForOperation(new Flatten(view, this, this), 'a'));
-        toolPanel.add(createButtonForOperation(new Smooth(view, this, this), 's'));
-        toolPanel.add(createButtonForOperation(new RaiseMountain(view, this, this), 'm'));
+        toolPanel.add(createButtonForOperation(new Height(view), 'h'));
+        toolPanel.add(createButtonForOperation(new Flatten(view), 'a'));
+        toolPanel.add(createButtonForOperation(new Smooth(view), 's'));
+        toolPanel.add(createButtonForOperation(new RaiseMountain(view), 'm'));
 
 //        toolPanel.add(createButtonForOperation(new Erode(view, this, mapDragControl), 'm'));
         toolPanel.add(createButtonForOperation(new SetSpawnPoint(view)));
@@ -3091,7 +3090,7 @@ public final class App extends JFrame implements RadiusControl,
 
         final AbstractButton copySelectionButton = createButtonForOperation(new CopySelectionOperation(view));
         copySelectionButton.setEnabled(selectionState.getValue());
-        toolPanel.add(createButtonForOperation(new EditSelectionOperation(view, this, this, selectionState)));
+        toolPanel.add(createButtonForOperation(new EditSelectionOperation(view, selectionState)));
         toolPanel.add(copySelectionButton);
         final JButton clearSelectionButton = new JButton(loadScaledIcon("clear_selection"));
         clearSelectionButton.setEnabled(selectionState.getValue());

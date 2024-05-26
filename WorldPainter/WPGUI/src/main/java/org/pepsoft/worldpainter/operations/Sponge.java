@@ -4,7 +4,10 @@
  */
 package org.pepsoft.worldpainter.operations;
 
-import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.HeightMapTileFactory;
+import org.pepsoft.worldpainter.TileFactory;
+import org.pepsoft.worldpainter.WorldPainterView;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
 
 import javax.swing.*;
@@ -14,8 +17,8 @@ import javax.swing.*;
  * @author pepijn
  */
 public class Sponge extends RadiusOperation {
-    public Sponge(WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl) {
-        super("Sponge", "Dry up or reset water and lava", view, radiusControl, mapDragControl, 100, "operation.sponge");
+    public Sponge(WorldPainterView view) {
+        super("Sponge", "Dry up or reset water and lava", view, 100, "operation.sponge");
     }
 
     @Override

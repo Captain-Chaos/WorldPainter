@@ -19,8 +19,6 @@
 package org.pepsoft.worldpainter.operations;
 
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.MapDragControl;
-import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainterView;
 import org.pepsoft.worldpainter.painting.DimensionPainter;
 import org.pepsoft.worldpainter.painting.Paint;
@@ -34,8 +32,8 @@ import java.awt.*;
  * Created by pepijn on 15-05-15.
  */
 public class Pencil extends AbstractPaintOperation {
-    public Pencil(WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl) {
-        super("Pencil", "Draw dots and straight or freehand lines with any terrain or layer", view, radiusControl, mapDragControl, 100, "operation.pencil");
+    public Pencil(WorldPainterView view) {
+        super("Pencil", "Draw dots and straight or freehand lines with any terrain or layer", view, 100, "operation.pencil");
     }
 
     @Override

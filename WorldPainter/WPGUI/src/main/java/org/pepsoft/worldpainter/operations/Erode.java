@@ -6,8 +6,6 @@
 package org.pepsoft.worldpainter.operations;
 
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.MapDragControl;
-import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainter;
 
 import java.util.Random;
@@ -17,8 +15,8 @@ import java.util.Random;
  * @author pepijn
  */
 public class Erode extends RadiusOperation {
-    public Erode(WorldPainter view, RadiusControl radiusControl, MapDragControl mapDragControl) {
-        super("Erode", "Erode the terrain", view, radiusControl, mapDragControl, 100, "operation.erode");
+    public Erode(WorldPainter view) {
+        super("Erode", "Erode the terrain", view, 100, "operation.erode");
     }
 
     @Override

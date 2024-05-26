@@ -7,8 +7,6 @@ package org.pepsoft.worldpainter.operations;
 
 import org.pepsoft.util.DesktopUtils;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.MapDragControl;
-import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainter;
 
 import javax.swing.*;
@@ -18,8 +16,8 @@ import javax.swing.*;
  * @author pepijn
  */
 public class Flatten extends RadiusOperation {
-    public Flatten(WorldPainter view, RadiusControl radiusControl, MapDragControl mapDragControl) {
-        super("Flatten", "Flatten an area", view, radiusControl, mapDragControl, 100, "operation.flatten");
+    public Flatten(WorldPainter view) {
+        super("Flatten", "Flatten an area", view, 100, "operation.flatten");
     }
 
     @Override

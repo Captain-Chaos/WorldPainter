@@ -6,8 +6,6 @@
 package org.pepsoft.worldpainter.operations;
 
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.MapDragControl;
-import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainter;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
 
@@ -18,8 +16,8 @@ import javax.swing.*;
  * @author pepijn
  */
 public class Height extends RadiusOperation {
-    public Height(WorldPainter view, RadiusControl radiusControl, MapDragControl mapDragControl) {
-        super("Height", "Raise or lower the terrain", view, radiusControl, mapDragControl, 100, "operation.height");
+    public Height(WorldPainter view) {
+        super("Height", "Raise or lower the terrain", view, 100, "operation.height");
     }
 
     @Override

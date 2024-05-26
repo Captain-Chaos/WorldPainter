@@ -48,17 +48,14 @@ public abstract class RadiusOperation extends AbstractBrushOperation implements 
      * @param description A longer description of the operation. May be displayed to the user as a tooltip.
      * @param view The WorldPainter view through which the dimension that is being edited is being displayed and on
      *             which the operation should install its listeners to register user mouse, keyboard and tablet actions.
-     * @param radiusControl An object through which the operation can change the size of the brush.
-     * @param mapDragControl An object through which the operation can temporarily disable map panning by dragging the
-     *                       mouse.
      * @param statisticsKey The key with which use of this operation will be logged in the usage data sent back to the
      *                      developer. Should start with a reverse-DNS style identifier, optionally followed by some
      *                      basic or fundamental setting, if it has one.
      */
-    public RadiusOperation(String name, String description, WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl, String statisticsKey) {
+    public RadiusOperation(String name, String description, WorldPainterView view, String statisticsKey) {
         super(name, description, view, statisticsKey);
-        this.radiusControl = radiusControl;
-        this.mapDragControl = mapDragControl;
+        this.radiusControl = view.getRadiusControl();
+        this.mapDragControl = view.getMapDragControl();
     }
 
     /**
@@ -68,18 +65,15 @@ public abstract class RadiusOperation extends AbstractBrushOperation implements 
      * @param description A longer description of the operation. May be displayed to the user as a tooltip.
      * @param view The WorldPainter view through which the dimension that is being edited is being displayed and on
      *             which the operation should install its listeners to register user mouse, keyboard and tablet actions.
-     * @param radiusControl An object through which the operation can change the size of the brush.
-     * @param mapDragControl An object through which the operation can temporarily disable map panning by dragging the
-     *                       mouse.
      * @param statisticsKey The key with which use of this operation will be logged in the usage data sent back to the
      *                      developer. Should start with a reverse-DNS style identifier, optionally followed by some
      *                      basic or fundamental setting, if it has one.
      * @param iconName The base name of the icon for the operation.
      */
-    public RadiusOperation(String name, String description, WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl, String statisticsKey, String iconName) {
+    public RadiusOperation(String name, String description, WorldPainterView view, String statisticsKey, String iconName) {
         super(name, description, view, statisticsKey, iconName);
-        this.radiusControl = radiusControl;
-        this.mapDragControl = mapDragControl;
+        this.radiusControl = view.getRadiusControl();
+        this.mapDragControl = view.getMapDragControl();
     }
 
     /**
@@ -89,19 +83,16 @@ public abstract class RadiusOperation extends AbstractBrushOperation implements 
      * @param description A longer description of the operation. May be displayed to the user as a tooltip.
      * @param view The WorldPainter view through which the dimension that is being edited is being displayed and on
      *             which the operation should install its listeners to register user mouse, keyboard and tablet actions.
-     * @param radiusControl An object through which the operation can change the size of the brush.
-     * @param mapDragControl An object through which the operation can temporarily disable map panning by dragging the
-     *                       mouse.
      * @param delay The delay in ms between each invocation of {@link #tick(int, int, boolean, boolean, float)} while
      *              this operation is being applied by the user.
      * @param statisticsKey The key with which use of this operation will be logged in the usage data sent back to the
      *                      developer. Should start with a reverse-DNS style identifier, optionally followed by some
      *                      basic or fundamental setting, if it has one.
      */
-    public RadiusOperation(String name, String description, WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl, int delay, String statisticsKey) {
+    public RadiusOperation(String name, String description, WorldPainterView view, int delay, String statisticsKey) {
         super(name, description, view, delay, statisticsKey);
-        this.radiusControl = radiusControl;
-        this.mapDragControl = mapDragControl;
+        this.radiusControl = view.getRadiusControl();
+        this.mapDragControl = view.getMapDragControl();
     }
 
     /**
@@ -111,9 +102,6 @@ public abstract class RadiusOperation extends AbstractBrushOperation implements 
      * @param description A longer description of the operation. May be displayed to the user as a tooltip.
      * @param view The WorldPainter view through which the dimension that is being edited is being displayed and on
      *             which the operation should install its listeners to register user mouse, keyboard and tablet actions.
-     * @param radiusControl An object through which the operation can change the size of the brush.
-     * @param mapDragControl An object through which the operation can temporarily disable map panning by dragging the
-     *                       mouse.
      * @param delay The delay in ms between each invocation of {@link #tick(int, int, boolean, boolean, float)} while
      *              this operation is being applied by the user.
      * @param statisticsKey The key with which use of this operation will be logged in the usage data sent back to the
@@ -121,10 +109,10 @@ public abstract class RadiusOperation extends AbstractBrushOperation implements 
      *                      basic or fundamental setting, if it has one.
      * @param iconName The base name of the icon for the operation.
      */
-    public RadiusOperation(String name, String description, WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl, int delay, String statisticsKey, String iconName) {
+    public RadiusOperation(String name, String description, WorldPainterView view, int delay, String statisticsKey, String iconName) {
         super(name, description, view, delay, statisticsKey, iconName);
-        this.radiusControl = radiusControl;
-        this.mapDragControl = mapDragControl;
+        this.radiusControl = view.getRadiusControl();
+        this.mapDragControl = view.getMapDragControl();
     }
 
     public final int getEffectiveRadius() {

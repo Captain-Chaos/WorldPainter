@@ -7,8 +7,6 @@ package org.pepsoft.worldpainter.operations;
 
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.MapDragControl;
-import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainter;
 import org.pepsoft.worldpainter.brushes.Brush;
 
@@ -21,8 +19,8 @@ import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
  * @author pepijn
  */
 public class RaiseMountain extends RadiusOperation {
-    public RaiseMountain(WorldPainter view, RadiusControl radiusControl, MapDragControl mapDragControl) {
-        super("Raise Mountain", "Raises a mountain out of the ground", view, radiusControl, mapDragControl, 100, "operation.raiseMountain", "mountain");
+    public RaiseMountain(WorldPainter view) {
+        super("Raise Mountain", "Raises a mountain out of the ground", view, 100, "operation.raiseMountain", "mountain");
         options = new TerrainShapingOptions<>();
         options.setApplyTheme(true); // This has historically been the default for this operation
         optionsPanel = new TerrainShapingOptionsPanel("Mountain", "<ul><li>Left-click to raise a mountain in the shape of the brush and its base at bedrock<li>Right-click to dig a hole in the shape of the brush and its base at build height</ul>", options);

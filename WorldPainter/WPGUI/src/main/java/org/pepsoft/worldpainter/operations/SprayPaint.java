@@ -1,8 +1,6 @@
 package org.pepsoft.worldpainter.operations;
 
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.MapDragControl;
-import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainterView;
 import org.pepsoft.worldpainter.painting.DimensionPainter;
 import org.pepsoft.worldpainter.painting.Paint;
@@ -13,8 +11,8 @@ import javax.swing.*;
  * Created by pepijn on 14-5-15.
  */
 public class SprayPaint extends AbstractPaintOperation {
-    public SprayPaint(WorldPainterView view, RadiusControl radiusControl, MapDragControl mapDragControl) {
-        super("Spray Paint", "Spray paint any terrain, layer or biome onto the world", view, radiusControl, mapDragControl, 100, "operation.sprayPaint");
+    public SprayPaint(WorldPainterView view) {
+        super("Spray Paint", "Spray paint any terrain, layer or biome onto the world", view, 100, "operation.sprayPaint");
     }
 
     @Override

@@ -6,8 +6,6 @@
 package org.pepsoft.worldpainter.operations;
 
 import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.MapDragControl;
-import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainter;
 
 import javax.swing.*;
@@ -18,8 +16,8 @@ import java.util.Arrays;
  * @author pepijn
  */
 public class Smooth extends RadiusOperation {
-    public Smooth(WorldPainter view, RadiusControl radiusControl, MapDragControl mapDragControl) {
-        super("Smooth", "Smooth the terrain out", view, radiusControl, mapDragControl, 100, "operation.smooth");
+    public Smooth(WorldPainter view) {
+        super("Smooth", "Smooth the terrain out", view, 100, "operation.smooth");
     }
 
     @Override
