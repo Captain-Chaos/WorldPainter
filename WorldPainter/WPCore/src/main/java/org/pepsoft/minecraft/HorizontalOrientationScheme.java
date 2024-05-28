@@ -102,12 +102,72 @@ enum HorizontalOrientationScheme {
     },
 
     /**
-     * {@code facing} property containing the cardinal direction {@code north}, {@code east}, {@code south} or {@code west}
+     * {@code facing} property containing the cardinal direction {@code north}, {@code east}, {@code south} or
+     * {@code west}. This variant is for blocks that are symmetric along their north-south and/or east-west axes
      */
     FACING {
         @Override
         public Material mirror(Material material, Direction axis) {
             return material.withProperty(Material.FACING, material.getProperty(Material.FACING).mirror(axis));
+        }
+
+        @Override
+        public Material rotate(Material material, int steps) {
+            return material.withProperty(Material.FACING, material.getProperty(Material.FACING).rotate(steps));
+        }
+
+        @Override
+        public Direction getDirection(Material material) {
+            return material.getProperty(Material.FACING);
+        }
+
+        @Override
+        public Material setDirection(Material material, Direction direction) {
+            return material.withProperty(Material.FACING, direction);
+        }
+    },
+
+    /**
+     * {@code facing} property containing the cardinal direction {@code north}, {@code east}, {@code south} or
+     * {@code west}. This variant is for blocks that are symmetric along their north-west to south-east diagonal
+     */
+    FACING_ASYM {
+        @Override
+        public Material mirror(Material material, Direction axis) {
+            switch (axis) {
+                case NORTH:
+                case SOUTH:
+                    // Axis runs north-south, so mirror east to west and vice versa
+                    switch (material.getProperty(MC_FACING)) {
+                        case MC_NORTH:
+                            return material.withProperty(MC_FACING, MC_EAST);
+                        case MC_EAST:
+                            return material.withProperty(MC_FACING, MC_NORTH);
+                        case MC_SOUTH:
+                            return material.withProperty(MC_FACING, MC_WEST);
+                        case MC_WEST:
+                            return material.withProperty(MC_FACING, MC_SOUTH);
+                        default:
+                            return material;
+                    }
+                case EAST:
+                case WEST:
+                    // Axis runs east-west, so mirror north to south and vice versa
+                    switch (material.getProperty(MC_FACING)) {
+                        case MC_NORTH:
+                            return material.withProperty(MC_FACING, MC_WEST);
+                        case MC_EAST:
+                            return material.withProperty(MC_FACING, MC_SOUTH);
+                        case MC_SOUTH:
+                            return material.withProperty(MC_FACING, MC_EAST);
+                        case MC_WEST:
+                            return material.withProperty(MC_FACING, MC_NORTH);
+                        default:
+                            return material;
+                    }
+                default:
+                    throw new InternalError();
+            }
         }
 
         @Override

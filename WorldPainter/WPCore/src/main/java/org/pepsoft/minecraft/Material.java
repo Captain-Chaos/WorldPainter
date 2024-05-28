@@ -99,8 +99,6 @@ public final class Material implements Serializable {
         name = identity.name;
         stringRep = createStringRep();
         legacyStringRep = createLegacyStringRep();
-        horizontalOrientationSchemes = determineHorizontalOrientations(identity);
-        verticalOrientationScheme = determineVerticalOrientation(identity);
         modded = (namespace != MINECRAFT);
         // TODO make this dynamic:
         leafBlock = simpleName.endsWith("_leaves");
@@ -128,6 +126,8 @@ public final class Material implements Serializable {
             colour = spec.containsKey("colour") ? ((int) spec.get("colour")) : UNKNOWN_MATERIAL_COLOUR;
             category = determineCategory();
             propertyDescriptors = (SortedMap<String, PropertyDescriptor>) spec.get("properties");
+            horizontalOrientationSchemes = determineHorizontalOrientations(identity, (String) spec.get("horizontal_orientation_schemes"));
+            verticalOrientationScheme = determineVerticalOrientation(identity, (String) spec.get("vertical_orientation_scheme"));
         } else {
             if (logger.isTraceEnabled()) {
                 logger.trace("Legacy material " + blockType + ":" + data + " not found in materials database");
@@ -149,6 +149,8 @@ public final class Material implements Serializable {
             colour = UNKNOWN_MATERIAL_COLOUR;
             category = CATEGORY_UNKNOWN;
             propertyDescriptors = null;
+            horizontalOrientationSchemes = determineHorizontalOrientations(identity, null);
+            verticalOrientationScheme = determineVerticalOrientation(identity, null);
         }
 
         lightSource = (blockLight > 0);
@@ -239,8 +241,6 @@ public final class Material implements Serializable {
         }
         stringRep = createStringRep();
         legacyStringRep = createLegacyStringRep();
-        horizontalOrientationSchemes = determineHorizontalOrientations(identity);
-        verticalOrientationScheme = determineVerticalOrientation(identity);
         modded = (namespace != MINECRAFT);
         // TODO make this dynamic:
         leafBlock = simpleName.endsWith("_leaves");
@@ -268,6 +268,8 @@ public final class Material implements Serializable {
             colour = spec.containsKey("colour") ? ((int) spec.get("colour")) : UNKNOWN_MATERIAL_COLOUR;
             category = determineCategory();
             propertyDescriptors = (SortedMap<String, PropertyDescriptor>) spec.get("properties");
+            horizontalOrientationSchemes = determineHorizontalOrientations(identity, (String) spec.get("horizontal_orientation_schemes"));
+            verticalOrientationScheme = determineVerticalOrientation(identity, (String) spec.get("vertical_orientation_scheme"));
         } else {
             if (logger.isDebugEnabled()) {
                 if ((namespace != null) && namespace.equals(MINECRAFT)) {
@@ -293,6 +295,8 @@ public final class Material implements Serializable {
             colour = UNKNOWN_MATERIAL_COLOUR;
             category = CATEGORY_UNKNOWN;
             propertyDescriptors = null;
+            horizontalOrientationSchemes = determineHorizontalOrientations(identity, null);
+            verticalOrientationScheme = determineVerticalOrientation(identity, null);
         }
 
         lightSource = (blockLight > 0);
@@ -920,9 +924,20 @@ public final class Material implements Serializable {
         return watery || is(WATERLOGGED) || (isNamed(MC_WATER) && (getProperty(LEVEL, 0) == 0));
     }
 
-    private HorizontalOrientationScheme[] determineHorizontalOrientations(Identity identity) {
-        if (identity.properties != null) {
-            List<HorizontalOrientationScheme> horizontalOrientationSchemes = new ArrayList<>();
+    private HorizontalOrientationScheme[] determineHorizontalOrientations(Identity identity, String override) {
+        if ("none".equalsIgnoreCase(override)) {
+            return null;
+        }
+        final List<HorizontalOrientationScheme> horizontalOrientationSchemes = new ArrayList<>();
+        if (override != null) {
+            for (String scheme: override.split(",")) {
+                try {
+                    horizontalOrientationSchemes.add(HorizontalOrientationScheme.valueOf(override.trim().toUpperCase()));
+                } catch (IllegalArgumentException e) {
+                    logger.error("Block {} specifies invalid horizontal orientation scheme override {}; ignoring", identity.name, override);
+                }
+            }
+        } else if (identity.properties != null) {
             if (identity.properties.keySet().containsAll(ImmutableSet.of("north", "east", "south", "west"))) {
                 horizontalOrientationSchemes.add(CARDINAL_DIRECTIONS);
             }
@@ -947,13 +962,11 @@ public final class Material implements Serializable {
             if (identity.containsPropertyWithValues(MC_HINGE, "left", "right")) {
                 horizontalOrientationSchemes.add(HorizontalOrientationScheme.HINGE);
             }
-            if (horizontalOrientationSchemes.isEmpty()) {
-                return null;
-            } else {
-                return horizontalOrientationSchemes.toArray(new HorizontalOrientationScheme[0]);
-            }
-        } else {
+        }
+        if (horizontalOrientationSchemes.isEmpty()) {
             return null;
+        } else {
+            return horizontalOrientationSchemes.toArray(new HorizontalOrientationScheme[0]);
         }
     }
 
@@ -1026,7 +1039,16 @@ public final class Material implements Serializable {
         return material.blockType != -1;
     }
 
-    private VerticalOrientationScheme determineVerticalOrientation(Identity identity) {
+    private VerticalOrientationScheme determineVerticalOrientation(Identity identity, String override) {
+        if ("none".equalsIgnoreCase(override)) {
+            return null;
+        } else if (override != null) {
+            try {
+                return VerticalOrientationScheme.valueOf(override.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                logger.error("Block {} specifies invalid vertical orientation scheme override {}; ignoring", identity.name, override);
+            }
+        }
         if (identity.containsPropertyWithValues("half", "top", "bottom")) {
             return VerticalOrientationScheme.HALF;
         } else if (identity.containsPropertyWithValues("up", "true", "false")) {

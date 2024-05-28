@@ -74,6 +74,8 @@ public class MaterialImporter {
                                     throw new IllegalArgumentException("Not a valid hexadecimal integer value for column colour: \"" + str + "\"", e);
                                 }
                             }
+                            myMaterialSpecs.put("horizontal_orientation_schemes", csvDataSource.getString("horizontal_orientation_schemes", null));
+                            myMaterialSpecs.put("vertical_orientation_scheme", csvDataSource.getString("vertical_orientation_scheme", null));
 
                             materialSpecs.computeIfAbsent(name, s -> new HashSet<>()).add(myMaterialSpecs);
                             final int p = name.indexOf(':');
