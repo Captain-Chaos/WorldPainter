@@ -93,6 +93,7 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Sec
                                 emptyBlockEncountered();
                                 continue;
                             }
+                            //ranges from .23333 to .5. The higher the bias, the less likely to be a chasm.
                             float bias = CHASM_CHANCE
                                     * Math.max(
                                     0.1f * (10 - Math.min(
@@ -106,20 +107,22 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Sec
                                 // Widen the caverns towards the bottom
                                 bias -= (minHeight + 5 - y) * 0.05f;
                             }
-//                            final float pz = y / SMALL_BLOBS;
-//                            final float pz = y / MEDIUM_BLOBS; // [2] ravine?
+
                             final float pz = (y + 15) / MEDIUM_BLOBS; // [3] tunnellike
-//                            float cavernLikelyhood = Math.min(perlinNoise.getPerlinNoise(px, py, pz), perlinNoise2.getPerlinNoise(px, py, pz)) + 0.5f - bias;
-//                            double cavernLikelyhood = Math.min(Math.sin(perlinNoise.getPerlinNoise(px, py, pz) * 10), Math.cos(perlinNoise2.getPerlinNoise(px, py, pz) * 10)) / 2 + 0.5f - bias; // [2] ravine?
-                            final double cavernLikelyhood = Math.min(perlinNoise3.getPerlinNoise(px, py, pz) - bias, Math.min(Math.sin(perlinNoise.getPerlinNoise(px, py, pz) * 25), Math.cos(perlinNoise2.getPerlinNoise(px, py, pz) * 25)) / 2) + 0.5f; // [3] tunnellike
-                            final double cavernLikelyhood2 = Math.min(perlinNoise6.getPerlinNoise(px, py, pz) - bias, Math.min(Math.sin(perlinNoise4.getPerlinNoise(px, py, pz) * 25), Math.cos(perlinNoise5.getPerlinNoise(px, py, pz) * 25)) / 2) + 0.5f; // [3] tunnellike
-//                            double cavernLikelyhood = Math.sin(perlinNoise.getPerlinNoise(px, py, pz) * 5);
-//                            double cavernLikelyhood2 = Math.sin(perlinNoise2.getPerlinNoise(px, py) * 5);
-//                            if ((x == 0) && (z == 0)) {
-//                                System.out.println(y + ": bias: " + bias + ", cavernLikelyHood: " + cavernLikelyhood);
-//                            }
-//                            if (cavernLikelyhood > CHASM_CHANCE) {
-                            processBlock(chunk, x, y, z, (cavernLikelyhood > CHASM_CHANCE) || (cavernLikelyhood2 > CHASM_CHANCE));
+
+                            //Try twice to see if a chasm should exist with two different sets of perlin noise
+                            if (shouldCreateChasmWithNoise(perlinNoise3,perlinNoise,perlinNoise2,px,py,pz,bias)) {
+                                processBlock(chunk, x, y, z, true);
+                                continue;
+                            }
+
+                            if (shouldCreateChasmWithNoise(perlinNoise6,perlinNoise4,perlinNoise5,px,py,pz,bias)){
+                                processBlock(chunk, x, y, z, true);
+                                continue;
+                            }
+
+                            processBlock(chunk, x, y, z,false);
+
                         }
                     }
                     if (glassCeiling) {
@@ -182,9 +185,12 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Sec
                                 bias -= (minHeight + 5 - y) * 0.05f;
                             }
                             final float pz = (y + 15) / MEDIUM_BLOBS; // [3] tunnellike
-                            final double cavernLikelyhood = Math.min(perlinNoise3.getPerlinNoise(px, py, pz) - bias, Math.min(Math.sin(perlinNoise.getPerlinNoise(px, py, pz) * 25), Math.cos(perlinNoise2.getPerlinNoise(px, py, pz) * 25)) / 2) + 0.5f; // [3] tunnellike
-                            final double cavernLikelyhood2 = Math.min(perlinNoise6.getPerlinNoise(px, py, pz) - bias, Math.min(Math.sin(perlinNoise4.getPerlinNoise(px, py, pz) * 25), Math.cos(perlinNoise5.getPerlinNoise(px, py, pz) * 25)) / 2) + 0.5f; // [3] tunnellike
-                            if ((cavernLikelyhood > CHASM_CHANCE) || (cavernLikelyhood2 > CHASM_CHANCE)) {
+
+                            //Try twice to see if a chasm should exist with two different sets of perlin noise
+
+                            if (shouldCreateChasmWithNoise(perlinNoise3,perlinNoise,perlinNoise2,px,py,pz,bias)) {
+                                decorateBlock(minecraftWorld, random, worldX, worldY, y);
+                            } else if (shouldCreateChasmWithNoise(perlinNoise6,perlinNoise4,perlinNoise5,px,py,pz,bias)){
                                 decorateBlock(minecraftWorld, random, worldX, worldY, y);
                             }
                         }
@@ -194,6 +200,28 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Sec
             return true;
         });
         return null;
+    }
+
+    private static boolean shouldCreateChasmWithNoise(PerlinNoise perlinNoise1, PerlinNoise perlinNoise2, PerlinNoise perlinNoise3, float px, float py, float pz, float bias){
+        final boolean baseNoiseSucceeded = (perlinNoise1.getPerlinNoise(px, py, pz) - bias)+0.5f>CHASM_CHANCE;
+
+        if (!baseNoiseSucceeded){
+            return false;
+        }
+
+        final boolean sinNoiseSucceeded =  Math.sin(perlinNoise2.getPerlinNoise(px, py, pz) * 25)+0.5f>CHASM_CHANCE;
+
+        if (!sinNoiseSucceeded){
+            return false;
+        }
+        final boolean cosNoiseSucceeded = (Math.cos(perlinNoise3.getPerlinNoise(px, py, pz) * 25) / 2) + 0.5f > CHASM_CHANCE;
+
+        if (!cosNoiseSucceeded){
+            return false;
+        }
+
+        return true;
+
     }
 
     private final PerlinNoise perlinNoise = new PerlinNoise(0);
