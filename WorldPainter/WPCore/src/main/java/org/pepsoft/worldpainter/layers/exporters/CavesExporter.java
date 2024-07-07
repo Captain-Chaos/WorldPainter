@@ -24,8 +24,8 @@ import java.util.*;
 import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
-import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
-import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
+import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
 import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.CARVE;
 import static org.pepsoft.worldpainter.util.GeometryUtil.visitFilledAbsoluteSphere;
@@ -82,7 +82,7 @@ public class CavesExporter extends AbstractCavesExporter<Caves> implements Secon
                                 if (cavesValue > random.nextInt(CAVE_CHANCE)) {
                                     caveSettings.start = new Point3i(x, y, z);
                                     caveSettings.length = MathUtils.clamp(0, (int) Math.round((random.nextGaussian() + 2.0) * (MAX_CAVE_LENGTH / 3.0)), MAX_CAVE_LENGTH);
-                                    createTunnel(minecraftWorld, area, exportedArea, dimension, new Random(random.nextLong()), caveSettings, surfaceBreaking, minimumLevel);
+                                    createTunnel(minecraftWorld, tile, area, exportedArea, dimension, new Random(random.nextLong()), caveSettings, surfaceBreaking, minimumLevel);
                                 }
                             }
                         }
@@ -105,7 +105,7 @@ public class CavesExporter extends AbstractCavesExporter<Caves> implements Secon
         return null;
     }
 
-    private void createTunnel(MinecraftWorld world, Rectangle area, Rectangle exportedArea, Dimension dimension, Random random, CaveSettings tunnelSettings, boolean surfaceBreaking, int minimumLevel) {
+    private void createTunnel(MinecraftWorld world, Tile tile, Rectangle area, Rectangle exportedArea, Dimension dimension, Random random, CaveSettings tunnelSettings, boolean surfaceBreaking, int minimumLevel) {
         Point3d location = new Point3d(tunnelSettings.start.x + random.nextDouble() - 0.5, tunnelSettings.start.y + random.nextDouble() - 0.5, tunnelSettings.start.z + random.nextDouble() - 0.5);
         Vector3d direction = getRandomDirection(random);
         final float minRadius = tunnelSettings.minRadius, maxRadius = tunnelSettings.maxRadius,
@@ -125,7 +125,7 @@ public class CavesExporter extends AbstractCavesExporter<Caves> implements Secon
             }
             if (((location.x + radius) >= exportedArea.x) && ((location.x - radius) <= (exportedArea.x + exportedArea.width))
                     && ((location.y + radius) >= exportedArea.y) && ((location.y - radius) <= (exportedArea.y + exportedArea.height))) {
-                excavate(world, area, dimension, new Random((long) (segmentSeed + length)), tunnelSettings, location, radius, surfaceBreaking);
+                excavate(world, tile, area, dimension, new Random((long) (segmentSeed + length)), tunnelSettings, location, radius, surfaceBreaking);
             }
             length += direction.length();
             location.add(direction);
@@ -140,7 +140,7 @@ public class CavesExporter extends AbstractCavesExporter<Caves> implements Secon
         }
     }
 
-    private void excavate(MinecraftWorld world, Rectangle area, Dimension dimension, Random random, CaveSettings settings, Point3d location, double radius, boolean surfaceBreaking) {
+    private void excavate(MinecraftWorld world, Tile tile, Rectangle area, Dimension dimension, Random random, CaveSettings settings, Point3d location, double radius, boolean surfaceBreaking) {
 
         // TODOMC13: remove water above openings
 
@@ -156,7 +156,7 @@ public class CavesExporter extends AbstractCavesExporter<Caves> implements Secon
             }
             // TODO: efficiently check maxZ per x,y:
             if (z >= minZ) {
-                final int terrainHeight = dimension.getIntHeightAt(x, y);
+                final int terrainHeight = tile.getIntHeight(x & TILE_SIZE_MASK, y & TILE_SIZE_MASK);
                 final int maxZ = terrainHeight - (surfaceBreaking ? 0 : dimension.getTopLayerDepth(x, y, terrainHeight));
                 if ((z > maxZ) || (x < area.x) || (x >= (area.x + area.width)) || (y < area.y) || (y >= (area.y + area.height))) {
                     return true;
