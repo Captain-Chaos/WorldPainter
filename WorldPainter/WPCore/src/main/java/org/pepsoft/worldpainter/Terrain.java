@@ -1097,7 +1097,7 @@ public enum Terrain {
                 andesiteNoise.setSeed(seed + ANDESITE_SEED_OFFSET);
                 RANDOM.setSeed(seed);
             }
-            if (z >= -RANDOM.nextInt(5)) { // TODO this is not stable
+            if (z>0 || ( z>-5 && z >= -RANDOM.nextInt(5))) { // TODO this is not stable
                 if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
                     return Material.GRANITE;
                 } else if(dioriteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > DIORITE_CHANCE) {
