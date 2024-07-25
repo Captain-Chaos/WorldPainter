@@ -63,6 +63,30 @@ public class Bo2Layer extends CustomLayer {
         this.density = density;
     }
 
+    public int getGridX() {
+        return gridX;
+    }
+
+    public void setGridX(int gridX) {
+        this.gridX = gridX;
+    }
+
+    public int getGridY() {
+        return gridY;
+    }
+
+    public void setGridY(int gridY) {
+        this.gridY = gridY;
+    }
+
+    public int getRandomDisplacement() {
+        return randomDisplacement;
+    }
+
+    public void setRandomDisplacement(int randomDisplacement) {
+        this.randomDisplacement = randomDisplacement;
+    }
+
     @Override
     public String getType() {
         return "Custom Objects";
@@ -88,6 +112,10 @@ public class Bo2Layer extends CustomLayer {
         if (density == 0) {
             density = 20;
         }
+        if (gridX == 0) {
+            gridX = 1;
+            gridY = 1;
+        }
     }
     
     private Bo2ObjectProvider objectProvider;
@@ -96,6 +124,7 @@ public class Bo2Layer extends CustomLayer {
     @Deprecated
     private List<File> files = Collections.emptyList();
     private int density = 20;
+    private int gridX = 1, gridY = 1, randomDisplacement = 0;
 
     private static final long serialVersionUID = 1L;
 }

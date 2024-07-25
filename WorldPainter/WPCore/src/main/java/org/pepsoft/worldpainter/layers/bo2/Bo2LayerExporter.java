@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import static java.lang.Math.round;
 import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.MC_LAVA;
 import static org.pepsoft.minecraft.Constants.MC_WATER;
@@ -56,7 +57,7 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
         try {
             final Bo2ObjectProvider objectProvider = layer.getObjectProvider();
             final List<Fixup> fixups = new ArrayList<>();
-            final int density = layer.getDensity() * 64;
+            final int density = layer.getDensity() * 64, gridX = layer.getGridX(), gridY = layer.getGridY(), randomDisplacement = layer.getRandomDisplacement();
             for (int chunkX = area.x; chunkX < area.x + area.width; chunkX += 16) {
                 for (int chunkY = area.y; chunkY < area.y + area.height; chunkY += 16) {
                     if (! dimension.isTilePresent(chunkX >> TILE_SIZE_BITS, chunkY >> TILE_SIZE_BITS)) {
@@ -67,10 +68,27 @@ public class Bo2LayerExporter extends WPObjectExporter<Bo2Layer> implements Seco
                     final long seed = dimension.getSeed() + (chunkX >> 4) * 65537L + (chunkY >> 4) * 4099L;
                     final Random random = new Random(seed);
                     objectProvider.setSeed(seed);
-                    for (int x = chunkX; x < chunkX + 16; x++) {
-                        for (int y = chunkY; y < chunkY + 16; y++) {
-                            final int strength = dimension.getLayerValueAt(layer, x, y);
+                    for (int xx = chunkX; xx < chunkX + 16; xx++) {
+                        for (int yy = chunkY; yy < chunkY + 16; yy++) {
+                            if (((xx % gridX) != 0) || ((yy % gridY) != 0)) {
+                                continue;
+                            }
+                            final int strength = dimension.getLayerValueAt(layer, xx, yy);
                             if ((strength > 0) && (random.nextInt(density) <= strength * strength)) {
+                                final int x, y;
+                                if (randomDisplacement > 0) {
+                                    final double angle = random.nextDouble() * Math.PI * 2;
+                                    final double distance = random.nextDouble() * randomDisplacement;
+                                    final double dX = Math.sin(angle) * distance, dY = Math.cos(angle) * distance;
+                                    x = (int) round(xx + dX);
+                                    y = (int) round(yy + dY);
+                                    if (dimension.getLayerValueAt(layer, x, y) <= 0) {
+                                        continue;
+                                    }
+                                } else {
+                                    x = xx;
+                                    y = yy;
+                                }
                                 WPObject object = objectProvider.getObject();
                                 final int variation = object.getAttribute(ATTRIBUTE_Y_VARIATION);
                                 final int height = ((object.getAttribute(ATTRIBUTE_HEIGHT_MODE) == HEIGHT_MODE_TERRAIN) ? (dimension.getIntHeightAt(x, y) + 1) : 0)
