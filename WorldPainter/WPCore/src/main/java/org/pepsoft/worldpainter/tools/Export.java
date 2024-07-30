@@ -69,8 +69,6 @@ public class Export extends AbstractTool {
             final List<Map.Entry<Object, AtomicLong>> list = new LinkedList<>(dimStats.timings.entrySet());
             list.sort(comparing(entry -> entry.getValue().get()));
             list.forEach(entry -> logger.info("    {}: {} ms", entry.getKey(), entry.getValue().get() / 1_000_000));
-            long overhead = dimStats.time - (list.stream().mapToLong(entry -> entry.getValue().get()).sum() / 1_000_000);
-            logger.info("    Overhead: {} ms", overhead);
         });
         logger.info("World " + world.getName() + " exported successfully");
     }
