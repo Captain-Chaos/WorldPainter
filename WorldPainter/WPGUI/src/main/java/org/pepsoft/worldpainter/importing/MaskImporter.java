@@ -12,7 +12,6 @@ import org.pepsoft.worldpainter.HeightMap;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.heightMaps.BitmapHeightMap;
-import org.pepsoft.worldpainter.heightMaps.TransformingHeightMap;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.Annotations;
 import org.pepsoft.worldpainter.layers.Layer;
@@ -199,7 +198,7 @@ outer:          for (int x = 0; x < width; x++) {
             if ((! bitmask) && (! discrete)) {
                 heightMap = heightMap.smoothed();
             }
-            scaledHeightMap = TransformingHeightMap.build().withHeightMap(heightMap).withScale(scale).now()
+            scaledHeightMap = heightMap.scaled(scale)
                     // Clamp the result, because ringing might otherwise cause values outside the original range:
                     .clamped(imageLowValue, imageHighValue);
             scaledImage = null;
