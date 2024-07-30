@@ -2626,6 +2626,15 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
             this.readOnly = readOnly;
         }
 
+        /**
+         * Visit tiles for a specific filter. This allows potential optimisation by skipping tiles on which the filter
+         * does not apply.
+         *
+         * <p><strong>Please note:</strong> the only guarantee is that <em>some</em> tiles to which
+         * the filter does not apply <em>may</em> be skipped. You still need to apply the entire filter to each tile
+         * yourself, as there is no guarantee the filter applies at all to each tile. This method exists only for
+         * potential (perhaps future) performance optimisation.
+         */
         public TileVisitationBuilder forFilter(Filter filter) {
             this.filter = filter;
             return this;
