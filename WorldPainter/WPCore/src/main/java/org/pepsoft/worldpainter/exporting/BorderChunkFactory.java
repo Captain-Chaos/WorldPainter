@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.pepsoft.minecraft.ChunkFactory.Stats.BORDER_CHUNKS;
+import static org.pepsoft.minecraft.ChunkFactory.Stage.BORDER_CHUNKS;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Dimension.Border.BARRIER;

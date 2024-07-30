@@ -58,50 +58,54 @@ public interface ChunkFactory {
          *
          * <ul>
          *     <li>A {@link Layer}
-         *     <li>{@link #TERRAIN_GENERATION}
-         *
-         *     <li>{@link #SEEDS}
-         *     <li>{@link #BORDER_CHUNKS}
-         *     <li>{@link #POST_PROCESSING}
-         *     <li>{@link #BLOCK_PROPERTIES}
-         *     <li>{@link #DISK_WRITING}
+         *     <li>A {@link Stage}
          * </ul>
          */
         public final Map<Object, AtomicLong> timings = new ConcurrentHashMap<>();
 
+    }
+    
+    enum Stage {
         /**
          * Creating the chunk and generating terrain and water or lava (excluding border and wall chunks).
          */
-        public static final Object TERRAIN_GENERATION = "Terrain";
+        TERRAIN_GENERATION("Terrain", "Generating terrain, water and lava"),
 
         /**
          * Post-processing the generated chunks (including border and wall chunks).
          */
-        public static final Object POST_PROCESSING = "Post processing";
+        POST_PROCESSING("Post processing", "Post-processing all chunks"),
 
         /**
          * Creating border or wall chunks (including layers but excluding post-processing).
          */
-        public static final Object BORDER_CHUNKS = "Border chunks";
+        BORDER_CHUNKS("Border chunks", "Creating border chunks"),
 
         /**
          * Exporting the {@link Garden} seeds.
          */
-        public static final Object SEEDS = "Seeds";
+        SEEDS("Seeds", "Exporting seeds"),
 
         /**
          * Calculating and propagating block properties such as lighting and leaf distances.
          */
-        public static final Object BLOCK_PROPERTIES = "Block properties";
+        BLOCK_PROPERTIES( "Block properties", "Calculating light and/or leaf distances"),
 
         /**
          * Saving the generated chunks to disk.
          */
-        public static final Object DISK_WRITING = "Saving";
+        DISK_WRITING ("Saving", "Saving chunks to disk"),
 
         /**
          * Applying region-straddling layers along region boundaries, not differentiated by layer.
          */
-        public static final Object FIXUPS = "Fixups";
+        FIXUPS("Fixups", "Fixing up region boundaries");
+
+        private final String name, description;
+
+        Stage(String name, String description) {
+            this.name = name;
+            this.description = description;
+        }
     }
 }

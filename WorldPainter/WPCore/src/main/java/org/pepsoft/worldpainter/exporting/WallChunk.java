@@ -14,7 +14,7 @@ import org.pepsoft.worldpainter.util.BiomeUtils;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.pepsoft.minecraft.ChunkFactory.Stats.BORDER_CHUNKS;
+import static org.pepsoft.minecraft.ChunkFactory.Stage.BORDER_CHUNKS;
 import static org.pepsoft.minecraft.Material.BARRIER;
 import static org.pepsoft.minecraft.Material.BEDROCK;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.BIOME_PLAINS;

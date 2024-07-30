@@ -23,7 +23,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.pepsoft.minecraft.ChunkFactory.Stats.TERRAIN_GENERATION;
+import static org.pepsoft.minecraft.ChunkFactory.Stage.TERRAIN_GENERATION;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;

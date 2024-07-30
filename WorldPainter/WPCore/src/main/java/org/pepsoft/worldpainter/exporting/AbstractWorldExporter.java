@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
-import static org.pepsoft.minecraft.ChunkFactory.Stats.*;
+import static org.pepsoft.minecraft.ChunkFactory.Stage.*;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.ExceptionUtils.chainContains;
 import static org.pepsoft.util.mdc.MDCUtils.doWithMdcContext;
