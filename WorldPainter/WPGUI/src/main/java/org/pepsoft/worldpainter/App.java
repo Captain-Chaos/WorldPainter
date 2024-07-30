@@ -73,13 +73,9 @@ import javax.swing.Box;
 import javax.swing.Timer;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
@@ -97,9 +93,9 @@ import java.util.zip.GZIPInputStream;
 
 import static com.jidesoft.docking.DockContext.DOCK_SIDE_EAST;
 import static com.jidesoft.docking.DockContext.DOCK_SIDE_WEST;
-import static com.jidesoft.docking.DockableFrame.*;
 import static java.awt.Color.BLACK;
 import static java.awt.Color.WHITE;
+import static java.awt.GridBagConstraints.HORIZONTAL;
 import static java.awt.event.ComponentEvent.COMPONENT_RESIZED;
 import static java.awt.event.KeyEvent.*;
 import static java.lang.Math.round;
@@ -109,6 +105,8 @@ import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toSet;
 import static javax.swing.JOptionPane.*;
 import static javax.swing.KeyStroke.getKeyStroke;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
@@ -3329,6 +3327,8 @@ public final class App extends JFrame implements RadiusControl,
             };
             paintUpdater.updatePaint();
         }, paintButtonGroup);
+        constraints.weightx = 1.0;
+        constraints.fill = HORIZONTAL;
         biomesPanelContainer.add(biomesPanel, constraints);
 
         layerControls.put(Biome.INSTANCE, new LayerControls(Biome.INSTANCE, checkBox, soloCheckBox, null));
@@ -3418,15 +3418,14 @@ public final class App extends JFrame implements RadiusControl,
         return null;
     }
 
-    private JPanel createTerrainPanel() {
-        JPanel terrainPanel = new JPanel();
-        terrainPanel.setLayout(new GridBagLayout());
-        GridBagConstraints constraints = new GridBagConstraints();
+    private JComponent createTerrainPanel() {
+        final JPanel terrainPanel = new JPanel(new GridBagLayout());
+        final GridBagConstraints constraints = new GridBagConstraints();
         constraints.insets = new Insets(1, 1, 1, 1);
 
-        Configuration config = Configuration.getInstance();
+        final Configuration config = Configuration.getInstance();
         constraints.anchor = GridBagConstraints.FIRST_LINE_START;
-        constraints.weightx = 0.0;
+        constraints.weightx = 1.0;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         if (! config.isEasyMode()) {
             final JCheckBox checkBoxSoloTerrain = new RemoteJCheckBox(terrainSoloCheckBox, "Solo:");
@@ -3533,9 +3532,10 @@ public final class App extends JFrame implements RadiusControl,
         JButton addCustomTerrainButton = new JButton(ACTION_SHOW_CUSTOM_TERRAIN_POPUP);
         addCustomTerrainButton.setMargin(App.BUTTON_INSETS);
         buttonPanel.add(addCustomTerrainButton);
+        constraints.weighty = 1.0;
         terrainPanel.add(buttonPanel, constraints);
 
-        return terrainPanel;
+        return new JScrollPane(terrainPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     }
     
     private JPanel createCustomTerrainPanel() {
@@ -3665,7 +3665,7 @@ public final class App extends JFrame implements RadiusControl,
         brushRotationLabel = new JLabel("Rotation: 0°");
         brushSettingsPanel.add(brushRotationLabel, constraints);
         
-        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.fill = HORIZONTAL;
         constraints.insets = new Insets(1, 1, 1, 1);
         // The preferred width of the slider is way too much. Make it smaller, and
         // then fill the available width created by the buttons
@@ -3679,7 +3679,7 @@ public final class App extends JFrame implements RadiusControl,
         levelLabel = new JLabel("Intensity: 50 %");
         brushSettingsPanel.add(levelLabel, constraints);
         
-        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.fill = HORIZONTAL;
         constraints.insets = new Insets(1, 1, 1, 1);
         // The preferred width of the slider is way too much. Make it smaller, and
         // then fill the available width created by the buttons
@@ -5949,121 +5949,6 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
-    public static class DockableFrameBuilder {
-        public DockableFrameBuilder(Component component, String title, int side, int index) {
-            this.component = component;
-            this.title = title;
-            this.side = side;
-            this.index = index;
-            id = (Character.toLowerCase(title.charAt(0)) + title.substring(1)).replaceAll("\\s", "");
-        }
-
-        DockableFrameBuilder withId(String id) {
-            this.id = id;
-            return this;
-        }
-
-        DockableFrameBuilder expand() {
-            expand = true;
-            return this;
-        }
-
-        public DockableFrameBuilder withIcon(Icon icon) {
-            this.icon = icon;
-            return this;
-        }
-
-        DockableFrameBuilder withMargin(int margin) {
-            this.margin = margin;
-            return this;
-        }
-
-        public DockableFrame build() {
-            DockableFrame dockableFrame = new DockableFrame(id);
-
-            JPanel panel = new JPanel(new GridBagLayout());
-            if (margin > 0) {
-                panel.setBorder(new EmptyBorder(margin, margin, margin, margin));
-            }
-            GridBagConstraints constraints = new GridBagConstraints();
-            constraints.gridwidth = GridBagConstraints.REMAINDER;
-            constraints.weightx = 1.0;
-            if (expand) {
-                constraints.fill = GridBagConstraints.BOTH;
-                constraints.weighty = 1.0;
-                panel.add(component, constraints);
-            } else {
-                constraints.fill = GridBagConstraints.HORIZONTAL;
-                panel.add(component, constraints);
-                constraints.weighty = 1.0;
-                panel.add(new JPanel(), constraints);
-            }
-            dockableFrame.add(panel, BorderLayout.CENTER);
-
-            // Use title everywhere
-            dockableFrame.setTitle(title);
-            dockableFrame.setSideTitle(title);
-            dockableFrame.setTabTitle(title);
-            dockableFrame.setToolTipText(title);
-
-            // Try to find an icon to use for the tab
-            if ((icon == null) && (component instanceof Container)) {
-                icon = findIcon((Container) component);
-                if (icon != null) {
-                    final int desiredSize = Math.round(16 * getUIScale());
-                    if (((icon.getIconHeight() > desiredSize) || (icon.getIconWidth() > desiredSize))
-                            && (icon instanceof ImageIcon)
-                            && (((ImageIcon) icon).getImage() instanceof BufferedImage)) {
-                        float s;
-                        if (icon.getIconWidth() > icon.getIconHeight()) {
-                            // Wide icon
-                            s = (float) desiredSize / icon.getIconWidth();
-                        } else {
-                            // Tall (or square) icon
-                            s = (float) desiredSize / icon.getIconHeight();
-                        }
-                        BufferedImageOp op = new AffineTransformOp(AffineTransform.getScaleInstance(s, s), AffineTransformOp.TYPE_BICUBIC);
-                        BufferedImage iconImage = op.filter((BufferedImage) ((ImageIcon) icon).getImage(), null);
-                        icon = new ImageIcon(iconImage);
-                    }
-                }
-            }
-            dockableFrame.setFrameIcon((icon != null) ? icon : ICON_UNKNOWN_PATTERN);
-
-            // Use preferred size of component as much as possible
-            final java.awt.Dimension preferredSize = component.getPreferredSize();
-            dockableFrame.setAutohideWidth(preferredSize.width);
-            dockableFrame.setDockedWidth(preferredSize.width);
-            dockableFrame.setDockedHeight(preferredSize.height);
-            dockableFrame.setUndockedBounds(new Rectangle(-1, -1, preferredSize.width, preferredSize.height));
-
-            // Make hidable, but don't display hide button, so incidental panels can
-            // be hidden on the fly
-            dockableFrame.setHidable(true);
-            dockableFrame.setAvailableButtons(BUTTON_FLOATING | BUTTON_AUTOHIDE | BUTTON_HIDE_AUTOHIDE);
-            dockableFrame.setShowContextMenu(false); // Disable the context menu because it contains the Close option with no way to hide it
-
-            // Initial location of panel
-            dockableFrame.setInitMode(DockContext.STATE_FRAMEDOCKED);
-            dockableFrame.setInitSide(side);
-            dockableFrame.setInitIndex(index);
-
-            // Other flags
-            dockableFrame.setAutohideWhenActive(true);
-            dockableFrame.setMaximizable(false);
-
-            //Help key
-            dockableFrame.putClientProperty(KEY_HELP_KEY, "Panel/" + id);
-            return dockableFrame;
-        }
-
-        String id, title;
-        boolean expand;
-        Icon icon;
-        int side, index, margin = 2;
-        Component component;
-    }
-
     private void showHelpPicker() {
         Component glassPane = getGlassPane();
         MouseListener mouseListener = new java.awt.event.MouseAdapter() {
@@ -6095,26 +5980,6 @@ public final class App extends JFrame implements RadiusControl,
         } else {
             DesktopUtils.beep();
         }
-    }
-
-    static Icon findIcon(Container container) {
-        if (container instanceof JComponent) {
-            Icon icon = (Icon) ((JComponent) container).getClientProperty(KEY_ICON);
-            if (icon != null) {
-                return icon;
-            }
-        }
-        for (Component component: container.getComponents()) {
-            if ((component instanceof AbstractButton) && (((AbstractButton) component).getIcon() != null)) {
-                return ((AbstractButton) component).getIcon();
-            } else if (component instanceof Container) {
-                Icon icon = findIcon((Container) component);
-                if (icon != null) {
-                    return icon;
-                }
-            }
-        }
-        return null;
     }
 
     static File getAutosaveFile() {
@@ -7057,7 +6922,6 @@ public final class App extends JFrame implements RadiusControl,
     private static final Icon ICON_ROTATE_LIGHT_LEFT    = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_rotate_lightbulb_anticlockwise.png");
     private static final Icon ICON_MOVE_TO_SPAWN        = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/spawn_red.png");
     private static final Icon ICON_MOVE_TO_ORIGIN       = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_in.png");
-    private static final Icon ICON_UNKNOWN_PATTERN      = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/unknown_pattern.png");
     private static final Icon ICON_SHIFT_WORLD          = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_cross.png");
     private static final Icon ICON_SCALE_WORLD          = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/arrow_out.png");
     private static final Icon ICON_SETTINGS             = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/wrench.png");
