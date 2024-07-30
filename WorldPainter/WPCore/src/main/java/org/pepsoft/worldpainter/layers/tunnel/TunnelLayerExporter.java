@@ -31,6 +31,7 @@ import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.A
 import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.CARVE;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.CAVE;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.CUSTOM_DIMENSION;
+import static org.pepsoft.worldpainter.util.PreviewUtils.paintHeightMarks;
 
 public class TunnelLayerExporter extends AbstractTunnelLayerExporter implements SecondPassLayerExporter {
     public TunnelLayerExporter(Dimension dimension, Platform platform, TunnelLayer layer, TunnelLayerHelper helper) {
@@ -339,18 +340,7 @@ public class TunnelLayerExporter extends AbstractTunnelLayerExporter implements 
                 }
             }
         }
-        // Add height markers
-        final Graphics2D g2 = preview.createGraphics();
-        try {
-            g2.setColor(Color.GRAY);
-            g2.setFont(HEIGHT_MARKER_FONT);
-            for (int y = (minHeight / 20) * 20; y < (height + minHeight); y += 20) {
-                g2.drawLine(width - 10, height + minHeight - y, width - 1, height + minHeight - y);
-                g2.drawString(Integer.toString(y), width - 30, height + minHeight - y + 4);
-            }
-        } finally {
-            g2.dispose();
-        }
+        paintHeightMarks(preview, minHeight);
         return preview;
     }
 

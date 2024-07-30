@@ -18,7 +18,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 
-import static java.awt.Color.BLACK;
 import static java.awt.Color.ORANGE;
 import static java.lang.Math.round;
 import static java.util.Collections.singleton;
@@ -31,6 +30,7 @@ import static org.pepsoft.worldpainter.exporting.WorldPainterChunkFactory.SUGAR_
 import static org.pepsoft.worldpainter.exporting.WorldPainterChunkFactory.SUGAR_CANE_SEED_OFFSET;
 import static org.pepsoft.worldpainter.layers.plants.Plants.SUGAR_CANE;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.FLOATING;
+import static org.pepsoft.worldpainter.util.PreviewUtils.paintHeightMarks;
 
 public class FloatingLayerExporter extends AbstractTunnelLayerExporter implements FirstPassLayerExporter, SecondPassLayerExporter {
     public FloatingLayerExporter(Dimension dimension, Platform platform, TunnelLayer layer, TunnelLayerHelper helper) {
@@ -189,18 +189,7 @@ public class FloatingLayerExporter extends AbstractTunnelLayerExporter implement
                 }
             }
         }
-        // Add height markers
-        final Graphics2D g2 = preview.createGraphics();
-        try {
-            g2.setColor(BLACK);
-            g2.setFont(HEIGHT_MARKER_FONT);
-            for (int y = (minHeight / 20) * 20; y < (height + minHeight); y += 20) {
-                g2.drawLine(width - 10, height + minHeight - y, width - 1, height + minHeight - y);
-                g2.drawString(Integer.toString(y), width - 30, height + minHeight - y + 4);
-            }
-        } finally {
-            g2.dispose();
-        }
+        paintHeightMarks(preview, minHeight);
         return preview;
     }
 

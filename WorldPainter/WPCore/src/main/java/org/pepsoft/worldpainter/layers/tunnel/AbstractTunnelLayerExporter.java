@@ -231,7 +231,4 @@ public abstract class AbstractTunnelLayerExporter extends AbstractCavesExporter<
     }
 
     protected final TunnelLayerHelper helper;
-
-    protected static final Font HEIGHT_MARKER_FONT = new Font("SansSerif", PLAIN, 10);
-    private static final Logger logger = LoggerFactory.getLogger(AbstractTunnelLayerExporter.class);
 }

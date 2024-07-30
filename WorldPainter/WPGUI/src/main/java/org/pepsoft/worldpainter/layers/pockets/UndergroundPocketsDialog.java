@@ -39,6 +39,7 @@ public class UndergroundPocketsDialog extends AbstractEditLayerDialog<Undergroun
     private UndergroundPocketsDialog(Window parent, Platform platform, MixedMaterial material, UndergroundPocketsLayer existingLayer, ColourScheme colourScheme, int minHeight, int maxHeight, boolean extendedBlockIds) {
         super(parent);
         this.colourScheme = colourScheme;
+        this.minHeight = minHeight;
         
         initComponents();
         mixedMaterialChooser.setPlatform(platform);
@@ -181,7 +182,7 @@ public class UndergroundPocketsDialog extends AbstractEditLayerDialog<Undergroun
         int minLevel = (Integer) spinnerMinLevel.getValue();
         int maxLevel = (Integer) spinnerMaxLevel.getValue();
         UndergroundPocketsLayer tmpLayer = new UndergroundPocketsLayer("tmp", material, terrain, occurrence, minLevel, maxLevel, scale, null);
-        labelPreview.setIcon(new ImageIcon(UndergroundPocketsLayerExporter.createPreview(tmpLayer, labelPreview.getWidth(), labelPreview.getHeight())));
+        labelPreview.setIcon(new ImageIcon(UndergroundPocketsLayerExporter.createPreview(tmpLayer, labelPreview.getWidth(), labelPreview.getHeight(), minHeight)));
     }
 
     /**
@@ -511,6 +512,7 @@ public class UndergroundPocketsDialog extends AbstractEditLayerDialog<Undergroun
     // End of variables declaration//GEN-END:variables
     
     private final ColourScheme colourScheme;
+    private final int minHeight;
     private UndergroundPocketsLayer layer;
     private Timer previewUpdateTimer;
 
