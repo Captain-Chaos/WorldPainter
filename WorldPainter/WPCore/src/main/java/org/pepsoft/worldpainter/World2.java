@@ -966,7 +966,6 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     @Deprecated
     public static final int BIOME_ALGORITHM_AUTO_BIOMES         =  7; 
     
-    public static final int DEFAULT_MAX_HEIGHT = org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
     public static final long DEFAULT_OCEAN_SEED = 27594263L; // A seed with a large ocean around the origin, and not many mushroom islands nearby. Should be used with Large Biomes
     public static final long DEFAULT_LAND_SEED = 227290L; // A seed with a huge continent around the origin. Should be used with Large Biomes
     
