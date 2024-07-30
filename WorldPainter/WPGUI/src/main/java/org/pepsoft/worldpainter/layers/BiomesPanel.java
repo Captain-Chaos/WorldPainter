@@ -12,14 +12,13 @@ import org.pepsoft.worldpainter.biomeschemes.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.*;
 import java.util.function.Consumer;
 
+import static java.awt.FlowLayout.LEADING;
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
@@ -154,7 +153,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         label2.setAlignmentX(0.0f);
         add(label2);
 
-        JButton addCustomBiomeButton = new JButton(IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/plus.png"));
+        final JButton addCustomBiomeButton = new JButton(ICON_PLUS);
         addCustomBiomeButton.putClientProperty(KEY_ADD_BUTTON, TRUE);
         addCustomBiomeButton.setMargin(App.BUTTON_INSETS);
         addCustomBiomeButton.setToolTipText("Add a custom biome");
@@ -178,8 +177,15 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
                 customBiomeManager.addCustomBiome(parent, customBiome);
             }
         });
+        buttonPrefDim = addCustomBiomeButton.getPreferredSize();
         grid.add(addCustomBiomeButton);
         grid.setAlignmentX(0.0f);
+        grid.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                relayoutGrid();
+            }
+        });
         add(grid);
 
         optionsPanel.setLayout(new BoxLayout(optionsPanel, PAGE_AXIS));
@@ -403,7 +409,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
             }
         });
         grid.add(button, grid.getComponentCount() - 1);
-        forceRepaint();
+        relayoutGrid();
     }
 
     private void forceRepaint() {
@@ -487,16 +493,33 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
                 .forEach(c -> consumer.accept((JCheckBox) c));
     }
 
-    private final JPanel grid = new JPanel(new GridLayout(0, 5)), optionsPanel = new JPanel();
+    /**
+     * Adjusts the grid size to will the width of the panel and to be high enough to display all the buttons.
+     */
+    private void relayoutGrid() {
+        final int componentCount = grid.getComponentCount();
+        final int buttonsPerRow = (grid.getWidth() - 2) / buttonPrefDim.width;
+        final int minRows = (int) Math.ceil((float) componentCount / buttonsPerRow);
+        final Dimension preferredSize = new Dimension(grid.getMinimumSize().width, minRows * buttonPrefDim.height);
+        grid.setMinimumSize(preferredSize);
+        grid.setPreferredSize(preferredSize);
+        grid.invalidate();
+        forceRepaint();
+    }
+
+    private final JPanel grid = new JPanel(new FlowLayout(LEADING, 0, 0)), optionsPanel = new JPanel();
     private final ButtonGroup buttonGroup;
     private final JLabel label1 = new JLabel("Selected biome: 1"), label2 = new JLabel("Plains");
-
     private final CustomBiomeManager customBiomeManager;
     private final Listener listener;
+
     private BiomeHelper biomeHelper;
     private BiomesSet biomesSet;
     private int selectedBiome = BIOME_PLAINS, selectedBaseBiome = BIOME_PLAINS;
     private boolean showIds;
+    private Dimension buttonPrefDim;
+
+    private static final ImageIcon ICON_PLUS = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/plus.png");
 
     // TODO move this stuff to BiomeScheme/PlatformProvider
 
