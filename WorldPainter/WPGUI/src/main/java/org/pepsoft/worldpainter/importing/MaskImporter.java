@@ -195,12 +195,11 @@ outer:          for (int x = 0; x < width; x++) {
             }
             scaledHeightMap = null;
         } else {
-            // Do the scaling via the height map, as it works with more image types
-            final BitmapHeightMap.BitmapHeightMapBuilder builder = BitmapHeightMap.build().withImage(image);
+            HeightMap heightMap = BitmapHeightMap.build().withImage(image).now();
             if ((! bitmask) && (! discrete)) {
-                builder.withSmoothScaling(true);
+                heightMap = heightMap.smoothed();
             }
-            scaledHeightMap = TransformingHeightMap.build().withHeightMap(builder.now()).withScale(scale).now()
+            scaledHeightMap = TransformingHeightMap.build().withHeightMap(heightMap).withScale(scale).now()
                     // Clamp the result, because ringing might otherwise cause values outside the original range:
                     .clamped(imageLowValue, imageHighValue);
             scaledImage = null;

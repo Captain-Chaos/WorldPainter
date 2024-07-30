@@ -243,8 +243,10 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                 .withName(selectedFile.getName())
                 .withImage(image)
                 .withFile(selectedFile)
-                .withSmoothScaling(scale != 100.0f)
                 .now();
+        if (scale != 100.f) {
+            heightMap = heightMap.smoothed();
+        }
         final int offsetX = (int) spinnerOffsetX.getValue();
         final int offsetY = (int) spinnerOffsetY.getValue();
         if ((scale != 100.0f) || (offsetX != 0) || (offsetY != 0)) {
@@ -342,17 +344,7 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                 programmaticChange = true;
                 try {
                     labelImageDimensions.setForeground(null);
-                    if (heightMap.hasAlpha()) {
-                        spinnerScale.setValue(100.0f);
-                        spinnerScale.setEnabled(false);
-                        spinnerScale.setToolTipText("<html>Scaling not supported for grey scale images with an alpha channel!<br>To enable scaling, please remove the alpha channel.</html>");
-                        labelImageDimensions.setIcon(ICON_WARNING);
-                        labelImageDimensions.setText("Scaling not supported for images with an alpha channel!");
-                    } else {
-                        spinnerScale.setEnabled(true);
-                        spinnerScale.setToolTipText(null);
-                        labelImageDimensions.setIcon(null);
-                    }
+                    labelImageDimensions.setIcon(null);
                     bitDepth = heightMap.getBitDepth();
                     imageMinHeight = heightMap.getMinHeight();
                     imageMaxHeight = heightMap.getMaxHeight();
@@ -399,12 +391,10 @@ public class ImportHeightMapDialog extends WorldPainterDialog implements Documen
                 // Set levels to reasonable defaults
                 selectDefaultVerticalScaling(false);
 
-                if (! heightMap.hasAlpha()) {
-                    if (heightMap.isFloatingPoint()) {
-                        labelImageDimensions.setText(String.format("Image size: %,d x %,d, %d bits, lowest value: %,f, highest value: %,f", width, height, bitDepth, imageLowValue, imageHighValue));
-                    } else {
-                        labelImageDimensions.setText(String.format("Image size: %,d x %,d, %d bits, lowest value: %,d, highest value: %,d", width, height, bitDepth, Math.round(imageLowValue), Math.round(imageHighValue)));
-                    }
+                if (heightMap.isFloatingPoint()) {
+                    labelImageDimensions.setText(String.format("Image size: %,d x %,d, %d bits, lowest value: %,f, highest value: %,f", width, height, bitDepth, imageLowValue, imageHighValue));
+                } else {
+                    labelImageDimensions.setText(String.format("Image size: %,d x %,d, %d bits, lowest value: %,d, highest value: %,d", width, height, bitDepth, Math.round(imageLowValue), Math.round(imageHighValue)));
                 }
                 updateWorldDimensions();
                 updatePreview(true);
