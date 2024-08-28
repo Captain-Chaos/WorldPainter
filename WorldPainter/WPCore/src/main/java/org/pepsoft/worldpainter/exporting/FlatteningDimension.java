@@ -18,8 +18,8 @@ import static org.pepsoft.worldpainter.Constants.*;
  * A {@link Dimension} which combines multiple layered {@code Dimensions}s into one, returning data from the first
  * dimension in which the chunk is present (it exists and is not marked NotPresent or ReadOnly).
  *
- * <p>Settings for singleton layers such as caves, resources, etc. are copied from the first dimension; those settings
- * are ignored from the other dimensions.
+ * <p>Global settings and settings for singleton layers such as caves, resources, etc. are copied from the first
+ * dimension; those settings are ignored from the other dimensions.
  *
  * <p><strong>Note</strong> that not all operations are implemented. Only those needed for exporting are guaranteed to
  * be implemented. Others may throw an {@link UnsupportedOperationException}.
