@@ -3,14 +3,19 @@ package org.pepsoft.worldpainter.layers.tunnel;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.HeightMap;
+import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.lang.Math.round;
 import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
 import static org.pepsoft.worldpainter.Dimension.Role.FLOATING_FLOOR;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.CAVE;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.FLOATING;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.CUSTOM_DIMENSION;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.FIXED_HEIGHT;
 
 /**
  * A helper class that can perform all the floor and roof height calculations for a particular TunnelLayer and
@@ -46,8 +51,15 @@ public class TunnelLayerHelper {
             // Cache wall distance to increase performance
             final int maxWallDepth = Math.max(layer.floorWallDepth, layer.roofWallDepth);
             wallDistanceCache = dimension.getDistancesToEdge(layer, maxWallDepth);
+            if ((layer.getLayerMode() == FLOATING) && (layer.getRoofMode() == FIXED_HEIGHT)) {
+                // For fixed height floor dimension bottom, bake highest edge level within wall distance also
+                edgeHeightCache = dimension.getEdgeHeights(layer, maxWallDepth);
+            } else {
+                edgeHeightCache = new ConstantHeightMap(layer.floorLevel);
+            }
         } else {
             wallDistanceCache = null;
+            edgeHeightCache = new ConstantHeightMap(layer.floorLevel);
         }
     }
 
@@ -67,12 +79,36 @@ public class TunnelLayerHelper {
     }
 
     public int calculateBottomLevel(int x, int y, int minZ, int maxZ, int floorLevel, float distanceToWall) {
-        final double multiplier = Math.min(distanceToWall / layer.roofWallDepth, 1.0);
+        // The multiplier indicates the normalised distance to the edge for purposes of calculating the edge shape; it
+        // goes from 0.0 at the outer edge to 1.0 at the inner edge
+        final double multiplier;
+        switch (layer.getBottomEdgeShape()) {
+            case LINEAR:
+                multiplier = Math.min(distanceToWall / layer.roofWallDepth, 1.0);
+                break;
+            case ROUNDED:
+                multiplier = Math.min(Math.sqrt(distanceToWall / layer.roofWallDepth), 1.0); // TODO is this the right formula for a quarter circle?
+                break;
+            case SHEER:
+                multiplier = 1.0;
+                break;
+            case SMOOTH:
+                throw new UnsupportedOperationException("not implemented yet");
+            default:
+                throw new InternalError();
+        }
         switch (layer.roofMode) {
 //            case CONSTANT_DEPTH:
 //                return clamp(minZ, clamp(layer.roofMin, terrainHeight - layer.roofLevel, layer.roofMax) + ((roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0), maxZ);
             case FIXED_HEIGHT:
-                return clamp(minZ, layer.roofLevel + ((roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0), maxZ);
+                if (multiplier >= 1.0) {
+                    return (int) round(clamp(minZ, layer.roofLevel
+                            + ((roofNoise != null) ? (roofNoise.getHeight(x, y) - roofNoiseOffset) : 0), maxZ));
+                } else {
+                    return (int) round(clamp(minZ, edgeHeightCache.getHeight(x, y) * (1.0 - multiplier)
+                            + layer.roofLevel * multiplier
+                            + ((roofNoise != null) ? ((roofNoise.getHeight(x, y) - roofNoiseOffset) * multiplier) : 0), maxZ));
+                }
 //            case INVERTED_DEPTH:
 //                return clamp(minZ, clamp(layer.roofMin, layer.roofLevel - (terrainHeight - layer.roofLevel), layer.roofMax) + ((roofNoise != null) ? ((int) roofNoise.getHeight(x, y) - roofNoiseOffset) : 0), maxZ);
             case FIXED_HEIGHT_ABOVE_FLOOR:
@@ -131,8 +167,10 @@ public class TunnelLayerHelper {
     private final Dimension floorDimension;
     private final NoiseHeightMap floorNoise, roofNoise;
     private final int floorNoiseOffset, roofNoiseOffset;
-    private final HeightMap wallDistanceCache;
+    private final HeightMap wallDistanceCache, edgeHeightCache;
 
     private static final long FLOOR_NOISE_SEED_OFFSET = 177766561L;
     private static final long ROOF_NOISE_SEED_OFFSET = 184818453L;
+
+    private static final Logger logger = LoggerFactory.getLogger(TunnelLayerHelper.class);
 }

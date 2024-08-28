@@ -73,7 +73,7 @@ import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
 /**
  * @author pepijn
  */
-@SuppressWarnings({"unused", "rawtypes", "Convert2Lambda", "Anonymous2MethodRef", "ConstantConditions", "FieldCanBeLocal"}) // Managed by NetBeans
+@SuppressWarnings({"unused", "Convert2Lambda", "Anonymous2MethodRef", "ConstantConditions", "FieldCanBeLocal"}) // Managed by NetBeans
 public class DimensionPropertiesEditor extends javax.swing.JPanel {
     /**
      * Creates new form DimensionPropertiesEditor
@@ -167,8 +167,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 if (anchor.role == MASTER) {
                     jTabbedPane1.remove(TAB_OTHER_LAYERS);
                 }
-                if ((anchor.role == CAVE_FLOOR) || (anchor.role == FLOATING_FLOOR) || (anchor.role == MASTER)) { // TODO support resources caves in floating dimensions
+                if ((anchor.role == CAVE_FLOOR) || (anchor.role == MASTER)) {
                     jTabbedPane1.remove(TAB_RESOURCES);
+                }
+                if ((anchor.role == CAVE_FLOOR) || (anchor.role == FLOATING_FLOOR) || (anchor.role == MASTER)) {
                     jTabbedPane1.remove(TAB_CAVES);
                 }
                 jTabbedPane1.remove(TAB_THEME);
@@ -187,8 +189,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 if (anchor.role == MASTER) {
                     jTabbedPane1.remove(TAB_OTHER_LAYERS);
                 }
-                if ((anchor.role == CAVE_FLOOR) || (anchor.role == FLOATING_FLOOR) || (anchor.role == MASTER)) { // TODO support resources caves in floating dimensions
+                if ((anchor.role == CAVE_FLOOR) || (anchor.role == MASTER)) {
                     jTabbedPane1.remove(TAB_RESOURCES);
+                }
+                if ((anchor.role == CAVE_FLOOR) || (anchor.role == FLOATING_FLOOR) || (anchor.role == MASTER)) {
                     jTabbedPane1.remove(TAB_CAVES);
                 }
                 break;
@@ -927,108 +931,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             } else {
                 jSlider4.setValue(8);
             }
-
-            // TODOMC118: encode minHeight as Integer.MIN_VALUE and maxHeight as Integer.MAX_VALUE so they adjust automatically
-            //  (Or maybe only do this for maxHeight, otherwise _everything_ with minHeight 0 in 1.15 will be extended down for 1.18, which is not correct? Or just accept that?)
-
-            spinnerGoldChance.setValue(resourcesSettings.getChance(GOLD_ORE));
-            ((SpinnerNumberModel) spinnerGoldMinLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerGoldMinLevel.getModel()).setMaximum(maxHeight);
-            spinnerGoldMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(GOLD_ORE), maxHeight));
-            ((SpinnerNumberModel) spinnerGoldMaxLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerGoldMaxLevel.getModel()).setMaximum(maxHeight);
-            spinnerGoldMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(GOLD_ORE), maxHeight));
-            spinnerIronChance.setValue(resourcesSettings.getChance(IRON_ORE));
-            ((SpinnerNumberModel) spinnerIronMinLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerIronMinLevel.getModel()).setMaximum(maxHeight);
-            spinnerIronMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(IRON_ORE), maxHeight));
-            ((SpinnerNumberModel) spinnerIronMaxLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerIronMaxLevel.getModel()).setMaximum(maxHeight);
-            spinnerIronMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(IRON_ORE), maxHeight));
-            spinnerCoalChance.setValue(resourcesSettings.getChance(COAL));
-            ((SpinnerNumberModel) spinnerCoalMinLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerCoalMinLevel.getModel()).setMaximum(maxHeight);
-            spinnerCoalMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(COAL), maxHeight));
-            ((SpinnerNumberModel) spinnerCoalMaxLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerCoalMaxLevel.getModel()).setMaximum(maxHeight);
-            spinnerCoalMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(COAL), maxHeight));
-            spinnerLapisChance.setValue(resourcesSettings.getChance(LAPIS_LAZULI_ORE));
-            ((SpinnerNumberModel) spinnerLapisMinLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerLapisMinLevel.getModel()).setMaximum(maxHeight);
-            spinnerLapisMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(LAPIS_LAZULI_ORE), maxHeight));
-            ((SpinnerNumberModel) spinnerLapisMaxLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerLapisMaxLevel.getModel()).setMaximum(maxHeight);
-            spinnerLapisMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(LAPIS_LAZULI_ORE), maxHeight));
-            spinnerDiamondChance.setValue(resourcesSettings.getChance(DIAMOND_ORE));
-            ((SpinnerNumberModel) spinnerDiamondMinLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerDiamondMinLevel.getModel()).setMaximum(maxHeight);
-            spinnerDiamondMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(DIAMOND_ORE), maxHeight));
-            ((SpinnerNumberModel) spinnerDiamondMaxLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerDiamondMaxLevel.getModel()).setMaximum(maxHeight);
-            spinnerDiamondMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(DIAMOND_ORE), maxHeight));
-            spinnerRedstoneChance.setValue(resourcesSettings.getChance(REDSTONE_ORE));
-            ((SpinnerNumberModel) spinnerRedstoneMinLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerRedstoneMinLevel.getModel()).setMaximum(maxHeight);
-            spinnerRedstoneMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(REDSTONE_ORE), maxHeight));
-            ((SpinnerNumberModel) spinnerRedstoneMaxLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerRedstoneMaxLevel.getModel()).setMaximum(maxHeight);
-            spinnerRedstoneMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(REDSTONE_ORE), maxHeight));
-            spinnerWaterChance.setValue(resourcesSettings.getChance(STATIONARY_WATER));
-            ((SpinnerNumberModel) spinnerWaterMinLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerWaterMinLevel.getModel()).setMaximum(maxHeight);
-            spinnerWaterMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(STATIONARY_WATER), maxHeight));
-            ((SpinnerNumberModel) spinnerWaterMaxLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerWaterMaxLevel.getModel()).setMaximum(maxHeight);
-            spinnerWaterMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(STATIONARY_WATER), maxHeight));
-            spinnerLavaChance.setValue(resourcesSettings.getChance(STATIONARY_LAVA));
-            ((SpinnerNumberModel) spinnerLavaMinLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerLavaMinLevel.getModel()).setMaximum(maxHeight);
-            spinnerLavaMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(STATIONARY_LAVA), maxHeight));
-            ((SpinnerNumberModel) spinnerLavaMaxLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerLavaMaxLevel.getModel()).setMaximum(maxHeight);
-            spinnerLavaMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(STATIONARY_LAVA), maxHeight));
-            spinnerDirtChance.setValue(resourcesSettings.getChance(DIRT));
-            ((SpinnerNumberModel) spinnerDirtMinLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerDirtMinLevel.getModel()).setMaximum(maxHeight);
-            spinnerDirtMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(DIRT), maxHeight));
-            ((SpinnerNumberModel) spinnerDirtMaxLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerDirtMaxLevel.getModel()).setMaximum(maxHeight);
-            spinnerDirtMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(DIRT), maxHeight));
-            spinnerGravelChance.setValue(resourcesSettings.getChance(GRAVEL));
-            ((SpinnerNumberModel) spinnerGravelMinLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerGravelMinLevel.getModel()).setMaximum(maxHeight);
-            spinnerGravelMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(GRAVEL), maxHeight));
-            ((SpinnerNumberModel) spinnerGravelMaxLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerGravelMaxLevel.getModel()).setMaximum(maxHeight);
-            spinnerGravelMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(GRAVEL), maxHeight));
-            spinnerEmeraldChance.setValue(resourcesSettings.getChance(EMERALD_ORE));
-            ((SpinnerNumberModel) spinnerEmeraldMinLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerEmeraldMinLevel.getModel()).setMaximum(maxHeight);
-            spinnerEmeraldMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(EMERALD_ORE), maxHeight));
-            ((SpinnerNumberModel) spinnerEmeraldMaxLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerEmeraldMaxLevel.getModel()).setMaximum(maxHeight);
-            spinnerEmeraldMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(EMERALD_ORE), maxHeight));
-            spinnerQuartzChance.setValue(resourcesSettings.getChance(QUARTZ_ORE));
-            ((SpinnerNumberModel) spinnerQuartzMinLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerQuartzMinLevel.getModel()).setMaximum(maxHeight);
-            spinnerQuartzMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(QUARTZ_ORE), maxHeight));
-            ((SpinnerNumberModel) spinnerQuartzMaxLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerQuartzMaxLevel.getModel()).setMaximum(maxHeight);
-            spinnerQuartzMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(QUARTZ_ORE), maxHeight));
-            spinnerCopperChance.setValue(resourcesSettings.getChance(COPPER_ORE));
-            ((SpinnerNumberModel) spinnerCopperMinLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerCopperMinLevel.getModel()).setMaximum(maxHeight);
-            spinnerCopperMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(COPPER_ORE), maxHeight));
-            ((SpinnerNumberModel) spinnerCopperMaxLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerCopperMaxLevel.getModel()).setMaximum(maxHeight);
-            spinnerCopperMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(COPPER_ORE), maxHeight));
-            spinnerAncientDebrisChance.setValue(resourcesSettings.getChance(ANCIENT_DEBRIS));
-            ((SpinnerNumberModel) spinnerAncientDebrisMinLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerAncientDebrisMinLevel.getModel()).setMaximum(maxHeight);
-            spinnerAncientDebrisMinLevel.setValue(clamp(minHeight, resourcesSettings.getMinLevel(ANCIENT_DEBRIS), maxHeight));
-            ((SpinnerNumberModel) spinnerAncientDebrisMaxLevel.getModel()).setMinimum(minHeight);
-            ((SpinnerNumberModel) spinnerAncientDebrisMaxLevel.getModel()).setMaximum(maxHeight);
-            spinnerAncientDebrisMaxLevel.setValue(clamp(minHeight, resourcesSettings.getMaxLevel(ANCIENT_DEBRIS), maxHeight));
+            loadResourceSettings(resourcesSettings, minHeight, maxHeight);
         }
         
         // terrain ranges
@@ -1070,6 +973,110 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         }
 
         setControlStates();
+    }
+
+    private void loadResourceSettings(ResourcesExporterSettings resourcesSettings, int minZ, int maxZ) {
+        // TODOMC118: encode minHeight as Integer.MIN_VALUE and maxHeight as Integer.MAX_VALUE so they adjust automatically
+        //  (Or maybe only do this for maxHeight, otherwise _everything_ with minHeight 0 in 1.15 will be extended down for 1.18, which is not correct? Or just accept that?)
+
+        spinnerGoldChance.setValue(resourcesSettings.getChance(GOLD_ORE));
+        ((SpinnerNumberModel) spinnerGoldMinLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerGoldMinLevel.getModel()).setMaximum(maxZ);
+        spinnerGoldMinLevel.setValue(clamp(minZ, resourcesSettings.getMinLevel(GOLD_ORE), maxZ));
+        ((SpinnerNumberModel) spinnerGoldMaxLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerGoldMaxLevel.getModel()).setMaximum(maxZ);
+        spinnerGoldMaxLevel.setValue(clamp(minZ, resourcesSettings.getMaxLevel(GOLD_ORE), maxZ));
+        spinnerIronChance.setValue(resourcesSettings.getChance(IRON_ORE));
+        ((SpinnerNumberModel) spinnerIronMinLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerIronMinLevel.getModel()).setMaximum(maxZ);
+        spinnerIronMinLevel.setValue(clamp(minZ, resourcesSettings.getMinLevel(IRON_ORE), maxZ));
+        ((SpinnerNumberModel) spinnerIronMaxLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerIronMaxLevel.getModel()).setMaximum(maxZ);
+        spinnerIronMaxLevel.setValue(clamp(minZ, resourcesSettings.getMaxLevel(IRON_ORE), maxZ));
+        spinnerCoalChance.setValue(resourcesSettings.getChance(COAL));
+        ((SpinnerNumberModel) spinnerCoalMinLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerCoalMinLevel.getModel()).setMaximum(maxZ);
+        spinnerCoalMinLevel.setValue(clamp(minZ, resourcesSettings.getMinLevel(COAL), maxZ));
+        ((SpinnerNumberModel) spinnerCoalMaxLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerCoalMaxLevel.getModel()).setMaximum(maxZ);
+        spinnerCoalMaxLevel.setValue(clamp(minZ, resourcesSettings.getMaxLevel(COAL), maxZ));
+        spinnerLapisChance.setValue(resourcesSettings.getChance(LAPIS_LAZULI_ORE));
+        ((SpinnerNumberModel) spinnerLapisMinLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerLapisMinLevel.getModel()).setMaximum(maxZ);
+        spinnerLapisMinLevel.setValue(clamp(minZ, resourcesSettings.getMinLevel(LAPIS_LAZULI_ORE), maxZ));
+        ((SpinnerNumberModel) spinnerLapisMaxLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerLapisMaxLevel.getModel()).setMaximum(maxZ);
+        spinnerLapisMaxLevel.setValue(clamp(minZ, resourcesSettings.getMaxLevel(LAPIS_LAZULI_ORE), maxZ));
+        spinnerDiamondChance.setValue(resourcesSettings.getChance(DIAMOND_ORE));
+        ((SpinnerNumberModel) spinnerDiamondMinLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerDiamondMinLevel.getModel()).setMaximum(maxZ);
+        spinnerDiamondMinLevel.setValue(clamp(minZ, resourcesSettings.getMinLevel(DIAMOND_ORE), maxZ));
+        ((SpinnerNumberModel) spinnerDiamondMaxLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerDiamondMaxLevel.getModel()).setMaximum(maxZ);
+        spinnerDiamondMaxLevel.setValue(clamp(minZ, resourcesSettings.getMaxLevel(DIAMOND_ORE), maxZ));
+        spinnerRedstoneChance.setValue(resourcesSettings.getChance(REDSTONE_ORE));
+        ((SpinnerNumberModel) spinnerRedstoneMinLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerRedstoneMinLevel.getModel()).setMaximum(maxZ);
+        spinnerRedstoneMinLevel.setValue(clamp(minZ, resourcesSettings.getMinLevel(REDSTONE_ORE), maxZ));
+        ((SpinnerNumberModel) spinnerRedstoneMaxLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerRedstoneMaxLevel.getModel()).setMaximum(maxZ);
+        spinnerRedstoneMaxLevel.setValue(clamp(minZ, resourcesSettings.getMaxLevel(REDSTONE_ORE), maxZ));
+        spinnerWaterChance.setValue(resourcesSettings.getChance(STATIONARY_WATER));
+        ((SpinnerNumberModel) spinnerWaterMinLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerWaterMinLevel.getModel()).setMaximum(maxZ);
+        spinnerWaterMinLevel.setValue(clamp(minZ, resourcesSettings.getMinLevel(STATIONARY_WATER), maxZ));
+        ((SpinnerNumberModel) spinnerWaterMaxLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerWaterMaxLevel.getModel()).setMaximum(maxZ);
+        spinnerWaterMaxLevel.setValue(clamp(minZ, resourcesSettings.getMaxLevel(STATIONARY_WATER), maxZ));
+        spinnerLavaChance.setValue(resourcesSettings.getChance(STATIONARY_LAVA));
+        ((SpinnerNumberModel) spinnerLavaMinLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerLavaMinLevel.getModel()).setMaximum(maxZ);
+        spinnerLavaMinLevel.setValue(clamp(minZ, resourcesSettings.getMinLevel(STATIONARY_LAVA), maxZ));
+        ((SpinnerNumberModel) spinnerLavaMaxLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerLavaMaxLevel.getModel()).setMaximum(maxZ);
+        spinnerLavaMaxLevel.setValue(clamp(minZ, resourcesSettings.getMaxLevel(STATIONARY_LAVA), maxZ));
+        spinnerDirtChance.setValue(resourcesSettings.getChance(DIRT));
+        ((SpinnerNumberModel) spinnerDirtMinLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerDirtMinLevel.getModel()).setMaximum(maxZ);
+        spinnerDirtMinLevel.setValue(clamp(minZ, resourcesSettings.getMinLevel(DIRT), maxZ));
+        ((SpinnerNumberModel) spinnerDirtMaxLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerDirtMaxLevel.getModel()).setMaximum(maxZ);
+        spinnerDirtMaxLevel.setValue(clamp(minZ, resourcesSettings.getMaxLevel(DIRT), maxZ));
+        spinnerGravelChance.setValue(resourcesSettings.getChance(GRAVEL));
+        ((SpinnerNumberModel) spinnerGravelMinLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerGravelMinLevel.getModel()).setMaximum(maxZ);
+        spinnerGravelMinLevel.setValue(clamp(minZ, resourcesSettings.getMinLevel(GRAVEL), maxZ));
+        ((SpinnerNumberModel) spinnerGravelMaxLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerGravelMaxLevel.getModel()).setMaximum(maxZ);
+        spinnerGravelMaxLevel.setValue(clamp(minZ, resourcesSettings.getMaxLevel(GRAVEL), maxZ));
+        spinnerEmeraldChance.setValue(resourcesSettings.getChance(EMERALD_ORE));
+        ((SpinnerNumberModel) spinnerEmeraldMinLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerEmeraldMinLevel.getModel()).setMaximum(maxZ);
+        spinnerEmeraldMinLevel.setValue(clamp(minZ, resourcesSettings.getMinLevel(EMERALD_ORE), maxZ));
+        ((SpinnerNumberModel) spinnerEmeraldMaxLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerEmeraldMaxLevel.getModel()).setMaximum(maxZ);
+        spinnerEmeraldMaxLevel.setValue(clamp(minZ, resourcesSettings.getMaxLevel(EMERALD_ORE), maxZ));
+        spinnerQuartzChance.setValue(resourcesSettings.getChance(QUARTZ_ORE));
+        ((SpinnerNumberModel) spinnerQuartzMinLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerQuartzMinLevel.getModel()).setMaximum(maxZ);
+        spinnerQuartzMinLevel.setValue(clamp(minZ, resourcesSettings.getMinLevel(QUARTZ_ORE), maxZ));
+        ((SpinnerNumberModel) spinnerQuartzMaxLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerQuartzMaxLevel.getModel()).setMaximum(maxZ);
+        spinnerQuartzMaxLevel.setValue(clamp(minZ, resourcesSettings.getMaxLevel(QUARTZ_ORE), maxZ));
+        spinnerCopperChance.setValue(resourcesSettings.getChance(COPPER_ORE));
+        ((SpinnerNumberModel) spinnerCopperMinLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerCopperMinLevel.getModel()).setMaximum(maxZ);
+        spinnerCopperMinLevel.setValue(clamp(minZ, resourcesSettings.getMinLevel(COPPER_ORE), maxZ));
+        ((SpinnerNumberModel) spinnerCopperMaxLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerCopperMaxLevel.getModel()).setMaximum(maxZ);
+        spinnerCopperMaxLevel.setValue(clamp(minZ, resourcesSettings.getMaxLevel(COPPER_ORE), maxZ));
+        spinnerAncientDebrisChance.setValue(resourcesSettings.getChance(ANCIENT_DEBRIS));
+        ((SpinnerNumberModel) spinnerAncientDebrisMinLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerAncientDebrisMinLevel.getModel()).setMaximum(maxZ);
+        spinnerAncientDebrisMinLevel.setValue(clamp(minZ, resourcesSettings.getMinLevel(ANCIENT_DEBRIS), maxZ));
+        ((SpinnerNumberModel) spinnerAncientDebrisMaxLevel.getModel()).setMinimum(minZ);
+        ((SpinnerNumberModel) spinnerAncientDebrisMaxLevel.getModel()).setMaximum(maxZ);
+        spinnerAncientDebrisMaxLevel.setValue(clamp(minZ, resourcesSettings.getMaxLevel(ANCIENT_DEBRIS), maxZ));
     }
     
     private void setControlStates() {
@@ -1160,7 +1167,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setEnabled(comboBoxSubsurfaceMaterial, enabled && (! caveFloor) && (! master)); // TODO make it possible for this to be different for the master dimension
         setEnabled(comboBoxUndergroundLayerAnchor, enabled && (! caveFloor) && (! master)); // TODO make it possible for this to be different for the master dimension
         setEnabled(checkBoxBottomless, enabled && (! floorDimension) && (! master)); // TODO make it possible for this to be different for the master dimension
-        setEnabled(comboBoxSubsurfaceBiome, enabled && (! caveFloor));
+        setEnabled(comboBoxSubsurfaceBiome, enabled && (! caveFloor) && (! master) && (! ceiling)); // TODO make it possible for this to be different for the master dimension TODO make this work for ceiling dimensions TODO make this work for floating dimensions
     }
     
     private void setEnabled(Component component, boolean enabled) {
@@ -1294,6 +1301,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         tableCustomLayers.setModel(customLayersTableModel);
         orderPristine = true;
         setControlStates();
+    }
+
+    private void resetResources() {
+        if (JOptionPane.showConfirmDialog(this, "Do you want to reset the resource settings to Minecraft-like defaults?", "Confirm Resources Reset", YES_NO_OPTION) != YES_OPTION) {
+            return;
+        }
+        loadResourceSettings(ResourcesExporterSettings.defaultSettings(platform, dimension.getAnchor(), dimension.getMinHeight(), dimension.getMaxHeight()), dimension.getMinHeight(), dimension.getMaxHeight());
     }
 
     /**
@@ -1527,6 +1541,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         spinnerAncientDebrisChance = new javax.swing.JSpinner();
         spinnerQuartzMinLevel = new javax.swing.JSpinner();
         jLabel77 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         checkBoxPopulate = new javax.swing.JCheckBox();
         checkBoxDeciduousEverywhere = new javax.swing.JCheckBox();
@@ -1961,7 +1976,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addComponent(panelBorderWallRoof, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(panelMinecraftSettings, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(67, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("General", panelGeneral);
@@ -3478,29 +3493,39 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 0, 0);
         jPanel22.add(jLabel77, gridBagConstraints);
 
+        jButton1.setText("Reset");
+        jButton1.setToolTipText("Reset the resource settings to Minecraft-like defaults");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addGap(12, 12, 12)
-                        .addComponent(jSlider4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jCheckBox8)
-                    .addComponent(jLabel10)
-                    .addComponent(jSeparator2)
-                    .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addComponent(jPanel20, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jSeparator4, javax.swing.GroupLayout.PREFERRED_SIZE, 333, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jPanel21, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jPanel22, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addGroup(jPanel4Layout.createSequentialGroup()
+                            .addGap(12, 12, 12)
+                            .addComponent(jSlider4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jCheckBox8)
+                        .addComponent(jLabel10)
+                        .addComponent(jSeparator2)
+                        .addGroup(jPanel4Layout.createSequentialGroup()
+                            .addComponent(jPanel20, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(18, 18, 18)
+                            .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(18, 18, 18)
+                            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jSeparator4, javax.swing.GroupLayout.PREFERRED_SIZE, 333, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jPanel21, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jPanel22, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addComponent(jButton1))
+                .addContainerGap(62, Short.MAX_VALUE))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -3523,7 +3548,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jPanel22, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jPanel20, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton1)
+                .addContainerGap(31, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Resources", new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/resources.png")), jPanel4); // NOI18N
@@ -3829,7 +3856,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 .addComponent(jLabel82, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE)
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addComponent(buttonSelectPaint)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -4176,6 +4203,10 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         resetOrder();
     }//GEN-LAST:event_buttonResetActionPerformed
 
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        resetResources();
+    }//GEN-LAST:event_jButton1ActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCustomLayerBottom;
     private javax.swing.JButton buttonCustomLayerDown;
@@ -4224,6 +4255,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
     private javax.swing.JComboBox<Terrain> comboBoxSubsurfaceMaterial;
     private javax.swing.JComboBox<String> comboBoxSurfaceLayerAnchor;
     private javax.swing.JComboBox<String> comboBoxUndergroundLayerAnchor;
+    private javax.swing.JButton jButton1;
     private javax.swing.JCheckBox jCheckBox8;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;

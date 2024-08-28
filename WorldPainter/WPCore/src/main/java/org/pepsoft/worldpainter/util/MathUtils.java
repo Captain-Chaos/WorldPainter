@@ -4,6 +4,8 @@
  */
 package org.pepsoft.worldpainter.util;
 
+import java.util.function.BiFunction;
+
 import static java.lang.Math.PI;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 
@@ -48,5 +50,21 @@ public final class MathUtils {
             α += PI * 2;
         }
         return α;
+    }
+
+    /**
+     * Get the lowest value in a square area.
+     */
+    public static int getLowest2D(int size, BiFunction<Integer, Integer, Integer> valueProvider) {
+        int lowestValue = Integer.MAX_VALUE;
+        for (int dx = 0; dx < size; dx++) {
+            for (int dy = 0; dy < size; dy++) {
+                final int value = valueProvider.apply(dx, dy);
+                if (value < lowestValue) {
+                    lowestValue = value;
+                }
+            }
+        }
+        return lowestValue;
     }
 }

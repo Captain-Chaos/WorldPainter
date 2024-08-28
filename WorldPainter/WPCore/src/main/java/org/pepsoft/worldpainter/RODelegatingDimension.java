@@ -379,6 +379,16 @@ public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
     }
 
     @Override
+    public Integer getUndergroundBiome() {
+        return dimension.getUndergroundBiome();
+    }
+
+    @Override
+    public final void setUndergroundBiome(Integer undergroundBiome) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public final boolean undoChanges() {
         return false;
     }

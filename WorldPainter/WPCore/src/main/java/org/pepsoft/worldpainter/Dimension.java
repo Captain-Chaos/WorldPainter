@@ -19,7 +19,6 @@ import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.exporting.ExportSettings;
 import org.pepsoft.worldpainter.gardenofeden.Garden;
 import org.pepsoft.worldpainter.gardenofeden.Seed;
-import org.pepsoft.worldpainter.heightMaps.AbstractHeightMap;
 import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
@@ -34,7 +33,6 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
-import javax.swing.*;
 import javax.vecmath.Point3i;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
@@ -50,6 +48,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static java.lang.Math.ceil;
 import static java.util.Arrays.fill;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableList;
@@ -64,8 +63,10 @@ import static org.pepsoft.worldpainter.Dimension.Role.*;
 import static org.pepsoft.worldpainter.Dimension.WallType.BEDROCK;
 import static org.pepsoft.worldpainter.Generator.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_21Biomes.*;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.CAVE;
 import static org.pepsoft.worldpainter.panels.DefaultFilter.buildForDimension;
 import static org.pepsoft.worldpainter.util.GeometryUtil.getDistancesToCentre;
+import static org.pepsoft.worldpainter.util.GeometryUtil.visitFilledCircle;
 
 /**
  *
@@ -1022,7 +1023,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         // TODO: don't do this separately for every exported region
 
         // Now find all edge pixels and adjust the distances in the cache for the pixels around each one
-        final int r = (int) Math.ceil(maxDistance);
+        final int r = (int) ceil(maxDistance);
         for (Point tileCoords: tileCoordsToProcess) {
             for (int x = 0; x < TILE_SIZE; x++) {
                 for (int y = 0; y < TILE_SIZE; y++) {
@@ -1045,36 +1046,113 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
 
         // Return a HeightMap that will return values from the distance cache
-        return new AbstractHeightMap() {
-            @Override
-            public Icon getIcon() {
-                return null;
-            }
+        return new TileCacheHeightMap(distanceCache, tileXOffset, tileYOffset, 0.0f, maxDistance);
+    }
 
-            @Override
-            public double[] getRange() {
-                return new double[] {0.0f, maxDistance};
+    /**
+     * Bake the highest edge heights within {@code maxDistance} pixels for the edges of an entire painted layer and
+     * return them as a {@link HeightMap}. The information is static and does not update when the
+     * dimension is updated.
+     *
+     * <p><strong>Note</strong> that the information in the height map is only valid for pixels where the layer is set
+     * in the dimension! For other pixels the value is undefined.
+     *
+     * @param layer       The layer for which to bake the edge heights.
+     * @param maxDistance The maximum edge distance to which to calculate the highest edge heights. Pixels where the
+     *                    layer is set and the distance to the nearest edge is higher will have undefined values.
+     * @return A {@link HeightMap} returning the highest edge height within {@code maxDistance} distance for every pixel
+     * where the specified layer is set in this dimension and that is within {@code maxDistance} of the layer's edge.
+     */
+    @SuppressWarnings("UnnecessaryLocalVariable") // Clarity
+    public HeightMap getEdgeHeights(final TunnelLayer layer, final float maxDistance) {
+        // Gather all the tiles that contain the layer so we can work on them directly rather than looking up tiles
+        // continuously. visitTiles() will do the read locking
+        final int[] coords = {Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE};
+        final Set<Tile> tilesToProcess = new HashSet<>();
+        final Set<Point> tileCoordsToProcess = new HashSet<>();
+        visitTiles().forFilter(buildForDimension(this).onlyOn(layer).build()).andDo(tile -> {
+            final int tileX = tile.getX(), tileY = tile.getY();
+            if (tileX < coords[0]) {
+                coords[0] = tileX;
             }
+            if (tileX > coords[1]) {
+                coords[1] = tileX;
+            }
+            if (tileY < coords[2]) {
+                coords[2] = tileY;
+            }
+            if (tileY > coords[3]) {
+                coords[3] = tileY;
+            }
+            tilesToProcess.add(tile);
+            tileCoordsToProcess.add(new Point(tileX, tileY));
+        });
 
-            @Override
-            public double getHeight(int x, int y) {
-                final int tileX = (x >> TILE_SIZE_BITS) - tileXOffset, tileY = (y >> TILE_SIZE_BITS) - tileYOffset;
-                if ((tileX < 0) || (tileX >= distanceCache.length) || (tileY < 0) || (tileY >= distanceCache[0].length) || (distanceCache[tileX][tileY] == null)) {
-                    return 0.0f;
+        // If there are no tiles with the layer we're done
+        if (tilesToProcess.isEmpty()) {
+            return new ConstantHeightMap(minHeight);
+        }
+
+        // Also add the coordinates of all adjacent tiles, otherwise we can't detect edges that lie on a tile boundary
+        final int[] deltas = {0, -1, 1, 0, 0, 1, -1, 0};
+        for (Tile tile: tilesToProcess) {
+            for (int i = 0; i < 4; i++) {
+                final Point adjacentCoords = new Point(tile.getX() + deltas[i * 2], tile.getY() + deltas[i * 2 + 1]);
+                if (tileCoordsToProcess.contains(adjacentCoords)) {
+                    continue;
                 }
-                return distanceCache[tileX][tileY][x & TILE_SIZE_MASK][y & TILE_SIZE_MASK];
+                tileCoordsToProcess.add(adjacentCoords);
             }
+        }
 
-            private void writeObject(ObjectOutputStream out) throws IOException {
-                throw new NotSerializableException();
+        // Store the tiles in a 2D array for fast access; also create the cache that will hold the distance values
+        final int tileX1 = coords[0], tileX2 = coords[1], tileY1 = coords[2], tileY2 = coords[3];
+        final Tile[][] tileCache = new Tile[tileX2 - tileX1 + 1][tileY2 - tileY1 + 1];
+        final float[][][][] heightCache = new float[tileX2 - tileX1 + 1][tileY2 - tileY1 + 1][][];
+        final int tileXOffset = tileX1, tileYOffset = tileY1;
+        for (Tile tile: tilesToProcess) {
+            tileCache[tile.getX() - tileXOffset][tile.getY() - tileYOffset] = tile;
+            // Initialise the entire cache to minHeight. It is the caller's responsibility to consult it only
+            // where the layer is actually set
+            final float[][] cacheForTile = new float[TILE_SIZE][TILE_SIZE];
+            for (float[] column: cacheForTile) {
+                fill(column, minHeight);
             }
-        };
+            heightCache[tile.getX() - tileXOffset][tile.getY() - tileYOffset] = cacheForTile;
+        }
+
+        // TODO: don't do this separately for every exported region
+
+        // Now find all edge pixels and adjust the distances in the cache for the pixels around each one
+        final Dimension floorDimension = world.getDimension(new Anchor(anchor.dim, (layer.getLayerMode() == CAVE) ? CAVE_FLOOR : FLOATING_FLOOR, anchor.invert, layer.getFloorDimensionId()));
+        for (Point tileCoords: tileCoordsToProcess) {
+            for (int x = 0; x < TILE_SIZE; x++) {
+                for (int y = 0; y < TILE_SIZE; y++) {
+                    final int worldX = (tileCoords.x << TILE_SIZE_BITS) | x, worldY = (tileCoords.y << TILE_SIZE_BITS) | y;
+                    if (getBitLayerValueAt(tileCache, tileXOffset, tileYOffset, layer, worldX, worldY)
+                            && ((! getBitLayerValueAt(tileCache, tileXOffset, tileYOffset, layer, worldX - 1, worldY))
+                            || (! getBitLayerValueAt(tileCache, tileXOffset, tileYOffset, layer, worldX, worldY - 1))
+                            || (! getBitLayerValueAt(tileCache, tileXOffset, tileYOffset, layer, worldX + 1, worldY))
+                            || (! getBitLayerValueAt(tileCache, tileXOffset, tileYOffset, layer, worldX, worldY + 1)))) {
+                        // This pixel is on the edge of the layer's painted area; adjust the pixels around it in the
+                        // height cache
+                        visitFilledCircle((int) ceil(maxDistance), (dx, dy, d) -> {
+                            setCachedValueIfHigher(heightCache, tileXOffset, tileYOffset, worldX + dx, worldY + dy, floorDimension.getHeightAt(worldX, worldY));
+                            return true;
+                        });
+                    }
+                }
+            }
+        }
+
+        // Return a HeightMap that will return values from the height cache
+        return new TileCacheHeightMap(heightCache, tileXOffset, tileYOffset, 0.0f, maxDistance);
     }
 
     protected final float doGetDistanceToEdge(final Layer layer, final int x, final int y, final float maxDistance) {
         readLock.lock();
         try {
-            final int r = (int) Math.ceil(maxDistance);
+            final int r = (int) ceil(maxDistance);
             final int tileX1 = (x - r) >> TILE_SIZE_BITS, tileX2 = (x + r) >> TILE_SIZE_BITS, tileY1 = (y - r) >> TILE_SIZE_BITS, tileY2 = (y + r) >> TILE_SIZE_BITS;
             if ((tileX1 == tileX2) && (tileY1 == tileY2)) {
                 // The requested area is completely contained in one tile, optimise by delegating to the tile
@@ -2234,6 +2312,21 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
         final int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
         if (value < cache[tileX][tileY][xInTile][yInTile]) {
+            cache[tileX][tileY][xInTile][yInTile] = value;
+        }
+    }
+
+    /**
+     * Updates the value in a 4D cache of {@code float}s (2D arrays of pixels per tile, arranged in a 2D array of tiles)
+     * if the current value is lower.
+     */
+    private void setCachedValueIfHigher(float[][][][] cache, int tileXOffset, int tileYOffset, int x, int y, float value) {
+        final int tileX = (x >> TILE_SIZE_BITS) - tileXOffset, tileY = (y >> TILE_SIZE_BITS) - tileYOffset;
+        if ((tileX < 0) || (tileX >= cache.length) || (tileY < 0) || (tileY >= cache[0].length) || (cache[tileX][tileY] == null)) {
+            return;
+        }
+        final int xInTile = x & TILE_SIZE_MASK, yInTile = y & TILE_SIZE_MASK;
+        if (value > cache[tileX][tileY][xInTile][yInTile]) {
             cache[tileX][tileY][xInTile][yInTile] = value;
         }
     }

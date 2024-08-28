@@ -56,6 +56,8 @@
  * The spawn point can now be in a Custom Cave/Tunnel layer or on a floating dimension
    + Just edit the corresponding floor dimension and then use the Spawn tool to set the spawn point there
    + If the spawn point is moved during a test export because it is outside the selected tiles, it will always be moved to the surface
+ * You can now optionally configure a separate underground biome for map formats that support 3D biomes
+   + This also applies to Floating Dimensions, which can have a different underground biome
  * Added a warning when creating a Master Dimension, as people continue to do this by accident or without sufficient understanding. It will be displayed the first three times you try to create a Master Dimension
  * A new scripting operation has been added to obtain a numerical biome ID on map formats which use named biome IDs, since WorldPainter's scripting operations always need a numerical ID:
    biomeId = wp.getBiome().withName('minecraft:cherry_grove').go() // For vanilla biomes

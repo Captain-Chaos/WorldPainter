@@ -61,6 +61,7 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
 import static org.pepsoft.worldpainter.Dimension.Role.FLOATING_FLOOR;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.EdgeShape.ROUNDED;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.CAVE;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.FLOATING;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.FIXED_HEIGHT_ABOVE_FLOOR;
@@ -485,6 +486,7 @@ public class CustomLayerController implements PropertyChangeListener {
             final TunnelLayer layer = new TunnelLayer("Floating Dimension", FLOATING, CYAN, world.getPlatform());
             layer.setFloorMode(FIXED_HEIGHT_ABOVE_FLOOR);
             layer.setFloorLevel(16);
+            layer.setBottomEdgeShape(ROUNDED);
             final int baseHeight, waterLevel;
             final TileFactory tileFactory = dimension.getTileFactory();
             if (tileFactory instanceof HeightMapTileFactory) {

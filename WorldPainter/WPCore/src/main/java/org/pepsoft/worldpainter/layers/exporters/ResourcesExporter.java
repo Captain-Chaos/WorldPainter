@@ -9,20 +9,19 @@ import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.util.Version;
-import org.pepsoft.worldpainter.Dimension;
-import org.pepsoft.worldpainter.HeightTransform;
-import org.pepsoft.worldpainter.Platform;
-import org.pepsoft.worldpainter.Tile;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
 import org.pepsoft.worldpainter.layers.Resources;
 import org.pepsoft.worldpainter.layers.Void;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.*;
 
+import static java.lang.Math.floor;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.util.MathUtils.clamp;
@@ -71,6 +70,11 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
 
     @Override
     public void render(Tile tile, Chunk chunk) {
+        render(tile, chunk, null);
+    }
+
+    @Override
+    public void render(Tile tile, Chunk chunk, HeightMap minHeightField) {
         final int minimumLevel = ((ResourcesExporterSettings) super.settings).getMinimumLevel();
         final int xOffset = (chunk.getxPos() & 7) << 4;
         final int zOffset = (chunk.getzPos() & 7) << 4;
@@ -97,11 +101,14 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                     }
                     final double dx = worldX / TINY_BLOBS, dy = worldY / TINY_BLOBS;
                     final double dirtX = worldX / SMALL_BLOBS, dirtY = worldY / SMALL_BLOBS;
-                    // Capping to maxY really shouldn't be necessary, but we've
-                    // had several reports from the wild of this going higher
-                    // than maxHeight, so there must be some obscure way in
-                    // which the terrainHeight can be raised too high
-                    for (int y = Math.min(subsurfaceMaxHeight, maxZ); y > minZ; y--) {
+                    // Capping to maxY really shouldn't be necessary, but we've had several reports from the wild of
+                    // this going higher than maxHeight, so there must be some obscure way in which the terrainHeight
+                    // can be raised too high
+                    final int minZ = (minHeightField != null) ? (int) floor(minHeightField.getHeight(worldX, worldY)) : this.minZ;
+                    if ((worldX == -19) && (worldY == -18)) {
+                        LoggerFactory.getLogger(ResourcesExporter.class).info("Min Z @ -19,-18: {}", minZ);
+                    }
+                    for (int y = Math.min(subsurfaceMaxHeight, maxZ); y >= minZ; y--) {
                         final double dz = y / TINY_BLOBS;
                         final double dirtZ = y / SMALL_BLOBS;
                         for (int i = 0; i < activeMaterials.length; i++) {

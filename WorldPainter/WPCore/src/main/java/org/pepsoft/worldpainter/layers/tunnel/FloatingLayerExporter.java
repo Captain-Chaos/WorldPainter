@@ -8,23 +8,23 @@ import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
 import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
 import org.pepsoft.worldpainter.exporting.WorldPainterChunkFactory;
+import org.pepsoft.worldpainter.heightMaps.AbstractHeightMap;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.objects.WPObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 
 import static java.awt.Color.BLACK;
-import static java.awt.Color.ORANGE;
 import static java.lang.Math.round;
 import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.worldpainter.Constants.SMALL_BLOBS;
-import static org.pepsoft.worldpainter.Constants.TINY_BLOBS;
+import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Dimension.Role.FLOATING_FLOOR;
 import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 import static org.pepsoft.worldpainter.exporting.WorldPainterChunkFactory.SUGAR_CANE_CHANCE;
@@ -41,6 +41,25 @@ public class FloatingLayerExporter extends AbstractTunnelLayerExporter implement
             sugarCaneNoise.setSeed(seed + SUGAR_CANE_SEED_OFFSET);
         }
         wpChunkFactory = new WorldPainterChunkFactory(floorDimension, null, platform, dimension.getMaxHeight());
+        maxZ = maxHeight - 1;
+        minHeightField = new AbstractHeightMap() {
+            @Override
+            public Icon getIcon() {
+                return null;
+            }
+
+            @Override
+            public double[] getRange() {
+                return new double[] {minHeight, maxZ};
+            }
+
+            @Override
+            public double getHeight(int x, int y) {
+                return (dimension.getBitLayerValueAt(layer, x, y))
+                        ? helper.calculateBottomLevel(x, y, minHeight, maxZ, helper.calculateFloorLevel(x, y, dimension.getIntHeightAt(x, y), minHeight, maxZ), helper.getDistanceToWall(x, y))
+                        : maxHeight;
+            }
+        };
     }
 
     // FirstPassLayerExporter
@@ -83,6 +102,9 @@ public class FloatingLayerExporter extends AbstractTunnelLayerExporter implement
                         floodWithLava = false;
 //                        result.stats.landArea++; TODO?
                     }
+                    if ((worldX == -19) && (worldY == -18)) {
+                        logger.info("Bottom level @ -19,-18: {}", bottomLevel);
+                    }
                     wpChunkFactory.applySubSurface(floatingTile, chunk, xInTile, yInTile, bottomLevel);
                     wpChunkFactory.applyTopLayer(floatingTile, chunk, xInTile, yInTile, bottomLevel, false);
                     if (! underWater) {
@@ -113,13 +135,13 @@ public class FloatingLayerExporter extends AbstractTunnelLayerExporter implement
                     }
                 }
 
-                // Apply first pass layers
-                for (FirstPassLayerExporter exporter: exporters) {
-                    exporter.render(floatingTile, chunk);
-                }
-
                 // TODO add 3D biome support
             }
+        }
+
+        // Apply first pass layers
+        for (FirstPassLayerExporter exporter: exporters) {
+            exporter.render(floatingTile, chunk, minHeightField);
         }
     }
 
@@ -147,7 +169,7 @@ public class FloatingLayerExporter extends AbstractTunnelLayerExporter implement
             HeightMapTileFactory tileFactory = (HeightMapTileFactory) backgroundDimension.getTileFactory();
             bgFluidLevel = tileFactory.getWaterHeight();
             bgHeightMap = tileFactory.getHeightMap();
-            bgFluidColour = tileFactory.isFloodWithLava() ? ORANGE.getRGB() : 0x7f7fff;
+            bgFluidColour = tileFactory.isFloodWithLava() ? 0xfef0be : 0xafafff;
         } else {
             bgFluidLevel = bgFluidColour = Integer.MIN_VALUE;
             bgHeightMap = null;
@@ -158,7 +180,7 @@ public class FloatingLayerExporter extends AbstractTunnelLayerExporter implement
             for (int z = height - 1 + minHeight; z >= minHeight; z--) {
                 if (z <= bgTerrainHeight) {
                     // Background terrain
-                    preview.setRGB(x, height - 1 - z + minHeight, 0x7f7f7f);
+                    preview.setRGB(x, height - 1 - z + minHeight, 0xafafaf);
                 } else if (z <= bgFluidLevel) {
                     // Background water/lava
                     preview.setRGB(x, height - 1 - z + minHeight, bgFluidColour);
@@ -170,7 +192,7 @@ public class FloatingLayerExporter extends AbstractTunnelLayerExporter implement
 
             if (x <= tunnelExtent) {
                 // Draw the floating dimension
-                final int actualFloorLevel = baseHeight + round(noise.getPerlinNoise(x) * range);
+                final int actualFloorLevel = baseHeight + round((noise.getPerlinNoise(x / LARGE_BLOBS) + 0.5f) * range);
                 final float distanceToWall = tunnelExtent - x;
                 final int actualBottomLevel = helper.calculateBottomLevel(x, 0, minHeight + 1, height - 1, actualFloorLevel, distanceToWall);
                 if (actualBottomLevel <= actualFloorLevel) {
@@ -220,6 +242,8 @@ public class FloatingLayerExporter extends AbstractTunnelLayerExporter implement
     private final WorldPainterChunkFactory wpChunkFactory;
     private final Map<Point, FirstPassLayerExporter[]> exporterCache = new HashMap<>();
     private final PerlinNoise sugarCaneNoise = new PerlinNoise(0);
+    private final HeightMap minHeightField;
+    private final int maxZ;
 
     private static final Logger logger = LoggerFactory.getLogger(FloatingLayerExporter.class);
 }

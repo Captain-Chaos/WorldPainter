@@ -9,8 +9,6 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
-import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
 import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.CustomLayer;
 import org.pepsoft.worldpainter.layers.LayerTableCellRenderer;
@@ -29,8 +27,7 @@ import static java.util.Collections.singletonMap;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.CollectionUtils.nullAnd;
 import static org.pepsoft.worldpainter.Dimension.Role.FLOATING_FLOOR;
-import static org.pepsoft.worldpainter.Terrain.GRASS;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.BIOME_PLAINS;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.EdgeShape.*;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.FLOATING;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayersTableModel.*;
 import static org.pepsoft.worldpainter.themes.Filter.EVERYWHERE;
@@ -48,11 +45,14 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
         try {
             initComponents();
 
+            if (layer.getFloorDimensionId() != null) {
+                // Existing layer. Remove floor defaults
+            }
             ((SpinnerNumberModel) spinnerFloorLevel.getModel()).setMinimum(minHeight);
             ((SpinnerNumberModel) spinnerFloorLevel.getModel()).setMaximum(maxHeight - 1);
             comboBoxTerrain.setRenderer(new TerrainListCellRenderer(colourScheme));
             comboBoxTerrain.setModel(new DefaultComboBoxModel<>(Terrain.getConfiguredValues()));
-            comboBoxBiome1.setRenderer(new BiomeListCellRenderer(colourScheme, null, platform));
+            comboBoxBiome1.setRenderer(new BiomeListCellRenderer(colourScheme, null, "automatic", platform));
             comboBoxBiome1.setModel(new DefaultComboBoxModel<>(nullAnd(BiomeUtils.getAllBiomes(platform, null)).toArray(new Integer[0])));
 
             tableRoofLayers.getSelectionModel().addListSelectionListener(this);
@@ -135,6 +135,7 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
     private void loadSettings() {
         programmaticChange = true;
         try {
+            // Restore some settings to make the preview work somewhat
             spinnerFloorLevel.setValue(layer.getFloorLevel());
 
             // The "roof" settings on TunnelLayers double for the bottom of floating layers:
@@ -173,22 +174,45 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
             tableRoofLayers.getColumnModel().getColumn(COLUMN_MAX_LEVEL).setCellEditor(new JSpinnerTableCellEditor(spinnerModel));
 
             if (layer.getFloorDimensionId() == null) {
-                // This is a new layer
-                spinnerFloorLevel.setValue(124);
-                spinnerRange.setValue(20);
-                spinnerScale.setValue(100);
-                comboBoxTerrain.setSelectedItem(GRASS);
-                comboBoxBiome1.setSelectedItem(BIOME_PLAINS);
-                spinnerFloodLevel1.setValue(4);
-                checkBoxFloodWithLava1.setSelected(false);
+                // This is a new layer; load configuration defaults
+                Configuration config = Configuration.getInstance();
+                spinnerFloorLevel.setValue(Math.min(config.getLevel() + 32, maxHeight - 1));
+                spinnerFloodLevel1.setValue(config.getWaterLevel() - config.getLevel());
+                spinnerRange.setValue(config.isHilly() ? Math.round(config.getDefaultRange()) : 0);
+                spinnerScale.setValue((int) Math.round(config.getDefaultScale() * 100));
+                checkBoxFloodWithLava1.setSelected(config.isLava());
+                comboBoxTerrain.setSelectedItem(config.getSurface());
+                checkBoxBeaches.setSelected(config.isBeaches());
+                comboBoxBiome1.setSelectedItem(null);
             } else {
-                spinnerFloorLevel.setEnabled(false);
-                spinnerRange.setEnabled(false);
-                spinnerScale.setEnabled(false);
-                comboBoxTerrain.setEnabled(false);
-                comboBoxBiome1.setEnabled(false);
-                spinnerFloodLevel1.setEnabled(false);
-                checkBoxFloodWithLava1.setEnabled(false);
+                jPanel1.remove(jLabel3);
+                jPanel1.remove(spinnerFloorLevel);
+                jPanel1.remove(jLabel21);
+                jPanel1.remove(spinnerRange);
+                jPanel1.remove(jLabel22);
+                jPanel1.remove(spinnerScale);
+                jPanel1.remove(jLabel27);
+                jPanel1.remove(spinnerFloodLevel1);
+                jPanel1.remove(checkBoxFloodWithLava1);
+                jPanel1.remove(jLabel2);
+                jPanel1.remove(comboBoxTerrain);
+                jPanel1.remove(jLabel25);
+                jPanel1.remove(comboBoxBiome1);
+            }
+
+            switch (layer.getBottomEdgeShape()) {
+                case LINEAR:
+                    radioButtonLinearEdge.setSelected(true);
+                    break;
+                case SHEER:
+                    radioButtonSheerEdge.setSelected(true);
+                    break;
+                case SMOOTH:
+                    radioButtonSmoothEdge.setSelected(true);
+                    break;
+                case ROUNDED:
+                    radioButtonRoundedEdge.setSelected(true);
+                    break;
             }
         } finally {
             programmaticChange = false;
@@ -231,6 +255,18 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
         layer.setRoofLayers(((roofLayers != null) && (! roofLayers.isEmpty())) ? roofLayers : null);
 
         layer.setFloodWithLava(checkBoxFloodWithLava1.isSelected());
+
+        if (radioButtonLinearEdge.isSelected()) {
+            layer.setBottomEdgeShape(LINEAR);
+        } else if (radioButtonRoundedEdge.isSelected()) {
+            layer.setBottomEdgeShape(ROUNDED);
+        } else if (radioButtonSheerEdge.isSelected()) {
+            layer.setBottomEdgeShape(SHEER);
+        } else if (radioButtonSmoothEdge.isSelected()) {
+            layer.setBottomEdgeShape(SMOOTH);
+        }
+        layer.setApplyBiomesAboveGround(checkBoxApplyBiomesSurface.isSelected());
+        layer.setApplyBiomesBelowGround(checkBoxApplyBiomesSubsurface.isSelected());
     }
     
     protected void setControlStates() {
@@ -281,30 +317,30 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
         final int floorLevel = (int) spinnerFloorLevel.getValue();
         final int range = (int) spinnerRange.getValue();
         final float scale = ((int) spinnerScale.getValue()) / 100.0f;
-        final int waterLevel = floorLevel + (int) spinnerFloodLevel1.getValue();
+        final int waterHeight = floorLevel + (int) spinnerFloodLevel1.getValue();
         final boolean floodWithLava = checkBoxFloodWithLava1.isSelected();
         final Integer biome = (Integer) comboBoxBiome1.getSelectedItem();
+        final boolean beaches = checkBoxBeaches.isSelected();
+        final Terrain terrain = (Terrain) comboBoxTerrain.getSelectedItem();
 
-        HeightMap heightMap;
-        heightMap = new ConstantHeightMap(floorLevel);
+        final HeightMapTileFactory tileFactory;
         if (range != 0) {
-            // Adjust the scale to correspond to what users are used to from the NewWorldDialog:
-            // TODO check heights (too high?)
-            heightMap = heightMap.plus(new NoiseHeightMap(range, scale, 1, FLOOR_DIMENSION_SEED_OFFSET));
+            tileFactory = TileFactoryFactory.createNoiseTileFactory(seed, terrain, minHeight, maxHeight, floorLevel, waterHeight, floodWithLava, beaches, range, scale);
+        } else {
+            tileFactory = TileFactoryFactory.createFlatTileFactory(seed, terrain, minHeight, maxHeight, floorLevel, waterHeight, floodWithLava, beaches);
         }
-        final SimpleTheme theme = SimpleTheme.createSingleTerrain((Terrain) comboBoxTerrain.getSelectedItem(), minHeight, maxHeight, waterLevel);
         if (biome != null) {
+            final SimpleTheme theme = (SimpleTheme) tileFactory.getTheme();
             theme.setLayerMap(singletonMap(EVERYWHERE, Biome.INSTANCE));
             theme.setDiscreteValues(singletonMap(Biome.INSTANCE, biome));
         }
-        final TileFactory tileFactory = new HeightMapTileFactory(seed, heightMap, minHeight, maxHeight, floodWithLava, theme);
         final Dimension floorDimension = new Dimension(world, null, seed, tileFactory, new Anchor(dim, FLOATING_FLOOR, invert, id));
         world.addDimension(floorDimension);
         layer.updateFloorDimension(dimension, textFieldName.getText() + " Floor");
 
         // Also update the layer with the same settings, so that e.g. the preview works approximately right
         layer.setFloorLevel(floorLevel);
-        layer.setFloodLevel(waterLevel);
+        layer.setFloodLevel(waterHeight);
         layer.setFloodWithLava(floodWithLava);
         layer.setBiome((biome != null) ? biome : -1);
 
@@ -373,6 +409,9 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
         jLabel22 = new javax.swing.JLabel();
         spinnerScale = new javax.swing.JSpinner();
         jLabel5 = new javax.swing.JLabel();
+        checkBoxApplyBiomesSurface = new javax.swing.JCheckBox();
+        checkBoxApplyBiomesSubsurface = new javax.swing.JCheckBox();
+        checkBoxBeaches = new javax.swing.JCheckBox();
         jPanel3 = new javax.swing.JPanel();
         jLabel24 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -483,10 +522,13 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
 
         mixedMaterialChooserBottom.setEnabled(false);
 
+        jLabel25.setLabelFor(comboBoxBiome1);
         jLabel25.setText("Biome:");
 
+        jLabel3.setLabelFor(spinnerFloorLevel);
         jLabel3.setText("Level:");
 
+        jLabel27.setLabelFor(spinnerFloodLevel1);
         jLabel27.setText("Relative water level:");
 
         spinnerFloorLevel.setModel(new javax.swing.SpinnerNumberModel(128, -64, 319, 1));
@@ -511,6 +553,7 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
             }
         });
 
+        jLabel2.setLabelFor(comboBoxTerrain);
         jLabel2.setText("Surface material:");
 
         jLabel28.setText("Floor defaults:");
@@ -521,7 +564,6 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
 
         buttonGroup4.add(radioButtonSheerEdge);
         radioButtonSheerEdge.setText("sheer");
-        radioButtonSheerEdge.setEnabled(false);
         radioButtonSheerEdge.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonSheerEdgeActionPerformed(evt);
@@ -529,9 +571,7 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
         });
 
         buttonGroup4.add(radioButtonLinearEdge);
-        radioButtonLinearEdge.setSelected(true);
         radioButtonLinearEdge.setText("linear");
-        radioButtonLinearEdge.setEnabled(false);
         radioButtonLinearEdge.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonLinearEdgeActionPerformed(evt);
@@ -554,8 +594,8 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
         jLabel19.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/edge_smooth.png"))); // NOI18N
 
         buttonGroup4.add(radioButtonRoundedEdge);
+        radioButtonRoundedEdge.setSelected(true);
         radioButtonRoundedEdge.setText("rounded");
-        radioButtonRoundedEdge.setEnabled(false);
         radioButtonRoundedEdge.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonRoundedEdgeActionPerformed(evt);
@@ -564,15 +604,17 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
 
         jLabel20.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/edge_rounded.png"))); // NOI18N
 
+        jLabel21.setLabelFor(spinnerRange);
         jLabel21.setText("Hill height:");
 
-        spinnerRange.setModel(new javax.swing.SpinnerNumberModel(20, 1, 255, 1));
+        spinnerRange.setModel(new javax.swing.SpinnerNumberModel(20, 0, 255, 1));
         spinnerRange.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 spinnerRangeStateChanged(evt);
             }
         });
 
+        jLabel22.setLabelFor(spinnerScale);
         jLabel22.setText("Horizontal hill size:");
 
         spinnerScale.setModel(new javax.swing.SpinnerNumberModel(100, 1, 999, 1));
@@ -583,6 +625,16 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
         });
 
         jLabel5.setText("%");
+
+        checkBoxApplyBiomesSurface.setText("apply above ground biomes");
+        checkBoxApplyBiomesSurface.setEnabled(false);
+
+        checkBoxApplyBiomesSubsurface.setSelected(true);
+        checkBoxApplyBiomesSubsurface.setText("apply underground biomes");
+
+        checkBoxBeaches.setSelected(true);
+        checkBoxBeaches.setText("Beaches:");
+        checkBoxBeaches.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -632,11 +684,17 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(jLabel2)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(checkBoxBeaches))
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(jLabel25)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(comboBoxBiome1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(comboBoxBiome1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(checkBoxApplyBiomesSurface)
+                                .addGap(18, 18, 18)
+                                .addComponent(checkBoxApplyBiomesSubsurface))
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(jLabel27)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -673,7 +731,7 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
                                 .addGap(0, 0, 0)
                                 .addComponent(jLabel5)))))
                 .addGap(18, 18, 18)
-                .addComponent(labelPreview, javax.swing.GroupLayout.DEFAULT_SIZE, 136, Short.MAX_VALUE)
+                .addComponent(labelPreview, javax.swing.GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -704,11 +762,14 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel2)
-                            .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(comboBoxTerrain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(checkBoxBeaches))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel25)
-                            .addComponent(comboBoxBiome1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(comboBoxBiome1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(checkBoxApplyBiomesSurface)
+                            .addComponent(checkBoxApplyBiomesSubsurface))
                         .addGap(18, 18, 18)
                         .addComponent(jLabel6)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -805,7 +866,7 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
                         .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 530, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(buttonAddRoofLayer, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -821,7 +882,7 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
                 .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 374, Short.MAX_VALUE)
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(buttonNewRoofLayer)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -886,7 +947,7 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 475, Short.MAX_VALUE)
+                .addComponent(jTabbedPane1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
@@ -1048,6 +1109,9 @@ public class FloatingLayerDialog extends TunnelLayerDialog {
     private javax.swing.JButton buttonOK;
     private javax.swing.JButton buttonRemoveRoofLayer;
     private javax.swing.JButton buttonReset;
+    private javax.swing.JCheckBox checkBoxApplyBiomesSubsurface;
+    private javax.swing.JCheckBox checkBoxApplyBiomesSurface;
+    private javax.swing.JCheckBox checkBoxBeaches;
     private javax.swing.JCheckBox checkBoxFloodWithLava1;
     private javax.swing.JComboBox<Integer> comboBoxBiome1;
     private javax.swing.JComboBox<Terrain> comboBoxTerrain;

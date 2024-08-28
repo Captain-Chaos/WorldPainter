@@ -299,6 +299,22 @@ public class TunnelLayer extends CustomLayer {
         this.bottomEdgeShape = bottomEdgeShape;
     }
 
+    public boolean isApplyBiomesAboveGround() {
+        return applyBiomesAboveGround;
+    }
+
+    public void setApplyBiomesAboveGround(boolean applyBiomesAboveGround) {
+        this.applyBiomesAboveGround = applyBiomesAboveGround;
+    }
+
+    public boolean isApplyBiomesBelowGround() {
+        return applyBiomesBelowGround;
+    }
+
+    public void setApplyBiomesBelowGround(boolean applyBiomesBelowGround) {
+        this.applyBiomesBelowGround = applyBiomesBelowGround;
+    }
+
     /**
      * Ensure that tiles exist in the floor dimension for this layer for all the places where the layer is painted, and
      * mark out the shape of the layer on the floor dimension using the {@link NotPresentBlock} layer.
@@ -592,6 +608,7 @@ public class TunnelLayer extends CustomLayer {
     private LayerMode mode;
     Integer roofDimensionId;
     private EdgeShape bottomEdgeShape;
+    private boolean applyBiomesAboveGround, applyBiomesBelowGround;
 
     private static final int CURRENT_WP_VERSION = 4;
     private static final long serialVersionUID = 1L;

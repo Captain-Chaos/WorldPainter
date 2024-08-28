@@ -13,6 +13,7 @@ import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
 
 import java.awt.image.BufferedImage;
 
+import static java.lang.Math.floor;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.Constants.TINY_BLOBS;
 
@@ -32,6 +33,11 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
 
     @Override
     public void render(Tile tile, Chunk chunk) {
+        render(tile, chunk, null);
+    }
+
+    @Override
+    public void render(Tile tile, Chunk chunk, HeightMap minHeightField) {
         final MixedMaterial material = layer.getMaterial();
         final Terrain terrain = layer.getTerrain();
         final boolean useMaterial = material != null;
@@ -40,16 +46,16 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
         final boolean coverSteepTerrain = dimension.isCoverSteepTerrain();
         
         final int xOffset = (chunk.getxPos() & 7) << 4;
-        final int zOffset = (chunk.getzPos() & 7) << 4;
+        final int yOffset = (chunk.getzPos() & 7) << 4;
         final long seed = dimension.getSeed();
         if (noiseGenerator.getSeed() != seed + seedOffset) {
             noiseGenerator.setSeed(seed + seedOffset);
         }
         // Coordinates in chunk
         for (int x = 0; x < 16; x++) {
-            for (int z = 0; z < 16; z++) {
+            for (int y = 0; y < 16; y++) {
                 // Coordinates in tile
-                final int localX = xOffset + x, localY = zOffset + z;
+                final int localX = xOffset + x, localY = yOffset + y;
                 if (tile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, localX, localY)) {
                     continue;
                 }
@@ -59,10 +65,14 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
                     final int terrainheight = tile.getIntHeight(localX, localY);
                     // Coordinates in world
                     final int worldX = tile.getX() << TILE_SIZE_BITS | localX, worldY = tile.getY() << TILE_SIZE_BITS | localY;
-                    final int minY = Math.max(minHeight + 1, minLevel);
-                    int maxY = Math.min(terrainheight - dimension.getTopLayerDepth(worldX, worldY, terrainheight), maxLevel);
+                    int minZ = Math.max(minHeight + 1, minLevel);
+                    if (minHeightField != null) {
+                        minZ = Math.max((int) floor(minHeightField.getHeight(worldX, worldY)), minZ);
+                    }
+//                    final int minY = (minHeightField != null) ?  : this.minZ;
+                    int maxZ = Math.min(terrainheight - dimension.getTopLayerDepth(worldX, worldY, terrainheight), maxLevel);
                     if (coverSteepTerrain) {
-                        maxY = Math.min(maxY,
+                        maxZ = Math.min(maxZ,
                             Math.min(Math.min(dimension.getIntHeightAt(worldX - 1, worldY, Integer.MAX_VALUE),
                             dimension.getIntHeightAt(worldX + 1, worldY, Integer.MAX_VALUE)),
                             Math.min(dimension.getIntHeightAt(worldX, worldY - 1, Integer.MAX_VALUE),
@@ -70,21 +80,21 @@ public class UndergroundPocketsLayerExporter extends AbstractLayerExporter<Under
                     }
                     if (biasedThreshold <= -0.5f) {
                         // Special case: replace every block
-                        for (int y = maxY; y >= minY; y--) {
+                        for (int z = maxZ; z >= minZ; z--) {
                             if (useMaterial) {
-                                chunk.setMaterial(x, y, z, material.getMaterial(seed, worldX, worldY, y));
+                                chunk.setMaterial(x, z, y, material.getMaterial(seed, worldX, worldY, z));
                             } else {
-                                chunk.setMaterial(x, y, z, terrain.getMaterial(platform, seed, worldX, worldY, y, terrainheight));
+                                chunk.setMaterial(x, z, y, terrain.getMaterial(platform, seed, worldX, worldY, z, terrainheight));
                             }
                         }
                     } else {
-                        for (int y = maxY; y >= minY; y--) {
-                            double dx = worldX / scale, dy = worldY / scale, dz = y / scale;
+                        for (int z = maxZ; z >= minZ; z--) {
+                            double dx = worldX / scale, dy = worldY / scale, dz = z / scale;
                             if (noiseGenerator.getPerlinNoise(dx, dy, dz) >= biasedThreshold) {
                                 if (useMaterial) {
-                                    chunk.setMaterial(x, y, z, material.getMaterial(seed, worldX, worldY, y));
+                                    chunk.setMaterial(x, z, y, material.getMaterial(seed, worldX, worldY, z));
                                 } else {
-                                    chunk.setMaterial(x, y, z, terrain.getMaterial(platform, seed, worldX, worldY, y, terrainheight));
+                                    chunk.setMaterial(x, z, y, terrain.getMaterial(platform, seed, worldX, worldY, z, terrainheight));
                                 }
                             }
                         }
