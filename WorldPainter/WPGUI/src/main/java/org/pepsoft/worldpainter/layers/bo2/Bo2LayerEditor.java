@@ -574,12 +574,12 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
 
     private void updateBlocksPerAttempt() {
         final int grid = (Integer) spinnerGrid.getValue();
-        final float blocksAt50 = (float) ((Integer) spinnerBlocksPerAttempt.getValue()) / (grid * grid);
+        final float blocksAt50 = (float) ((Integer) spinnerBlocksPerAttempt.getValue()) * grid * grid;
         final float blocksAt1 = blocksAt50 * 64, blocksAt100 = round(blocksAt50 / 3.515625f);
         labelBlocksPerAttempt.setText(format("one per %d blocks at 1%%; %d blocks at 50%%; %d blocks at 100%%)",
                 round(blocksAt1),
                 round(blocksAt50),
-                round((blocksAt100 <= 1) ? 100 : blocksAt100)));
+                round((blocksAt100 <= 1) ? 1 : blocksAt100)));
     }
 
     /**
@@ -623,6 +623,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
         jLabel11 = new javax.swing.JLabel();
         jLabel12 = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
+        jLabel14 = new javax.swing.JLabel();
 
         buttonReloadAll.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/pepsoft/worldpainter/icons/arrow_rotate_clockwise.png"))); // NOI18N
         buttonReloadAll.setToolTipText("Reload all or selected objects from disk");
@@ -811,11 +812,13 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
             }
         });
 
-        jLabel11.setText("blocks");
+        jLabel11.setText("block(s)");
 
         jLabel12.setText("Effective density:");
 
         jLabel13.setText("(objects displaced in a random direction up to this distance)");
+
+        jLabel14.setText("block(s)");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -854,7 +857,10 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                                 .addComponent(jLabel11)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel13))
-                            .addComponent(spinnerGrid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(spinnerGrid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel14))
                             .addComponent(labelBlocksPerAttempt)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel10)
@@ -887,7 +893,8 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
-                    .addComponent(spinnerGrid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(spinnerGrid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel14))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
@@ -991,6 +998,7 @@ public class Bo2LayerEditor extends AbstractLayerEditor<Bo2Layer> implements Lis
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
