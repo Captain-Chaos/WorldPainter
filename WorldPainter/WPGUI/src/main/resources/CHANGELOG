@@ -1,5 +1,7 @@
--- Version 2.22.2, released ...
+-- Version 2.23.0, released 18-10-2024
 
+ * Custom Object Layers now have a grid setting, to place objects only on a square grid of configurable size
+   + In addition, an optional random displacement from those grid points can be specified for more variation
  * The spawn point can now be in a Custom Cave/Tunnel layer or on a floating dimension
    + Just edit the corresponding floor dimension and then use the Spawn tool to set the spawn point there
    + If the spawn point is moved during a test export because it is outside the selected tiles, it will always be moved to the surface
@@ -7,6 +9,7 @@
  * A new scripting operation has been added to obtain a numerical biome ID on map formats which use named biome IDs, since WorldPainter's scripting operations always need a numerical ID:
    biomeId = wp.getBiome().withName('minecraft:cherry_grove').go() // For vanilla biomes
    biomeId = wp.getBiome().fromWorld(world).withName('custom:mybiome').go() // For custom biomes from a particular world. Note that if there is more than one custom biome defined with the same name but different ID's, the result is undefined
+ * Custom block spec files can now override the horizontal and vertical orientation schemes of the blocks, allowing WorldPainter to rotate and mirror them correctly (or disabling rotating and mirroring). See https://www.worldpainter.net/trac/wiki/CustomBlocks for details
 
 -- Version 2.22.1, released 22-1-2024
 
