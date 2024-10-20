@@ -105,8 +105,6 @@ import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toSet;
 import static javax.swing.JOptionPane.*;
 import static javax.swing.KeyStroke.getKeyStroke;
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
@@ -3418,14 +3416,15 @@ public final class App extends JFrame implements RadiusControl,
         return null;
     }
 
-    private JComponent createTerrainPanel() {
-        final JPanel terrainPanel = new JPanel(new GridBagLayout());
-        final GridBagConstraints constraints = new GridBagConstraints();
+    private JPanel createTerrainPanel() {
+        JPanel terrainPanel = new JPanel();
+        terrainPanel.setLayout(new GridBagLayout());
+        GridBagConstraints constraints = new GridBagConstraints();
         constraints.insets = new Insets(1, 1, 1, 1);
 
-        final Configuration config = Configuration.getInstance();
+        Configuration config = Configuration.getInstance();
         constraints.anchor = GridBagConstraints.FIRST_LINE_START;
-        constraints.weightx = 1.0;
+        constraints.weightx = 0.0;
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         if (! config.isEasyMode()) {
             final JCheckBox checkBoxSoloTerrain = new RemoteJCheckBox(terrainSoloCheckBox, "Solo:");
@@ -3532,10 +3531,9 @@ public final class App extends JFrame implements RadiusControl,
         JButton addCustomTerrainButton = new JButton(ACTION_SHOW_CUSTOM_TERRAIN_POPUP);
         addCustomTerrainButton.setMargin(App.BUTTON_INSETS);
         buttonPanel.add(addCustomTerrainButton);
-        constraints.weighty = 1.0;
         terrainPanel.add(buttonPanel, constraints);
 
-        return new JScrollPane(terrainPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+        return terrainPanel;
     }
     
     private JPanel createCustomTerrainPanel() {
