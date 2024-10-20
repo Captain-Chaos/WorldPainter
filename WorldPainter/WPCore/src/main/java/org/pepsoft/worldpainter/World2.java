@@ -871,6 +871,13 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             final Set<Dimension> dimensionsToAdd = new HashSet<>();
             for (Iterator<Map.Entry<Anchor, Dimension>> i = dimensionsByAnchor.entrySet().iterator(); i.hasNext(); ) {
                 final Map.Entry<Anchor, Dimension> entry = i.next();
+                if (entry.getKey() == null) {
+                    // If the dimension in question is Configuration.defaultTerrainAndLayerSettings then that dimension
+                    // and its World2 might still be being deserialised at this point, meaning that entry.key is still
+                    // null, as is dimension.anchor. That dimension is never accessed via its anchor, so we just leave
+                    // it like that
+                    continue;
+                }
                 if (entry.getKey().role == Dimension.Role.CAVE_FLOOR) {
                     final Dimension dimension = entry.getValue();
                     if (findFloatingLayer(dimension) != null) {
