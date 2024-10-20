@@ -1,3 +1,7 @@
+-- Version 2.23.2, released 20-10-2024
+
+ * Bug fix: fix an error during config file migration. If your configuration was reset due to this error, you can get it back by shutting down WorldPainter, renaming the config.old file to config and restarting WorldPainter
+
 -- Version 2.23.1, released 18-10-2024
 
  * Bug fix: the terrain panel no longer collapses when there is not enough space for its contents
