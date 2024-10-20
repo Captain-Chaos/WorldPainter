@@ -1,3 +1,7 @@
+-- Version 2.23.1, released 18-10-2024
+
+ * Bug fix: the terrain panel no longer collapses when there is not enough space for its contents
+
 -- Version 2.23.0, released 18-10-2024
 
  * Custom Object Layers now have a grid setting, to place objects only on a square grid of configurable size
