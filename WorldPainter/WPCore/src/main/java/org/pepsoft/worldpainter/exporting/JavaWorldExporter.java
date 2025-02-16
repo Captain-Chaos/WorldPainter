@@ -37,7 +37,7 @@ import static org.pepsoft.worldpainter.Dimension.Border.ENDLESS_BARRIER;
 import static org.pepsoft.worldpainter.Dimension.Border.ENDLESS_WATER;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.Platform.Capability.GENERATOR_PER_DIMENSION;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_20Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_21Biomes.*;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
 
 /**

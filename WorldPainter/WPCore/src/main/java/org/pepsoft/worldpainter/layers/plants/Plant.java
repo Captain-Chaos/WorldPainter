@@ -27,10 +27,14 @@ import java.util.Map;
  */
 public abstract class Plant implements WPObject {
     protected Plant(String name, Material material, String iconName, Category... categories) {
+        this(name, material, new String[] { iconName }, categories);
+    }
+
+    protected Plant(String name, Material material, String[] iconNames, Category... categories) {
         this.name = name;
         this.material = material;
         this.categories = categories;
-        this.iconName = iconName;
+        this.iconNames = iconNames;
     }
 
     /**
@@ -168,11 +172,13 @@ public abstract class Plant implements WPObject {
         return name;
     }
     
-    String getIconName() {
-        return iconName;
+    String[] getIconNames() {
+        return iconNames;
     }
 
-    protected final String name, iconName;
+    protected final String name;
     protected final Material material;
     protected final Category[] categories;
+
+    private final String[] iconNames;
 }

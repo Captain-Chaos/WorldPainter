@@ -63,7 +63,7 @@ import static org.pepsoft.worldpainter.Dimension.Anchor.*;
 import static org.pepsoft.worldpainter.Dimension.Role.*;
 import static org.pepsoft.worldpainter.Dimension.WallType.BEDROCK;
 import static org.pepsoft.worldpainter.Generator.*;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_20Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_21Biomes.*;
 import static org.pepsoft.worldpainter.panels.DefaultFilter.buildForDimension;
 import static org.pepsoft.worldpainter.util.GeometryUtil.getDistancesToCentre;
 

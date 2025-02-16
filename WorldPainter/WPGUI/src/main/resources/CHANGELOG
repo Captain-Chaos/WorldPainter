@@ -1,3 +1,12 @@
+-- Version 2.24.0, released 16-02-2025
+
+ * Add Minecraft 1.21 support:
+    + Add Pale Garden biome
+    + Add support for Importing short_grass (note that short grass is still exported as minecraft:grass, in order to support older versions, since Minecraft appears to correct the name upon first loading chunks)
+    + Add hanging pale grass, eyeblossom and pale moss carpet plants
+    + Add pale moss block terrain type
+    + Add known properties of all new blocks
+
 -- Version 2.23.2, released 20-10-2024
 
  * Bug fix: fix an error during config file migration. If your configuration was reset due to this error, you can get it back by shutting down WorldPainter, renaming the config.old file to config and restarting WorldPainter

@@ -39,7 +39,7 @@ import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_MCREGION;
 import static org.pepsoft.worldpainter.Dimension.Anchor.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_20Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_21Biomes.*;
 import static org.pepsoft.worldpainter.importing.MapImporter.ReadOnlyOption.*;
 import static org.pepsoft.worldpainter.platforms.PlatformUtils.determineNativePlatforms;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
@@ -657,6 +657,7 @@ public class JavaMapImporter extends MapImporter {
         TERRAIN_MAPPING.put(MC_MOSS_BLOCK, Terrain.MOSS);
         TERRAIN_MAPPING.put(MC_SUSPICIOUS_SAND, Terrain.SAND);
         TERRAIN_MAPPING.put(MC_SUSPICIOUS_GRAVEL, Terrain.GRAVEL);
+        TERRAIN_MAPPING.put(MC_PALE_MOSS_BLOCK, Terrain.PALE_MOSS);
     }
 
     static {

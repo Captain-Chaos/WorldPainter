@@ -247,7 +247,7 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
         constraints.anchor = GridBagConstraints.BASELINE_LEADING;
         constraints.insets = new Insets(1, 0, 1, 4);
         synchronized (icons) {
-            final BufferedImage icon = icons.get(plant.getIconName());
+            final BufferedImage icon = icons.get(plant.getIconNames()[0]);
             if (icon != null) {
                 plantLabels[index] = new JLabel(plant.getName(), new ImageIcon(icon), JLabel.TRAILING);
             } else {
@@ -328,7 +328,17 @@ public class PlantLayerEditor extends AbstractLayerEditor<PlantLayer> {
                     }
                     try (JarFile jarFile = new JarFile(resourcesJar)) {
                         for (Plant plant: ALL_PLANTS) {
-                            icons.put(plant.getIconName(), findIcon(jarFile, plant.getIconName()));
+                            // Find an icon
+                            final String[] iconNames = plant.getIconNames();
+                            for (String iconName: iconNames) {
+                                final BufferedImage icon = findIcon(jarFile, iconName);
+                                if (icon != null) {
+                                    // Then store it under the first icon name (even if it wasn't actually found under
+                                    // that name) because we use the first icon name for the icon lookups
+                                    icons.put(iconNames[0], icon);
+                                    break;
+                                }
+                            }
                         }
                     } catch (IOException e) {
                         logger.error("I/O error while trying to load plant icons; not loading icons", e);

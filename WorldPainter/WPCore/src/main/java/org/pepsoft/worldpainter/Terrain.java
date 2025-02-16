@@ -2840,7 +2840,8 @@ public enum Terrain {
         private static final long SAND_SEED_OFFSET = 26796036;
         private static final long CLAY_SEED_OFFSET = 161603308;
     },
-    MOSS("Moss", MOSS_BLOCK, MOSS_BLOCK, "moss", BIOME_PLAINS);
+    MOSS("Moss", MOSS_BLOCK, MOSS_BLOCK, "moss", BIOME_PLAINS),
+    PALE_MOSS("Pale Moss", PALE_MOSS_BLOCK, PALE_MOSS_BLOCK, "pale moss", BIOME_PLAINS);
 
     Terrain(String name, String description, int defaultBiome) {
         this(name, Material.STONE, Material.STONE, description, defaultBiome);

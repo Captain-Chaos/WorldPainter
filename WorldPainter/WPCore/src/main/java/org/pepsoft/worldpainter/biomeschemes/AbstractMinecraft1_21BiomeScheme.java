@@ -4,6 +4,7 @@
  */
 package org.pepsoft.worldpainter.biomeschemes;
 
+import org.pepsoft.util.ColourUtils;
 import org.pepsoft.worldpainter.BiomeScheme;
 import org.pepsoft.worldpainter.ColourScheme;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
@@ -16,7 +17,7 @@ import static org.pepsoft.minecraft.Material.*;
  *
  * @author pepijn
  */
-public abstract class AbstractMinecraft1_20BiomeScheme extends AbstractBiomeScheme implements Minecraft1_20Biomes {
+public abstract class AbstractMinecraft1_21BiomeScheme extends AbstractBiomeScheme implements Minecraft1_21Biomes {
     @Override
     public final int getBiomeCount() {
         return HIGHEST_BIOME_ID + 1;
@@ -140,6 +141,8 @@ public abstract class AbstractMinecraft1_20BiomeScheme extends AbstractBiomeSche
                 return VoidRenderer.getColour();
             case BIOME_CHERRY_GROVE:
                 return colourScheme.getColour(LEAVES_CHERRY);
+            case BIOME_PALE_GARDEN:
+                return ColourUtils.mix(colourScheme.getColour(LEAVES_OAK), 0xffffff);
             default:
                 throw new IllegalArgumentException(Integer.toString(biome));
         }

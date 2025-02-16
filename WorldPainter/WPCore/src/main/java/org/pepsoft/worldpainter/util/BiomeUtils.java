@@ -15,7 +15,7 @@ import static java.util.Comparator.comparing;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.ATTRIBUTE_MC_VERSION;
 import static org.pepsoft.worldpainter.Platform.Capability.NAMED_BIOMES;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_20Biomes.MODERN_IDS;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_21Biomes.MODERN_IDS;
 
 /**
  * This class uses the Minecraft coordinate system (y is vertical).

@@ -36,7 +36,11 @@ class VariableHeightPlant extends PlantWithGrowth {
     }
 
     private VariableHeightPlant(String name, Category[] categories, String iconName, Material bottomMaterial, Material middleMaterial, Material topMaterial, int defaultGrowth, int growth, Platform platform) {
-        super(name, middleMaterial, iconName, DEFAULT_MAX_GROWTH, categories);
+        this(name, categories, new String[] { iconName }, bottomMaterial, middleMaterial, topMaterial, defaultGrowth, growth, platform);
+    }
+
+    private VariableHeightPlant(String name, Category[] categories, String[] iconNames, Material bottomMaterial, Material middleMaterial, Material topMaterial, int defaultGrowth, int growth, Platform platform) {
+        super(name, middleMaterial, iconNames, DEFAULT_MAX_GROWTH, categories);
         this.bottomMaterial = bottomMaterial;
         this.topMaterial = topMaterial;
         this.defaultGrowth = defaultGrowth;
@@ -71,7 +75,7 @@ class VariableHeightPlant extends PlantWithGrowth {
 
     @Override
     public Plant realise(int growth, Platform platform) {
-        return new VariableHeightPlant(name, categories, iconName, bottomMaterial, material, topMaterial, defaultGrowth, growth, platform);
+        return new VariableHeightPlant(name, categories, getIconNames(), bottomMaterial, material, topMaterial, defaultGrowth, growth, platform);
     }
 
     Optional<Material> getBottomMaterial() {

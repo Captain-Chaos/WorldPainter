@@ -30,7 +30,7 @@ import static java.util.stream.Collectors.toSet;
 import static javax.swing.BoxLayout.PAGE_AXIS;
 import static org.pepsoft.worldpainter.App.KEY_PAINT_ID;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_20Biomes.*;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_21Biomes.*;
 import static org.pepsoft.worldpainter.layers.BiomesPanel.BiomeOption.*;
 import static org.pepsoft.worldpainter.painting.PaintFactory.createDiscreteLayerPaintId;
 
@@ -517,14 +517,14 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
      * Display order of the biomes on the biomes panel. This only contains the base biomes that get their own button;
      * all other biomes are presumed to be variants of the base biomes.
      */
-    private static final int[] MC_120_BIOME_ORDER = {
+    private static final int[] MC_121_BIOME_ORDER = {
             BIOME_PLAINS, BIOME_FOREST, BIOME_SWAMP, BIOME_JUNGLE, BIOME_BAMBOO_JUNGLE,
             BIOME_BIRCH_FOREST, BIOME_DARK_FOREST, BIOME_MANGROVE_SWAMP, BIOME_OLD_GROWTH_PINE_TAIGA, BIOME_OLD_GROWTH_SPRUCE_TAIGA,
             BIOME_WINDSWEPT_HILLS, BIOME_DESERT, BIOME_SAVANNA, BIOME_BADLANDS, BIOME_TAIGA,
             BIOME_SNOWY_PLAINS, BIOME_ICE_SPIKES, BIOME_OCEAN, BIOME_RIVER, BIOME_BEACH,
             BIOME_DRIPSTONE_CAVES, BIOME_MEADOW, BIOME_STONY_PEAKS, BIOME_JAGGED_PEAKS, BIOME_STONY_SHORE,
             BIOME_LUSH_CAVES, BIOME_MUSHROOM_FIELDS, BIOME_SNOWY_SLOPES, BIOME_GROVE, BIOME_FROZEN_PEAKS,
-            BIOME_DEEP_DARK, BIOME_THE_VOID, BIOME_CHERRY_GROVE, -1, -1,
+            BIOME_DEEP_DARK, BIOME_THE_VOID, BIOME_CHERRY_GROVE, BIOME_PALE_GARDEN, -1,
             BIOME_THE_END, BIOME_END_BARRENS, BIOME_END_HIGHLANDS, BIOME_END_MIDLANDS, BIOME_SMALL_END_ISLANDS,
             BIOME_NETHER_WASTES, BIOME_SOUL_SAND_VALLEY, BIOME_CRIMSON_FOREST, BIOME_WARPED_FOREST, BIOME_BASALT_DELTAS
     };
@@ -629,7 +629,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         new BiomeDescriptor(BIOME_LUSH_CAVES)
     );
 
-    private static final List<BiomeDescriptor> MC_120_DESCRIPTORS = asList(
+    private static final List<BiomeDescriptor> MC_121_DESCRIPTORS = asList(
         new BiomeDescriptor(BIOME_OCEAN),
         new BiomeDescriptor(BIOME_PLAINS),
         new BiomeDescriptor(BIOME_DESERT),
@@ -724,6 +724,7 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         new BiomeDescriptor(BIOME_LUSH_CAVES),
 
         // Minecraft 1.18+ biomes, with synthetic numerical ID's that do not correspond to pre-1.18 biome ID's:
+        new BiomeDescriptor(BIOME_PALE_GARDEN),
         new BiomeDescriptor(BIOME_CHERRY_GROVE),
         new BiomeDescriptor(BIOME_MANGROVE_SWAMP),
         new BiomeDescriptor(BIOME_DEEP_DARK),
@@ -756,25 +757,25 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
                     throw new IllegalArgumentException("MC_117_DESCRIPTORS is missing biome " + biomeId + " (" + Minecraft1_17Biomes.BIOME_NAMES[biomeId] + ")");
                 }
             }
-            if (Minecraft1_20Biomes.BIOME_NAMES[biomeId] != null) {
+            if (Minecraft1_21Biomes.BIOME_NAMES[biomeId] != null) {
                 if (modernIdsEncountered.contains(MODERN_IDS[biomeId])) {
                     continue;
                 } else {
                     modernIdsEncountered.add(MODERN_IDS[biomeId]);
                 }
                 boolean found = false;
-                for (BiomeDescriptor descriptor: MC_120_DESCRIPTORS) {
+                for (BiomeDescriptor descriptor: MC_121_DESCRIPTORS) {
                     if (descriptor.id == biomeId) {
                         found = true;
                         // Check that it is reachable
-                        if ((descriptor.baseId != biomeId) && MC_120_DESCRIPTORS.stream().noneMatch(d -> d.baseId == d.id && d.id == descriptor.baseId)) {
-                            throw new IllegalArgumentException("Biome " + biomeId + " (" + Minecraft1_20Biomes.BIOME_NAMES[biomeId] + ") is not reachable in MC_120_DESCRIPTORS");
+                        if ((descriptor.baseId != biomeId) && MC_121_DESCRIPTORS.stream().noneMatch(d -> d.baseId == d.id && d.id == descriptor.baseId)) {
+                            throw new IllegalArgumentException("Biome " + biomeId + " (" + Minecraft1_21Biomes.BIOME_NAMES[biomeId] + ") is not reachable in MC_120_DESCRIPTORS");
                         }
                         break;
                     }
                 }
                 if (! found) {
-                    throw new IllegalArgumentException("MC_120_DESCRIPTORS is missing biome " + biomeId + " (" + Minecraft1_20Biomes.BIOME_NAMES[biomeId] + ")");
+                    throw new IllegalArgumentException("MC_120_DESCRIPTORS is missing biome " + biomeId + " (" + Minecraft1_21Biomes.BIOME_NAMES[biomeId] + ")");
                 }
             }
         }
@@ -784,12 +785,12 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
             }
         });
         modernIdsEncountered.clear();
-        MC_120_DESCRIPTORS.forEach(desc -> {
-            if (Minecraft1_20Biomes.BIOME_NAMES[desc.id] == null) {
+        MC_121_DESCRIPTORS.forEach(desc -> {
+            if (Minecraft1_21Biomes.BIOME_NAMES[desc.id] == null) {
                 throw new IllegalArgumentException("MC_120_DESCRIPTORS contains non-existent biome ID " + desc.id);
             }
             if (modernIdsEncountered.contains(MODERN_IDS[desc.id])) {
-                System.err.println("MC_120_DESCRIPTORS contains duplicate descriptor for biome ID " + desc.id + " (" + Minecraft1_20Biomes.BIOME_NAMES[desc.id] + ") for modern ID " + MODERN_IDS[desc.id]);
+                System.err.println("MC_120_DESCRIPTORS contains duplicate descriptor for biome ID " + desc.id + " (" + Minecraft1_21Biomes.BIOME_NAMES[desc.id] + ") for modern ID " + MODERN_IDS[desc.id]);
             } else {
                 modernIdsEncountered.add(MODERN_IDS[desc.id]);
             }
@@ -802,18 +803,18 @@ public class BiomesPanel extends JPanel implements CustomBiomeManager.CustomBiom
         if (uniqueIds.size() != MC_117_DESCRIPTORS.size()) {
             throw new IllegalArgumentException("MC_117_DESCRIPTORS has duplicate IDs");
         }
-        uniqueIds = stream(MC_120_BIOME_ORDER).filter(i -> i != -1).boxed().collect(toSet());
-        if (uniqueIds.size() != stream(MC_120_BIOME_ORDER).filter(i -> i != -1).count()) {
+        uniqueIds = stream(MC_121_BIOME_ORDER).filter(i -> i != -1).boxed().collect(toSet());
+        if (uniqueIds.size() != stream(MC_121_BIOME_ORDER).filter(i -> i != -1).count()) {
             throw new IllegalArgumentException("MC_120_BIOME_ORDER has duplicate IDs");
         }
-        uniqueIds = MC_120_DESCRIPTORS.stream().map(d -> d.id).collect(toSet());
-        if (uniqueIds.size() != MC_120_DESCRIPTORS.size()) {
+        uniqueIds = MC_121_DESCRIPTORS.stream().map(d -> d.id).collect(toSet());
+        if (uniqueIds.size() != MC_121_DESCRIPTORS.size()) {
             throw new IllegalArgumentException("MC_120_DESCRIPTORS has duplicate IDs");
         }
     }
 
     private static final BiomesSet MINECRAFT_1_17_BIOMES = new BiomesSet(MC_117_BIOME_ORDER, MC_117_DESCRIPTORS, Minecraft1_17Biomes.BIOME_NAMES);
-    private static final BiomesSet MINECRAFT_1_20_BIOMES = new BiomesSet(MC_120_BIOME_ORDER, new HashSet<>(MC_120_DESCRIPTORS), Minecraft1_20Biomes.BIOME_NAMES);
+    private static final BiomesSet MINECRAFT_1_20_BIOMES = new BiomesSet(MC_121_BIOME_ORDER, new HashSet<>(MC_121_DESCRIPTORS), Minecraft1_21Biomes.BIOME_NAMES);
 
     public enum BiomeOption {HILLS, SHORE, EDGE, PLATEAU, MOUNTAINOUS, VARIANT, FROZEN, SNOWY, DEEP, WOODED, WARM,
         LUKEWARM, COLD, TALL, FLOWERS, LAKES, GRAVELLY, SHATTERED, SMALL_ISLANDS, MIDLANDS, HIGHLANDS, BARRENS,

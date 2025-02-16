@@ -32,7 +32,7 @@ import static org.pepsoft.worldpainter.Constants.UNKNOWN_MATERIAL_COLOUR;
 @SuppressWarnings("ConstantConditions")
 public class UpdateMaterials {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-        enrichMaterialsFromPluginDump();
+        enrichMaterialsFromPluginDump(args);
     }
 
     private static void enrichMaterialsWithTransmissiveness() throws IOException, ClassNotFoundException {
@@ -128,13 +128,13 @@ public class UpdateMaterials {
         }
     }
 
-    private static void enrichMaterialsFromPluginDump() throws IOException, ClassNotFoundException {
+    private static void enrichMaterialsFromPluginDump(String[] args) throws IOException, ClassNotFoundException {
         Configuration config = Configuration.load();
         if (config == null) {
             config = new Configuration();
         }
         Configuration.setInstance(config);
-        try (JarFile jarFile = new JarFile(BiomeSchemeManager.getLatestMinecraftJar(), true, OPEN_READ); Reader in = new InputStreamReader(Material.class.getResourceAsStream("materials.csv"), UTF_8); Writer out = new OutputStreamWriter(System.out, UTF_8)) {
+        try (JarFile jarFile = new JarFile(BiomeSchemeManager.getLatestMinecraftJar(), true, OPEN_READ); Reader in = new FileReader("F:\\Projects\\Java\\Minecraft\\Forge\\BlockExporter\\run\\materials.csv"); Writer out = new FileWriter("materials-out.csv")) {
             final CSVDataSource csvIn = new CSVDataSource();
             final CSVDataSource csvOut = new CSVDataSource();
             csvIn.openForReading(in);

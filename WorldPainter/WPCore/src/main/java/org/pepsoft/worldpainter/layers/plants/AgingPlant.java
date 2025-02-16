@@ -15,6 +15,6 @@ class AgingPlant extends PlantWithGrowth {
 
     @Override
     public Plant realise(int growth, Platform platform) {
-        return new SimplePlant(name, material.withProperty(AGE, growth - 1), iconName, categories);
+        return new SimplePlant(name, material.withProperty(AGE, growth - 1), getIconNames(), categories);
     }
 }

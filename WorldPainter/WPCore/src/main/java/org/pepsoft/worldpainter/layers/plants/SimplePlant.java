@@ -16,6 +16,10 @@ class SimplePlant extends Plant {
         super(name, material, iconName, category);
     }
 
+    SimplePlant(String name, Material material, String[] iconNames, Category... category) {
+        super(name, material, iconNames, category);
+    }
+
     @Override
     public Point3i getDimensions() {
         return DIMENSIONS;

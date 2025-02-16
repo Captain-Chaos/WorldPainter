@@ -3462,7 +3462,7 @@ public final class App extends JFrame implements RadiusControl,
         buttonPanel.add(createTerrainButton(TUFF));
         buttonPanel.add(createTerrainButton(BEDROCK));
         buttonPanel.add(createTerrainButton(MYCELIUM));
-        buttonPanel.add(Box.createGlue());
+        buttonPanel.add(createTerrainButton(PALE_MOSS));
         buttonPanel.add(Box.createGlue());
 
         buttonPanel.add(createTerrainButton(OBSIDIAN));

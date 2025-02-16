@@ -15,7 +15,7 @@ import static org.pepsoft.minecraft.Constants.MC_PLAINS;
  * synthesised. Display names for biomes that occur in Minecraft 1.18 are those for Minecraft 1.18, for legacy biomes
  * they are those from Minecraft 1.17.
  */
-public interface Minecraft1_20Biomes extends Minecraft1_17Biomes {
+public interface Minecraft1_21Biomes extends Minecraft1_17Biomes {
     int BIOME_WINDSWEPT_HILLS = 3;
 
     int BIOME_SNOWY_PLAINS = 12;
@@ -34,6 +34,7 @@ public interface Minecraft1_20Biomes extends Minecraft1_17Biomes {
     int BIOME_OLD_GROWTH_SPRUCE_TAIGA = 160;
     int BIOME_WINDSWEPT_SAVANNA = 163;
 
+    int BIOME_PALE_GARDEN = 245;
     int BIOME_CHERRY_GROVE = 246;
     int BIOME_MANGROVE_SWAMP = 247;
     int BIOME_DEEP_DARK = 248;
@@ -319,7 +320,7 @@ public interface Minecraft1_20Biomes extends Minecraft1_17Biomes {
             null,
             null,
             null,
-            null,
+            "Pale Garden",
             "Cherry Grove",
             "Mangrove Swamp",
             "Deep Dark",
@@ -610,7 +611,7 @@ public interface Minecraft1_20Biomes extends Minecraft1_17Biomes {
             null,
             null,
             null,
-            null,
+            "minecraft:pale_garden",
             "minecraft:cherry_grove",
             "minecraft:mangrove_swamp",
             "minecraft:deep_dark",
@@ -655,6 +656,7 @@ public interface Minecraft1_20Biomes extends Minecraft1_17Biomes {
                 patterns[BIOME_FLOWER_FOREST] = createPattern(image);
                 patterns[BIOME_CRIMSON_FOREST] = createPattern(image);
                 patterns[BIOME_WARPED_FOREST] = createPattern(image);
+                patterns[BIOME_PALE_GARDEN] = createPattern(image);
 
                 image = ImageIO.read(ClassLoader.getSystemResourceAsStream("org/pepsoft/worldpainter/icons/roofed_trees_pattern.png"));
                 patterns[BIOME_ROOFED_FOREST] = createPattern(image);

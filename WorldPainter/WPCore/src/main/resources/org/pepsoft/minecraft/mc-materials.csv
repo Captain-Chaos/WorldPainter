@@ -622,36 +622,36 @@ minecraft:polished_granite_stairs,,"facing:e[north;south;west;east],half:e[top;b
 minecraft:poppy,,,0,false,false,true,true,false,false,,false,true,0,true,false,ff643904,old default
 minecraft:potatoes,,age:i[0-7],0,false,false,true,true,false,false,,false,true,0,false,false,ff01ab10,old default
 minecraft:potted_acacia_sapling,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff764133,old default
-minecraft:potted_allium,,,0,false,false,false,false,false,false,,false,false,0,false,false,,
+minecraft:potted_allium,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff965c42,old default of terracotta
 minecraft:potted_azalea_bush,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff647a2f,potted_azalea_bush_top.png
-minecraft:potted_azure_bluet,,,0,false,false,false,false,false,false,,false,false,0,false,false,,
-minecraft:potted_bamboo,,,0,false,false,false,false,false,false,,false,false,0,false,false,,
+minecraft:potted_azure_bluet,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff965c42,old default of terracotta
+minecraft:potted_bamboo,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff965c42,old default of terracotta
 minecraft:potted_birch_sapling,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff764133,old default
-minecraft:potted_blue_orchid,,,0,false,false,false,false,false,false,,false,false,0,false,false,,
+minecraft:potted_blue_orchid,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff965c42,old default of terracotta
 minecraft:potted_brown_mushroom,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff764133,old default
 minecraft:potted_cactus,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff764133,old default
-minecraft:potted_cornflower,,,0,false,false,false,false,false,false,,false,false,0,false,false,,
-minecraft:potted_crimson_fungus,,,0,false,false,false,false,false,false,,false,false,0,false,false,,
-minecraft:potted_crimson_roots,,,0,false,false,false,false,false,false,,false,false,0,false,false,,
+minecraft:potted_cornflower,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff965c42,old default of terracotta
+minecraft:potted_crimson_fungus,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff965c42,old default of terracotta
+minecraft:potted_crimson_roots,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff965c42,old default of terracotta
 minecraft:potted_dandelion,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff764133,old default
 minecraft:potted_dark_oak_sapling,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff764133,old default
 minecraft:potted_dead_bush,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff764133,old default
 minecraft:potted_fern,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff764133,old default
 minecraft:potted_flowering_azalea_bush,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff727746,potted_flowering_azalea_bush_top.png
 minecraft:potted_jungle_sapling,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff764133,old default
-minecraft:potted_lily_of_the_valley,,,0,false,false,false,false,false,false,,false,false,0,false,false,,
+minecraft:potted_lily_of_the_valley,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff965c42,old default of terracotta
 minecraft:potted_oak_sapling,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff764133,old default
-minecraft:potted_orange_tulip,,,0,false,false,false,false,false,false,,false,false,0,false,false,,
-minecraft:potted_oxeye_daisy,,,0,false,false,false,false,false,false,,false,false,0,false,false,,
-minecraft:potted_pink_tulip,,,0,false,false,false,false,false,false,,false,false,0,false,false,,
+minecraft:potted_orange_tulip,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff965c42,old default of terracotta
+minecraft:potted_oxeye_daisy,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff965c42,old default of terracotta
+minecraft:potted_pink_tulip,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff965c42,old default of terracotta
 minecraft:potted_poppy,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff764133,old default
 minecraft:potted_red_mushroom,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff764133,old default
-minecraft:potted_red_tulip,,,0,false,false,false,false,false,false,,false,false,0,false,false,,
+minecraft:potted_red_tulip,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff965c42,old default of terracotta
 minecraft:potted_spruce_sapling,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff764133,old default
-minecraft:potted_warped_fungus,,,0,false,false,false,false,false,false,,false,false,0,false,false,,
-minecraft:potted_warped_roots,,,0,false,false,false,false,false,false,,false,false,0,false,false,,
-minecraft:potted_white_tulip,,,0,false,false,false,false,false,false,,false,false,0,false,false,,
-minecraft:potted_wither_rose,,,0,false,false,false,false,false,false,,false,false,0,false,false,,
+minecraft:potted_warped_fungus,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff965c42,old default of terracotta
+minecraft:potted_warped_roots,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff965c42,old default of terracotta
+minecraft:potted_white_tulip,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff965c42,old default of terracotta
+minecraft:potted_wither_rose,,,0,false,false,false,false,false,false,,false,false,0,false,false,ff965c42,old default of terracotta
 minecraft:powder_snow,,,1,false,false,true,true,false,false,,false,false,0,true,false,ffeffbfb,old default
 minecraft:powder_snow_cauldron,,level:i[1-3],0,false,false,false,false,false,false,,false,false,0,false,false,fff8fdfd,powder_snow.png
 minecraft:powered_rail,,"powered:b,shape:e[north_south;east_west;ascending_east;ascending_west;ascending_north;ascending_south],waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff846c48,old default
@@ -803,20 +803,20 @@ minecraft:stone_slab,,"type:e[top;bottom;double],waterlogged:b",15,true,false,fa
 minecraft:stone_stairs,,"facing:e[north;south;west;east],half:e[top;bottom],waterlogged:b,shape:e[straight;inner_left;inner_right;outer_left;outer_right]",15,true,false,false,false,false,false,,false,false,0,false,false,ff7d7d7d,stone.png
 minecraft:stonecutter,,facing:e[north;south;west;east],0,false,false,false,false,false,false,,false,false,0,false,false,ff7b766f,stonecutter_top.png
 minecraft:stripped_acacia_log,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,ffae5c3b,stripped_acacia_log.png
-minecraft:stripped_acacia_wood,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,,
+minecraft:stripped_acacia_wood,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,ffae5c3b,stripped_acacia_log.png
 minecraft:stripped_birch_log,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,ffc4b076,stripped_birch_log.png
-minecraft:stripped_birch_wood,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,,
-minecraft:stripped_crimson_hyphae,,axis:e[x;y;z],0,false,false,false,false,false,false,,false,false,0,false,false,,
+minecraft:stripped_birch_wood,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,ffc4b076,stripped_birch_log.png
+minecraft:stripped_crimson_hyphae,,axis:e[x;y;z],0,false,false,false,false,false,false,,false,false,0,false,false,ff653046,crimson_stem.png
 minecraft:stripped_crimson_stem,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,ff89395a,stripped_crimson_stem.png
 minecraft:stripped_dark_oak_log,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,ff483824,stripped_dark_oak_log.png
-minecraft:stripped_dark_oak_wood,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,,
+minecraft:stripped_dark_oak_wood,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,ff483824,stripped_dark_oak_log.png
 minecraft:stripped_jungle_log,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,ffab8454,stripped_jungle_log.png
-minecraft:stripped_jungle_wood,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,,
+minecraft:stripped_jungle_wood,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,ffab8454,stripped_jungle_log.png
 minecraft:stripped_oak_log,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,ffb19056,stripped_oak_log.png
-minecraft:stripped_oak_wood,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,,
+minecraft:stripped_oak_wood,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,ffb19056,stripped_oak_log.png
 minecraft:stripped_spruce_log,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,ff735934,stripped_spruce_log.png
-minecraft:stripped_spruce_wood,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,,
-minecraft:stripped_warped_hyphae,,axis:e[x;y;z],0,false,false,false,false,false,false,,false,false,0,false,false,,
+minecraft:stripped_spruce_wood,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,ff735934,stripped_spruce_log.png
+minecraft:stripped_warped_hyphae,,axis:e[x;y;z],0,false,false,false,false,false,false,,false,false,0,false,false,ff2b6863,warped_stem.png
 minecraft:stripped_warped_stem,,axis:e[x;y;z],15,false,false,false,false,false,false,,false,false,0,false,false,ff399693,stripped_warped_stem.png
 minecraft:structure_block,,mode:e[save;load;corner;data],15,false,false,false,false,false,true,minecraft:structure_block,false,false,0,false,false,ff584a5a,structure_block.png
 minecraft:structure_void,,,0,false,false,true,true,false,false,,false,false,0,false,false,ff584a5a,structure_block.png
@@ -1027,3 +1027,104 @@ minecraft:torchflower,,,0,false,false,true,false,false,false,,false,true,0,false
 minecraft:torchflower_crop,,age:i[0-1],0,false,false,true,false,false,false,,false,true,0,false,false,ff64654d,torchflower.png
 minecraft:warped_hanging_sign,,"rotation:i[0-15],waterlogged:b,attached:b",0,false,false,false,false,false,true,minecraft:hanging_sign,false,false,0,false,false,ff2b6863,warped_planks.png
 minecraft:warped_wall_hanging_sign,,"facing:e[north;south;west;east],waterlogged:b",0,false,false,false,false,false,true,minecraft:hanging_sign,false,false,0,false,false,ff2b6863,warped_planks.png
+minecraft:chiseled_copper,,,15,false,false,false,false,false,false,,false,false,0,false,false,ffb86449,chiseled_copper.png
+minecraft:chiseled_resin_bricks,,,15,false,false,false,false,false,false,,false,false,0,false,false,ffc85418,chiseled_resin_bricks.png
+minecraft:chiseled_tuff,,,15,false,false,false,false,false,false,,false,false,0,false,false,ff595e56,chiseled_tuff.png
+minecraft:chiseled_tuff_bricks,,,15,false,false,false,false,false,false,,false,false,0,false,false,ff62675f,chiseled_tuff_bricks.png
+minecraft:closed_eyeblossom,,,0,false,false,true,true,false,false,,false,true,0,true,false,ff6c6265,closed_eyeblossom.png
+minecraft:copper_bulb,lit=false,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,0,false,false,ff9c5639,copper_bulb.png
+minecraft:copper_door,,"open:b,hinge:e[left;right],facing:e[north;south;west;east],half:e[upper;lower],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffc06d52,copper_door_top.png
+minecraft:copper_grate,,waterlogged:b,0,false,false,false,false,false,false,,false,false,0,false,false,ffbf6b4f,copper_grate.png
+minecraft:copper_trapdoor,,"open:b,facing:e[north;south;west;east],powered:b,half:e[top;bottom],waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffbe6a4f,copper_trapdoor.png
+minecraft:crafter,,"crafting:b,orientation:e[down_east;down_north;down_south;down_west;up_east;up_north;up_south;up_west;west_up;east_up;north_up;south_up],triggered:b",0,false,false,false,false,false,true,minecraft:crafter,false,false,0,false,false,ff706263,crafter_top.png
+minecraft:creaking_heart,,"active:b,axis:e[x;y;z],natural:b",15,false,false,false,false,false,true,minecraft:creaking_heart,true,false,0,true,false,ff52443f,creaking_heart.png
+minecraft:exposed_chiseled_copper,,,15,false,false,false,false,false,false,,false,false,0,false,false,ff9a7764,exposed_chiseled_copper.png
+minecraft:exposed_copper_bulb,lit=false,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,0,false,false,ff876b59,exposed_copper_bulb.png
+minecraft:exposed_copper_door,,"open:b,hinge:e[left;right],facing:e[north;south;west;east],half:e[upper;lower],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffa47b6a,exposed_copper_door_top.png
+minecraft:exposed_copper_grate,,waterlogged:b,0,false,false,false,false,false,false,,false,false,0,false,false,ffa17d68,exposed_copper_grate.png
+minecraft:exposed_copper_trapdoor,,"open:b,facing:e[north;south;west;east],powered:b,half:e[top;bottom],waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffa17d68,exposed_copper_trapdoor.png
+minecraft:heavy_core,,waterlogged:b,15,true,false,false,false,true,false,,false,false,0,false,false,ff52565e,heavy_core.png
+minecraft:open_eyeblossom,,,0,false,false,true,true,false,false,,false,true,0,true,false,ff857c7f,open_eyeblossom.png
+minecraft:oxidized_chiseled_copper,,,15,false,false,false,false,false,false,,false,false,0,false,false,ff53a184,oxidized_chiseled_copper.png
+minecraft:oxidized_copper_bulb,lit=false,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,0,false,false,ff46846d,oxidized_copper_bulb.png
+minecraft:oxidized_copper_door,,"open:b,hinge:e[left;right],facing:e[north;south;west;east],half:e[upper;lower],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff52a084,oxidized_copper_door_top.png
+minecraft:oxidized_copper_grate,,waterlogged:b,0,false,false,false,false,false,false,,false,false,0,false,false,ff52a183,oxidized_copper_grate.png
+minecraft:oxidized_copper_trapdoor,,"open:b,facing:e[north;south;west;east],powered:b,half:e[top;bottom],waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff53a184,oxidized_copper_trapdoor.png
+minecraft:pale_hanging_moss,,tip:b,0,false,false,true,true,false,false,,false,true,0,true,false,ff626761,pale_hanging_moss.png
+minecraft:pale_moss_block,,,15,false,true,false,false,false,false,,false,false,0,true,false,ff6a7068,pale_moss_block.png
+minecraft:pale_moss_carpet,,"south:e[none;low;tall],north:e[none;low;tall],west:e[none;low;tall],bottom:b,east:e[none;low;tall]",0,false,false,true,true,false,false,,false,true,0,true,false,ff6a7068,pale_moss_carpet.png
+minecraft:pale_oak_button,,"facing:e[north;south;west;east],powered:b,face:e[floor;wall;ceiling]",0,false,false,false,false,false,false,,false,false,0,false,false,ffe3d9d8,pale_oak_planks.png
+minecraft:pale_oak_door,,"open:b,hinge:e[left;right],facing:e[north;south;west;east],half:e[upper;lower],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffd8d0ce,pale_oak_door_top.png
+minecraft:pale_oak_fence,,"west:b,east:b,south:b,north:b,waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffe3d9d8,pale_oak_planks.png
+minecraft:pale_oak_fence_gate,,"in_wall:b,open:b,facing:e[north;south;west;east],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffe3d9d8,pale_oak_planks.png
+minecraft:pale_oak_hanging_sign,,"rotation:i[0-15],waterlogged:b,attached:b",0,false,false,false,false,false,true,minecraft:hanging_sign,false,false,0,false,false,ffe3d9d8,pale_oak_planks.png
+minecraft:pale_oak_leaves,,"distance:i[1-7],persistent:b,waterlogged:b",1,false,false,false,true,false,false,,true,false,0,true,false,ff747972,pale_oak_leaves.png
+minecraft:pale_oak_log,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,true,false,ff574d4b,pale_oak_log.png
+minecraft:pale_oak_planks,,,15,false,false,false,false,false,false,,false,false,0,false,false,ffe3d9d8,pale_oak_planks.png
+minecraft:pale_oak_pressure_plate,,powered:b,0,false,false,false,false,false,false,,false,false,0,false,false,ffe3d9d8,pale_oak_planks.png
+minecraft:pale_oak_sapling,,stage:i[0-1],0,false,false,true,true,false,false,,true,false,0,true,false,ff6d6963,pale_oak_sapling.png
+minecraft:pale_oak_sign,,"rotation:i[0-15],waterlogged:b",0,false,false,false,false,false,true,minecraft:sign,false,false,0,false,false,ffe3d9d8,pale_oak_planks.png
+minecraft:pale_oak_slab,,"type:e[top;bottom;double],waterlogged:b",15,true,false,false,false,false,false,,false,false,0,false,false,ffe3d9d8,pale_oak_planks.png
+minecraft:pale_oak_stairs,,"facing:e[north;south;west;east],half:e[top;bottom],waterlogged:b,shape:e[straight;inner_left;inner_right;outer_left;outer_right]",15,true,false,false,false,false,false,,false,false,0,false,false,ffe3d9d8,pale_oak_planks.png
+minecraft:pale_oak_trapdoor,,"open:b,facing:e[north;south;west;east],powered:b,half:e[top;bottom],waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffe5dcda,pale_oak_trapdoor.png
+minecraft:pale_oak_wall_hanging_sign,,"facing:e[north;south;west;east],waterlogged:b",0,false,false,false,false,false,true,minecraft:hanging_sign,false,false,0,false,false,ffe3d9d8,pale_oak_planks.png
+minecraft:pale_oak_wall_sign,,"facing:e[north;south;west;east],waterlogged:b",0,false,false,false,false,false,true,minecraft:sign,false,false,0,false,false,ffe3d9d8,pale_oak_planks.png
+minecraft:pale_oak_wood,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,true,false,ffe3d9d8,pale_oak_planks.png
+minecraft:polished_tuff,,,15,false,false,false,false,false,false,,false,false,0,false,false,ff616863,polished_tuff.png
+minecraft:polished_tuff_slab,,"type:e[top;bottom;double],waterlogged:b",15,true,false,false,false,false,false,,false,false,0,false,false,ff616863,polished_tuff.png
+minecraft:polished_tuff_stairs,,"facing:e[north;south;west;east],half:e[top;bottom],waterlogged:b,shape:e[straight;inner_left;inner_right;outer_left;outer_right]",15,true,false,false,false,false,false,,false,false,0,false,false,ff616863,polished_tuff.png
+minecraft:polished_tuff_wall,,"south:e[none;low;tall],up:b,north:e[none;low;tall],west:e[none;low;tall],east:e[none;low;tall],waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff616863,polished_tuff.png
+minecraft:potted_closed_eyeblossom,,,0,false,false,false,false,false,false,,false,false,0,true,false,ff965c42,old default of terracotta
+minecraft:potted_open_eyeblossom,,,0,false,false,false,false,false,false,,false,false,0,true,false,ff965c42,old default of terracotta
+minecraft:potted_pale_oak_sapling,,,0,false,false,false,false,false,false,,false,false,0,true,false,ff965c42,old default of terracotta
+minecraft:resin_block,,,15,false,false,false,false,false,false,,false,false,0,false,false,ffd96319,resin_block.png
+minecraft:resin_brick_slab,,"type:e[top;bottom;double],waterlogged:b",15,true,false,false,false,false,false,,false,false,0,false,false,ffcd5818,resin_bricks.png
+minecraft:resin_brick_stairs,,"facing:e[north;south;west;east],half:e[top;bottom],waterlogged:b,shape:e[straight;inner_left;inner_right;outer_left;outer_right]",15,true,false,false,false,false,false,,false,false,0,false,false,ffcd5818,resin_bricks.png
+minecraft:resin_brick_wall,,"south:e[none;low;tall],up:b,north:e[none;low;tall],west:e[none;low;tall],east:e[none;low;tall],waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffcd5818,resin_bricks.png
+minecraft:resin_bricks,,,15,false,false,false,false,false,false,,false,false,0,false,false,ffcd5818,resin_bricks.png
+minecraft:resin_clump,,"down:b,west:b,east:b,up:b,south:b,north:b,waterlogged:b",0,false,false,true,true,false,false,,false,false,0,true,false,ffdf6f1b,resin_clump.png
+minecraft:short_grass,,,0,false,false,true,true,false,false,,true,false,0,true,false,ff40652f,old default
+minecraft:stripped_pale_oak_log,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,false,false,fff5eeec,stripped_pale_oak_log.png
+minecraft:stripped_pale_oak_wood,,axis:e[x;y;z],15,false,false,false,false,false,false,,true,false,0,false,false,fff5eeec,stripped_pale_oak_log.png
+minecraft:trial_spawner,,"ominous:b,trial_spawner_state:e[inactive;waiting_for_players;active;waiting_for_reward_ejection;ejecting_reward;cooldown]",1,false,false,false,false,false,true,minecraft:trial_spawner,false,false,0,false,false,ff36454f,vault_top.png
+minecraft:tuff_brick_slab,,"type:e[top;bottom;double],waterlogged:b",15,true,false,false,false,false,false,,false,false,0,false,false,ff62665f,tuff_bricks.png
+minecraft:tuff_brick_stairs,,"facing:e[north;south;west;east],half:e[top;bottom],waterlogged:b,shape:e[straight;inner_left;inner_right;outer_left;outer_right]",15,true,false,false,false,false,false,,false,false,0,false,false,ff62665f,tuff_bricks.png
+minecraft:tuff_brick_wall,,"south:e[none;low;tall],up:b,north:e[none;low;tall],west:e[none;low;tall],east:e[none;low;tall],waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff62665f,tuff_bricks.png
+minecraft:tuff_bricks,,,15,false,false,false,false,false,false,,false,false,0,false,false,ff62665f,tuff_bricks.png
+minecraft:tuff_slab,,"type:e[top;bottom;double],waterlogged:b",15,true,false,false,false,false,false,,false,false,0,false,false,ff6c6d66,tuff.png
+minecraft:tuff_stairs,,"facing:e[north;south;west;east],half:e[top;bottom],waterlogged:b,shape:e[straight;inner_left;inner_right;outer_left;outer_right]",15,true,false,false,false,false,false,,false,false,0,false,false,ff6c6d66,tuff.png
+minecraft:tuff_wall,,"south:e[none;low;tall],up:b,north:e[none;low;tall],west:e[none;low;tall],east:e[none;low;tall],waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff6c6d66,tuff.png
+minecraft:vault,,"ominous:b,vault_state:e[inactive;active;unlocking;ejecting],facing:e[north;south;west;east]",1,false,false,false,false,false,true,minecraft:vault,false,false,6,false,false,ff36454f,vault_top.png
+minecraft:waxed_chiseled_copper,,,15,false,false,false,false,false,false,,false,false,0,false,false,ff9c5639,copper_bulb.png
+minecraft:waxed_copper_bulb,lit=false,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,0,false,false,ff9c5639,copper_bulb.png
+minecraft:waxed_copper_door,,"open:b,hinge:e[left;right],facing:e[north;south;west;east],half:e[upper;lower],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffc06d52,copper_door_top.png
+minecraft:waxed_copper_grate,,waterlogged:b,0,false,false,false,false,false,false,,false,false,0,false,false,ffbf6b4f,copper_grate.png
+minecraft:waxed_copper_trapdoor,,"open:b,facing:e[north;south;west;east],powered:b,half:e[top;bottom],waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffbe6a4f,copper_trapdoor.png
+minecraft:waxed_exposed_chiseled_copper,,,15,false,false,false,false,false,false,,false,false,0,false,false,ff9a7764,exposed_chiseled_copper.png
+minecraft:waxed_exposed_copper_bulb,lit=false,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,0,false,false,ff876b59,exposed_copper_bulb.png
+minecraft:waxed_exposed_copper_door,,"open:b,hinge:e[left;right],facing:e[north;south;west;east],half:e[upper;lower],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffa47b6a,exposed_copper_door_top.png
+minecraft:waxed_exposed_copper_grate,,waterlogged:b,0,false,false,false,false,false,false,,false,false,0,false,false,ffa17d68,exposed_copper_grate.png
+minecraft:waxed_exposed_copper_trapdoor,,"open:b,facing:e[north;south;west;east],powered:b,half:e[top;bottom],waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ffa17d68,exposed_copper_trapdoor.png
+minecraft:waxed_oxidized_chiseled_copper,,,15,false,false,false,false,false,false,,false,false,0,false,false,ff53a184,oxidized_chiseled_copper.png
+minecraft:waxed_oxidized_copper_bulb,lit=false,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,0,false,false,ff46846d,oxidized_copper_bulb.png
+minecraft:waxed_oxidized_copper_door,,"open:b,hinge:e[left;right],facing:e[north;south;west;east],half:e[upper;lower],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff52a084,oxidized_copper_door_top.png
+minecraft:waxed_oxidized_copper_grate,,waterlogged:b,0,false,false,false,false,false,false,,false,false,0,false,false,ffa17d68,exposed_copper_grate.png
+minecraft:waxed_oxidized_copper_trapdoor,,"open:b,facing:e[north;south;west;east],powered:b,half:e[top;bottom],waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff53a184,oxidized_copper_trapdoor.png
+minecraft:waxed_weathered_chiseled_copper,,,15,false,false,false,false,false,false,,false,false,0,false,false,ff68966f,weathered_chiseled_copper.png
+minecraft:waxed_weathered_copper_bulb,lit=false,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,0,false,false,ff5c7e63,weathered_copper_bulb.png
+minecraft:waxed_weathered_copper_door,,"open:b,hinge:e[left;right],facing:e[north;south;west;east],half:e[upper;lower],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff6e966d,weathered_copper_door_top.png
+minecraft:waxed_weathered_copper_grate,,waterlogged:b,0,false,false,false,false,false,false,,false,false,0,false,false,ff6a986e,weathered_copper_grate.png
+minecraft:waxed_weathered_copper_trapdoor,,"open:b,facing:e[north;south;west;east],powered:b,half:e[top;bottom],waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff6c996e,weathered_copper_trapdoor.png
+minecraft:weathered_chiseled_copper,,,15,false,false,false,false,false,false,,false,false,0,false,false,ff68966f,weathered_chiseled_copper.png
+minecraft:weathered_copper_bulb,lit=false,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,0,false,false,ff5c7e63,weathered_copper_bulb.png
+minecraft:weathered_copper_door,,"open:b,hinge:e[left;right],facing:e[north;south;west;east],half:e[upper;lower],powered:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff6e966d,weathered_copper_door_top.png
+minecraft:weathered_copper_grate,,waterlogged:b,0,false,false,false,false,false,false,,false,false,0,false,false,ff6a986e,weathered_copper_grate.png
+minecraft:weathered_copper_trapdoor,,"open:b,facing:e[north;south;west;east],powered:b,half:e[top;bottom],waterlogged:b",0,false,false,false,false,false,false,,false,false,0,false,false,ff6c996e,weathered_copper_trapdoor.png
+minecraft:copper_bulb,lit=true,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,15,false,false,ff9c5639,copper_bulb.png
+minecraft:exposed_copper_bulb,lit=true,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,15,false,false,ff876b59,exposed_copper_bulb.png
+minecraft:oxidized_copper_bulb,lit=true,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,15,false,false,ff46846d,oxidized_copper_bulb.png
+minecraft:waxed_copper_bulb,lit=true,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,15,false,false,ff9c5639,copper_bulb.png
+minecraft:waxed_exposed_copper_bulb,lit=true,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,15,false,false,ff876b59,exposed_copper_bulb.png
+minecraft:waxed_oxidized_copper_bulb,lit=true,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,15,false,false,ff46846d,oxidized_copper_bulb.png
+minecraft:waxed_weathered_copper_bulb,lit=true,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,15,false,false,ff5c7e63,weathered_copper_bulb.png
+minecraft:weathered_copper_bulb,lit=true,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,15,false,false,ff5c7e63,weathered_copper_bulb.png

@@ -1977,6 +1977,7 @@ public final class Material implements Serializable {
     public static final Property<Integer>   DISTANCE           = new Property<>(MC_DISTANCE,           Integer.class);
     public static final Property<String>    VERTICAL_DIRECTION = new Property<>(MC_VERTICAL_DIRECTION, String.class);
     public static final Property<Integer>   FLOWER_AMOUNT      = new Property<>(MC_FLOWER_AMOUNT,      Integer.class);
+    public static final Property<Boolean>   TIP                = new Property<>(MC_TIP,                Boolean.class);
 
     // Modern materials (based on MC 1.13+ block names and properties)
 
@@ -2165,6 +2166,12 @@ public final class Material implements Serializable {
      */
     public static final Material LIGHT = get(MC_LIGHT, MC_LEVEL, 8, MC_WATERLOGGED, false);
     public static final Material CAVE_AIR = get(MC_CAVE_AIR);
+    public static final Material SHORT_GRASS = get(MC_SHORT_GRASS);
+    public static final Material CLOSED_EYEBLOSSOM = get(MC_CLOSED_EYEBLOSSOM);
+    public static final Material PALE_HANGING_MOSS = get(MC_PALE_HANGING_MOSS).withProperty(TIP, false);
+    public static final Material PALE_HANGING_MOSS_TIP = get(MC_PALE_HANGING_MOSS).withProperty(TIP, true);
+    public static final Material PALE_MOSS_CARPET = get(MC_PALE_MOSS_CARPET);
+    public static final Material PALE_MOSS_BLOCK = get(MC_PALE_MOSS_BLOCK);
 
     // Material type categories
 

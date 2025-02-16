@@ -50,8 +50,8 @@ class DoubleHighPlant extends Plant {
     /**
      * Copy constructor.
      */
-    private DoubleHighPlant(String name, Material lowerMaterial, Category[] categories, String iconName, Platform platform) {
-        super(name, lowerMaterial, iconName, categories);
+    private DoubleHighPlant(String name, Material lowerMaterial, Category[] categories, String[] iconNames, Platform platform) {
+        super(name, lowerMaterial, iconNames, categories);
         this.platform = platform;
     }
 
@@ -75,7 +75,7 @@ class DoubleHighPlant extends Plant {
 
     @Override
     public DoubleHighPlant realise(int growth, Platform platform) {
-        return new DoubleHighPlant(name, material, categories, iconName, platform);
+        return new DoubleHighPlant(name, material, categories, getIconNames(), platform);
     }
 
     private final Platform platform;

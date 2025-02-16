@@ -20,7 +20,7 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.*;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Platform.ATTRIBUTE_GRASS_BLOCK_NAME;
-import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_20Biomes.BIOMES_BY_MODERN_ID;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_21Biomes.BIOMES_BY_MODERN_ID;
 import static org.pepsoft.worldpainter.biomeschemes.StaticBiomeInfo.BIOME_PLAINS;
 import static org.pepsoft.worldpainter.biomeschemes.StaticBiomeInfo.MODERN_IDS;
 

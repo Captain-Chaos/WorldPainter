@@ -25,7 +25,7 @@ public class Plants {
         }
     }
 
-    public static final Plant GRASS = new SimplePlant("Grass", Material.GRASS, PLANTS_AND_FLOWERS);
+    public static final Plant GRASS = new SimplePlant("Short Grass", Material.GRASS, new String[] { "block/short_grass.png", "block/grass.png" }, PLANTS_AND_FLOWERS);
     public static final Plant FERN = new SimplePlant("Fern", Material.FERN, PLANTS_AND_FLOWERS);
     public static final Plant DEAD_SHRUB = new SimplePlant("Dead Shrub", Material.DEAD_SHRUBS, PLANTS_AND_FLOWERS) {
         @Override
@@ -120,7 +120,7 @@ public class Plants {
     public static final Plant SEA_PICKLE = new PlantWithGrowth("Sea Pickle", Material.SEA_PICKLE_1, "item/sea_pickle.png", 4, WATER_PLANTS) {
         @Override
         public SimplePlant realise(int growth, Platform platform) {
-            return new SimplePlant(name, material.withProperty(PICKLES, growth), iconName, categories);
+            return new SimplePlant(name, material.withProperty(PICKLES, growth), getIconNames(), categories);
         }
     };
     public static final Plant BAMBOO = new VariableHeightPlant("Bamboo", BAMBOO_NO_LEAVES, BAMBOO_LARGE_LEAVES, "item/bamboo.png", 16, PLANTS_AND_FLOWERS) {
@@ -264,6 +264,14 @@ public class Plants {
     public static final Plant PITCHER_PLANT = new DoubleHighPlant("Pitcher Plant", Material.PITCHER_PLANT_LOWER, "block/pitcher_crop_top_stage_4.png", PLANTS_AND_FLOWERS);
     public static final Plant TORCHFLOWER_SEED = new AgingPlant("Torchflower Seed", Material.TORCHFLOWER_CROP, "item/torchflower_seeds.png", 2, CROPS);
     public static final Plant TORCHFLOWER = new SimplePlant("Torchflower", Material.TORCHFLOWER, PLANTS_AND_FLOWERS);
+    public static final Plant EYEBLOSSOM = new SimplePlant("Eyeblossom", Material.CLOSED_EYEBLOSSOM, "block/open_eyeblossom.png", PLANTS_AND_FLOWERS);
+    public static final Plant PALE_HANGING_MOSS = new VariableHeightPlant("Pale Hanging Moss", Material.PALE_HANGING_MOSS, Material.PALE_HANGING_MOSS_TIP, "block/pale_hanging_moss.png", 5, HANGING_DRY_PLANTS) {
+        @Override
+        public Plant realise(int growth, Platform platform) {
+            return new VariableHeightPlant("Pale Hanging Moss", Material.PALE_HANGING_MOSS, Material.PALE_HANGING_MOSS_TIP, "block/pale_hanging_moss.png", growth, categories);
+        }
+    };
+    public static final Plant PALE_MOSS_CARPET = new SimplePlant("Pale Moss Carpet", Material.PALE_MOSS_CARPET, "block/pale_moss_carpet.png", MUSHROOMS); // TODO not really mushrooms, but for now those are presented as "Various"
 
     // The code which uses this assumes there will never be more than 128 plants. If that ever happens it needs to be
     // overhauled! IMPORTANT: indices into this array are stored in layer settings! New entries MUST be added at the
@@ -279,7 +287,7 @@ public class Plants {
             WARPED_ROOTS, NETHER_SPROUTS, TWISTING_VINES, GLOW_LICHEN, MOSS_CARPET, BIG_DRIPLEAF, PUMPKIN, MELON,
             CARVED_PUMPKIN, JACK_O_LANTERN, VINE, SPORE_BLOSSOM, WEEPING_VINES, HANGING_ROOTS, GLOW_BERRIES,
             SMALL_DRIPLEAF, MANGROVE_PROPAGULE, SAPLING_CHERRY, PINK_PETALS, PITCHER_POD, PITCHER_PLANT,
-            TORCHFLOWER_SEED, TORCHFLOWER };
+            TORCHFLOWER_SEED, TORCHFLOWER, EYEBLOSSOM, PALE_HANGING_MOSS, PALE_MOSS_CARPET };
 
     private static final Random RANDOM = new Random();
 }
