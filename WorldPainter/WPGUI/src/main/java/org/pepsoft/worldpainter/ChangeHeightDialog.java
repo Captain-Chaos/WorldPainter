@@ -158,6 +158,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
             labelWarning.setVisible(false);
         }
         checkBoxAdjustLayers.setEnabled((newMinHeight != oldMinHeight) || (newMaxHeight != oldMaxHeight) || translate || scale);
+        pack();
     }
     
     private void doResize() {
