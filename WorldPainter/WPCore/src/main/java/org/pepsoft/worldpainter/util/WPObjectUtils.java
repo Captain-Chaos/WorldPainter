@@ -29,7 +29,7 @@ public class WPObjectUtils {
      * @param leafDecayMode     The leaf decay mode to apply, as one of the {@code LEAF_DECAY_*} constants in {@link WPObject}.
      * @param waterloggedLeaves Whether the platform to which the block will be exported supports waterlogged leaf blocks.
      * @param connectBlocks     Whether any connections of the block (such as fence posts might make) to surrounding objects should be automatically managed.
-     * @param manageWaterlogged Whether the {@code waterlogged} property of the block should be automatically adjusted according to whether the existing block contains wate.
+     * @param manageWaterlogged Whether the {@code waterlogged} property of the block should be automatically adjusted according to whether the existing block contains water.
      */
     public static void placeBlock(MinecraftWorld world, int x, int y, int height, Material material, int leafDecayMode, boolean waterloggedLeaves, boolean connectBlocks, boolean manageWaterlogged) {
         if (material.leafBlock && (leafDecayMode != LEAF_DECAY_NO_CHANGE)) {
