@@ -151,7 +151,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
 
     public static final Platform JAVA_ANVIL_1_19 = new Platform(
             "org.pepsoft.anvil.1.19",
-            "Minecraft 1.19 or later",
+            "Minecraft 1.19 - 1.20.4",
             new int[] { 256, 320, 512, 1024, 1536, 2032 }, 320,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
             new int[] { 0, -64, -128, -256, -512, -1024, -2032 }, -64,
@@ -160,10 +160,24 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
             EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, NAMED_BIOMES, POPULATE, GENERATOR_PER_DIMENSION, LEAF_DISTANCES, WATERLOGGED_LEAVES, DATA_PACKS, BLOCK_MINECRAFT_LIGHT),
             ATTRIBUTE_MC_VERSION, new org.pepsoft.util.Version(1, 19),
-            ATTRIBUTE_EXPORT_DATA_VERSION, DATA_VERSION_MC_1_19_0);
+            ATTRIBUTE_EXPORT_DATA_VERSION, DATA_VERSION_MC_1_19_0,
+            ATTRIBUTE_LATEST_DATA_VERSION, DATA_VERSION_MC_1_20_4);
+
+    public static final Platform JAVA_ANVIL_1_20_5 = new Platform(
+            "org.pepsoft.anvil.1.20.5",
+            "Minecraft 1.20.5 or later",
+            new int[] { 256, 320, 512, 1024, 1536, 2032 }, 320,
+            Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
+            new int[] { 0, -64, -128, -256, -512, -1024, -2032 }, -64,
+            Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
+            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, AMPLIFIED, CUSTOM, NETHER, END),
+            Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
+            EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, NAMED_BIOMES, POPULATE, GENERATOR_PER_DIMENSION, LEAF_DISTANCES, WATERLOGGED_LEAVES, DATA_PACKS, BLOCK_MINECRAFT_LIGHT),
+            ATTRIBUTE_MC_VERSION, new org.pepsoft.util.Version(1, 20, 5),
+            ATTRIBUTE_EXPORT_DATA_VERSION, DATA_VERSION_MC_1_20_5);
 
     /**
      * The default set of Minecraft Java Edition-based platforms supported by WorldPainter, ordered by release date from old to new.
      */
-    public static List<Platform> DEFAULT_JAVA_PLATFORMS = ImmutableList.of(JAVA_MCREGION, JAVA_ANVIL, JAVA_ANVIL_1_15, JAVA_ANVIL_1_17, JAVA_ANVIL_1_18, JAVA_ANVIL_1_19);
+    public static List<Platform> DEFAULT_JAVA_PLATFORMS = ImmutableList.of(JAVA_MCREGION, JAVA_ANVIL, JAVA_ANVIL_1_15, JAVA_ANVIL_1_17, JAVA_ANVIL_1_18, JAVA_ANVIL_1_19, JAVA_ANVIL_1_20_5);
 }

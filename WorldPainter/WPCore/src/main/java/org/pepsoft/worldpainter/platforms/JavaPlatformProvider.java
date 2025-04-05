@@ -5,8 +5,8 @@ import org.jnbt.CompoundTag;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.minecraft.mapexplorer.JavaMapRootNode;
-import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.importing.JavaMapImporter;
 import org.pepsoft.worldpainter.importing.MapImporter;
@@ -217,7 +217,8 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
             JAVA_ANVIL_1_15, new Anvil1_15PlatformProvider(),
             JAVA_ANVIL_1_17, new Anvil1_17PlatformProvider(),
             JAVA_ANVIL_1_18, new Anvil1_18PlatformProvider(),
-            JAVA_ANVIL_1_19, new Anvil1_18PlatformProvider()
+            JAVA_ANVIL_1_19, new Anvil1_18PlatformProvider(),
+            JAVA_ANVIL_1_20_5, new Anvil1_18PlatformProvider()
     );
 
     public static final Icon ICON = new ImageIcon(scaleIcon(loadUnscaledImage("org/pepsoft/worldpainter/mapexplorer/maproot.png"), 16));

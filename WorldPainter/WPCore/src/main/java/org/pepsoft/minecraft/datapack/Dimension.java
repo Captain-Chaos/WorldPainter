@@ -7,10 +7,13 @@ import lombok.Builder;
 import lombok.Value;
 import org.pepsoft.worldpainter.Platform;
 
+import java.util.Map;
+
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_END;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_NETHER;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_17;
+import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_20_5;
 
 /**
  * Settings from official Caves and Cliffs Preview for Minecraft 1.17 from Mojang.
@@ -36,7 +39,10 @@ public class Dimension extends Descriptor {
     Integer fixedTime;
     @Builder.Default String effects = "#minecraft:overworld";
     int monsterSpawnBlockLightLimit;
-    @Builder.Default IntProvider monsterSpawnLightLevel = IntProvider.builder().type("minecraft:uniform").value(ImmutableMap.of("min_inclusive", 0, "max_inclusive", 7)).build();
+    Object monsterSpawnLightLevel;
+
+    private static final IntProvider MONSTER_SPAWN_LIGHT_LEVEL_PRE_1_20_4 = IntProvider.builder().type("minecraft:uniform").value(ImmutableMap.of("min_inclusive", 0, "max_inclusive", 7)).build();
+    private static final Map<String, Object> MONSTER_SPAWN_LIGHT_LEVEL_POST_1_20_5 = ImmutableMap.of("type", "minecraft:uniform", "min_inclusive", 0, "max_inclusive", 7);
 
     public static Dimension createDefault(Platform platform, int dim, int minHeight, int maxHeight) {
         switch (dim) {
@@ -47,6 +53,7 @@ public class Dimension extends Descriptor {
                         .minY(minHeight)
                         .height(maxHeight - minHeight)
                         .effects((platform == JAVA_ANVIL_1_17) ? "minecraft:overworld" : "#minecraft:overworld")
+                        .monsterSpawnLightLevel((platform == JAVA_ANVIL_1_20_5) ? MONSTER_SPAWN_LIGHT_LEVEL_POST_1_20_5 : MONSTER_SPAWN_LIGHT_LEVEL_PRE_1_20_4)
                         .build();
             case DIM_NETHER:
                 return builder()
@@ -65,6 +72,7 @@ public class Dimension extends Descriptor {
                         .fixedTime(18000)
                         .ambientLight(0.1f)
                         .effects((platform == JAVA_ANVIL_1_17) ? "minecraft:the_nether" : "#minecraft:the_nether")
+                        .monsterSpawnLightLevel((platform == JAVA_ANVIL_1_20_5) ? MONSTER_SPAWN_LIGHT_LEVEL_POST_1_20_5 : MONSTER_SPAWN_LIGHT_LEVEL_PRE_1_20_4)
                         .build();
             case DIM_END:
                 return builder()
@@ -77,6 +85,7 @@ public class Dimension extends Descriptor {
                         .hasSkylight(false)
                         .fixedTime(6000)
                         .effects((platform == JAVA_ANVIL_1_17) ? "minecraft:the_end" : "#minecraft:the_end")
+                        .monsterSpawnLightLevel((platform == JAVA_ANVIL_1_20_5) ? MONSTER_SPAWN_LIGHT_LEVEL_POST_1_20_5 : MONSTER_SPAWN_LIGHT_LEVEL_PRE_1_20_4)
                         .build();
             default:
                 throw new IllegalArgumentException("Unsupported dimension: " + dim);
