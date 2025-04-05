@@ -1,10 +1,11 @@
--- Version 2.24.0, released 16-02-2025
+-- Version 2.24.0, released 05-04-2025
 
  * Add Minecraft 1.21 support:
+    + Support version 1.20.5 and later with non standard height datapack
     + Add Pale Garden biome
     + Add support for Importing short_grass (note that short grass is still exported as minecraft:grass, in order to support older versions, since Minecraft appears to correct the name upon first loading chunks)
-    + Add hanging pale grass, eyeblossom and pale moss carpet plants
-    + Add pale moss block terrain type
+    + Add Hanging Pale Grass, Eyeblossom and Pale Moss Carpet plants
+    + Add Pale Moss Block terrain type
     + Add known properties of all new blocks
 
 -- Version 2.23.2, released 20-10-2024
