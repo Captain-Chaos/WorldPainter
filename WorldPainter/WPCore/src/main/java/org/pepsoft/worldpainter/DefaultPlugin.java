@@ -11,10 +11,12 @@ import org.pepsoft.worldpainter.plugins.AbstractPlugin;
 import org.pepsoft.worldpainter.plugins.ContextProvider;
 import org.pepsoft.worldpainter.plugins.LayerProvider;
 import org.pepsoft.worldpainter.util.MinecraftJarProvider;
+import org.pepsoft.worldpainter.vo.EventVO;
 
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -52,6 +54,11 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
     @Override
     public EventLogger getStatisticsRecorder() {
         return Configuration.getInstance();
+    }
+
+    @Override
+    public void addEventListener(String eventKey, Consumer<EventVO> eventListener) {
+        Configuration.getInstance().addEventListener(eventKey, eventListener);
     }
 
     @Override

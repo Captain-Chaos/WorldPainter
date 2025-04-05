@@ -29,9 +29,11 @@ import org.pepsoft.worldpainter.vo.EventVO;
 
 import java.awt.*;
 import java.io.*;
-import java.util.List;
 import java.util.*;
+import java.util.List;
+import java.util.function.Consumer;
 
+import static java.util.Objects.requireNonNull;
 import static org.pepsoft.minecraft.Constants.DEFAULT_MAX_HEIGHT_ANVIL;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.minecraft.Material.DIRT;
@@ -812,11 +814,27 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
 
     @Override
     public synchronized void logEvent(EventVO event) {
-        if (eventLog != null) {
+        if ((! event.isTransient()) && (eventLog != null)) {
             eventLog.add(event);
         }
+        final List<Consumer<EventVO>> eventListeners = this.eventListeners.get(event.getKey());
+        if (eventListeners != null) {
+            for (Consumer<EventVO> eventListener: eventListeners) {
+                try {
+                    eventListener.accept(event);
+                } catch (RuntimeException e) {
+                    logger.error("Event listener {} threw an exception while handling event {}", eventListener, event, e);
+                }
+            }
+        }
     }
-    
+
+    public synchronized void addEventListener(String eventKey, Consumer<EventVO> eventListener) {
+        requireNonNull(eventKey, "eventKey");
+        requireNonNull(eventListener, "eventListener");
+        eventListeners.computeIfAbsent(eventKey, key -> new LinkedList<>()).add(eventListener);
+    }
+
     public synchronized List<EventVO> getEventLog() {
         return copyOf(eventLog);
     }
@@ -851,7 +869,9 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
 
+        // Set transient fields
         previousVersion = version;
+        eventListeners = new HashMap<>();
         
         // Legacy config
         if ((border != null) && (border2 == null)) {
@@ -1308,9 +1328,10 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
      */
     private transient AccelerationType accelerationType;
 
-    // Runtime settings which aren't stored on disk
+    // Runtime settings and state which aren't stored on disk
     private transient boolean autosaveInhibited, safeMode;
     private transient int previousVersion = -1;
+    private transient Map<String, List<Consumer<EventVO>>> eventListeners = new HashMap<>();
 
     private static Configuration instance;
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Configuration.class);
