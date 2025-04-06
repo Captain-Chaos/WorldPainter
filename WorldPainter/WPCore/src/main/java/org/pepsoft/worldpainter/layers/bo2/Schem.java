@@ -32,12 +32,12 @@ public final class Schem extends AbstractNBTItem implements WPObject {
     @SuppressWarnings("unchecked") // Guaranteed by Minecraft
     public Schem(CompoundTag tag, String fallBackName) {
         super(tag);
-        final int version = getInt(TAG_VERSION);
-        final StringTag nameTag = (getMap(TAG_METADATA) != null) ? (StringTag) getMap(TAG_METADATA).get(TAG_NAME) : null;
+        int version = getInt(TAG_VERSION);
+        StringTag nameTag = (getMap(TAG_METADATA) != null) ? (StringTag) getMap(TAG_METADATA).get(TAG_NAME) : null;
         this.name = (nameTag != null) ? nameTag.getValue() : fallBackName;
-        width = getShort(TAG_WIDTH);
-        height = getShort(TAG_HEIGHT);
-        length = getShort(TAG_LENGTH);
+        int width1 = getShort(TAG_WIDTH);
+        int height1 = getShort(TAG_HEIGHT);
+        int length1 = getShort(TAG_LENGTH);
 
         final Map<String, Tag> paletteMap;
         final Tag blockDataTag;
@@ -65,19 +65,34 @@ public final class Schem extends AbstractNBTItem implements WPObject {
                 removeTag(TAG_BLOCK_ENTITIES);
                 removeTag(TAG_ENTITIES);
                 break;
-            case 3:
-                final CompoundTag blocksTag = (CompoundTag) getTag(TAG_BLOCKS);
-                paletteMap = ((CompoundTag) blocksTag.getTag(TAG_PALETTE)).getValue();
-                blockDataTag = blocksTag.getTag(TAG_DATA);
-                tileEntitiesTag = blocksTag.getTag(TAG_BLOCK_ENTITIES);
-                entitiesTag = getTag(TAG_ENTITIES);
-                // Save memory
-                removeTag(TAG_BLOCKS);
-                removeTag(TAG_ENTITIES);
-                break;
             default:
-                throw new IllegalArgumentException("Schem version " + version + " not supported");
+                final Map<String, Tag> schem3 = getMap(TAG_SCHEMATIC_V3);
+                if(schem3 != null){
+                    version = ((IntTag)schem3.get(TAG_VERSION)).getValue();
+                    CompoundTag matadata = (CompoundTag)schem3.get(TAG_METADATA);
+                    nameTag = (matadata != null) ? (StringTag) matadata.getTag(TAG_NAME) : null;
+                    this.name = (nameTag != null) ? nameTag.getValue() : fallBackName;
+                    width1 = ((ShortTag)schem3.get(TAG_WIDTH)).getValue();
+                    height1 = ((ShortTag)schem3.get(TAG_HEIGHT)).getValue();
+                    length1 = ((ShortTag)schem3.get(TAG_LENGTH)).getValue();
+
+                    CompoundTag blocksTag = (CompoundTag) schem3.get(TAG_BLOCKS);
+                    paletteMap = ((CompoundTag) blocksTag.getTag(TAG_PALETTE)).getValue();
+                    blockDataTag = blocksTag.getTag(TAG_DATA);
+                    tileEntitiesTag = blocksTag.getTag(TAG_BLOCK_ENTITIES);
+                    entitiesTag = schem3.get(TAG_ENTITIES);
+
+                    removeTag(TAG_PALETTE);
+                    removeTag(TAG_BLOCK_DATA);
+                    removeTag(TAG_BLOCK_ENTITIES);
+                    removeTag(TAG_ENTITIES);
+                }else
+                    throw new IllegalArgumentException("Schem version " + version + " not supported");
         }
+
+        width = width1;
+        height = height1;
+        length= length1;
 
         final List<Material> paletteList = new DynamicList<>();
         paletteMap.forEach((key, value) -> {
@@ -249,7 +264,7 @@ public final class Schem extends AbstractNBTItem implements WPObject {
         if (p != -1) {
             name = str.substring(0, p);
             properties = Arrays.stream(str.substring(p + 1, str.length() - 1)
-                    .split(","))
+                            .split(","))
                     .map(String::trim)
                     .collect(toMap(s -> s.substring(0, s.indexOf('=')).trim(),
                             s -> s.substring(s.indexOf('=') + 1).trim()));
@@ -352,6 +367,7 @@ public final class Schem extends AbstractNBTItem implements WPObject {
     private static final String TAG_NAME = "Name";
     private static final String TAG_BLOCK_DATA = "BlockData";
     private static final String TAG_BLOCK_ENTITIES = "BlockEntities";
+    private static final String TAG_SCHEMATIC_V3 = "Schematic";
 
     private static final long serialVersionUID = 1L;
 }
