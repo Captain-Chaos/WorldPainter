@@ -22,6 +22,8 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Tile;
 import org.pepsoft.worldpainter.layers.Layer;
 
+import java.awt.*;
+
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_MASK;
 
@@ -48,8 +50,8 @@ public class NibbleLayerPaint extends LayerPaint {
             applyPixel(dimension, centreX, centreY);
             return;
         }
-        final int effectiveRadius = brush.getEffectiveRadius();
-        final int x1 = centreX - effectiveRadius, y1 = centreY - effectiveRadius, x2 = centreX + effectiveRadius, y2 = centreY + effectiveRadius;
+        final Rectangle boundingBox = brush.getBoundingBox();
+        final int x1 = centreX + boundingBox.x, y1 = centreY + boundingBox.y, x2 = x1 + boundingBox.width - 1, y2 = y1 + boundingBox.height - 1;
         final int tileX1 = x1 >> TILE_SIZE_BITS, tileY1 = y1 >> TILE_SIZE_BITS, tileX2 = x2 >> TILE_SIZE_BITS, tileY2 = y2 >> TILE_SIZE_BITS;
         if ((tileX1 == tileX2) && (tileY1 == tileY2)) {
             // The bounding box of the brush is entirely on one tile; optimize by painting directly to the tile
@@ -96,8 +98,8 @@ public class NibbleLayerPaint extends LayerPaint {
             removePixel(dimension, centreX, centreY);
             return;
         }
-        final int effectiveRadius = brush.getEffectiveRadius();
-        final int x1 = centreX - effectiveRadius, y1 = centreY - effectiveRadius, x2 = centreX + effectiveRadius, y2 = centreY + effectiveRadius;
+        final Rectangle boundingBox = brush.getBoundingBox();
+        final int x1 = centreX + boundingBox.x, y1 = centreY + boundingBox.y, x2 = x1 + boundingBox.width - 1, y2 = y1 + boundingBox.height - 1;
         final int tileX1 = x1 >> TILE_SIZE_BITS, tileY1 = y1 >> TILE_SIZE_BITS, tileX2 = x2 >> TILE_SIZE_BITS, tileY2 = y2 >> TILE_SIZE_BITS;
         if ((tileX1 == tileX2) && (tileY1 == tileY2)) {
             // The bounding box of the brush is entirely on one tile; optimize by painting directly to the tile

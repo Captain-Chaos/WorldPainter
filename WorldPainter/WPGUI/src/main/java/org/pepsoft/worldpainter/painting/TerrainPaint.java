@@ -23,6 +23,7 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.Tile;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
@@ -55,8 +56,8 @@ public final class TerrainPaint extends AbstractPaint {
             applyPixel(dimension, centreX, centreY);
             return;
         }
-        final int effectiveRadius = brush.getEffectiveRadius();
-        final int x1 = centreX - effectiveRadius, y1 = centreY - effectiveRadius, x2 = centreX + effectiveRadius, y2 = centreY + effectiveRadius;
+        final Rectangle boundingBox = brush.getBoundingBox();
+        final int x1 = centreX + boundingBox.x, y1 = centreY + boundingBox.y, x2 = x1 + boundingBox.width - 1, y2 = y1 + boundingBox.height - 1;
         final int tileX1 = x1 >> TILE_SIZE_BITS, tileY1 = y1 >> TILE_SIZE_BITS, tileX2 = x2 >> TILE_SIZE_BITS, tileY2 = y2 >> TILE_SIZE_BITS;
         if ((tileX1 == tileX2) && (tileY1 == tileY2)) {
             // The bounding box of the brush is entirely on one tile; optimize by painting directly to the tile
@@ -117,8 +118,8 @@ public final class TerrainPaint extends AbstractPaint {
             removePixel(dimension, centreX, centreY);
             return;
         }
-        final int effectiveRadius = brush.getEffectiveRadius();
-        final int x1 = centreX - effectiveRadius, y1 = centreY - effectiveRadius, x2 = centreX + effectiveRadius, y2 = centreY + effectiveRadius;
+        final Rectangle boundingBox = brush.getBoundingBox();
+        final int x1 = centreX + boundingBox.x, y1 = centreY + boundingBox.y, x2 = x1 + boundingBox.width - 1, y2 = y1 + boundingBox.height - 1;
         // Can't optimise by painting directly to tile, because Tile doesn't have the applyTheme() method
         if (dither) {
             for (int y = y1; y <= y2; y++) {

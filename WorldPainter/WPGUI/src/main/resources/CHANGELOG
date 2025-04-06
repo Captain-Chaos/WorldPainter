@@ -1,12 +1,17 @@
+-- Version 2.24.1, released ...
+
+ * Increase performance of the Pencil tool with large brushes or long lines
+   + Because of this change, the Pencil tool can now only draw lines with the default circular brushes. If you have a non-circular brush selected the tool will automatically use a solid circle of the same size
+
 -- Version 2.24.0, released 05-04-2025
 
  * Add Minecraft 1.21 support:
-    + Support version 1.20.5 and later with non standard height datapack
-    + Add Pale Garden biome
-    + Add support for Importing short_grass (note that short grass is still exported as minecraft:grass, in order to support older versions, since Minecraft appears to correct the name upon first loading chunks)
-    + Add Hanging Pale Grass, Eyeblossom and Pale Moss Carpet plants
-    + Add Pale Moss Block terrain type
-    + Add known properties of all new blocks
+   + Support version 1.20.5 and later with non standard height datapack
+   + Add Pale Garden biome
+   + Add support for Importing short_grass (note that short grass is still exported as minecraft:grass, in order to support older versions, since Minecraft appears to correct the name upon first loading chunks)
+   + Add Hanging Pale Grass, Eyeblossom and Pale Moss Carpet plants
+   + Add Pale Moss Block terrain type
+   + Add known properties of all new blocks
 
 -- Version 2.23.2, released 20-10-2024
 

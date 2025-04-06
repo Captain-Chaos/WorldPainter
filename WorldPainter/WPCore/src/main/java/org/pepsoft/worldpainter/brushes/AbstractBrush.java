@@ -4,6 +4,8 @@
  */
 package org.pepsoft.worldpainter.brushes;
 
+import java.awt.*;
+
 /**
  *
  * @author pepijn
@@ -24,13 +26,25 @@ public abstract class AbstractBrush implements Brush, Cloneable {
     }
 
     @Override
+    public Rectangle getBoundingBox() {
+        final int effectiveRadius = getEffectiveRadius();
+        if (effectiveRadius != -boundingBox.getX()) {
+            boundingBox.setBounds(-effectiveRadius, -effectiveRadius, (2 * effectiveRadius) + 1, (2 * effectiveRadius) + 1);
+        }
+        return boundingBox;
+    }
+
+    @Override
     public AbstractBrush clone() {
         try {
-            return (AbstractBrush) super.clone();
+            final AbstractBrush clone = (AbstractBrush) super.clone();
+            clone.boundingBox = (Rectangle) boundingBox.clone();
+            return clone;
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
     }
     
     private final String name;
+    private Rectangle boundingBox = new Rectangle();
 }

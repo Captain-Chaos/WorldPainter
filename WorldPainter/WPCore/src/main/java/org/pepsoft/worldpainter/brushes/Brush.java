@@ -4,6 +4,8 @@
  */
 package org.pepsoft.worldpainter.brushes;
 
+import java.awt.*;
+
 /**
  *
  * @author pepijn
@@ -62,6 +64,11 @@ public interface Brush {
      * @return The radius of the bounding box of the brush.
      */
     int getEffectiveRadius();
+
+    /**
+     * Get the bounding box of the brush, relative to its center.
+     */
+    Rectangle getBoundingBox();
 
     /**
      * Get the current level of the brush.
