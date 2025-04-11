@@ -90,6 +90,7 @@ public final class Constants {
     public static final String EVENT_KEY_ACTION_MERGE_WORLD       = "action.mergeWorld";
     public static final String EVENT_KEY_ACTION_OPEN_WORLD        = "action.openWorld";
     public static final String EVENT_KEY_ACTION_SAVE_WORLD        = "action.saveWorld";
+    public static final String EVENT_KEY_ACTION_AUTOSAVE_WORLD    = "action.autosaveWorld";
     public static final String EVENT_KEY_ACTION_MIGRATE_WORLD     = "action.migrateWorld";
     public static final String EVENT_KEY_ACTION_MIGRATE_HEIGHT    = "action.migrateHeight";
     public static final String EVENT_KEY_ACTION_MIGRATE_ROTATION  = "action.migrateRotation";

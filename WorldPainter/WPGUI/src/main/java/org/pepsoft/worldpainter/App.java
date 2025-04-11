@@ -2469,6 +2469,10 @@ public final class App extends JFrame implements RadiusControl,
 
             lastSaveTimestamp = lastChangeTimestamp = System.currentTimeMillis();
             lastAutosavedState = world.getChangeNo();
+
+            // Log an event
+            final EventVO event = new EventVO(EVENT_KEY_ACTION_AUTOSAVE_WORLD).addTimestamp().setTransient();
+            Configuration.getInstance().logEvent(event);
         } catch (RuntimeException | Error e) {
             logger.error("An exception occurred while trying to autosave world", e);
             beepAndShowWarning(this, "An error occurred while trying to autosave the world.\n" +
