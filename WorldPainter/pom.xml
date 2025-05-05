@@ -122,7 +122,7 @@
 
         <!-- Core dependencies -->
         <pepsoft.utils.version>1.1.2-SNAPSHOT</pepsoft.utils.version>
-        <pepsoft.swingutils.version>1.2.2</pepsoft.swingutils.version>
+        <pepsoft.swingutils.version>1.2.3</pepsoft.swingutils.version>
         <pepsoft.jnbt.version>1.0.0</pepsoft.jnbt.version>
         <wp.valueobjects.version>1.2.0</wp.valueobjects.version>
         <jetbrains.annotations.version>24.0.1</jetbrains.annotations.version>
