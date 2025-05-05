@@ -101,6 +101,14 @@ public interface ChunkFactory {
          */
         FIXUPS("Fixups", "Fixing up region boundaries");
 
+        public String getName() {
+            return name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
         private final String name, description;
 
         Stage(String name, String description) {

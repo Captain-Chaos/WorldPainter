@@ -18,6 +18,7 @@ import org.pepsoft.util.Version;
 import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.exporting.WorldExportSettings;
 import org.pepsoft.worldpainter.exporting.WorldExporter;
+import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.pepsoft.worldpainter.util.FileInUseException;
 
@@ -29,7 +30,9 @@ import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
+import static java.util.Comparator.comparingLong;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.ExceptionUtils.chainContains;
 import static org.pepsoft.worldpainter.Constants.V_1_17;
@@ -110,6 +113,21 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
             ChunkFactory.Stats stats = result.get(result.keySet().iterator().next());
             sb.append("<br><br>Statistics:<br>");
             dumpStats(sb, stats, world.getMaxHeight() - world.getMinHeight());
+            if ((stats.timings != null) && (! stats.timings.isEmpty())) {
+                sb.append("<br>Three longest stages (preview of timings feature):");
+                sb.append("<table><tr><th>Stage</th><th>Description</th><th>Duration</th></tr>");
+                stats.timings.entrySet().stream()
+                        .sorted(comparingLong((Map.Entry<Object, AtomicLong> entry) -> entry.getValue().longValue()).reversed())
+                        .limit(3)
+                        .forEach(entry -> sb.append("<tr><td>")
+                                .append(formatTimingLabel(entry.getKey()))
+                                .append("</td><td>")
+                                .append(formatTimingDescription(entry.getKey()))
+                                .append("</td><td>")
+                                .append(formatTimingValue(entry.getValue().longValue()))
+                                .append("</td></tr>"));
+                sb.append("</table><br>");
+            }
         } else {
             for (Map.Entry<Integer, ChunkFactory.Stats> entry: result.entrySet()) {
                 final int dim = entry.getKey();
@@ -206,11 +224,36 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
             }
         }
     }
-    
+
+    private String formatTimingLabel(Object label) {
+        if (label instanceof Layer) {
+            return ((Layer) label).getName();
+        } else if (label instanceof ChunkFactory.Stage) {
+            return ((ChunkFactory.Stage) label).getName();
+        } else {
+            return label.toString();
+        }
+    }
+
+    private String formatTimingDescription(Object label) {
+        if (label instanceof Layer) {
+            return ((Layer) label).getDescription();
+        } else if (label instanceof ChunkFactory.Stage) {
+            return ((ChunkFactory.Stage) label).getDescription();
+        } else {
+            return "";
+        }
+    }
+
+    private String formatTimingValue(long value) {
+        return formatter.format(value / 1000000000L) + " s";
+    }
+
     private final World2 world;
     private final String name, acknowledgedWarnings;
     private final File baseDir;
     private final WorldExportSettings exportSettings;
+    private final NumberFormat formatter = NumberFormat.getIntegerInstance();
     private volatile File backupDir;
     private volatile boolean allowRetry = false;
     
