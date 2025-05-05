@@ -2,6 +2,9 @@
 
  * Increase performance of the Pencil tool with large brushes or long lines
    + Because of this change, the Pencil tool can now only draw lines with the default circular brushes. If you have a non-circular brush selected the tool will automatically use a solid circle of the same size
+ * Added a new Global Operation: change terrain height
+   + You can raise (which will only affect lower ground), lower (only affects higher ground) or set the terrain height to a particular height
+   + Like the other operations, you can apply this everywhere, or use the filter to apply it only to the selection, or some other condition
 
 -- Version 2.24.0, released 05-04-2025
 

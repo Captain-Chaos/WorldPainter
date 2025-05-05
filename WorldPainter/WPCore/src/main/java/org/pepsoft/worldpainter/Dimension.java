@@ -1274,6 +1274,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
+    /**
+     * Get the <em>inclusive</em> lower bound of the terrain height range for this dimension.
+     */
     public int getMinHeight() {
         return minHeight;
     }
@@ -1287,6 +1290,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
+    /**
+     * Get the <em>exclusive</em> upper bound of the terrain height range for this dimension.
+     */
     public int getMaxHeight() {
         return maxHeight;
     }
