@@ -1,4 +1,4 @@
--- Version 2.24.1, released ...
+-- Version 2.24.1, released 05-05-2025
 
  * Increase performance of the Pencil tool with large brushes or long lines by adding new fast mode
    + In fast mode, the Pencil tool can only draw lines with the default circular brushes. If you have a non-circular brush selected the tool will automatically use a solid circle of the same size
