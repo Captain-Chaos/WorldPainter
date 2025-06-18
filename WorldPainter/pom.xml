@@ -3,7 +3,7 @@
 
     <groupId>org.pepsoft.worldpainter</groupId>
     <artifactId>WorldPainter</artifactId>
-    <version>2.24.1-SNAPSHOT</version>
+    <version>2.24.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>WorldPainter</name>
@@ -121,8 +121,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Core dependencies -->
-        <pepsoft.utils.version>1.1.2-SNAPSHOT</pepsoft.utils.version>
-        <pepsoft.swingutils.version>1.2.2</pepsoft.swingutils.version>
+        <pepsoft.utils.version>1.1.2</pepsoft.utils.version>
+        <pepsoft.swingutils.version>1.2.3</pepsoft.swingutils.version>
         <pepsoft.jnbt.version>1.0.0</pepsoft.jnbt.version>
         <wp.valueobjects.version>1.2.0</wp.valueobjects.version>
         <jetbrains.annotations.version>24.0.1</jetbrains.annotations.version>

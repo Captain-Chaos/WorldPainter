@@ -460,7 +460,7 @@ public class PreferencesDialog extends WorldPainterDialog {
             if ((currentGameType != null) && supportedGameTypes.contains(currentGameType)) {
                 comboBoxMode.setSelectedItem(currentGameType);
             }
-            checkBoxChestOfGoodies.setEnabled((platform != JAVA_ANVIL_1_15) && (platform != JAVA_ANVIL_1_17));
+            checkBoxChestOfGoodies.setEnabled((platform != JAVA_ANVIL_1_15) && (platform != JAVA_ANVIL_1_17)); // TODO why?!?!
             checkBoxExtendedBlockIds.setEnabled(platform.capabilities.contains(BLOCK_BASED) && (!platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION));
             try {
                 resizeDimension(defaultTerrainAndLayerSettings, newMinHeight, newMaxHeight, IDENTITY, true, null);
@@ -499,7 +499,7 @@ public class PreferencesDialog extends WorldPainterDialog {
         comboBoxHeight.setModel(new DefaultComboBoxModel<>(supportedMaxHeights.toArray(new Integer[0])));
         final List<GameType> supportedGameTypes = platform.supportedGameTypes;
         comboBoxMode.setModel(new DefaultComboBoxModel<>(supportedGameTypes.toArray(new GameType[0])));
-        checkBoxChestOfGoodies.setEnabled((platform != JAVA_ANVIL_1_15) && (platform != JAVA_ANVIL_1_17));
+        checkBoxChestOfGoodies.setEnabled((platform != JAVA_ANVIL_1_15) && (platform != JAVA_ANVIL_1_17)); // TODO why?!?!
         checkBoxExtendedBlockIds.setEnabled(platform.capabilities.contains(BLOCK_BASED) && (!platform.capabilities.contains(NAME_BASED)) && (platform != JAVA_MCREGION));
 
         // Check whether this platform supports the current default export settings (or any export settings)

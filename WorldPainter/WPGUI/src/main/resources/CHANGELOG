@@ -1,7 +1,17 @@
--- Version 2.24.1, released ...
+-- Version 2.24.1, released 05-05-2025
 
- * Increase performance of the Pencil tool with large brushes or long lines
-   + Because of this change, the Pencil tool can now only draw lines with the default circular brushes. If you have a non-circular brush selected the tool will automatically use a solid circle of the same size
+ * Increase performance of the Pencil tool with large brushes or long lines by adding new fast mode
+   + In fast mode, the Pencil tool can only draw lines with the default circular brushes. If you have a non-circular brush selected the tool will automatically use a solid circle of the same size
+   + Fast mode is the default, but you can switch to slow mode on the Tool Settings panel for the Pencil tool
+   + Slow mode is the old painting mode, which may hang or even crash the program if you try to draw lines too wide, long or fast, because it tries the paint the full brush shape along every pixel of the line; that does mean that the result is pixel perfect
+ * Added a new Global Operation: change terrain height
+   + You can raise (which will only affect lower ground), lower (only affects higher ground) or set the terrain height to a particular height
+   + Like the other operations, you can apply this everywhere, or use the filter to apply it only to the selection, or some other condition
+ * Preview of timings feature added
+   + WorldPainter keeps track of how long it takes to perform individual Export stages and Layers
+   + In this preview, the three longest stages or layers will be shown in the summary after the Export is finished
+   + An upcoming release will display the timings in more detail
+ * Bug fix: prevent a UI scaling error from crashing the program
 
 -- Version 2.24.0, released 05-04-2025
 

@@ -61,7 +61,7 @@ public class Pencil extends AbstractPaintOperation {
                             centreX = snappedCoords[0];
                             centreY = snappedCoords[1];
                         }
-                        painter.drawLine(dimension, previousX, previousY, centreX, centreY);
+                        painter.drawLine(dimension, previousX, previousY, centreX, centreY, fastMode);
                     }
                     inhibitDrag = true;
                 } else {
@@ -87,7 +87,7 @@ public class Pencil extends AbstractPaintOperation {
                     if ((Math.abs(centreX - previousX) <= 1) && (Math.abs(centreY - previousY) <= 1)) {
                         painter.drawPoint(dimension, centreX, centreY);
                     } else {
-                        painter.drawLine(dimension, previousX, previousY, centreX, centreY);
+                        painter.drawLine(dimension, previousX, previousY, centreX, centreY, fastMode);
                     }
                     previousX = centreX;
                     previousY = centreY;
@@ -189,24 +189,34 @@ public class Pencil extends AbstractPaintOperation {
 
     @Override
     public JPanel getOptionsPanel() {
-        return OPTIONS_PANEL;
+        return optionsPanel;
     }
 
     private final DimensionPainter painter = new DimensionPainter();
     private int previousX = Integer.MIN_VALUE, previousY = Integer.MIN_VALUE, lockedX = Integer.MIN_VALUE, lockedY = Integer.MIN_VALUE;
     private Axis lockedAxis;
-    private boolean inhibitDrag;
+    private boolean inhibitDrag, fastMode = true;
 
     enum Axis {W_E, NW_SE, N_S, NE_SW}
 
-    private static final JPanel OPTIONS_PANEL = new StandardOptionsPanel("Pencil", "<p>With the left mouse button do the following to apply the currently selected paint:\n" +
-            "<ul><li>Drag for freeform lines\n" +
+    private final StandardOptionsPanel optionsPanel = new StandardOptionsPanel("Pencil", "<ul><li>Drag for freeform lines\n" +
             "<li>Click for dots\n" +
-            "<li>Shift+click for straight lines from last dot or end of last line\n" +
-            "<li>Hold Ctrl to constrain to 45 degree angles</ul>\n" +
-            "<p>Use the right mouse button instead, to:\n" +
-            "<ul><li>With a Layer selected: remove the layer\n" +
-            "<li>With a Terrain selected: reset to the current theme\n" +
-            "<li>With a Biome selected: reset to Auto Biome" +
-            "</ul>");
+            "<li>Shift+click for straight lines\n" +
+            "<li>Hold Ctrl for 45 degree angles</ul>\n" +
+            "<p>Right mouse button undoes.\n") {
+        @Override
+        protected void addAdditionalComponents(GridBagConstraints constraints) {
+            final ButtonGroup buttonGroup = new ButtonGroup();
+            final JRadioButton buttonFast = new JRadioButton("Fast mode", true);
+            buttonFast.addActionListener(event -> fastMode = true);
+            buttonGroup.add(buttonFast);
+            add(buttonFast, constraints);
+            add(new JLabel("<html><em>Much faster but only supports circular brushes for lines</em></html>"), constraints);
+            final JRadioButton buttonSlow = new JRadioButton("Slow mode");
+            buttonSlow.addActionListener(event -> fastMode = false);
+            buttonGroup.add(buttonSlow);
+            add(buttonSlow, constraints);
+            add(new JLabel("<html><em>Very slow but accurate</em></html>"), constraints);
+        }
+    };
 }
