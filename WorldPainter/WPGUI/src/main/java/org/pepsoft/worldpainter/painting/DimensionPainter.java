@@ -131,6 +131,12 @@ public final class DimensionPainter {
     public void drawLine(Dimension dimension, int x1, int y1, int x2, int y2, float dynamicLevel, boolean fast) {
         final int dx = Math.abs(x2 - x1);
         final int dy = Math.abs(y2 - y1);
+        if (fast && (paint.getBrush().getRadius() == 0)) {
+            // Special case: if the radius is 0, assume that the user wants to paint complete pixels instead of trying
+            // to apply the brush. The LineBrush is not good at that, and also not faster than slow mode in this case,
+            // so fall back to slow mode
+            fast = false;
+        }
         if (dx < dy) {
             // Mostly vertical; go from top to bottom
             // Normalise the endpoints
