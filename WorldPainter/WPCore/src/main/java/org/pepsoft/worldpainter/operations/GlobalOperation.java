@@ -16,7 +16,7 @@ import org.pepsoft.worldpainter.WorldPainterView;
 public interface GlobalOperation extends Operation {
     /**
      * Invoked when the user presses the tool button for this operation. Will be invoked on the event thread. It may
-     * block, as long as it keeps processing evens, e.g. by showing a dialog window.
+     * block, as long as it keeps processing events, e.g. by showing a dialog window.
      *
      * <p>To obtain a window to use as parent for such a dialog, the implementation may use the view that was set
      * earlier by invoking {@link #setView(WorldPainterView)}:
@@ -29,7 +29,7 @@ public interface GlobalOperation extends Operation {
      *
      * <strong>Note</strong>: it is <em>strongly</em> recommended that if the operation opens windows, that it be
      * application modal windows so that the user cannot perform any other actions while it is open. Otherwise, the
-     * potential for confusion and problems by mulitple windows being open, or windows remaining open containing state
+     * potential for confusion and problems by multiple windows being open, or windows remaining open containing state
      * belonging to dimensions or worlds which have already been closed, is great.
      */
     void invoke();
