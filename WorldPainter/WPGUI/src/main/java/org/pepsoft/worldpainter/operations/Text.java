@@ -18,6 +18,7 @@ import java.awt.*;
 public class Text extends AbstractBrushOperation implements PaintOperation {
     public Text(WorldPainterView view) {
         super("Text", "Draw text using any layer or terrain at different sizes, fonts and angles", view, "operation.text");
+        hideBrush();
     }
 
     @Override

@@ -19,6 +19,7 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 public class Fill extends AbstractBrushOperation implements PaintOperation {
     public Fill(WorldPainterView view) {
         super("Fill", "Flood fill an area of the world with any kind of layer or terrain", view, "operation.fill");
+        hideBrush();
     }
 
     @Override

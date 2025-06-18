@@ -3,6 +3,8 @@ package org.pepsoft.worldpainter.operations;
 import org.pepsoft.worldpainter.WorldPainterView;
 import org.pepsoft.worldpainter.brushes.Brush;
 
+import java.beans.PropertyVetoException;
+
 /**
  * An operation which needs access to the current brush.
  *
@@ -59,9 +61,35 @@ public abstract class AbstractBrushOperation extends MouseOrTabletOperation impl
         }
     }
 
+    @Override
+    protected void activate() throws PropertyVetoException {
+        super.activate();
+        if (getView() != null) {
+            getView().setDrawBrush(! hideBrush);
+        }
+    }
+
+    @Override
+    protected void deactivate() {
+        super.deactivate();
+        if ((! hideBrush) && (getView() != null)) {
+            getView().setDrawBrush(false);
+        }
+    }
+
     protected void brushChanged(Brush newBrush) {
         // Do nothing
     }
 
+    protected final void hideBrush() {
+        if (! hideBrush) {
+            hideBrush = true;
+            if (getView() != null) {
+                getView().setDrawBrush(false);
+            }
+        }
+    }
+
     private Brush brush;
+    private boolean hideBrush = false;
 }
