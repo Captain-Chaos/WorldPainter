@@ -33,6 +33,7 @@ import org.pepsoft.worldpainter.WorldPainterView;
 import org.pepsoft.worldpainter.brushes.Brush;
 
 import javax.swing.*;
+import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 
 /**
@@ -115,8 +116,8 @@ public abstract class RadiusOperation extends AbstractBrushOperation implements 
         this.mapDragControl = view.getMapDragControl();
     }
 
-    public final int getEffectiveRadius() {
-        return (getBrush() != null) ? getBrush().getEffectiveRadius() : radius;
+    public final Rectangle getBoundingBox() {
+        return getBrush().getBoundingBox();
     }
 
     public final void setRadius(int radius) {

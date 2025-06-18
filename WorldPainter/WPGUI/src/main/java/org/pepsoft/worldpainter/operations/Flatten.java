@@ -10,6 +10,7 @@ import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.WorldPainter;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  *
@@ -43,12 +44,12 @@ public class Flatten extends RadiusOperation {
         }
         dimension.setEventsInhibited(true);
         try {
-            int radius = getEffectiveRadius();
-            boolean applyTheme = options.isApplyTheme();
-            for (int x = centreX - radius; x <= centreX + radius; x++) {
-                for (int y = centreY - radius; y <= centreY + radius; y++) {
-                    float currentHeight = dimension.getHeightAt(x, y);
-                    float strength = dynamicLevel * getStrength(centreX, centreY, x, y);
+            final Rectangle boundingBox = getBoundingBox();
+            final boolean applyTheme = options.isApplyTheme();
+            for (int x = centreX + boundingBox.x; x < centreX + boundingBox.x + boundingBox.width; x++) {
+                for (int y = centreY + boundingBox.y; y < centreY + boundingBox.y + boundingBox.height; y++) {
+                    final float currentHeight = dimension.getHeightAt(x, y);
+                    final float strength = dynamicLevel * getStrength(centreX, centreY, x, y);
                     if (strength > 0.0f) {
                         float newHeight = strength * targetHeight  + (1f - strength) * currentHeight;
                         dimension.setHeightAt(x, y, newHeight);

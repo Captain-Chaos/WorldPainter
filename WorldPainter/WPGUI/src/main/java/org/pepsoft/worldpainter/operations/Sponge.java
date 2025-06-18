@@ -11,6 +11,7 @@ import org.pepsoft.worldpainter.WorldPainterView;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  *
@@ -44,9 +45,9 @@ public class Sponge extends RadiusOperation {
         }
         dimension.setEventsInhibited(true);
         try {
-            final int radius = getEffectiveRadius();
-            for (int dx = -radius; dx <= radius; dx++) {
-                for (int dy = -radius; dy <= radius; dy++) {
+            final Rectangle boundingBox = getBoundingBox();
+            for (int dx = boundingBox.x; dx < boundingBox.x + boundingBox.width; dx++) {
+                for (int dy = boundingBox.y; dy < boundingBox.y + boundingBox.height; dy++) {
                     if (getStrength(centreX, centreY, centreX + dx, centreY + dy) != 0f) {
                         if (inverse) {
                             if (waterHeight != -1) {

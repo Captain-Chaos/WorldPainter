@@ -12,6 +12,9 @@ import org.pepsoft.worldpainter.brushes.Brush;
 
 import javax.swing.*;
 
+import java.awt.*;
+
+import static org.pepsoft.util.MathUtils.clamp;
 import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
 
 /**
@@ -40,18 +43,13 @@ public class RaiseMountain extends RadiusOperation {
         }
         final float adjustment = (float) Math.pow(getLevel() * dynamicLevel * 2, 2.0);
         final int minZ = dimension.getMinHeight(), maxRange = dimension.getMaxHeight() - 1 - minZ;
-        float peakHeight = dimension.getHeightAt(centreX + peakDX, centreY + peakDY) - minZ + (inverse ? -adjustment : adjustment);
-        if (peakHeight < 0) {
-            peakHeight = 0;
-        } else if (peakHeight > maxRange) {
-            peakHeight = maxRange;
-        }
+        final float peakHeight = clamp(0, dimension.getHeightAt(centreX + peakDX, centreY + peakDY) - minZ + (inverse ? -adjustment : adjustment), maxRange);
         dimension.setEventsInhibited(true);
         try {
-            final int radius = getEffectiveRadius();
+            final Rectangle boundingBox = getBoundingBox();
             final boolean applyTheme = options.isApplyTheme();
-            for (int x = centreX - radius; x <= centreX + radius; x++) {
-                for (int y = centreY - radius; y <= centreY + radius; y++) {
+            for (int x = centreX + boundingBox.x; x < centreX + boundingBox.x + boundingBox.width; x++) {
+                for (int y = centreY + boundingBox.x; y < centreY + boundingBox.x + boundingBox.width; y++) {
                     final float currentHeight = dimension.getHeightAt(x, y);
                     final float targetHeight = getTargetHeight(minZ, maxRange, centreX, centreY, x, y, peakHeight, inverse);
                     if (inverse ? (targetHeight < currentHeight) : (targetHeight > currentHeight)) {
@@ -78,7 +76,7 @@ public class RaiseMountain extends RadiusOperation {
 
         // Some calculations to support brushes where the centre point is not
         // the brightest point and/or where the brightest point is less than 1.0
-        final int radius = getEffectiveRadius();
+        final Rectangle boundingBox = getBoundingBox();
         float strength = brush.getFullStrength(0, 0);
         if (strength == 1.0f) {
             peakDX = 0;
@@ -88,45 +86,12 @@ public class RaiseMountain extends RadiusOperation {
             return;
         }
         float highestStrength = 0.0f;
-        for (int r = 1; r <= radius; r++) {
-            for (int i = -r + 1; i <= r; i++) {
-                strength = brush.getFullStrength(i, -r);
+        for (int dx = boundingBox.x; dx < boundingBox.x + boundingBox.width; dx++) {
+            for (int dy = boundingBox.y; dy < boundingBox.y + boundingBox.height; dy++) {
+                strength = brush.getFullStrength(dx, dy);
                 if (strength > highestStrength) {
-                    peakDX = i;
-                    peakDY = -r;
-                    peakFactor = 1.0f / strength;
-                    highestStrength = strength;
-                    if (strength == 1.0f) {
-//                        System.out.println("Peak: 1.0 @ " + peakDX + ", " + peakDY);
-                        return;
-                    }
-                }
-                strength = brush.getFullStrength(r, i);
-                if (strength > highestStrength) {
-                    peakDX = r;
-                    peakDY = i;
-                    peakFactor = 1.0f / strength;
-                    highestStrength = strength;
-                    if (strength == 1.0f) {
-//                        System.out.println("Peak: 1.0 @ " + peakDX + ", " + peakDY);
-                        return;
-                    }
-                }
-                strength = brush.getFullStrength(-i, r);
-                if (strength > highestStrength) {
-                    peakDX = -i;
-                    peakDY = r;
-                    peakFactor = 1.0f / strength;
-                    highestStrength = strength;
-                    if (strength == 1.0f) {
-//                        System.out.println("Peak: 1.0 @ " + peakDX + ", " + peakDY);
-                        return;
-                    }
-                }
-                strength = brush.getFullStrength(-r, -i);
-                if (strength > highestStrength) {
-                    peakDX = -r;
-                    peakDY = -i;
+                    peakDX = dx;
+                    peakDY = dy;
                     peakFactor = 1.0f / strength;
                     highestStrength = strength;
                     if (strength == 1.0f) {

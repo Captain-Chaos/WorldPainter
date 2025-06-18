@@ -10,6 +10,7 @@ import org.pepsoft.worldpainter.WorldPainter;
 import org.pepsoft.worldpainter.panels.DefaultFilter;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  *
@@ -63,9 +64,9 @@ public class Height extends RadiusOperation {
         boolean applyTheme = options.isApplyTheme();
         dimension.setEventsInhibited(true);
         try {
-            final int radius = getEffectiveRadius();
-            for (int x = centreX - radius; x <= centreX + radius; x++) {
-                for (int y = centreY - radius; y <= centreY + radius; y++) {
+            final Rectangle boundingBox = getBoundingBox();
+            for (int x = centreX + boundingBox.x; x < centreX + boundingBox.x + boundingBox.width; x++) {
+                for (int y = centreY + boundingBox.y; y <= centreY + boundingBox.y + boundingBox.height; y++) {
                     final float currentHeight = dimension.getHeightAt(x, y);
                     final float targetHeight = inverse ? Math.max(currentHeight - adjustment, minZ) : Math.min(currentHeight + adjustment, maxZ);
                     final float strength = getFullStrength(centreX, centreY, x, y);

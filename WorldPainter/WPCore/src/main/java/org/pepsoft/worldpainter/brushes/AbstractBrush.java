@@ -20,16 +20,20 @@ public abstract class AbstractBrush implements Brush, Cloneable {
         return name;
     }
 
-    @Override
-    public int getEffectiveRadius() {
-        return getRadius();
-    }
-
+    /**
+     * Get the bounding box of the brush, relative to its center. This may be larger than its radius, for example for a
+     * rotated square brush.
+     *
+     * <p>This default implementation returns a box based on sides {@code radius * 2 + 1}. Subclasses should override
+     * this method if their bounding box is different.
+     *
+     * @return The bounding box of the brush.
+     */
     @Override
     public Rectangle getBoundingBox() {
-        final int effectiveRadius = getEffectiveRadius();
-        if (effectiveRadius != -boundingBox.getX()) {
-            boundingBox.setBounds(-effectiveRadius, -effectiveRadius, (2 * effectiveRadius) + 1, (2 * effectiveRadius) + 1);
+        final int radius = getRadius();
+        if (radius != -boundingBox.getX()) {
+            boundingBox.setBounds(-radius, -radius, (2 * radius) + 1, (2 * radius) + 1);
         }
         return boundingBox;
     }
