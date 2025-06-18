@@ -1,3 +1,9 @@
+-- Version 2.24.2, released 18-06-2025
+
+ * Scripts can now check for interrupts so that they can be aborted if they run too long or enter an infinite loop
+   + A script can either check the wp.interrupted property to check whether it should abort (if it wishes to do clean-up), or call wp.checkForInterrupt(), which will throw an exception if it should abort, if it does not need to do any clean-up
+   + Scripts that don't check for interrupts and enter an infinite loop still cannot be aborted. If a script does not respond to an abort request after ten seconds, a warning is displayed recommending to ask the author of the script to add interrupt support
+
 -- Version 2.24.1, released 05-05-2025
 
  * Increase performance of the Pencil tool with large brushes or long lines by adding new fast mode

@@ -200,6 +200,23 @@ public class ScriptingContext {
         return new GetBiomeIdOp(this);
     }
 
+    /**
+     * Indicates whether an interrupt was requested. The caller should abort its operation when this returns
+     * {@code true}.
+     */
+    public boolean isInterrupted() {
+        return interrupted;
+    }
+
+    /**
+     * Throws an {@link InterruptedException} if an interrupt was requested.
+     */
+    public void checkForInterrupt() {
+        if (interrupted) {
+            throw new InterruptedException();
+        }
+    }
+
     public void checkGoCalled(String commandName) {
         if (! goCalled) {
             throw new IllegalStateException("You forgot to invoke go() on the " + lastCommandName + "() operation");
@@ -212,8 +229,17 @@ public class ScriptingContext {
         goCalled = true;
     }
 
+    void interrupt() {
+        interrupted = true;
+    }
+
     public final boolean commandLine;
 
     private boolean goCalled = true;
     private String lastCommandName;
+    private volatile boolean interrupted;
+
+    public static class InterruptedException extends RuntimeException {
+        // Empty
+    }
 }

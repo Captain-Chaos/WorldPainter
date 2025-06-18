@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.script.*;
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -29,14 +30,14 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.joining;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
-import static org.pepsoft.util.swing.MessageUtils.beepAndShowError;
+import static org.pepsoft.util.swing.MessageUtils.*;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SCRIPT_FILENAME;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SCRIPT_NAME;
 import static org.pepsoft.worldpainter.ExceptionHandler.doWithoutExceptionReporting;
@@ -45,6 +46,7 @@ import static org.pepsoft.worldpainter.ExceptionHandler.doWithoutExceptionReport
  *
  * @author Pepijn Schmitz
  */
+@SuppressWarnings({"unused", "FieldCanBeLocal"}) // Managed by NetBeans
 public class ScriptRunner extends WorldPainterDialog {
     /**
      * Creates new form ScriptRunner
@@ -60,28 +62,28 @@ public class ScriptRunner extends WorldPainterDialog {
         Configuration config = Configuration.getInstance();
         recentScriptFiles = (config.getRecentScriptFiles() != null) ? new ArrayList<>(config.getRecentScriptFiles()) : new ArrayList<>();
         recentScriptFiles.removeIf(file -> !file.isFile());
-        jComboBox1.setModel(new DefaultComboBoxModel<>(recentScriptFiles.toArray(new File[recentScriptFiles.size()])));
-        if ((jComboBox1.getSelectedItem() != null) && ((File) jComboBox1.getSelectedItem()).isFile()) {
-            setupScript((File) jComboBox1.getSelectedItem());
+        comboBoxScript.setModel(new DefaultComboBoxModel<>(recentScriptFiles.toArray(new File[recentScriptFiles.size()])));
+        if ((comboBoxScript.getSelectedItem() != null) && ((File) comboBoxScript.getSelectedItem()).isFile()) {
+            setupScript((File) comboBoxScript.getSelectedItem());
         }
         setControlStates();
         
-        getRootPane().setDefaultButton(jButton2);
+        getRootPane().setDefaultButton(buttonRun);
         scaleToUI();
         pack();
         setLocationRelativeTo(parent);
     }
 
     private void setControlStates() {
-        jButton2.setEnabled((jComboBox1.getSelectedItem() != null)
-                && ((File) jComboBox1.getSelectedItem()).isFile()
+        buttonRun.setEnabled((comboBoxScript.getSelectedItem() != null)
+                && ((File) comboBoxScript.getSelectedItem()).isFile()
                 && ((scriptDescriptor == null) || scriptDescriptor.isValid()));
     }
     
     private void selectFile() {
         Set<String> extensions = new HashSet<>();
         SCRIPT_ENGINE_MANAGER.getEngineFactories().forEach(factory -> extensions.addAll(factory.getExtensions()));
-        File script = FileUtils.selectFileForOpen(this, "Select Script", (File) jComboBox1.getSelectedItem(), new FileFilter() {
+        File script = FileUtils.selectFileForOpen(this, "Select Script", (File) comboBoxScript.getSelectedItem(), new FileFilter() {
             @Override
             public boolean accept(File f) {
                 if (f.isDirectory()) {
@@ -99,11 +101,9 @@ public class ScriptRunner extends WorldPainterDialog {
 
             @Override
             public String getDescription() {
-                StringBuilder sb = new StringBuilder();
-                sb.append("Script files (");
-                sb.append(extensions.stream().map(extension -> "*." + extension).collect(joining(", ")));
-                sb.append(')');
-                return sb.toString();
+                return "Script files (" +
+                        extensions.stream().map(extension -> "*." + extension).collect(joining(", ")) +
+                        ')';
             }
 
             @Override
@@ -114,8 +114,8 @@ public class ScriptRunner extends WorldPainterDialog {
         if ((script != null) && script.isFile()) {
             recentScriptFiles.remove(script);
             recentScriptFiles.add(0, script);
-            jComboBox1.setModel(new DefaultComboBoxModel<>(recentScriptFiles.toArray(new File[recentScriptFiles.size()])));
-            jComboBox1.setSelectedItem(script);
+            comboBoxScript.setModel(new DefaultComboBoxModel<>(recentScriptFiles.toArray(new File[recentScriptFiles.size()])));
+            comboBoxScript.setSelectedItem(script);
             setupScript(script);
             setControlStates();
         }
@@ -144,7 +144,7 @@ public class ScriptRunner extends WorldPainterDialog {
                 addlastOnLine(panelDescriptor, textArea);
             }
             boolean allFieldsOptional = true;
-            for (ParameterDescriptor paramDescriptor: scriptDescriptor.parameterDescriptors) {
+            for (ParameterDescriptor<?, ?> paramDescriptor: scriptDescriptor.parameterDescriptors) {
                 boolean showAsMandatory = (! paramDescriptor.optional) && ((paramDescriptor instanceof FileParameterDescriptor) || (paramDescriptor instanceof FloatParameterDescriptor) || (paramDescriptor instanceof StringParameterDescriptor));
                 JLabel label = new JLabel(((paramDescriptor.displayName != null) ? paramDescriptor.displayName : paramDescriptor.name) + (showAsMandatory ? "*:" : ":"));
                 allFieldsOptional &= ! showAsMandatory;
@@ -229,7 +229,7 @@ public class ScriptRunner extends WorldPainterDialog {
             return null;
         } else {
             ScriptDescriptor descriptor = new ScriptDescriptor();
-            Map<String, ParameterDescriptor> paramMap = new LinkedHashMap<>();
+            Map<String, ParameterDescriptor<?, ?>> paramMap = new LinkedHashMap<>();
             properties.forEach((key, value) -> {
                 if (key.equals("name")) {
                     descriptor.name = value.trim();
@@ -240,6 +240,7 @@ public class ScriptRunner extends WorldPainterDialog {
                     if (parts.length != 3) {
                         throw new IllegalArgumentException("Invalid key \"" + key + "\" in script descriptor");
                     }
+                    //noinspection rawtypes
                     ParameterDescriptor paramDescriptor = paramMap.get(parts[1]);
                     switch (parts[2]) {
                         case "type":
@@ -299,13 +300,13 @@ public class ScriptRunner extends WorldPainterDialog {
     }
 
     private void run() {
-        jComboBox1.setEnabled(false);
-        jButton1.setEnabled(false);
-        jTextArea1.setEnabled(false);
-        jButton2.setEnabled(false);
-        jButton3.setEnabled(false);
-        jTextArea2.setText(null);
-        final File scriptFile = (File) jComboBox1.getSelectedItem();
+        comboBoxScript.setEnabled(false);
+        buttonSelectScript.setEnabled(false);
+        textAreaParameters.setEnabled(false);
+        buttonRun.setEnabled(false);
+        buttonCancel.setText("Abort");
+        textAreaOutput.setText(null);
+        final File scriptFile = (File) comboBoxScript.getSelectedItem();
         final String scriptFilePath = scriptFile.getParentFile().getAbsolutePath();
         final String scriptFileName = scriptFile.getName(), scriptName;
         final Map<String, Object> params;
@@ -320,6 +321,7 @@ public class ScriptRunner extends WorldPainterDialog {
             params = null;
             scriptName = scriptFileName;
         }
+        context = new ScriptingContext(false);
         new Thread(scriptFileName) {
             @Override
             public void run() {
@@ -348,9 +350,8 @@ public class ScriptRunner extends WorldPainterDialog {
 
                     // Initialise script context
                     final Bindings bindings = scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE);
-                    final ScriptingContext context = new ScriptingContext(false);
                     bindings.put("wp", context);
-                    final String[] parameters = jTextArea1.getText().isEmpty() ? new String[0] : jTextArea1.getText().split("\\R");
+                    final String[] parameters = textAreaParameters.getText().isEmpty() ? new String[0] : textAreaParameters.getText().split("\\R");
                     bindings.put("argc", parameters.length + 1);
                     final String[] argv = new String[parameters.length + 1];
                     argv[0] = scriptFileName;
@@ -387,7 +388,7 @@ public class ScriptRunner extends WorldPainterDialog {
                                             // Join the fragments first so that
                                             // only one string need be appended
                                             // to the text area's document
-                                            jTextArea2.append(String.join("", textQueue));
+                                            textAreaOutput.append(String.join("", textQueue));
                                             textQueue.clear();
                                             textUpdateScheduled[0] = false;
                                         }
@@ -440,6 +441,9 @@ public class ScriptRunner extends WorldPainterDialog {
 
                         // Check that go() was invoked on the last operation:
                         context.checkGoCalled(null);
+                    } catch (ScriptingContext.InterruptedException e) {
+                        logger.info("Script {} execution interrupted by user", scriptName);
+                        doLaterOnEventThread(() -> beepAndShowWarning(ScriptRunner.this, "Script execution interrupted by user", "Script Aborted"));
                     } catch (RuntimeException e) {
                         logger.error(e.getClass().getSimpleName() + " occurred while executing " + scriptFileName, e);
                         doLaterOnEventThread(() -> beepAndShowError(ScriptRunner.this, e.getClass().getSimpleName() + " occurred (message: " + e.getMessage() + ")", "Error"));
@@ -469,17 +473,39 @@ public class ScriptRunner extends WorldPainterDialog {
                         }
                     }
                 } finally {
+                    context = null;
                     doLaterOnEventThread(() -> {
-                        jComboBox1.setEnabled(true);
-                        jButton1.setEnabled(true);
-                        jTextArea1.setEnabled(true);
-                        jButton2.setEnabled(true);
-                        jButton3.setText("Close");
-                        jButton3.setEnabled(true);
+                        if (nonResponsiveScriptWarningTimer != null) {
+                            nonResponsiveScriptWarningTimer.stop();
+                            nonResponsiveScriptWarningTimer = null;
+                        }
+                        comboBoxScript.setEnabled(true);
+                        buttonSelectScript.setEnabled(true);
+                        textAreaParameters.setEnabled(true);
+                        buttonRun.setEnabled(true);
+                        buttonCancel.setText("Close");
+                        buttonCancel.setEnabled(true);
                     });
                 }
             }
         }.start();
+    }
+
+    @Override
+    protected void cancel() {
+        if (context != null) {
+            buttonCancel.setText("...");
+            buttonCancel.setEnabled(false);
+            context.interrupt();
+            nonResponsiveScriptWarningTimer = new Timer(10000,
+                    evt -> showWarning(this, "Script not responding to interrupt request.\n" +
+                    "Ask the author to add interrupt checking to the script.\n" +
+                    "See the WorldPainter Scripting API docs for details.\n" +
+                    "The only way to stop the script may be to kill WorldPainter", "Script Unresponsive"));
+            nonResponsiveScriptWarningTimer.start();
+        } else {
+            super.cancel();
+        }
     }
 
     /**
@@ -487,23 +513,23 @@ public class ScriptRunner extends WorldPainterDialog {
      * WARNING: Do NOT modify this code. The content of this method is always
      * regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"Convert2Lambda", "Anonymous2MethodRef"}) // Managed by NetBeans
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
         jLabel1 = new javax.swing.JLabel();
-        jComboBox1 = new javax.swing.JComboBox();
-        jButton1 = new javax.swing.JButton();
+        comboBoxScript = new javax.swing.JComboBox<>();
+        buttonSelectScript = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
+        textAreaParameters = new javax.swing.JTextArea();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
-        jButton2 = new javax.swing.JButton();
+        buttonRun = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTextArea2 = new javax.swing.JTextArea();
-        jButton3 = new javax.swing.JButton();
+        textAreaOutput = new javax.swing.JTextArea();
+        buttonCancel = new javax.swing.JButton();
         panelDescriptor = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
         labelName = new javax.swing.JLabel();
@@ -513,48 +539,47 @@ public class ScriptRunner extends WorldPainterDialog {
 
         jLabel1.setText("Script:");
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        jComboBox1.addActionListener(new java.awt.event.ActionListener() {
+        comboBoxScript.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBox1ActionPerformed(evt);
+                comboBoxScriptActionPerformed(evt);
             }
         });
 
-        jButton1.setText("...");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        buttonSelectScript.setText("...");
+        buttonSelectScript.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                buttonSelectScriptActionPerformed(evt);
             }
         });
 
         jLabel2.setText("Parameters:");
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane1.setViewportView(jTextArea1);
+        textAreaParameters.setColumns(20);
+        textAreaParameters.setRows(5);
+        jScrollPane1.setViewportView(textAreaParameters);
 
         jLabel3.setText("(one per line)");
 
         jLabel4.setText("Output:");
 
-        jButton2.setText("Run");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        buttonRun.setText("Run");
+        buttonRun.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                buttonRunActionPerformed(evt);
             }
         });
 
-        jTextArea2.setEditable(false);
-        jTextArea2.setColumns(20);
-        jTextArea2.setLineWrap(true);
-        jTextArea2.setRows(5);
-        jTextArea2.setWrapStyleWord(true);
-        jScrollPane2.setViewportView(jTextArea2);
+        textAreaOutput.setEditable(false);
+        textAreaOutput.setColumns(20);
+        textAreaOutput.setLineWrap(true);
+        textAreaOutput.setRows(5);
+        textAreaOutput.setWrapStyleWord(true);
+        jScrollPane2.setViewportView(textAreaOutput);
 
-        jButton3.setText("Cancel");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        buttonCancel.setText("Cancel");
+        buttonCancel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                buttonCancelActionPerformed(evt);
             }
         });
 
@@ -585,9 +610,9 @@ public class ScriptRunner extends WorldPainterDialog {
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jComboBox1, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(comboBoxScript, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1))
+                        .addComponent(buttonSelectScript))
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel2)
@@ -596,9 +621,9 @@ public class ScriptRunner extends WorldPainterDialog {
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 598, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton2)
+                        .addComponent(buttonRun)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton3))
+                        .addComponent(buttonCancel))
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(jLabel4)
                         .addGap(0, 0, Short.MAX_VALUE))
@@ -611,8 +636,8 @@ public class ScriptRunner extends WorldPainterDialog {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1))
+                    .addComponent(comboBoxScript, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(buttonSelectScript))
                 .addGap(18, 18, 18)
                 .addComponent(panelDescriptor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
@@ -628,36 +653,36 @@ public class ScriptRunner extends WorldPainterDialog {
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 243, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton2)
-                    .addComponent(jButton3))
+                    .addComponent(buttonRun)
+                    .addComponent(buttonCancel))
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void buttonSelectScriptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSelectScriptActionPerformed
         selectFile();
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_buttonSelectScriptActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void buttonRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonRunActionPerformed
         run();
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_buttonRunActionPerformed
 
-    private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
-        setupScript((File) jComboBox1.getSelectedItem());
+    private void comboBoxScriptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxScriptActionPerformed
+        setupScript((File) comboBoxScript.getSelectedItem());
         setControlStates();
-    }//GEN-LAST:event_jComboBox1ActionPerformed
+    }//GEN-LAST:event_comboBoxScriptActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+    private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelActionPerformed
         cancel();
-    }//GEN-LAST:event_jButton3ActionPerformed
+    }//GEN-LAST:event_buttonCancelActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JComboBox jComboBox1;
+    private javax.swing.JButton buttonCancel;
+    private javax.swing.JButton buttonRun;
+    private javax.swing.JButton buttonSelectScript;
+    private javax.swing.JComboBox<File> comboBoxScript;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -665,10 +690,10 @@ public class ScriptRunner extends WorldPainterDialog {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTextArea jTextArea1;
-    private javax.swing.JTextArea jTextArea2;
     private javax.swing.JLabel labelName;
     private javax.swing.JPanel panelDescriptor;
+    private javax.swing.JTextArea textAreaOutput;
+    private javax.swing.JTextArea textAreaParameters;
     // End of variables declaration//GEN-END:variables
 
     private final World2 world;
@@ -676,6 +701,8 @@ public class ScriptRunner extends WorldPainterDialog {
     private final ArrayList<File> recentScriptFiles;
     private final Collection<UndoManager> undoManagers;
     private ScriptDescriptor scriptDescriptor;
+    private ScriptingContext context;
+    private Timer nonResponsiveScriptWarningTimer;
 
     private static final ScriptEngineManager SCRIPT_ENGINE_MANAGER = new ScriptEngineManager();
     private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("script\\.([.a-zA-Z_0-9]+)=(.+)$");
@@ -701,7 +728,7 @@ public class ScriptRunner extends WorldPainterDialog {
         }
 
         String name, description;
-        List<ParameterDescriptor> parameterDescriptors = new ArrayList<>();
+        List<ParameterDescriptor<?, ?>> parameterDescriptors = new ArrayList<>();
         boolean hideCmdLineParams;
     }
 
