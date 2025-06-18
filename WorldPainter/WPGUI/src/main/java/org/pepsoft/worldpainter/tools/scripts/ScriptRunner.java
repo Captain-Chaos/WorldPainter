@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.script.*;
+import javax.script.ScriptException;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -29,8 +30,8 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -420,7 +421,8 @@ public class ScriptRunner extends WorldPainterDialog {
                         final String script = org.pepsoft.util.FileUtils.load(scriptFile, Charset.defaultCharset());
 
                         // Compile the script, if the engine supports it, and run it
-                        final long start;
+                        final Thread scriptThread;
+                        final Throwable[] exception = new Throwable[1];
                         if (scriptEngine instanceof Compilable) {
                             final CompiledScript compiledScript;
                             if (COMPILED_SCRIPTS.containsKey(script)) {
@@ -430,11 +432,40 @@ public class ScriptRunner extends WorldPainterDialog {
                                 compiledScript = ((Compilable) scriptEngine).compile(new FileReader(scriptFile));
                                 COMPILED_SCRIPTS.put(script, compiledScript);
                             }
-                            start = System.currentTimeMillis();
-                            compiledScript.eval();
+                            scriptThread = new Thread("Script Runner") {
+                                @Override
+                                public void run() {
+                                    try {
+                                        compiledScript.eval();
+                                    } catch (Throwable t) {
+                                        exception[0] = t;
+                                    }
+                                }
+                            };
                         } else {
-                            start = System.currentTimeMillis();
-                            scriptEngine.eval(script);
+                            scriptThread = new Thread("Script Runner") {
+                                @Override
+                                public void run() {
+                                    try {
+                                        scriptEngine.eval(script);
+                                    } catch (Throwable t) {
+                                        exception[0] = t;
+                                    }
+                                }
+                            };
+                        }
+                        
+                        final long start = System.currentTimeMillis();
+                        scriptThread.start();
+                        try {
+                            scriptThread.join();
+                        } catch (InterruptedException e) {
+                            logger.warn("Thread interrupted while waiting for script execution", e);
+                        }
+                        if (exception[0] != null) {
+                            logger.error(exception[0].getClass().getSimpleName() + " occurred while executing " + scriptFileName, exception[0]);
+                            doLaterOnEventThread(() -> beepAndShowError(ScriptRunner.this, exception[0].getClass().getSimpleName() + " occurred (message: " + exception[0].getMessage() + ")", "Error"));
+                            return;
                         }
                         logger.debug("Running script {} took {} ms", scriptName, System.currentTimeMillis() - start);
 
@@ -443,7 +474,7 @@ public class ScriptRunner extends WorldPainterDialog {
                     } catch (RuntimeException e) {
                         logger.error(e.getClass().getSimpleName() + " occurred while executing " + scriptFileName, e);
                         doLaterOnEventThread(() -> beepAndShowError(ScriptRunner.this, e.getClass().getSimpleName() + " occurred (message: " + e.getMessage() + ")", "Error"));
-                    } catch (javax.script.ScriptException e) {
+                    } catch (ScriptException e) {
                         logger.error("ScriptException occurred while executing " + scriptFileName, e);
                         final StringBuilder sb = new StringBuilder();
                         sb.append(e.getMessage());
