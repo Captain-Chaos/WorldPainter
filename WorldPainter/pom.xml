@@ -3,7 +3,7 @@
 
     <groupId>org.pepsoft.worldpainter</groupId>
     <artifactId>WorldPainter</artifactId>
-    <version>2.24.2-SNAPSHOT</version>
+    <version>2.24.2</version>
     <packaging>pom</packaging>
 
     <name>WorldPainter</name>
@@ -56,17 +56,6 @@
         <url>https://github.com/Captain-Chaos/WorldPainter</url>
     </scm>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh-snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh-staging</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-        </repository>
-    </distributionManagement>
-
     <build>
         <plugins>
             <plugin>
@@ -105,13 +94,13 @@
                     </configuration>
                 </plugin>
                 <!-- Inhibit regular deploy -->
-                <!--<plugin>-->
-                    <!--<artifactId>maven-deploy-plugin</artifactId>-->
-                    <!--<configuration>-->
-                        <!--<skip>true</skip>-->
-                    <!--</configuration>-->
-                    <!--<inherited>true</inherited>-->
-                <!--</plugin>-->
+                <plugin>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
+                    <inherited>true</inherited>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
@@ -239,6 +228,16 @@
                             </execution>
                         </executions>
                     </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.8.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <ignorePublishedComponents>true</ignorePublishedComponents>
+                        </configuration>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
@@ -263,6 +262,16 @@
                                 </configuration>
                             </execution>
                         </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.8.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <ignorePublishedComponents>true</ignorePublishedComponents>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>

@@ -4,10 +4,11 @@
     <parent>
         <groupId>org.pepsoft.worldpainter</groupId>
         <artifactId>WorldPainter</artifactId>
-        <version>2.24.2-SNAPSHOT</version>
+        <version>2.24.2</version>
     </parent>
 
     <artifactId>WPGUI</artifactId>
+    <name>WPGUI</name>
 
     <dependencies>
         <dependency>

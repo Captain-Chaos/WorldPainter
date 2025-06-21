@@ -7,10 +7,11 @@
     <parent>
         <groupId>org.pepsoft.worldpainter</groupId>
         <artifactId>WorldPainter</artifactId>
-        <version>2.24.2-SNAPSHOT</version>
+        <version>2.24.2</version>
     </parent>
 
     <artifactId>WPDynmapPreviewer</artifactId>
+    <name>WPDynmapPreviewer</name>
 
     <dependencies>
         <dependency>

@@ -1,5 +1,6 @@
 package org.pepsoft.worldpainter.util;
 
+import org.jetbrains.annotations.Nullable;
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.layers.Bo2Layer;
@@ -13,7 +14,6 @@ import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.objects.WPObject;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
