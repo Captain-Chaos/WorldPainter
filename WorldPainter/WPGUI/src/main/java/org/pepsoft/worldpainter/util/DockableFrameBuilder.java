@@ -15,6 +15,9 @@ import java.awt.image.BufferedImageOp;
 
 import static com.jidesoft.docking.DockableFrame.*;
 import static java.awt.GridBagConstraints.HORIZONTAL;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+import static javax.swing.SwingConstants.VERTICAL;
 import static org.pepsoft.util.GUIUtils.getUIScale;
 import static org.pepsoft.worldpainter.App.KEY_ICON;
 
@@ -47,10 +50,15 @@ public class DockableFrameBuilder {
         return this;
     }
 
+    public DockableFrameBuilder scrollable() {
+        scrollable = true;
+        return this;
+    }
+
     public DockableFrame build() {
         DockableFrame dockableFrame = new DockableFrame(id);
 
-        JPanel panel = new JPanel(new GridBagLayout());
+        JPanel panel = new VerticalScrollingJPanel(new GridBagLayout());
         if (margin > 0) {
             panel.setBorder(new EmptyBorder(margin, margin, margin, margin));
         }
@@ -64,10 +72,17 @@ public class DockableFrameBuilder {
         } else {
             constraints.fill = HORIZONTAL;
             panel.add(component, constraints);
+            constraints.fill = GridBagConstraints.BOTH;
             constraints.weighty = 1.0;
             panel.add(new JPanel(), constraints);
         }
-        dockableFrame.add(panel, BorderLayout.CENTER);
+        if (scrollable) {
+            final JScrollPane scrollPane = new JScrollPane(panel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+            scrollPane.setBorder(null);
+            dockableFrame.add(scrollPane, BorderLayout.CENTER);
+        } else {
+            dockableFrame.add(panel, BorderLayout.CENTER);
+        }
 
         // Use title everywhere
         dockableFrame.setTitle(title);
@@ -134,6 +149,7 @@ public class DockableFrameBuilder {
     private boolean expand;
     private Icon icon;
     private int margin = 2;
+    private boolean scrollable;
 
     private static Icon findIcon(Container container) {
         if (container instanceof JComponent) {
@@ -156,4 +172,39 @@ public class DockableFrameBuilder {
     }
 
     private static final Icon ICON_UNKNOWN_PATTERN = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/unknown_pattern.png");
+
+    /**
+     * A {@code JPanel} implementation that implements {@code Scrollable} and tracks the viewport width; meant for use
+     * with vertical scrolling only.
+     */
+    static class VerticalScrollingJPanel extends JPanel implements Scrollable {
+        public VerticalScrollingJPanel(LayoutManager layout) {
+            super(layout);
+        }
+
+        @Override
+        public java.awt.Dimension getPreferredScrollableViewportSize() {
+            return getPreferredSize();
+        }
+
+        @Override
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 16;
+        }
+
+        @Override
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return ((orientation == VERTICAL) ? visibleRect.height : visibleRect.width) - 16;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+            return true;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportHeight() {
+            return false;
+        }
+    }
 }

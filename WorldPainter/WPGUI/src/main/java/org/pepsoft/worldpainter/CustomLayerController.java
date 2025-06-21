@@ -42,8 +42,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.text.MessageFormat;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.zip.GZIPOutputStream;
@@ -174,7 +174,7 @@ public class CustomLayerController implements PropertyChangeListener {
                                     if (tile.getY() > maxY) {
                                         maxY = tile.getY();
                                     }
-                                };
+                                }
                                 if ((! floorTileVisible) && (minX != Integer.MAX_VALUE)) {
                                     app.view.moveTo((((maxX + minX) / 2) << TILE_SIZE_BITS) + (TILE_SIZE / 2),
                                             (((maxY + minY) / 2) << TILE_SIZE_BITS) + (TILE_SIZE / 2));
@@ -336,6 +336,16 @@ public class CustomLayerController implements PropertyChangeListener {
 
         if (activate) {
             paletteManager.activate(layer);
+        }
+
+        final Configuration config = Configuration.getInstance();
+        if (activate
+                && (paletteManager.getPaletteContaining(layer).getLayers().size() >= 25)
+                && (! config.isMessageDisplayed(LAYER_PALETTE_TIP_KEY))) {
+            showInfo(app, "Tip: you can distribute Custom Layers over multiple\n" +
+                    "palettes by right-clicking on the layer button and\n" +
+                    "selecting Move to palette → New palette...", "Layer Palette Tip");
+            config.setMessageDisplayed(LAYER_PALETTE_TIP_KEY);
         }
     }
 
@@ -970,6 +980,7 @@ public class CustomLayerController implements PropertyChangeListener {
 
     private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
     private static final String EDITING_FLOOR_DIMENSION_KEY = "org.pepsoft.worldpainter.TunnelLayer.editingFloorDimension";
+    private static final String LAYER_PALETTE_TIP_KEY = "org.pepsoft.worldpainter.layerPaletteTip";
     private static final Icon ADD_CUSTOM_LAYER_BUTTON_ICON = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/plus.png");
     private static final Logger logger = LoggerFactory.getLogger(CustomLayerController.class);
 }
