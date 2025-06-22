@@ -1,3 +1,7 @@
+-- Version 2.24.3, released 22-06-2025
+
+ * Bug fix: removed an optimisation that broke the brushes in some circumstances
+
 -- Version 2.24.2, released 21-06-2025
 
  * Panels with dynamic contents now display vertical scrollbars when their contents are taller than the display area
