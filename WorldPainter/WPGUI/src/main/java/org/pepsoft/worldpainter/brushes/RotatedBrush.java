@@ -56,8 +56,8 @@ public final class RotatedBrush extends AbstractBrush {
     }
 
     @Override
-    public Rectangle getBoundingBox() {
-        return boundingBox;
+    public int getEffectiveRadius() {
+        return effectiveRadius;
     }
 
     @Override
@@ -136,7 +136,6 @@ public final class RotatedBrush extends AbstractBrush {
         effectiveWidth = fullStrengthCache.getWidth();
         effectiveHeight = fullStrengthCache.getHeight();
         effectiveRadius = effectiveWidth / 2;
-        boundingBox.setBounds(-effectiveRadius, -effectiveRadius, (2 * effectiveRadius) + 1, (2 * effectiveRadius) + 1);
     }
 
     /**
@@ -167,8 +166,7 @@ public final class RotatedBrush extends AbstractBrush {
             return new RotatedBrush(brush, degrees);
         }
     }
-
-    private final Rectangle boundingBox = new Rectangle();
+    
     private Brush brush;
     private int radius, effectiveRadius, degrees, effectiveWidth, effectiveHeight;
     private float level;

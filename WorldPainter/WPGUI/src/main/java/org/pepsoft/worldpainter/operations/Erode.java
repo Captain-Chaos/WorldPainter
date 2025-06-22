@@ -8,7 +8,6 @@ package org.pepsoft.worldpainter.operations;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.WorldPainter;
 
-import java.awt.*;
 import java.util.Random;
 
 /**
@@ -29,10 +28,10 @@ public class Erode extends RadiusOperation {
         }
         dimension.setEventsInhibited(true);
         try {
-            final Rectangle boundingBox = getBoundingBox();
+            int radius = getEffectiveRadius();
             for (int i = 0; i < ROUNDS; i++) {
-                for (int x = centreX + boundingBox.x; x < centreX + boundingBox.x + boundingBox.width; x++) {
-                    for (int y = centreY + boundingBox.y; y <= centreY + boundingBox.y + boundingBox.height; y++) {
+                for (int x = centreX - radius; x <= centreX + radius; x++) {
+                    for (int y = centreY - radius; y <= centreY + radius; y++) {
                         float strength = getStrength(centreX, centreY, x, y);
                         if ((strength == 1.0f) || (random.nextFloat() < strength)) {
                             for (int dx = -1; dx <= 1; dx++) {

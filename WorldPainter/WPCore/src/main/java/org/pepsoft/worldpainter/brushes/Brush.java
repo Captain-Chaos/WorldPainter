@@ -57,10 +57,16 @@ public interface Brush {
     void setRadius(int radius);
 
     /**
-     * Get the bounding box of the brush, relative to its center. This may be larger than its radius, for example for a
-     * rotated square brush.
+     * Get the "radius" of the bounding box of the brush. Usually this will be
+     * the same as {@link #getRadius()}, but it could be larger for, for
+     * instance, a rotated square brush.
      *
-     * @return The bounding box of the brush.
+     * @return The radius of the bounding box of the brush.
+     */
+    int getEffectiveRadius();
+
+    /**
+     * Get the bounding box of the brush, relative to its center.
      */
     Rectangle getBoundingBox();
 

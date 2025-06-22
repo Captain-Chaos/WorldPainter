@@ -4871,6 +4871,9 @@ public final class App extends JFrame implements RadiusControl,
             button.addItemListener(event -> {
                 boolean refreshOptionsPanel = false;
                 if (event.getStateChange() == ItemEvent.DESELECTED) {
+                    if (operation instanceof BrushOperation) {
+                        view.setDrawBrush(false);
+                    }
                     try {
                         operation.setActive(false);
                     } catch (PropertyVetoException e) {
@@ -4934,6 +4937,9 @@ public final class App extends JFrame implements RadiusControl,
                         } finally {
                             programmaticChange = false;
                         }
+                    }
+                    if (operation instanceof BrushOperation) {
+                        view.setDrawBrush(true);
                     }
                     if (operation instanceof RadiusOperation) {
                         view.setRadius(radius);

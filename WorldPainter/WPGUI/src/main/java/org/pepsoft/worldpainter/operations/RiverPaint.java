@@ -5,8 +5,6 @@ import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.WorldPainterView;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
 
-import java.awt.*;
-
 /**
  * A tool for creating rivers. It floods an area defined by where the brush
  * intensity is at least 25% to a depth defined by where you first clicked.
@@ -38,18 +36,18 @@ public class RiverPaint extends RadiusOperation {
         if (depth < 0) {
             return;
         }
-        final Rectangle boundingBox = getBoundingBox();
+        int r = getEffectiveRadius();
 
         // Step 1: determine the water level by finding the lowest block along the edge of the part which should be
         // flooded (the part where the brush is at 25% intensity or higher)
         int waterLevel = Integer.MAX_VALUE;
-        for (int x = centreX + boundingBox.x; x < centreX + boundingBox.x + boundingBox.width; x++) {
-            for (int y = centreY + boundingBox.y; y <= centreY + boundingBox.y + boundingBox.height; y++) {
+        for (int x = centreX - r; x <= centreX + r; x++) {
+            for (int y = centreY - r; y <= centreY + r; y++) {
                 int height;
-                if ((! shouldFlood(centreX, centreY, x, y, boundingBox))
+                if ((! shouldFlood(centreX, centreY, x, y, r))
                         && (dim.getWaterLevelAt(x, y) < (height = dim.getIntHeightAt(x, y)))
                         && (height < waterLevel)
-                        && (shouldFlood(centreX, centreY, x - 1, y, boundingBox) || shouldFlood(centreX, centreY, x, y - 1, boundingBox) || shouldFlood(centreX, centreY, x + 1, y, boundingBox) || shouldFlood(centreX, centreY, x, y + 1, boundingBox))) {
+                        && (shouldFlood(centreX, centreY, x - 1, y, r) || shouldFlood(centreX, centreY, x, y - 1, r) || shouldFlood(centreX, centreY, x + 1, y, r) || shouldFlood(centreX, centreY, x, y + 1, r))) {
                     // Edge block; the water level must not be higher than the
                     // lowest edge block so it doesn't spill over
                     waterLevel = height;
@@ -66,10 +64,10 @@ public class RiverPaint extends RadiusOperation {
         // Step 2: lower the terrain and flood with water or lava
         dim.setEventsInhibited(true);
         try {
-            for (int x = centreX + boundingBox.x; x < centreX + boundingBox.x + boundingBox.width; x++) {
-                for (int y = centreY + boundingBox.y; y <= centreY + boundingBox.y + boundingBox.height; y++) {
+            for (int x = centreX - r; x <= centreX + r; x++) {
+                for (int y = centreY - r; y <= centreY + r; y++) {
                     float strength = getFullStrength(centreX, centreY, x, y);
-                    if (shouldFlood(centreX, centreY, x, y,boundingBox)) {
+                    if (shouldFlood(centreX, centreY, x, y, r)) {
                         // Should be flooded; lower terrain and add water or lava
                         float requiredHeight = waterLevel - strength / 0.75f * depth;
                         if (dim.getHeightAt(x, y) > requiredHeight) {
@@ -98,9 +96,9 @@ public class RiverPaint extends RadiusOperation {
         }
     }
 
-    private boolean shouldFlood(int centreX, int centreY, int x, int y, Rectangle boundingBox) {
+    private boolean shouldFlood(int centreX, int centreY, int x, int y, int r) {
         int dx = Math.abs(x - centreX), dy = Math.abs(y - centreY);
-        return (dx <= (boundingBox.width / 2)) && (dy <= (boundingBox.height) / 2) && (getFullStrength(centreX, centreY, x, y) > 0.25f);
+        return (dx <= r) && (dy <= r) && (getFullStrength(centreX, centreY, x, y) > 0.25f);
     }
 
     private float depth;

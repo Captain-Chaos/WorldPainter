@@ -16,11 +16,14 @@ public class LineBrush extends AbstractBrush {
         this.brush = brush;
         radius = brush.getRadius();
         level = brush.getLevel();
-        originalRadius = brush.getRadius();
+        originalEffectiveRadius = brush.getEffectiveRadius();
         vx = -(dx / 2);
         vy = -(dy / 2);
         wx = -(dx / 2) + dx;
         wy = -(dy / 2) + dy;
+        effectiveRadius = max(
+                max(abs(dx / 2), abs(dy / 2)),
+                max(abs(-(dx / 2) + dx), abs(-(dy / 2) + dy)));
         final Rectangle originalBoundingBox = brush.getBoundingBox();
         boundingBox = new Rectangle(originalBoundingBox.x - abs(dx / 2), originalBoundingBox.y - abs(dy / 2),
                 originalBoundingBox.width + abs(dx), originalBoundingBox.height + abs(dy));
@@ -29,7 +32,7 @@ public class LineBrush extends AbstractBrush {
     @Override
     public float getStrength(int dx, int dy) {
         final int distanceToLine = (int) round(distanceToLineSegment(dx, dy, vx, vy, wx, wy));
-        if (distanceToLine <= originalRadius) {
+        if (distanceToLine <= originalEffectiveRadius) {
             return brush.getStrength(0, distanceToLine); // TODO support non circular and rotationally symmetric brushes
         } else {
             return 0.0f;
@@ -39,7 +42,7 @@ public class LineBrush extends AbstractBrush {
     @Override
     public float getFullStrength(int dx, int dy) {
         final int distanceToLine = (int) round(distanceToLineSegment(dx, dy, vx, vy, wx, wy));
-        if (distanceToLine <= originalRadius) {
+        if (distanceToLine <= originalEffectiveRadius) {
             return brush.getFullStrength(0, distanceToLine); // TODO support non circular and rotationally symmetric brushes
         } else {
             return 0.0f;
@@ -49,6 +52,11 @@ public class LineBrush extends AbstractBrush {
     @Override
     public int getRadius() {
         return radius;
+    }
+
+    @Override
+    public int getEffectiveRadius() {
+        return effectiveRadius;
     }
 
     @Override
@@ -79,12 +87,12 @@ public class LineBrush extends AbstractBrush {
      * @param dy The delta y of the endpoint of the line, with the beginning being at 0.
      */
     public static LineBrush of(Brush brush, int dx, int dy) {
-        // TODO restrict to brushes for which this makes sense (rotationally symmetric circular ones)?
+        // TODO restrict to brushes for which this makes sense (rotiationally symmetric circular ones)?
         return new LineBrush(brush, dx, dy);
     }
 
     private final Brush brush;
-    private final int radius, originalRadius, vx, vy, wx, wy;
+    private final int radius, originalEffectiveRadius, effectiveRadius, vx, vy, wx, wy;
     private final float level;
     private final Rectangle boundingBox;
 }
