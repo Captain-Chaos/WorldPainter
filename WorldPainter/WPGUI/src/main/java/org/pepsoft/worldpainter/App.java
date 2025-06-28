@@ -108,6 +108,7 @@ import static javax.swing.KeyStroke.getKeyStroke;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.util.AwtUtils.doLaterOnEventThread;
 import static org.pepsoft.util.AwtUtils.doOnEventThread;
+import static org.pepsoft.util.DesktopUtils.PLATFORM_COMMAND_MASK;
 import static org.pepsoft.util.GUIUtils.getUIScale;
 import static org.pepsoft.util.IconUtils.*;
 import static org.pepsoft.util.swing.MessageUtils.*;
@@ -138,6 +139,7 @@ import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
  *
  * @author pepijn
  */
+@SuppressWarnings("MagicConstant")
 public final class App extends JFrame implements RadiusControl,
         BiomesViewerFrame.SeedListener, BrushOptions.Listener, CustomBiomeListener,
         DockableHolder, PropertyChangeListener, Dimension.Listener, Tile.Listener, MapDragControl {
@@ -1922,6 +1924,24 @@ public final class App extends JFrame implements RadiusControl,
         }
     }
 
+    boolean performUndo() {
+        if ((currentUndoManager != null) && currentUndoManager.undo()) {
+            currentUndoManager.armSavePoint();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    boolean performRedo() {
+        if ((currentUndoManager != null) && currentUndoManager.redo()) {
+            currentUndoManager.armSavePoint();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     /**
      * {@link JLabel#setText(String)} does not check whether the new value is
      * different. On the other hand {@link JLabel#getText()} is a very simple
@@ -2814,6 +2834,7 @@ public final class App extends JFrame implements RadiusControl,
                 increaseRadius(1);
             }
 
+            @Serial
             private static final long serialVersionUID = 2011090601L;
         });
         actionMap.put(ACTION_NAME_INCREASE_RADIUS_BY_ONE, new BetterAction(ACTION_NAME_INCREASE_RADIUS_BY_ONE, "Increase brush radius by one") {
@@ -2822,6 +2843,7 @@ public final class App extends JFrame implements RadiusControl,
                 increaseRadiusByOne();
             }
 
+            @Serial
             private static final long serialVersionUID = 2011090601L;
         });
         actionMap.put(ACTION_NAME_DECREASE_RADIUS, new BetterAction(ACTION_NAME_DECREASE_RADIUS, strings.getString("decrease.radius")) {
@@ -2830,6 +2852,7 @@ public final class App extends JFrame implements RadiusControl,
                 decreaseRadius(1);
             }
 
+            @Serial
             private static final long serialVersionUID = 2011090601L;
         });
         actionMap.put(ACTION_NAME_DECREASE_RADIUS_BY_ONE, new BetterAction(ACTION_NAME_DECREASE_RADIUS_BY_ONE, "Decrease brush radius by one") {
@@ -2838,6 +2861,7 @@ public final class App extends JFrame implements RadiusControl,
                 decreaseRadiusByOne();
             }
 
+            @Serial
             private static final long serialVersionUID = 2011090601L;
         });
         actionMap.put(ACTION_NAME_REDO, ACTION_REDO);
@@ -6021,6 +6045,7 @@ public final class App extends JFrame implements RadiusControl,
             newWorld();
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
 
@@ -6035,6 +6060,7 @@ public final class App extends JFrame implements RadiusControl,
             open();
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
     
@@ -6049,6 +6075,7 @@ public final class App extends JFrame implements RadiusControl,
             save();
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
 
@@ -6063,6 +6090,7 @@ public final class App extends JFrame implements RadiusControl,
             saveAs();
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
     
@@ -6100,6 +6128,7 @@ public final class App extends JFrame implements RadiusControl,
             }
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
     
@@ -6114,6 +6143,7 @@ public final class App extends JFrame implements RadiusControl,
             importWorld();
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
 
@@ -6132,6 +6162,7 @@ public final class App extends JFrame implements RadiusControl,
             merge();
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
 
@@ -6145,6 +6176,7 @@ public final class App extends JFrame implements RadiusControl,
             exit();
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
 
@@ -6168,6 +6200,7 @@ public final class App extends JFrame implements RadiusControl,
             ACTION_ZOOM_RESET.setEnabled(zoom != 0);
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
 
@@ -6208,6 +6241,7 @@ public final class App extends JFrame implements RadiusControl,
             setEnabled(false);
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
     
@@ -6231,6 +6265,7 @@ public final class App extends JFrame implements RadiusControl,
             ACTION_ZOOM_RESET.setEnabled(zoom != 0);
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
 
@@ -6251,6 +6286,7 @@ public final class App extends JFrame implements RadiusControl,
             setSelected(view.isPaintGrid());
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
     
@@ -6271,6 +6307,7 @@ public final class App extends JFrame implements RadiusControl,
             setSelected(view.isDrawContours());
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
     
@@ -6308,6 +6345,7 @@ public final class App extends JFrame implements RadiusControl,
                 ACTION_CONTOURS.setSelected(view.isDrawContours());
             }
         }
+        @Serial
         private static final long serialVersionUID = 1L;
     };
     
@@ -6319,13 +6357,12 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            if ((currentUndoManager != null) && currentUndoManager.undo()) {
-                currentUndoManager.armSavePoint();
-            } else {
+            if (! performUndo()) {
                 DesktopUtils.beep();
             }
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
     
@@ -6337,13 +6374,12 @@ public final class App extends JFrame implements RadiusControl,
         
         @Override
         public void performAction(ActionEvent e) {
-            if ((currentUndoManager != null) && currentUndoManager.redo()) {
-                currentUndoManager.armSavePoint();
-            } else {
+            if (! performRedo()) {
                 DesktopUtils.beep();
             }
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
     
@@ -6362,6 +6398,7 @@ public final class App extends JFrame implements RadiusControl,
             addRemoveTiles();
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
     
@@ -6375,6 +6412,7 @@ public final class App extends JFrame implements RadiusControl,
             changeWorldHeight(App.this);
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
 
@@ -6388,6 +6426,7 @@ public final class App extends JFrame implements RadiusControl,
             rotateWorld(App.this);
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
 
@@ -6401,6 +6440,7 @@ public final class App extends JFrame implements RadiusControl,
             shiftWorld(App.this);
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
 
@@ -6414,6 +6454,7 @@ public final class App extends JFrame implements RadiusControl,
             scaleWorld(App.this);
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
 
@@ -6467,6 +6508,7 @@ public final class App extends JFrame implements RadiusControl,
             }
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
     
@@ -6482,6 +6524,7 @@ public final class App extends JFrame implements RadiusControl,
             setSelected(view.isDrawViewDistance());
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
 
@@ -6497,6 +6540,7 @@ public final class App extends JFrame implements RadiusControl,
             setSelected(view.isDrawWalkingDistance());
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
 
@@ -6511,6 +6555,7 @@ public final class App extends JFrame implements RadiusControl,
             view.rotateLightRight();
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
     
@@ -6525,6 +6570,7 @@ public final class App extends JFrame implements RadiusControl,
             view.rotateLightLeft();
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
     
@@ -6538,6 +6584,7 @@ public final class App extends JFrame implements RadiusControl,
             view.moveToSpawn();
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
     
@@ -6551,6 +6598,7 @@ public final class App extends JFrame implements RadiusControl,
             view.moveToOrigin();
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
     
@@ -6568,6 +6616,7 @@ public final class App extends JFrame implements RadiusControl,
             }
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
     
@@ -6577,6 +6626,7 @@ public final class App extends JFrame implements RadiusControl,
             importLayers(null, getLayerFilterForCurrentDimension());
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
     
@@ -6745,6 +6795,7 @@ public final class App extends JFrame implements RadiusControl,
             DesktopUtils.beep();
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
 
@@ -6766,6 +6817,7 @@ public final class App extends JFrame implements RadiusControl,
             DesktopUtils.beep();
         }
 
+        @Serial
         private static final long serialVersionUID = 1L;
     };
 
@@ -6895,7 +6947,6 @@ public final class App extends JFrame implements RadiusControl,
     public static final NumberFormat INT_NUMBER_FORMAT = NumberFormat.getIntegerInstance();
     public static final NumberFormat FLOAT_NUMBER_FORMAT = NumberFormat.getNumberInstance();
 
-    private static final int PLATFORM_COMMAND_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
     static final String COMMAND_KEY_NAME = (PLATFORM_COMMAND_MASK == META_DOWN_MASK) ? "⌘" : "Ctrl";
 
     private static Mode mode = Mode.WORLDPAINTER;
@@ -6956,6 +7007,7 @@ public final class App extends JFrame implements RadiusControl,
 
     static final String MERGE_WARNING_KEY = "org.pepsoft.worldpainter.mergeWarning";
 
+    @Serial
     private static final long serialVersionUID = 1L;
     
     public class IntensityAction extends BetterAction {
@@ -6972,6 +7024,7 @@ public final class App extends JFrame implements RadiusControl,
         
         private final int percentage;
         
+        @Serial
         private static final long serialVersionUID = 1L;
     }
 

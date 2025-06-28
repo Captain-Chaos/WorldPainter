@@ -63,6 +63,8 @@
               <EmptySpace max="32767" attributes="0"/>
               <Component id="checkBoxKeepOpen" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
+              <Component id="buttonUndo" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Component id="buttonFill" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="buttonCancel" min="-2" max="-2" attributes="0"/>
@@ -100,6 +102,7 @@
                   <Component id="buttonCancel" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="buttonFill" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="checkBoxKeepOpen" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="buttonUndo" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -193,12 +196,10 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="comboBoxTerrainOperation" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="jLabel10" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
                           <Component id="spinnerTerrainHeight" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
-                  <EmptySpace max="-2" attributes="0"/>
+                  <EmptySpace min="-2" pref="33" max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -220,7 +221,6 @@
                       <Component id="radioButtonTerrainHeight" min="-2" max="-2" attributes="0"/>
                       <Group type="103" alignment="1" groupAlignment="3" attributes="0">
                           <Component id="comboBoxTerrainOperation" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="jLabel10" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="spinnerTerrainHeight" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
@@ -547,10 +547,12 @@
         <Component class="javax.swing.JComboBox" name="comboBoxTerrainOperation">
           <Properties>
             <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-              <StringArray count="3">
-                <StringItem index="0" value="raise"/>
-                <StringItem index="1" value="set"/>
-                <StringItem index="2" value="lower"/>
+              <StringArray count="5">
+                <StringItem index="0" value="raise terrain height to"/>
+                <StringItem index="1" value="raise terrain height by"/>
+                <StringItem index="2" value="set terrain height to"/>
+                <StringItem index="3" value="lower terrain height to"/>
+                <StringItem index="4" value="lower terrain height by"/>
               </StringArray>
             </Property>
             <Property name="enabled" type="boolean" value="false"/>
@@ -558,11 +560,6 @@
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
           </AuxValues>
-        </Component>
-        <Component class="javax.swing.JLabel" name="jLabel10">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="terrain height to"/>
-          </Properties>
         </Component>
         <Component class="javax.swing.JSpinner" name="spinnerTerrainHeight">
           <Properties>
@@ -658,6 +655,16 @@
       </Properties>
       <Events>
         <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="jLabel9MouseClicked"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="buttonUndo">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Undo"/>
+        <Property name="toolTipText" type="java.lang.String" value="Undo the most recent action"/>
+        <Property name="enabled" type="boolean" value="false"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonUndoActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>
