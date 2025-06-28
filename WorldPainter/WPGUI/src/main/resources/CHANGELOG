@@ -1,3 +1,7 @@
+-- Version 2.25.0, released ..-..-2025
+
+ * Bug fix: fix a crash that occurred trying to use the Pencil tool without a paint selected
+
 -- Version 2.24.3, released 22-06-2025
 
  * Bug fix: removed an optimisation that broke the brushes in some circumstances

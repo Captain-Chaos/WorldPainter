@@ -129,6 +129,11 @@ public final class DimensionPainter {
      * @param fast Use fast but possibly less accurate algorithms.
      */
     public void drawLine(Dimension dimension, int x1, int y1, int x2, int y2, float dynamicLevel, boolean fast) {
+        final Brush currentBrush = paint.getBrush();
+        if (currentBrush == null) {
+            // This happens when the null paint is selected because the user has not yet made a paint choice
+            return;
+        }
         final int dx = Math.abs(x2 - x1);
         final int dy = Math.abs(y2 - y1);
         if (fast && (paint.getBrush().getRadius() == 0)) {
@@ -177,11 +182,6 @@ public final class DimensionPainter {
             }
         }
         if (fast) {
-            final Brush currentBrush = paint.getBrush();
-            if (currentBrush == null) {
-                // This happens when the null paint is selected because the user has not yet made a paint choice
-                return;
-            }
             final Brush lineBrush;
             if (currentBrush.getBrushShape() == CIRCLE) {
                 lineBrush = LineBrush.of(currentBrush, (x2 - x1), (y2 - y1));
