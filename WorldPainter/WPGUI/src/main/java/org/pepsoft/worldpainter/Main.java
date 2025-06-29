@@ -13,6 +13,7 @@ import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.utils.Lm;
 import org.intellij.lang.annotations.Language;
 import org.pepsoft.util.*;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.biomeschemes.BiomeSchemeManager;
 import org.pepsoft.worldpainter.layers.renderers.VoidRenderer;
@@ -30,6 +31,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
@@ -42,13 +44,15 @@ import java.nio.file.StandardOpenOption;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-import static javax.swing.JOptionPane.WARNING_MESSAGE;
+import static javax.swing.JOptionPane.*;
+import static org.pepsoft.util.DesktopUtils.beep;
 import static org.pepsoft.util.GUIUtils.getUIScale;
+import static org.pepsoft.util.SystemUtils.JAVA_VERSION;
 import static org.pepsoft.util.swing.MessageUtils.*;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_PLUGINS;
 import static org.pepsoft.worldpainter.Constants.ATTRIBUTE_KEY_SAFE_MODE;
@@ -496,7 +500,7 @@ public class Main {
                         System.exit(0);
                     }
                     while (! result.toLowerCase().replace(" ", "").equals("iunderstand")) {
-                        DesktopUtils.beep();
+                        beep();
                         result = JOptionPane.showInputDialog(app, SNAPSHOT_MESSAGE, "Snapshot Release", WARNING_MESSAGE);
                         if (result == null) {
                             // Cancel was pressed
@@ -529,6 +533,7 @@ public class Main {
                 for (String error: StartupMessages.getErrors()) {
                     beepAndShowError(app, error, "Startup Error");
                 }
+                checkJavaVersion(app);
                 for (String warning: StartupMessages.getWarnings()) {
                     beepAndShowWarning(app, warning, "Startup Warning");
                 }
@@ -543,6 +548,43 @@ public class Main {
                 }
             });
         });
+    }
+
+    private static void checkJavaVersion(App app) {
+        // Check Java version
+        if (JAVA_VERSION.compareTo(new org.pepsoft.util.Version(17)) < 0) {
+            beep();
+            if (showOptionDialog(app, "From the next release, WorldPainter will require Java 17 or later to run.\n" +
+                    "You are running Java " + JAVA_VERSION + ". Please update your Java installation.\n" +
+                    "Press the Download button to download an appropriate version of Java.\n" +
+                    "If you already have a newer version installed you can ignore this message.",
+                    "Upgrade Java", DEFAULT_OPTION, WARNING_MESSAGE, null,
+                    new String[] { "Download", "OK" }, "OK") == 0) {
+                try {
+                    switch (SystemUtils.getOS()) {
+                        case WINDOWS:
+                            if ("x86".equals(System.getProperty("os.arch"))) {
+                                DesktopUtils.open(new URL("https://www.worldpainter.net/links/jre-win-32"));
+                            } else {
+                                DesktopUtils.open(new URL("https://www.worldpainter.net/links/jre-win-64"));
+                            }
+                            break;
+                        case MAC:
+                            if ("x64_86".equals(System.getProperty("os.arch"))) {
+                                DesktopUtils.open(new URL("https://www.worldpainter.net/links/jre-mac-intel"));
+                            } else {
+                                DesktopUtils.open(new URL("https://www.worldpainter.net/links/jre-mac-arm"));
+                            }
+                            break;
+                        default:
+                            DesktopUtils.open(new URL("https://adoptium.net/temurin/"));
+                            break;
+                    }
+                } catch (MalformedURLException e) {
+                    throw new MDCCapturingRuntimeException("Malformed URL while opening JRE link; should never happen", e);
+                }
+            }
+        }
     }
 
     private static void configError(Throwable e) {
