@@ -1,4 +1,4 @@
--- Version 2.24.4, released ..-..-2025
+-- Version 2.24.4, released 30-06-2025
 
  * Display a warning if the program is not running on Java 17 or later and allow the user to download an appropriate JRE
  * Bug fix: fix a crash that occurred trying to use the Pencil tool without a paint selected
