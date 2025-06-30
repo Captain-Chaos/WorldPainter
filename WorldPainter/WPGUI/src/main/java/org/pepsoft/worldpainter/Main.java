@@ -552,12 +552,11 @@ public class Main {
 
     private static void checkJavaVersion(App app) {
         // Check Java version
-        if (JAVA_VERSION.compareTo(new org.pepsoft.util.Version(17)) < 0) {
+        final Configuration config = Configuration.getInstance();
+        if ((JAVA_VERSION.compareTo(new org.pepsoft.util.Version(17)) < 0)
+                && (! config.isMessageDisplayedCountAtLeast(JAVA_17_MESSAGE_KEY, 3))) {
             beep();
-            if (showOptionDialog(app, "From the next release, WorldPainter will require Java 17 or later to run.\n" +
-                    "You are running Java " + JAVA_VERSION + ". Please update your Java installation.\n" +
-                    "Press the Download button to download an appropriate version of Java.\n" +
-                    "If you already have a newer version installed you can ignore this message.",
+            if (showOptionDialog(app, JAVA_17_MESSAGE,
                     "Upgrade Java", DEFAULT_OPTION, WARNING_MESSAGE, null,
                     new String[] { "Download", "OK" }, "OK") == 0) {
                 try {
@@ -584,6 +583,7 @@ public class Main {
                     throw new MDCCapturingRuntimeException("Malformed URL while opening JRE link; should never happen", e);
                 }
             }
+            config.setMessageDisplayed(JAVA_17_MESSAGE_KEY);
         }
     }
 
@@ -613,6 +613,11 @@ public class Main {
             "<p>Please report bugs on GitHub: https://github.com/Captain-Chaos/WorldPainter" +
             "<p>Type \"I understand\" below to proceed with testing the next release of WorldPainter:</p></html>";
     private static final String SNAPSHOT_MESSAGE_KEY = "org.pepsoft.worldpainter.snapshotWarning";
+    private static final String JAVA_17_MESSAGE = "From the next release, WorldPainter will require Java 17 or later to run.\n" +
+            "You are running Java " + JAVA_VERSION + ". Please update your Java installation.\n" +
+            "Press the Download button to download an appropriate version of Java.\n" +
+            "If you already have a newer version installed you can ignore this message.";
+    private static final String JAVA_17_MESSAGE_KEY = "org.pepsoft.worldpainter.java17Warning";
 
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Main.class);
 
