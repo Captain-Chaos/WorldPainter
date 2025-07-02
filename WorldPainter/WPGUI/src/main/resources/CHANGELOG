@@ -1,5 +1,6 @@
 -- Version 2.25.0, released ..-..-2025
 
+ * WorldPainter now requires Java 17 or later! If necessary, you can download an appropriate version of Java using the links on www.worldpainter.net.
  * An Undo button has been added to the Global Operations tool window. It activates when the window is kept open after an action and allow you to undo the results of that action. You may also press Ctrl+Z (or ⌘+Z on a Mac) to perform an Undo.
  * The Global Operations tool now also allows you to raise or lower the terrain relative to the current height; in other words raise or lower it by an amount instead of to a target level
  * Bug fix: fix a crash that occurred trying to use the Pencil tool without a paint selected
