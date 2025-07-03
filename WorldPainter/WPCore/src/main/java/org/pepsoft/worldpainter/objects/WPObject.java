@@ -287,7 +287,7 @@ public interface WPObject extends Serializable, Cloneable {
     }
 
     /**
-     * TODO only for formats with named blocks which could conceivable contain the waterlogged property
+     * TODO only for formats with named blocks which could conceivably contain the waterlogged property
      */
     default void guessManageWaterlogged() {
         final AtomicBoolean resetManageWaterblocks = new AtomicBoolean();
