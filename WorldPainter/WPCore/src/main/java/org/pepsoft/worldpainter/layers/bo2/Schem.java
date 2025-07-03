@@ -25,13 +25,13 @@ import static org.pepsoft.minecraft.Material.AIR;
 import static org.pepsoft.minecraft.Material.MINECRAFT;
 
 /**
- * A Sponge schematic according to the specification at
- * <a href="https://github.com/SpongePowered/Schematic-Specification/blob/master/versions/schematic-1.md">https://github.com/SpongePowered/Schematic-Specification/blob/master/versions/schematic-1.md</a>.
+ * A Sponge schematic according to the specifications at
+ * <a href="https://github.com/SpongePowered/Schematic-Specification/blob/master/versions/">https://github.com/SpongePowered/Schematic-Specification/blob/master/versions/</a>.
  */
 public final class Schem extends AbstractNBTItem implements WPObject {
     @SuppressWarnings("unchecked") // Guaranteed by Minecraft
     public Schem(CompoundTag tag, String fallBackName) {
-        super(tag);
+        super(getSchematic(tag));
         final int version = getInt(TAG_VERSION);
         final StringTag nameTag = (getMap(TAG_METADATA) != null) ? (StringTag) getMap(TAG_METADATA).get(TAG_NAME) : null;
         this.name = (nameTag != null) ? nameTag.getValue() : fallBackName;
@@ -335,6 +335,17 @@ public final class Schem extends AbstractNBTItem implements WPObject {
         }
     }
 
+    /**
+     * Some schems have the data embedded one level deeper.
+     */
+    private static CompoundTag getSchematic(CompoundTag tag) {
+        if ((tag.getValue().size() == 1) && (tag.getValue().get(TAG_SCHEMATIC) instanceof CompoundTag)) {
+            return (CompoundTag) tag.getValue().get(TAG_SCHEMATIC);
+        } else {
+            return tag;
+        }
+    }
+
     private final int width, height, length;
     private final Material[] palette;
     private final int[] blocks;
@@ -352,6 +363,7 @@ public final class Schem extends AbstractNBTItem implements WPObject {
     private static final String TAG_NAME = "Name";
     private static final String TAG_BLOCK_DATA = "BlockData";
     private static final String TAG_BLOCK_ENTITIES = "BlockEntities";
+    private static final String TAG_SCHEMATIC = "Schematic";
 
     private static final long serialVersionUID = 1L;
 }
