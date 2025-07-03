@@ -360,7 +360,7 @@ public abstract class JavaLevel extends AbstractNBTItem {
         }
         playerSettings.put(TAG_SPAWN_X, new IntTag(TAG_SPAWN_X, x));
         playerSettings.put(TAG_SPAWN_Y, new IntTag(TAG_SPAWN_Y, y));
-        playerSettings.put(TAG_SPAWN_Z, new IntTag(TAG_SPAWN_Z, x));
+        playerSettings.put(TAG_SPAWN_Z, new IntTag(TAG_SPAWN_Z, z));
         playerSettings.put(TAG_SPAWN_FORCED, new ByteTag(TAG_SPAWN_FORCED, (byte) 1));
         playerSettings.put(TAG_POS, new ListTag<>(TAG_POS, DoubleTag.class, asList(new DoubleTag("", x + 0.5), new DoubleTag("", y), new DoubleTag("", z + 0.5))));
         setMap(TAG_PLAYER, playerSettings);
