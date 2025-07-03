@@ -9,8 +9,8 @@ import org.pepsoft.util.ColourUtils;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiomeManager;
-import org.pepsoft.worldpainter.layers.Void;
 import org.pepsoft.worldpainter.layers.*;
+import org.pepsoft.worldpainter.layers.Void;
 import org.pepsoft.worldpainter.layers.renderers.*;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayer;
 import org.pepsoft.worldpainter.layers.tunnel.TunnelLayerHelper;
@@ -19,13 +19,14 @@ import org.pepsoft.worldpainter.ramps.ColourRamp;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.Constants.*;
-import static org.pepsoft.worldpainter.Dimension.Role.*;
+import static org.pepsoft.worldpainter.Dimension.Role.CAVE_FLOOR;
+import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.FIXED_HEIGHT_ABOVE_FLOOR;
 
 /**
@@ -48,7 +49,7 @@ public final class TileRenderer {
             if (anchor.role == DETAIL) {
                 relatedTileProvider = dimension.getWorld().getDimension(new Anchor(anchor.dim, anchor.role, ! anchor.invert, 0));
                 renderCeilingIntersection = (relatedTileProvider != null);
-            } else if ((anchor.role == CAVE_FLOOR) || (anchor.role == FLOATING_FLOOR)) {
+            } else if (anchor.role == CAVE_FLOOR) {
                 final Dimension detailDimension = dimension.getWorld().getDimension(new Anchor(anchor.dim, DETAIL, anchor.invert, 0));
                 if (detailDimension != null) {
                     final TunnelLayer tunnelLayer = TunnelLayer.find(dimension);

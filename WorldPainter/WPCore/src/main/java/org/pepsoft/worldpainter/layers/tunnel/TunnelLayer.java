@@ -17,6 +17,7 @@ import org.pepsoft.worldpainter.operations.Filter;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,8 @@ import java.util.Map;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Dimension.Role.*;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.EdgeShape.LINEAR;
+import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.EdgeShape.SMOOTH;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.FillMode.AIR;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.FillMode.CAVE_AIR;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.CAVE;
@@ -205,14 +208,10 @@ public class TunnelLayer extends CustomLayer {
 
     @Override
     public String getType() {
-        switch (mode) {
-            case CAVE:
-                return "Cave/Tunnel";
-            case FLOATING:
-                return "Floating Dimension";
-            default:
-                throw new InternalError("Unknown mode " + mode);
-        }
+        return switch (mode) {
+            case CAVE -> "Cave/Tunnel";
+            case FLOATING -> "Floating Dimension";
+        };
     }
 
     public int getFloodLevel() {
@@ -313,6 +312,14 @@ public class TunnelLayer extends CustomLayer {
 
     public void setApplyBiomesBelowGround(boolean applyBiomesBelowGround) {
         this.applyBiomesBelowGround = applyBiomesBelowGround;
+    }
+
+    public int getBiomeHeightAboveGround() {
+        return biomeHeightAboveGround;
+    }
+
+    public void setBiomeHeightAboveGround(int biomeHeightAboveGround) {
+        this.biomeHeightAboveGround = biomeHeightAboveGround;
     }
 
     /**
@@ -460,38 +467,26 @@ public class TunnelLayer extends CustomLayer {
 
     @Override
     public Class<? extends LayerExporter> getExporterType() {
-        switch (mode) {
-            case CAVE:
-                return TunnelLayerExporter.class;
-            case FLOATING:
-                return FloatingLayerExporter.class;
-            default:
-                throw new InternalError("Unknown mode " + mode);
-        }
+        return switch (mode) {
+            case CAVE -> TunnelLayerExporter.class;
+            case FLOATING -> FloatingLayerExporter.class;
+        };
     }
 
     @Override
     public AbstractTunnelLayerExporter getExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
-        switch (mode) {
-            case CAVE:
-                return new TunnelLayerExporter(dimension, platform, this, getHelper(dimension)); // TODO creating the helper is not necessary to do for every exporter instance
-            case FLOATING:
-                return new FloatingLayerExporter(dimension, platform, this, getHelper(dimension)); // TODO creating the helper is not necessary to do for every exporter instance
-            default:
-                throw new InternalError("Unknown mode " + mode);
-        }
+        return switch (mode) {
+            case CAVE -> new TunnelLayerExporter(dimension, platform, this, getHelper(dimension)); // TODO creating the helper is not necessary to do for every exporter instance
+            case FLOATING -> new FloatingLayerExporter(dimension, platform, this, getHelper(dimension)); // TODO creating the helper is not necessary to do for every exporter instance
+        };
     }
 
     @Override
     public PaintRenderer getRenderer() {
-        switch (mode) {
-            case CAVE:
-                return new TunnelLayerRenderer(this);
-            case FLOATING:
-                return new PaintRenderer(getPaint(), getOpacity());
-            default:
-                throw new InternalError("Unknown mode " + mode);
-        }
+        return switch (mode) {
+            case CAVE -> new TunnelLayerRenderer(this);
+            case FLOATING -> new PaintRenderer(getPaint(), getOpacity());
+        };
     }
 
     @Override
@@ -557,6 +552,7 @@ public class TunnelLayer extends CustomLayer {
         }
     }
 
+    @Serial
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
 
@@ -588,6 +584,10 @@ public class TunnelLayer extends CustomLayer {
         if (wpVersion < 4) {
             mode = CAVE;
         }
+        if (wpVersion < 5) {
+            bottomEdgeShape = LINEAR;
+            biomeHeightAboveGround = 16;
+        }
         wpVersion = CURRENT_WP_VERSION;
     }
 
@@ -607,10 +607,12 @@ public class TunnelLayer extends CustomLayer {
     private MixedMaterial fillMaterial;
     private LayerMode mode;
     Integer roofDimensionId;
-    private EdgeShape bottomEdgeShape;
+    private EdgeShape bottomEdgeShape = SMOOTH;
     private boolean applyBiomesAboveGround, applyBiomesBelowGround;
+    private int biomeHeightAboveGround = 16;
 
-    private static final int CURRENT_WP_VERSION = 4;
+    private static final int CURRENT_WP_VERSION = 5;
+    @Serial
     private static final long serialVersionUID = 1L;
     
     public enum Mode { FIXED_HEIGHT, CONSTANT_DEPTH, INVERTED_DEPTH, CUSTOM_DIMENSION, FIXED_HEIGHT_ABOVE_FLOOR }
@@ -727,6 +729,7 @@ public class TunnelLayer extends CustomLayer {
 
         private Layer layer;
         
+        @Serial
         private static final long serialVersionUID = 1L;
     }
 }

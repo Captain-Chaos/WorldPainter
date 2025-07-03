@@ -2,16 +2,18 @@ package org.pepsoft.worldpainter.layers.tunnel;
 
 import org.pepsoft.minecraft.Chunk;
 import org.pepsoft.util.PerlinNoise;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Dimension.Anchor;
-import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
 import org.pepsoft.worldpainter.exporting.SecondPassLayerExporter;
 import org.pepsoft.worldpainter.exporting.WorldPainterChunkFactory;
 import org.pepsoft.worldpainter.heightMaps.AbstractHeightMap;
+import org.pepsoft.worldpainter.layers.Biome;
 import org.pepsoft.worldpainter.layers.FloodWithLava;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.objects.WPObject;
+import org.pepsoft.worldpainter.util.BiomeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +28,7 @@ import static java.util.Collections.singleton;
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Dimension.Role.FLOATING_FLOOR;
+import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_7Biomes.*;
 import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.ADD_FEATURES;
 import static org.pepsoft.worldpainter.exporting.WorldPainterChunkFactory.SUGAR_CANE_CHANCE;
 import static org.pepsoft.worldpainter.exporting.WorldPainterChunkFactory.SUGAR_CANE_SEED_OFFSET;
@@ -33,14 +36,13 @@ import static org.pepsoft.worldpainter.layers.plants.Plants.SUGAR_CANE;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.FLOATING;
 
 public class FloatingLayerExporter extends AbstractTunnelLayerExporter implements FirstPassLayerExporter, SecondPassLayerExporter {
-    public FloatingLayerExporter(Dimension dimension, Platform platform, TunnelLayer layer, TunnelLayerHelper helper) {
-        super(dimension, platform, layer, helper);
-        floorDimension = dimension.getWorld().getDimension(new Anchor(dimension.getAnchor().dim, FLOATING_FLOOR, dimension.getAnchor().invert, layer.getFloorDimensionId()));
+    public FloatingLayerExporter(Dimension outerDimension, Platform platform, TunnelLayer layer, TunnelLayerHelper helper) {
+        super(outerDimension.getWorld().getDimension(new Anchor(outerDimension.getAnchor().dim, FLOATING_FLOOR, outerDimension.getAnchor().invert, layer.getFloorDimensionId())), platform, layer, helper);
         seed = dimension.getSeed();
         if (sugarCaneNoise.getSeed() != (seed + SUGAR_CANE_SEED_OFFSET)) {
             sugarCaneNoise.setSeed(seed + SUGAR_CANE_SEED_OFFSET);
         }
-        wpChunkFactory = new WorldPainterChunkFactory(floorDimension, null, platform, dimension.getMaxHeight());
+        wpChunkFactory = new WorldPainterChunkFactory(dimension, null, platform, outerDimension.getMaxHeight());
         maxZ = maxHeight - 1;
         minHeightField = new AbstractHeightMap() {
             @Override
@@ -55,22 +57,40 @@ public class FloatingLayerExporter extends AbstractTunnelLayerExporter implement
 
             @Override
             public double getHeight(int x, int y) {
-                return (dimension.getBitLayerValueAt(layer, x, y))
-                        ? helper.calculateBottomLevel(x, y, minHeight, maxZ, helper.calculateFloorLevel(x, y, dimension.getIntHeightAt(x, y), minHeight, maxZ), helper.getDistanceToWall(x, y))
+                return (outerDimension.getBitLayerValueAt(layer, x, y))
+                        ? helper.calculateBottomLevel(x, y, minHeight, maxZ, helper.calculateFloorLevel(x, y, outerDimension.getIntHeightAt(x, y), minHeight, maxZ), helper.getDistanceToWall(x, y))
                         : maxHeight;
             }
         };
+        switch (dimension.getAnchor().dim) {
+            case DIM_NORMAL:
+                defaultBiome = BIOME_PLAINS;
+                break;
+            case DIM_NETHER:
+                defaultBiome = BIOME_HELL;
+                break;
+            case DIM_END:
+                defaultBiome = BIOME_SKY;
+                break;
+            default:
+                throw new InternalError();
+        }
     }
 
     // FirstPassLayerExporter
 
     @Override
     public void render(Tile surfaceTile, Chunk chunk) {
-        final Tile floatingTile = floorDimension.getTile(surfaceTile.getX(), surfaceTile.getY());
+        final Tile floatingTile = dimension.getTile(surfaceTile.getX(), surfaceTile.getY());
         final FirstPassLayerExporter[] exporters = getFirstPassExportersForTile(floatingTile);
         final int xOffset = (chunk.getxPos() & 7) << 4;
         final int yOffset = (chunk.getzPos() & 7) << 4;
         final Random random = new Random(seed + xOffset * 3 + yOffset * 5);
+        final BiomeUtils biomeUtils = new BiomeUtils(dimension);
+        final boolean applyBiomesAboveGround = layer.isApplyBiomesAboveGround(), applyBiomesBelowGround = layer.isApplyBiomesBelowGround();
+        final int undergroundBiome = (dimension.getUndergroundBiome() != null) ? dimension.getUndergroundBiome() : -1;
+        final int surfaceBiomeHeight = applyBiomesAboveGround ? layer.getBiomeHeightAboveGround() : 0;
+        final boolean applyBiomes = (chunk.is3DBiomesSupported() || chunk.isNamedBiomesSupported()) && (applyBiomesBelowGround || applyBiomesAboveGround);
         for (int x = 0; x < 16; x++) {
             final int localX = xOffset + x;
             final int worldX = (chunk.getxPos() << 4) + x;
@@ -79,20 +99,18 @@ public class FloatingLayerExporter extends AbstractTunnelLayerExporter implement
                 if (! surfaceTile.getBitLayerValue(layer, localX, localY)) {
                     continue;
                 }
-                final int worldY = (chunk.getzPos() << 4) + y;
-                final int terrainHeight = floatingTile.getIntHeight(localX, localY);
-                final int floorLevel = helper.calculateFloorLevel(worldX, worldY, terrainHeight, minZ, maxZ);
-                final int bottomLevel = helper.calculateBottomLevel(worldX, worldY, minZ, maxZ, floorLevel, helper.getDistanceToWall(worldX, worldY));
 
                 // Create terrain
                 final int xInTile = xOffset | x;
                 final int yInTile = yOffset | y;
-
-                final int intHeight = floatingTile.getIntHeight(xInTile, yInTile);
-                final int waterLevel = floatingTile.getWaterLevel(xInTile, yInTile);
-                final boolean underWater = waterLevel > intHeight;
-                final boolean _void = floatingTile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, xInTile, yInTile);
-                if (! _void) {
+                if (! floatingTile.getBitLayerValue(org.pepsoft.worldpainter.layers.Void.INSTANCE, xInTile, yInTile)) {
+                    final int worldY = (chunk.getzPos() << 4) + y;
+                    final int terrainHeight = floatingTile.getIntHeight(localX, localY);
+                    final int floorLevel = helper.calculateFloorLevel(worldX, worldY, terrainHeight, minZ, maxZ);
+                    final int bottomLevel = helper.calculateBottomLevel(worldX, worldY, minZ, maxZ, floorLevel, helper.getDistanceToWall(worldX, worldY));
+                    final int intHeight = floatingTile.getIntHeight(xInTile, yInTile);
+                    final int waterLevel = floatingTile.getWaterLevel(xInTile, yInTile);
+                    final boolean underWater = waterLevel > intHeight;
                     final Terrain terrain = floatingTile.getTerrain(xInTile, yInTile);
                     final boolean floodWithLava;
                     if (underWater) {
@@ -101,9 +119,6 @@ public class FloatingLayerExporter extends AbstractTunnelLayerExporter implement
                     } else {
                         floodWithLava = false;
 //                        result.stats.landArea++; TODO?
-                    }
-                    if ((worldX == -19) && (worldY == -18)) {
-                        logger.info("Bottom level @ -19,-18: {}", bottomLevel);
                     }
                     wpChunkFactory.applySubSurface(floatingTile, chunk, xInTile, yInTile, bottomLevel);
                     wpChunkFactory.applyTopLayer(floatingTile, chunk, xInTile, yInTile, bottomLevel, false);
@@ -133,9 +148,13 @@ public class FloatingLayerExporter extends AbstractTunnelLayerExporter implement
                             wpChunkFactory.renderObject(chunk, object, x, intHeight + 1, y);
                         }
                     }
-                }
 
-                // TODO add 3D biome support
+                    if (applyBiomes) {
+                        // TODO this is extremely inefficient, since we are doing this 64 times too many, but it is by
+                        //  far the simplest way to ensure the whole extent of the underground is covered
+                        applyBiomes(applyBiomesBelowGround, undergroundBiome, surfaceBiomeHeight, chunk, x, y, bottomLevel, biomeUtils);
+                    }
+                }
             }
         }
 
@@ -156,7 +175,7 @@ public class FloatingLayerExporter extends AbstractTunnelLayerExporter implement
         if (layer.getLayerMode() != FLOATING) {
             throw new IllegalArgumentException("Layer must be in mode FLOATING");
         }
-        // TODO
+        // TODO - what?
         final int tunnelExtent = width - 34;
         final boolean floodWithLava = layer.isFloodWithLava();
         final PerlinNoise noise = new PerlinNoise(0);
@@ -229,21 +248,43 @@ public class FloatingLayerExporter extends AbstractTunnelLayerExporter implement
     private FirstPassLayerExporter[] getFirstPassExportersForTile(Tile tile) {
         return exporterCache.computeIfAbsent(new Point(tile.getX(), tile.getY()), k -> {
             final SortedSet<Layer> floorLayers = new TreeSet<>(tile.getLayers());
-            floorLayers.addAll(floorDimension.getMinimumLayers());
+            floorLayers.addAll(dimension.getMinimumLayers());
             return floorLayers.stream()
                     .filter(layer -> (layer.getExporterType() != null) && FirstPassLayerExporter.class.isAssignableFrom(layer.getExporterType()))
-                    .map(layer -> (FirstPassLayerExporter) layer.getExporter(floorDimension, platform, floorDimension.getLayerSettings(layer)))
+                    .map(layer -> (FirstPassLayerExporter) layer.getExporter(dimension, platform, dimension.getLayerSettings(layer)))
                     .toArray(FirstPassLayerExporter[]::new);
         });
     }
 
-    private final Dimension floorDimension;
+    private void applyBiomes(boolean applyUndergroundBiomes, int undergroundBiome, int surfaceBiomeHeight, Chunk chunk, int x, int z, int bottomLevel, BiomeUtils biomeUtils) {
+        final int height = dimension.getIntHeightAt(x, z);
+        final int topLayerStart = height - dimension.getTopLayerDepth(x, z, height);
+        int surfaceBiome = dimension.getLayerValueAt(Biome.INSTANCE, x, z);
+        if (surfaceBiome == 255) {
+            surfaceBiome = dimension.getAutoBiome(x, z, defaultBiome);
+        }
+        if (applyUndergroundBiomes) {
+            if (undergroundBiome == -1) {
+                undergroundBiome = surfaceBiome;
+            }
+            for (int y = bottomLevel; y < topLayerStart; y++) {
+                biomeUtils.set3DBiome(chunk, x >> 2, y >> 2, z >> 2, undergroundBiome);
+            }
+        }
+        if (surfaceBiomeHeight > 0) {
+            final int maxY = Math.min(height + surfaceBiomeHeight, maxHeight);
+            for (int y = topLayerStart; y < maxY; y++) {
+                biomeUtils.set3DBiome(chunk, x >> 2, y >> 2, z >> 2, surfaceBiome);
+            }
+        }
+    }
+
     private final long seed;
     private final WorldPainterChunkFactory wpChunkFactory;
     private final Map<Point, FirstPassLayerExporter[]> exporterCache = new HashMap<>();
     private final PerlinNoise sugarCaneNoise = new PerlinNoise(0);
     private final HeightMap minHeightField;
-    private final int maxZ;
+    private final int maxZ, defaultBiome;
 
     private static final Logger logger = LoggerFactory.getLogger(FloatingLayerExporter.class);
 }

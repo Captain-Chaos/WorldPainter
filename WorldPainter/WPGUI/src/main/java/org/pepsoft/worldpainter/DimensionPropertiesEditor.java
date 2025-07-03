@@ -65,8 +65,8 @@ import static org.pepsoft.worldpainter.DimensionPropertiesEditor.Mode.DEFAULT_SE
 import static org.pepsoft.worldpainter.Generator.CUSTOM;
 import static org.pepsoft.worldpainter.Generator.FLAT;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
-import static org.pepsoft.worldpainter.layers.exporters.AbstractCavesExporter.CaveDecorationSettings.Decoration.BROWN_MUSHROOM;
 import static org.pepsoft.worldpainter.layers.exporters.AbstractCavesExporter.CaveDecorationSettings.Decoration.*;
+import static org.pepsoft.worldpainter.layers.exporters.AbstractCavesExporter.CaveDecorationSettings.Decoration.BROWN_MUSHROOM;
 import static org.pepsoft.worldpainter.tools.Eyedropper.PaintType.LAYER;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getAllBiomes;
 
@@ -164,6 +164,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         final Anchor anchor = dimension.getAnchor();
         switch (mode) {
             case EXPORT:
+                // Make sure these are in descending order of tab index:
                 if (anchor.role == MASTER) {
                     jTabbedPane1.remove(TAB_OTHER_LAYERS);
                 }
@@ -185,6 +186,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
                 themeEditor.setAllowCustomItems(false);
                 break;
             case EDITOR:
+                // Make sure these are in descending order of tab index:
                 jTabbedPane1.remove(TAB_CUSTOM_LAYERS);
                 if (anchor.role == MASTER) {
                     jTabbedPane1.remove(TAB_OTHER_LAYERS);
@@ -1078,7 +1080,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         ((SpinnerNumberModel) spinnerAncientDebrisMaxLevel.getModel()).setMaximum(maxZ);
         spinnerAncientDebrisMaxLevel.setValue(clamp(minZ, resourcesSettings.getMaxLevel(ANCIENT_DEBRIS), maxZ));
     }
-    
+
     private void setControlStates() {
         final boolean enabled = isEnabled();
         final Anchor anchor = (dimension != null) ? dimension.getAnchor() : null;

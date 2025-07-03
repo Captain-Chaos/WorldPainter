@@ -481,7 +481,7 @@ public class CustomLayerController implements PropertyChangeListener {
         });
         customLayerMenu.add(menuItem);
 
-        menuItem = new JMenuItem("[PREVIEW] Add a floating dimension...");
+        menuItem = new JMenuItem("[ALPHA] Add a floating dimension...");
         menuItem.addActionListener(e -> {
             final TunnelLayer layer = new TunnelLayer("Floating Dimension", FLOATING, CYAN, world.getPlatform());
             layer.setFloorMode(FIXED_HEIGHT_ABOVE_FLOOR);

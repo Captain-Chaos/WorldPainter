@@ -32,8 +32,10 @@ public class DimensionPropertiesDialog extends WorldPainterDialog {
         
         if (defaultSettingsMode) {
             worldPropertiesEditor1.init(colourScheme, customBiomeManager, dimension, DimensionPropertiesEditor.Mode.DEFAULT_SETTINGS);
+            setTitle("Edit Default Dimension Properties");
         } else {
             worldPropertiesEditor1.init(colourScheme, customBiomeManager, dimension, DimensionPropertiesEditor.Mode.EDITOR);
+            setTitle("Edit " + dimension.getName() + " Properties");
         }
         
         rootPane.setDefaultButton(jButton2);

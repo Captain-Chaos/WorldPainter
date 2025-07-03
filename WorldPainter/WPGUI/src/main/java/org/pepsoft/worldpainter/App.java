@@ -5106,8 +5106,8 @@ public final class App extends JFrame implements RadiusControl,
     private JToggleButton createTerrainButton(final Terrain terrain) {
         final JToggleButton button = new JToggleButton();
         button.putClientProperty(KEY_PAINT_ID, createTerrainPaintId(terrain));
-        button.setMargin(App.BUTTON_INSETS);
-        button.setIcon(new ImageIcon(terrain.getScaledIcon(16, selectedColourScheme)));
+        button.setMargin(App.SMALLER_BUTTON_INSETS);
+        button.setIcon(new ImageIcon(terrain.getScaledIcon(18, selectedColourScheme)));
         button.setToolTipText(terrain.getName() + ": " + terrain.getDescription());
         button.addItemListener(event -> {
             if (event.getStateChange() == ItemEvent.SELECTED) {
@@ -5330,7 +5330,6 @@ public final class App extends JFrame implements RadiusControl,
         setEnabled(Caves.INSTANCE, (! caveFloor) && (! floatingFloor), "Caves not supported in Custom Cave/Tunnel floor dimensions");
         setEnabled(Caverns.INSTANCE, (! caveFloor) && (! floatingFloor), "Caverns not supported in Custom Cave/Tunnel floor dimensions");
         setEnabled(Chasms.INSTANCE, (! caveFloor) && (! floatingFloor), "Chasms not supported in Custom Cave/Tunnel floor dimensions");
-        setEnabled(Resources.INSTANCE, (! caveFloor) && (! floatingFloor), "Resources not supported in Custom Cave/Tunnel floor dimensions");
         setEnabled(ReadOnly.INSTANCE, anchor.equals(NORMAL_DETAIL), "Read Only layer not applicable");
     }
 
@@ -6938,6 +6937,12 @@ public final class App extends JFrame implements RadiusControl,
     public static final String KEY_PAINT_ID = "org.pepsoft.worldpainter.paint.id";
 
     public static final Insets BUTTON_INSETS = new Insets(3, 5, 3, 5) {
+        @Override
+        public void set(int top, int left, int bottom, int right) {
+            throw new UnsupportedOperationException();
+        }
+    };
+    public static final Insets SMALLER_BUTTON_INSETS = new Insets(2, 4, 2, 4) {
         @Override
         public void set(int top, int left, int bottom, int right) {
             throw new UnsupportedOperationException();

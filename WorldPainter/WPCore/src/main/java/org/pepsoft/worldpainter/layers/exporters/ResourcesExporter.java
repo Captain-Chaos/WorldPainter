@@ -14,7 +14,6 @@ import org.pepsoft.worldpainter.exporting.AbstractLayerExporter;
 import org.pepsoft.worldpainter.exporting.FirstPassLayerExporter;
 import org.pepsoft.worldpainter.layers.Resources;
 import org.pepsoft.worldpainter.layers.Void;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -105,9 +104,6 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
                     // this going higher than maxHeight, so there must be some obscure way in which the terrainHeight
                     // can be raised too high
                     final int minZ = (minHeightField != null) ? (int) floor(minHeightField.getHeight(worldX, worldY)) : this.minZ;
-                    if ((worldX == -19) && (worldY == -18)) {
-                        LoggerFactory.getLogger(ResourcesExporter.class).info("Min Z @ -19,-18: {}", minZ);
-                    }
                     for (int y = Math.min(subsurfaceMaxHeight, maxZ); y >= minZ; y--) {
                         final double dz = y / TINY_BLOBS;
                         final double dirtZ = y / SMALL_BLOBS;

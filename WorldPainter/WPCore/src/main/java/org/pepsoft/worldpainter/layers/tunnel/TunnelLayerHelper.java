@@ -5,8 +5,6 @@ import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.HeightMap;
 import org.pepsoft.worldpainter.heightMaps.ConstantHeightMap;
 import org.pepsoft.worldpainter.heightMaps.NoiseHeightMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static java.lang.Math.round;
 import static org.pepsoft.util.MathUtils.clamp;
@@ -171,6 +169,4 @@ public class TunnelLayerHelper {
 
     private static final long FLOOR_NOISE_SEED_OFFSET = 177766561L;
     private static final long ROOF_NOISE_SEED_OFFSET = 184818453L;
-
-    private static final Logger logger = LoggerFactory.getLogger(TunnelLayerHelper.class);
 }
