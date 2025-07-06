@@ -13,6 +13,7 @@ import ch.qos.logback.core.util.StatusPrinter;
 import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.Configuration;
 import org.pepsoft.worldpainter.Version;
+import org.pepsoft.worldpainter.WPContext;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.tools.scripts.ScriptingContext;
@@ -125,7 +126,7 @@ public class ScriptingTool {
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
         }
-        WPPluginManager.initialise(config.getUuid());
+        WPPluginManager.initialise(config.getUuid(), WPContext.INSTANCE);
 
         if (args.length > 1) {
             System.err.print("Executing script \"" + scriptFileName + "\" with arguments ");

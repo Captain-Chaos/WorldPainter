@@ -43,31 +43,13 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
      *
      * @param name The short name of the operation. May be displayed on the operation's tool button.
      * @param description A longer description of the operation. May be displayed to the user as a tooltip.
-     * @param view The WorldPainter view through which the dimension that is being edited is being displayed and on
-     *             which the operation should install its listeners to register user mouse, keyboard and tablet actions.
-     * @param statisticsKey The key with which use of this operation will be logged in the usage data sent back to the
-     *                      developer. Should start with a reverse-DNS style identifier, optionally followed by some
-     *                      basic or fundamental setting, if it has one.
-     */
-    protected MouseOrTabletOperation(String name, String description, WorldPainterView view, String statisticsKey) {
-        this(name, description, view, -1, true, statisticsKey, null);
-    }
-
-    /**
-     * Creates a new one-shot operation (an operation which performs a single action when clicked).
-     * {@link #tick(int, int, boolean, boolean, float)} will only be invoked once per activation for these operations.
-     *
-     * @param name The short name of the operation. May be displayed on the operation's tool button.
-     * @param description A longer description of the operation. May be displayed to the user as a tooltip.
-     * @param view The WorldPainter view through which the dimension that is being edited is being displayed and on
-     *             which the operation should install its listeners to register user mouse, keyboard and tablet actions.
      * @param statisticsKey The key with which use of this operation will be logged in the usage data sent back to the
      *                      developer. Should start with a reverse-DNS style identifier, optionally followed by some
      *                      basic or fundamental setting, if it has one.
      * @param iconName The base name of the icon for the operation.
      */
-    protected MouseOrTabletOperation(String name, String description, WorldPainterView view, String statisticsKey, String iconName) {
-        this(name, description, view, -1, true, statisticsKey, iconName);
+    protected MouseOrTabletOperation(String name, String description, String statisticsKey, String iconName) {
+        this(name, description, -1, true, statisticsKey, iconName);
     }
 
     /**
@@ -79,29 +61,6 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
      *
      * @param name The short name of the operation. May be displayed on the operation's tool button.
      * @param description A longer description of the operation. May be displayed to the user as a tooltip.
-     * @param view The WorldPainter view through which the dimension that is being edited is being displayed and on
-     *             which the operation should install its listeners to register user mouse, keyboard and tablet actions.
-     * @param delay The delay in ms between each invocation of {@link #tick(int, int, boolean, boolean, float)} while
-     *              this operation is being applied by the user.
-     * @param statisticsKey The key with which use of this operation will be logged in the usage data sent back to the
-     *                      developer. Should start with a reverse-DNS style identifier, optionally followed by some
-     *                      basic or fundamental setting, if it has one.
-     */
-    protected MouseOrTabletOperation(String name, String description, WorldPainterView view, int delay, String statisticsKey) {
-        this(name, description, view, delay, false, statisticsKey, null);
-    }
-
-    /**
-     * Creates a new continuous operation (an operation which is continually performed while e.g. the mouse button is
-     * held down). {@link #tick(int, int, boolean, boolean, float)} will be invoked every {@code delay}
-     * milliseconds during each activation of these operations, with the {@code first} parameter set to
-     * {@code true} for the first invocation per activation, and set to {@code false} for all subsequent
-     * invocations per activation.
-     *
-     * @param name The short name of the operation. May be displayed on the operation's tool button.
-     * @param description A longer description of the operation. May be displayed to the user as a tooltip.
-     * @param view The WorldPainter view through which the dimension that is being edited is being displayed and on
-     *             which the operation should install its listeners to register user mouse, keyboard and tablet actions.
      * @param delay The delay in ms between each invocation of {@link #tick(int, int, boolean, boolean, float)} while
      *              this operation is being applied by the user.
      * @param statisticsKey The key with which use of this operation will be logged in the usage data sent back to the
@@ -109,8 +68,8 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
      *                      basic or fundamental setting, if it has one.
      * @param iconName The base name of the icon for the operation.
      */
-    protected MouseOrTabletOperation(String name, String description, WorldPainterView view, int delay, String statisticsKey, String iconName) {
-        this(name, description, view, delay, false, statisticsKey, iconName);
+    protected MouseOrTabletOperation(String name, String description, int delay, String statisticsKey, String iconName) {
+        this(name, description, delay, false, statisticsKey, iconName);
     }
 
     /**
@@ -124,7 +83,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
      *                      basic or fundamental setting, if it has one.
      */
     protected MouseOrTabletOperation(String name, String description, String statisticsKey) {
-        this(name, description, null, -1, true, statisticsKey, null);
+        this(name, description, -1, true, statisticsKey, null);
     }
 
     /**
@@ -143,12 +102,47 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
      *                      basic or fundamental setting, if it has one.
      */
     protected MouseOrTabletOperation(String name, String description, int delay, String statisticsKey) {
-        this(name, description, null, delay, false, statisticsKey, null);
+        this(name, description, delay, false, statisticsKey, null);
     }
 
-    private MouseOrTabletOperation(String name, String description, WorldPainterView view, int delay, boolean oneshot, String statisticsKey, String iconName) {
-        super(name, description, (iconName != null) ? iconName : name.toLowerCase().replaceAll("\\s", ""));
+    /**
+     * @deprecated Use {@link #MouseOrTabletOperation(String, String, String)}.
+     */
+    @Deprecated
+    protected MouseOrTabletOperation(String name, String description, WorldPainterView view, String statisticsKey) {
+        this(name, description, -1, true, statisticsKey, null);
         setView(view);
+    }
+
+    /**
+     * @deprecated Use {@link #MouseOrTabletOperation(String, String, String, String)}.
+     */
+    @Deprecated
+    protected MouseOrTabletOperation(String name, String description, WorldPainterView view, String statisticsKey, String iconName) {
+        this(name, description, -1, true, statisticsKey, iconName);
+        setView(view);
+    }
+
+    /**
+     * @deprecated Use {@link #MouseOrTabletOperation(String, String, int, String)}.
+     */
+    @Deprecated
+    protected MouseOrTabletOperation(String name, String description, WorldPainterView view, int delay, String statisticsKey) {
+        this(name, description, delay, false, statisticsKey, null);
+        setView(view);
+    }
+
+    /**
+     * @deprecated Use {@link #MouseOrTabletOperation(String, String, int, String, String)}.
+     */
+    @Deprecated
+    protected MouseOrTabletOperation(String name, String description, WorldPainterView view, int delay, String statisticsKey, String iconName) {
+        this(name, description, delay, false, statisticsKey, iconName);
+        setView(view);
+    }
+
+    private MouseOrTabletOperation(String name, String description, int delay, boolean oneshot, String statisticsKey, String iconName) {
+        super(name, description, (iconName != null) ? iconName : name.toLowerCase().replaceAll("\\s", ""));
         this.delay = delay;
         this.oneShot = oneshot;
         this.statisticsKey = statisticsKey;
@@ -162,20 +156,12 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
         }
     }
     
-    public Dimension getDimension() {
-        return view.getDimension();
-    }
-    
-    public final WorldPainterView getView() {
-        return view;
-    }
-    
     @Override
-    public final void setView(WorldPainterView view) {
-        if (this.view != null) {
+    public void setView(WorldPainterView view) {
+        if (getView() != null) {
             deactivate();
         }
-        this.view = view;
+        super.setView(view);
     }
 
     public float getLevel() {
@@ -255,6 +241,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
                     // Button pressed
                     first = true;
                     undo = eraser || (buttonType == RIGHT) || altDown;
+                    final WorldPainterView view = getView();
                     if (! oneShot) {
                         interrupt(); // Make sure any operation in progress (due to timing issues perhaps) is interrupted
                         timer = new Timer(delay, e -> {
@@ -318,6 +305,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
         ctrlDown = me.isControlDown() || me.isMetaDown();
         shiftDown = me.isShiftDown();
         first = true;
+        final WorldPainterView view = getView();
         if (! oneShot) {
             interrupt(); // Make sure any operation in progress (due to timing issues perhaps) is interrupted
             timer = new Timer(delay, e -> {
@@ -386,6 +374,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
 
     @Override
     protected void activate() throws PropertyVetoException {
+        final WorldPainterView view = getView();
         if (legacy) {
             view.addMouseListener(this);
             view.addMouseMotionListener(this);
@@ -399,6 +388,7 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
     @Override
     protected void deactivate() {
         interrupt();
+        final WorldPainterView view = getView();
         if (legacy) {
             view.removeMouseMotionListener(this);
             view.removeMouseListener(this);
@@ -496,7 +486,6 @@ public abstract class MouseOrTabletOperation extends AbstractOperation implement
     private final int delay;
     private final boolean oneShot;
     private final String statisticsKey, statisticsKeyUndo;
-    private WorldPainterView view;
     private volatile Timer timer;
     private volatile boolean altDown, ctrlDown, shiftDown, first = true, undo;
     private volatile float dynamicLevel = 1.0f;

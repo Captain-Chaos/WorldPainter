@@ -41,7 +41,7 @@ import static org.pepsoft.worldpainter.exporting.WorldExportSettings.EXPORT_EVER
 public class RegressionIT {
     @BeforeClass
     public static void init() {
-        WPPluginManager.initialise(null);
+        WPPluginManager.initialise(null, WPContext.INSTANCE);
     }
 
     /**

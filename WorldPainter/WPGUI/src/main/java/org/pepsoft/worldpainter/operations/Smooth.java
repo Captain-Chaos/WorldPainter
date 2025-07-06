@@ -15,7 +15,7 @@ import java.util.Arrays;
  *
  * @author pepijn
  */
-public class Smooth extends RadiusOperation {
+public class Smooth extends AbstractBrushOperation {
     public Smooth(WorldPainter view) {
         super("Smooth", "Smooth the terrain out", view, 100, "operation.smooth");
     }

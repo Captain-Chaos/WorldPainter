@@ -833,7 +833,7 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     private void updateRadiusLabel() {
-        if ((dimension != null) && (activeOperation instanceof RadiusOperation)) {
+        if ((dimension != null) && (activeOperation instanceof BrushOperation)) {
             final float scale = dimension.getScale();
             setTextIfDifferent(radiusLabel, MessageFormat.format(strings.getString("radius.0"), round(radius * scale)));
         } else {
@@ -881,8 +881,8 @@ public final class App extends JFrame implements RadiusControl,
         this.maxRadius = maxRadius;
         if (radius > maxRadius) {
             radius = maxRadius;
-            if (activeOperation instanceof RadiusOperation) {
-                ((RadiusOperation) activeOperation).setRadius(radius);
+            if (activeOperation instanceof BrushOperation) {
+                ((BrushOperation) activeOperation).setRadius(radius);
             }
             view.setRadius(radius);
             updateRadiusLabel();
@@ -1378,8 +1378,8 @@ public final class App extends JFrame implements RadiusControl,
                 return;
             }
         }
-        if (activeOperation instanceof RadiusOperation) {
-            ((RadiusOperation) activeOperation).setRadius(radius);
+        if (activeOperation instanceof BrushOperation) {
+            ((BrushOperation) activeOperation).setRadius(radius);
         }
         view.setRadius(radius);
         updateRadiusLabel();
@@ -1389,8 +1389,8 @@ public final class App extends JFrame implements RadiusControl,
     public void increaseRadiusByOne() {
         if (radius < maxRadius) {
             radius++;
-            if (activeOperation instanceof RadiusOperation) {
-                ((RadiusOperation) activeOperation).setRadius(radius);
+            if (activeOperation instanceof BrushOperation) {
+                ((BrushOperation) activeOperation).setRadius(radius);
             }
             view.setRadius(radius);
             updateRadiusLabel();
@@ -1412,8 +1412,8 @@ public final class App extends JFrame implements RadiusControl,
             if (radius == oldRadius) {
                 return;
             }
-            if (activeOperation instanceof RadiusOperation) {
-                ((RadiusOperation) activeOperation).setRadius(radius);
+            if (activeOperation instanceof BrushOperation) {
+                ((BrushOperation) activeOperation).setRadius(radius);
             }
             view.setRadius(radius);
             updateRadiusLabel();
@@ -1424,8 +1424,8 @@ public final class App extends JFrame implements RadiusControl,
     public void decreaseRadiusByOne() {
         if (radius > 0) {
             radius--;
-            if (activeOperation instanceof RadiusOperation) {
-                ((RadiusOperation) activeOperation).setRadius(radius);
+            if (activeOperation instanceof BrushOperation) {
+                ((BrushOperation) activeOperation).setRadius(radius);
             }
             view.setRadius(radius);
             updateRadiusLabel();
@@ -2795,7 +2795,7 @@ public final class App extends JFrame implements RadiusControl,
                     } else {
                         ACTION_ROTATE_BRUSH_RIGHT.actionPerformed(new ActionEvent(e.getSource(), e.getID(), e.paramString()));
                     }
-                } else if (activeOperation instanceof RadiusOperation) {
+                } else if (activeOperation instanceof BrushOperation) {
                     if (e.isShiftDown()) {
                         if (e.getWheelRotation() < 0) {
                             decreaseRadiusByOne();
@@ -4964,10 +4964,8 @@ public final class App extends JFrame implements RadiusControl,
                     }
                     if (operation instanceof BrushOperation) {
                         view.setDrawBrush(true);
-                    }
-                    if (operation instanceof RadiusOperation) {
                         view.setRadius(radius);
-                        ((RadiusOperation) operation).setRadius(radius);
+                        ((BrushOperation) operation).setRadius(radius);
                     }
                     activeOperation = operation;
                     updateLayerVisibility();

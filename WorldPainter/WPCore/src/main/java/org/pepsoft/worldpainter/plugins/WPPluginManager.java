@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.plugins;
 import org.pepsoft.util.Version;
 import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.worldpainter.StartupMessages;
+import org.pepsoft.worldpainter.WPContext;
 
 import java.io.File;
 import java.security.PublicKey;
@@ -21,7 +22,7 @@ import static java.util.Collections.unmodifiableList;
  * @author pepijn
  */
 public class WPPluginManager {
-    private WPPluginManager(UUID uuid, ClassLoader classLoader) {
+    private WPPluginManager(UUID uuid, ClassLoader classLoader, WPContext context) {
         allPlugins = PluginManager.findPlugins(Plugin.class, DESCRIPTOR_PATH, classLoader);
         PluginManager.getErrors().forEach(StartupMessages::addError);
         PluginManager.getMessages().forEach(StartupMessages::addMessage);
@@ -42,6 +43,17 @@ public class WPPluginManager {
                 namesEncountered.add(name);
             }
             logger.info("Loaded plugin: " + name + " (version " + plugin.getVersion() + ")");
+        }
+        for (Plugin plugin : allPlugins) {
+            try {
+                plugin.init(context);
+                logger.info("Initialised plugin: " + plugin.getName() + " (version " + plugin.getVersion() + ")");
+            } catch (RuntimeException e) {
+                String message = "Exception initializing plugin " + plugin.getName() + " (" + plugin.getVersion() + ")\n(Type: " + e.getClass().getSimpleName() + "; message; " + e.getMessage() + ")" ;
+                StartupMessages.addError(message);
+                logger.error(message, e);
+                allPlugins.remove(plugin);
+            }
         }
     }
 
@@ -73,43 +85,49 @@ public class WPPluginManager {
 
     /**
      * Initialise the WorldPainter plugin manager for a particular WorldPainter installation. This method or
-     * {@link #initialise(UUID, ClassLoader)} should be invoked only once, before {@link #getInstance()} is invoked.
+     * {@link #initialise(UUID, ClassLoader, WPContext)} should be invoked only once, before {@link #getInstance()} is
+     * invoked.
      *
      * <p><strong>Please note!</strong> If plugins should be loaded from plugin jars,
      * {@link PluginManager#loadPlugins(File, PublicKey, String, Version, boolean)} must be invoked <em>before</em> this
      * method, to ensure the jars are discovered.
      *
+     * <p>This method also calls the plugins' {@link Plugin#init(WPContext)} method with the provided context.
+     *
      * @param uuid The unique identifier of the WorldPainter installation for which to initialise the WorldPainter
      *             plugin manager.
+     * @param context The context to provide to the plugins' {@code init} methods.
      */
-    public static synchronized void initialise(UUID uuid) {
-        initialise(uuid, ClassLoader.getSystemClassLoader());
+    public static synchronized void initialise(UUID uuid, WPContext context) {
+        initialise(uuid, ClassLoader.getSystemClassLoader(), context);
     }
     
     /**
      * Initialise the WorldPainter plugin manager for a particular WorldPainter installation. This method or
-     * {@link #initialise(UUID)} should be invoked only once, before {@link #getInstance()} is invoked.
+     * {@link #initialise(UUID, WPContext)} should be invoked only once, before {@link #getInstance()} is invoked.
      *
      * <p><strong>Please note!</strong> If plugins should be loaded from plugin jars,
      * {@link PluginManager#loadPlugins(File, PublicKey, String, Version, boolean)} must be invoked <em>before</em> this
      * method, to ensure the jars are discovered.
+     *
+     * <p>This method also calls the plugins' {@link Plugin#init(WPContext)} method with the provided context.
      *
      * @param uuid The unique identifier of the WorldPainter installation for which to initialise the WorldPainter
      *             plugin manager.
      * @param classLoader The class loader from which to discover the default/system plugins (those not loaded from
      *                    plugin jars).
+     * @param context The context to provide to the plugins' {@code init} methods.
      */
-    public static synchronized void initialise(UUID uuid, ClassLoader classLoader) {
+    public static synchronized void initialise(UUID uuid, ClassLoader classLoader, WPContext context) {
         if (instance != null) {
             throw new IllegalStateException("Already initialised");
         }
-        instance = new WPPluginManager(uuid, classLoader);
+        instance = new WPPluginManager(uuid, classLoader, context);
     }
 
     /**
-     * Obtain the single instance of the WorldPainter plugin manager. Note that
-     * the plugin manager must be initialised first by invoking
-     * {@link #initialise(UUID)} or {@link #initialise(UUID, ClassLoader)}.
+     * Obtain the single instance of the WorldPainter plugin manager. Note that the plugin manager must be initialised
+     * first by invoking {@link #initialise(UUID, WPContext)} or {@link #initialise(UUID, ClassLoader, WPContext)}.
      *
      * @return The single instance of the WorldPainter plugin manager.
      */

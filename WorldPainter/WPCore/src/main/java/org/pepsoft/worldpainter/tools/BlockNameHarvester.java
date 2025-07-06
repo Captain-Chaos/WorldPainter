@@ -3,6 +3,7 @@ package org.pepsoft.worldpainter.tools;
 import org.pepsoft.minecraft.*;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.worldpainter.Configuration;
+import org.pepsoft.worldpainter.WPContext;
 import org.pepsoft.worldpainter.exporting.JavaMinecraftWorld;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.pepsoft.worldpainter.util.MinecraftUtil;
@@ -50,7 +51,7 @@ public class BlockNameHarvester {
         System.out.println("Installation ID: " + config.getUuid());
 
         // Initialise the default plugins
-        WPPluginManager.initialise(config.getUuid());
+        WPPluginManager.initialise(config.getUuid(), WPContext.INSTANCE);
 
         if (args[0].equals("--create")) {
             File savesDir = new File(MinecraftUtil.findMinecraftDir(), "saves");

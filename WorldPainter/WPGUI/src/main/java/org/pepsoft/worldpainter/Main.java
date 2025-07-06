@@ -42,8 +42,8 @@ import java.nio.file.StandardOpenOption;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -307,7 +307,7 @@ public class Main {
         } else {
             logger.info("[SAFE MODE] Not loading plugins");
         }
-        WPPluginManager.initialise(config.getUuid());
+        WPPluginManager.initialise(config.getUuid(), WPContext.INSTANCE);
         // Load all the platform descriptors to ensure that when worlds containing older versions of them are loaded
         // later they are replaced with the current versions, rather than the other way around
         for (Platform platform : PlatformManager.getInstance().getAllPlatforms()) {
@@ -504,15 +504,6 @@ public class Main {
                         }
                     }
                     myConfig.setMessageDisplayed(SNAPSHOT_MESSAGE_KEY);
-                }
-
-                final WPContext context = WPContextProvider.getWPContext();
-                for (Plugin plugin: WPPluginManager.getInstance().getAllPlugins()) {
-                    try {
-                        plugin.init(context);
-                    } catch (RuntimeException e) {
-                        logger.error("{} while initialising plugin {} (version {})", e.getClass().getSimpleName(), plugin.getName(), plugin.getVersion(), e);
-                    }
                 }
 
                 if (world != null) {

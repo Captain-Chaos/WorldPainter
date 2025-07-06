@@ -14,7 +14,7 @@ import java.util.Random;
  *
  * @author pepijn
  */
-public class Erode extends RadiusOperation {
+public class Erode extends AbstractBrushOperation {
     public Erode(WorldPainter view) {
         super("Erode", "Erode the terrain", view, 100, "operation.erode");
     }

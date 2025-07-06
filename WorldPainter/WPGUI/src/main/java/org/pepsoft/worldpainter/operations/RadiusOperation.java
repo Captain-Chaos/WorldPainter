@@ -23,193 +23,45 @@
 
 package org.pepsoft.worldpainter.operations;
 
-import jpen.PButton;
-import jpen.PButtonEvent;
-import jpen.PKind;
-import jpen.PKindEvent;
-import org.pepsoft.worldpainter.MapDragControl;
-import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainterView;
-import org.pepsoft.worldpainter.brushes.Brush;
-
-import javax.swing.*;
-import java.lang.reflect.InvocationTargetException;
 
 /**
- * An operation which uses a brush to affect an area of the dimension.
+ * Deprecated. Only exists for backwards compatibility with existin plugins. Do not use.
  *
+ * @deprecated Use {@link AbstractBrushOperation}.
  * @author pepijn
  */
+@Deprecated
 public abstract class RadiusOperation extends AbstractBrushOperation implements FilteredOperation {
     /**
-     * Create a new {@code RadiusOperation}.
-     *
-     * @param name The short name of the operation. May be displayed on the operation's tool button.
-     * @param description A longer description of the operation. May be displayed to the user as a tooltip.
-     * @param view The WorldPainter view through which the dimension that is being edited is being displayed and on
-     *             which the operation should install its listeners to register user mouse, keyboard and tablet actions.
-     * @param statisticsKey The key with which use of this operation will be logged in the usage data sent back to the
-     *                      developer. Should start with a reverse-DNS style identifier, optionally followed by some
-     *                      basic or fundamental setting, if it has one.
+     * @deprecated Use {@link AbstractBrushOperation}.
      */
+    @Deprecated
     public RadiusOperation(String name, String description, WorldPainterView view, String statisticsKey) {
         super(name, description, view, statisticsKey);
-        this.radiusControl = view.getRadiusControl();
-        this.mapDragControl = view.getMapDragControl();
     }
 
     /**
-     * Create a new {@code RadiusOperation}.
-     *
-     * @param name The short name of the operation. May be displayed on the operation's tool button.
-     * @param description A longer description of the operation. May be displayed to the user as a tooltip.
-     * @param view The WorldPainter view through which the dimension that is being edited is being displayed and on
-     *             which the operation should install its listeners to register user mouse, keyboard and tablet actions.
-     * @param statisticsKey The key with which use of this operation will be logged in the usage data sent back to the
-     *                      developer. Should start with a reverse-DNS style identifier, optionally followed by some
-     *                      basic or fundamental setting, if it has one.
-     * @param iconName The base name of the icon for the operation.
+     * @deprecated Use {@link AbstractBrushOperation}.
      */
+    @Deprecated
     public RadiusOperation(String name, String description, WorldPainterView view, String statisticsKey, String iconName) {
         super(name, description, view, statisticsKey, iconName);
-        this.radiusControl = view.getRadiusControl();
-        this.mapDragControl = view.getMapDragControl();
     }
 
     /**
-     * Create a new {@code RadiusOperation}.
-     *
-     * @param name The short name of the operation. May be displayed on the operation's tool button.
-     * @param description A longer description of the operation. May be displayed to the user as a tooltip.
-     * @param view The WorldPainter view through which the dimension that is being edited is being displayed and on
-     *             which the operation should install its listeners to register user mouse, keyboard and tablet actions.
-     * @param delay The delay in ms between each invocation of {@link #tick(int, int, boolean, boolean, float)} while
-     *              this operation is being applied by the user.
-     * @param statisticsKey The key with which use of this operation will be logged in the usage data sent back to the
-     *                      developer. Should start with a reverse-DNS style identifier, optionally followed by some
-     *                      basic or fundamental setting, if it has one.
+     * @deprecated Use {@link AbstractBrushOperation}.
      */
+    @Deprecated
     public RadiusOperation(String name, String description, WorldPainterView view, int delay, String statisticsKey) {
         super(name, description, view, delay, statisticsKey);
-        this.radiusControl = view.getRadiusControl();
-        this.mapDragControl = view.getMapDragControl();
     }
 
     /**
-     * Create a new {@code RadiusOperation}.
-     *
-     * @param name The short name of the operation. May be displayed on the operation's tool button.
-     * @param description A longer description of the operation. May be displayed to the user as a tooltip.
-     * @param view The WorldPainter view through which the dimension that is being edited is being displayed and on
-     *             which the operation should install its listeners to register user mouse, keyboard and tablet actions.
-     * @param delay The delay in ms between each invocation of {@link #tick(int, int, boolean, boolean, float)} while
-     *              this operation is being applied by the user.
-     * @param statisticsKey The key with which use of this operation will be logged in the usage data sent back to the
-     *                      developer. Should start with a reverse-DNS style identifier, optionally followed by some
-     *                      basic or fundamental setting, if it has one.
-     * @param iconName The base name of the icon for the operation.
+     * @deprecated Use {@link AbstractBrushOperation}.
      */
+    @Deprecated
     public RadiusOperation(String name, String description, WorldPainterView view, int delay, String statisticsKey, String iconName) {
         super(name, description, view, delay, statisticsKey, iconName);
-        this.radiusControl = view.getRadiusControl();
-        this.mapDragControl = view.getMapDragControl();
     }
-
-    public final int getEffectiveRadius() {
-        return (getBrush() != null) ? getBrush().getEffectiveRadius() : radius;
-    }
-
-    public final void setRadius(int radius) {
-        if (radius < 0) {
-            throw new IllegalArgumentException();
-        }
-        this.radius = radius;
-        final Brush brush = getBrush();
-        if (brush != null) {
-            brush.setRadius(radius);
-            brushChanged(brush);
-        }
-    }
-
-    public final float getStrength(int centerX, int centerY, int x, int y) {
-        return filterEnabled
-            ? filter.modifyStrength(x, y, getBrush().getStrength(x - centerX, y - centerY))
-            : getBrush().getStrength(x - centerX, y - centerY);
-    }
-
-    public final float getFullStrength(int centerX, int centerY, int x, int y) {
-        return filterEnabled
-            ? filter.modifyStrength(x, y, getBrush().getFullStrength(x - centerX, y - centerY))
-            : getBrush().getFullStrength(x - centerX, y - centerY);
-    }
-    
-    @Override
-    public void penKindEvent(PKindEvent pke) {
-        final PKind.Type type = pke.kind.getType();
-        if ((type != PKind.Type.ERASER) && (type != PKind.Type.STYLUS)) {
-            SwingUtilities.invokeLater(() -> mapDragControl.setMapDraggingInhibited(false));
-        }
-        super.penKindEvent(pke);
-    }
-    
-    @Override
-    public void penButtonEvent(PButtonEvent pbe) {
-        PKind.Type penKindType = pbe.pen.getKind().getType();
-        final PButton.Type buttonType = pbe.button.getType();
-        if (pbe.button.value
-                && ((penKindType == PKind.Type.STYLUS) || (penKindType == PKind.Type.ERASER))
-                && ((buttonType == PButton.Type.CENTER) || (buttonType == PButton.Type.RIGHT))) {
-            try {
-                SwingUtilities.invokeAndWait(() -> {
-                    // Stylus button pressed
-                    if (buttonType == PButton.Type.CENTER) {
-                        radiusControl.decreaseRadius(1);
-                    } else {
-                        radiusControl.increaseRadius(1);
-                    }
-                    // It should not be too late to do this, since this
-                    // event is being dispatched synchronously:
-                    if (! mapDragControl.isMapDraggingInhibited()) {
-                        mapDragControl.setMapDraggingInhibited(true);
-                    }
-                });
-            } catch (InterruptedException e) {
-                throw new RuntimeException("Thread interrupted while processing radius event", e);
-            } catch (InvocationTargetException e) {
-                throw new RuntimeException("Exception thrown while processing radius event", e);
-            }
-        } else {
-            super.penButtonEvent(pbe);
-        }
-    }
-
-    @Override
-    public Filter getFilter() {
-        return filter;
-    }
-
-    @Override
-    public void setFilter(Filter filter) {
-        this.filter = filter;
-        filterEnabled = (filter != null);
-    }
-
-    @Override
-    protected void deactivate() {
-        mapDragControl.setMapDraggingInhibited(false);
-        super.deactivate();
-    }
-
-    protected void brushChanged(Brush newBrush) {
-        super.brushChanged(newBrush);
-        if (newBrush != null) {
-            newBrush.setRadius(radius);
-        }
-    }
-
-    private final RadiusControl radiusControl;
-    private final MapDragControl mapDragControl;
-    private int radius;
-    private boolean filterEnabled;
-    private Filter filter = null;
 }

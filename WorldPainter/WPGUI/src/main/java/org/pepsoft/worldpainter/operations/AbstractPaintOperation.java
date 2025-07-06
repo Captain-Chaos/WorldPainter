@@ -27,7 +27,15 @@ import org.pepsoft.worldpainter.painting.Paint;
  *
  * Created by pepijn on 20-05-15.
  */
-public abstract class AbstractPaintOperation extends RadiusOperation implements PaintOperation {
+public abstract class AbstractPaintOperation extends AbstractBrushOperation implements PaintOperation {
+    protected AbstractPaintOperation(String name, String description, int delay, String statisticsKey) {
+        super(name, description, delay, statisticsKey);
+    }
+
+    /**
+     * @deprecated Use {@link #AbstractPaintOperation(String, String, int, String)}
+     */
+    @Deprecated
     protected AbstractPaintOperation(String name, String description, WorldPainterView view, int delay, String statisticsKey) {
         super(name, description, view, delay, statisticsKey);
     }

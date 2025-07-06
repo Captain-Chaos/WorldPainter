@@ -75,7 +75,7 @@ public class RecoverWorld {
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
         }
-        WPPluginManager.initialise(config.getUuid());
+        WPPluginManager.initialise(config.getUuid(), WPContext.INSTANCE);
 
         // Read as much data as possible. Use a trick via InstanceKeeper to get
         // hold of the objects as they are created during deserialisation, even

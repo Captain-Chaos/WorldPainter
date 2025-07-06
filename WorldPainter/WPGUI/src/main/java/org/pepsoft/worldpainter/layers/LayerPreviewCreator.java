@@ -10,8 +10,8 @@ import org.pepsoft.minecraft.ChunkFactory;
 import org.pepsoft.util.Box;
 import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.dynmap.DynmapPreviewer;
 import org.pepsoft.worldpainter.exporting.*;
 import org.pepsoft.worldpainter.layers.exporters.ExporterSettings;
@@ -29,8 +29,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.worldpainter.DefaultPlugin.JAVA_ANVIL_1_17;
@@ -285,7 +285,7 @@ public class LayerPreviewCreator {
             config = new Configuration();
         }
         Configuration.setInstance(config);
-        WPPluginManager.initialise(config.getUuid());
+        WPPluginManager.initialise(config.getUuid(), WPContext.INSTANCE);
         Dimension dimension = WorldFactory.createDefaultWorldWithoutTiles(config, 0L).getDimension(NORMAL_DETAIL);
 
         for (Layer layer: LayerManager.getInstance().getLayers()) {

@@ -87,7 +87,7 @@ public abstract class AbstractTool {
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
         }
-        WPPluginManager.initialise(config.getUuid());
+        WPPluginManager.initialise(config.getUuid(), WPContext.INSTANCE);
         // Load all the platform descriptors to ensure that when worlds
         // containing older versions of them are loaded later they are replaced
         // with the current versions, rather than the other way around

@@ -16,7 +16,7 @@ import javax.swing.*;
  *
  * @author pepijn
  */
-public class Sponge extends RadiusOperation {
+public class Sponge extends AbstractBrushOperation {
     public Sponge(WorldPainterView view) {
         super("Sponge", "Dry up or reset water and lava", view, 100, "operation.sponge");
     }

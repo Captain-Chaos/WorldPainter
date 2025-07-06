@@ -18,7 +18,7 @@ import static org.pepsoft.worldpainter.Constants.MEDIUM_BLOBS;
  *
  * @author pepijn
  */
-public class RaiseMountain extends RadiusOperation {
+public class RaiseMountain extends AbstractBrushOperation {
     public RaiseMountain(WorldPainter view) {
         super("Raise Mountain", "Raises a mountain out of the ground", view, 100, "operation.raiseMountain", "mountain");
         options = new TerrainShapingOptions<>();

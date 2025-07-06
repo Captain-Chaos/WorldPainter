@@ -15,7 +15,7 @@ import javax.swing.*;
  *
  * @author pepijn
  */
-public class Flatten extends RadiusOperation {
+public class Flatten extends AbstractBrushOperation {
     public Flatten(WorldPainter view) {
         super("Flatten", "Flatten an area", view, 100, "operation.flatten");
     }

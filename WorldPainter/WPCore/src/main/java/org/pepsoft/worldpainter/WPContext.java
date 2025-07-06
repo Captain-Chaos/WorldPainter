@@ -10,15 +10,21 @@ import org.pepsoft.worldpainter.vo.EventVO;
 import java.util.function.Consumer;
 
 /**
- * WorldPainter application context;
+ * WorldPainter application context for plugins.
  *
  * @author pepijn
  */
-public interface WPContext {
+public final class WPContext {
+    private WPContext() {
+        // Enforce singleton pattern
+    }
+
     /**
-     * Get the event logger, if any. May be {@code null}.
+     * Get the event logger.
      */
-    EventLogger getStatisticsRecorder();
+    public EventLogger getStatisticsRecorder() {
+        return Configuration.getInstance();
+    }
 
     /**
      * Register an event listener for a particular key, which will be notified whenever an event with that key is
@@ -31,16 +37,24 @@ public interface WPContext {
      * not defined! The listener must not make assumptions about the thread on which it will be executed, and must take
      * care to do proper synchronization and/or shift work to the Swing main event thread as appropriate.
      */
-    void addEventListener(String eventKey, Consumer<EventVO> eventListener);
+    public void addEventListener(String eventKey, Consumer<EventVO> eventListener) {
+        Configuration.getInstance().addEventListener(eventKey, eventListener);
+    }
 
     /**
-     * Get the Minecraft jar provider, if any. May be {@code null}.
+     * Get the Minecraft jar provider.
      */
-    MinecraftJarProvider getMinecraftJarProvider();
+    public MinecraftJarProvider getMinecraftJarProvider() {
+        return Configuration.getInstance();
+    }
 
     /**
-     * Get the {@link WorldPainterView WorldPainter view}, if any. May be {@code null}. It will not exist in headless
-     * mode, for example.
+     * @deprecated The view is not yet available when plugins are initialised, so this always returns {@code null}.
      */
-    WorldPainterView getView();
+    @Deprecated
+    public WorldPainterView getView() {
+        return null;
+    }
+
+    public static final WPContext INSTANCE = new WPContext();
 }

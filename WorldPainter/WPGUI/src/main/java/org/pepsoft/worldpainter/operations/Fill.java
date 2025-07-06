@@ -2,7 +2,6 @@ package org.pepsoft.worldpainter.operations;
 
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.WorldPainterView;
-import org.pepsoft.worldpainter.brushes.Brush;
 import org.pepsoft.worldpainter.painting.DimensionPainter;
 import org.pepsoft.worldpainter.painting.Paint;
 import org.slf4j.Logger;
@@ -16,10 +15,9 @@ import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 /**
  * Created by pepijn on 14-5-15.
  */
-public class Fill extends AbstractBrushOperation implements PaintOperation {
+public class Fill extends MouseOrTabletOperation implements PaintOperation {
     public Fill(WorldPainterView view) {
         super("Fill", "Flood fill an area of the world with any kind of layer or terrain", view, "operation.fill");
-        hideBrush();
     }
 
     @Override
@@ -76,9 +74,6 @@ public class Fill extends AbstractBrushOperation implements PaintOperation {
 
     @Override
     public void setPaint(Paint paint) {
-        if (getBrush() != null) {
-            paint.setBrush(getBrush());
-        }
         painter.setPaint(paint);
     }
 
@@ -87,21 +82,15 @@ public class Fill extends AbstractBrushOperation implements PaintOperation {
         return OPTIONS_PANEL;
     }
 
-    @Override
-    protected void brushChanged(Brush newBrush) {
-        if (painter.getPaint() != null) {
-            painter.getPaint().setBrush(newBrush);
-        }
-    }
-
     private final DimensionPainter painter = new DimensionPainter();
     private boolean alreadyFilling;
 
-    private static final JPanel OPTIONS_PANEL = new StandardOptionsPanel("Fill", "<ul>" +
-            "<li>Left-click on a location to fill the area with the currently selected paint where the value of the currently selected paint type is the same as at the indicated location\n" +
-            "<li>Right-click with a Layer selected to remove the layer from the area where its value is the same as at the indicated location\n" +
-            "<li>Right-click with a Terrain selected to reset to the current theme where the terrain is set to the same value as at the indicated location\n" +
-            "<li>Right-click with a Biome selected to reset to Auto Biome where the biome is set to the same value as at the indicated location" +
-            "</ul>");
+    private static final JPanel OPTIONS_PANEL = new StandardOptionsPanel("Fill", """
+            <ul>\
+            <li>Left-click on a location to fill the area with the currently selected paint where the value of the currently selected paint type is the same as at the indicated location
+            <li>Right-click with a Layer selected to remove the layer from the area where its value is the same as at the indicated location
+            <li>Right-click with a Terrain selected to reset to the current theme where the terrain is set to the same value as at the indicated location
+            <li>Right-click with a Biome selected to reset to Auto Biome where the biome is set to the same value as at the indicated location\
+            </ul>""");
     private static final Logger logger = LoggerFactory.getLogger(Fill.class);
 }

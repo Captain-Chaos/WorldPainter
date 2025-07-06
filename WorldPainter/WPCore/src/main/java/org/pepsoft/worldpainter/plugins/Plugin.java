@@ -17,32 +17,38 @@ import java.util.UUID;
  */
 public interface Plugin {
     /**
-     * Get the name of the plugin. Convenience method for (and must return the
-     * same as):
+     * Get the name of the plugin. Convenience method for (and must return the same as):
      * 
      * <p>{@code getPoperties().getProperty(Plugin.PROPERTY_NAME)}
+     *
+     * <p><strong>Note:</strong>This method may be called <em>before</em> {@link #init(WPContext)} and must therefore
+     * not be dependent on it.
      * 
      * @return The name of the plugin.
      */
     String getName();
     
     /**
-     * Get the version number of the plugin. Convenience method for (and must
-     * return the same as):
+     * Get the version number of the plugin. Convenience method for (and must return the same as):
      * 
      * <p>{@code getPoperties().getProperty(Plugin.PROPERTY_VERSION)}
-     * 
+     *
+     * <p><strong>Note:</strong>This method may be called <em>before</em> {@link #init(WPContext)} and must therefore
+     * not be dependent on it.
+     *
      * @return The name of the plugin.
      */
     String getVersion();
     
     /**
-     * Get the set of UUIDs this plugin is locked to, or {@code null} if
-     * the plugin can be used by anyone. Convenience method for parsing the
-     * result of:
+     * Get the set of UUIDs this plugin is locked to, or {@code null} if the plugin can be used by anyone. Convenience
+     * method for parsing the result of:
      * 
      * <p>{@code getPoperties().getProperty(Plugin.PROPERTY_UUIDS)}
-     * 
+     *
+     * <p><strong>Note:</strong>This method may be called <em>before</em> {@link #init(WPContext)} and must therefore
+     * not be dependent on it.
+     *
      * @return The set of UUIDs this plugin is locked to, or </code>null</code>
      *     if the plugin can be used by anyone.
      */

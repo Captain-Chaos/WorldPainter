@@ -68,7 +68,7 @@ public class ExportTester extends RegressionIT {
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
         }
-        WPPluginManager.initialise(config.getUuid());
+        WPPluginManager.initialise(config.getUuid(), WPContext.INSTANCE);
 
         new ExportTester().run(args);
     }

@@ -14,7 +14,7 @@ import org.pepsoft.worldpainter.layers.FloodWithLava;
  *
  * Created by Pepijn Schmitz on 30-09-15.
  */
-public class RiverPaint extends RadiusOperation {
+public class RiverPaint extends AbstractBrushOperation {
     public RiverPaint(WorldPainterView view) {
         super("RiverPaint", "Paint a river of water or lava", view, 100, "operation.riverPaint", "river");
     }

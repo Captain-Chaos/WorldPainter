@@ -11,10 +11,7 @@ import org.jnbt.IntArrayTag;
 import org.jnbt.LongArrayTag;
 import org.jnbt.Tag;
 import org.pepsoft.util.plugins.PluginManager;
-import org.pepsoft.worldpainter.Configuration;
-import org.pepsoft.worldpainter.Main;
-import org.pepsoft.worldpainter.MouseAdapter;
-import org.pepsoft.worldpainter.Version;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.mapexplorer.Node;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
 import org.slf4j.Logger;
@@ -26,6 +23,7 @@ import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -90,7 +88,7 @@ public class MapExplorer {
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
         }
-        WPPluginManager.initialise(config.getUuid());
+        WPPluginManager.initialise(config.getUuid(), WPContext.INSTANCE);
 
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Minecraft Map Explorer");

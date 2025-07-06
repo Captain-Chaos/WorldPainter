@@ -6,8 +6,8 @@ import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.plugins.PluginManager;
 import org.pepsoft.util.swing.ManagesScale;
 import org.pepsoft.util.swing.TiledImageViewer;
-import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.objects.WPObject;
 import org.pepsoft.worldpainter.plugins.CustomObjectManager;
 import org.pepsoft.worldpainter.plugins.WPPluginManager;
@@ -224,7 +224,7 @@ public class DynmapPreviewer extends TiledImageViewer implements ManagesScale {
         } else {
             logger.error("Trusted root certificate not available; not loading plugins");
         }
-        WPPluginManager.initialise(config.getUuid());
+        WPPluginManager.initialise(config.getUuid(), WPContext.INSTANCE);
 
         JFrame frame = new JFrame("DynMapPreviewerTest");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

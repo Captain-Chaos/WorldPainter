@@ -6,6 +6,8 @@
 package org.pepsoft.worldpainter.operations;
 
 import org.pepsoft.util.IconUtils;
+import org.pepsoft.worldpainter.Dimension;
+import org.pepsoft.worldpainter.WorldPainterView;
 
 import javax.swing.*;
 import java.awt.image.BufferedImage;
@@ -31,6 +33,11 @@ public abstract class AbstractOperation implements Operation {
         this.name = name;
         this.description = description;
         icon = IconUtils.loadScaledImage(getClass().getClassLoader(), "org/pepsoft/worldpainter/icons/" + iconName + ".png");
+    }
+
+    @Override
+    public void setView(WorldPainterView view) {
+        this.view = view;
     }
 
     @Override
@@ -80,10 +87,25 @@ public abstract class AbstractOperation implements Operation {
         return name;
     }
 
+    protected final WorldPainterView getView() {
+        return view;
+    }
+
+    /**
+     * Utility method for obtaining the current dimension from the configured view.
+     *
+     * @return The current dimension from the configured view. May be {@code null} if the view is not configured, or it
+     * does not return a dimension.
+     */
+    protected final Dimension getDimension() {
+        return (view != null) ? view.getDimension() : null;
+    }
+
     protected abstract void activate() throws PropertyVetoException;
     protected abstract void deactivate();
 
     private final String name, description;
     private final BufferedImage icon;
     private boolean active;
+    private WorldPainterView view;
 }

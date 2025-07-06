@@ -8,15 +8,11 @@ import com.google.common.collect.ImmutableList;
 import org.pepsoft.util.AttributeKey;
 import org.pepsoft.worldpainter.layers.*;
 import org.pepsoft.worldpainter.plugins.AbstractPlugin;
-import org.pepsoft.worldpainter.plugins.ContextProvider;
 import org.pepsoft.worldpainter.plugins.LayerProvider;
-import org.pepsoft.worldpainter.util.MinecraftJarProvider;
-import org.pepsoft.worldpainter.vo.EventVO;
 
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.function.Consumer;
 
 import static org.pepsoft.minecraft.Constants.*;
 import static org.pepsoft.worldpainter.Constants.*;
@@ -30,7 +26,7 @@ import static org.pepsoft.worldpainter.Platform.Capability.*;
  *
  * @author pepijn
  */
-public class DefaultPlugin extends AbstractPlugin implements LayerProvider, ContextProvider, WPContext {
+public class DefaultPlugin extends AbstractPlugin implements LayerProvider {
     public DefaultPlugin() {
         super("Default", Version.VERSION);
     }
@@ -40,35 +36,6 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider, Cont
     @Override
     public List<Layer> getLayers() {
         return Arrays.asList(Frost.INSTANCE, Caves.INSTANCE, Caverns.INSTANCE, Chasms.INSTANCE, DeciduousForest.INSTANCE, PineForest.INSTANCE, SwampLand.INSTANCE, Jungle.INSTANCE, org.pepsoft.worldpainter.layers.Void.INSTANCE, Resources.INSTANCE/*, River.INSTANCE*/);
-    }
-
-    // ContextProvider
-
-    @Override
-    public WPContext getWPContextInstance() {
-        return this;
-    }
-    
-    // WPContext
-    
-    @Override
-    public EventLogger getStatisticsRecorder() {
-        return Configuration.getInstance();
-    }
-
-    @Override
-    public void addEventListener(String eventKey, Consumer<EventVO> eventListener) {
-        Configuration.getInstance().addEventListener(eventKey, eventListener);
-    }
-
-    @Override
-    public MinecraftJarProvider getMinecraftJarProvider() {
-        return Configuration.getInstance();
-    }
-
-    @Override
-    public WorldPainterView getView() {
-        return WorldPainterView.getInstance();
     }
 
     /**

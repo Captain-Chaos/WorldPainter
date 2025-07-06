@@ -4,7 +4,12 @@
  */
 package org.pepsoft.worldpainter.gardenofeden;
 
-import java.awt.Component;
+import org.pepsoft.worldpainter.Configuration;
+import org.pepsoft.worldpainter.util.MinecraftUtil;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -13,13 +18,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import javax.imageio.ImageIO;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JList;
-import org.pepsoft.worldpainter.WPContextProvider;
-import org.pepsoft.worldpainter.util.MinecraftUtil;
 
 /**
  *
@@ -27,7 +25,7 @@ import org.pepsoft.worldpainter.util.MinecraftUtil;
  */
 public class ThemeListCellRenderer extends DefaultListCellRenderer {
     public ThemeListCellRenderer() {
-        File file = MinecraftUtil.findMinecraftJar(WPContextProvider.getWPContext().getMinecraftJarProvider());
+        File file = MinecraftUtil.findMinecraftJar(Configuration.getInstance());
         if (file != null) {
             logger.info("Loading default Minecraft texture map from " + file);
             try {
