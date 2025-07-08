@@ -1,6 +1,10 @@
 -- Version 2.25.0, released ..-..-2025
 
  * WorldPainter now requires Java 17 or later! If necessary, you can download an appropriate version of Java using the links on www.worldpainter.net.
+ * Some Export performance optimisations have been implemented for Stone Mix, Chasms and Perlin noise
+   + For a typical world and settings you can expect a performance increase of roughly 25%
+   + Depending on the selected Post Processing and Export settings the performance increase can rise significantly
+   + With thanks to https://github.com/qf200011 for Stone Mix and Chasms and https://github.com/MCRcortex for Perlin noise
  * The Floating Dimension support has received some updates:
    + It is now in the Alpha Test rather than Preview stage
    + The "rounded" edge shape has been enabled for the edges of floating dimensions, and is now the default for new floating dimensions
