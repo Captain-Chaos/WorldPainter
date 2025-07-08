@@ -32,6 +32,7 @@ import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_17Biomes.*;
 /**
  *
  * @author pepijn
+ * @author <a href="https://github.com/qf200011">qf200011</a> - STONE_MIX performance optimisation
  */
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1097,12 +1098,12 @@ public enum Terrain {
                 andesiteNoise.setSeed(seed + ANDESITE_SEED_OFFSET);
                 RANDOM.setSeed(seed);
             }
-            if (z >= -RANDOM.nextInt(5)) { // TODO this is not stable
+            if ((z >= 0) || ((z >= -4) && (z >= -RANDOM.nextInt(5)))) { // TODO this is not stable
                 if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
                     return Material.GRANITE;
-                } else if(dioriteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > DIORITE_CHANCE) {
+                } else if (dioriteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > DIORITE_CHANCE) {
                     return Material.DIORITE;
-                } else if(andesiteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > ANDESITE_CHANCE) {
+                } else if (andesiteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > ANDESITE_CHANCE) {
                     return Material.ANDESITE;
                 } else {
                     return Material.STONE;
@@ -1110,9 +1111,9 @@ public enum Terrain {
             } else {
                 if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
                     return Material.TUFF;
-                } else if(dioriteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > DIORITE_CHANCE) {
+                } else if (dioriteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > DIORITE_CHANCE) {
                     return Material.DEEPSLATE_X;
-                } else if(andesiteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > ANDESITE_CHANCE) {
+                } else if (andesiteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > ANDESITE_CHANCE) {
                     return Material.DEEPSLATE_Z;
                 } else {
                     return Material.DEEPSLATE_Y;
