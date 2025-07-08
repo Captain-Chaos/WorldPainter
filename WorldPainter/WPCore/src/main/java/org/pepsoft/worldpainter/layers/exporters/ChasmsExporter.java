@@ -32,6 +32,7 @@ import static org.pepsoft.worldpainter.exporting.SecondPassLayerExporter.Stage.C
 /**
  *
  * @author pepijn
+ * @author <a href="https://github.com/qf200011">qf200011</a> - performance optimisation
  */
 public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements SecondPassLayerExporter {
     public ChasmsExporter(Dimension dimension, Platform platform, ExporterSettings settings) {
@@ -77,15 +78,10 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Sec
                     final int chasmsValue = Math.max(minimumLevel, tile.getLayerValue(Chasms.INSTANCE, localX, localY));
                     if (chasmsValue > 0) {
                         final int worldX = tile.getX() * TILE_SIZE + localX, worldY = tile.getY() * TILE_SIZE + localY;
-//                        final float px = worldX / MEDIUM_BLOBS, py = worldY / MEDIUM_BLOBS;
-//                        final float px = worldX / SMALL_BLOBS, py = worldY / SMALL_BLOBS; // [2] ravine?
                         final float px = worldX / MEDIUM_BLOBS, py = worldY / MEDIUM_BLOBS; // [3] tunnellike
                         // Maximising it shouldn't be necessary, but there are worlds in the wild with heights above the
                         // maximum:
                         final int terrainheight = Math.min(tile.getIntHeight(localX, localY), maxY);
-//                        if ((x == 0) && (z == 0)) {
-//                            System.out.println("terrainHeight: " + terrainheight);
-//                        }
                         for (int y = terrainheight; fallThrough ? (y >= minHeight) : (y >= minYAdjusted); y--) {
                             if (chunk.getMaterial(x, y, z).empty) {
                                 // There is already a void here; assume that things like removing water, etc. have
@@ -101,25 +97,14 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Sec
                                                     (fallThrough ? extremeY : (y - 1)) - minY),
                                             10)),
                                     1.0f - chasmsValue / 15.0f);
-                            //                            0.5f - chasmsValue / 15.0f); // TODO: higher than 50% has no effect
+//                                    0.5f - chasmsValue / 15.0f); // TODO: higher than 50% has no effect
                             if (fallThrough && (y < minHeight + 5)) {
                                 // Widen the caverns towards the bottom
                                 bias -= (minHeight + 5 - y) * 0.05f;
                             }
-//                            final float pz = y / SMALL_BLOBS;
-//                            final float pz = y / MEDIUM_BLOBS; // [2] ravine?
                             final float pz = (y + 15) / MEDIUM_BLOBS; // [3] tunnellike
-//                            float cavernLikelyhood = Math.min(perlinNoise.getPerlinNoise(px, py, pz), perlinNoise2.getPerlinNoise(px, py, pz)) + 0.5f - bias;
-//                            double cavernLikelyhood = Math.min(Math.sin(perlinNoise.getPerlinNoise(px, py, pz) * 10), Math.cos(perlinNoise2.getPerlinNoise(px, py, pz) * 10)) / 2 + 0.5f - bias; // [2] ravine?
-                            final double cavernLikelyhood = Math.min(perlinNoise3.getPerlinNoise(px, py, pz) - bias, Math.min(Math.sin(perlinNoise.getPerlinNoise(px, py, pz) * 25), Math.cos(perlinNoise2.getPerlinNoise(px, py, pz) * 25)) / 2) + 0.5f; // [3] tunnellike
-                            final double cavernLikelyhood2 = Math.min(perlinNoise6.getPerlinNoise(px, py, pz) - bias, Math.min(Math.sin(perlinNoise4.getPerlinNoise(px, py, pz) * 25), Math.cos(perlinNoise5.getPerlinNoise(px, py, pz) * 25)) / 2) + 0.5f; // [3] tunnellike
-//                            double cavernLikelyhood = Math.sin(perlinNoise.getPerlinNoise(px, py, pz) * 5);
-//                            double cavernLikelyhood2 = Math.sin(perlinNoise2.getPerlinNoise(px, py) * 5);
-//                            if ((x == 0) && (z == 0)) {
-//                                System.out.println(y + ": bias: " + bias + ", cavernLikelyHood: " + cavernLikelyhood);
-//                            }
-//                            if (cavernLikelyhood > CHASM_CHANCE) {
-                            processBlock(chunk, x, y, z, (cavernLikelyhood > CHASM_CHANCE) || (cavernLikelyhood2 > CHASM_CHANCE));
+                            processBlock(chunk, x, y, z, isBlockInChasm(perlinNoise3, perlinNoise, perlinNoise2, px, py, pz, bias)
+                                    || isBlockInChasm(perlinNoise6, perlinNoise4, perlinNoise5, px, py, pz, bias));
                         }
                     }
                     if (glassCeiling) {
@@ -182,9 +167,8 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Sec
                                 bias -= (minHeight + 5 - y) * 0.05f;
                             }
                             final float pz = (y + 15) / MEDIUM_BLOBS; // [3] tunnellike
-                            final double cavernLikelyhood = Math.min(perlinNoise3.getPerlinNoise(px, py, pz) - bias, Math.min(Math.sin(perlinNoise.getPerlinNoise(px, py, pz) * 25), Math.cos(perlinNoise2.getPerlinNoise(px, py, pz) * 25)) / 2) + 0.5f; // [3] tunnellike
-                            final double cavernLikelyhood2 = Math.min(perlinNoise6.getPerlinNoise(px, py, pz) - bias, Math.min(Math.sin(perlinNoise4.getPerlinNoise(px, py, pz) * 25), Math.cos(perlinNoise5.getPerlinNoise(px, py, pz) * 25)) / 2) + 0.5f; // [3] tunnellike
-                            if ((cavernLikelyhood > CHASM_CHANCE) || (cavernLikelyhood2 > CHASM_CHANCE)) {
+                            if (isBlockInChasm(perlinNoise3, perlinNoise, perlinNoise2, px, py, pz, bias)
+                                    || isBlockInChasm(perlinNoise6, perlinNoise4, perlinNoise5, px, py, pz, bias)) {
                                 decorateBlock(minecraftWorld, random, worldX, worldY, y);
                             }
                         }
@@ -194,6 +178,12 @@ public class ChasmsExporter extends AbstractCavesExporter<Chasms> implements Sec
             return true;
         });
         return null;
+    }
+
+    private static boolean isBlockInChasm(PerlinNoise noise1, PerlinNoise noise2, PerlinNoise noise3, float x, float y, float z, float bias){
+        return          ((noise1.getPerlinNoise(x, y, z) - bias)    + 0.5f > CHASM_CHANCE)
+            &&  (Math.sin(noise2.getPerlinNoise(x, y, z) * 25)      + 0.5f > CHASM_CHANCE)
+            && ((Math.cos(noise3.getPerlinNoise(x, y, z) * 25) / 2) + 0.5f > CHASM_CHANCE);
     }
 
     private final PerlinNoise perlinNoise = new PerlinNoise(0);
