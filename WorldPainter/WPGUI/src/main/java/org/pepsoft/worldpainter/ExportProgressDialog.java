@@ -185,7 +185,44 @@ public class ExportProgressDialog extends MultiProgressDialog<Map<Integer, Chunk
                 WorldExporter exporter = PlatformManager.getInstance().getExporter(world, exportSettings);
                 try {
                     backupDir = exporter.selectBackupDir(baseDir, name);
-                    return exporter.export(baseDir, name, backupDir, progressReceiver);
+
+                    ProgressReceiver finalProgressReceiver = progressReceiver;
+                    return exporter.export(baseDir, name, backupDir, new ProgressReceiver() {
+                        @Override
+                        public void setProgress(float progress) throws OperationCancelled {
+
+                        }
+
+                        @Override
+                        public void exceptionThrown(Throwable exception) {
+                            finalProgressReceiver.exceptionThrown(exception);
+                        }
+
+                        @Override
+                        public void done() {
+                            finalProgressReceiver.done();
+                        }
+
+                        @Override
+                        public void setMessage(String message) throws OperationCancelled {
+
+                        }
+
+                        @Override
+                        public void checkForCancellation() throws OperationCancelled {
+                            finalProgressReceiver.checkForCancellation();
+                        }
+
+                        @Override
+                        public void reset() throws OperationCancelled {
+                            finalProgressReceiver.reset();
+                        }
+
+                        @Override
+                        public void subProgressStarted(SubProgressReceiver subProgressReceiver) throws OperationCancelled {
+                            finalProgressReceiver.subProgressStarted(subProgressReceiver);
+                        }
+                    });
                 } catch (IOException e) {
                     throw new RuntimeException("I/O error while exporting world", e);
                 } catch (RuntimeException e) {
