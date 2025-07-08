@@ -1,4 +1,4 @@
--- Version 2.25.0, released ..-..-2025
+-- Version 2.25.0, released 08-07-2025
 
  * WorldPainter now requires Java 17 or later! If necessary, you can download an appropriate version of Java using the links on www.worldpainter.net.
  * Some Export performance optimisations have been implemented for Stone Mix, Chasms and Perlin noise

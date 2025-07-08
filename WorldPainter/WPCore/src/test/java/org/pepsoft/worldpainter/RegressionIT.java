@@ -72,20 +72,17 @@ public class RegressionIT {
         world.setAllowCheats(true);
         for (Dimension dimension: world.getDimensions()) {
             File tmpBaseDir = createTmpBaseDir();
-            try {
-                world.setPlatform(JAVA_ANVIL);
-                File anvil12worldDir = exportDimension(dimension, tmpBaseDir);
-                world.setPlatform(JAVA_ANVIL_1_15);
-                File anvil115worldDir = exportDimension(dimension, tmpBaseDir);
-                logger.info("Comparing dimension " + dimension.getName());
-                Rectangle area = new Rectangle(dimension.getLowestX() << 5, dimension.getLowestY() << 5, dimension.getWidth() << 5, dimension.getHeight() << 5);
-                try (MinecraftWorld anvil12World = new JavaMinecraftWorld(anvil12worldDir, dimension.getAnchor().dim, dimension.getMinHeight(), dimension.getMaxHeight(), JAVA_ANVIL, true, 256);
-                     MinecraftWorld anvil115World = new JavaMinecraftWorld(anvil115worldDir, dimension.getAnchor().dim, dimension.getMinHeight(), dimension.getMaxHeight(), JAVA_ANVIL_1_15, true, 256)) {
-                    MinecraftWorldUtils.assertEquals("Anvil 1.2", anvil12World, "Anvil 1.15", anvil115World, area);
-                }
-            } finally {
-                FileUtils.deleteDir(tmpBaseDir);
+            world.setPlatform(JAVA_ANVIL);
+            File anvil12worldDir = exportDimension(dimension, tmpBaseDir);
+            world.setPlatform(JAVA_ANVIL_1_15);
+            File anvil115worldDir = exportDimension(dimension, tmpBaseDir);
+            logger.info("Comparing dimension " + dimension.getName());
+            Rectangle area = new Rectangle(dimension.getLowestX() << 5, dimension.getLowestY() << 5, dimension.getWidth() << 5, dimension.getHeight() << 5);
+            try (MinecraftWorld anvil12World = new JavaMinecraftWorld(anvil12worldDir, dimension.getAnchor().dim, dimension.getMinHeight(), dimension.getMaxHeight(), JAVA_ANVIL, true, 256);
+                 MinecraftWorld anvil115World = new JavaMinecraftWorld(anvil115worldDir, dimension.getAnchor().dim, dimension.getMinHeight(), dimension.getMaxHeight(), JAVA_ANVIL_1_15, true, 256)) {
+                MinecraftWorldUtils.assertEquals("Anvil 1.2", anvil12World, "Anvil 1.15", anvil115World, area);
             }
+            FileUtils.deleteDir(tmpBaseDir);
         }
     }
 
@@ -228,6 +225,7 @@ public class RegressionIT {
     private File createTmpBaseDir() {
         File tmpBaseDir = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString());
         tmpBaseDir.mkdirs();
+        logger.info("Created temp dir {}", tmpBaseDir.getAbsolutePath());
         return tmpBaseDir;
     }
 
