@@ -10,6 +10,7 @@ import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.IconUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.util.RandomField;
+import org.pepsoft.util.UnsafeRandom;
 import org.pepsoft.worldpainter.layers.plants.Plant;
 import org.pepsoft.worldpainter.layers.plants.Plants;
 import org.pepsoft.worldpainter.objects.GenericObject;
@@ -230,7 +231,7 @@ public enum Terrain {
             if (waterBlocksAbove > 0) {
                 return null;
             }
-            final int rnd = new Random(seed + (x * 65537L) + (y * 4099L)).nextInt(CACTUS_CHANCE);
+            final int rnd = UnsafeRandom.fastNextInt(seed + (x * 65537L) + (y * 4099L), CACTUS_CHANCE);
             final int cactusHeight;
             boolean shrub = false;
             if (rnd < 3) {
@@ -276,7 +277,7 @@ public enum Terrain {
             if (waterBlocksAbove > 0) {
                 return null;
             }
-            final int rnd = new Random(seed + (x * 65537L) + (y * 4099L)).nextInt(FIRE_CHANCE);
+            final int rnd = UnsafeRandom.fastNextInt(seed + (x * 65537L) + (y * 4099L), FIRE_CHANCE);
             if (rnd == 0) {
                 return OBJECT_FIRE;
             } else {
@@ -392,7 +393,7 @@ public enum Terrain {
         @Override
         public WPObject getSurfaceObject(Platform platform, long seed, int x, int y, int waterBlocksAbove) {
             if (platform.capabilities.contains(NAME_BASED) && (waterBlocksAbove > 0)) {
-                final Random rnd = new Random(seed + (x * 65537L) + (y * 4099L));
+                final UnsafeRandom rnd = new UnsafeRandom(seed + (x * 65537L) + (y * 4099L));
                 if (grassNoise.getSeed() != (seed + GRASS_SEED_OFFSET)) {
                     grassNoise.setSeed(seed + GRASS_SEED_OFFSET);
                     tallGrassNoise.setSeed(seed + DOUBLE_TALL_GRASS_SEED_OFFSET);
@@ -1026,7 +1027,7 @@ public enum Terrain {
             if (waterBlocksAbove > 0) {
                 return null;
             }
-            final int rnd = new Random(seed + (x * 65537L) + (y * 4099L)).nextInt(SHRUB_CHANCE);
+            final int rnd = UnsafeRandom.fastNextInt(seed + (x * 65537L) + (y * 4099L), SHRUB_CHANCE);
             if (rnd < 3) {
                 return Plants.DEAD_SHRUB.realise(1, platform);
             } else {
@@ -1037,7 +1038,7 @@ public enum Terrain {
         private void init(long seed) {
             this.seed = seed;
             perlinNoise.setSeed(seed + NOISE_SEED_OFFSET);
-            final Random random = new Random(seed);
+            final UnsafeRandom random = new UnsafeRandom(seed);
             Arrays.fill(LAYERS, Material.HARDENED_CLAY);
             for (int i = 0; i < LAYER_COUNT / 2; i++) {
                 final int index = random.nextInt(LAYER_COUNT - 1);
@@ -1063,7 +1064,7 @@ public enum Terrain {
             if (waterBlocksAbove > 0) {
                 return null;
             }
-            final int rnd = new Random(seed + (x * 65537L) + (y * 4099L)).nextInt(CACTUS_CHANCE);
+            final int rnd = UnsafeRandom.fastNextInt(seed + (x * 65537L) + (y * 4099L), CACTUS_CHANCE);
             final int cactusHeight;
             boolean shrub = false;
             if (rnd < 3) {
@@ -1096,29 +1097,23 @@ public enum Terrain {
                 graniteNoise.setSeed(seed + GRANITE_SEED_OFFSET);
                 dioriteNoise.setSeed(seed + DIORITE_SEED_OFFSET);
                 andesiteNoise.setSeed(seed + ANDESITE_SEED_OFFSET);
-                RANDOM.setSeed(seed);
             }
-            if ((z >= 0) || ((z >= -4) && (z >= -RANDOM.nextInt(5)))) { // TODO this is not stable
-                if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
-                    return Material.GRANITE;
-                } else if (dioriteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > DIORITE_CHANCE) {
-                    return Material.DIORITE;
-                } else if (andesiteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > ANDESITE_CHANCE) {
-                    return Material.ANDESITE;
-                } else {
-                    return Material.STONE;
-                }
+            boolean deep = z<-4||(z<1&&z>=-UnsafeRandom.fastNextInt(mixStafford13(mixStafford13(seed^(Integer.toUnsignedLong(x)<<32)^Integer.toUnsignedLong(z))^Integer.toUnsignedLong(y)+158737029677209371L), 5));
+            if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
+                return deep?Material.TUFF:Material.GRANITE;
+            } else if(dioriteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > DIORITE_CHANCE) {
+                return deep?Material.DEEPSLATE_X:Material.DIORITE;
+            } else if(andesiteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > ANDESITE_CHANCE) {
+                return deep?Material.DEEPSLATE_Z:Material.ANDESITE;
             } else {
-                if (graniteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > GRANITE_CHANCE) {
-                    return Material.TUFF;
-                } else if (dioriteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > DIORITE_CHANCE) {
-                    return Material.DEEPSLATE_X;
-                } else if (andesiteNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) > ANDESITE_CHANCE) {
-                    return Material.DEEPSLATE_Z;
-                } else {
-                    return Material.DEEPSLATE_Y;
-                }
+                return deep?Material.DEEPSLATE_Y:Material.STONE;
             }
+        }
+
+        private static long mixStafford13(long seed) {
+            seed = (seed ^ seed >>> 30) * -4658895280553007687L;
+            seed = (seed ^ seed >>> 27) * -7723592293110705685L;
+            return seed ^ seed >>> 31;
         }
 
         private final PerlinNoise graniteNoise  = new PerlinNoise(0);

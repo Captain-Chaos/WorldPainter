@@ -1194,14 +1194,7 @@ public final class Material implements Serializable {
      * @return The single instance of the specified material.
      */
     public static Material get(Identity identity) {
-        synchronized (ALL_MATERIALS) {
-            Material material = ALL_MATERIALS.get(identity);
-            if (material == null) {
-                material = new Material(identity);
-                ALL_MATERIALS.put(identity, material);
-            }
-            return material;
-        }
+        return ALL_MATERIALS.computeIfAbsent(identity, Material::new);
     }
 
     /**
@@ -1299,7 +1292,7 @@ public final class Material implements Serializable {
      * Get all realised materials.
      */
     public static Collection<Material> getAllMaterials() {
-        return Collections.unmodifiableCollection(ALL_MATERIALS.values());
+        return unmodifiableCollection(ALL_MATERIALS.values());
     }
 
     /**
@@ -1644,7 +1637,7 @@ public final class Material implements Serializable {
      * legacy materials. 12-bit block ids above 255 are created on the fly.
      */
     private static final Material[] LEGACY_MATERIALS = new Material[4096];
-    private static final Map<Identity, Material> ALL_MATERIALS = new HashMap<>();
+    private static final ConcurrentHashMap<Identity, Material> ALL_MATERIALS = new ConcurrentHashMap<>();
     private static final Map<String, Set<String>> SIMPLE_NAMES_BY_NAMESPACE = new HashMap<>();
     private static final Map<String, Material> DEFAULT_MATERIALS_BY_NAME = new HashMap<>();
 
@@ -2221,6 +2214,7 @@ public final class Material implements Serializable {
             }
             this.name = name.intern();
             this.properties = ((properties != null) && (! properties.isEmpty())) ? ImmutableMap.copyOf(properties) : null;
+            this.cHash();
         }
 
         /**
@@ -2255,14 +2249,15 @@ public final class Material implements Serializable {
 
         @Override
         public boolean equals(Object o) {
-            return (o instanceof Identity)
+            return (o instanceof Identity) &&
+                    this.cHash() == ((Identity)o).cHash()
                 && name.equals(((Identity) o).name)
                 && Objects.equals(properties, ((Identity) o).properties);
         }
 
         @Override
         public int hashCode() {
-            return name.hashCode() * 37 + ((properties != null) ? properties.hashCode() : 0);
+            return (int) this.cHash();
         }
 
         @Override
@@ -2272,6 +2267,17 @@ public final class Material implements Serializable {
 
         public final String name;
         public final Map<String, String> properties;
+
+        private transient long hash;
+
+        private long cHash() {
+            if (this.hash != 0) return this.hash;
+            long hash = (this.name.hashCode()+527383922224181L)*578967237891L;
+            hash ^= hash>>32; hash ^= this.properties != null ? this.properties.hashCode() : 7777777777L;
+            hash += 58917598759833331L; hash *= 569586253252351L;
+            hash ^= hash>>32;
+            return this.hash = (hash==0)?1:hash;
+        }
 
         private static final long serialVersionUID = 1L;
     }

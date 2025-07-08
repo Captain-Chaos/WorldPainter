@@ -41,7 +41,7 @@ public class WorldRegion implements MinecraftWorld {
         ChunkStore chunkStore = PlatformManager.getInstance().getChunkStore(platform, worldDir, dimension);
         for (int x = lowestX; x <= highestX; x++) {
             for (int z = lowestZ; z <= highestZ; z++) {
-                chunks[x - (regionX << 5) + 1][z - (regionZ << 5) + 1] = chunkStore.getChunkForEditing(x, z);
+                chunks[getIdx(x - (regionX << 5) + 1, z - (regionZ << 5) + 1)] = chunkStore.getChunkForEditing(x, z);
             }
         }
     }
@@ -210,7 +210,7 @@ public class WorldRegion implements MinecraftWorld {
         if ((x < -1) || (x >= (CHUNKS_PER_SIDE + 1)) || (z < -1) || (z >= (CHUNKS_PER_SIDE + 1))) {
             return false;
         } else {
-            return chunks[x + 1][z + 1] != null;
+            return chunks[getIdx(x + 1, z + 1)] != null;
         }
     }
 
@@ -221,7 +221,7 @@ public class WorldRegion implements MinecraftWorld {
         if ((x < -1) || (x >= (CHUNKS_PER_SIDE + 1)) || (z < -1) || (z >= (CHUNKS_PER_SIDE + 1))) {
             return null;
         } else {
-            return chunks[x + 1][z + 1];
+            return chunks[getIdx(x + 1, z + 1)];
         }
     }
 
@@ -240,7 +240,7 @@ public class WorldRegion implements MinecraftWorld {
         int localX = chunk.getxPos() - (regionX << 5);
         int localZ = chunk.getzPos() - (regionZ << 5);
         if ((localX >= -1) && (localX <= CHUNKS_PER_SIDE) && (localZ >= -1) && (localZ <= CHUNKS_PER_SIDE)) {
-            chunks[localX + 1][localZ + 1] = chunk;
+            chunks[getIdx(localX + 1, localZ + 1)] = chunk;
         }
     }
 
@@ -259,7 +259,7 @@ public class WorldRegion implements MinecraftWorld {
             chunkStore.doInTransaction(() -> {
                 for (int x = 0; x < CHUNKS_PER_SIDE; x++) {
                     for (int z = 0; z < CHUNKS_PER_SIDE; z++) {
-                        final Chunk chunk = chunks[x + 1][z + 1];
+                        final Chunk chunk = chunks[getIdx(x + 1, z + 1)];
                         if (chunk != null) {
                             chunkStore.saveChunk(chunk);
                         }
@@ -269,9 +269,13 @@ public class WorldRegion implements MinecraftWorld {
         }
     }
 
+    private static int getIdx(int x, int z) {
+        return (CHUNKS_PER_SIDE + 2)*x+z;
+    }
+
     private final int minHeight, maxHeight;
     private final Platform platform;
-    private final Chunk[][] chunks = new Chunk[CHUNKS_PER_SIDE + 2][CHUNKS_PER_SIDE + 2];
+    private final Chunk[] chunks = new Chunk[(CHUNKS_PER_SIDE + 2)*(CHUNKS_PER_SIDE + 2)];
     private final int regionX, regionZ;
     private final BlockBasedPlatformProvider platformProvider;
 
