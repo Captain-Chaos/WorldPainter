@@ -245,37 +245,37 @@ public class InvertedChunk implements Chunk {
 
     @Override
     public int get3DBiome(int x, int y, int z) {
-        if ((maxY - y) < minHeight) {
-            return chunk.get3DBiome(x, 0, z);
-        } else if ((maxY - y) >= maxHeight) {
-            return chunk.get3DBiome(x, maxHeight >> 2, z);
+        if ((maxY - (y << 2)) < minHeight) {
+            return chunk.get3DBiome(x, minHeight >> 2, z);
+        } else if ((maxY - (y << 2)) >= maxHeight) {
+            return chunk.get3DBiome(x, (maxHeight - 1) >> 2, z);
         } else {
-            return chunk.get3DBiome(x, (maxY /* TODO this is almost certainly wrong */ >> 2) - y, z);
+            return chunk.get3DBiome(x, (maxY - (y << 2)) >> 2, z);
         }
     }
 
     @Override
     public void set3DBiome(int x, int y, int z, int biome) {
-        if (((maxY - y) >= minHeight) && ((maxY - y) < maxHeight)) { // TODO shift coordinates right
-            chunk.set3DBiome(x, (maxY /* TODO this is almost certainly wrong */ >> 2) - y, z, biome);
+        if (((maxY - (y << 2)) >= minHeight) && ((maxY - (y << 2)) < maxHeight)) {
+            chunk.set3DBiome(x, (maxY - (y << 2)) >> 2, z, biome);
         }
     }
 
     @Override
     public String getNamedBiome(int x, int y, int z) {
-        if ((maxY - y) < minHeight) {
+        if ((maxY - (y << 2)) < minHeight) {
             return chunk.getNamedBiome(x, 0, z);
-        } else if ((maxY - y) >= maxHeight) {
-            return chunk.getNamedBiome(x, maxHeight >> 2, z);
+        } else if ((maxY - (y << 2)) >= maxHeight) {
+            return chunk.getNamedBiome(x, (maxHeight - 1) >> 2, z);
         } else {
-            return chunk.getNamedBiome(x, (maxY /* TODO this is almost certainly wrong */ >> 2) - y, z);
+            return chunk.getNamedBiome(x, (maxY - (y << 2)) >> 2, z);
         }
     }
 
     @Override
     public void setNamedBiome(int x, int y, int z, String biome) {
-        if (((maxY - y) >= minHeight) && ((maxY - y) < maxHeight)) { // TODO shift coordinates right
-            chunk.setNamedBiome(x, (maxY /* TODO this is almost certainly wrong */ >> 2) - y, z, biome);
+        if (((maxY - (y << 2)) >= minHeight) && ((maxY - (y << 2)) < maxHeight)) {
+            chunk.setNamedBiome(x, (maxY - (y << 2)) >> 2, z, biome);
         }
     }
 

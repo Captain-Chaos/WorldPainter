@@ -1,5 +1,7 @@
 -- Version 2.25.1, released 10-07-2025
 
+ * Bug fix: fix a crash related to applying biomes from Ceiling Dimensions, e.g. patches of lush or dripstone caves
+ * Bug fix: apply biomes from Ceiling Dimensions, e.g. patches of lush or dripstone caves, in the correct locations
  * Bug fix: revert an accidentally included change to the progress manager which made the Export progress bar jump around and give (even more) nonsensical times
 
 -- Version 2.25.0, released 08-07-2025
