@@ -711,35 +711,34 @@ public final class Material implements Serializable {
      * @return A vertically mirrored version of the material.
      */
     public Material invert(Platform platform) {
-        if ((verticalOrientationScheme != null) || (legacyVerticalOrientationScheme != null)) {
-            VerticalOrientationScheme scheme;
-            if (platform.capabilities.contains(NAME_BASED)) {
-                scheme = verticalOrientationScheme;
+        if (invertedMaterial == null) {
+            if ((verticalOrientationScheme != null) || (legacyVerticalOrientationScheme != null)) {
+                final VerticalOrientationScheme scheme;
+                if (platform.capabilities.contains(NAME_BASED)) {
+                    scheme = verticalOrientationScheme;
+                } else {
+                    if (! legacyVerticalOrientationSchemeSet) {
+                        legacyVerticalOrientationScheme = determineLegacyVerticalOrientation();
+                        legacyVerticalOrientationSchemeSet = true;
+                    }
+                    scheme = legacyVerticalOrientationScheme;
+                }
+                if (scheme != null) {
+                    invertedMaterial = switch (scheme) {
+                        case HALF -> withProperty(HALF, getProperty(HALF).equals("top") ? "bottom" : "top");
+                        case TYPE -> withProperty(TYPE, getProperty(TYPE).equals("top") ? "bottom" : "top");
+                        case UP -> withProperty(UP, ! getProperty(UP));
+                        case UP_DOWN -> withProperty(UP, getProperty(DOWN)).withProperty(DOWN, getProperty(UP));
+                        case VERTICAL_DIRECTION-> withProperty(VERTICAL_DIRECTION, getProperty(VERTICAL_DIRECTION).equals("up") ? "down" : "up");
+                    };
+                } else {
+                    invertedMaterial = this;
+                }
             } else {
-                if (! legacyVerticalOrientationSchemeSet) {
-                    legacyVerticalOrientationScheme = determineLegacyVerticalOrientation();
-                    legacyVerticalOrientationSchemeSet = true;
-                }
-                scheme = legacyVerticalOrientationScheme;
-            }
-            if (scheme != null) {
-                switch (scheme) {
-                    case HALF:
-                        return withProperty(HALF, getProperty(HALF).equals("top") ? "bottom" : "top");
-                    case TYPE:
-                        return withProperty(TYPE, getProperty(TYPE).equals("top") ? "bottom" : "top");
-                    case UP:
-                        return withProperty(UP, ! getProperty(UP));
-                    case UP_DOWN:
-                        return withProperty(UP, getProperty(DOWN)).withProperty(DOWN, getProperty(UP));
-                    case VERTICAL_DIRECTION:
-                        return withProperty(VERTICAL_DIRECTION, getProperty(VERTICAL_DIRECTION).equals("up") ? "down" : "up");
-                    default:
-                        throw new InternalError();
-                }
+                invertedMaterial = this;
             }
         }
-        return this;
+        return invertedMaterial;
     }
 
     /**
@@ -1633,6 +1632,7 @@ public final class Material implements Serializable {
     private transient boolean legacyHorizontalOrientationSchemesForRotatingSet;
     private transient VerticalOrientationScheme legacyVerticalOrientationScheme;
     private transient boolean legacyVerticalOrientationSchemeSet;
+    private transient Material invertedMaterial;
 
     private static final Map<Integer, Map<String, Object>> LEGACY_BLOCK_SPECS_BY_COMBINED_ID = new HashMap<>();
     private static final Map<String, Set<Map<String, Object>>> LEGACY_BLOCK_SPECS_BY_NAME = new HashMap<>();
