@@ -1,3 +1,7 @@
+-- Version 2.25.1, released 10-07-2025
+
+ * Bug fix: revert an accidentally included change to the progress manager which made the Export progress bar jump around and give (even more) nonsensical times
+
 -- Version 2.25.0, released 08-07-2025
 
  * WorldPainter now requires Java 17 or later! If necessary, you can download an appropriate version of Java using the links on www.worldpainter.net.
