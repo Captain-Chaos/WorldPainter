@@ -9,9 +9,9 @@ import org.pepsoft.util.SubProgressReceiver;
 import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import org.pepsoft.util.mdc.MDCThreadPoolExecutor;
 import org.pepsoft.util.undo.UndoManager;
+import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Dimension.Anchor;
-import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.gardenofeden.GardenExporter;
 import org.pepsoft.worldpainter.gardenofeden.Seed;
 import org.pepsoft.worldpainter.layers.*;
@@ -30,8 +30,8 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
@@ -507,10 +507,11 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         return exporters;
     }
 
-    protected ExportResults firstPass(MinecraftWorld minecraftWorld, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter> exporters, ChunkFactory chunkFactory, boolean ceiling, ProgressReceiver progressReceiver) throws OperationCancelled {
+    protected ExportResults firstPass(MinecraftWorld minecraftWorld, Dimension dimension, Point regionCoords, Map<Point, Tile> tiles, boolean tileSelection, Map<Layer, LayerExporter> exporters, ChunkFactory chunkFactory, ProgressReceiver progressReceiver) throws OperationCancelled {
         if (logger.isDebugEnabled()) {
             logger.debug("Start of first pass for region {},{}", regionCoords.x, regionCoords.y);
         }
+        final boolean ceiling = dimension.getAnchor().invert;
         if (progressReceiver != null) {
             if (ceiling) {
                 progressReceiver.setMessage("Generating ceiling");
@@ -527,6 +528,8 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         final int lowestRegionChunkY = lowestChunkY + 1;
         final int highestRegionChunkY = highestChunkY - 1;
         final ExportResults exportResults = new ExportResults();
+        final Anchor anchor = dimension.getAnchor();
+        final Dimension oppositeDimension = dimension.getWorld().getDimension(new Anchor(anchor.dim, anchor.role, ! anchor.invert, anchor.id));
         int chunkNo = 0;
         final int ceilingDelta = dimension.getMaxHeight() - dimension.getCeilingHeight();
         for (int chunkX = lowestChunkX; chunkX <= highestChunkX; chunkX++) {
@@ -548,7 +551,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                             existingChunk = platformProvider.createChunk(platform, chunkX, chunkY, dimension.getMinHeight(), dimension.getMaxHeight());
                             minecraftWorld.addChunk(existingChunk);
                         }
-                        mergeChunks(invertedChunk, existingChunk);
+                        mergeCeilingChunk(invertedChunk, existingChunk, ! oppositeDimension.isBottomless(), ! dimension.isBottomless(), dimension.getCeilingHeight());
                     } else {
                         minecraftWorld.addChunk(chunkCreationResult.chunk);
                     }
@@ -646,7 +649,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         }
 
         // TODO: trying to do this for every region should work but is not very elegant
-        if ((dimension.getAnchor().dim == DIM_NORMAL) && world.isCreateGoodiesChest()) {
+        if ((dimension.getAnchor().dim == DIM_NORMAL) && (! dimension.getAnchor().invert) && world.isCreateGoodiesChest()) {
             final Point goodiesPoint = (Point) world.getSpawnPoint().clone();
             goodiesPoint.translate(3, 3);
             final Anchor spawnDimension = world.getSpawnPointDimension();
@@ -791,14 +794,14 @@ public abstract class AbstractWorldExporter implements WorldExporter {
             }
 
             // First pass. Create terrain and apply layers which don't need access to neighbouring chunks
-            ExportResults exportResults = firstPass(minecraftWorld, dimension, regionCoords, tiles, tileSelection, exporters,chunkFactory, false,
+            ExportResults exportResults = firstPass(minecraftWorld, dimension, regionCoords, tiles, tileSelection, exporters,chunkFactory,
                     (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.0f, ((ceiling != null) ? 0.225f : 0.45f) /* TODO why doesn't this work? */) : null);
 
             ExportResults ceilingExportResults = null;
             if (ceiling != null) {
                 // First pass for the ceiling. Create terrain and apply layers which don't need access to neighbouring
                 // chunks
-                ceilingExportResults = firstPass(minecraftWorld, ceiling, regionCoords, ceilingTiles, tileSelection, ceilingExporters, ceilingChunkFactory, true,
+                ceilingExportResults = firstPass(minecraftWorld, ceiling, regionCoords, ceilingTiles, tileSelection, ceilingExporters, ceilingChunkFactory,
                         (progressReceiver != null) ? new SubProgressReceiver(progressReceiver, 0.225f, 0.225f) : null);
             }
 
@@ -1094,38 +1097,52 @@ public abstract class AbstractWorldExporter implements WorldExporter {
     }
 
     /**
-     * Merge the non-air blocks from the source chunk into the destination chunk.
+     * Merge the non-air blocks from a ceiling chunk into the exported upright chunk.
      *
-     * @param source The source chunk.
-     * @param destination The destination chunk.
+     * @param ceilingChunk The ceiling chunk.
+     * @param exportedChunk The exported upright chunk.
+     * @param skipBottom Whether to skip merging the bottom row (because the upright dimension has a bedrock bottom).
+     * @param overwriteTop Whether to force overwriting the top (because the ceiling dimension has a bedrock bottom).
+     * @param maxHeight One above the ceiling height (which can be lower than the actual maxHeight).
      */
-    private void mergeChunks(Chunk source, Chunk destination) {
-        final int maxHeight = source.getMaxHeight();
-        if (maxHeight != destination.getMaxHeight()) {
-            throw new IllegalArgumentException("Different maxHeights");
-        }
-        for (int y = 0; y < maxHeight; y++) {
+    private void mergeCeilingChunk(Chunk ceilingChunk, Chunk exportedChunk, boolean skipBottom, boolean overwriteTop, int maxHeight) {
+        final int minHeight = ceilingChunk.getMinHeight() + (skipBottom ? 1 : 0), maxY = maxHeight - (overwriteTop ? 2 : 1);
+        for (int y = minHeight; y <= maxY; y++) {
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
-                    Material destinationMaterial = destination.getMaterial(x, y, z);
+                    final Material destinationMaterial = exportedChunk.getMaterial(x, y, z);
                     if (! destinationMaterial.solid) {
                         // Insubstantial blocks in the destination are only replaced by solid ones; air is replaced by
                         // anything that's not air. TODO: how to handle minecraft:light blocks?
-                        Material sourceMaterial = source.getMaterial(x, y, z);
+                        final Material sourceMaterial = ceilingChunk.getMaterial(x, y, z);
                         if ((destinationMaterial.air) ? ((! sourceMaterial.air)) : sourceMaterial.solid) {
-                            destination.setMaterial(x, y, z, sourceMaterial);
-                            destination.setBlockLightLevel(x, y, z, source.getBlockLightLevel(x, y, z));
-                            destination.setSkyLightLevel(x, y, z, source.getSkyLightLevel(x, y, z));
+                            exportedChunk.setMaterial(x, y, z, sourceMaterial);
+                            exportedChunk.setBlockLightLevel(x, y, z, ceilingChunk.getBlockLightLevel(x, y, z));
+                            exportedChunk.setSkyLightLevel(x, y, z, ceilingChunk.getSkyLightLevel(x, y, z));
                             if (sourceMaterial.tileEntity) {
-                                moveEntityTileData(destination, source, x, y, z, 0);
+                                moveEntityTileData(exportedChunk, ceilingChunk, x, y, z, 0);
                             }
                         }
                     }
                 }
             }
         }
-        for (Entity entity: source.getEntities()) {
-            destination.getEntities().add(entity);
+        if (overwriteTop) {
+            final int y = maxHeight - 1;
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    final Material sourceMaterial = ceilingChunk.getMaterial(x, y, z);
+                    exportedChunk.setMaterial(x, y, z, sourceMaterial);
+                    exportedChunk.setBlockLightLevel(x, y, z, ceilingChunk.getBlockLightLevel(x, y, z));
+                    exportedChunk.setSkyLightLevel(x, y, z, ceilingChunk.getSkyLightLevel(x, y, z));
+                    if (sourceMaterial.tileEntity) {
+                        moveEntityTileData(exportedChunk, ceilingChunk, x, y, z, 0);
+                    }
+                }
+            }
+        }
+        for (Entity entity: ceilingChunk.getEntities()) {
+            exportedChunk.getEntities().add(entity);
         }
     }
 

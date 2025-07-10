@@ -55,6 +55,7 @@ public class InvertedChunk implements Chunk {
         }
     }
 
+    @Deprecated
     @Override
     public int getBlockType(int x, int y, int z) {
         if (((maxY - y) < minHeight) || ((maxY - y) >= maxHeight)) {
@@ -64,6 +65,7 @@ public class InvertedChunk implements Chunk {
         }
     }
 
+    @Deprecated
     @Override
     public void setBlockType(int x, int y, int z, int blockType) {
         if (((maxY - y) >= minHeight) && ((maxY - y) < maxHeight)) {
@@ -71,6 +73,7 @@ public class InvertedChunk implements Chunk {
         }
     }
 
+    @Deprecated
     @Override
     public int getDataValue(int x, int y, int z) {
         if (((maxY - y) < minHeight) || ((maxY - y) >= maxHeight)) {
@@ -80,6 +83,7 @@ public class InvertedChunk implements Chunk {
         }
     }
 
+    @Deprecated
     @Override
     public void setDataValue(int x, int y, int z, int dataValue) {
         if (((maxY - y) >= minHeight) && ((maxY - y) < maxHeight)) {
@@ -162,7 +166,7 @@ public class InvertedChunk implements Chunk {
         if (chunkEntities != null) {
             List<Entity> entities = new ArrayList<>(chunkEntities.size());
             for (Entity chunkEntity: chunkEntities) {
-                Entity entity = (Entity) chunkEntity.clone();
+                Entity entity = chunkEntity.clone();
                 double[] pos = entity.getPos();
                 pos[1] = maxY - pos[1];
                 entity.setPos(pos);
@@ -182,7 +186,7 @@ public class InvertedChunk implements Chunk {
             for (TileEntity chunkTileEntity: chunkTileEntities) {
                 TileEntity tileEntity = (TileEntity) chunkTileEntity.clone();
                 int adjustedY = maxY - tileEntity.getY();
-                if ((adjustedY >= 0) && (adjustedY < maxHeight)) {
+                if ((adjustedY >= minHeight) && (adjustedY < maxHeight)) {
                     tileEntity.setY(adjustedY);
                     tileEntities.add(tileEntity);
                 }
@@ -310,9 +314,9 @@ public class InvertedChunk implements Chunk {
     }
 
     @Override
-    public int getHighestNonAirBlock(int x, int z) { // TODOMC118 Does this work for minHeight < 0?
+    public int getHighestNonAirBlock(int x, int z) {
         for (int y = minHeight; y < maxHeight; y++) {
-            if (chunk.getBlockType(x, y, z) != Constants.BLK_AIR) {
+            if (! chunk.getMaterial(x, y, z).air) {
                 return maxY - y;
             }
         }
@@ -320,11 +324,11 @@ public class InvertedChunk implements Chunk {
     }
 
     @Override
-    public int getHighestNonAirBlock() { // TODOMC118 Does this work for minHeight < 0?
+    public int getHighestNonAirBlock() {
         for (int y = minHeight; y < maxHeight; y++) {
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
-                    if (chunk.getBlockType(x, y, z) != Constants.BLK_AIR) {
+                    if (! chunk.getMaterial(x, y, z).air) {
                         return maxY - y;
                     }
                 }
