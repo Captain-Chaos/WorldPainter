@@ -22,8 +22,8 @@ import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.*;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -573,9 +573,6 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
             Point oldSpawnPoint = spawnPoint;
             spawnPoint = transform.transform(spawnPoint);
             propertyChangeSupport.firePropertyChange("spawnPoint", oldSpawnPoint, spawnPoint);
-            Direction oldUpIs = upIs;
-            upIs = transform.inverseTransform(upIs);
-            propertyChangeSupport.firePropertyChange("upIs", oldUpIs, upIs);
         }
         changeNo++;
     }
