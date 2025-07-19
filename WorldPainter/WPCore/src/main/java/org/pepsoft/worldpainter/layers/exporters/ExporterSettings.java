@@ -5,6 +5,7 @@
 package org.pepsoft.worldpainter.layers.exporters;
 
 import org.pepsoft.worldpainter.HeightTransform;
+import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.layers.Layer;
 
 import java.io.Serializable;
@@ -26,6 +27,16 @@ public interface ExporterSettings extends Serializable, Cloneable {
      * <p>The default implementation does nothing.
      */
     default void setMinMaxHeight(int oldMinHeight, int newMinHeight, int oldMaxHeight, int newMaxHeight, HeightTransform transform) {
+        // Do nothing
+    }
+
+    /**
+     * This is invoked by WorldPainter when the platform changes, so that the layer settings may be adjusted
+     * accordingly, if applicable.
+     *
+     * <p>The default implementation does nothing.
+     */
+    default void setPlatform(Platform newPlatform) {
         // Do nothing
     }
     

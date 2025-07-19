@@ -17,6 +17,7 @@ import org.pepsoft.worldpainter.layers.Void;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
@@ -158,6 +159,22 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
             MC_EMERALD_ORE, DEEPSLATE_EMERALD_ORE
     );
 
+    private static final Map<Material, Version> VERSION_MAP = ImmutableMap.<Material, Version>builder()
+            .put(DIRT,             V_1_1)
+            .put(GRAVEL,           V_1_1)
+            .put(GOLD_ORE,         V_1_1)
+            .put(IRON_ORE,         V_1_1)
+            .put(COAL,             V_1_1)
+            .put(LAPIS_LAZULI_ORE, V_1_1)
+            .put(DIAMOND_ORE,      V_1_1)
+            .put(REDSTONE_ORE,     V_1_1)
+            .put(STATIONARY_WATER, V_1_1)
+            .put(STATIONARY_LAVA,  V_1_1)
+            .put(EMERALD_ORE,      V_1_2)
+            .put(COPPER_ORE,       V_1_17)
+            .put(QUARTZ_ORE,       V_1_1)
+            .put(ANCIENT_DEBRIS,   V_1_15).build();
+
     public static class ResourcesExporterSettings implements ExporterSettings {
         private ResourcesExporterSettings(Map<Material, ResourceSettings> settings) {
             this.settings = settings;
@@ -228,6 +245,16 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
         }
 
         @Override
+        public void setPlatform(Platform newPlatform) {
+            final Version mcVersion = newPlatform.getAttribute(ATTRIBUTE_MC_VERSION);
+            settings.forEach(((material, settings) -> {
+                if (! mcVersion.isAtLeast(VERSION_MAP.get(material))) {
+                    settings.chance = 0;
+                }
+            }));
+        }
+
+        @Override
         public ResourcesExporterSettings clone() {
             try {
                 ResourcesExporterSettings clone = (ResourcesExporterSettings) super.clone();
@@ -246,59 +273,54 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
             switch (anchor.dim) {
                 case DIM_NORMAL:
                     // TODO make these normal distributions or something else more similar to Minecraft
-                    settings.put(DIRT,             new ResourceSettings(DIRT,             0,         maxHeight - 1, 57,     random.nextLong()));
-                    settings.put(GRAVEL,           new ResourceSettings(GRAVEL,           minHeight, maxHeight - 1, 28,     random.nextLong()));
-                    settings.put(GOLD_ORE,         new ResourceSettings(GOLD_ORE,         minHeight,            31,  1,     random.nextLong()));
-                    settings.put(IRON_ORE,         new ResourceSettings(IRON_ORE,         minHeight, maxHeight - 1,  6,     random.nextLong()));
-                    settings.put(COAL,             new ResourceSettings(COAL,             0,         maxHeight - 1, 10,     random.nextLong()));
-                    settings.put(LAPIS_LAZULI_ORE, new ResourceSettings(LAPIS_LAZULI_ORE, minHeight,            31,  1,     random.nextLong()));
-                    settings.put(DIAMOND_ORE,      new ResourceSettings(DIAMOND_ORE,      minHeight,            15,  1,     random.nextLong()));
-                    settings.put(REDSTONE_ORE,     new ResourceSettings(REDSTONE_ORE,     minHeight,            15,  8,     random.nextLong()));
-                    settings.put(STATIONARY_WATER, new ResourceSettings(STATIONARY_WATER, minHeight, maxHeight - 1,  1,     random.nextLong()));
-                    settings.put(STATIONARY_LAVA,  new ResourceSettings(STATIONARY_LAVA,  minHeight,            15,  2,     random.nextLong()));
-                    settings.put(EMERALD_ORE,      new ResourceSettings(EMERALD_ORE,      64,        maxHeight - 1, mcVersion.isAtLeast(V_1_2) ? 1 : 0,
-                                                                                                                            random.nextLong()));
-                    settings.put(COPPER_ORE,       new ResourceSettings(COPPER_ORE,       0,         88,            mcVersion.isAtLeast(V_1_17) ? 6 : 0,
-                                                                                                                            random.nextLong()));
+                    putResource(mcVersion, settings, DIRT,             0,         maxHeight - 1, 57, random.nextLong());
+                    putResource(mcVersion, settings, GRAVEL,           minHeight, maxHeight - 1, 28, random.nextLong());
+                    putResource(mcVersion, settings, GOLD_ORE,         minHeight,            31,  1, random.nextLong());
+                    putResource(mcVersion, settings, IRON_ORE,         minHeight, maxHeight - 1,  6, random.nextLong());
+                    putResource(mcVersion, settings, COAL,             0,         maxHeight - 1, 10, random.nextLong());
+                    putResource(mcVersion, settings, LAPIS_LAZULI_ORE, minHeight,            31,  1, random.nextLong());
+                    putResource(mcVersion, settings, DIAMOND_ORE,      minHeight,            15,  1, random.nextLong());
+                    putResource(mcVersion, settings, REDSTONE_ORE,     minHeight,            15,  8, random.nextLong());
+                    putResource(mcVersion, settings, STATIONARY_WATER, minHeight, maxHeight - 1,  1, random.nextLong());
+                    putResource(mcVersion, settings, STATIONARY_LAVA,  minHeight,            15,  2, random.nextLong());
+                    putResource(mcVersion, settings, EMERALD_ORE,      64,        maxHeight - 1,  1, random.nextLong());
+                    putResource(mcVersion, settings, COPPER_ORE,       0,         88,             6, random.nextLong());
 
-                    settings.put(QUARTZ_ORE,     new ResourceSettings(QUARTZ_ORE,     minHeight, maxHeight - 1, 0, random.nextLong()));
-                    settings.put(ANCIENT_DEBRIS, new ResourceSettings(ANCIENT_DEBRIS, minHeight, maxHeight - 1, 0, random.nextLong()));
+                    putResource(mcVersion, settings, QUARTZ_ORE,     minHeight, maxHeight - 1, 0, random.nextLong());
+                    putResource(mcVersion, settings, ANCIENT_DEBRIS, minHeight, maxHeight - 1, 0, random.nextLong());
                     break;
                 case DIM_NETHER:
-                    settings.put(QUARTZ_ORE,     new ResourceSettings(QUARTZ_ORE,     minHeight, maxHeight - 1, mcVersion.isAtLeast(V_1_2) ? 7 : 0,
-                                                                                                                       random.nextLong()));
-                    settings.put(GOLD_ORE,       new ResourceSettings(GOLD_ORE,       minHeight, maxHeight - 1, mcVersion.isAtLeast(V_1_15) ? 3 : 0,
-                                                                                                                       random.nextLong()));
-                    settings.put(ANCIENT_DEBRIS, new ResourceSettings(ANCIENT_DEBRIS, minHeight, maxHeight - 1, mcVersion.isAtLeast(V_1_15) ? 1 : 0,
-                                                                                                                       random.nextLong()));
+                    putResource(mcVersion, settings, QUARTZ_ORE,     minHeight, maxHeight - 1, 7, random.nextLong());
+                    putResource(mcVersion, settings, GOLD_ORE,       minHeight, maxHeight - 1, 3, random.nextLong());
+                    putResource(mcVersion, settings, ANCIENT_DEBRIS, minHeight, maxHeight - 1, 1, random.nextLong());
 
-                    settings.put(DIRT,             new ResourceSettings(DIRT,             0,         maxHeight - 1, 0, random.nextLong()));
-                    settings.put(GRAVEL,           new ResourceSettings(GRAVEL,           minHeight, maxHeight - 1, 0, random.nextLong()));
-                    settings.put(IRON_ORE,         new ResourceSettings(IRON_ORE,         minHeight, maxHeight - 1, 0, random.nextLong()));
-                    settings.put(COAL,             new ResourceSettings(COAL,             0,         maxHeight - 1, 0, random.nextLong()));
-                    settings.put(LAPIS_LAZULI_ORE, new ResourceSettings(LAPIS_LAZULI_ORE, minHeight,            31, 0, random.nextLong()));
-                    settings.put(DIAMOND_ORE,      new ResourceSettings(DIAMOND_ORE,      minHeight,            15, 0, random.nextLong()));
-                    settings.put(REDSTONE_ORE,     new ResourceSettings(REDSTONE_ORE,     minHeight,            15, 0, random.nextLong()));
-                    settings.put(STATIONARY_WATER, new ResourceSettings(STATIONARY_WATER, minHeight, maxHeight - 1, 0, random.nextLong()));
-                    settings.put(STATIONARY_LAVA,  new ResourceSettings(STATIONARY_LAVA,  minHeight,            15, 0, random.nextLong()));
-                    settings.put(EMERALD_ORE,      new ResourceSettings(EMERALD_ORE,      64,        maxHeight - 1, 0, random.nextLong()));
-                    settings.put(COPPER_ORE,       new ResourceSettings(COPPER_ORE,       0,                    88, 0, random.nextLong()));
+                    putResource(mcVersion, settings, DIRT,             0,         maxHeight - 1, 0, random.nextLong());
+                    putResource(mcVersion, settings, GRAVEL,           minHeight, maxHeight - 1, 0, random.nextLong());
+                    putResource(mcVersion, settings, IRON_ORE,         minHeight, maxHeight - 1, 0, random.nextLong());
+                    putResource(mcVersion, settings, COAL,             0,         maxHeight - 1, 0, random.nextLong());
+                    putResource(mcVersion, settings, LAPIS_LAZULI_ORE, minHeight,            31, 0, random.nextLong());
+                    putResource(mcVersion, settings, DIAMOND_ORE,      minHeight,            15, 0, random.nextLong());
+                    putResource(mcVersion, settings, REDSTONE_ORE,     minHeight,            15, 0, random.nextLong());
+                    putResource(mcVersion, settings, STATIONARY_WATER, minHeight, maxHeight - 1, 0, random.nextLong());
+                    putResource(mcVersion, settings, STATIONARY_LAVA,  minHeight,            15, 0, random.nextLong());
+                    putResource(mcVersion, settings, EMERALD_ORE,      64,        maxHeight - 1, 0, random.nextLong());
+                    putResource(mcVersion, settings, COPPER_ORE,       0,                    88, 0, random.nextLong());
                     break;
                 case DIM_END:
-                    settings.put(DIRT,             new ResourceSettings(DIRT,             0,         maxHeight - 1, 0, random.nextLong()));
-                    settings.put(GRAVEL,           new ResourceSettings(GRAVEL,           minHeight, maxHeight - 1, 0, random.nextLong()));
-                    settings.put(GOLD_ORE,         new ResourceSettings(GOLD_ORE,         minHeight,            31, 0, random.nextLong()));
-                    settings.put(IRON_ORE,         new ResourceSettings(IRON_ORE,         minHeight, maxHeight - 1, 0, random.nextLong()));
-                    settings.put(COAL,             new ResourceSettings(COAL,             0,         maxHeight - 1, 0, random.nextLong()));
-                    settings.put(LAPIS_LAZULI_ORE, new ResourceSettings(LAPIS_LAZULI_ORE, minHeight,            31, 0, random.nextLong()));
-                    settings.put(DIAMOND_ORE,      new ResourceSettings(DIAMOND_ORE,      minHeight,            15, 0, random.nextLong()));
-                    settings.put(REDSTONE_ORE,     new ResourceSettings(REDSTONE_ORE,     minHeight,            15, 0, random.nextLong()));
-                    settings.put(STATIONARY_WATER, new ResourceSettings(STATIONARY_WATER, minHeight, maxHeight - 1, 0, random.nextLong()));
-                    settings.put(STATIONARY_LAVA,  new ResourceSettings(STATIONARY_LAVA,  minHeight,            15, 0, random.nextLong()));
-                    settings.put(EMERALD_ORE,      new ResourceSettings(EMERALD_ORE,      64,        maxHeight - 1, 0, random.nextLong()));
-                    settings.put(COPPER_ORE,       new ResourceSettings(COPPER_ORE,       0,                    88, 0, random.nextLong()));
-                    settings.put(QUARTZ_ORE,       new ResourceSettings(QUARTZ_ORE,       minHeight, maxHeight - 1, 0, random.nextLong()));
-                    settings.put(ANCIENT_DEBRIS,   new ResourceSettings(ANCIENT_DEBRIS,   minHeight, maxHeight - 1, 0, random.nextLong()));
+                    putResource(mcVersion, settings, DIRT,             0,         maxHeight - 1, 0, random.nextLong());
+                    putResource(mcVersion, settings, GRAVEL,           minHeight, maxHeight - 1, 0, random.nextLong());
+                    putResource(mcVersion, settings, GOLD_ORE,         minHeight,            31, 0, random.nextLong());
+                    putResource(mcVersion, settings, IRON_ORE,         minHeight, maxHeight - 1, 0, random.nextLong());
+                    putResource(mcVersion, settings, COAL,             0,         maxHeight - 1, 0, random.nextLong());
+                    putResource(mcVersion, settings, LAPIS_LAZULI_ORE, minHeight,            31, 0, random.nextLong());
+                    putResource(mcVersion, settings, DIAMOND_ORE,      minHeight,            15, 0, random.nextLong());
+                    putResource(mcVersion, settings, REDSTONE_ORE,     minHeight,            15, 0, random.nextLong());
+                    putResource(mcVersion, settings, STATIONARY_WATER, minHeight, maxHeight - 1, 0, random.nextLong());
+                    putResource(mcVersion, settings, STATIONARY_LAVA,  minHeight,            15, 0, random.nextLong());
+                    putResource(mcVersion, settings, EMERALD_ORE,      64,        maxHeight - 1, 0, random.nextLong());
+                    putResource(mcVersion, settings, COPPER_ORE,       0,                    88, 0, random.nextLong());
+                    putResource(mcVersion, settings, QUARTZ_ORE,       minHeight, maxHeight - 1, 0, random.nextLong());
+                    putResource(mcVersion, settings, ANCIENT_DEBRIS,   minHeight, maxHeight - 1, 0, random.nextLong());
                     break;
                 default:
                     throw new IllegalArgumentException("Dimension " + anchor.dim + " not supported");
@@ -310,6 +332,11 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
             return result;
         }
         
+        private static void putResource(Version mcVersion, Map<Material, ResourceSettings> settings, Material material, int minHeight, int maxHeight, int chance, long seedOffset) {
+            settings.put(material, new ResourceSettings(material, minHeight, maxHeight, mcVersion.isAtLeast(VERSION_MAP.get(material)) ? chance : 0, seedOffset));
+        }
+        
+        @Serial
         private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
             in.defaultReadObject();
             
@@ -395,6 +422,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
         @Deprecated private Map<Integer, Integer> minLevels = null;
         private int version = 3;
 
+        @Serial
         private static final long serialVersionUID = 1L;
         private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ResourcesExporter.class);
     }
@@ -421,6 +449,7 @@ public class ResourcesExporter extends AbstractLayerExporter<Resources> implemen
         int minLevel, maxLevel, chance;
         long seedOffset;
 
+        @Serial
         private static final long serialVersionUID = 1L;
     }
 }

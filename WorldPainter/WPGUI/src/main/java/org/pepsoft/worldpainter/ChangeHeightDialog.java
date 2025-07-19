@@ -232,6 +232,7 @@ public class ChangeHeightDialog extends WorldPainterDialog {
                             }
                         }
                     }
+                    dim.getAllLayerSettings().forEach((layer, settings) -> settings.setPlatform(newPlatform));
                 }
             }
             world.addHistoryEntry(WORLD_RETARGETED, oldPlatform.displayName, newPlatform.displayName);
