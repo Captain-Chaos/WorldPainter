@@ -17,8 +17,8 @@ import org.pepsoft.worldpainter.layers.Layer.DataSize;
 
 import java.awt.*;
 import java.io.*;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.util.CollectionUtils.unsignedMax;
@@ -1097,17 +1097,21 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
     }
 
     /**
-     * Create a new tile based on this one but horizontally transformed according to some transformation.
+     * Create a new tile based on this one but horizontally transformed according to some transformation. Scaling is not
+     * supported, and shifting must be by multiples of {@link Constants#TILE_SIZE}.
      *
      * @param transform The transform to apply.
      * @return A new tile with the same contents, except transformed according to the specified transform (including the
      * X and Y coordinates).
+     * @throws IllegalArgumentException If the specified transform is not supported.
      */
     public synchronized Tile transform(CoordinateTransform transform) {
-        Point transformedCoords = transform.transform(x << TILE_SIZE_BITS, y << TILE_SIZE_BITS);
-        Tile transformedTile;
-        boolean transformContents = ((transformedCoords.x & TILE_SIZE_MASK) != 0) || ((transformedCoords.y & TILE_SIZE_MASK) != 0);
-        if (transformContents) {
+        if (transform.isScaling()) {
+            throw new IllegalArgumentException("Scaling tiles not supported");
+        }
+        final Point transformedCoords = transform.transform(x << TILE_SIZE_BITS, y << TILE_SIZE_BITS);
+        final Tile transformedTile;
+        if (transform.isRotating()) {
             transformedTile = new Tile(transformedCoords.x >> TILE_SIZE_BITS, transformedCoords.y >> TILE_SIZE_BITS, minHeight, maxHeight);
             for (int x = 0; x < TILE_SIZE; x++) {
                 for (int y = 0; y < TILE_SIZE; y++) {
@@ -1122,7 +1126,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                 }
             }
             for (Layer layer: getLayers()) {
-                if ((layer.getDataSize() == Layer.DataSize.BIT) || (layer.getDataSize() == Layer.DataSize.BIT_PER_CHUNK)) {
+                if (layer.getDataSize() == DataSize.BIT) {
                     for (int x = 0; x < TILE_SIZE; x++) {
                         for (int y = 0; y < TILE_SIZE; y++) {
                             if (getBitLayerValue(layer, x, y)) {
@@ -1135,17 +1139,33 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                             }
                         }
                     }
-                } else if (layer.getDataSize() != Layer.DataSize.NONE) {
-                    for (int x = 0; x < TILE_SIZE; x++) {
-                        for (int y = 0; y < TILE_SIZE; y++) {
-                            int value = getLayerValue(layer, x, y);
-                            if (value > 0) {
+                } else if (layer.getDataSize() == DataSize.BIT_PER_CHUNK) {
+                    for (int x = 0; x < TILE_SIZE; x += 16) {
+                        for (int y = 0; y < TILE_SIZE; y += 16) {
+                            if (getBitLayerValue(layer, x, y)) {
                                 transformedCoords.x = x;
                                 transformedCoords.y = y;
                                 transform.transformInPlace(transformedCoords);
                                 transformedCoords.x &= TILE_SIZE_MASK;
                                 transformedCoords.y &= TILE_SIZE_MASK;
-                                transformedTile.setLayerValue(layer, transformedCoords.x, transformedCoords.y, value);
+                                transformedTile.setBitLayerValue(layer, transformedCoords.x, transformedCoords.y, true);
+                            }
+                        }
+                    }
+                } else {
+                    if (layer.getDataSize() != DataSize.NONE) {
+                        final int defaultValue = layer.getDefaultValue();
+                        for (int x = 0; x < TILE_SIZE; x++) {
+                            for (int y = 0; y < TILE_SIZE; y++) {
+                                int value = getLayerValue(layer, x, y);
+                                if (value != defaultValue) {
+                                    transformedCoords.x = x;
+                                    transformedCoords.y = y;
+                                    transform.transformInPlace(transformedCoords);
+                                    transformedCoords.x &= TILE_SIZE_MASK;
+                                    transformedCoords.y &= TILE_SIZE_MASK;
+                                    transformedTile.setLayerValue(layer, transformedCoords.x, transformedCoords.y, value);
+                                }
                             }
                         }
                     }

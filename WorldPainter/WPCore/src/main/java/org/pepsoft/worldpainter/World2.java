@@ -535,8 +535,8 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     }
 
     /**
-     * Transforms all dimensions of this world horizontally. If an undo manager
-     * is installed this operation will destroy all undo info.
+     * Transforms all dimensions of this world horizontally. If an undo manager is installed, this operation will
+     * destroy all undo info. This version also transforms the {@code upIs} property.
      * 
      * @param transform The coordinate transform to apply.
      * @param progressReceiver A progress receiver which will be informed of
@@ -558,9 +558,9 @@ public class World2 extends InstanceKeeper implements Serializable, Cloneable {
     }
     
     /**
-     * Transforms one dimension horizontally. If it's the surface dimension also
-     * transforms any surface-related metadata stored in the world. If an undo
-     * manager is installed this operation will destroy all undo info.
+     * Transforms one dimension horizontally. If it's the surface dimension also transforms any surface-related metadata
+     * stored in the world. If an undo manager is installed, this operation will destroy all undo info. This version
+     * does <em>not</em> transform the {@code upIs} property.
      *
      * @param anchor The anchor of the dimension to transform.
      * @param transform The coordinate transform to apply.

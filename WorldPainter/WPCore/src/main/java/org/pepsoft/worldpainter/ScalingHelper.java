@@ -1,6 +1,9 @@
 package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.ProgressReceiver;
+import org.pepsoft.util.ProgressReceiver.OperationCancelled;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
+import org.pepsoft.util.mdc.MDCThreadPoolExecutor;
 import org.pepsoft.worldpainter.heightMaps.AbstractHeightMap;
 import org.pepsoft.worldpainter.layers.Layer;
 import org.pepsoft.worldpainter.layers.NotPresent;
@@ -10,15 +13,20 @@ import java.awt.*;
 import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 
+import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.worldpainter.Constants.*;
+import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
 
 /**
  * Utility class for scaling a set of {@link Tile}s.
@@ -29,8 +37,7 @@ public class ScalingHelper {
      */
     public ScalingHelper(Map<Point, Tile> tiles, TileFactory tileFactory, float scale) {
         unscaledTiles = tiles;
-        if (tileFactory instanceof HeightMapTileFactory) {
-            final HeightMapTileFactory heightMapTileFactory = (HeightMapTileFactory) tileFactory;
+        if (tileFactory instanceof HeightMapTileFactory heightMapTileFactory) {
             scaledTileFactory = new HeightMapTileFactory(tileFactory.getSeed(), heightMapTileFactory.getHeightMap().scaled(scale), tileFactory.getMinHeight(), tileFactory.getMaxHeight(), heightMapTileFactory.isFloodWithLava(), heightMapTileFactory.getTheme());
         } else {
             scaledTileFactory = tileFactory;
@@ -60,6 +67,7 @@ public class ScalingHelper {
                 return new double[] { minHeight, maxHeight };
             }
 
+            @Serial
             private void writeObject(ObjectOutputStream out) throws IOException {
                 throw new NotSerializableException();
             }
@@ -77,16 +85,11 @@ public class ScalingHelper {
                     public double getHeight(int x, int y) {
                         final Tile tile = tiles.get(new Point(x >> TILE_SIZE_BITS, y >> TILE_SIZE_BITS));
                         if (tile != null) {
-                            switch (dataSize) {
-                                case BIT:
-                                case BIT_PER_CHUNK:
-                                    return tile.getBitLayerValue(layer, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK) ? 1f : 0f;
-                                case NIBBLE:
-                                case BYTE:
-                                    return tile.getLayerValue(layer, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK);
-                                default:
-                                    throw new IllegalStateException("Unsupported data size " + dataSize + " for layer " + layer);
-                            }
+                            return switch (dataSize) {
+                                case BIT, BIT_PER_CHUNK -> tile.getBitLayerValue(layer, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK) ? 1f : 0f;
+                                case NIBBLE, BYTE -> tile.getLayerValue(layer, x & TILE_SIZE_MASK, y & TILE_SIZE_MASK);
+                                default -> throw new IllegalStateException("Unsupported data size " + dataSize + " for layer " + layer);
+                            };
                         } else {
                             return layer.getDefaultValue();
                         }
@@ -99,19 +102,15 @@ public class ScalingHelper {
 
                     @Override
                     public double[] getRange() {
-                        switch (dataSize) {
-                            case BIT:
-                            case BIT_PER_CHUNK:
-                                return new double[] {0, 1};
-                            case NIBBLE:
-                                return new double[] {0, 15};
-                            case BYTE:
-                                return new double[] {0, 255};
-                            default:
-                                throw new IllegalStateException("Unsupported data size " + dataSize + " for layer " + layer);
-                        }
+                        return switch (dataSize) {
+                            case BIT, BIT_PER_CHUNK -> new double[] {0, 1};
+                            case NIBBLE -> new double[] {0, 15};
+                            case BYTE -> new double[] {0, 255};
+                            default -> throw new IllegalStateException("Unsupported data size " + dataSize + " for layer " + layer);
+                        };
                     }
 
+                    @Serial
                     private void writeObject(ObjectOutputStream out) throws IOException {
                         throw new NotSerializableException();
                     }
@@ -222,17 +221,45 @@ public class ScalingHelper {
         return scaledTile;
     }
 
-    public Set<Tile> getAllScaledTiles(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
-        final Set<Tile> result = new HashSet<>();
-        int count = 0;
+    public Set<Tile> getAllScaledTiles(ProgressReceiver progressReceiver) throws OperationCancelled {
+        final Set<Tile> result = ConcurrentHashMap.newKeySet();
+        final AtomicLong count = new AtomicLong();
+        final int tileCount = tileCoords.size();
+        final ExecutorService executor = MDCThreadPoolExecutor.newFixedThreadPool(chooseThreadCount("scaling", tileCount));
+        final Throwable[] exception = new Throwable[1];
         for (Point coordsOfTile: tileCoords) {
-            // Create an ordinary, but scaled, tile
-            final int tileX = coordsOfTile.x, tileY = coordsOfTile.y;
-            final Tile scaledTile = createScaledTile(tileX, tileY);
-            result.add(scaledTile);
-            count++;
-            if (progressReceiver != null) {
-                progressReceiver.setProgress((float) count / tileCoords.size());
+            executor.execute(() -> {
+                if (exception[0] != null) {
+                    return;
+                }
+                try {
+                    // Create an ordinary, but scaled, tile
+                    final int tileX = coordsOfTile.x, tileY = coordsOfTile.y;
+                    final Tile scaledTile = createScaledTile(tileX, tileY);
+                    result.add(scaledTile);
+                    if (progressReceiver != null) {
+                        progressReceiver.setProgress((float) count.incrementAndGet() / tileCount);
+                    }
+                } catch (Throwable t) {
+                    if (exception[0] == null) {
+                        exception[0] = t;
+                    }
+                }
+            });
+        }
+        executor.shutdown();
+        try {
+            if (! executor.awaitTermination(365, DAYS)) {
+                throw new MDCCapturingRuntimeException("Scaling operation did not complete within one year");
+            }
+        } catch (InterruptedException e) {
+            throw new MDCCapturingRuntimeException("Thread interrupted while waiting for completion of scaling operation", e);
+        }
+        if (exception[0] != null) {
+            if (exception[0] instanceof OperationCancelled) {
+                throw (OperationCancelled) exception[0];
+            } else {
+                throw new MDCCapturingRuntimeException("Exception while scaling tiles", exception[0]);
             }
         }
         return result;

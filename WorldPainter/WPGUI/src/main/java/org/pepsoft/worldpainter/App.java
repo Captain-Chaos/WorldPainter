@@ -1039,7 +1039,10 @@ public final class App extends JFrame implements RadiusControl,
                     public java.lang.Void execute(ProgressReceiver progressReceiver) throws OperationCancelled {
                         newWorld.transform(CoordinateTransform.ROTATE_CLOCKWISE_270_DEGREES, progressReceiver);
                         for (Dimension dimension: newWorld.getDimensions()) {
-                            newWorld.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_ROTATED, dimension.getName(), 270);
+                            final Anchor anchor = dimension.getAnchor();
+                            if (((anchor.role == DETAIL) || (anchor.role == MASTER)) && (! anchor.invert)) {
+                                newWorld.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_ROTATED, dimension.getName(), 270);
+                            }
                         }
                         return null;
                     }

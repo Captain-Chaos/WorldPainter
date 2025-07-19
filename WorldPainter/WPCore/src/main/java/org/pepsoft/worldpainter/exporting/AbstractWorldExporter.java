@@ -54,7 +54,7 @@ import static org.pepsoft.worldpainter.Dimension.Role.MASTER;
 import static org.pepsoft.worldpainter.Platform.Capability.POPULATE;
 import static org.pepsoft.worldpainter.exporting.WorldExportSettings.Step.*;
 import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.Mode.CUSTOM_DIMENSION;
-import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
+import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCountForExport;
 
 /**
  * An abstract {@link WorldExporter} for block based platforms.
@@ -1020,7 +1020,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
     }
 
     protected final ExecutorService createExecutorService(String operation, int jobCount) {
-        return MDCThreadPoolExecutor.newFixedThreadPool(chooseThreadCount(operation, jobCount), new ThreadFactory() {
+        return MDCThreadPoolExecutor.newFixedThreadPool(chooseThreadCountForExport(operation, jobCount), new ThreadFactory() {
             @Override
             public synchronized Thread newThread(Runnable r) {
                 Thread thread = new Thread(threadGroup, r, operation.toLowerCase().replaceAll("\\s+", "-") + "-" + nextID++);

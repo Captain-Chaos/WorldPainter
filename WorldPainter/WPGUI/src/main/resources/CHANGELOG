@@ -1,5 +1,6 @@
 -- Version 2.25.2, released ...
 
+ * Scaling, shifting and rotation operations on dimensions are now multithreaded for increased performance
  * When changing the map format, the Resources layer settings are now automatically adjusted to turn off resources which are not supported in the new map format. Note that this change is not automatically reverted if the map format is changed back.
 
 -- Version 2.25.1, released 10-07-2025

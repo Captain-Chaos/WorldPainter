@@ -13,6 +13,8 @@ import org.pepsoft.util.MathUtils;
 import org.pepsoft.util.PerlinNoise;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
+import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
+import org.pepsoft.util.mdc.MDCThreadPoolExecutor;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.brushes.Brush;
@@ -40,6 +42,8 @@ import java.beans.PropertyChangeSupport;
 import java.io.*;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -50,8 +54,8 @@ import java.util.zip.ZipOutputStream;
 
 import static java.lang.Math.ceil;
 import static java.util.Arrays.fill;
-import static java.util.Collections.emptySet;
-import static java.util.Collections.unmodifiableList;
+import static java.util.Collections.*;
+import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.stream.Collectors.toSet;
 import static org.pepsoft.minecraft.Constants.DEFAULT_WATER_LEVEL;
 import static org.pepsoft.minecraft.Material.*;
@@ -67,6 +71,7 @@ import static org.pepsoft.worldpainter.layers.tunnel.TunnelLayer.LayerMode.CAVE;
 import static org.pepsoft.worldpainter.panels.DefaultFilter.buildForDimension;
 import static org.pepsoft.worldpainter.util.GeometryUtil.getDistancesToCentre;
 import static org.pepsoft.worldpainter.util.GeometryUtil.visitFilledCircle;
+import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
 
 /**
  *
@@ -392,7 +397,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     public Set<Point> getTileCoords() {
         readLock.lock();
         try {
-            return Collections.unmodifiableSet(tiles.keySet());
+            return unmodifiableSet(tiles.keySet());
         } finally {
             readLock.unlock();
         }
@@ -1973,8 +1978,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 writeLock.unlock();
             }
             clearUndo();
+            final Set<Tile> unmodifiableRemovedTiles = unmodifiableSet(removedTiles);
             for (Listener listener: listeners) {
-                listener.tilesRemoved(this, removedTiles);
+                listener.tilesRemoved(this, unmodifiableRemovedTiles);
             }
 
             // Add them all back, in their transformed locations
@@ -2008,44 +2014,79 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                     }
                 }
             } else {
-                int tileCount = removedTiles.size(), tileNo = 0;
-                for (Iterator<Tile> i = removedTiles.iterator(); i.hasNext(); ) {
-                    final Tile tile = i.next();
-                    addTile(tile.transform(transform));
-                    i.remove(); // Remove each tile as we're done with it so it can be garbage collected
-                    tileNo++;
-                    if (progressReceiver != null) {
-                        progressReceiver.setProgress((float) tileNo / tileCount);
+                final int tileCount = removedTiles.size();
+                final AtomicLong tileNo = new AtomicLong();
+                final ExecutorService executor = MDCThreadPoolExecutor.newFixedThreadPool(chooseThreadCount("transforming", tileCount));
+                final Throwable[] exception = new Throwable[1];
+                for (Tile tile: removedTiles) {
+                    executor.submit(() -> {
+                        if (exception[0] != null) {
+                            return;
+                        }
+                        try {
+                            addTile(tile.transform(transform));
+                            if (progressReceiver != null) {
+                                progressReceiver.setProgress((float) tileNo.incrementAndGet() / tileCount);
+                            }
+                        } catch (Throwable t) {
+                            if (exception[0] == null) {
+                                exception[0] = t;
+                            }
+                        }
+                    });
+                }
+                removedTiles.clear(); // Throw away all our references to the tiles so they can be garbage collected as we're done with them (they are till referenced by the jobs on the executor queue)
+                executor.shutdown();
+                try {
+                    if (! executor.awaitTermination(365, DAYS)) {
+                        throw new MDCCapturingRuntimeException("Transformation operation did not complete within one year");
+                    }
+                } catch (InterruptedException e) {
+                    throw new MDCCapturingRuntimeException("Thread interrupted while waiting for completion of scaling operation", e);
+                }
+                if (exception[0] != null) {
+                    if (exception[0] instanceof OperationCancelled) {
+                        throw (OperationCancelled) exception[0];
+                    } else {
+                        throw new MDCCapturingRuntimeException("Exception while scaling tiles", exception[0]);
                     }
                 }
             }
 
             tileFactory.transform(transform);
 
-            for (Overlay overlay: overlays) {
-                if (overlay.getFile().canRead()) {
-                    try {
-                        final java.awt.Dimension overlaySize = getImageSize(overlay.getFile());
-                        if (overlaySize != null) {
-                            final float overlayScale = overlay.getScale();
-                            final Rectangle overlayCoords = transform.transform(new Rectangle(overlay.getOffsetX(), overlay.getOffsetY(), Math.round(overlaySize.width * overlayScale), Math.round(overlaySize.height * overlayScale)));
-                            overlay.setOffsetX(overlayCoords.x);
-                            overlay.setOffsetY(overlayCoords.y);
-                            overlay.setScale(transform.transformScalar(overlayScale));
-                        } else {
+            if (transform.isScaling() || transform.isRotating()) {
+                for (Overlay overlay: overlays) {
+                    if (overlay.getFile().canRead()) {
+                        try {
+                            final java.awt.Dimension overlaySize = getImageSize(overlay.getFile());
+                            if (overlaySize != null) {
+                                final float overlayScale = overlay.getScale();
+                                final Rectangle overlayCoords = transform.transform(new Rectangle(overlay.getOffsetX(), overlay.getOffsetY(), Math.round(overlaySize.width * overlayScale), Math.round(overlaySize.height * overlayScale)));
+                                overlay.setOffsetX(overlayCoords.x);
+                                overlay.setOffsetY(overlayCoords.y);
+                                overlay.setScale(transform.transformScalar(overlayScale));
+                            } else {
+                                // Don't bother user with it, just clear the overlay
+                                logger.error("Size of " + overlay.getFile() + " could not be determined; overlay will not be adjusted");
+                                overlay.setEnabled(false);
+                            }
+                        } catch (IOException e) {
                             // Don't bother user with it, just clear the overlay
-                            logger.error("Size of " + overlay.getFile() + " could not be determined; overlay will not be adjusted");
+                            logger.error("I/O error while trying to determine size of " + overlay.getFile() + "; overlay will not be adjusted", e);
                             overlay.setEnabled(false);
                         }
-                    } catch (IOException e) {
+                    } else {
                         // Don't bother user with it, just clear the overlay
-                        logger.error("I/O error while trying to determine size of " + overlay.getFile() + "; overlay will not be adjusted", e);
+                        logger.error("Overlay " + overlay.getFile() + " could not be read; overlay will not be adjusted");
                         overlay.setEnabled(false);
                     }
-                } else {
-                    // Don't bother user with it, just clear the overlay
-                    logger.error("Overlay " + overlay.getFile() + " could not be read; overlay will not be adjusted");
-                    overlay.setEnabled(false);
+                }
+            } else {
+                for (Overlay overlay: overlays) {
+                    final Point newCoords = transform.transform(overlay.getOffsetX(), overlay.getOffsetY());
+                    overlay.setOffsetX(newCoords.x);
+                    overlay.setOffsetY(newCoords.y);
                 }
             }
         } finally {

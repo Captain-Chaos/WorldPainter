@@ -32,7 +32,6 @@
           <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="jProgressBar1" alignment="1" max="32767" attributes="1"/>
                   <Group type="102" alignment="1" attributes="0">
                       <Component id="buttonRotate" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
@@ -41,7 +40,6 @@
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="jLabel1" alignment="0" min="-2" max="-2" attributes="1"/>
-                          <Component id="labelProgressMessage" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="jRadioButton1" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="jRadioButton2" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="jRadioButton3" alignment="0" min="-2" max="-2" attributes="0"/>
@@ -68,13 +66,9 @@
               <Component id="jRadioButton1" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Component id="jRadioButton2" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Component id="jRadioButton3" min="-2" max="-2" attributes="0"/>
               <EmptySpace type="separate" max="-2" attributes="0"/>
-              <Component id="labelProgressMessage" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="-2" max="-2" attributes="0"/>
-              <Component id="jProgressBar1" min="-2" max="-2" attributes="0"/>
-              <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="buttonCancel" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="buttonRotate" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -89,8 +83,6 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Choose a rotation angle and press the Rotate button to rotate the dimension:"/>
       </Properties>
-    </Component>
-    <Component class="javax.swing.JProgressBar" name="jProgressBar1">
     </Component>
     <Component class="javax.swing.JButton" name="buttonCancel">
       <Properties>
@@ -107,11 +99,6 @@
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonRotateActionPerformed"/>
       </Events>
-    </Component>
-    <Component class="javax.swing.JLabel" name="labelProgressMessage">
-      <Properties>
-        <Property name="text" type="java.lang.String" value=" "/>
-      </Properties>
     </Component>
     <Component class="javax.swing.JRadioButton" name="jRadioButton1">
       <Properties>

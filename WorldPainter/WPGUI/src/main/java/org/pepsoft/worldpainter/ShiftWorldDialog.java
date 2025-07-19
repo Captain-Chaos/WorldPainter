@@ -12,25 +12,25 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
+import org.pepsoft.util.swing.ProgressDialog;
+import org.pepsoft.util.swing.ProgressTask;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 
 import java.awt.*;
+import java.io.Serial;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
-import static org.pepsoft.util.AwtUtils.doOnEventThread;
-import static org.pepsoft.util.mdc.MDCUtils.decorateWithMdcContext;
-import static org.pepsoft.util.swing.MessageUtils.beepAndShowWarning;
+import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.worldpainter.Dimension.Role.DETAIL;
-import static org.pepsoft.worldpainter.ExceptionHandler.handleException;
 
 /**
  *
  * @author pepijn
  */
 @SuppressWarnings({"unused", "FieldCanBeLocal"}) // Managed by NetBeans
-public class ShiftWorldDialog extends WorldPainterDialog implements ProgressReceiver {
+public class ShiftWorldDialog extends WorldPainterDialog {
     /** Creates new form RotateWorldDialog */
     public ShiftWorldDialog(Window parent, World2 world, Anchor anchor) {
         super(parent);
@@ -50,73 +50,28 @@ public class ShiftWorldDialog extends WorldPainterDialog implements ProgressRece
         setLocationRelativeTo(parent);
     }
 
-    // ProgressReceiver
-    
-    @Override
-    public synchronized void setProgress(final float progress) {
-        doOnEventThread(() -> jProgressBar1.setValue((int) (progress * 100)));
-    }
-
-    @Override
-    public synchronized void exceptionThrown(final Throwable exception) {
-        // Make sure to capture the MDC context from the current thread
-        final Throwable exceptionWithContext = decorateWithMdcContext(exception);
-        doOnEventThread(() -> {
-            handleException(exceptionWithContext, ShiftWorldDialog.this);
-            cancel();
-        });
-    }
-
-    @Override
-    public synchronized void done() {
-        doOnEventThread(() -> {
-            if (affectedDimensions.stream().flatMap(dimension -> dimension.getOverlays().stream()).anyMatch(overlay -> ! overlay.getFile().canRead())) {
-                beepAndShowWarning(this, "One or more overlay image files could not be read,\nand have therefore not been shifted.\nYou will need to shift these manually.", "Not All Overlays Shifted");
-            }
-            ok();
-        });
-    }
-
-    @Override
-    public synchronized void setMessage(final String message) {
-        doOnEventThread(() -> labelProgressMessage.setText(message));
-    }
-
-    @Override
-    public synchronized void checkForCancellation() {
-        // Do nothing
-    }
-
-    @Override
-    public void reset() {
-        doOnEventThread(() -> jProgressBar1.setValue(0));
-    }
-
-    @Override
-    public void subProgressStarted(SubProgressReceiver subProgressReceiver) {
-        // Do nothing
-    }
-
     private void shift() {
         buttonShift.setEnabled(false);
         buttonCancel.setEnabled(false);
         final int east = (Integer) jSpinner1.getValue(), south = (Integer) jSpinner2.getValue();
         final CoordinateTransform transform = new Translation(east, south);
-        new Thread("World Shifter") {
+        ProgressDialog.executeTask(this, new ProgressTask<Void>() {
             @Override
-            public void run() {
-                try {
-                    for (int i = 0; i < affectedDimensions.size(); i++) {
-                        final Dimension dimension = affectedDimensions.get(i);
-                        world.transform(dimension.getAnchor(), transform, new SubProgressReceiver(ShiftWorldDialog.this, (float) i / affectedDimensions.size(), 1.0f / affectedDimensions.size()));
-                        world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SHIFTED_HORIZONTALLY, dimension.getName(), east, south);
-                    }
-                    done();
-                } catch (Throwable t) {
-                    exceptionThrown(t);
-                }
+            public String getName() {
+                return "Shifting dimension(s)";
             }
-        }.start();
+
+            @Override
+            public Void execute(ProgressReceiver progressReceiver) throws ProgressReceiver.OperationCancelled {
+                for (int i = 0; i < affectedDimensions.size(); i++) {
+                    final Dimension dimension = affectedDimensions.get(i);
+                    world.transform(dimension.getAnchor(), transform, new SubProgressReceiver(progressReceiver, (float) i / affectedDimensions.size(), 1.0f / affectedDimensions.size()));
+                    world.addHistoryEntry(HistoryEntry.WORLD_DIMENSION_SHIFTED_HORIZONTALLY, dimension.getName(), east, south);
+                }
+                return null;
+            }
+        }, NOT_CANCELABLE);
+        ok();
     }
     
     private void setControlStates() {
@@ -134,10 +89,8 @@ public class ShiftWorldDialog extends WorldPainterDialog implements ProgressRece
 
         buttonGroup1 = new javax.swing.ButtonGroup();
         jLabel1 = new javax.swing.JLabel();
-        jProgressBar1 = new javax.swing.JProgressBar();
         buttonCancel = new javax.swing.JButton();
         buttonShift = new javax.swing.JButton();
-        labelProgressMessage = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jSpinner1 = new javax.swing.JSpinner();
         jLabel3 = new javax.swing.JLabel();
@@ -167,8 +120,6 @@ public class ShiftWorldDialog extends WorldPainterDialog implements ProgressRece
                 buttonShiftActionPerformed(evt);
             }
         });
-
-        labelProgressMessage.setText(" ");
 
         jLabel2.setText("X axis:");
 
@@ -203,7 +154,6 @@ public class ShiftWorldDialog extends WorldPainterDialog implements ProgressRece
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jProgressBar1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(buttonShift)
@@ -212,7 +162,6 @@ public class ShiftWorldDialog extends WorldPainterDialog implements ProgressRece
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel1)
-                            .addComponent(labelProgressMessage)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel2)
@@ -251,10 +200,6 @@ public class ShiftWorldDialog extends WorldPainterDialog implements ProgressRece
                     .addComponent(jLabel3)
                     .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5))
-                .addGap(18, 18, 18)
-                .addComponent(labelProgressMessage)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
@@ -300,15 +245,14 @@ public class ShiftWorldDialog extends WorldPainterDialog implements ProgressRece
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JSpinner jSpinner1;
     private javax.swing.JSpinner jSpinner2;
-    private javax.swing.JLabel labelProgressMessage;
     // End of variables declaration//GEN-END:variables
 
     private final World2 world;
     private final Anchor anchor;
     private final List<Dimension> affectedDimensions;
 
+    @Serial
     private static final long serialVersionUID = 1L;
 }
