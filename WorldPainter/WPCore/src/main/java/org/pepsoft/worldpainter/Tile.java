@@ -1126,45 +1126,86 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                 }
             }
             for (Layer layer: getLayers()) {
-                if (layer.getDataSize() == DataSize.BIT) {
-                    for (int x = 0; x < TILE_SIZE; x++) {
-                        for (int y = 0; y < TILE_SIZE; y++) {
-                            if (getBitLayerValue(layer, x, y)) {
-                                transformedCoords.x = x;
-                                transformedCoords.y = y;
-                                transform.transformInPlace(transformedCoords);
-                                transformedCoords.x &= TILE_SIZE_MASK;
-                                transformedCoords.y &= TILE_SIZE_MASK;
-                                transformedTile.setBitLayerValue(layer, transformedCoords.x, transformedCoords.y, true);
+                switch (layer.getDataSize()) {
+                    case BIT -> {
+                        ensureReadable(BIT_LAYER_DATA);
+                        final BitSet bitSet = bitLayerData.get(layer);
+                        if (bitSet != null) {
+                            for (int x = 0; x < TILE_SIZE; x++) {
+                                for (int y = 0; y < TILE_SIZE; y++) {
+                                    if (getBitPerBlockLayerValue(bitSet, x, y)) {
+                                        transformedCoords.x = x;
+                                        transformedCoords.y = y;
+                                        transform.transformInPlace(transformedCoords);
+                                        transformedCoords.x &= TILE_SIZE_MASK;
+                                        transformedCoords.y &= TILE_SIZE_MASK;
+                                        transformedTile.setBitLayerValue(layer, transformedCoords.x, transformedCoords.y, true);
+                                    }
+                                }
                             }
                         }
                     }
-                } else if (layer.getDataSize() == DataSize.BIT_PER_CHUNK) {
-                    for (int x = 0; x < TILE_SIZE; x += 16) {
-                        for (int y = 0; y < TILE_SIZE; y += 16) {
-                            if (getBitLayerValue(layer, x, y)) {
-                                transformedCoords.x = x;
-                                transformedCoords.y = y;
-                                transform.transformInPlace(transformedCoords);
-                                transformedCoords.x &= TILE_SIZE_MASK;
-                                transformedCoords.y &= TILE_SIZE_MASK;
-                                transformedTile.setBitLayerValue(layer, transformedCoords.x, transformedCoords.y, true);
+                    case BIT_PER_CHUNK -> {
+                        ensureReadable(BIT_LAYER_DATA);
+                        final BitSet bitSet = bitLayerData.get(layer);
+                        if (bitSet != null) {
+                            for (int x = 0; x < TILE_SIZE; x += 16) {
+                                for (int y = 0; y < TILE_SIZE; y += 16) {
+                                    if (getBitPerChunkLayerValue(bitSet, x, y)) {
+                                        transformedCoords.x = x;
+                                        transformedCoords.y = y;
+                                        transform.transformInPlace(transformedCoords);
+                                        transformedCoords.x &= TILE_SIZE_MASK;
+                                        transformedCoords.y &= TILE_SIZE_MASK;
+                                        transformedTile.setBitLayerValue(layer, transformedCoords.x, transformedCoords.y, true);
+                                    }
+                                }
                             }
                         }
                     }
-                } else {
-                    if (layer.getDataSize() != DataSize.NONE) {
-                        final int defaultValue = layer.getDefaultValue();
-                        for (int x = 0; x < TILE_SIZE; x++) {
-                            for (int y = 0; y < TILE_SIZE; y++) {
-                                int value = getLayerValue(layer, x, y);
-                                if (value != defaultValue) {
-                                    transformedCoords.x = x;
-                                    transformedCoords.y = y;
-                                    transform.transformInPlace(transformedCoords);
-                                    transformedCoords.x &= TILE_SIZE_MASK;
-                                    transformedCoords.y &= TILE_SIZE_MASK;
-                                    transformedTile.setLayerValue(layer, transformedCoords.x, transformedCoords.y, value);
+                    case NIBBLE -> {
+                        ensureReadable(LAYER_DATA);
+                        final byte[] layerValues = layerData.get(layer);
+                        if (layerValues != null) {
+                            final int defaultValue = layer.getDefaultValue();
+                            for (int x = 0; x < TILE_SIZE; x++) {
+                                for (int y = 0; y < TILE_SIZE; y++) {
+                                    final int value;
+                                    final int byteOffset = x | (y << TILE_SIZE_BITS);
+                                    final byte _byte = layerValues[byteOffset / 2];
+                                    if (byteOffset % 2 == 0) {
+                                        value = _byte & 0x0F;
+                                    } else {
+                                        value = (_byte & 0xF0) >> 4;
+                                    }
+                                    if (value != defaultValue) {
+                                        transformedCoords.x = x;
+                                        transformedCoords.y = y;
+                                        transform.transformInPlace(transformedCoords);
+                                        transformedCoords.x &= TILE_SIZE_MASK;
+                                        transformedCoords.y &= TILE_SIZE_MASK;
+                                        transformedTile.setLayerValue(layer, transformedCoords.x, transformedCoords.y, value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    case BYTE -> {
+                        ensureReadable(LAYER_DATA);
+                        final byte[] layerValues = layerData.get(layer);
+                        if (layerValues != null) {
+                            final int defaultValue = layer.getDefaultValue();
+                            for (int x = 0; x < TILE_SIZE; x++) {
+                                for (int y = 0; y < TILE_SIZE; y++) {
+                                    final int value = layerValues[x | (y << TILE_SIZE_BITS)] & 0xFF;
+                                    if (value != defaultValue) {
+                                        transformedCoords.x = x;
+                                        transformedCoords.y = y;
+                                        transform.transformInPlace(transformedCoords);
+                                        transformedCoords.x &= TILE_SIZE_MASK;
+                                        transformedCoords.y &= TILE_SIZE_MASK;
+                                        transformedTile.setLayerValue(layer, transformedCoords.x, transformedCoords.y, value);
+                                    }
                                 }
                             }
                         }
