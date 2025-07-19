@@ -1113,6 +1113,14 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         final Tile transformedTile;
         if (transform.isRotating()) {
             transformedTile = new Tile(transformedCoords.x >> TILE_SIZE_BITS, transformedCoords.y >> TILE_SIZE_BITS, minHeight, maxHeight);
+            ensureReadable(TERRAIN);
+            if (tall) {
+                ensureReadable(TALL_HEIGHTMAP);
+                ensureReadable(TALL_WATERLEVEL);
+            } else {
+                ensureReadable(HEIGHTMAP);
+                ensureReadable(WATERLEVEL);
+            }
             for (int x = 0; x < TILE_SIZE; x++) {
                 for (int y = 0; y < TILE_SIZE; y++) {
                     transformedCoords.x = x;
@@ -1120,9 +1128,9 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
                     transform.transformInPlace(transformedCoords);
                     transformedCoords.x &= TILE_SIZE_MASK;
                     transformedCoords.y &= TILE_SIZE_MASK;
-                    transformedTile.setTerrain(transformedCoords.x, transformedCoords.y, getTerrain(x, y));
-                    transformedTile.setRawHeight(transformedCoords.x, transformedCoords.y, getRawHeight(x, y));
-                    transformedTile.setWaterLevel(transformedCoords.x, transformedCoords.y, getWaterLevel(x, y));
+                    transformedTile.setTerrain(transformedCoords.x, transformedCoords.y, TERRAIN_VALUES[terrain[x | (y << TILE_SIZE_BITS)] & 0xFF]);
+                    transformedTile.setRawHeight(transformedCoords.x, transformedCoords.y, tall ? tallHeightMap[x | (y << TILE_SIZE_BITS)] : (heightMap[x | (y << TILE_SIZE_BITS)] & 0xFFFF));
+                    transformedTile.setWaterLevel(transformedCoords.x, transformedCoords.y, (tall ? (tallWaterLevel[x | y << TILE_SIZE_BITS] & 0xFFFF) : (waterLevel[x | y << TILE_SIZE_BITS] & 0xFF)) + minHeight);
                 }
             }
             for (Layer layer: getLayers()) {
