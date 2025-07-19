@@ -159,8 +159,8 @@ public interface HeightMap {
      * Create a new height map which is the product of this and another
      * height map.
      */
-    default HeightMap times(HeightMap subtrahend) {
-        return new ProductHeightMap(this, subtrahend);
+    default HeightMap times(HeightMap factor) {
+        return new ProductHeightMap(this, factor);
     }
 
     /**
@@ -173,21 +173,21 @@ public interface HeightMap {
 
     /**
      * Create a new height map which uses bicubic interpolation to interpolate values between the integer coordinates
-     * of another height map.
+     * of this height map.
      */
     default HeightMap smoothed() {
         return new BicubicHeightMap(this);
     }
 
     /**
-     * Create a new height map that is another height map scaled up by a given factor.
+     * Create a new height map that is this height map scaled up by a given factor.
      */
     default HeightMap scaled(float scale) {
         return TransformingHeightMap.build().withHeightMap(this).withScale(scale).now();
     }
 
     /**
-     * Create a new height map that constrains the value of another height map to a given range.
+     * Create a new height map that constrains the value of this height map to a given range.
      */
     default HeightMap clamped(double min, double max) {
         return new MaximisingHeightMap(new MinimisingHeightMap(this, new ConstantHeightMap(max)), new ConstantHeightMap(min));
