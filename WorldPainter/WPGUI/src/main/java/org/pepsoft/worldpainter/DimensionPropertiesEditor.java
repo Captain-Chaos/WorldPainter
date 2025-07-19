@@ -40,9 +40,7 @@ import javax.swing.*;
 import javax.swing.JSpinner.NumberEditor;
 import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
 
 import static java.util.Collections.singleton;
@@ -247,7 +245,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
             comboBoxGenerator.setSelectedItem(platform.supportedGenerators.get(0));
         }
         comboBoxGenerator.setEnabled(platform.supportedGenerators.size() > 1);
-        if (platform.capabilities.contains(BIOMES_3D)) {
+        if (platform.capabilities.contains(BIOMES_3D) || platform.capabilities.contains(NAMED_BIOMES)) {
             comboBoxSubsurfaceBiome.setEnabled(true);
         }
         setControlStates();
@@ -360,7 +358,9 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         dimension.setBottomless(checkBoxBottomless.isSelected());
         dimension.setCoverSteepTerrain(checkBoxCoverSteepTerrain.isSelected());
         dimension.setCeilingHeight((Integer) spinnerCeilingHeight.getValue());
-        dimension.setUndergroundBiome((Integer) comboBoxSubsurfaceBiome.getSelectedItem());
+        if (comboBoxSubsurfaceBiome.isEnabled()) {
+            dimension.setUndergroundBiome((Integer) comboBoxSubsurfaceBiome.getSelectedItem());
+        }
 
         // caves
         CavesSettings cavesSettings = (CavesSettings) dimension.getLayerSettings(Caves.INSTANCE);
@@ -756,9 +756,13 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         comboBoxSubsurfaceMaterial.setModel(new DefaultComboBoxModel<>(materialList.toArray(new Terrain[materialList.size()])));
         comboBoxSubsurfaceMaterial.setSelectedItem(dimension.getSubsurfaceMaterial());
 
-        final List<Integer> allBiomes = listOf(singletonList(null), getAllBiomes(platform, customBiomeManager));
-        comboBoxSubsurfaceBiome.setModel(new DefaultComboBoxModel<>(allBiomes.toArray(new Integer[allBiomes.size()])));
-        comboBoxSubsurfaceBiome.setSelectedItem(dimension.getUndergroundBiome());
+        if (comboBoxSubsurfaceBiome.isEnabled()) {
+            final List<Integer> allBiomes = listOf(singletonList(null), getAllBiomes(platform, customBiomeManager));
+            comboBoxSubsurfaceBiome.setModel(new DefaultComboBoxModel<>(allBiomes.toArray(new Integer[allBiomes.size()])));
+            comboBoxSubsurfaceBiome.setSelectedItem(dimension.getUndergroundBiome());
+        } else {
+            comboBoxSubsurfaceBiome.setModel(new DefaultComboBoxModel<>(new Integer[] { null }));
+        }
 
         // caves
         CavesSettings cavesSettings = (CavesSettings) dimension.getLayerSettings(Caves.INSTANCE);
@@ -1091,6 +1095,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         final boolean floorDimension = caveFloor || floatingFloor;
         final boolean master = (anchor != null) && (anchor.role == MASTER);
         final boolean decorations = checkBoxDecorateCaverns.isSelected() || checkBoxDecorateCaves.isSelected() || checkBoxDecorateChasms.isSelected();
+        final Set<Platform.Capability> capabilities = platform.capabilities;
         setEnabled(radioButtonLavaBorder, enabled && (! ceiling) && (! floorDimension) && (! master));
         setEnabled(radioButtonNoBorder, enabled && (! ceiling) && (! floorDimension) && (! master));
         setEnabled(radioButtonVoidBorder, enabled && (! ceiling) && (! floorDimension) && (! master));
@@ -1098,7 +1103,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setEnabled(radioButtonBarrierBorder, enabled && (! ceiling) && (! floorDimension) && (! master));
         setEnabled(spinnerBorderLevel, enabled && (! ceiling) && (! floorDimension) && (! master) && (radioButtonLavaBorder.isSelected() || radioButtonWaterBorder.isSelected()));
         setEnabled(radioButtonFixedBorder, enabled && (! ceiling) && (! floorDimension) && (! master) && (! radioButtonNoBorder.isSelected()));
-        setEnabled(radioButtonEndlessBorder, enabled && (platform.capabilities.contains(GENERATOR_PER_DIMENSION) || dim0) && (! ceiling) && (! floorDimension) && (! master) && (! radioButtonNoBorder.isSelected()));
+        setEnabled(radioButtonEndlessBorder, enabled && (capabilities.contains(GENERATOR_PER_DIMENSION) || dim0) && (! ceiling) && (! floorDimension) && (! master) && (! radioButtonNoBorder.isSelected()));
         setEnabled(spinnerBorderSize, enabled && (! ceiling) && (! floorDimension) && (! master) && (! radioButtonNoBorder.isSelected()) && radioButtonFixedBorder.isSelected());
         setEnabled(sliderCavesEverywhereLevel, enabled && checkBoxCavesEverywhere.isSelected());
         setEnabled(sliderCavernsEverywhereLevel, enabled && checkBoxCavernsEverywhere.isSelected());
@@ -1111,7 +1116,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setEnabled(jSlider6, enabled && checkBoxSwamplandEverywhere.isSelected());
         setEnabled(jSlider4, enabled && jCheckBox8.isSelected());
         setEnabled(spinnerMinecraftSeed, (mode != Mode.DEFAULT_SETTINGS) && enabled && dim0);
-        setEnabled(checkBoxPopulate, ((platform == null) || platform.capabilities.contains(POPULATE)) && enabled && dim0);
+        setEnabled(checkBoxPopulate, capabilities.contains(POPULATE) && enabled && dim0);
         setEnabled(checkBoxCavernsRemoveWater, enabled && (checkBoxCavesBreakSurface.isSelected() || checkBoxCavernsBreakSurface.isSelected() || checkBoxChasmsBreakSurface.isSelected()));
         setEnabled(spinnerCeilingHeight, enabled && ceiling);
         final int[] selectedRows = tableCustomLayers.getSelectedRows();
@@ -1169,7 +1174,7 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         setEnabled(comboBoxSubsurfaceMaterial, enabled && (! caveFloor) && (! master)); // TODO make it possible for this to be different for the master dimension
         setEnabled(comboBoxUndergroundLayerAnchor, enabled && (! caveFloor) && (! master)); // TODO make it possible for this to be different for the master dimension
         setEnabled(checkBoxBottomless, enabled && (! floorDimension) && (! master)); // TODO make it possible for this to be different for the master dimension
-        setEnabled(comboBoxSubsurfaceBiome, enabled && (! caveFloor) && (! master) && (! ceiling)); // TODO make it possible for this to be different for the master dimension TODO make this work for ceiling dimensions TODO make this work for floating dimensions
+        setEnabled(comboBoxSubsurfaceBiome, enabled && ((capabilities.contains(BIOMES_3D) || capabilities.contains(NAMED_BIOMES))) && (! caveFloor) && (! master) && (! ceiling)); // TODO make it possible for this to be different for the master dimension TODO make this work for ceiling dimensions
     }
     
     private void setEnabled(Component component, boolean enabled) {
@@ -1902,6 +1907,8 @@ public class DimensionPropertiesEditor extends javax.swing.JPanel {
         );
 
         jLabel79.setText("Underground biome:");
+
+        comboBoxSubsurfaceBiome.setEnabled(false);
 
         javax.swing.GroupLayout panelGeneralLayout = new javax.swing.GroupLayout(panelGeneral);
         panelGeneral.setLayout(panelGeneralLayout);

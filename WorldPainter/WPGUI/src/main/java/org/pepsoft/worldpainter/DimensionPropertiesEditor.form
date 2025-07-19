@@ -642,6 +642,9 @@
               </Properties>
             </Component>
             <Component class="javax.swing.JComboBox" name="comboBoxSubsurfaceBiome">
+              <Properties>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
               <AuxValues>
                 <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;Integer&gt;"/>
               </AuxValues>
