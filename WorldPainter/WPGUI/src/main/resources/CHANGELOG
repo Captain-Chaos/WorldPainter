@@ -1,5 +1,13 @@
 -- Version 2.25.2, released ...
 
+ * The Fill tool can now also fill in valleys by raising the terrain level, instead of (or in addition to) filling areas with a layer, terrain or biome
+   + Select "Raise terrain" on the Tool Settings panel when the Fill tool is selected
+   + The terrain will be raised by one at the location where you click, and the surrounding area which is at that level or lower will be raised to the same level
+   + You can optionally select "Apply theme" to also apply the theme in the areas that are raised
+   + Or alternatively, you can select "Apply paint" to apply the currently selected paint, such as a Terrain type, in the areas that are raised. You can use this to "fill" a valley with a particular material (although it is important to remember that the shape of the valley is erased; you are just flattening the terrain and changing the terrain type)
+   + If the Fill tool is active and "Raise terrain" is selected, and you select a paint from one of the panels, "Apply paint" will automatically be selected
+ * The Flatten tool can now also selectively just raise or just lower the terrain, in addition to flattening in both directions
+   + Select "Only raise terrain" or "Only lower terrain" on the Tool Settings panel when the Flatten tool is selected to only flatten in the selected direction
  * Scaling, shifting and rotation operations on dimensions are now multithreaded for increased performance
  * When changing the map format, the Resources layer settings are now automatically adjusted to turn off resources which are not supported in the new map format. Note that this change is not automatically reverted if the map format is changed back.
 

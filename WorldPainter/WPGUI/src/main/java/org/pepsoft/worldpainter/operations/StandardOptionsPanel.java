@@ -28,12 +28,9 @@ public class StandardOptionsPanel extends JPanel {
         JLabel label = new JLabel(name);
         label.setFont(label.getFont().deriveFont(BOLD, (int) (label.getFont().getSize() * 1.1)));
         add(label, constraints);
-        label = new JLabel("<html><style>\n" +
-                "    ul {\n" +
-                "        margin-left: 15;\n" +
-                "    }\n" +
-                "</style>" + description + "</html>");
-        add(label, constraints);
+        if (description != null) {
+            addLabel(description, constraints);
+        }
 
         addAdditionalComponents(constraints);
 
@@ -53,5 +50,13 @@ public class StandardOptionsPanel extends JPanel {
      */
     protected void addAdditionalComponents(GridBagConstraints constraints) {
         // Do nothing
+    }
+
+    protected final void addLabel(String text, GridBagConstraints constraints) {
+        add(new JLabel("<html><style>\n" +
+                "    ul {\n" +
+                "        margin-left: 15;\n" +
+                "    }\n" +
+                "</style>" + text + "</html>"), constraints);
     }
 }

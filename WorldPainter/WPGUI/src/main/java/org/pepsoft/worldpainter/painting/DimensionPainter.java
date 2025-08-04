@@ -22,6 +22,8 @@ import static java.awt.RenderingHints.KEY_TEXT_ANTIALIASING;
 import static java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_OFF;
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE_BITS;
 import static org.pepsoft.worldpainter.brushes.BrushShape.CIRCLE;
+import static org.pepsoft.worldpainter.painting.DimensionPainter.AdditionalFillAction.APPLY_PAINT;
+import static org.pepsoft.worldpainter.painting.DimensionPainter.AdditionalFillAction.NONE;
 
 /**
  * A utility class for painting basic shapes to dimension using any kind of {@link Paint}.
@@ -251,21 +253,22 @@ public final class DimensionPainter {
      * maximum bounds and the operation may not have filled the entire matching area.
      */
     public boolean fill(Dimension dimension, final int x, final int y, Window parent) {
-        AbstractDimensionPaintFillMethod fillMethod;
+        final AbstractDimensionPaintFillMethod fillMethod;
+        final String description = getPaintDescription(dimension, x, y);
         if (paint instanceof LayerPaint) {
             final Layer layer = ((LayerPaint) paint).getLayer();
             switch (layer.getDataSize()) {
                 case BIT:
                 case BIT_PER_CHUNK:
                     if (undo) {
-                        fillMethod = new UndoDimensionPaintFillMethod("Removing " + layer, dimension, paint) {
+                        fillMethod = new UndoDimensionPaintFillMethod(description, dimension, paint) {
                             @Override
                             public boolean isBoundary(int x, int y) {
                                 return ! dimension.getBitLayerValueAt(layer, x, y);
                             }
                         };
                     } else {
-                        fillMethod = new DimensionPaintFillMethod("Applying " + layer, dimension, paint) {
+                        fillMethod = new DimensionPaintFillMethod(description, dimension, paint) {
                             @Override
                             public boolean isBoundary(int x, int y) {
                                 return dimension.getBitLayerValueAt(layer, x, y);
@@ -278,7 +281,7 @@ public final class DimensionPainter {
                     if (paint instanceof DiscreteLayerPaint) {
                         final int fillValue = dimension.getLayerValueAt(layer, x, y);
                         if (undo) {
-                            fillMethod = new UndoDimensionPaintFillMethod("Removing " + layer, dimension, paint) {
+                            fillMethod = new UndoDimensionPaintFillMethod(description, dimension, paint) {
                                 @Override
                                 public boolean isBoundary(int x, int y) {
                                     return dimension.getLayerValueAt(layer, x, y) != fillValue;
@@ -290,7 +293,7 @@ public final class DimensionPainter {
                                 }
                             };
                         } else {
-                            fillMethod = new DimensionPaintFillMethod("Applying " + layer, dimension, paint) {
+                            fillMethod = new DimensionPaintFillMethod(description, dimension, paint) {
                                 @Override
                                 public boolean isBoundary(int x, int y) {
                                     return dimension.getLayerValueAt(layer, x, y) != fillValue;
@@ -304,14 +307,14 @@ public final class DimensionPainter {
                         }
                     } else {
                         if (undo) {
-                            fillMethod = new UndoDimensionPaintFillMethod("Removing " + layer, dimension, paint) {
+                            fillMethod = new UndoDimensionPaintFillMethod(description, dimension, paint) {
                                 @Override
                                 public boolean isBoundary(int x, int y) {
                                     return dimension.getLayerValueAt(layer, x, y) == 0;
                                 }
                             };
                         } else {
-                            fillMethod = new DimensionPaintFillMethod("Applying " + layer, dimension, paint) {
+                            fillMethod = new DimensionPaintFillMethod(description, dimension, paint) {
                                 @Override
                                 public boolean isBoundary(int x, int y) {
                                     return dimension.getLayerValueAt(layer, x, y) >= targetValue;
@@ -328,7 +331,7 @@ public final class DimensionPainter {
         } else if (paint instanceof TerrainPaint) {
             final Terrain terrainToFill = dimension.getTerrainAt(x, y);
             if (undo) {
-                fillMethod = new UndoDimensionPaintFillMethod("Removing " + terrainToFill, dimension, paint) {
+                fillMethod = new UndoDimensionPaintFillMethod(description, dimension, paint) {
                     @Override
                     public boolean isBoundary(int x, int y) {
                         return dimension.getTerrainAt(x, y) != terrainToFill;
@@ -340,7 +343,7 @@ public final class DimensionPainter {
                     }
                 };
             } else {
-                fillMethod = new DimensionPaintFillMethod("Applying " + ((TerrainPaint) paint).getTerrain(), dimension, paint) {
+                fillMethod = new DimensionPaintFillMethod(description, dimension, paint) {
                     @Override
                     public boolean isBoundary(int x, int y) {
                         return dimension.getTerrainAt(x, y) != terrainToFill;
@@ -358,6 +361,81 @@ public final class DimensionPainter {
             throw new IllegalArgumentException("Don't know how to fill with paint " + paint);
         }
         if (! fillMethod.isFilled(x, y)) {
+            final GeneralQueueLinearFloodFiller filler = new GeneralQueueLinearFloodFiller(fillMethod);
+            filler.floodFill(x, y, parent);
+            return ! filler.isBoundsHit();
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * Raise the terrain in an area bounded by one above the height at the selected location to the height at the
+     * selected location plus one. Optionally also apply the current paint to the raised area, or reset it to the theme.
+     * If the selected location is already at the maximum height, nothing happens. If the operation takes more than two
+     * seconds a modal dialog is shown to the user with an indeterminate progress bar.
+     *
+     * <p>The total raised area cannot exceed a square around the given coordinates with a surface area of
+     * {@link Integer#MAX_VALUE}, due to Java limitations. If the boundary of this area has been hit, the method will
+     * return {@code false} and the entire matching area may not have been raised.
+     *
+     * @param x The X coordinate to start the flood fill.
+     * @param y The Y coordinate to start the flood fill.
+     * @param additionalAction An optional additional action to perform where the terrain is raised.
+     * @param parent The window to use as parent for the modal dialog shown if the operation takes more than two
+     *               seconds.
+     * @return {@code true} if the fill operation was completed, or {@code false} if the raised area touched the
+     * maximum bounds and the operation may not have raised the entire matching area.
+     */
+    public boolean fill(Dimension dimension, final int x, final int y, AdditionalFillAction additionalAction, Window parent) {
+        final int locationLevel = dimension.getIntHeightAt(x, y);
+        final int boundaryLevel = locationLevel + 1;
+        if (boundaryLevel >= dimension.getMaxHeight()) {
+            return true;
+        }
+        if ((additionalAction == APPLY_PAINT) && ((paint == null) || (paint instanceof PaintFactory.NullPaint))) {
+            additionalAction = NONE;
+        } else if (additionalAction == null) {
+            additionalAction = NONE;
+        }
+        final AbstractDimensionPaintFillMethod fillMethod = switch (additionalAction) {
+            case NONE -> new AbstractDimensionPaintFillMethod("Raising Terrain", dimension, null) {
+                @Override
+                public boolean isBoundary(int x, int y) {
+                    return dimension.getIntHeightAt(x, y) >= boundaryLevel;
+                }
+
+                @Override
+                public void fill(int x, int y) {
+                    dimension.setHeightAt(x, y, boundaryLevel);
+                }
+            };
+            case APPLY_PAINT -> new AbstractDimensionPaintFillMethod("Raising Terrain and " + getPaintDescription(dimension, x, y), dimension, paint) {
+                @Override
+                public boolean isBoundary(int x, int y) {
+                    return dimension.getIntHeightAt(x, y) >= boundaryLevel;
+                }
+
+                @Override
+                public void fill(int x, int y) {
+                    dimension.setHeightAt(x, y, boundaryLevel);
+                    paint.applyPixel(dimension, x, y);
+                }
+            };
+            case APPLY_THEME -> new AbstractDimensionPaintFillMethod("Raising Terrain and Applying Theme", dimension, null) {
+                @Override
+                public boolean isBoundary(int x, int y) {
+                    return dimension.getIntHeightAt(x, y) >= boundaryLevel;
+                }
+
+                @Override
+                public void fill(int x, int y) {
+                    dimension.setHeightAt(x, y, boundaryLevel);
+                    dimension.applyTheme(x, y);
+                }
+            };
+        };
+        if (! fillMethod.isFilled(x, y)) {
             GeneralQueueLinearFloodFiller filler = new GeneralQueueLinearFloodFiller(fillMethod);
             filler.floodFill(x, y, parent);
             return ! filler.isBoundsHit();
@@ -365,6 +443,8 @@ public final class DimensionPainter {
             return true;
         }
     }
+
+    public enum AdditionalFillAction { NONE, APPLY_PAINT, APPLY_THEME }
 
     /**
      * Get the font with which text is painted.
@@ -445,6 +525,27 @@ public final class DimensionPainter {
      */
     public boolean isUndo() {
         return undo;
+    }
+
+    private String getPaintDescription(final Dimension dimension, final int x, final int y) {
+        if (paint instanceof LayerPaint) {
+            final Layer layer = ((LayerPaint) paint).getLayer();
+            if (undo) {
+                return "Removing " + layer;
+            } else {
+                return "Applying " + layer;
+            }
+        } else if (paint instanceof TerrainPaint) {
+            if (undo) {
+                return "Removing " + dimension.getTerrainAt(x, y);
+            } else {
+                return "Applying " + ((TerrainPaint) paint).getTerrain();
+            }
+        } else if (paint instanceof PaintFactory.NullPaint) {
+            return "Doing nothing";
+        } else {
+            throw new IllegalArgumentException("Don't know how to describe paint " + paint);
+        }
     }
 
     private int drawTextLine(Dimension dimension, int x, int y, String text) {

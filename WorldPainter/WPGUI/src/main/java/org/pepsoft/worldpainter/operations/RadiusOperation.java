@@ -26,7 +26,7 @@ package org.pepsoft.worldpainter.operations;
 import org.pepsoft.worldpainter.WorldPainterView;
 
 /**
- * Deprecated. Only exists for backwards compatibility with existin plugins. Do not use.
+ * Deprecated. Only exists for backwards compatibility with existing plugins. Do not use.
  *
  * @deprecated Use {@link AbstractBrushOperation}.
  * @author pepijn

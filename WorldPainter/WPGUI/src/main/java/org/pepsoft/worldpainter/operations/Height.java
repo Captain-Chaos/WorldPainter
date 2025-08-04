@@ -25,16 +25,6 @@ public class Height extends AbstractBrushOperation {
         return optionsPanel;
     }
 
-//    @Override
-//    protected void altPressed() {
-//        dimensionSnapshot = getDimension().getSnapshot();
-//    }
-//
-//    @Override
-//    protected void altReleased() {
-//        dimensionSnapshot = null;
-//    }
-
     @Override
     protected void tick(int centreX, int centreY, boolean inverse, boolean first, float dynamicLevel) {
         final float adjustment = (float) Math.pow(dynamicLevel * getLevel() * 2, 2.0);
@@ -87,5 +77,4 @@ public class Height extends AbstractBrushOperation {
 
     private final TerrainShapingOptions<Height> options = new TerrainShapingOptions<>();
     private final TerrainShapingOptionsPanel optionsPanel = new TerrainShapingOptionsPanel("Height", "<ul><li>Left-click to raise the terrain<li>Right-click to lower the terrain</ul>", options);
-//    private Dimension dimensionSnapshot;
 }
