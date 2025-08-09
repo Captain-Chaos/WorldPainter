@@ -532,11 +532,31 @@ public abstract class AbstractWorldExporter implements WorldExporter {
         final Dimension oppositeDimension = dimension.getWorld().getDimension(new Anchor(anchor.dim, anchor.role, ! anchor.invert, anchor.id));
         int chunkNo = 0;
         final int ceilingDelta = dimension.getMaxHeight() - dimension.getCeilingHeight();
-        for (int chunkX = lowestChunkX; chunkX <= highestChunkX; chunkX++) {
-            for (int chunkY = lowestChunkY; chunkY <= highestChunkY; chunkY++) {
+
+        final int startingChunkX;
+        final int endingChunkX;
+        final int startingChunkY;
+        final int endingChunkY;
+
+        if (ceiling){ //we must generate a chunk on both sides if using a ceiling
+            startingChunkX=lowestChunkX;
+            endingChunkX=highestChunkX;
+            startingChunkY=lowestChunkY;
+            endingChunkY=highestChunkY;
+        }else{
+            startingChunkX=lowestRegionChunkX;
+            endingChunkX=highestRegionChunkX;
+            startingChunkY=lowestRegionChunkY;
+            endingChunkY=highestRegionChunkY;
+        }
+
+        int numberOfChunksToGenerate =(endingChunkX-startingChunkX)*(endingChunkY-startingChunkY);
+
+        for (int chunkX = startingChunkX; chunkX <= endingChunkX; chunkX++) {
+            for (int chunkY = startingChunkY; chunkY <= endingChunkY; chunkY++) {
                 final ChunkFactory.ChunkCreationResult chunkCreationResult = createChunk(dimension, chunkFactory, tiles, chunkX, chunkY, tileSelection, exporters, ceiling);
                 if (chunkCreationResult != null) {
-                    if ((chunkX >= lowestRegionChunkX) && (chunkX <= highestRegionChunkX) && (chunkY >= lowestRegionChunkY) && (chunkY <= highestRegionChunkY)) {
+                    if ((!ceiling)||((chunkX >= lowestRegionChunkX) && (chunkX <= highestRegionChunkX) && (chunkY >= lowestRegionChunkY) && (chunkY <= highestRegionChunkY))) {
                         exportResults.chunksGenerated = true;
                         exportResults.stats.landArea += chunkCreationResult.stats.landArea;
                         exportResults.stats.surfaceArea += chunkCreationResult.stats.surfaceArea;
@@ -558,7 +578,7 @@ public abstract class AbstractWorldExporter implements WorldExporter {
                 }
                 chunkNo++;
                 if (progressReceiver != null) {
-                    progressReceiver.setProgress((float) chunkNo / 1156);
+                    progressReceiver.setProgress((float) chunkNo / numberOfChunksToGenerate);
                 }
             }
         }
