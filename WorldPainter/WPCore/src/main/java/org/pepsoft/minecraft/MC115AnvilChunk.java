@@ -824,7 +824,7 @@ public final class MC115AnvilChunk extends MCNamedBlocksChunk implements Section
         public CompoundTag toNBT() {
             setByte(TAG_Y, level);
 
-            final PackedArrayCube<Material>.PackedData packedMaterials = materials.pack(AIR);
+            final PackedArrayCube.PackedData<Material> packedMaterials = materials.pack(AIR);
             final List<CompoundTag> paletteList = new ArrayList<>(packedMaterials.palette.length);
             for (Material material: packedMaterials.palette) {
                 final CompoundTag paletteEntry = new CompoundTag("", Collections.emptyMap());
