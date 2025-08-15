@@ -1128,3 +1128,13 @@ minecraft:waxed_exposed_copper_bulb,lit=true,"powered:b,lit:b",15,false,false,fa
 minecraft:waxed_oxidized_copper_bulb,lit=true,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,15,false,false,ff46846d,oxidized_copper_bulb.png
 minecraft:waxed_weathered_copper_bulb,lit=true,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,15,false,false,ff5c7e63,weathered_copper_bulb.png
 minecraft:weathered_copper_bulb,lit=true,"powered:b,lit:b",15,false,false,false,false,false,false,,false,false,15,false,false,ff5c7e63,weathered_copper_bulb.png
+minecraft:bush,,,0,false,false,true,true,false,false,,false,true,0,true,false,ff777877,bush.png
+minecraft:cactus_flower,,,0,false,false,true,true,false,false,,false,true,0,true,false,ffd17887,cactus_flower.png
+minecraft:dried_ghast,,"hydration:i[0-3],facing:e[north;south;west;east],waterlogged:b",0,false,false,false,false,false,false,,false,false,0,true,false,,
+minecraft:firefly_bush,,,0,false,false,true,true,false,false,,false,true,2,true,false,ff57532b,firefly_bush.png
+minecraft:leaf_litter,,"segment_amount:i[1-4],facing:e[north;south;west;east]",0,false,false,true,true,false,false,,true,false,0,true,false,ffd4d4d4,leaf_litter.png
+minecraft:short_dry_grass,,,0,false,false,true,true,false,false,,false,true,0,true,false,ffbb9e6c,short_dry_grass.png
+minecraft:tall_dry_grass,,,0,false,false,true,true,false,false,,false,true,0,true,false,ffc4ab7a,tall_dry_grass.png
+minecraft:test_block,,mode:e[start;log;fail;accept],15,false,false,false,false,false,true,minecraft:test_block,false,false,0,false,false,,
+minecraft:test_instance_block,,,15,false,false,false,false,false,true,minecraft:test_instance_block,false,false,0,false,false,ff7f7877,test_instance_block.png
+minecraft:wildflowers,,"flower_amount:i[1-4],facing:e[north;south;west;east]",0,false,false,true,true,false,false,,false,true,0,true,false,ffedd575,wildflowers.png
