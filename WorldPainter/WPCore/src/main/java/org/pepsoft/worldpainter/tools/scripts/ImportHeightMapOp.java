@@ -104,6 +104,11 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
         return this;
     }
 
+    public ImportHeightMapOp withVoidBelowLevel(int voidBelowLevel) {
+        this.voidBelowLevel = voidBelowLevel;
+        return this;
+    }
+
     @Override
     public World2 go() throws ScriptException {
         goCalled();
@@ -164,6 +169,10 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
         }
         importer.setMinHeight(minHeight);
         importer.setMaxHeight(maxHeight);
+        if(voidBelowLevel != Integer.MIN_VALUE) {
+            importer.setVoidBelowLevel(voidBelowLevel);
+            importer.setVoidBelow(true);
+        }
 
         HeightMapTileFactory tileFactory = TileFactoryFactory.createNoiseTileFactory(new Random().nextLong(), Terrain.GRASS, minHeight, maxHeight, 58, waterLevel, false, true, 20, 1.0);
         Theme defaults = Configuration.getInstance().getHeightMapDefaultTheme();
@@ -189,6 +198,6 @@ public class ImportHeightMapOp extends AbstractOperation<World2> {
     private final HeightMapImporter importer = new HeightMapImporter();
     private BitmapHeightMap heightMap;
     private boolean fromLevelsSpecified, toLevelsSpecified;
-    private int scale = 100, waterLevel = DEFAULT_WATER_LEVEL, offsetX, offsetY, lowerBuildLimit = Integer.MIN_VALUE, upperBuildLimit = Integer.MAX_VALUE;
+    private int scale = 100, waterLevel = DEFAULT_WATER_LEVEL, offsetX, offsetY, lowerBuildLimit = Integer.MIN_VALUE, upperBuildLimit = Integer.MAX_VALUE, voidBelowLevel = Integer.MIN_VALUE;
     private Platform platform = Configuration.getInstance().getDefaultPlatform();
 }
