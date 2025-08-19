@@ -1,4 +1,4 @@
--- Version 2.25.2, released ...
+-- Version 2.26.0, released ...
 
  * The new plants from Minecraft 1.21.5 have been added to the Custom Plants layer
    + The Edit Layer Settings screen for the Custom Plants layer has been modified slightly to fit the new plants: the "Plants and flowers" category now takes two columns
@@ -13,6 +13,8 @@
    + Select "Only raise terrain" or "Only lower terrain" on the Tool Settings panel when the Flatten tool is selected to only flatten in the selected direction
  * Scaling, shifting and rotation operations on dimensions are now multithreaded for increased performance
  * When changing the map format, the Resources layer settings are now automatically adjusted to turn off resources which are not supported in the new map format. Note that this change is not automatically reverted if the map format is changed back.
+ * A new advanced setting has been added to be able to run multiple different copies of WorldPainter with separate configurations
+   + See www.worldpainter.net/trac/wiki/AdvancedSettings#ConfigurationClassifier for details
  * Bug fix: in the scripting API, the `installCustomTerrain()` function now returns the correct terrain index for later usage in e.g. `applyTerrain()`
 
 -- Version 2.25.1, released 10-07-2025

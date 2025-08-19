@@ -1202,20 +1202,30 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     }
 
     public static File getConfigDir() {
+        String classifier = System.getProperty("org.pepsoft.worldpainter.classifier");
+        if (classifier != null) {
+            classifier = classifier.trim();
+            if (classifier.isEmpty()) {
+                classifier = null;
+            }
+        }
+        if ((classifier == null) && Version.isSnapshot()) {
+            classifier = "snapshot";
+        }
         if (SystemUtils.isMac()) {
-            return new File(System.getProperty("user.home"), "Library/Application Support/WorldPainter" + (Version.isSnapshot() ? " [SNAPSHOT]" : ""));
+            return new File(System.getProperty("user.home"), "Library/Application Support/WorldPainter" + ((classifier != null) ? (" [" + classifier.toUpperCase() + "]") : ""));
         } else if (SystemUtils.isWindows()) {
             final String appDataStr = System.getenv("APPDATA");
             if (appDataStr != null) {
-                return new File(appDataStr, "WorldPainter" + (Version.isSnapshot() ? " [SNAPSHOT]" : ""));
+                return new File(appDataStr, "WorldPainter" + ((classifier != null) ? (" [" + classifier.toUpperCase() + "]") : ""));
             }
         }
         // Backwards compatibility with existing installations:
-        final File defaultDir = new File(HOME, ".worldpainter" + (Version.isSnapshot() ? "-snapshot" : ""));
+        final File defaultDir = new File(HOME, ".worldpainter" + ((classifier != null) ? ("-" + classifier.toLowerCase()) : ""));
         if (defaultDir.isDirectory()) {
             return defaultDir;
         }
-        return new File(XDG_DATA_HOME, "worldpainter" + (Version.isSnapshot() ? "-snapshot" : ""));
+        return new File(XDG_DATA_HOME, "worldpainter" + ((classifier != null) ? ("-" + classifier.toLowerCase()) : ""));
     }
 
     public static File getConfigFile() {
