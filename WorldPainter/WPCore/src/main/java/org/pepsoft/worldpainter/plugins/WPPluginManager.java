@@ -26,17 +26,17 @@ public class WPPluginManager {
         allPlugins = PluginManager.findPlugins(Plugin.class, DESCRIPTOR_PATH, classLoader);
         PluginManager.getErrors().forEach(StartupMessages::addError);
         PluginManager.getMessages().forEach(StartupMessages::addMessage);
-        Set<String> namesEncountered = new HashSet<>();
+        final Set<String> namesEncountered = new HashSet<>();
         for (Iterator<Plugin> i = allPlugins.iterator(); i.hasNext(); ) {
-            Plugin plugin = i.next();
+            final Plugin plugin = i.next();
             if ((plugin.getUUIDs() != null) && (uuid != null) && (! plugin.getUUIDs().contains(uuid))) {
-                String message = plugin.getName() + " plugin is not authorised for this installation";
+                final String message = plugin.getName() + " plugin is not authorised for this installation";
                 StartupMessages.addError(message);
                 logger.error(message + "; not loading it");
                 i.remove();
                 continue;
             }
-            String name = plugin.getName();
+            final String name = plugin.getName();
             if (namesEncountered.contains(name)) {
                 throw new RuntimeException("Multiple plugins with the same name (" + name + ") detected!");
             } else {
@@ -44,15 +44,16 @@ public class WPPluginManager {
             }
             logger.info("Loaded plugin: " + name + " (version " + plugin.getVersion() + ")");
         }
-        for (Plugin plugin : allPlugins) {
+        for (Iterator<Plugin> i = allPlugins.iterator(); i.hasNext(); ) {
+            final Plugin plugin = i.next();
             try {
                 plugin.init(context);
                 logger.info("Initialised plugin: " + plugin.getName() + " (version " + plugin.getVersion() + ")");
             } catch (RuntimeException e) {
-                String message = "Exception initializing plugin " + plugin.getName() + " (" + plugin.getVersion() + ")\n(Type: " + e.getClass().getSimpleName() + "; message; " + e.getMessage() + ")" ;
+                final String message = "Exception initializing plugin " + plugin.getName() + " (" + plugin.getVersion() + ")\n(Type: " + e.getClass().getSimpleName() + "; message; " + e.getMessage() + ")" ;
                 StartupMessages.addError(message);
                 logger.error(message, e);
-                allPlugins.remove(plugin);
+                i.remove();
             }
         }
     }
