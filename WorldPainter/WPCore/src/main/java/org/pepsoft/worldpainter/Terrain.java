@@ -3075,6 +3075,10 @@ public enum Terrain {
     /**
      * This information is now public, so don't change it! Only add new values
      * at the end!
+     *
+     * <p><strong>Note:</strong> the order of this array is not the same as the order of {@link #values()}, and the
+     * {@link #ordinal()}} can therefore not be used as an index in this array. The terrain is stored in the
+     * {@link Tile}s by {@link #ordinal()}.
      */
     public static final Terrain[] VALUES = {
         GRASS,

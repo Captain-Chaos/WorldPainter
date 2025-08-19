@@ -189,6 +189,10 @@ public class MappingOp extends AbstractOperation<Void> {
         return this;
     }
 
+    /**
+     * <strong>Note:</strong> {@code terrain} is an index into the {@link Terrain#VALUES} array, <em>not</em> an enum
+     * ordinal.
+     */
     public MappingOp toTerrain(int terrain) throws ScriptException {
         if ((terrain < 0) || (terrain >= Terrain.VALUES.length)) {
             throw new ScriptException("Illegal value for terrain index: " + terrain);

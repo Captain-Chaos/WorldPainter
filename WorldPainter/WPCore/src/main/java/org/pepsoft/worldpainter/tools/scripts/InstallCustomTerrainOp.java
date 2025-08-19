@@ -28,8 +28,11 @@ import org.pepsoft.worldpainter.MixedMaterial;
 import org.pepsoft.worldpainter.Terrain;
 import org.pepsoft.worldpainter.World2;
 
+import static java.util.Arrays.asList;
+
 /**
- * An operation which installs a custom terrain on a world.
+ * An operation which installs a custom terrain on a world and returns the index of the terrain, as an index in
+ * {@link Terrain#VALUES}.
  * 
  * @author SchmitzP
  */
@@ -61,12 +64,12 @@ public class InstallCustomTerrainOp extends AbstractOperation<Integer> {
         }
         if (index > 0) {
             world.setMixedMaterial(index - 1, terrain);
-            return Terrain.getCustomTerrain(index - 1).ordinal();
+            return asList(Terrain.VALUES).indexOf(Terrain.getCustomTerrain(index - 1));
         } else {
             for (int i = 0; i < Terrain.CUSTOM_TERRAIN_COUNT; i++) {
                 if (world.getMixedMaterial(i) == null) {
                     world.setMixedMaterial(i, terrain);
-                    return Terrain.getCustomTerrain(i).ordinal();
+                    return asList(Terrain.VALUES).indexOf(Terrain.getCustomTerrain(i));
                 }
             }
             throw new ScriptException("No free custom terrain slots");
