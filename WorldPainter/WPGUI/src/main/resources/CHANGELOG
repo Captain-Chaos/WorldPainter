@@ -1,5 +1,8 @@
 -- Version 2.25.2, released ...
 
+ * The new plants from Minecraft 1.21.5 have been added to the Custom Plants layer
+   + The Edit Layer Settings screen for the Custom Plants layer has been modified slightly to fit the new plants: the "Plants and flowers" category now takes two columns
+   + In the near future this screen will be laid out better
  * The Fill tool can now also fill in valleys by raising the terrain level, instead of (or in addition to) filling areas with a layer, terrain or biome
    + Select "Raise terrain" on the Tool Settings panel when the Fill tool is selected
    + The terrain will be raised by one at the location where you click, and the surrounding area which is at that level or lower will be raised to the same level

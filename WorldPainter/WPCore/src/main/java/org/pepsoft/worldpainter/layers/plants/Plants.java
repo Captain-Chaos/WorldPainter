@@ -7,7 +7,8 @@ import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 
 import java.util.Random;
 
-import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.minecraft.Constants.MC_FACING;
+import static org.pepsoft.minecraft.Constants.MC_SOUL_SAND;
 import static org.pepsoft.minecraft.Material.*;
 import static org.pepsoft.worldpainter.layers.plants.Category.*;
 
@@ -27,18 +28,7 @@ public class Plants {
 
     public static final Plant GRASS = new SimplePlant("Short Grass", Material.GRASS, new String[] { "block/short_grass.png", "block/grass.png" }, PLANTS_AND_FLOWERS);
     public static final Plant FERN = new SimplePlant("Fern", Material.FERN, PLANTS_AND_FLOWERS);
-    public static final Plant DEAD_SHRUB = new SimplePlant("Dead Shrub", Material.DEAD_SHRUBS, PLANTS_AND_FLOWERS) {
-        @Override
-        public Category isValidFoundation(MinecraftWorld world, int x, int y, int z, boolean checkBlockBelow) {
-            final Material material = world.getMaterialAt(x, y, z);
-            return ((! checkBlockBelow)
-                    || material.modded
-                    || material.isNamedOneOf(MC_GRASS_BLOCK, MC_SAND, MC_RED_SAND, MC_DIRT, MC_TERRACOTTA, MC_PODZOL, MC_COARSE_DIRT, MC_ROOTED_DIRT, MC_MOSS_BLOCK, MC_MUD)
-                    || material.name.endsWith("_terracotta"))
-                ? PLANTS_AND_FLOWERS
-                : null;
-        }
-    };
+    public static final Plant DEAD_SHRUB = new SimplePlant("Dead Shrub", Material.DEAD_SHRUBS, PLANTS_AND_FLOWERS, DESERT_PLANTS);
     public static final Plant DANDELION = new SimplePlant("Dandelion", Material.DANDELION, PLANTS_AND_FLOWERS);
     public static final Plant POPPY = new SimplePlant("Poppy", Material.ROSE, PLANTS_AND_FLOWERS);
     public static final Plant BLUE_ORCHID = new SimplePlant("Blue Orchid", Material.BLUE_ORCHID, PLANTS_AND_FLOWERS);
@@ -272,6 +262,23 @@ public class Plants {
         }
     };
     public static final Plant PALE_MOSS_CARPET = new SimplePlant("Pale Moss Carpet", Material.PALE_MOSS_CARPET, "block/pale_moss_carpet.png", MUSHROOMS); // TODO not really mushrooms, but for now those are presented as "Various"
+    public static final Plant WILDFLOWERS = new PlantWithGrowth("Wildflowers", Material.WILDFLOWERS, 4, PLANTS_AND_FLOWERS) {
+        @Override
+        public Plant realise(int growth, Platform platform) {
+            return new SimplePlant("Wildflowers", Material.WILDFLOWERS.withProperty(FLOWER_AMOUNT, growth).withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), PLANTS_AND_FLOWERS);
+        }
+    };
+    public static final Plant LEAF_LITTER = new PlantWithGrowth("Leaf Litter", Material.LEAF_LITTER, 4, PLANTS_AND_FLOWERS, LITTER) {
+        @Override
+        public Plant realise(int growth, Platform platform) {
+            return new SimplePlant("Leaf Litter", Material.LEAF_LITTER.withProperty(SEGMENT_AMOUNT, growth).withProperty(FACING, Direction.values()[RANDOM.nextInt(4)]), PLANTS_AND_FLOWERS, LITTER);
+        }
+    };
+    public static final Plant BUSH = new SimplePlant("Bush", Material.BUSH, PLANTS_AND_FLOWERS);
+    public static final Plant FIREFLY_BUSH = new SimplePlant("Firefly Bush", Material.FIREFLY_BUSH, PLANTS_AND_FLOWERS);
+    public static final Plant CACTUS_FLOWER = new SimplePlant("Cactus Flower", Material.CACTUS_FLOWER, PLANTS_AND_FLOWERS, LITTER);
+    public static final Plant SHORT_DRY_GRASS = new SimplePlant("Short Dry Grass", Material.SHORT_DRY_GRASS, PLANTS_AND_FLOWERS, DESERT_PLANTS);
+    public static final Plant TALL_DRY_GRASS = new SimplePlant("Tall Dry Grass", Material.TALL_DRY_GRASS, PLANTS_AND_FLOWERS, DESERT_PLANTS);
 
     // The code which uses this assumes there will never be more than 128 plants. If that ever happens it needs to be
     // overhauled! IMPORTANT: indices into this array are stored in layer settings! New entries MUST be added at the
@@ -287,7 +294,8 @@ public class Plants {
             WARPED_ROOTS, NETHER_SPROUTS, TWISTING_VINES, GLOW_LICHEN, MOSS_CARPET, BIG_DRIPLEAF, PUMPKIN, MELON,
             CARVED_PUMPKIN, JACK_O_LANTERN, VINE, SPORE_BLOSSOM, WEEPING_VINES, HANGING_ROOTS, GLOW_BERRIES,
             SMALL_DRIPLEAF, MANGROVE_PROPAGULE, SAPLING_CHERRY, PINK_PETALS, PITCHER_POD, PITCHER_PLANT,
-            TORCHFLOWER_SEED, TORCHFLOWER, EYEBLOSSOM, PALE_HANGING_MOSS, PALE_MOSS_CARPET };
+            TORCHFLOWER_SEED, TORCHFLOWER, EYEBLOSSOM, PALE_HANGING_MOSS, PALE_MOSS_CARPET, WILDFLOWERS, LEAF_LITTER,
+            BUSH, FIREFLY_BUSH, CACTUS_FLOWER, SHORT_DRY_GRASS, TALL_DRY_GRASS };
 
     private static final Random RANDOM = new Random();
 }

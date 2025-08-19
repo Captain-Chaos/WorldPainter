@@ -580,6 +580,13 @@ public final class Constants {
     public static final String MC_PALE_HANGING_MOSS = "minecraft:pale_hanging_moss";
     public static final String MC_PALE_MOSS_CARPET = "minecraft:pale_moss_carpet";
     public static final String MC_PALE_MOSS_BLOCK = "minecraft:pale_moss_block";
+    public static final String MC_WILDFLOWERS = "minecraft:wildflowers";
+    public static final String MC_LEAF_LITTER = "minecraft:leaf_litter";
+    public static final String MC_BUSH = "minecraft:bush";
+    public static final String MC_FIREFLY_BUSH = "minecraft:firefly_bush";
+    public static final String MC_CACTUS_FLOWER = "minecraft:cactus_flower";
+    public static final String MC_SHORT_DRY_GRASS = "minecraft:short_dry_grass";
+    public static final String MC_TALL_DRY_GRASS = "minecraft:tall_dry_grass";
 
     // MC 1.18 biome names
 
@@ -616,6 +623,7 @@ public final class Constants {
     public static final String MC_THICKNESS          = "thickness";
     public static final String MC_FLOWER_AMOUNT      = "flower_amount";
     public static final String MC_TIP                = "tip";
+    public static final String MC_SEGMENT_AMOUNT     = "segment_amount";
 
     // Minecraft NBT tag names. An underscore at the end signifies a lower case
     // initial

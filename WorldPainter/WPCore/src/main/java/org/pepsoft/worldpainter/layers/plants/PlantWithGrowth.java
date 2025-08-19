@@ -10,6 +10,14 @@ abstract class PlantWithGrowth extends SimplePlant {
     /**
      * Create a new plant with growth states. The growth value is one-based.
      */
+    PlantWithGrowth(String name, Material material, int maxGrowth, Category... category) {
+        super(name, material, category);
+        this.maxGrowth = maxGrowth;
+    }
+
+    /**
+     * Create a new plant with growth states. The growth value is one-based.
+     */
     PlantWithGrowth(String name, Material material, String iconName, int maxGrowth, Category... category) {
         super(name, material, iconName, category);
         this.maxGrowth = maxGrowth;

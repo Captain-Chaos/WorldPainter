@@ -38,14 +38,12 @@ import static org.pepsoft.worldpainter.Constants.UNKNOWN_MATERIAL_COLOUR;
 import static org.pepsoft.worldpainter.Platform.Capability.NAME_BASED;
 
 /**
- * A representation of a Minecraft material, or one possible in- game block
- * type. Implements the Enumeration pattern, meaning there is only ever one
- * instance of this class for each block type (including properties), allowing
- * use of the equals operator (==) for comparing instances.
+ * A representation of a Minecraft material, or one possible in-game block type. Implements the Enumeration pattern,
+ * meaning there is only ever one instance of this class for each block type (including properties), allowing use of the
+ * equals operator (==) for comparing instances.
  *
- * <p>Supports modern post-Minecraft 1.13 materials based on names and
- * properties, as well as legacy pre-1.13 materials based on numerical IDs, and
- * provides continuity between them.
+ * <p>Supports modern post-Minecraft 1.13 materials based on names and properties, as well as legacy pre-1.13 materials
+ * based on numerical IDs, and provides continuity between them.
  *
  * @author pepijn
  */
@@ -1978,6 +1976,7 @@ public final class Material implements Serializable {
     public static final Property<String>    VERTICAL_DIRECTION = new Property<>(MC_VERTICAL_DIRECTION, String.class);
     public static final Property<Integer>   FLOWER_AMOUNT      = new Property<>(MC_FLOWER_AMOUNT,      Integer.class);
     public static final Property<Boolean>   TIP                = new Property<>(MC_TIP,                Boolean.class);
+    public static final Property<Integer>   SEGMENT_AMOUNT     = new Property<>(MC_SEGMENT_AMOUNT,     Integer.class);
 
     // Modern materials (based on MC 1.13+ block names and properties)
 
@@ -2172,6 +2171,13 @@ public final class Material implements Serializable {
     public static final Material PALE_HANGING_MOSS_TIP = get(MC_PALE_HANGING_MOSS).withProperty(TIP, true);
     public static final Material PALE_MOSS_CARPET = get(MC_PALE_MOSS_CARPET);
     public static final Material PALE_MOSS_BLOCK = get(MC_PALE_MOSS_BLOCK);
+    public static final Material WILDFLOWERS = get(MC_WILDFLOWERS);
+    public static final Material LEAF_LITTER = get(MC_LEAF_LITTER);
+    public static final Material BUSH = get(MC_BUSH);
+    public static final Material FIREFLY_BUSH = get(MC_FIREFLY_BUSH);
+    public static final Material CACTUS_FLOWER = get(MC_CACTUS_FLOWER);
+    public static final Material SHORT_DRY_GRASS = get(MC_SHORT_DRY_GRASS);
+    public static final Material TALL_DRY_GRASS = get(MC_TALL_DRY_GRASS);
 
     // Material type categories
 

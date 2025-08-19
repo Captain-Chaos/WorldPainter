@@ -142,6 +142,33 @@ public enum Category {
                 return true;
             }
         }
+    },
+
+    /**
+     * Can be placed on all dry desert terrain.
+     */
+    DESERT_PLANTS {
+        @Override
+        boolean isValidFoundation(MinecraftWorld world, int x, int y, int z, boolean checkBlockBelow) {
+            final Material material = world.getMaterialAt(x, y, z);
+            return (! checkBlockBelow)
+                    || material.modded
+                    || material.isNamedOneOf(MC_GRASS_BLOCK, MC_SAND, MC_RED_SAND, MC_DIRT, MC_TERRACOTTA, MC_PODZOL, MC_COARSE_DIRT, MC_ROOTED_DIRT, MC_MOSS_BLOCK, MC_MUD)
+                    || material.name.endsWith("_terracotta");
+        }
+    },
+
+    /**
+     * Can be placed on all dry solid blocks.
+     */
+    LITTER {
+        @Override
+        boolean isValidFoundation(MinecraftWorld world, int x, int y, int z, boolean checkBlockBelow) {
+            final Material material = world.getMaterialAt(x, y, z);
+            final Material materialAbove = world.getMaterialAt(x, y, z + 1);
+            return (((! checkBlockBelow) || material.modded || material.solid)
+                    && (! (materialAbove.containsWater() || materialAbove.isNamed(MC_LAVA))));
+        }
     };
 
     abstract boolean isValidFoundation(MinecraftWorld world, int x, int y, int z, boolean checkBlockBelow);
