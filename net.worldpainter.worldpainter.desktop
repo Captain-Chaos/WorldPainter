@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=WorldPainter
+Type=Application
+Terminal=false
+Icon=net.worldpainter.worldpainter
+Exec=worldpainter
+Comment=An interactive map generator for Minecraft
+Categories=Game;Java;
+MimeType=application/x-worldpainter-world;
