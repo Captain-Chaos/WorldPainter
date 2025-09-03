@@ -153,7 +153,7 @@ public class WorldPainter extends WorldPainterView implements MouseMotionListene
     }
 
     @Override
-    public RadiusControl getRadiusControl() {
+    public BrushControl getBrushControl() {
         return App.getInstance();
     }
 

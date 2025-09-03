@@ -111,6 +111,7 @@ import static org.pepsoft.util.AwtUtils.doOnEventThread;
 import static org.pepsoft.util.DesktopUtils.PLATFORM_COMMAND_MASK;
 import static org.pepsoft.util.GUIUtils.getUIScale;
 import static org.pepsoft.util.IconUtils.*;
+import static org.pepsoft.util.MathUtils.mod;
 import static org.pepsoft.util.swing.MessageUtils.*;
 import static org.pepsoft.util.swing.ProgressDialog.NOT_CANCELABLE;
 import static org.pepsoft.util.swing.ProgressDialog.NO_FOCUS_STEALING;
@@ -140,7 +141,7 @@ import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
  * @author pepijn
  */
 @SuppressWarnings("MagicConstant")
-public final class App extends JFrame implements RadiusControl,
+public final class App extends JFrame implements BrushControl,
         BiomesViewerFrame.SeedListener, BrushOptions.Listener, CustomBiomeListener,
         DockableHolder, PropertyChangeListener, Dimension.Listener, Tile.Listener, MapDragControl {
     private App() {
@@ -857,10 +858,6 @@ public final class App extends JFrame implements RadiusControl,
         return level;
     }
 
-    public int getRadius() {
-        return radius;
-    }
-
     public Brush getToolBrush() {
         return toolBrush;
     }
@@ -1364,23 +1361,55 @@ public final class App extends JFrame implements RadiusControl,
     // RadiusControl
 
     @Override
-    public void increaseRadius(int amount) {
-        int oldRadius = radius;
+    public int getRadius() {
+        return radius;
+    }
+
+    @Override
+    public void increaseRadius(int steps) {
         if (radius == 0) {
-            radius = 1;
+            setRadius(1);
         } else {
-            double factor = Math.pow(1.1, amount);
-            radius = (int) (radius * factor);
-            if (radius == oldRadius) {
-                radius++;
+            final double factor = Math.pow(1.1, steps);
+            int newRadius = (int) (radius * factor);
+            if (newRadius == radius) {
+                newRadius++;
             }
-            if (radius > maxRadius) {
-                radius = maxRadius;
-            }
-            if (radius == oldRadius) {
-                return;
-            }
+            setRadius(newRadius);
         }
+    }
+
+    @Override
+    public void increaseRadiusByOne() {
+        setRadius(radius + 1);
+    }
+    
+    @Override
+    public void decreaseRadius(int steps) {
+        final double factor = Math.pow(0.9, steps);
+        int newRadius = (int) (radius * factor);
+        if (newRadius == radius) {
+            newRadius--;
+        }
+        setRadius(newRadius);
+    }
+
+    @Override
+    public void decreaseRadiusByOne() {
+        setRadius(radius - 1);
+    }
+
+    @Override
+    public void setRadius(int radius) {
+        if (radius < 0) {
+            radius = 0;
+        } else if (radius > maxRadius) {
+            radius = maxRadius;
+        }
+        if (radius == this.radius) {
+            return;
+        }
+        this.radius = radius;
         if (activeOperation instanceof BrushOperation) {
             ((BrushOperation) activeOperation).setRadius(radius);
         }
@@ -1389,52 +1418,24 @@ public final class App extends JFrame implements RadiusControl,
     }
 
     @Override
-    public void increaseRadiusByOne() {
-        if (radius < maxRadius) {
-            radius++;
-            if (activeOperation instanceof BrushOperation) {
-                ((BrushOperation) activeOperation).setRadius(radius);
-            }
-            view.setRadius(radius);
-            updateRadiusLabel();
-        }
-    }
-    
-    @Override
-    public void decreaseRadius(int amount) {
-        if (radius > 0) {
-            int oldRadius = radius;
-            double factor = Math.pow(0.9, amount);
-            radius = (int) (radius * factor);
-            if (radius == oldRadius) {
-                radius--;
-            }
-            if (radius < 0) {
-                radius = 0;
-            }
-            if (radius == oldRadius) {
-                return;
-            }
-            if (activeOperation instanceof BrushOperation) {
-                ((BrushOperation) activeOperation).setRadius(radius);
-            }
-            view.setRadius(radius);
-            updateRadiusLabel();
-        }
+    public int getRotation() {
+        return (activeOperation instanceof PaintOperation) ? brushRotation : toolBrushRotation;
     }
 
     @Override
-    public void decreaseRadiusByOne() {
-        if (radius > 0) {
-            radius--;
-            if (activeOperation instanceof BrushOperation) {
-                ((BrushOperation) activeOperation).setRadius(radius);
-            }
-            view.setRadius(radius);
-            updateRadiusLabel();
+    public void setRotation(int rotation) {
+        if ((rotation < -180) || (rotation > 180)) {
+            rotation = mod(rotation + 180, 360) - 180;
         }
+        brushRotationSlider.setValue(rotation);
+        if (activeOperation instanceof PaintOperation) {
+            brushRotation = rotation;
+        } else {
+            toolBrushRotation = rotation;
+        }
+        updateBrushRotation();
     }
-    
+
     // SeedListener
     
     @Override
@@ -6044,9 +6045,6 @@ public final class App extends JFrame implements RadiusControl,
         public void performAction(ActionEvent e) {
             newWorld();
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
 
     private final BetterAction ACTION_OPEN_WORLD = new BetterAction("openWorld", strings.getString("open.world") + "...", ICON_OPEN_WORLD, false) {
@@ -6059,9 +6057,6 @@ public final class App extends JFrame implements RadiusControl,
         public void performAction(ActionEvent e) {
             open();
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
     
     private final BetterAction ACTION_SAVE_WORLD = new BetterAction("saveWorld", strings.getString("save.world") + "...", ICON_SAVE_WORLD, false) {
@@ -6074,9 +6069,6 @@ public final class App extends JFrame implements RadiusControl,
         public void performAction(ActionEvent e) {
             save();
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
 
     private final BetterAction ACTION_SAVE_WORLD_AS = new BetterAction("saveWorldAs", strings.getString("save.world.as") + "...", ICON_SAVE_WORLD, false) {
@@ -6089,9 +6081,6 @@ public final class App extends JFrame implements RadiusControl,
         public void performAction(ActionEvent e) {
             saveAs();
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
     
     private final BetterAction ACTION_EXPORT_WORLD = new BetterAction("exportAsMinecraftMap", strings.getString("export.as.minecraft.map") + "...", ICON_EXPORT_WORLD, false) {
@@ -6127,9 +6116,6 @@ public final class App extends JFrame implements RadiusControl,
                 resumeAutosave();
             }
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
     
     private final BetterAction ACTION_IMPORT_MAP = new BetterAction("importMinecraftMap", strings.getString("existing.minecraft.map") + "...", false) {
@@ -6142,9 +6128,6 @@ public final class App extends JFrame implements RadiusControl,
         public void performAction(ActionEvent e) {
             importWorld();
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
 
     private final BetterAction ACTION_MERGE_WORLD = new BetterAction("mergeWorld", strings.getString("merge.world") + "...", false) {
@@ -6161,9 +6144,6 @@ public final class App extends JFrame implements RadiusControl,
             }
             merge();
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
 
     private final BetterAction ACTION_EXIT = new BetterAction("exit", strings.getString("exit") + "...", ICON_EXIT) {
@@ -6175,9 +6155,6 @@ public final class App extends JFrame implements RadiusControl,
         public void performAction(ActionEvent e) {
             exit();
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
 
     private final BetterAction ACTION_ZOOM_IN = new BetterAction("zoomIn", strings.getString("zoom.in"), ICON_ZOOM_IN) {
@@ -6199,9 +6176,6 @@ public final class App extends JFrame implements RadiusControl,
             ACTION_ZOOM_OUT.setEnabled(true);
             ACTION_ZOOM_RESET.setEnabled(zoom != 0);
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
 
     private final BetterAction ACTION_ZOOM_RESET = new BetterAction("resetZoom", strings.getString("reset.zoom"), ICON_ZOOM_RESET) {
@@ -6240,9 +6214,6 @@ public final class App extends JFrame implements RadiusControl,
             ACTION_ZOOM_OUT.setEnabled(true);
             setEnabled(false);
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
     
     private final BetterAction ACTION_ZOOM_OUT = new BetterAction("zoomOut", strings.getString("zoom.out"), ICON_ZOOM_OUT) {
@@ -6264,9 +6235,6 @@ public final class App extends JFrame implements RadiusControl,
             ACTION_ZOOM_IN.setEnabled(true);
             ACTION_ZOOM_RESET.setEnabled(zoom != 0);
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
 
     private final BetterAction ACTION_GRID = new BetterAction("grid", strings.getString("grid"), ICON_GRID) {
@@ -6285,9 +6253,6 @@ public final class App extends JFrame implements RadiusControl,
             dimension.setGridEnabled(view.isPaintGrid());
             setSelected(view.isPaintGrid());
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
     
     private final BetterAction ACTION_CONTOURS = new BetterAction("contours", strings.getString("contours"), ICON_CONTOURS) {
@@ -6306,9 +6271,6 @@ public final class App extends JFrame implements RadiusControl,
             dimension.setContoursEnabled(view.isDrawContours());
             setSelected(view.isDrawContours());
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
     
     private final BetterAction ACTION_OVERLAYS = new BetterAction("overlay", strings.getString("overlay"), ICON_OVERLAY) {
@@ -6344,10 +6306,7 @@ public final class App extends JFrame implements RadiusControl,
                 ACTION_GRID.setSelected(view.isPaintGrid());
                 ACTION_CONTOURS.setSelected(view.isDrawContours());
             }
-        }
-        @Serial
-        private static final long serialVersionUID = 1L;
-    };
+        }    };
     
     private final BetterAction ACTION_UNDO = new BetterAction("undo", strings.getString("undo"), ICON_UNDO) {
         {
@@ -6361,9 +6320,6 @@ public final class App extends JFrame implements RadiusControl,
                 DesktopUtils.beep();
             }
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
     
     private final BetterAction ACTION_REDO = new BetterAction("redo", strings.getString("redo"), ICON_REDO) {
@@ -6378,9 +6334,6 @@ public final class App extends JFrame implements RadiusControl,
                 DesktopUtils.beep();
             }
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
     
     private final BetterAction ACTION_EDIT_TILES = new BetterAction("editTiles", strings.getString("add.remove.tiles") + "...", ICON_EDIT_TILES) {
@@ -6397,9 +6350,6 @@ public final class App extends JFrame implements RadiusControl,
             }
             addRemoveTiles();
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
     
     private final BetterAction ACTION_CHANGE_HEIGHT = new BetterAction("changeHeight", strings.getString("change.height") + "...", ICON_CHANGE_HEIGHT) {
@@ -6411,9 +6361,6 @@ public final class App extends JFrame implements RadiusControl,
         public void performAction(ActionEvent e) {
             changeWorldHeight(App.this);
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
 
     private final BetterAction ACTION_ROTATE_WORLD = new BetterAction("rotate", strings.getString("rotate") + "...", ICON_ROTATE_WORLD) {
@@ -6425,9 +6372,6 @@ public final class App extends JFrame implements RadiusControl,
         public void performAction(ActionEvent e) {
             rotateWorld(App.this);
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
 
     private final BetterAction ACTION_SHIFT_WORLD = new BetterAction("shift", "Shift...", ICON_SHIFT_WORLD) {
@@ -6439,9 +6383,6 @@ public final class App extends JFrame implements RadiusControl,
         public void performAction(ActionEvent e) {
             shiftWorld(App.this);
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
 
     private final BetterAction ACTION_SCALE_WORLD = new BetterAction("scale", "Scale...", ICON_SCALE_WORLD) {
@@ -6453,9 +6394,6 @@ public final class App extends JFrame implements RadiusControl,
         public void performAction(ActionEvent e) {
             scaleWorld(App.this);
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
 
     private final BetterAction ACTION_DIMENSION_PROPERTIES = new BetterAction("dimensionProperties", strings.getString("dimension.properties") + "...", ICON_DIMENSION_PROPERTIES) {
@@ -6507,9 +6445,6 @@ public final class App extends JFrame implements RadiusControl,
                 }
             }
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
     
     private final BetterAction ACTION_VIEW_DISTANCE = new BetterAction("viewDistance", strings.getString("view.distance"), ICON_VIEW_DISTANCE) {
@@ -6523,9 +6458,6 @@ public final class App extends JFrame implements RadiusControl,
             view.setDrawViewDistance(! view.isDrawViewDistance());
             setSelected(view.isDrawViewDistance());
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
 
     private final BetterAction ACTION_WALKING_DISTANCE = new BetterAction("walkingDistances", strings.getString("walking.distances"), ICON_WALKING_DISTANCE) {
@@ -6539,9 +6471,6 @@ public final class App extends JFrame implements RadiusControl,
             view.setDrawWalkingDistance(! view.isDrawWalkingDistance());
             setSelected(view.isDrawWalkingDistance());
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
 
     private final BetterAction ACTION_ROTATE_LIGHT_RIGHT = new BetterAction("rotateLightClockwise", strings.getString("rotate.light.clockwise"), ICON_ROTATE_LIGHT_RIGHT) {
@@ -6554,9 +6483,6 @@ public final class App extends JFrame implements RadiusControl,
         public void performAction(ActionEvent e) {
             view.rotateLightRight();
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
     
     private final BetterAction ACTION_ROTATE_LIGHT_LEFT = new BetterAction("rotateLightAnticlockwise", strings.getString("rotate.light.anticlockwise"), ICON_ROTATE_LIGHT_LEFT) {
@@ -6569,9 +6495,6 @@ public final class App extends JFrame implements RadiusControl,
         public void performAction(ActionEvent e) {
             view.rotateLightLeft();
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
     
     private final BetterAction ACTION_MOVE_TO_SPAWN = new BetterAction("moveToSpawn", strings.getString("move.to.spawn"), ICON_MOVE_TO_SPAWN) {
@@ -6583,9 +6506,6 @@ public final class App extends JFrame implements RadiusControl,
         public void performAction(ActionEvent e) {
             view.moveToSpawn();
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
     
     private final BetterAction ACTION_MOVE_TO_ORIGIN = new BetterAction("moveToOrigin", strings.getString("move.to.origin"), ICON_MOVE_TO_ORIGIN) {
@@ -6597,9 +6517,6 @@ public final class App extends JFrame implements RadiusControl,
         public void performAction(ActionEvent e) {
             view.moveToOrigin();
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
     
     private final BetterAction ACTION_OPEN_DOCUMENTATION = new BetterAction("browseDocumentation", strings.getString("browse.documentation")) {
@@ -6615,9 +6532,6 @@ public final class App extends JFrame implements RadiusControl,
                 throw new RuntimeException(e);
             }
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
     
     private final BetterAction ACTION_IMPORT_LAYER = new BetterAction("importLayer", "Import custom layer(s)") {
@@ -6625,108 +6539,47 @@ public final class App extends JFrame implements RadiusControl,
         protected void performAction(ActionEvent e) {
             importLayers(null, getLayerFilterForCurrentDimension());
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
     
     private final BetterAction ACTION_ROTATE_BRUSH_LEFT = new BetterAction("rotateBrushLeft", "Rotate brush counterclockwise fifteen degrees") {
         @Override
         protected void performAction(ActionEvent e) {
-            int rotation = brushRotationSlider.getValue() - 15;
-            if (rotation < -180) {
-                rotation += 360;
-            }
-            brushRotationSlider.setValue(rotation);
-            if (activeOperation instanceof PaintOperation) {
-                brushRotation = rotation;
-            } else {
-                toolBrushRotation = rotation;
-            }
-            updateBrushRotation();
+            setRotation(brushRotationSlider.getValue() - 15);
         }
     };
     
     private final BetterAction ACTION_ROTATE_BRUSH_RIGHT = new BetterAction("rotateBrushRight", "Rotate brush clockwise fifteen degrees") {
         @Override
         protected void performAction(ActionEvent e) {
-            int rotation = brushRotationSlider.getValue() + 15;
-            if (rotation > 180) {
-                rotation -= 360;
-            }
-            brushRotationSlider.setValue(rotation);
-            if (activeOperation instanceof PaintOperation) {
-                brushRotation = rotation;
-            } else {
-                toolBrushRotation = rotation;
-            }
-            updateBrushRotation();
+            setRotation(brushRotationSlider.getValue() + 15);
         }
     };
     
     private final BetterAction ACTION_ROTATE_BRUSH_RESET = new BetterAction("rotateBrushReset", "Reset brush rotation to zero degrees") {
         @Override
         protected void performAction(ActionEvent e) {
-            if (brushRotationSlider.getValue() != 0) {
-                brushRotationSlider.setValue(0);
-                if (activeOperation instanceof PaintOperation) {
-                    brushRotation = 0;
-                } else {
-                    toolBrushRotation = 0;
-                }
-                updateBrushRotation();
-            }
+            setRotation(0);
         }
     };
 
     private final BetterAction ACTION_ROTATE_BRUSH_RIGHT_30_DEGREES = new BetterAction("rotateBrushRight30Degrees", "Rotate brush clockwise 30 degrees") {
         @Override
         protected void performAction(ActionEvent e) {
-            int rotation = brushRotationSlider.getValue() + 30;
-            if (rotation > 180) {
-                rotation -= 360;
-            }
-            brushRotationSlider.setValue(rotation);
-            if (activeOperation instanceof PaintOperation) {
-                brushRotation = rotation;
-            } else {
-                toolBrushRotation = rotation;
-            }
-            updateBrushRotation();
+            setRotation(brushRotationSlider.getValue() + 30);
         }
     };
 
     private final BetterAction ACTION_ROTATE_BRUSH_RIGHT_45_DEGREES = new BetterAction("rotateBrushRight45Degrees", "Rotate brush clockwise 45 degrees") {
         @Override
         protected void performAction(ActionEvent e) {
-            int rotation = brushRotationSlider.getValue() + 45;
-            if (rotation > 180) {
-                rotation -= 360;
-            }
-            brushRotationSlider.setValue(rotation);
-            if (activeOperation instanceof PaintOperation) {
-                brushRotation = rotation;
-            } else {
-                toolBrushRotation = rotation;
-            }
-            updateBrushRotation();
+            setRotation(brushRotationSlider.getValue() + 45);
         }
     };
     
     private final BetterAction ACTION_ROTATE_BRUSH_RIGHT_90_DEGREES = new BetterAction("rotateBrushRight90Degrees", "Rotate brush clockwise 90 degrees") {
         @Override
         protected void performAction(ActionEvent e) {
-            int rotation = brushRotationSlider.getValue() + 90;
-            if (rotation > 180) {
-                rotation -= 360;
-            }
-            brushRotationSlider.setValue(rotation);
-            if (activeOperation instanceof PaintOperation) {
-                brushRotation = rotation;
-            } else {
-                toolBrushRotation = rotation;
-            }
-            updateBrushRotation();
+            setRotation(brushRotationSlider.getValue() + 90);
         }
     };
     
@@ -6794,9 +6647,6 @@ public final class App extends JFrame implements RadiusControl,
             }
             DesktopUtils.beep();
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
 
     private final BetterAction ACTION_SWITCH_TO_FROM_MASTER = new BetterAction("switchMaster", "Switch to/from Master") {
@@ -6816,9 +6666,6 @@ public final class App extends JFrame implements RadiusControl,
             }
             DesktopUtils.beep();
         }
-
-        @Serial
-        private static final long serialVersionUID = 1L;
     };
 
     private final BetterAction ACTION_SHOW_CUSTOM_TERRAIN_POPUP = new BetterAction("showCustomTerrainMenu", null, loadScaledIcon("plus")) {
@@ -7029,10 +6876,7 @@ public final class App extends JFrame implements RadiusControl,
         }
         
         private final int percentage;
-        
-        @Serial
-        private static final long serialVersionUID = 1L;
-    }
+            }
 
     interface PaintUpdater {
         void updatePaint();

@@ -5,9 +5,10 @@
 package org.pepsoft.worldpainter;
 
 /**
- *
+ * @deprecated Use {@link BrushControl}.
  * @author pepijn
  */
+@Deprecated
 public interface RadiusControl {
     void increaseRadius(int amount);
     void increaseRadiusByOne();

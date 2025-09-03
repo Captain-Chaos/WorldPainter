@@ -4,8 +4,8 @@ import jpen.PButton;
 import jpen.PButtonEvent;
 import jpen.PKind;
 import jpen.PKindEvent;
+import org.pepsoft.worldpainter.BrushControl;
 import org.pepsoft.worldpainter.MapDragControl;
-import org.pepsoft.worldpainter.RadiusControl;
 import org.pepsoft.worldpainter.WorldPainterView;
 import org.pepsoft.worldpainter.brushes.Brush;
 
@@ -148,7 +148,7 @@ public abstract class AbstractBrushOperation extends MouseOrTabletOperation impl
     @Override
     public void setView(WorldPainterView view) {
         super.setView(view);
-        radiusControl = view.getRadiusControl();
+        brushControl = view.getBrushControl();
         mapDragControl = view.getMapDragControl();
     }
 
@@ -180,9 +180,9 @@ public abstract class AbstractBrushOperation extends MouseOrTabletOperation impl
                 SwingUtilities.invokeAndWait(() -> {
                     // Stylus button pressed
                     if (buttonType == PButton.Type.CENTER) {
-                        radiusControl.decreaseRadius(1);
+                        brushControl.decreaseRadius(1);
                     } else {
-                        radiusControl.increaseRadius(1);
+                        brushControl.increaseRadius(1);
                     }
                     // It should not be too late to do this, since this
                     // event is being dispatched synchronously:
@@ -225,7 +225,7 @@ public abstract class AbstractBrushOperation extends MouseOrTabletOperation impl
         }
     }
 
-    private RadiusControl radiusControl;
+    private BrushControl brushControl;
     private MapDragControl mapDragControl;
     private Brush brush;
     private int radius;

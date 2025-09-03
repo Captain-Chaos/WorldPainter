@@ -68,7 +68,15 @@ public abstract class WorldPainterView extends TiledImageViewer {
 
     public abstract MapDragControl getMapDragControl();
 
-    public abstract RadiusControl getRadiusControl();
+    /**
+     * @deprecated Use {@link #getBrushControl()}.
+     */
+    @Deprecated
+    public RadiusControl getRadiusControl() {
+        return getBrushControl();
+    }
+
+    public abstract BrushControl getBrushControl();
 
     /**
      * Get the single instance of {@link WorldPainterView}, if any. In headless mode this will return {@code null}.
