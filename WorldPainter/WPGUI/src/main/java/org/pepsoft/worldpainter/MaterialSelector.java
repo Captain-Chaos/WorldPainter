@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter;
 
 import org.pepsoft.minecraft.Material;
 import org.pepsoft.util.DesktopUtils;
+import org.pepsoft.worldpainter.panels.SearchableJComboBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -467,7 +468,7 @@ public class MaterialSelector extends javax.swing.JPanel {
         radioButtonCustom = new javax.swing.JRadioButton();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        comboBoxMinecraftName = new javax.swing.JComboBox<>();
+        comboBoxMinecraftName = new SearchableJComboBox();
         comboBoxNamespace = new javax.swing.JComboBox<>();
         radioButtonMinecraft = new javax.swing.JRadioButton();
         comboBoxCustomName = new javax.swing.JComboBox<>();
@@ -797,7 +798,7 @@ public class MaterialSelector extends javax.swing.JPanel {
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JComboBox<String> comboBoxBlockType;
     private javax.swing.JComboBox<String> comboBoxCustomName;
-    private javax.swing.JComboBox<String> comboBoxMinecraftName;
+    private SearchableJComboBox comboBoxMinecraftName;
     private javax.swing.JComboBox<String> comboBoxNamespace;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
