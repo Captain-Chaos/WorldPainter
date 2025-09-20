@@ -1731,11 +1731,13 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         }
     }
 
+    @Serial
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         init();
     }
     
+    @Serial
     private synchronized void writeObject(ObjectOutputStream out) throws IOException {
         prepareForSaving();
         out.defaultWriteObject();
@@ -1800,6 +1802,7 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
     
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Tile.class);
     
+    @Serial
     private static final long serialVersionUID = 2011040101L;
 
     public interface Listener {

@@ -15,6 +15,8 @@ import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.ProgressReceiver.OperationCancelled;
 import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import org.pepsoft.util.mdc.MDCThreadPoolExecutor;
+import org.pepsoft.util.undo.BufferKey;
+import org.pepsoft.util.undo.UndoListener;
 import org.pepsoft.util.undo.UndoManager;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.brushes.Brush;
@@ -77,7 +79,7 @@ import static org.pepsoft.worldpainter.util.ThreadUtils.chooseThreadCount;
  *
  * @author pepijn
  */
-public class Dimension extends InstanceKeeper implements TileProvider, Serializable, Tile.Listener, Cloneable {
+public class Dimension extends InstanceKeeper implements TileProvider, Serializable, Tile.Listener, Cloneable, UndoListener {
     public Dimension(World2 world, String name, long minecraftSeed, TileFactory tileFactory, Anchor anchor) {
         this(world, name, minecraftSeed, tileFactory, anchor, true);
     }
@@ -1737,6 +1739,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     public void registerUndoManager(UndoManager undoManager) {
         this.undoManager = undoManager;
+        undoManager.addBuffer(BUFFER_KEY_MANAGED_ATTRIBUTES, managedAttributes, this);
+        undoManager.addListener(this);
         for (Tile tile: tiles.values()) {
             tile.register(undoManager);
         }
@@ -1789,7 +1793,12 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         for (Tile tile: tiles.values()) {
             tile.unregister();
         }
-        undoManager = null;
+        if (undoManager != null) {
+            undoManager.removeListener(this);
+            ensureManagedAttributesReadable();
+            undoManager.removeBuffer(BUFFER_KEY_MANAGED_ATTRIBUTES);
+            undoManager = null;
+        }
     }
 
     public final int getAutoBiome(int x, int y) {
@@ -1912,7 +1921,8 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return topLayerMinDepth + Math.round((topLayerDepthNoise.getPerlinNoise(x / SMALL_BLOBS, y / SMALL_BLOBS, z / SMALL_BLOBS) + 0.5f) * topLayerVariation);
     }
 
-    void ensureAllReadable() {
+    synchronized void ensureAllReadable() {
+        ensureManagedAttributesReadable();
         tiles.values().forEach(Tile::ensureAllReadable);
     }
 
@@ -2162,26 +2172,63 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         return new TileVisitationBuilder(true);
     }
 
+    @SuppressWarnings("unchecked") // Responsibility of client
     public <T> T getAttribute(AttributeKey<T> key) {
-        if (attributes != null) {
+        ensureManagedAttributesReadable();
+        if (managedAttributes.containsKey(key.key)) {
+            return (T) managedAttributes.get(key.key);
+        } else if (attributes != null) {
             return attributes.containsKey(key.key) ? (T) attributes.get(key.key) : key.defaultValue;
         } else {
             return key.defaultValue;
         }
     }
 
+    /**
+     * Set an attribute, without undo support.
+     *
+     * @param key        The key of the attribute to set.
+     * @param value      The value to which to set the attribute.
+     * @param <T>        The value type of the attribute.
+     */
     public <T> void setAttribute(AttributeKey<T> key, T value) {
-        if ((value != null) ? value.equals(key.defaultValue) : (key.defaultValue == null)) {
-            // Setting value to default
-            attributes.remove(key.key);
-            if (attributes.isEmpty()) {
-                attributes = null;
+        setAttribute(key, value, false);
+    }
+
+    /**
+     * Set an attribute, with or without undo support.
+     *
+     * @param key        The key of the attribute to set.
+     * @param value      The value to which to set the attribute.
+     * @param enableUndo Whether the value should track undo and redo.
+     * @param <T>        The value type of the attribute.
+     */
+    public <T> void setAttribute(AttributeKey<T> key, T value, boolean enableUndo) {
+        if (enableUndo) {
+            ensureManagedAttributesWritable();
+            managedAttributes.put(key.key, value);
+            // If this attribute was previously set but not undo-managed, make sure to remove it from the unmanaged
+            // attributes map. It's faster to just call remove() than to check first with containsKey():
+            if (attributes != null) {
+                attributes.remove(key.key);
             }
         } else {
-            if (attributes == null) {
-                attributes = new HashMap<>();
+            ensureManagedAttributesReadable();
+            if (managedAttributes.containsKey(key.key)) {
+                throw new IllegalStateException("Attribute " + key.key + " was previously added with undo support");
             }
-            attributes.put(key.key, value);
+            if ((value != null) ? value.equals(key.defaultValue) : (key.defaultValue == null)) {
+                // Setting value to default
+                attributes.remove(key.key);
+                if (attributes.isEmpty()) {
+                    attributes = null;
+                }
+            } else {
+                if (attributes == null) {
+                    attributes = new HashMap<>();
+                }
+                attributes.put(key.key, value);
+            }
         }
         changeNo++;
     }
@@ -2322,6 +2369,34 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         changeNo++;
     }
 
+    // UndoListener
+
+    @Override
+    public synchronized void savePointArmed() {
+        managedAttributesWritable = false;
+    }
+
+    @Override
+    public synchronized void savePointCreated() {
+        managedAttributesWritable = false;
+    }
+
+    @Override
+    public void undoPerformed() {
+        // Do nothing
+    }
+
+    @Override
+    public void redoPerformed() {
+        // Do nothing
+    }
+
+    @Override
+    public void bufferChanged(BufferKey<?> key) {
+        managedAttributesReadable = false;
+        managedAttributesWritable = false;
+    }
+
     void changeAnchorToFloatingFloor() {
         if (anchor.role != CAVE_FLOOR) {
             throw new IllegalStateException();
@@ -2439,6 +2514,27 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
+    private synchronized void ensureManagedAttributesReadable() {
+        if ((undoManager != null) && (! managedAttributesReadable)) {
+            managedAttributes = undoManager.getBuffer(BUFFER_KEY_MANAGED_ATTRIBUTES);
+            managedAttributesReadable = true;
+        }
+    }
+
+    private synchronized void ensureManagedAttributesWritable() {
+        if ((undoManager != null) && (! managedAttributesWritable)) {
+            managedAttributes = undoManager.getBufferForEditing(BUFFER_KEY_MANAGED_ATTRIBUTES);
+            managedAttributesReadable = true;
+            managedAttributesWritable = true;
+        }
+    }
+
+    private synchronized void prepareForSaving() {
+        // Make sure all buffers are current, otherwise we may save out of date data to disk
+        ensureAllReadable();
+    }
+
+    @Serial
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
 
@@ -2618,6 +2714,9 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 overlayTransparency = 0.0f;
             }
         }
+        if (wpVersion < 10) {
+            managedAttributes = new HashMap<>();
+        }
         wpVersion = CURRENT_WP_VERSION;
 
         // Make sure customLayers isn't some weird read-only list
@@ -2656,6 +2755,12 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
+    @Serial
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        prepareForSaving();
+        out.defaultWriteObject();
+    }
+
     private World2 world;
     private final long seed;
     @Deprecated
@@ -2690,7 +2795,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private int wpVersion = CURRENT_WP_VERSION;
     private boolean fixOverlayCoords;
     private int ceilingHeight;
-    private Map<String, Object> attributes;
+    private Map<String, Object> attributes, managedAttributes = new HashMap<>();
     private LayerAnchor subsurfaceLayerAnchor = LayerAnchor.BEDROCK, topLayerAnchor = LayerAnchor.BEDROCK;
     private ExportSettings exportSettings;
     private MapGenerator generator;
@@ -2719,6 +2824,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
     private transient ThreadLocal<int[]> biomeHistogramRef = ThreadLocal.withInitial(() -> new int[255]);
     private transient ReadWriteLock lock = new ReentrantReadWriteLock();
     private transient Lock readLock = lock.readLock(), writeLock = lock.writeLock();
+    private transient boolean managedAttributesReadable, managedAttributesWritable;
 
     public static final int[] POSSIBLE_AUTO_BIOMES = {BIOME_PLAINS, BIOME_FOREST,
         BIOME_SWAMPLAND, BIOME_JUNGLE, BIOME_MESA, BIOME_DESERT, BIOME_BEACH,
@@ -2728,8 +2834,10 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
 
     private static final long TOP_LAYER_DEPTH_SEED_OFFSET = 180728193;
     private static final float ROOT_EIGHT = (float) Math.sqrt(8.0);
-    private static final int CURRENT_WP_VERSION = 9;
+    private static final int CURRENT_WP_VERSION = 10;
+    private static final BufferKey<Map<String, Object>> BUFFER_KEY_MANAGED_ATTRIBUTES = new BufferKey<>() {};
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Dimension.class);
+    @Serial
     private static final long serialVersionUID = 2011062401L;
 
     public interface Listener {
@@ -3179,6 +3287,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 .thenComparing(a -> a.role)
                 .thenComparing(a -> a.invert)
                 .thenComparing(a -> a.id);
+        @Serial
         private static final long serialVersionUID = 1L;
     }
 
