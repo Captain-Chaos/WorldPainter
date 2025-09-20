@@ -50,21 +50,16 @@ public interface Operation {
     boolean isActive();
 
     /**
-     * Activate or deactivate the operation. Will be invoked by WorldPainter
-     * when the user activates or deactivates the operation, for example by
-     * pressing a toggle button.
+     * Activate or deactivate the operation. Will be invoked by WorldPainter when the user activates or deactivates the
+     * operation, for example by pressing a toggle button.
      *
-     * <p><strong>Please note:</strong> it is the operation's own responsibility
-     * to install listeners, etc. on the view if necessary to detect user
-     * activity while the operation is active, and uninstall them when
-     * deactivated.
+     * <p><strong>Please note:</strong> it is the operation's own responsibility to install listeners, etc. on the view
+     * if necessary to detect user activity while the operation is active, and uninstall them when deactivated.
      *
-     * @param active Whether the operation should activatate itself (when
-     *               {@code true}) or deactivate itself (when
+     * @param active Whether the operation should activate itself (when {@code true}) or deactivate itself (when
      *               {@code false}).
-     * @throws PropertyVetoException If the operation failed to activate for
-     * some reason, for instance because some dependency is not met, or some
-     * state is inappropriate.
+     * @throws PropertyVetoException If the operation failed to activate for some reason, for instance because some
+     * dependency is not met, or some state is inappropriate.
      */
     void setActive(boolean active) throws PropertyVetoException;
 
