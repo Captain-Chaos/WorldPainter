@@ -79,6 +79,11 @@ public final class TileSnapshot extends Tile {
     }
 
     @Override
+    public void setBitLayerValue(Layer layer) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public synchronized void inhibitEvents() {
         throw new UnsupportedOperationException();
     }

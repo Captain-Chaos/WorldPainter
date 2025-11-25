@@ -7,6 +7,7 @@ package org.pepsoft.worldpainter.layers.tunnel;
 
 import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.exporting.LayerExporter;
 import org.pepsoft.worldpainter.layers.*;
@@ -15,13 +16,13 @@ import org.pepsoft.worldpainter.layers.pockets.UndergroundPocketsLayer;
 import org.pepsoft.worldpainter.layers.renderers.PaintRenderer;
 import org.pepsoft.worldpainter.operations.Filter;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import static org.pepsoft.worldpainter.Constants.TILE_SIZE;
 import static org.pepsoft.worldpainter.Dimension.Role.*;
@@ -322,6 +323,14 @@ public class TunnelLayer extends CustomLayer {
         this.biomeHeightAboveGround = biomeHeightAboveGround;
     }
 
+    public boolean isFloorDimensionShapeDirty() {
+        return floorDimensionShapeDirty;
+    }
+
+    public void setFloorDimensionShapeDirty(boolean floorDimensionShapeDirty) {
+        this.floorDimensionShapeDirty = floorDimensionShapeDirty;
+    }
+
     /**
      * Ensure that tiles exist in the floor dimension for this layer for all the places where the layer is painted, and
      * mark out the shape of the layer on the floor dimension using the {@link NotPresentBlock} layer.
@@ -335,22 +344,40 @@ public class TunnelLayer extends CustomLayer {
         final TileFactory tileFactory = floorDimension.getTileFactory();
         floorDimension.setEventsInhibited(true);
         try {
+            final Set<Point> tilesToRemove = new HashSet<>(floorDimension.getTileCoords());
             dimension.visitTiles().forFilter(Filter.build(dimension).onlyOn(this).build()).andDo(tile -> {
                 Tile floorTile = floorDimension.getTileForEditing(tile.getX(), tile.getY());
                 if (floorTile == null) {
                     floorTile = tileFactory.createTile(tile.getX(), tile.getY());
                     floorDimension.addTile(floorTile);
-                } else {
-                    floorTile.clearLayerData(NotPresentBlock.INSTANCE);
+                    floorDimensionShapeDirty = true;
                 }
+                boolean anyLayerPresent = false;
                 for (int x = 0; x < TILE_SIZE; x++) {
                     for (int y = 0; y < TILE_SIZE; y++) {
-                        if (! tile.getBitLayerValue(this, x, y)) {
-                            floorTile.setBitLayerValue(NotPresentBlock.INSTANCE, x, y, true);
+                        final boolean layerPresent = tile.getBitLayerValue(this, x, y);
+                        anyLayerPresent |= layerPresent;
+                        if (floorTile.getBitLayerValue(NotPresentBlock.INSTANCE, x, y) == layerPresent) {
+                            floorTile.setBitLayerValue(NotPresentBlock.INSTANCE, x, y, ! layerPresent);
+                            floorDimensionShapeDirty = true;
                         }
                     }
                 }
+                if (anyLayerPresent) {
+                    tilesToRemove.remove(new Point(tile.getX(), tile.getY()));
+                }
             });
+            // tilesToRemove now contains the coordinates of all tiles where the layer _used_ to be present, but is no
+            // longer
+            if (! tilesToRemove.isEmpty()) {
+                // We intentionally don't remove tiles from the floor dimension, in case the change to the layer shape is
+                // undone
+                for (Point coords: tilesToRemove) {
+                    final Tile tileToRemove = floorDimension.getTileForEditing(coords.x, coords.y);
+                    tileToRemove.setBitLayerValue(NotPresentBlock.INSTANCE);
+                }
+                floorDimensionShapeDirty = true;
+            }
         } finally {
             floorDimension.setEventsInhibited(false);
         }
@@ -610,6 +637,8 @@ public class TunnelLayer extends CustomLayer {
     private EdgeShape bottomEdgeShape = SMOOTH;
     private boolean applyBiomesAboveGround, applyBiomesBelowGround;
     private int biomeHeightAboveGround = 16;
+
+    private transient boolean floorDimensionShapeDirty;
 
     private static final int CURRENT_WP_VERSION = 5;
     @Serial

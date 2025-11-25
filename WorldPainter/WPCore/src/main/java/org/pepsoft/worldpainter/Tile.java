@@ -768,6 +768,38 @@ public class Tile extends InstanceKeeper implements Serializable, UndoListener, 
         layerDataChanged(layer);
     }
 
+    /**
+     * Set a bit layer on the entire tile.
+     *
+     * @param layer The layer for which to set the layer.
+     */
+    public void setBitLayerValue(Layer layer) {
+        if ((layer.getDataSize() != Layer.DataSize.BIT) && (layer.getDataSize() != Layer.DataSize.BIT_PER_CHUNK)) {
+            throw new IllegalArgumentException("Layer is not bit sized");
+        }
+        synchronized (this) {
+            ensureWriteable(BIT_LAYER_DATA);
+            BitSet bitSet = bitLayerData.get(layer);
+            if (bitSet == null) {
+                cachedLayers = null;
+                if (layer.getDataSize() == Layer.DataSize.BIT) {
+                    bitSet = new BitSet(TILE_SIZE * TILE_SIZE);
+                    bitSet.set(0, TILE_SIZE * TILE_SIZE);
+                } else {
+                    bitSet = new BitSet(TILE_SIZE * TILE_SIZE / 256);
+                    bitSet.set(0, TILE_SIZE * TILE_SIZE / 256);
+                }
+                bitLayerData.put(layer, bitSet);
+            }
+            if (layer.getDataSize() == Layer.DataSize.BIT) {
+                bitSet.set(0, TILE_SIZE * TILE_SIZE);
+            } else {
+                bitSet.set(0, TILE_SIZE * TILE_SIZE / 256);
+            }
+        }
+        layerDataChanged(layer);
+    }
+
     public synchronized int getLayerValue(Layer layer, int x, int y) {
         ensureReadable(LAYER_DATA);
         byte[] layerValues = layerData.get(layer);

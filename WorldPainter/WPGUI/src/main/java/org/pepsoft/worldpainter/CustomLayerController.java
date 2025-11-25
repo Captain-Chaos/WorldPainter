@@ -122,8 +122,7 @@ public class CustomLayerController implements PropertyChangeListener {
                 popup.add(menuItem);
 
                 final Dimension dimension = app.getDimension();
-                if (layer instanceof TunnelLayer) {
-                    final TunnelLayer tunnelLayer = (TunnelLayer) layer;
+                if (layer instanceof TunnelLayer tunnelLayer) {
                     final Integer floorDimensionId = tunnelLayer.getFloorDimensionId();
                     if (floorDimensionId != null) {
                         final String shortName, longName;
@@ -145,6 +144,13 @@ public class CustomLayerController implements PropertyChangeListener {
                                 final Point viewPosition = app.view.getViewCentreInWorldCoords();
                                 final Dimension floorDimension = tunnelLayer.updateFloorDimension(dimension, null);
                                 app.setDimension(floorDimension);
+                                if (tunnelLayer.isFloorDimensionShapeDirty()) {
+                                    // If we don't do this, the user can undo the changes to the NotPresentBlack layer,
+                                    // which would cause havoc
+                                    floorDimension.clearUndo();
+                                    floorDimension.armSavePoint();
+                                    tunnelLayer.setFloorDimensionShapeDirty(false);
+                                }
 
                                 // Initially we move to the same location as we were on the surface. Then we check
                                 // whether the floor dimension is actually visible then. If not, we try to find the
@@ -182,11 +188,13 @@ public class CustomLayerController implements PropertyChangeListener {
                                 }
 
                                 final Configuration config = Configuration.getInstance();
-                                if (! config.isMessageDisplayedCountAtLeast(EDITING_FLOOR_DIMENSION_KEY, 3)) {
+                                if (! config.isMessageDisplayedCountAtLeast(EDITING_FLOOR_DIMENSION_KEY_2, 3)) {
                                     doLaterOnEventThread(() -> JOptionPane.showMessageDialog(app,
                                             "Press Esc to finish editing the " + longName + ",\n" +
-                                                    "or select the Surface dimension from the app.view menu or by pressing " + COMMAND_KEY_NAME + "+U", "Editing " + longName, JOptionPane.INFORMATION_MESSAGE));
-                                    config.setMessageDisplayed(EDITING_FLOOR_DIMENSION_KEY);
+                                                    "or select the Surface dimension from the app.view menu or by pressing " + COMMAND_KEY_NAME + "+U.\n\n" +
+                                                    "NOTE: changing the shape of the dimension later will throw away the undo information\n" +
+                                                    "of this " + longName + ".", "Editing " + longName, JOptionPane.INFORMATION_MESSAGE));
+                                    config.setMessageDisplayed(EDITING_FLOOR_DIMENSION_KEY_2);
                                 }
 
                                 final JLabel label = new JLabel("<html><font size='+1'>Press Esc to leave the " + longName + ".</font></html>");
@@ -258,8 +266,7 @@ public class CustomLayerController implements PropertyChangeListener {
                 final CustomLayer duplicate = layer.clone();
                 duplicate.setName("Copy of " + layer.getName());
                 final Object paint = layer.getPaint();
-                if (paint instanceof Color) {
-                    Color colour = (Color) paint;
+                if (paint instanceof Color colour) {
                     final float[] hsb = Color.RGBtoHSB(colour.getRed(), colour.getGreen(), colour.getBlue(), null);
                     hsb[0] += 1f / 12;
                     if (hsb[0] > 1f) {
@@ -343,9 +350,10 @@ public class CustomLayerController implements PropertyChangeListener {
         if (activate
                 && (paletteManager.getPaletteContaining(layer).getLayers().size() >= 25)
                 && (! config.isMessageDisplayed(LAYER_PALETTE_TIP_KEY))) {
-            showInfo(app, "Tip: you can distribute Custom Layers over multiple\n" +
-                    "palettes by right-clicking on the layer button and\n" +
-                    "selecting Move to palette → New palette...", "Layer Palette Tip");
+            showInfo(app, """
+                    Tip: you can distribute Custom Layers over multiple
+                    palettes by right-clicking on the layer button and
+                    selecting Move to palette → New palette...""", "Layer Palette Tip");
             config.setMessageDisplayed(LAYER_PALETTE_TIP_KEY);
         }
     }
@@ -702,8 +710,7 @@ public class CustomLayerController implements PropertyChangeListener {
         boolean customTerrainButtonsAdded = false;
         layer.setExportIndex(null);
         registerCustomLayer(layer, true);
-        if (layer instanceof CombinedLayer) {
-            final CombinedLayer combinedLayer = (CombinedLayer) layer;
+        if (layer instanceof CombinedLayer combinedLayer) {
             importLayersFromCombinedLayer(combinedLayer);
             if (! combinedLayer.restoreCustomTerrain()) {
                 showWarning(app, "The layer contained a Custom Terrain which could not be restored. The terrain has been reset.", "Custom Terrain Not Restored");
@@ -981,7 +988,7 @@ public class CustomLayerController implements PropertyChangeListener {
     final PaletteManager paletteManager = new PaletteManager(this);
 
     private static final ResourceBundle strings = ResourceBundle.getBundle("org.pepsoft.worldpainter.resources.strings"); // NOI18N
-    private static final String EDITING_FLOOR_DIMENSION_KEY = "org.pepsoft.worldpainter.TunnelLayer.editingFloorDimension";
+    private static final String EDITING_FLOOR_DIMENSION_KEY_2 = "org.pepsoft.worldpainter.TunnelLayer.editingFloorDimension.2";
     private static final String LAYER_PALETTE_TIP_KEY = "org.pepsoft.worldpainter.layerPaletteTip";
     private static final Icon ADD_CUSTOM_LAYER_BUTTON_ICON = IconUtils.loadScaledIcon("org/pepsoft/worldpainter/icons/plus.png");
     private static final Logger logger = LoggerFactory.getLogger(CustomLayerController.class);

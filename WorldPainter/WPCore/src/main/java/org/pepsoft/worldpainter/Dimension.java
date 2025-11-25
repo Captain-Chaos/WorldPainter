@@ -441,12 +441,12 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
         }
     }
 
-    public void removeTile(int tileX, int tileY) {
+    public final void removeTile(int tileX, int tileY) {
         removeTile(new Point(tileX, tileY));
     }
 
-    public void removeTile(Tile tile) {
-        removeTile(tile.getX(), tile.getY());
+    public final void removeTile(Tile tile) {
+        removeTile(new Point(tile.getX(), tile.getY()));
     }
 
     public void removeTile(Point coords) {
@@ -484,6 +484,53 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 }
             }
             fireTileRemoved(tile);
+            changeNo++;
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
+    public void removeTiles(Collection<Point> coords) {
+        writeLock.lock();
+        try {
+            boolean updateBounds = false;
+            for (Point tileCoords: coords) {
+                if (! tiles.containsKey(tileCoords)) {
+                    throw new IllegalStateException("Tile not set");
+                }
+                final Tile tile = tiles.remove(tileCoords);
+                if (undoManager != null) {
+                    tile.unregister();
+                }
+                tile.removeListener(this);
+                // If the tile lies at the edge of the world it's possible the low and
+                // high coordinate marks should change; so recalculate them in that case
+                if ((tileCoords.x == lowestX) || (tileCoords.x == highestX) || (tileCoords.y == lowestY) || (tileCoords.y == highestY)) {
+                    updateBounds = true;
+                }
+                fireTileRemoved(tile);
+            }
+            if (updateBounds) {
+                lowestX = Integer.MAX_VALUE;
+                highestX = Integer.MIN_VALUE;
+                lowestY = Integer.MAX_VALUE;
+                highestY = Integer.MIN_VALUE;
+                for (Tile myTile: tiles.values()) {
+                    int myTileX = myTile.getX(), myTileY = myTile.getY();
+                    if (myTileX < lowestX) {
+                        lowestX = myTileX;
+                    }
+                    if (myTileX > highestX) {
+                        highestX = myTileX;
+                    }
+                    if (myTileY < lowestY) {
+                        lowestY = myTileY;
+                    }
+                    if (myTileY > highestY) {
+                        highestY = myTileY;
+                    }
+                }
+            }
             changeNo++;
         } finally {
             writeLock.unlock();
@@ -2927,14 +2974,7 @@ public class Dimension extends InstanceKeeper implements TileProvider, Serializa
                 tileY1 = y1 >> TILE_SIZE_BITS;
                 tileY2 = y2 >> TILE_SIZE_BITS;
             }
-            final Set<Point> tileCoords;
-            readLock.lock();
-            try {
-                tileCoords = getTileCoords();
-            } finally {
-                readLock.unlock();
-            }
-            for (Point coords: tileCoords) {
+            for (Point coords: new HashSet<>(getTileCoords())) {
                 final Tile tile = readOnly ? getTile(coords) : getTileForEditing(coords);
                 final int tileX = tile.getX(), tileY = tile.getY();
                 if ((tileX >= tileX1) && (tileX <= tileX2) && (tileY >= tileY1) && (tileY <= tileY2)

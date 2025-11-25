@@ -192,7 +192,7 @@ public final class DimensionSnapshot extends Dimension { // This cannot be an RO
     }
 
     @Override
-    public void removeTile(Tile tile) {
+    public void removeTile(Point coords) {
         throw new UnsupportedOperationException();
     }
 

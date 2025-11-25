@@ -128,6 +128,11 @@ public abstract class ReadOnlyTile extends Tile {
     }
 
     @Override
+    public void setBitLayerValue(Layer layer) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public final void inhibitEvents() {
         // Do nothing
     }

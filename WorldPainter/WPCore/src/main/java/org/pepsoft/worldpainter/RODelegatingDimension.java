@@ -18,8 +18,8 @@ import java.io.NotSerializableException;
 import java.io.ObjectOutputStream;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -110,11 +110,6 @@ public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
 
     @Override
     public void removeTile(Point coords) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void removeTile(int tileX, int tileY) {
         throw new UnsupportedOperationException();
     }
 
@@ -659,11 +654,6 @@ public abstract class RODelegatingDimension<T extends Tile> extends Dimension {
     @Override
     public boolean isEventsInhibited() {
         return false;
-    }
-
-    @Override
-    public final void removeTile(Tile tile) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -66,6 +66,16 @@ public class Main {
         // Force language to English for now. TODO: remove this once the first translations are implemented
         Locale.setDefault(Locale.US);
 
+        // Check that this is not a headless runtime. Do it this early because we have seen exceptions from the uncaught
+        // exception handler on headless runtimes in the wild, which is the next thing we install after this
+        if (GraphicsEnvironment.isHeadless()) {
+            System.err.printf("The Java runtime (%s %s, version %s) is headless.%nPlease install a complete Java runtime (or make it the default).%n",
+                    System.getProperty("java.vm.vendor"),
+                    System.getProperty("java.vm.name"),
+                    System.getProperty("java.vm.version"));
+            System.exit(1);
+        }
+
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
 
         // Set some hardcoded system properties we always want set:
