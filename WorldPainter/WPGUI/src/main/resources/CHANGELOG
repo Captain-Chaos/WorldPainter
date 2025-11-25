@@ -1,3 +1,8 @@
+-- Version 2.26.1, released 28-9-2025
+
+ * Bug fix: using Undo too many times in Custom Cave/Tunnel floor dimensions or Floating Dimensions will no longer cause errors
+   + This has unfortunately necessitated the clearing of the undo buffer for the floor or floating dimension whenever its shape is changed. In other words: whenever you change the shape of a Custom Cave/Tunnel layer with a floor dimension, or a Floating Dimension, you cannot undo past that point when subsequently editing the floor or floating dimension.
+
 -- Version 2.26.0, released 19-8-2025
 
  * The new plants from Minecraft 1.21.5 have been added to the Custom Plants layer
