@@ -6,6 +6,7 @@ import com.google.common.collect.Sets;
 import org.pepsoft.util.AttributeKey;
 
 import java.io.ObjectStreamException;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
@@ -340,8 +341,22 @@ public final class Platform implements Serializable {
      */
     public static final AttributeKey<Integer> ATTRIBUTE_WATER_OPACITY = new AttributeKey<>("blocks.water.opacity", 1);
 
+    /**
+     * If this platform is for native Minecraft Java Edition and supports non-standard build heights, then this
+     * attribute contains the contents for the overworld.json descriptor in the datapack that will be generated. It
+     * should contain the following variables which will be replaced with the corresponding values:
+     *
+     * <table>
+     *     <tr><th>Variable</th><th>Contents</th></tr>
+     *     <tr><td>{0}</td><td>Height/logical height</td></tr>
+     *     <tr><td>{1}</td><td>Min Y</td></tr>
+     * </table>
+     */
+    public static final AttributeKey<String> ATTRIBUTE_DATAPACK_DESCRIPTOR_OVERWORLD = new AttributeKey<>("datapack.descriptor.overworld");
+
     private static final Map<String, Platform> ALL_PLATFORMS = new HashMap<>();
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private static int[] defaultMaxHeightsFromTo(int minMaxHeight, int maxMaxHeight) {

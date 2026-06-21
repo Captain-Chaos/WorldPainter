@@ -15,7 +15,8 @@ public class Meta extends Descriptor {
     @Builder
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class Pack {
-        int packFormat;
+        Integer packFormat;
+        Float minFormat, maxFormat;
         Object description;
     }
 }

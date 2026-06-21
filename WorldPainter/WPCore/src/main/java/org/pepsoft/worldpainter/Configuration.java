@@ -1117,7 +1117,7 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
                 beta118WarningDisplayed = false;
             }
         }
-        if (version < 25) {
+        if (version < CURRENT_VERSION) {
             upgradeDefaultPlatform();
         }
         version = CURRENT_VERSION;
@@ -1347,10 +1347,10 @@ public final class Configuration implements Serializable, EventLogger, Minecraft
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Configuration.class);
     private static final long serialVersionUID = 2011041801L;
     private static final int CIRCULAR_WORLD = -1;
-    private static final int CURRENT_VERSION = 25;
+    private static final int CURRENT_VERSION = 26;
 
     public static final String ADVANCED_SETTING_PREFIX = "org.pepsoft.worldpainter";
-    public static final Platform DEFAULT_PLATFORM = JAVA_ANVIL_1_20_5;
+    public static final Platform DEFAULT_PLATFORM = JAVA_ANVIL_1_21_11;
 
     public enum DonationStatus {DONATED, NO_THANK_YOU}
     

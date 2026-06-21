@@ -1,6 +1,5 @@
 package org.pepsoft.minecraft.datapack;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.slf4j.Logger;
@@ -13,21 +12,27 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static com.fasterxml.jackson.core.JsonGenerator.Feature.AUTO_CLOSE_TARGET;
 import static com.fasterxml.jackson.core.JsonParser.Feature.AUTO_CLOSE_SOURCE;
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
-import static com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.unmodifiableMap;
+import static org.pepsoft.minecraft.datapack.DataPackFactory.OBJECT_MAPPER;
 import static org.pepsoft.util.FileUtils.visitFilesRecursively;
 
 public class DataPack {
     public void write(OutputStream out) throws IOException {
         try (ZipOutputStream zip = new ZipOutputStream(out)) {
             final ObjectWriter writer = OBJECT_MAPPER.writer().withoutFeatures(AUTO_CLOSE_TARGET);
-            for (Map.Entry<String, Descriptor> entry: descriptors.entrySet()) {
+            for (Map.Entry<String, Object> entry: descriptors.entrySet()) {
                 zip.putNextEntry(new ZipEntry(entry.getKey()));
-                writer.writeValue(zip, entry.getValue());
+                if (entry.getValue() instanceof Descriptor) {
+                    writer.writeValue(zip, entry.getValue());
+                } else if (entry.getValue() instanceof String) {
+                    zip.write(((String) entry.getValue()).getBytes(UTF_8));
+                } else {
+                    throw new IllegalArgumentException("Unsupported descriptor type " + entry.getValue().getClass().getSimpleName() + " for descriptor " + entry.getKey());
+                }
             }
         }
     }
@@ -36,7 +41,11 @@ public class DataPack {
         descriptors.put(name, descriptor);
     }
 
-    public Map<String, Descriptor> getDescriptors() {
+    public void addDescriptor(String name, String descriptor) {
+        descriptors.put(name, descriptor);
+    }
+
+    public Map<String, Object> getDescriptors() {
         return unmodifiableMap(descriptors);
     }
 
@@ -95,10 +104,7 @@ public class DataPack {
         }
     }
 
-    private final Map<String, Descriptor> descriptors = new HashMap<>();
+    private final Map<String, Object> descriptors = new HashMap<>();
 
     private static final Logger logger = LoggerFactory.getLogger(DataPack.class);
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .setPropertyNamingStrategy(SNAKE_CASE)
-            .setSerializationInclusion(NON_NULL);
 }

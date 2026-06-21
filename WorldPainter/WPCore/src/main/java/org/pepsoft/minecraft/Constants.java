@@ -774,17 +774,20 @@ public final class Constants {
     public static final int VERSION_MCREGION = 0x4abc;
     public static final int VERSION_ANVIL    = 0x4abd;
 
-    public static final int DATA_VERSION_MC_1_12_2 = 1343;
-    public static final int DATA_VERSION_MC_1_14_4 = 1976;
-    public static final int DATA_VERSION_MC_1_15_2 = 2230;
-    public static final int DATA_VERSION_MC_1_16_5 = 2586;
-    public static final int DATA_VERSION_MC_1_17   = 2724;
-    public static final int DATA_VERSION_MC_1_17_1 = 2730;
-    public static final int DATA_VERSION_MC_1_18_0 = 2860;
-    public static final int DATA_VERSION_MC_1_18_2 = 2975;
-    public static final int DATA_VERSION_MC_1_19_0 = 3105;
-    public static final int DATA_VERSION_MC_1_20_4 = 3700;
-    public static final int DATA_VERSION_MC_1_20_5 = 3837;
+    public static final int DATA_VERSION_MC_1_12_2  = 1343;
+    public static final int DATA_VERSION_MC_1_14_4  = 1976;
+    public static final int DATA_VERSION_MC_1_15_2  = 2230;
+    public static final int DATA_VERSION_MC_1_16_5  = 2586;
+    public static final int DATA_VERSION_MC_1_17    = 2724;
+    public static final int DATA_VERSION_MC_1_17_1  = 2730;
+    public static final int DATA_VERSION_MC_1_18_0  = 2860;
+    public static final int DATA_VERSION_MC_1_18_2  = 2975;
+    public static final int DATA_VERSION_MC_1_19_0  = 3105;
+    public static final int DATA_VERSION_MC_1_20_4  = 3700;
+    public static final int DATA_VERSION_MC_1_20_5  = 3837;
+    public static final int DATA_VERSION_MC_1_21_10 = 4556;
+    public static final int DATA_VERSION_MC_1_21_11 = 4671;
+    public static final int DATA_VERSION_MC_26_1    = 4786;
 
     // Legacy (pre-MC 1.13) block IDs
 

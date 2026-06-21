@@ -14,12 +14,13 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.pepsoft.minecraft.Constants.*;
+import static org.pepsoft.util.ClassPathUtils.loadStringFromClasspath;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.GameType.*;
 import static org.pepsoft.worldpainter.Generator.*;
-import static org.pepsoft.worldpainter.Platform.ATTRIBUTE_GRASS_BLOCK_NAME;
-import static org.pepsoft.worldpainter.Platform.ATTRIBUTE_WATER_OPACITY;
+import static org.pepsoft.worldpainter.Platform.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 
 /**
@@ -139,7 +140,7 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider {
 
     public static final Platform JAVA_ANVIL_1_20_5 = new Platform(
             "org.pepsoft.anvil.1.20.5",
-            "Minecraft 1.20.5 or later",
+            "Minecraft 1.20.5 - 1.21.10",
             new int[] { 256, 320, 512, 1024, 1536, 2032 }, 320,
             Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
             new int[] { 0, -64, -128, -256, -512, -1024, -2032 }, -64,
@@ -148,10 +149,25 @@ public class DefaultPlugin extends AbstractPlugin implements LayerProvider {
             Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
             EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, NAMED_BIOMES, POPULATE, GENERATOR_PER_DIMENSION, LEAF_DISTANCES, WATERLOGGED_LEAVES, DATA_PACKS, BLOCK_MINECRAFT_LIGHT),
             ATTRIBUTE_MC_VERSION, new org.pepsoft.util.Version(1, 20, 5),
-            ATTRIBUTE_EXPORT_DATA_VERSION, DATA_VERSION_MC_1_20_5);
+            ATTRIBUTE_EXPORT_DATA_VERSION, DATA_VERSION_MC_1_20_5,
+            ATTRIBUTE_LATEST_DATA_VERSION, DATA_VERSION_MC_1_21_10);
+
+    public static final Platform JAVA_ANVIL_1_21_11 = new Platform(
+            "org.pepsoft.anvil.1.21.11",
+            "Minecraft 1.21.11 or later",
+            new int[] { 256, 320, 512, 1024, 1536, 2032 }, 320,
+            Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE,
+            new int[] { 0, -64, -128, -256, -512, -1024, -2032 }, -64,
+            Arrays.asList(SURVIVAL, CREATIVE, ADVENTURE, HARDCORE),
+            Arrays.asList(DEFAULT, FLAT, LARGE_BIOMES, AMPLIFIED, CUSTOM, NETHER, END),
+            Arrays.asList(DIM_NORMAL, DIM_NETHER, DIM_END),
+            EnumSet.of(PRECALCULATED_LIGHT, SET_SPAWN_POINT, BLOCK_BASED, NAME_BASED, SEED, NAMED_BIOMES, POPULATE, GENERATOR_PER_DIMENSION, LEAF_DISTANCES, WATERLOGGED_LEAVES, DATA_PACKS, BLOCK_MINECRAFT_LIGHT),
+            ATTRIBUTE_MC_VERSION, new org.pepsoft.util.Version(1, 21, 11),
+            ATTRIBUTE_DATAPACK_DESCRIPTOR_OVERWORLD, loadStringFromClasspath("org/pepsoft/worldpainter/datapack/1.21.11/overworld.json", UTF_8),
+            ATTRIBUTE_EXPORT_DATA_VERSION, DATA_VERSION_MC_1_21_11);
 
     /**
      * The default set of Minecraft Java Edition-based platforms supported by WorldPainter, ordered by release date from old to new.
      */
-    public static List<Platform> DEFAULT_JAVA_PLATFORMS = ImmutableList.of(JAVA_MCREGION, JAVA_ANVIL, JAVA_ANVIL_1_15, JAVA_ANVIL_1_17, JAVA_ANVIL_1_18, JAVA_ANVIL_1_19, JAVA_ANVIL_1_20_5);
+    public static List<Platform> DEFAULT_JAVA_PLATFORMS = ImmutableList.of(JAVA_MCREGION, JAVA_ANVIL, JAVA_ANVIL_1_15, JAVA_ANVIL_1_17, JAVA_ANVIL_1_18, JAVA_ANVIL_1_19, JAVA_ANVIL_1_20_5, JAVA_ANVIL_1_21_11);
 }

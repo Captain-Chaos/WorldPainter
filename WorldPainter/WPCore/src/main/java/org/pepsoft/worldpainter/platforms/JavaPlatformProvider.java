@@ -218,7 +218,8 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
             JAVA_ANVIL_1_17, new Anvil1_17PlatformProvider(),
             JAVA_ANVIL_1_18, new Anvil1_18PlatformProvider(),
             JAVA_ANVIL_1_19, new Anvil1_18PlatformProvider(),
-            JAVA_ANVIL_1_20_5, new Anvil1_18PlatformProvider()
+            JAVA_ANVIL_1_20_5, new Anvil1_18PlatformProvider(),
+            JAVA_ANVIL_1_21_11, new Anvil1_18PlatformProvider()
     );
 
     public static final Icon ICON = new ImageIcon(scaleIcon(loadUnscaledImage("org/pepsoft/worldpainter/mapexplorer/maproot.png"), 16));
