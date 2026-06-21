@@ -1,3 +1,9 @@
+-- Version 2.26.3, released 21-6-2026
+
+ * Java 26 and later are now supported as the runtime (fixes the ClassNotFoundException when starting WorldPainter on Java 26)
+ * Minecraft versions 1.21.11 and later have a compatible data pack generated for non standard build heights
+ * Bug fix: fix a problem with the Minecraft 1.21.11 non-standard build height datapack that was causing errors
+
 -- Version 2.26.1, released 28-9-2025
 
  * Bug fix: using Undo too many times in Custom Cave/Tunnel floor dimensions or Floating Dimensions will no longer cause errors
