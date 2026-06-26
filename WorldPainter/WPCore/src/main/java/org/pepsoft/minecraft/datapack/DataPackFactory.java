@@ -27,7 +27,7 @@ public class DataPackFactory {
         };
         datapack.addDescriptor("pack.mcmeta", Meta.builder().pack(packMetaBuilder.build()).build());
         if (platform.attributes.containsKey(ATTRIBUTE_DATAPACK_DESCRIPTOR_OVERWORLD.key)) {
-            final String processedValue = MessageFormat.format(platform.getAttribute(ATTRIBUTE_DATAPACK_DESCRIPTOR_OVERWORLD), maxHeight - minHeight, minHeight);
+            final String processedValue = MessageFormat.format(platform.getAttribute(ATTRIBUTE_DATAPACK_DESCRIPTOR_OVERWORLD), String.valueOf(maxHeight - minHeight), String.valueOf(minHeight));
             try {
                 datapack.addDescriptor("data/minecraft/dimension_type/overworld.json", OBJECT_MAPPER.readValue(processedValue, Dimension.class));
             } catch (JsonProcessingException e) {
