@@ -1,3 +1,9 @@
+-- Version 2.27.0, released 27-6-2026
+
+ * Added support for Exporting, Importing and Merging with maps from Minecraft 26.1 and later
+   + This is just the map format, which has changed structurally; not yet new blocks etc.
+   + Since the structure of the map has changed there is more potential for bugs and errors; please report any problems you encounter
+
 -- Version 2.26.4, released 25-6-2026
 
  * Bug fix: fix an error with non-standard build heights over 1000 for Minecraft 1.21.11 and above
