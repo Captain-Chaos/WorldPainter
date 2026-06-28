@@ -115,6 +115,7 @@ public final class Constants {
     public static final Version V_1_16   = new Version(1, 16);
     public static final Version V_1_17   = new Version(1, 17);
     public static final Version V_1_18   = new Version(1, 18);
+    public static final Version V_26_1   = new Version(26, 1);
 
     public static final int MIN_HEIGHT = -8388608;
     public static final int MAX_HEIGHT = 8388608;

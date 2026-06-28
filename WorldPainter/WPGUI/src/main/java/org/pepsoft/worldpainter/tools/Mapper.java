@@ -15,6 +15,8 @@ import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Version;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.pepsoft.worldpainter.exporting.WorldRegion;
+import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -111,20 +113,7 @@ public class Mapper {
         final Platform platform = level.getVersion() == VERSION_MCREGION ? DefaultPlugin.JAVA_MCREGION : DefaultPlugin.JAVA_ANVIL;
         minHeight = level.getMinHeight();
         maxHeight = level.getMaxHeight();
-        File dimensionDir;
-        switch (dim) {
-            case 0:
-                dimensionDir = worldDir;
-                break;
-            case 1:
-                dimensionDir = new File(worldDir, "DIM-1");
-                break;
-            case 2:
-                dimensionDir = new File(worldDir, "DIM1");
-                break;
-            default:
-                throw new IllegalArgumentException(Integer.toString(dim));
-        }
+        final File dimensionDir = ((JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform)).getDimensionDir(platform, worldDir, dim);
         final File regionDir = new File(dimensionDir, "region");
         if (!regionDir.exists()) {
             error("Map does not have dimension " + dim);

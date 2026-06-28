@@ -11,8 +11,8 @@ import org.pepsoft.worldpainter.plugins.PlatformProvider;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.synchronizedMap;
@@ -44,10 +44,9 @@ public class ScanMap extends AbstractTool {
         PlatformManager platformManager = PlatformManager.getInstance();
         Platform platform = platformManager.identifyPlatform(worldDir);
         PlatformProvider platformProvider = platformManager.getPlatformProvider(platform);
-        if (platformProvider instanceof JavaPlatformProvider) {
-            final JavaPlatformProvider javaPlatformProvider = (JavaPlatformProvider) platformProvider;
+        if (platformProvider instanceof JavaPlatformProvider javaPlatformProvider) {
             for (DataType dataType: javaPlatformProvider.getDataTypes(platform)) {
-                final File[] regionFiles = javaPlatformProvider.getRegionFiles(platform, new File(worldDir, "region"), dataType);
+                final File[] regionFiles = javaPlatformProvider.getRegionFiles(platform, new File(javaPlatformProvider.getDimensionDir(platform, worldDir, DIM_NORMAL), "region"), dataType);
                 if (regionFiles == null) {
                     continue;
                 }

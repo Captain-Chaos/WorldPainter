@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableMap;
 import org.jnbt.CompoundTag;
 import org.jnbt.Tag;
 import org.pepsoft.minecraft.*;
+import org.pepsoft.minecraft.datapack.DataPack;
+import org.pepsoft.minecraft.datapack.Meta;
 import org.pepsoft.minecraft.mapexplorer.JavaMapRootNode;
 import org.pepsoft.worldpainter.*;
 import org.pepsoft.worldpainter.Dimension;
@@ -22,6 +24,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +36,7 @@ import static org.pepsoft.util.IconUtils.scaleIcon;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 import static org.pepsoft.worldpainter.Generator.CUSTOM;
-import static org.pepsoft.worldpainter.util.MinecraftUtil.getRegionDir;
+import static org.pepsoft.worldpainter.Platform.ATTRIBUTE_DATAPACK_DESCRIPTOR_OVERWORLD;
 
 /**
  * A platform provider for Minecraft Java Edition chunk-based platforms.
@@ -55,6 +58,27 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
 
     public NBTChunk createChunk(Platform platform, Map<DataType, Tag> tags, int minHeight, int maxHeight, boolean readOnly) {
         return implementations.get(platform).createChunk(tags, minHeight, maxHeight, readOnly);
+    }
+
+    public File getDimensionDir(Platform platform, File worldDir, int dim) {
+        final int indexInDefaultOrder = DEFAULT_JAVA_PLATFORMS.indexOf(platform);
+        if (indexInDefaultOrder <= 7) {
+            // Minecraft 1.21.11 or earlier, or unknown platform
+            return switch (dim) {
+                case DIM_NORMAL -> worldDir;
+                case DIM_NETHER -> new File(worldDir, "DIM-1");
+                case DIM_END -> new File(worldDir, "DIM1");
+                default -> throw new IllegalArgumentException("Dimension " + dim + " not supported");
+            };
+        } else {
+            // Minecraft 26.1 or later
+            return switch (dim) {
+                case DIM_NORMAL -> new File(worldDir, "dimensions/minecraft/overworld");
+                case DIM_NETHER -> new File(worldDir, "dimensions/minecraft/the_nether");
+                case DIM_END -> new File(worldDir, "dimensions/minecraft/the_end");
+                default -> throw new IllegalArgumentException("Dimension " + dim + " not supported");
+            };
+        }
     }
 
     public File[] getRegionFiles(Platform platform, File regionDir, DataType dataType) {
@@ -82,6 +106,35 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
         return file.isFile() ? new RegionFile(file, readOnly) : null;
     }
 
+    public DataPack createWorldPainterDataPack(Platform platform, int minHeight, int maxHeight) {
+        final DataPack datapack = new DataPack();
+        Meta.Pack.PackBuilder packMetaBuilder = Meta.Pack.builder();
+        packMetaBuilder.description("WorldPainter Settings");
+        switch (platform.id) {
+            case "org.pepsoft.anvil.1.17" -> packMetaBuilder.packFormat(7);
+            case "org.pepsoft.anvil.1.21.11" -> {
+                packMetaBuilder.minFormat(94.1f);
+                packMetaBuilder.maxFormat(94.1f);
+            }
+            case "org.pepsoft.anvil.26.1" -> {
+                packMetaBuilder.minFormat(101.1f);
+                packMetaBuilder.maxFormat(101.1f);
+            }
+            default -> packMetaBuilder.packFormat(9);
+        };
+        datapack.addDescriptor("pack.mcmeta", Meta.builder().pack(packMetaBuilder.build()).build());
+        if (platform.attributes.containsKey(ATTRIBUTE_DATAPACK_DESCRIPTOR_OVERWORLD.key)) {
+            datapack.addDescriptor("data/minecraft/dimension_type/overworld.json",
+                    MessageFormat.format(platform.getAttribute(ATTRIBUTE_DATAPACK_DESCRIPTOR_OVERWORLD),
+                            String.valueOf(maxHeight - minHeight),
+                            String.valueOf(minHeight)));
+        } else {
+            datapack.addDescriptor("data/minecraft/dimension_type/overworld.json",
+                    org.pepsoft.minecraft.datapack.Dimension.createDefault(platform, DIM_NORMAL, minHeight, maxHeight));
+        }
+        return datapack;
+    }
+
     // BlockBasedPlatformProvider
 
     @Override
@@ -89,7 +142,7 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
         ensurePlatformSupported(platform);
         List<Integer> dimensions = new ArrayList<>();
         for (int dim: new int[] {DIM_NORMAL, DIM_NETHER, DIM_END}) {
-            if (containsFiles(getRegionDir(worldDir, dim))) {
+            if (containsFiles(new File(getDimensionDir(platform, worldDir, dim), "region"))) {
                 dimensions.add(dim);
             }
         }
@@ -111,7 +164,7 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
         } catch (IOException e) {
             throw new RuntimeException("I/O error while trying to read level.dat", e);
         }
-        return new JavaChunkStore(platform, getRegionDir(worldDir, dimension), level.getMinHeight(), level.getMaxHeight());
+        return new JavaChunkStore(platform, new File(getDimensionDir(platform, worldDir, dimension), "region"), level.getMinHeight(), level.getMaxHeight());
     }
 
     @Override
@@ -219,7 +272,8 @@ public final class JavaPlatformProvider extends AbstractPlatformProvider impleme
             JAVA_ANVIL_1_18, new Anvil1_18PlatformProvider(),
             JAVA_ANVIL_1_19, new Anvil1_18PlatformProvider(),
             JAVA_ANVIL_1_20_5, new Anvil1_18PlatformProvider(),
-            JAVA_ANVIL_1_21_11, new Anvil1_18PlatformProvider()
+            JAVA_ANVIL_1_21_11, new Anvil1_18PlatformProvider(),
+            JAVA_ANVIL_26_1, new Anvil1_18PlatformProvider()
     );
 
     public static final Icon ICON = new ImageIcon(scaleIcon(loadUnscaledImage("org/pepsoft/worldpainter/mapexplorer/maproot.png"), 16));

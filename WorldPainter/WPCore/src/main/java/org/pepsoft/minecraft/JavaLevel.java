@@ -11,6 +11,8 @@ import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import org.pepsoft.worldpainter.AccessDeniedException;
 import org.pepsoft.worldpainter.Platform;
 import org.pepsoft.worldpainter.Version;
+import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
+import org.pepsoft.worldpainter.plugins.PlatformManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +24,6 @@ import java.util.zip.GZIPOutputStream;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.util.Arrays.asList;
 import static org.pepsoft.minecraft.Constants.*;
-import static org.pepsoft.minecraft.datapack.DataPackFactory.createWorldPainterDataPack;
 import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.DefaultPlugin.*;
 
@@ -396,7 +397,9 @@ public abstract class JavaLevel extends AbstractNBTItem {
 
     public static JavaLevel create(Platform platform, int minHeight, int maxHeight) {
         final org.pepsoft.util.Version platformMcVersion = platform.getAttribute(ATTRIBUTE_MC_VERSION);
-        if (platformMcVersion.isAtLeast(V_1_18)) {
+        if (platformMcVersion.isAtLeast(V_26_1)) {
+            return new Java261Level(minHeight, maxHeight, platform);
+        } else if (platformMcVersion.isAtLeast(V_1_18)) {
             return new Java118Level(minHeight, maxHeight, platform);
         } else if (platformMcVersion.isAtLeast(V_1_16)) {
             return new Java116Level(minHeight, maxHeight, platform);
@@ -498,8 +501,12 @@ public abstract class JavaLevel extends AbstractNBTItem {
             return new Java115Level((CompoundTag) tag, maxHeight);
         } else if (dataVersion <= DATA_VERSION_MC_1_17_1) {
             return new Java116Level((CompoundTag) tag, minHeight, maxHeight);
-        } else {
+        } else if (dataVersion <= DATA_VERSION_MC_1_21_11) {
             return new Java118Level((CompoundTag) tag, minHeight, maxHeight);
+        } else {
+            final Java261Level level = new Java261Level((CompoundTag) tag, minHeight, maxHeight);
+            level.loadWorldGenSettings(worldDir);
+            return level;
         }
     }
 
@@ -507,7 +514,9 @@ public abstract class JavaLevel extends AbstractNBTItem {
         try {
             final File datapackDir = new File(worldDir, "datapacks");
             datapackDir.mkdirs();
-            createWorldPainterDataPack(platform, minHeight, maxHeight).write(new FileOutputStream(new File(datapackDir, "worldpainter.zip")));
+            ((JavaPlatformProvider) PlatformManager.getInstance().getPlatformProvider(platform))
+                    .createWorldPainterDataPack(platform, minHeight, maxHeight)
+                    .write(new FileOutputStream(new File(datapackDir, "worldpainter.zip")));
         } catch (IOException e) {
             throw new MDCCapturingRuntimeException("I/O error creating datapack", e);
         }

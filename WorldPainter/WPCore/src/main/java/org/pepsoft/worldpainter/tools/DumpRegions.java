@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.pepsoft.minecraft.DataType.REGION;
+import static org.pepsoft.worldpainter.Constants.DIM_NORMAL;
 
 public class DumpRegions extends AbstractTool {
     public static void main(String[] args) {
@@ -20,7 +21,7 @@ public class DumpRegions extends AbstractTool {
         final PlatformManager platformManager = PlatformManager.getInstance();
         final Platform platform = platformManager.identifyPlatform(worldDir);
         final JavaPlatformProvider platformProvider = (JavaPlatformProvider) platformManager.getPlatformProvider(platform);
-        final File[] regionFiles = platformProvider.getRegionFiles(platform, new File(worldDir, "region"), REGION);
+        final File[] regionFiles = platformProvider.getRegionFiles(platform, new File(platformProvider.getDimensionDir(platform, worldDir, DIM_NORMAL), "region"), REGION);
         if (regionFiles == null) {
             return;
         }

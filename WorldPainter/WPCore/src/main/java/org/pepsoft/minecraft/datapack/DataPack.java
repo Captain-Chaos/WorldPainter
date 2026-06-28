@@ -1,5 +1,6 @@
 package org.pepsoft.minecraft.datapack;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.slf4j.Logger;
@@ -12,12 +13,13 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static com.fasterxml.jackson.core.JsonGenerator.Feature.AUTO_CLOSE_TARGET;
 import static com.fasterxml.jackson.core.JsonParser.Feature.AUTO_CLOSE_SOURCE;
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.unmodifiableMap;
-import static org.pepsoft.minecraft.datapack.DataPackFactory.OBJECT_MAPPER;
 import static org.pepsoft.util.FileUtils.visitFilesRecursively;
 
 public class DataPack {
@@ -107,4 +109,7 @@ public class DataPack {
     private final Map<String, Object> descriptors = new HashMap<>();
 
     private static final Logger logger = LoggerFactory.getLogger(DataPack.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .setPropertyNamingStrategy(SNAKE_CASE)
+            .setSerializationInclusion(NON_NULL);
 }

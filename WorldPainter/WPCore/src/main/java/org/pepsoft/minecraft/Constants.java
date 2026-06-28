@@ -740,6 +740,7 @@ public final class Constants {
     public static final String TAG_SEED_                   = "seed";
     public static final String TAG_TYPE_                   = "type";
     public static final String TAG_GENERATE_FEATURES_      = "generate_features";
+    public static final String TAG_GENERATE_STRUCTURES_    = "generate_structures";
     public static final String TAG_SETTINGS_               = "settings";
     public static final String TAG_BIOME_SOURCE_           = "biome_source";
     public static final String TAG_PRESET_                 = "preset";

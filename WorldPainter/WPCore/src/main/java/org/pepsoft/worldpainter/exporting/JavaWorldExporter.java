@@ -9,8 +9,8 @@ import org.pepsoft.minecraft.*;
 import org.pepsoft.minecraft.SuperflatPreset.Structure;
 import org.pepsoft.util.FileUtils;
 import org.pepsoft.util.ProgressReceiver;
-import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.Dimension.Anchor;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.platforms.JavaPlatformProvider;
@@ -343,20 +343,7 @@ public class JavaWorldExporter extends AbstractWorldExporter { // TODO can this 
     protected ChunkFactory.Stats exportDimension(File worldDir, Dimension dimension, ProgressReceiver progressReceiver) {
         return doWithMdcContext(() -> {
             final Anchor anchor = dimension.getAnchor();
-            final File dimensionDir;
-            switch (anchor.dim) {
-                case DIM_NORMAL:
-                    dimensionDir = worldDir;
-                    break;
-                case DIM_NETHER:
-                    dimensionDir = new File(worldDir, "DIM-1");
-                    break;
-                case DIM_END:
-                    dimensionDir = new File(worldDir, "DIM1");
-                    break;
-                default:
-                    throw new IllegalArgumentException("Dimension " + anchor.dim + " not supported");
-            }
+            final File dimensionDir = platformProvider.getDimensionDir(platform, worldDir, anchor.dim);
             for (DataType dataType: platformProvider.getDataTypes(platform)) {
                 File regionDir = new File(dimensionDir, dataType.name().toLowerCase());
                 if (! regionDir.exists()) {

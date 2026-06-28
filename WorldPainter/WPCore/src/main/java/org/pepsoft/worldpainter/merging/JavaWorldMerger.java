@@ -40,7 +40,7 @@ import static org.pepsoft.worldpainter.Constants.*;
 import static org.pepsoft.worldpainter.Dimension.Anchor.*;
 import static org.pepsoft.worldpainter.Dimension.Role.MASTER;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
-import static org.pepsoft.worldpainter.platforms.PlatformUtils.determineNativePlatforms;
+import static org.pepsoft.worldpainter.platforms.PlatformUtils.determineCompatiblePlatforms;
 
 /**
  *
@@ -279,9 +279,6 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             if (! worldDir.renameTo(backupDir)) {
                 throw new FileInUseException("Could not move " + worldDir + " to " + backupDir);
             }
-            if (! worldDir.mkdirs()) {
-                throw new IOException("Could not create " + worldDir);
-            }
 
             // Modify it if necessary and write it to the new level
             final Set<Integer> selectedDimensions = worldExportSettings.getDimensionsToExport();
@@ -302,26 +299,28 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             // TODO: copy EVERYTHING and then operate solely on the copied map? No need to copy things from the backup
 
             // Copy everything that we are not going to generate
-            File[] files = backupDir.listFiles();
-            for (File file: files) {
-                if ((! file.getName().equalsIgnoreCase("level.dat"))
-                        && (! file.getName().equalsIgnoreCase("level.dat_old"))
-                        && (! file.getName().equalsIgnoreCase("session.lock"))
-                        && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_NORMAL))) || (! file.getName().equalsIgnoreCase("region")))
-                        && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_NORMAL))) || (! file.getName().equalsIgnoreCase("entities")))
-                        && (! file.getName().equalsIgnoreCase("maxheight.txt"))
-                        && (! file.getName().equalsIgnoreCase("Height.txt"))
-                        && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_NETHER))) || (! file.getName().equalsIgnoreCase("DIM-1"))) // TODO still copy dirs other than region and entities
-                        && (((selectedDimensions != null) && (! selectedDimensions.contains(DIM_END))) || (! file.getName().equalsIgnoreCase("DIM1")))) { // TODO still copy dirs other than region and entities
-                    if (file.isFile()) {
-                        FileUtils.copyFileToDir(file, worldDir);
-                    } else if (file.isDirectory()) {
-                        FileUtils.copyDir(file, new File(worldDir, file.getName()));
-                    } else {
-                        logger.warn("Not copying " + file + "; not a regular file or directory");
-                    }
-                }
+            final Set<File> skipDirs = new HashSet<>();
+            if ((selectedDimensions == null) || selectedDimensions.contains(DIM_NORMAL)) {
+                final File backupNormalDimDir = platformProvider.getDimensionDir(platform, backupDir, DIM_NORMAL);
+                skipDirs.add(new File(backupNormalDimDir, "region"));
+                skipDirs.add(new File(backupNormalDimDir, "entities"));
             }
+            if ((selectedDimensions == null) || selectedDimensions.contains(DIM_NETHER)) {
+                final File backupNetherDimDir = platformProvider.getDimensionDir(platform, backupDir, DIM_NETHER);
+                skipDirs.add(new File(backupNetherDimDir, "region"));
+                skipDirs.add(new File(backupNetherDimDir, "entities"));
+            }
+            if ((selectedDimensions == null) || selectedDimensions.contains(DIM_END)) {
+                final File backupEndDimDir = platformProvider.getDimensionDir(platform, backupDir, DIM_END);
+                skipDirs.add(new File(backupEndDimDir, "region"));
+                skipDirs.add(new File(backupEndDimDir, "entities"));
+            }
+            FileUtils.copyDir(backupDir, worldDir, file -> (!skipDirs.contains(file))
+                    && (! file.getName().equalsIgnoreCase("level.dat"))
+                    && (! file.getName().equalsIgnoreCase("level.dat_old"))
+                    && (! file.getName().equalsIgnoreCase("session.lock"))
+                    && (! file.getName().equalsIgnoreCase("maxheight.txt"))
+                    && (! file.getName().equalsIgnoreCase("Height.txt")));
 
             // Save the level.dat file. This will also create a session.lock file, hopefully kicking out any Minecraft
             // instances which may have the map open:
@@ -410,25 +409,8 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
             if (progressReceiver != null) {
                 progressReceiver.setMessage("merging " + dimension.getName() + " dimension");
             }
-            final File dimensionDir, backupDimensionDir;
-            final Dimension.Anchor anchor = dimension.getAnchor();
-            final int dim = anchor.dim;
-            switch (dim) {
-                case org.pepsoft.worldpainter.Constants.DIM_NORMAL:
-                    dimensionDir = worldDir;
-                    backupDimensionDir = backupWorldDir;
-                    break;
-                case org.pepsoft.worldpainter.Constants.DIM_NETHER:
-                    dimensionDir = new File(worldDir, "DIM-1");
-                    backupDimensionDir = new File(backupWorldDir, "DIM-1");
-                    break;
-                case org.pepsoft.worldpainter.Constants.DIM_END:
-                    dimensionDir = new File(worldDir, "DIM1");
-                    backupDimensionDir = new File(backupWorldDir, "DIM1");
-                    break;
-                default:
-                    throw new IllegalArgumentException("Dimension " + dim + " not supported");
-            }
+            final int dim = dimension.getAnchor().dim;
+            final File dimensionDir = platformProvider.getDimensionDir(platform, worldDir, dim), backupDimensionDir = platformProvider.getDimensionDir(platform, backupWorldDir, dim);
             final Set<DataType> dataTypes = platformProvider.getDataTypes(platform);
             for (DataType dataType: dataTypes) {
                 File regionDir = new File(dimensionDir, dataType.name().toLowerCase());
@@ -1015,7 +997,7 @@ public class JavaWorldMerger extends JavaWorldExporter { // TODO can this be mad
                     }
                     if (existingChunk != null) {
                         // Sanity checks
-                        final Set<Platform> chunkNativePlatforms = determineNativePlatforms(existingChunk);
+                        final Set<Platform> chunkNativePlatforms = determineCompatiblePlatforms(existingChunk);
                         if ((chunkNativePlatforms != null) && (! chunkNativePlatforms.contains(platform))) {
                             throw createInvalidMapException("At least one of the existing chunks to be merged is in a different format (" + chunkNativePlatforms.stream().map(p -> p.displayName).collect(joining(" or ")) + ")", oldRegionDir.getParentFile());
                         } else if (existingChunk.getMinHeight() > dimension.getMinHeight()) {

@@ -9,8 +9,8 @@ import org.pepsoft.minecraft.ChunkStore.ChunkVisitor;
 import org.pepsoft.util.LongAttributeKey;
 import org.pepsoft.util.ProgressReceiver;
 import org.pepsoft.util.SubProgressReceiver;
-import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.*;
+import org.pepsoft.worldpainter.Dimension;
 import org.pepsoft.worldpainter.biomeschemes.CustomBiome;
 import org.pepsoft.worldpainter.history.HistoryEntry;
 import org.pepsoft.worldpainter.layers.*;
@@ -24,8 +24,8 @@ import org.pepsoft.worldpainter.vo.EventVO;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -41,7 +41,7 @@ import static org.pepsoft.worldpainter.Dimension.Anchor.*;
 import static org.pepsoft.worldpainter.Platform.Capability.*;
 import static org.pepsoft.worldpainter.biomeschemes.Minecraft1_21Biomes.*;
 import static org.pepsoft.worldpainter.importing.MapImporter.ReadOnlyOption.*;
-import static org.pepsoft.worldpainter.platforms.PlatformUtils.determineNativePlatforms;
+import static org.pepsoft.worldpainter.platforms.PlatformUtils.determineCompatiblePlatforms;
 import static org.pepsoft.worldpainter.util.BiomeUtils.getBiomeScheme;
 import static org.pepsoft.worldpainter.util.ChunkUtils.skipChunk;
 
@@ -74,8 +74,8 @@ public class JavaMapImporter extends MapImporter {
     public World2 doImport(ProgressReceiver progressReceiver) throws IOException, ProgressReceiver.OperationCancelled {
         final long start = System.currentTimeMillis();
 
-        logger.info("Importing map from " + levelDatFile.getAbsolutePath());
         final File worldDir = levelDatFile.getParentFile();
+        logger.info("Importing map from " + worldDir.getAbsolutePath());
         final int dimCount = dimensionsToImport.size();
         final JavaLevel level = JavaLevel.load(levelDatFile);
         final World2 world = importWorld(level);
@@ -277,7 +277,7 @@ public class JavaMapImporter extends MapImporter {
                         if (skipChunk(chunk)) {
                             return true;
                         }
-                        final Set<Platform> chunkNativePlatforms = determineNativePlatforms(chunk);
+                        final Set<Platform> chunkNativePlatforms = determineCompatiblePlatforms(chunk);
                         if ((chunkNativePlatforms != null) && (! chunkNativePlatforms.contains(platform))) {
                             chunkNativePlatforms.forEach(chunkNativePlatform -> nonNativePlatformsEncountered.computeIfAbsent(chunkNativePlatform, p -> new AtomicInteger()).incrementAndGet());
                         } else if ((chunk.getMinHeight() > minHeight) || (chunk.getMaxHeight() < maxHeight)) {

@@ -4,14 +4,11 @@
  */
 package org.pepsoft.worldpainter.util;
 
-import org.jetbrains.annotations.NotNull;
 import org.pepsoft.util.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-
-import static org.pepsoft.worldpainter.Constants.*;
 
 /**
  *
@@ -82,25 +79,6 @@ public class MinecraftUtil {
             }
         }
         return null;
-    }
-
-    @NotNull
-    public static File getRegionDir(File worldDir, int dimension) {
-        File regionDir;
-        switch (dimension) {
-            case DIM_NORMAL:
-                regionDir = new File(worldDir, "region");
-                break;
-            case DIM_NETHER:
-                regionDir = new File(worldDir, "DIM-1/region");
-                break;
-            case DIM_END:
-                regionDir = new File(worldDir, "DIM1/region");
-                break;
-            default:
-                throw new IllegalArgumentException("Dimension " + dimension + " not supported");
-        }
-        return regionDir;
     }
 
     public static String blocksToWalkingTime(int blocks) {
