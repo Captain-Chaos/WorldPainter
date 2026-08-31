@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jnbt.*;
 import org.pepsoft.minecraft.MC118AnvilChunk.Section.IncompleteSectionException;
 import org.pepsoft.util.PackedArrayCube;
+import org.pepsoft.util.Palleted16Section;
 import org.pepsoft.util.mdc.MDCCapturingRuntimeException;
 import org.pepsoft.worldpainter.exporting.MinecraftWorld;
 import org.slf4j.Logger;
@@ -513,7 +514,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
         }
         if (section.singleMaterial != null) {
             if (material != section.singleMaterial) {
-                section.materials = new PackedArrayCube<>(16, 4, false, Material.class);
+                section.materials = new Palleted16Section<>(Material.class);
                 if (section.singleMaterial != AIR) {
                     section.materials.fill(section.singleMaterial);
                 }
@@ -817,7 +818,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
                     final LongArrayTag blockStatesDataTag = (LongArrayTag) blockStatesTag.getTag(TAG_DATA_);
                     if (blockStatesDataTag != null) {
                         final long[] blockStates = blockStatesDataTag.getValue();
-                        materials = new PackedArrayCube<>(16, blockStates, palette, 4, false, Material.class);
+                        materials = new Palleted16Section<>(16, blockStates, palette, 4, false, Material.class);
                     } else if (palette.length == 1) {
                         // Entire section filled with one material
                         singleMaterial = (palette[0] == null) ? AIR : palette[0];
@@ -875,7 +876,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
             if (singleMaterial != null) {
                 setMap(TAG_BLOCK_STATES_, ImmutableMap.of(TAG_PALETTE_, new ListTag<>(TAG_PALETTE_, CompoundTag.class, singletonList(createPaletteEntry(singleMaterial)))));
             } else {
-                PackedArrayCube<Material>.PackedData packedMaterials = materials.pack();
+                PackedArrayCube.PackedData<Material> packedMaterials = materials.pack();
                 List<CompoundTag> palette = new ArrayList<>(packedMaterials.palette.length);
                 for (Material material: packedMaterials.palette) {
                     palette.add(createPaletteEntry(material));
@@ -886,7 +887,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
             if (singleBiome != null) {
                 setMap(TAG_BIOMES_, ImmutableMap.of(TAG_PALETTE_, new ListTag<>(TAG_PALETTE_, StringTag.class, singletonList(new StringTag("", singleBiome)))));
             } else if (biomes != null) {
-                PackedArrayCube<String>.PackedData packedBiomes = biomes.pack();
+                PackedArrayCube.PackedData<String> packedBiomes = biomes.pack();
                 List<StringTag> palette = new ArrayList<>(packedBiomes.palette.length);
                 for (String biome: packedBiomes.palette) {
                     palette.add(new StringTag("", biome));
@@ -991,7 +992,7 @@ public final class MC118AnvilChunk extends MCNamedBlocksChunk implements Section
         byte[] skyLight;
         byte[] blockLight;
         // Exactly one of these should be set:
-        PackedArrayCube<Material> materials;
+        Palleted16Section<Material> materials;
         Material singleMaterial;
         // At most one of these should be set:
         PackedArrayCube<String> biomes;

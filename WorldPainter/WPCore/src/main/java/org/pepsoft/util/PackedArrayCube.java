@@ -128,7 +128,7 @@ public class PackedArrayCube<T> {
      *
      * @return The packed data.
      */
-    public PackedData pack() {
+    public PackedData<T> pack() {
         return pack(null);
     }
 
@@ -140,7 +140,7 @@ public class PackedArrayCube<T> {
      * @return The packed data.
      */
     @SuppressWarnings("unchecked") // Guaranteed by Java library
-    public PackedData pack(T nullSubstitute) {
+    public PackedData<T> pack(T nullSubstitute) {
         // Create the palette. We have to do this first, because otherwise we don't know how many bits the indices will
         // be and therefore how big to make the data array
         final Map<T, Integer> reversePalette = new HashMap<>();
@@ -225,7 +225,7 @@ public class PackedArrayCube<T> {
                 }
             }
         }
-        return new PackedData(data, palette.toArray((T[]) Array.newInstance(type, palette.size())));
+        return new PackedData<T>(data, palette.toArray((T[]) Array.newInstance(type, palette.size())));
     }
 
     private int offset(int x, int y, int z) {
@@ -241,7 +241,7 @@ public class PackedArrayCube<T> {
     private final boolean straddleLongs;
     private final T[] values;
 
-    public class PackedData {
+    public static class PackedData <T> {
         public PackedData(long[] data, T[] palette) {
             this.data = data;
             this.palette = palette;
